@@ -12,7 +12,10 @@ dependencies:
     sdk: flutter
   drift: ^2.30.1
   persistence_core:
-    path: ../persistence_core
+    git:
+      url: http://xuan:***@192.168.0.165:3000/xuan/xuan-storage.git
+      ref: main
+      path: core
 
 dev_dependencies:
   flutter_test:
