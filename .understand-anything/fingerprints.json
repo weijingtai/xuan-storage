@@ -1,0 +1,337 @@
+{
+  "version": "1.0.0",
+  "gitCommitHash": "d3709fb63e9c2cb655a7a3f18ce1ecd00d51afd9",
+  "generatedAt": "2026-05-21T10:26:58.207Z",
+  "files": {
+    "core/.metadata": {
+      "filePath": "core/.metadata",
+      "contentHash": "4ba1417eb821d2c02b86126df21c3d3f1a21050609d2501421b5ae88556ce8b6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 11,
+      "hasStructuralAnalysis": false
+    },
+    "core/CHANGELOG.md": {
+      "filePath": "core/CHANGELOG.md",
+      "contentHash": "3790c391cc0632af71ae53941e38940072042e23a8649eee2898e939804a918a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4,
+      "hasStructuralAnalysis": false
+    },
+    "core/README.md": {
+      "filePath": "core/README.md",
+      "contentHash": "eeda72d5440a872d24c7f4e6017b7b5b91a382c6393edf6850ec63c4a89a2baa",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 40,
+      "hasStructuralAnalysis": false
+    },
+    "core/analysis_options.yaml": {
+      "filePath": "core/analysis_options.yaml",
+      "contentHash": "69d5fc7c4dc082613882215d52d18b02b1688b833d674ce9b281f45821626b7d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": false
+    },
+    "core/config/sync_configuration.defaults.yaml": {
+      "filePath": "core/config/sync_configuration.defaults.yaml",
+      "contentHash": "d09aa1ddbf3ae1af32b80900b500d07a8c0e85759fe83c14d3be8715d28df8ed",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 15,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/configuration/sync_configuration_manager.dart": {
+      "filePath": "core/lib/configuration/sync_configuration_manager.dart",
+      "contentHash": "004ce702cc01ae6861ee3217e31b17c628176656c95f8785af76228c56cb5fab",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 654,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/configuration/yaml_file_loader.dart": {
+      "filePath": "core/lib/configuration/yaml_file_loader.dart",
+      "contentHash": "c5523cbbff8c1f11d61a5bdc89bd81dcd55e7ee186668436c9ba2ffc59c4cded",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 56,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/core/sync_coordinator.dart": {
+      "filePath": "core/lib/core/sync_coordinator.dart",
+      "contentHash": "db5f88b2014249ac562ae47a2e832e5356851af8d0dce980a459b4944f3e4984",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 472,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/logging/sync_logger.dart": {
+      "filePath": "core/lib/logging/sync_logger.dart",
+      "contentHash": "e9f081e7072baf2648cc801f4724dc9a409d56495672329be653db57d346efd5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 225,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/model/ports.dart": {
+      "filePath": "core/lib/model/ports.dart",
+      "contentHash": "890037edc19cd279c18f207392a6a7a45e562984114ac966db37a699fd2791c5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 279,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/model/types.dart": {
+      "filePath": "core/lib/model/types.dart",
+      "contentHash": "3fa6ec1718e475e619745c6cd7d756d781f037352c7bfcd58e989d0371dd4cf1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 484,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/persistence_core.dart": {
+      "filePath": "core/lib/persistence_core.dart",
+      "contentHash": "aa0078c6d4c9adbff1cc00777a56bc30d44df3659a7964e47f0b59dd2e65d512",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 9,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/sync/sync_runtime.dart": {
+      "filePath": "core/lib/sync/sync_runtime.dart",
+      "contentHash": "db9fc1547ae4bc15946796c1596fbf50eba23b099379881b8a7e93de5485f595",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 770,
+      "hasStructuralAnalysis": false
+    },
+    "core/pubspec.yaml": {
+      "filePath": "core/pubspec.yaml",
+      "contentHash": "d74cd6cdeea1aa358d6fd81d4fe1305e68ecf7e994b1e11b2eb7ea6847db191a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 15,
+      "hasStructuralAnalysis": false
+    },
+    "core/test/persistence_core_test.dart": {
+      "filePath": "core/test/persistence_core_test.dart",
+      "contentHash": "f63245bec608fef933351d65dd9956b8b98fb797b0a645bdaefe8a9128afb9ab",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 585,
+      "hasStructuralAnalysis": false
+    },
+    "drift/.metadata": {
+      "filePath": "drift/.metadata",
+      "contentHash": "4ba1417eb821d2c02b86126df21c3d3f1a21050609d2501421b5ae88556ce8b6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 11,
+      "hasStructuralAnalysis": false
+    },
+    "drift/CHANGELOG.md": {
+      "filePath": "drift/CHANGELOG.md",
+      "contentHash": "3790c391cc0632af71ae53941e38940072042e23a8649eee2898e939804a918a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4,
+      "hasStructuralAnalysis": false
+    },
+    "drift/README.md": {
+      "filePath": "drift/README.md",
+      "contentHash": "eeda72d5440a872d24c7f4e6017b7b5b91a382c6393edf6850ec63c4a89a2baa",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 40,
+      "hasStructuralAnalysis": false
+    },
+    "drift/analysis_options.yaml": {
+      "filePath": "drift/analysis_options.yaml",
+      "contentHash": "df692318073ecc5f3b8a759a1f9338eb21995900d3c2bc1fbcd2c7780a1c7c6e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/persistence_drift.dart": {
+      "filePath": "drift/lib/persistence_drift.dart",
+      "contentHash": "ce262f566bcca867227e5739008097a2ad5ea270ca52b15703a48dc363fb7a59",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 878,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/persistence_drift.g.dart": {
+      "filePath": "drift/lib/persistence_drift.g.dart",
+      "contentHash": "80fd081fd041e3eb870380f6d02671a3a1e5a334cec5959172aa0e58b68e45f1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1894,
+      "hasStructuralAnalysis": false
+    },
+    "drift/pubspec.yaml": {
+      "filePath": "drift/pubspec.yaml",
+      "contentHash": "c96d1d55b12a2b86d1d1996a57c32796c5beb8be04df909a211778ec2c49ef6b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 63,
+      "hasStructuralAnalysis": false
+    },
+    "drift/test/persistence_drift_test.dart": {
+      "filePath": "drift/test/persistence_drift_test.dart",
+      "contentHash": "cdcb2573d9c33a9b8e090d886c9d50f5e3bf38e15544642322f6b74293276589",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 183,
+      "hasStructuralAnalysis": false
+    },
+    "firebase/.metadata": {
+      "filePath": "firebase/.metadata",
+      "contentHash": "4ba1417eb821d2c02b86126df21c3d3f1a21050609d2501421b5ae88556ce8b6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 11,
+      "hasStructuralAnalysis": false
+    },
+    "firebase/CHANGELOG.md": {
+      "filePath": "firebase/CHANGELOG.md",
+      "contentHash": "3790c391cc0632af71ae53941e38940072042e23a8649eee2898e939804a918a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4,
+      "hasStructuralAnalysis": false
+    },
+    "firebase/README.md": {
+      "filePath": "firebase/README.md",
+      "contentHash": "eeda72d5440a872d24c7f4e6017b7b5b91a382c6393edf6850ec63c4a89a2baa",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 40,
+      "hasStructuralAnalysis": false
+    },
+    "firebase/analysis_options.yaml": {
+      "filePath": "firebase/analysis_options.yaml",
+      "contentHash": "df692318073ecc5f3b8a759a1f9338eb21995900d3c2bc1fbcd2c7780a1c7c6e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "firebase/lib/firebase_realtime_remote_gateway.dart": {
+      "filePath": "firebase/lib/firebase_realtime_remote_gateway.dart",
+      "contentHash": "26f51d49ab620741632cdac8eb3bf14010361bac6b84936194b26decc2bacbb8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 953,
+      "hasStructuralAnalysis": false
+    },
+    "firebase/lib/persistence_firebase.dart": {
+      "filePath": "firebase/lib/persistence_firebase.dart",
+      "contentHash": "df6d7e1e0b17ee91a4b1bd628b26912d2d56b8dcab5f7b2863e865ea24af3f9a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 943,
+      "hasStructuralAnalysis": false
+    },
+    "firebase/pubspec.yaml": {
+      "filePath": "firebase/pubspec.yaml",
+      "contentHash": "a696a64b184b62053bc996c00a0d64f57101305bf31f2d9157842fd9fe84cd21",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 63,
+      "hasStructuralAnalysis": false
+    },
+    "firebase/test/fake_persistence_test.dart": {
+      "filePath": "firebase/test/fake_persistence_test.dart",
+      "contentHash": "2be6fecd7ea3cd80e5c2068f2c3e5c8f8930722f602f5df10c206c0a52cd9173",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 465,
+      "hasStructuralAnalysis": false
+    },
+    "firebase/test/persistence_firebase_test.dart": {
+      "filePath": "firebase/test/persistence_firebase_test.dart",
+      "contentHash": "d22f8afe01105b13db151bfc4a8d40a9c16cc617992d78e9cbb7a5982d16adda",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 10,
+      "hasStructuralAnalysis": false
+    },
+    "pubspec.yaml": {
+      "filePath": "pubspec.yaml",
+      "contentHash": "a331dc732b31277715bede3cb00e8de8743d5597f207eb2c5b57898acb747a11",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 8,
+      "hasStructuralAnalysis": false
+    }
+  }
+}

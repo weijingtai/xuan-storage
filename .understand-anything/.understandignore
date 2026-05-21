@@ -1,0 +1,12 @@
+# .understandignore — patterns for files/dirs to exclude
+# Built-in defaults apply.
+
+# --- From .gitignore (uncomment) ---
+
+# .chrome-profile/
+# example/.chrome-profile/
+
+# --- Test file patterns (uncomment to exclude) ---
+
+# *.test.*
+# *.spec.*

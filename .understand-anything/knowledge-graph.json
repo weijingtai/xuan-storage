@@ -1,0 +1,2567 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "xuan-storage",
+    "languages": [
+      "dart",
+      "markdown",
+      "unknown",
+      "yaml"
+    ],
+    "frameworks": [
+      "Cloud Firestore",
+      "Dart",
+      "Dart test",
+      "Drift",
+      "Firebase Realtime Database",
+      "Flutter",
+      "build_runner",
+      "yaml"
+    ],
+    "description": "",
+    "analyzedAt": "2026-05-21T10:26:58.180Z",
+    "gitCommitHash": "d3709fb63e9c2cb655a7a3f18ce1ecd00d51afd9"
+  },
+  "nodes": [
+    {
+      "id": "config:core/.metadata",
+      "type": "config",
+      "name": ".metadata",
+      "filePath": "core/.metadata",
+      "summary": "Flutter/Dart project metadata file tracking template version and project identity.",
+      "tags": [
+        "configuration",
+        "metadata",
+        "tooling"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:core/CHANGELOG.md",
+      "type": "document",
+      "name": "CHANGELOG.md",
+      "filePath": "core/CHANGELOG.md",
+      "summary": "Changelog stub recording the 0.0.1 initial release of the persistence_core package.",
+      "tags": [
+        "documentation",
+        "changelog",
+        "release-notes"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:core/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "core/README.md",
+      "summary": "Default Dart package README scaffold with placeholder TODO sections for Features, Getting started, Usage, and Additional information.",
+      "tags": [
+        "documentation",
+        "entry-point",
+        "scaffold"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:core/analysis_options.yaml",
+      "type": "config",
+      "name": "analysis_options.yaml",
+      "filePath": "core/analysis_options.yaml",
+      "summary": "Dart static-analysis configuration that pulls in a recommended lint ruleset for the persistence_core package.",
+      "tags": [
+        "configuration",
+        "linting",
+        "dart"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:core/config/sync_configuration.defaults.yaml",
+      "type": "config",
+      "name": "sync_configuration.defaults.yaml",
+      "filePath": "core/config/sync_configuration.defaults.yaml",
+      "summary": "Default YAML configuration for the sync engine, defining batch sizes, retry thresholds, scheduling intervals, backoff bounds, and pull entity types.",
+      "tags": [
+        "configuration",
+        "sync",
+        "defaults",
+        "yaml"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:core/lib/configuration/sync_configuration_manager.dart",
+      "type": "file",
+      "name": "sync_configuration_manager.dart",
+      "filePath": "core/lib/configuration/sync_configuration_manager.dart",
+      "summary": "Defines SyncConfiguration value type plus pluggable storage/codec abstractions (in-memory, file, YAML/JSON) and a SyncConfigurationManager that loads, updates, persists and wires configuration into SyncCoordinator and SyncRuntime.",
+      "tags": [
+        "configuration",
+        "factory",
+        "persistence",
+        "sync",
+        "yaml"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Uses Object sentinel _unset in copyWith to distinguish 'leave unchanged' from 'set to null', and broadcasts updates via a StreamController."
+    },
+    {
+      "id": "file:core/lib/configuration/yaml_file_loader.dart",
+      "type": "file",
+      "name": "yaml_file_loader.dart",
+      "filePath": "core/lib/configuration/yaml_file_loader.dart",
+      "summary": "Small wrapper around package:yaml that reads optional YAML files from disk and converts YamlMap/YamlList trees into plain Dart Map/List structures.",
+      "tags": [
+        "utility",
+        "yaml",
+        "parsing",
+        "io"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:core/lib/core/sync_coordinator.dart",
+      "type": "file",
+      "name": "sync_coordinator.dart",
+      "filePath": "core/lib/core/sync_coordinator.dart",
+      "summary": "Implements the core single-run sync engine: OutboxPusher drives outbox-to-remote push attempts while SyncCoordinator orchestrates push and cursor-based pull, updating SyncStatus and logging structured events.",
+      "tags": [
+        "sync",
+        "service",
+        "coordinator",
+        "outbox",
+        "pull-push"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:core/lib/logging/sync_logger.dart",
+      "type": "file",
+      "name": "sync_logger.dart",
+      "filePath": "core/lib/logging/sync_logger.dart",
+      "summary": "Structured logging facade for the sync engine: defines SyncLogLevel, SyncLogRecord, a level-filtered SyncLogger, and several SyncLogSink implementations (print, in-memory, ring-buffer, composite, noop).",
+      "tags": [
+        "logging",
+        "utility",
+        "observability",
+        "type-definition"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:core/lib/model/ports.dart",
+      "type": "file",
+      "name": "ports.dart",
+      "filePath": "core/lib/model/ports.dart",
+      "summary": "Hexagonal-architecture port (contract) interfaces between the sync engine and concrete storage/network adapters: OutboxStore, SyncStateStore, RemoteGateway, LocalApplier, DeviceIdentityProvider, AuthScopeProvider.",
+      "tags": [
+        "type-definition",
+        "ports",
+        "contracts",
+        "sync",
+        "hexagonal"
+      ],
+      "complexity": "complex",
+      "languageNotes": "All ports are abstract classes scoped by scopeUid for multi-account isolation; callers depend on these interfaces rather than Drift/Firebase implementations."
+    },
+    {
+      "id": "file:core/lib/model/types.dart",
+      "type": "file",
+      "name": "types.dart",
+      "filePath": "core/lib/model/types.dart",
+      "summary": "Shared value types and enums emitted by the sync engine: SyncError/SyncErrorCode, SyncStatus, PullCursor variants, RemoteChange/RemoteChangesPage, OutboxRecord, LocalApplyResult, OutboxPushRunResult and PullRunResult.",
+      "tags": [
+        "type-definition",
+        "data-model",
+        "sync",
+        "value-objects"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:core/lib/persistence_core.dart",
+      "type": "file",
+      "name": "persistence_core.dart",
+      "filePath": "core/lib/persistence_core.dart",
+      "summary": "Public barrel file that re-exports the ports, types, coordinator, configuration manager, YAML loader, logger, and sync runtime making up the persistence_core API surface.",
+      "tags": [
+        "barrel",
+        "entry-point",
+        "exports",
+        "api-surface"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:core/lib/sync/sync_runtime.dart",
+      "type": "file",
+      "name": "sync_runtime.dart",
+      "filePath": "core/lib/sync/sync_runtime.dart",
+      "summary": "Pure-Dart lifecycle and scheduling layer around SyncCoordinator: serializes start/stop/scope/online operations, drives periodic and backlog-triggered push/pull with exponential backoff, and broadcasts SyncStatus updates.",
+      "tags": [
+        "sync",
+        "runtime",
+        "scheduler",
+        "lifecycle",
+        "backoff"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Uses a Future chain (_serial) to guarantee mutually exclusive execution of public operations and Timer.periodic plus a one-shot backoff timer to drive push/pull."
+    },
+    {
+      "id": "config:core/pubspec.yaml",
+      "type": "config",
+      "name": "pubspec.yaml",
+      "filePath": "core/pubspec.yaml",
+      "summary": "Pubspec for the persistence_core package declaring SDK constraints, a yaml dependency, and lints/test dev dependencies; not published to pub.dev.",
+      "tags": [
+        "configuration",
+        "dart",
+        "package-manifest",
+        "dependencies"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:core/test/persistence_core_test.dart",
+      "type": "file",
+      "name": "persistence_core_test.dart",
+      "filePath": "core/test/persistence_core_test.dart",
+      "summary": "Integration-style unit tests covering SyncCoordinator and SyncRuntime end-to-end via in-memory fakes of OutboxStore, RemoteGateway, SyncStateStore and LocalApplier.",
+      "tags": [
+        "test",
+        "integration-test",
+        "sync",
+        "fakes"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "config:pubspec.yaml",
+      "type": "config",
+      "name": "pubspec.yaml",
+      "filePath": "pubspec.yaml",
+      "summary": "Top-level xuan_storage workspace pubspec declaring the SDK constraint for the storage module group (core/drift/firebase).",
+      "tags": [
+        "configuration",
+        "dart",
+        "package-manifest",
+        "workspace"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/configuration/sync_configuration_manager.dart:SyncConfiguration",
+      "type": "class",
+      "name": "SyncConfiguration",
+      "filePath": "core/lib/configuration/sync_configuration_manager.dart",
+      "lineRange": [
+        23,
+        204
+      ],
+      "summary": "Immutable value object holding all tunable sync parameters with copyWith, toJson, and validated fromJson factory.",
+      "tags": [
+        "data-model",
+        "configuration",
+        "value-object",
+        "serialization"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:core/lib/configuration/sync_configuration_manager.dart:SyncConfigurationStorage",
+      "type": "class",
+      "name": "SyncConfigurationStorage",
+      "filePath": "core/lib/configuration/sync_configuration_manager.dart",
+      "lineRange": [
+        210,
+        219
+      ],
+      "summary": "Abstract storage port for reading and writing raw sync configuration content from any backing store.",
+      "tags": [
+        "type-definition",
+        "port",
+        "storage",
+        "abstraction"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/configuration/sync_configuration_manager.dart:InMemorySyncConfigurationStorage",
+      "type": "class",
+      "name": "InMemorySyncConfigurationStorage",
+      "filePath": "core/lib/configuration/sync_configuration_manager.dart",
+      "lineRange": [
+        226,
+        240
+      ],
+      "summary": "In-memory implementation of SyncConfigurationStorage used for tests and transient configuration.",
+      "tags": [
+        "test-helper",
+        "in-memory",
+        "storage",
+        "configuration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/configuration/sync_configuration_manager.dart:FileSyncConfigurationStorage",
+      "type": "class",
+      "name": "FileSyncConfigurationStorage",
+      "filePath": "core/lib/configuration/sync_configuration_manager.dart",
+      "lineRange": [
+        246,
+        267
+      ],
+      "summary": "File-backed configuration storage that reads/writes a configuration string using dart:io.",
+      "tags": [
+        "storage",
+        "io",
+        "configuration",
+        "filesystem"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/configuration/sync_configuration_manager.dart:YamlFileSyncConfigurationStorage",
+      "type": "class",
+      "name": "YamlFileSyncConfigurationStorage",
+      "filePath": "core/lib/configuration/sync_configuration_manager.dart",
+      "lineRange": [
+        269,
+        291
+      ],
+      "summary": "YAML-aware file storage that uses YamlFileLoader to read the file (when present) and writes raw YAML content back.",
+      "tags": [
+        "storage",
+        "yaml",
+        "io",
+        "configuration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/configuration/sync_configuration_manager.dart:SyncConfigurationCodec",
+      "type": "class",
+      "name": "SyncConfigurationCodec",
+      "filePath": "core/lib/configuration/sync_configuration_manager.dart",
+      "lineRange": [
+        293,
+        299
+      ],
+      "summary": "Abstract codec contract that decodes raw text into SyncConfiguration and encodes it back.",
+      "tags": [
+        "type-definition",
+        "codec",
+        "serialization",
+        "abstraction"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/configuration/sync_configuration_manager.dart:JsonSyncConfigurationCodec",
+      "type": "class",
+      "name": "JsonSyncConfigurationCodec",
+      "filePath": "core/lib/configuration/sync_configuration_manager.dart",
+      "lineRange": [
+        301,
+        325
+      ],
+      "summary": "JSON codec that decodes via jsonDecode and encodes with two-space indentation, using SyncConfiguration.fromJson for validation.",
+      "tags": [
+        "codec",
+        "json",
+        "serialization",
+        "configuration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/configuration/sync_configuration_manager.dart:YamlSyncConfigurationCodec",
+      "type": "class",
+      "name": "YamlSyncConfigurationCodec",
+      "filePath": "core/lib/configuration/sync_configuration_manager.dart",
+      "lineRange": [
+        327,
+        410
+      ],
+      "summary": "YAML codec that parses under a top-level 'sync' key and emits a deterministically ordered YAML document with scalar quoting heuristics.",
+      "tags": [
+        "codec",
+        "yaml",
+        "serialization",
+        "configuration"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:core/lib/configuration/sync_configuration_manager.dart:SyncConfigurationManager",
+      "type": "class",
+      "name": "SyncConfigurationManager",
+      "filePath": "core/lib/configuration/sync_configuration_manager.dart",
+      "lineRange": [
+        423,
+        653
+      ],
+      "summary": "Loads, updates, persists and broadcasts SyncConfiguration, and acts as a factory that wires the configuration into SyncCoordinator and SyncRuntime instances.",
+      "tags": [
+        "configuration",
+        "factory",
+        "service",
+        "broadcast"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:core/lib/configuration/yaml_file_loader.dart:YamlFileLoader",
+      "type": "class",
+      "name": "YamlFileLoader",
+      "filePath": "core/lib/configuration/yaml_file_loader.dart",
+      "lineRange": [
+        5,
+        54
+      ],
+      "summary": "Thin helper around package:yaml that reads optional YAML files and converts YamlMap/YamlList trees into plain Dart maps and lists.",
+      "tags": [
+        "utility",
+        "yaml",
+        "parsing",
+        "io"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/core/sync_coordinator.dart:OutboxPusher",
+      "type": "class",
+      "name": "OutboxPusher",
+      "filePath": "core/lib/core/sync_coordinator.dart",
+      "lineRange": [
+        16,
+        107
+      ],
+      "summary": "Pulls a batch of outbox records via OutboxStore and pushes each through RemoteGateway, marking success or recording failure/dead-letter state with attempt counts.",
+      "tags": [
+        "sync",
+        "outbox",
+        "service",
+        "push"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:core/lib/core/sync_coordinator.dart:SyncCoordinator",
+      "type": "class",
+      "name": "SyncCoordinator",
+      "filePath": "core/lib/core/sync_coordinator.dart",
+      "lineRange": [
+        120,
+        471
+      ],
+      "summary": "High-level single-run sync engine exposing pushOnce and pullOnce, maintaining a SyncStatus snapshot and updating cursors only after a successful LocalApplier apply.",
+      "tags": [
+        "sync",
+        "service",
+        "coordinator",
+        "pull",
+        "push"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:core/lib/logging/sync_logger.dart:SyncLogger",
+      "type": "class",
+      "name": "SyncLogger",
+      "filePath": "core/lib/logging/sync_logger.dart",
+      "lineRange": [
+        35,
+        135
+      ],
+      "summary": "Level-filtered structured logger that dispatches SyncLogRecord instances to a configurable SyncLogSink, with a noop factory for default no-op logging.",
+      "tags": [
+        "logging",
+        "service",
+        "observability"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:core/lib/logging/sync_logger.dart:SyncLogRecord",
+      "type": "class",
+      "name": "SyncLogRecord",
+      "filePath": "core/lib/logging/sync_logger.dart",
+      "lineRange": [
+        9,
+        27
+      ],
+      "summary": "Immutable structured log record carrying timestamp, level, event name, message, data map, error and stack trace.",
+      "tags": [
+        "data-model",
+        "logging",
+        "value-object"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/logging/sync_logger.dart:SyncLogSink",
+      "type": "class",
+      "name": "SyncLogSink",
+      "filePath": "core/lib/logging/sync_logger.dart",
+      "lineRange": [
+        29,
+        33
+      ],
+      "summary": "Abstract output sink contract that receives SyncLogRecord instances from SyncLogger.",
+      "tags": [
+        "type-definition",
+        "logging",
+        "abstraction"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/logging/sync_logger.dart:PrintLogSink",
+      "type": "class",
+      "name": "PrintLogSink",
+      "filePath": "core/lib/logging/sync_logger.dart",
+      "lineRange": [
+        137,
+        163
+      ],
+      "summary": "Sink that formats SyncLogRecord into a single line and forwards it to a configurable printer (defaults to print).",
+      "tags": [
+        "logging",
+        "sink",
+        "stdout"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/logging/sync_logger.dart:InMemoryLogSink",
+      "type": "class",
+      "name": "InMemoryLogSink",
+      "filePath": "core/lib/logging/sync_logger.dart",
+      "lineRange": [
+        165,
+        174
+      ],
+      "summary": "Sink that accumulates SyncLogRecord instances in a growing list, useful for tests and diagnostic inspection.",
+      "tags": [
+        "logging",
+        "sink",
+        "test-helper",
+        "in-memory"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/logging/sync_logger.dart:CompositeLogSink",
+      "type": "class",
+      "name": "CompositeLogSink",
+      "filePath": "core/lib/logging/sync_logger.dart",
+      "lineRange": [
+        176,
+        187
+      ],
+      "summary": "Composite sink that fans each SyncLogRecord out to a list of child sinks.",
+      "tags": [
+        "logging",
+        "sink",
+        "composite"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/logging/sync_logger.dart:RingBufferLogSink",
+      "type": "class",
+      "name": "RingBufferLogSink",
+      "filePath": "core/lib/logging/sync_logger.dart",
+      "lineRange": [
+        189,
+        217
+      ],
+      "summary": "Bounded-capacity ring-buffer sink that retains the most recent SyncLogRecord values and exposes them via snapshot().",
+      "tags": [
+        "logging",
+        "sink",
+        "ring-buffer",
+        "bounded"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:core/lib/model/ports.dart:OutboxStore",
+      "type": "class",
+      "name": "OutboxStore",
+      "filePath": "core/lib/model/ports.dart",
+      "lineRange": [
+        22,
+        110
+      ],
+      "summary": "Port for the local outbox storing pending/failed/dead operations with batched peek, status write-back, and a backlog count stream.",
+      "tags": [
+        "type-definition",
+        "port",
+        "outbox",
+        "storage"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:core/lib/model/ports.dart:SyncStateStore",
+      "type": "class",
+      "name": "SyncStateStore",
+      "filePath": "core/lib/model/ports.dart",
+      "lineRange": [
+        121,
+        167
+      ],
+      "summary": "Port for per-(scopeUid, entityType) pull cursors and push/pull timestamp markers, with monotonic cursor advancement.",
+      "tags": [
+        "type-definition",
+        "port",
+        "cursor",
+        "sync-state"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:core/lib/model/ports.dart:RemoteGateway",
+      "type": "class",
+      "name": "RemoteGateway",
+      "filePath": "core/lib/model/ports.dart",
+      "lineRange": [
+        177,
+        201
+      ],
+      "summary": "Port for the remote backend exposing push of a single OutboxRecord and incremental listChanges paged by PullCursor.",
+      "tags": [
+        "type-definition",
+        "port",
+        "remote",
+        "gateway"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/model/ports.dart:LocalApplier",
+      "type": "class",
+      "name": "LocalApplier",
+      "filePath": "core/lib/model/ports.dart",
+      "lineRange": [
+        211,
+        226
+      ],
+      "summary": "Port that applies a batch of RemoteChange records to local storage and reports whether the pull cursor may advance.",
+      "tags": [
+        "type-definition",
+        "port",
+        "applier",
+        "pull"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/model/ports.dart:DeviceIdentity",
+      "type": "class",
+      "name": "DeviceIdentity",
+      "filePath": "core/lib/model/ports.dart",
+      "lineRange": [
+        234,
+        257
+      ],
+      "summary": "Immutable device identity metadata (deviceId, platform, formFactor and optional diagnostics) attached to sync operations.",
+      "tags": [
+        "data-model",
+        "device",
+        "value-object"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/model/ports.dart:DeviceIdentityProvider",
+      "type": "class",
+      "name": "DeviceIdentityProvider",
+      "filePath": "core/lib/model/ports.dart",
+      "lineRange": [
+        263,
+        266
+      ],
+      "summary": "Port that asynchronously supplies the current DeviceIdentity.",
+      "tags": [
+        "type-definition",
+        "port",
+        "device"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/model/ports.dart:AuthScopeProvider",
+      "type": "class",
+      "name": "AuthScopeProvider",
+      "filePath": "core/lib/model/ports.dart",
+      "lineRange": [
+        272,
+        278
+      ],
+      "summary": "Port decoupling the sync engine from the authentication system by supplying the current scope uid.",
+      "tags": [
+        "type-definition",
+        "port",
+        "auth",
+        "scope"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/model/types.dart:SyncError",
+      "type": "class",
+      "name": "SyncError",
+      "filePath": "core/lib/model/types.dart",
+      "lineRange": [
+        28,
+        44
+      ],
+      "summary": "Structured, serializable sync error carrying a SyncErrorCode classification and diagnostic message.",
+      "tags": [
+        "data-model",
+        "error",
+        "value-object"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/model/types.dart:SyncStatus",
+      "type": "class",
+      "name": "SyncStatus",
+      "filePath": "core/lib/model/types.dart",
+      "lineRange": [
+        70,
+        178
+      ],
+      "summary": "Snapshot of sync run state including scope, backlog/dead counts, last success/error and most recent pull/push outcomes, with a sentinel-based copyWith.",
+      "tags": [
+        "data-model",
+        "status",
+        "value-object",
+        "sync"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:core/lib/model/types.dart:PullCursor",
+      "type": "class",
+      "name": "PullCursor",
+      "filePath": "core/lib/model/types.dart",
+      "lineRange": [
+        185,
+        188
+      ],
+      "summary": "Abstract base class for incremental pull cursors that mark progress through remote changes.",
+      "tags": [
+        "type-definition",
+        "cursor",
+        "abstraction"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/model/types.dart:TimestampCursor",
+      "type": "class",
+      "name": "TimestampCursor",
+      "filePath": "core/lib/model/types.dart",
+      "lineRange": [
+        194,
+        210
+      ],
+      "summary": "Cursor implementation based on a remote serverUpdatedAtUtc timestamp plus a tieBreaker for stable ordering.",
+      "tags": [
+        "data-model",
+        "cursor",
+        "timestamp"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/model/types.dart:RevisionCursor",
+      "type": "class",
+      "name": "RevisionCursor",
+      "filePath": "core/lib/model/types.dart",
+      "lineRange": [
+        216,
+        225
+      ],
+      "summary": "Cursor implementation backed by a monotonically increasing revision number.",
+      "tags": [
+        "data-model",
+        "cursor",
+        "revision"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/model/types.dart:RemoteChange",
+      "type": "class",
+      "name": "RemoteChange",
+      "filePath": "core/lib/model/types.dart",
+      "lineRange": [
+        232,
+        259
+      ],
+      "summary": "Represents a single remote entity change with operation id, entity coordinates, opType, payload JSON, cursor and server time.",
+      "tags": [
+        "data-model",
+        "remote",
+        "change",
+        "value-object"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/model/types.dart:RemoteChangesPage",
+      "type": "class",
+      "name": "RemoteChangesPage",
+      "filePath": "core/lib/model/types.dart",
+      "lineRange": [
+        266,
+        282
+      ],
+      "summary": "One page of RemoteChange results with the next cursor and a hasMore flag for paginated pulls.",
+      "tags": [
+        "data-model",
+        "pagination",
+        "remote"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/model/types.dart:ChangeApplyOutcome",
+      "type": "class",
+      "name": "ChangeApplyOutcome",
+      "filePath": "core/lib/model/types.dart",
+      "lineRange": [
+        322,
+        346
+      ],
+      "summary": "Per-change apply outcome produced by LocalApplier carrying decision, skip reason and a diagnostic message.",
+      "tags": [
+        "data-model",
+        "outcome",
+        "diagnostic"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/model/types.dart:LocalApplyResult",
+      "type": "class",
+      "name": "LocalApplyResult",
+      "filePath": "core/lib/model/types.dart",
+      "lineRange": [
+        353,
+        372
+      ],
+      "summary": "Aggregate result of applying a batch of remote changes, including canAdvanceCursor, appliedCount, per-change outcomes and lastError.",
+      "tags": [
+        "data-model",
+        "apply",
+        "result"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/model/types.dart:OutboxRecord",
+      "type": "class",
+      "name": "OutboxRecord",
+      "filePath": "core/lib/model/types.dart",
+      "lineRange": [
+        387,
+        437
+      ],
+      "summary": "Local outbox record describing one pending operation with attempt counter and copyWith for status retries.",
+      "tags": [
+        "data-model",
+        "outbox",
+        "value-object"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:core/lib/model/types.dart:OutboxPushRunResult",
+      "type": "class",
+      "name": "OutboxPushRunResult",
+      "filePath": "core/lib/model/types.dart",
+      "lineRange": [
+        440,
+        458
+      ],
+      "summary": "Summary of one push pass with processed/succeeded/failed/dead counts and the last error, plus a hasError convenience getter.",
+      "tags": [
+        "data-model",
+        "push",
+        "result"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/model/types.dart:PullRunResult",
+      "type": "class",
+      "name": "PullRunResult",
+      "filePath": "core/lib/model/types.dart",
+      "lineRange": [
+        461,
+        483
+      ],
+      "summary": "Summary of one pull pass with pages/fetched/applied/skipped counts, cursor advancement flag, per-change outcomes and last error.",
+      "tags": [
+        "data-model",
+        "pull",
+        "result"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:core/lib/sync/sync_runtime.dart:SyncRuntime",
+      "type": "class",
+      "name": "SyncRuntime",
+      "filePath": "core/lib/sync/sync_runtime.dart",
+      "lineRange": [
+        21,
+        763
+      ],
+      "summary": "Framework-agnostic lifecycle wrapper around SyncCoordinator providing serialized start/stop/scope/online controls, periodic timers, outbox-driven push triggers, exponential backoff and a SyncStatus broadcast stream.",
+      "tags": [
+        "sync",
+        "runtime",
+        "scheduler",
+        "lifecycle",
+        "backoff"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:core/lib/sync/sync_runtime.dart:PublicSyncRuntime",
+      "type": "class",
+      "name": "PublicSyncRuntime",
+      "filePath": "core/lib/sync/sync_runtime.dart",
+      "lineRange": [
+        765,
+        769
+      ],
+      "summary": "Thin public wrapper that exposes a SyncRuntime instance for consumers that prefer a separate facade type.",
+      "tags": [
+        "wrapper",
+        "facade",
+        "sync"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:drift/.metadata",
+      "type": "config",
+      "name": ".metadata",
+      "filePath": "drift/.metadata",
+      "summary": "Flutter project metadata file tracking the Flutter SDK channel and revision used to scaffold the drift persistence package.",
+      "tags": [
+        "configuration",
+        "flutter",
+        "metadata",
+        "tooling"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:drift/CHANGELOG.md",
+      "type": "document",
+      "name": "CHANGELOG.md",
+      "filePath": "drift/CHANGELOG.md",
+      "summary": "Changelog stub for the persistence_drift package recording version 0.0.1 initial release.",
+      "tags": [
+        "documentation",
+        "changelog",
+        "versioning"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:drift/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "drift/README.md",
+      "summary": "Package overview README for persistence_drift describing features, setup, and usage of the Drift-backed local persistence layer.",
+      "tags": [
+        "documentation",
+        "overview",
+        "entry-point",
+        "drift"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:drift/analysis_options.yaml",
+      "type": "config",
+      "name": "analysis_options.yaml",
+      "filePath": "drift/analysis_options.yaml",
+      "summary": "Dart static analyzer configuration inheriting the standard Flutter lint rules for the persistence_drift package.",
+      "tags": [
+        "configuration",
+        "linting",
+        "static-analysis",
+        "dart"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:drift/lib/persistence_drift.dart",
+      "type": "file",
+      "name": "persistence_drift.dart",
+      "filePath": "drift/lib/persistence_drift.dart",
+      "summary": "Drift/SQLite implementation of the core OutboxStore and SyncStateStore contracts, defining the t_outbox and t_sync_state tables, their DAOs, and the PersistenceDriftDatabase aggregate root.",
+      "tags": [
+        "data-model",
+        "persistence",
+        "drift",
+        "outbox",
+        "sync"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Uses Drift's code-generation pattern (`part 'persistence_drift.g.dart'`) with @DriftDatabase / @DriftAccessor annotations to compose tables and DAOs."
+    },
+    {
+      "id": "file:drift/lib/persistence_drift.g.dart",
+      "type": "file",
+      "name": "persistence_drift.g.dart",
+      "filePath": "drift/lib/persistence_drift.g.dart",
+      "summary": "Auto-generated Drift companion code (1.9k lines) providing table classes, row data classes, companions, DAO mixins, and table managers for OutboxRecords and SyncStates.",
+      "tags": [
+        "generated",
+        "drift",
+        "data-model",
+        "boilerplate"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Generated by build_runner from persistence_drift.dart; should not be hand-edited."
+    },
+    {
+      "id": "config:drift/pubspec.yaml",
+      "type": "config",
+      "name": "pubspec.yaml",
+      "filePath": "drift/pubspec.yaml",
+      "summary": "Pub package manifest declaring persistence_drift dependencies on drift, persistence_core, build_runner, and drift_dev with Flutter SDK constraints.",
+      "tags": [
+        "configuration",
+        "package-manifest",
+        "dependencies",
+        "build-system"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:drift/test/persistence_drift_test.dart",
+      "type": "file",
+      "name": "persistence_drift_test.dart",
+      "filePath": "drift/test/persistence_drift_test.dart",
+      "summary": "In-memory Drift database tests exercising DriftOutboxStore enqueue/peek/markSuccess/markFailed flows and DriftSyncStateStore cursor monotonicity.",
+      "tags": [
+        "test",
+        "drift",
+        "outbox",
+        "sync-state"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:firebase/.metadata",
+      "type": "config",
+      "name": ".metadata",
+      "filePath": "firebase/.metadata",
+      "summary": "Flutter project metadata file tracking the Flutter SDK channel and revision used to scaffold the firebase persistence package.",
+      "tags": [
+        "configuration",
+        "flutter",
+        "metadata",
+        "tooling"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:firebase/CHANGELOG.md",
+      "type": "document",
+      "name": "CHANGELOG.md",
+      "filePath": "firebase/CHANGELOG.md",
+      "summary": "Changelog stub for the persistence_firebase package recording version 0.0.1 initial release.",
+      "tags": [
+        "documentation",
+        "changelog",
+        "versioning"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:firebase/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "firebase/README.md",
+      "summary": "Package overview README for persistence_firebase describing features, setup, and usage of the Firestore- and Realtime-Database-backed remote gateways.",
+      "tags": [
+        "documentation",
+        "overview",
+        "entry-point",
+        "firebase"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:firebase/analysis_options.yaml",
+      "type": "config",
+      "name": "analysis_options.yaml",
+      "filePath": "firebase/analysis_options.yaml",
+      "summary": "Dart static analyzer configuration inheriting the standard Flutter lint rules for the persistence_firebase package.",
+      "tags": [
+        "configuration",
+        "linting",
+        "static-analysis",
+        "dart"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:firebase/lib/firebase_realtime_remote_gateway.dart",
+      "type": "file",
+      "name": "firebase_realtime_remote_gateway.dart",
+      "filePath": "firebase/lib/firebase_realtime_remote_gateway.dart",
+      "summary": "Firebase Realtime Database implementation of the core RemoteGateway contract, pushing OutboxRecords to entity/oplog nodes and pulling incremental RemoteChanges using a per-entity revision cursor.",
+      "tags": [
+        "service",
+        "remote-gateway",
+        "firebase-rtdb",
+        "sync"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Translates SyncEngine pull/push semantics onto Realtime Database's tree model; uses RevisionCursor for stable pagination over RTDB's non-orderable change stream."
+    },
+    {
+      "id": "file:firebase/lib/persistence_firebase.dart",
+      "type": "file",
+      "name": "persistence_firebase.dart",
+      "filePath": "firebase/lib/persistence_firebase.dart",
+      "summary": "Firestore implementation of the core RemoteGateway contract plus a barrel re-export of the Realtime Database gateway; provides push to entity+oplog collections and cursor-based pull of RemoteChanges with structured SyncLogger telemetry.",
+      "tags": [
+        "service",
+        "remote-gateway",
+        "firestore",
+        "barrel",
+        "sync"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Uses `export 'firebase_realtime_remote_gateway.dart';` so consumers can import a single entry point for both Firestore and RTDB backends."
+    },
+    {
+      "id": "config:firebase/pubspec.yaml",
+      "type": "config",
+      "name": "pubspec.yaml",
+      "filePath": "firebase/pubspec.yaml",
+      "summary": "Pub package manifest declaring persistence_firebase dependencies on cloud_firestore, firebase_database, firebase_core, and persistence_core with Flutter SDK constraints.",
+      "tags": [
+        "configuration",
+        "package-manifest",
+        "dependencies",
+        "firebase"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:firebase/test/fake_persistence_test.dart",
+      "type": "file",
+      "name": "fake_persistence_test.dart",
+      "filePath": "firebase/test/fake_persistence_test.dart",
+      "summary": "Behavior tests using fake/in-memory implementations of the persistence contracts to validate sync semantics (cursor handling, payload mapping, error paths) without a real Firebase backend.",
+      "tags": [
+        "test",
+        "fake",
+        "persistence",
+        "sync"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:firebase/test/persistence_firebase_test.dart",
+      "type": "file",
+      "name": "persistence_firebase_test.dart",
+      "filePath": "firebase/test/persistence_firebase_test.dart",
+      "summary": "Tiny smoke-test entry verifying that the persistence_firebase library can be imported; real integration coverage lives in fake_persistence_test.dart.",
+      "tags": [
+        "test",
+        "smoke-test",
+        "firebase"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:drift/lib/persistence_drift.dart:OutboxRecords",
+      "type": "class",
+      "name": "OutboxRecords",
+      "filePath": "drift/lib/persistence_drift.dart",
+      "lineRange": [
+        7,
+        48
+      ],
+      "summary": "Drift Table definition for t_outbox, declaring the outbox columns (operationId, scopeUid, entityType, payloadJson, attempt, status, etc.) and supporting indexes for scope/status/created queries.",
+      "tags": [
+        "data-model",
+        "table-definition",
+        "outbox",
+        "drift"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:drift/lib/persistence_drift.dart:SyncStates",
+      "type": "class",
+      "name": "SyncStates",
+      "filePath": "drift/lib/persistence_drift.dart",
+      "lineRange": [
+        51,
+        80
+      ],
+      "summary": "Drift Table definition for t_sync_state, holding per-(scope, entity) pull cursor (timestamp or revision) plus last pulled/pushed timestamps.",
+      "tags": [
+        "data-model",
+        "table-definition",
+        "sync-state",
+        "drift"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:drift/lib/persistence_drift.dart:OutboxRecordsDao",
+      "type": "class",
+      "name": "OutboxRecordsDao",
+      "filePath": "drift/lib/persistence_drift.dart",
+      "lineRange": [
+        83,
+        204
+      ],
+      "summary": "Drift DAO for OutboxRecords providing enqueue, peekBatch, listRetryable, backlog/dead counts, watchBacklogCount stream, and markSuccess/markFailed state transitions.",
+      "tags": [
+        "dao",
+        "outbox",
+        "drift",
+        "data-access"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:drift/lib/persistence_drift.dart:SyncStatesDao",
+      "type": "class",
+      "name": "SyncStatesDao",
+      "filePath": "drift/lib/persistence_drift.dart",
+      "lineRange": [
+        207,
+        340
+      ],
+      "summary": "Drift DAO for SyncStates enforcing monotonic advance of timestamp and revision cursors within transactions, plus markPulledAt/markPushedAt observability writes.",
+      "tags": [
+        "dao",
+        "sync-state",
+        "drift",
+        "data-access"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:drift/lib/persistence_drift.dart:PersistenceDriftDatabase",
+      "type": "class",
+      "name": "PersistenceDriftDatabase",
+      "filePath": "drift/lib/persistence_drift.dart",
+      "lineRange": [
+        346,
+        351
+      ],
+      "summary": "Aggregate Drift database wiring together the OutboxRecords and SyncStates tables with their DAOs at schema version 1.",
+      "tags": [
+        "data-model",
+        "database",
+        "drift",
+        "aggregate-root"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:drift/lib/persistence_drift.dart:DriftOutboxStore",
+      "type": "class",
+      "name": "DriftOutboxStore",
+      "filePath": "drift/lib/persistence_drift.dart",
+      "lineRange": [
+        358,
+        652
+      ],
+      "summary": "OutboxStore implementation that wraps OutboxRecordsDao with structured SyncLogger telemetry, ID redaction, and timing for enqueue/peek/markSuccess/markFailed/backlog/dead operations.",
+      "tags": [
+        "service",
+        "outbox-store",
+        "drift",
+        "telemetry"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:drift/lib/persistence_drift.dart:DriftSyncStateStore",
+      "type": "class",
+      "name": "DriftSyncStateStore",
+      "filePath": "drift/lib/persistence_drift.dart",
+      "lineRange": [
+        660,
+        877
+      ],
+      "summary": "SyncStateStore implementation that wraps SyncStatesDao, dispatching TimestampCursor vs RevisionCursor advances and emitting structured logs for cursor and pull/push timestamp updates.",
+      "tags": [
+        "service",
+        "sync-state-store",
+        "drift",
+        "cursor"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:firebase/lib/persistence_firebase.dart:FirestoreRemoteGateway",
+      "type": "class",
+      "name": "FirestoreRemoteGateway",
+      "filePath": "firebase/lib/persistence_firebase.dart",
+      "lineRange": [
+        19,
+        894
+      ],
+      "summary": "RemoteGateway implementation backed by Cloud Firestore: pushes OutboxRecords to entity and oplog collections and pulls RemoteChanges using TimestampCursor pagination with SyncLogger telemetry.",
+      "tags": [
+        "service",
+        "remote-gateway",
+        "firestore",
+        "sync"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:firebase/lib/firebase_realtime_remote_gateway.dart:FirebaseRealtimeRemoteGateway",
+      "type": "class",
+      "name": "FirebaseRealtimeRemoteGateway",
+      "filePath": "firebase/lib/firebase_realtime_remote_gateway.dart",
+      "lineRange": [
+        26,
+        904
+      ],
+      "summary": "RemoteGateway implementation backed by Firebase Realtime Database: maintains a per-(scope, entity) revision counter for stable pagination and writes entity nodes plus oplog nodes on push.",
+      "tags": [
+        "service",
+        "remote-gateway",
+        "firebase-rtdb",
+        "sync"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:core/lib/configuration/sync_configuration_manager.dart",
+      "target": "file:core/lib/configuration/yaml_file_loader.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:core/lib/configuration/sync_configuration_manager.dart",
+      "target": "file:core/lib/core/sync_coordinator.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:core/lib/configuration/sync_configuration_manager.dart",
+      "target": "file:core/lib/logging/sync_logger.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:core/lib/configuration/sync_configuration_manager.dart",
+      "target": "file:core/lib/model/ports.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:core/lib/configuration/sync_configuration_manager.dart",
+      "target": "file:core/lib/sync/sync_runtime.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:core/lib/core/sync_coordinator.dart",
+      "target": "file:core/lib/logging/sync_logger.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:core/lib/core/sync_coordinator.dart",
+      "target": "file:core/lib/model/ports.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:core/lib/core/sync_coordinator.dart",
+      "target": "file:core/lib/model/types.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:core/lib/model/ports.dart",
+      "target": "file:core/lib/model/types.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:core/lib/persistence_core.dart",
+      "target": "file:core/lib/configuration/sync_configuration_manager.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:core/lib/persistence_core.dart",
+      "target": "file:core/lib/configuration/yaml_file_loader.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:core/lib/persistence_core.dart",
+      "target": "file:core/lib/core/sync_coordinator.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:core/lib/persistence_core.dart",
+      "target": "file:core/lib/logging/sync_logger.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:core/lib/persistence_core.dart",
+      "target": "file:core/lib/model/ports.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:core/lib/persistence_core.dart",
+      "target": "file:core/lib/model/types.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:core/lib/persistence_core.dart",
+      "target": "file:core/lib/sync/sync_runtime.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:core/lib/sync/sync_runtime.dart",
+      "target": "file:core/lib/core/sync_coordinator.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:core/lib/sync/sync_runtime.dart",
+      "target": "file:core/lib/logging/sync_logger.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:core/lib/sync/sync_runtime.dart",
+      "target": "file:core/lib/model/ports.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:core/lib/sync/sync_runtime.dart",
+      "target": "file:core/lib/model/types.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:core/test/persistence_core_test.dart",
+      "target": "file:core/lib/persistence_core.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:core/lib/configuration/sync_configuration_manager.dart",
+      "target": "class:core/lib/configuration/sync_configuration_manager.dart:SyncConfiguration",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/configuration/sync_configuration_manager.dart",
+      "target": "class:core/lib/configuration/sync_configuration_manager.dart:SyncConfigurationStorage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/configuration/sync_configuration_manager.dart",
+      "target": "class:core/lib/configuration/sync_configuration_manager.dart:InMemorySyncConfigurationStorage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/configuration/sync_configuration_manager.dart",
+      "target": "class:core/lib/configuration/sync_configuration_manager.dart:FileSyncConfigurationStorage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/configuration/sync_configuration_manager.dart",
+      "target": "class:core/lib/configuration/sync_configuration_manager.dart:YamlFileSyncConfigurationStorage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/configuration/sync_configuration_manager.dart",
+      "target": "class:core/lib/configuration/sync_configuration_manager.dart:SyncConfigurationCodec",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/configuration/sync_configuration_manager.dart",
+      "target": "class:core/lib/configuration/sync_configuration_manager.dart:JsonSyncConfigurationCodec",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/configuration/sync_configuration_manager.dart",
+      "target": "class:core/lib/configuration/sync_configuration_manager.dart:YamlSyncConfigurationCodec",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/configuration/sync_configuration_manager.dart",
+      "target": "class:core/lib/configuration/sync_configuration_manager.dart:SyncConfigurationManager",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/configuration/yaml_file_loader.dart",
+      "target": "class:core/lib/configuration/yaml_file_loader.dart:YamlFileLoader",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/core/sync_coordinator.dart",
+      "target": "class:core/lib/core/sync_coordinator.dart:OutboxPusher",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/core/sync_coordinator.dart",
+      "target": "class:core/lib/core/sync_coordinator.dart:SyncCoordinator",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/logging/sync_logger.dart",
+      "target": "class:core/lib/logging/sync_logger.dart:SyncLogger",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/logging/sync_logger.dart",
+      "target": "class:core/lib/logging/sync_logger.dart:SyncLogRecord",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/logging/sync_logger.dart",
+      "target": "class:core/lib/logging/sync_logger.dart:SyncLogSink",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/logging/sync_logger.dart",
+      "target": "class:core/lib/logging/sync_logger.dart:PrintLogSink",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/logging/sync_logger.dart",
+      "target": "class:core/lib/logging/sync_logger.dart:InMemoryLogSink",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/logging/sync_logger.dart",
+      "target": "class:core/lib/logging/sync_logger.dart:CompositeLogSink",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/logging/sync_logger.dart",
+      "target": "class:core/lib/logging/sync_logger.dart:RingBufferLogSink",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/model/ports.dart",
+      "target": "class:core/lib/model/ports.dart:OutboxStore",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/model/ports.dart",
+      "target": "class:core/lib/model/ports.dart:SyncStateStore",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/model/ports.dart",
+      "target": "class:core/lib/model/ports.dart:RemoteGateway",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/model/ports.dart",
+      "target": "class:core/lib/model/ports.dart:LocalApplier",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/model/ports.dart",
+      "target": "class:core/lib/model/ports.dart:DeviceIdentity",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/model/ports.dart",
+      "target": "class:core/lib/model/ports.dart:DeviceIdentityProvider",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/model/ports.dart",
+      "target": "class:core/lib/model/ports.dart:AuthScopeProvider",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/model/types.dart",
+      "target": "class:core/lib/model/types.dart:SyncError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/model/types.dart",
+      "target": "class:core/lib/model/types.dart:SyncStatus",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/model/types.dart",
+      "target": "class:core/lib/model/types.dart:PullCursor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/model/types.dart",
+      "target": "class:core/lib/model/types.dart:TimestampCursor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/model/types.dart",
+      "target": "class:core/lib/model/types.dart:RevisionCursor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/model/types.dart",
+      "target": "class:core/lib/model/types.dart:RemoteChange",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/model/types.dart",
+      "target": "class:core/lib/model/types.dart:RemoteChangesPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/model/types.dart",
+      "target": "class:core/lib/model/types.dart:ChangeApplyOutcome",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/model/types.dart",
+      "target": "class:core/lib/model/types.dart:LocalApplyResult",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/model/types.dart",
+      "target": "class:core/lib/model/types.dart:OutboxRecord",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/model/types.dart",
+      "target": "class:core/lib/model/types.dart:OutboxPushRunResult",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/model/types.dart",
+      "target": "class:core/lib/model/types.dart:PullRunResult",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/sync/sync_runtime.dart",
+      "target": "class:core/lib/sync/sync_runtime.dart:SyncRuntime",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/sync/sync_runtime.dart",
+      "target": "class:core/lib/sync/sync_runtime.dart:PublicSyncRuntime",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:core/lib/persistence_core.dart",
+      "target": "class:core/lib/model/ports.dart:OutboxStore",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:core/lib/persistence_core.dart",
+      "target": "class:core/lib/model/ports.dart:SyncStateStore",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:core/lib/persistence_core.dart",
+      "target": "class:core/lib/model/ports.dart:RemoteGateway",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:core/lib/persistence_core.dart",
+      "target": "class:core/lib/model/ports.dart:LocalApplier",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:core/lib/persistence_core.dart",
+      "target": "class:core/lib/model/ports.dart:AuthScopeProvider",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:core/lib/persistence_core.dart",
+      "target": "class:core/lib/model/types.dart:SyncError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:core/lib/persistence_core.dart",
+      "target": "class:core/lib/model/types.dart:SyncStatus",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:core/lib/persistence_core.dart",
+      "target": "class:core/lib/model/types.dart:OutboxRecord",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:core/lib/persistence_core.dart",
+      "target": "class:core/lib/core/sync_coordinator.dart:SyncCoordinator",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:core/lib/persistence_core.dart",
+      "target": "class:core/lib/core/sync_coordinator.dart:OutboxPusher",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:core/lib/persistence_core.dart",
+      "target": "class:core/lib/configuration/sync_configuration_manager.dart:SyncConfiguration",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:core/lib/persistence_core.dart",
+      "target": "class:core/lib/configuration/sync_configuration_manager.dart:SyncConfigurationManager",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:core/lib/persistence_core.dart",
+      "target": "class:core/lib/logging/sync_logger.dart:SyncLogger",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:core/lib/persistence_core.dart",
+      "target": "class:core/lib/sync/sync_runtime.dart:SyncRuntime",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:core/lib/configuration/sync_configuration_manager.dart:InMemorySyncConfigurationStorage",
+      "target": "class:core/lib/configuration/sync_configuration_manager.dart:SyncConfigurationStorage",
+      "type": "implements",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "class:core/lib/configuration/sync_configuration_manager.dart:FileSyncConfigurationStorage",
+      "target": "class:core/lib/configuration/sync_configuration_manager.dart:SyncConfigurationStorage",
+      "type": "implements",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "class:core/lib/configuration/sync_configuration_manager.dart:YamlFileSyncConfigurationStorage",
+      "target": "class:core/lib/configuration/sync_configuration_manager.dart:SyncConfigurationStorage",
+      "type": "implements",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "class:core/lib/configuration/sync_configuration_manager.dart:JsonSyncConfigurationCodec",
+      "target": "class:core/lib/configuration/sync_configuration_manager.dart:SyncConfigurationCodec",
+      "type": "inherits",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "class:core/lib/configuration/sync_configuration_manager.dart:YamlSyncConfigurationCodec",
+      "target": "class:core/lib/configuration/sync_configuration_manager.dart:SyncConfigurationCodec",
+      "type": "inherits",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "class:core/lib/logging/sync_logger.dart:PrintLogSink",
+      "target": "class:core/lib/logging/sync_logger.dart:SyncLogSink",
+      "type": "inherits",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "class:core/lib/logging/sync_logger.dart:InMemoryLogSink",
+      "target": "class:core/lib/logging/sync_logger.dart:SyncLogSink",
+      "type": "inherits",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "class:core/lib/logging/sync_logger.dart:CompositeLogSink",
+      "target": "class:core/lib/logging/sync_logger.dart:SyncLogSink",
+      "type": "inherits",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "class:core/lib/logging/sync_logger.dart:RingBufferLogSink",
+      "target": "class:core/lib/logging/sync_logger.dart:SyncLogSink",
+      "type": "inherits",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "class:core/lib/model/types.dart:TimestampCursor",
+      "target": "class:core/lib/model/types.dart:PullCursor",
+      "type": "inherits",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "class:core/lib/model/types.dart:RevisionCursor",
+      "target": "class:core/lib/model/types.dart:PullCursor",
+      "type": "inherits",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "class:core/lib/core/sync_coordinator.dart:SyncCoordinator",
+      "target": "class:core/lib/core/sync_coordinator.dart:OutboxPusher",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "class:core/lib/sync/sync_runtime.dart:SyncRuntime",
+      "target": "class:core/lib/core/sync_coordinator.dart:SyncCoordinator",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "class:core/lib/configuration/sync_configuration_manager.dart:SyncConfigurationManager",
+      "target": "class:core/lib/core/sync_coordinator.dart:SyncCoordinator",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "class:core/lib/configuration/sync_configuration_manager.dart:SyncConfigurationManager",
+      "target": "class:core/lib/sync/sync_runtime.dart:SyncRuntime",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:core/analysis_options.yaml",
+      "target": "file:core/lib/persistence_core.dart",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:core/pubspec.yaml",
+      "target": "file:core/lib/persistence_core.dart",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:core/config/sync_configuration.defaults.yaml",
+      "target": "class:core/lib/configuration/sync_configuration_manager.dart:SyncConfiguration",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:core/config/sync_configuration.defaults.yaml",
+      "target": "class:core/lib/configuration/sync_configuration_manager.dart:YamlSyncConfigurationCodec",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:pubspec.yaml",
+      "target": "config:core/pubspec.yaml",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:core/README.md",
+      "target": "file:core/lib/persistence_core.dart",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:core/CHANGELOG.md",
+      "target": "config:core/pubspec.yaml",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:drift/lib/persistence_drift.dart",
+      "target": "file:drift/lib/persistence_drift.g.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:drift/test/persistence_drift_test.dart",
+      "target": "file:drift/lib/persistence_drift.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:firebase/lib/persistence_firebase.dart",
+      "target": "file:firebase/lib/firebase_realtime_remote_gateway.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:firebase/test/fake_persistence_test.dart",
+      "target": "file:firebase/lib/persistence_firebase.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:firebase/test/persistence_firebase_test.dart",
+      "target": "file:firebase/lib/persistence_firebase.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:drift/lib/persistence_drift.dart",
+      "target": "class:drift/lib/persistence_drift.dart:OutboxRecords",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:drift/lib/persistence_drift.dart",
+      "target": "class:drift/lib/persistence_drift.dart:SyncStates",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:drift/lib/persistence_drift.dart",
+      "target": "class:drift/lib/persistence_drift.dart:OutboxRecordsDao",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:drift/lib/persistence_drift.dart",
+      "target": "class:drift/lib/persistence_drift.dart:SyncStatesDao",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:drift/lib/persistence_drift.dart",
+      "target": "class:drift/lib/persistence_drift.dart:PersistenceDriftDatabase",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:drift/lib/persistence_drift.dart",
+      "target": "class:drift/lib/persistence_drift.dart:DriftOutboxStore",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:drift/lib/persistence_drift.dart",
+      "target": "class:drift/lib/persistence_drift.dart:DriftSyncStateStore",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:drift/lib/persistence_drift.dart",
+      "target": "class:drift/lib/persistence_drift.dart:OutboxRecords",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:drift/lib/persistence_drift.dart",
+      "target": "class:drift/lib/persistence_drift.dart:SyncStates",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:drift/lib/persistence_drift.dart",
+      "target": "class:drift/lib/persistence_drift.dart:OutboxRecordsDao",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:drift/lib/persistence_drift.dart",
+      "target": "class:drift/lib/persistence_drift.dart:SyncStatesDao",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:drift/lib/persistence_drift.dart",
+      "target": "class:drift/lib/persistence_drift.dart:PersistenceDriftDatabase",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:drift/lib/persistence_drift.dart",
+      "target": "class:drift/lib/persistence_drift.dart:DriftOutboxStore",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:drift/lib/persistence_drift.dart",
+      "target": "class:drift/lib/persistence_drift.dart:DriftSyncStateStore",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:drift/lib/persistence_drift.dart:OutboxRecordsDao",
+      "target": "class:drift/lib/persistence_drift.dart:PersistenceDriftDatabase",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "class:drift/lib/persistence_drift.dart:SyncStatesDao",
+      "target": "class:drift/lib/persistence_drift.dart:PersistenceDriftDatabase",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "class:drift/lib/persistence_drift.dart:DriftOutboxStore",
+      "target": "class:drift/lib/persistence_drift.dart:OutboxRecordsDao",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "class:drift/lib/persistence_drift.dart:DriftSyncStateStore",
+      "target": "class:drift/lib/persistence_drift.dart:SyncStatesDao",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:firebase/lib/persistence_firebase.dart",
+      "target": "class:firebase/lib/persistence_firebase.dart:FirestoreRemoteGateway",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:firebase/lib/persistence_firebase.dart",
+      "target": "class:firebase/lib/persistence_firebase.dart:FirestoreRemoteGateway",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:firebase/lib/firebase_realtime_remote_gateway.dart",
+      "target": "class:firebase/lib/firebase_realtime_remote_gateway.dart:FirebaseRealtimeRemoteGateway",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:firebase/lib/firebase_realtime_remote_gateway.dart",
+      "target": "class:firebase/lib/firebase_realtime_remote_gateway.dart:FirebaseRealtimeRemoteGateway",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "config:drift/analysis_options.yaml",
+      "target": "file:drift/lib/persistence_drift.dart",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:drift/analysis_options.yaml",
+      "target": "file:drift/test/persistence_drift_test.dart",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:drift/pubspec.yaml",
+      "target": "file:drift/lib/persistence_drift.dart",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:firebase/analysis_options.yaml",
+      "target": "file:firebase/lib/persistence_firebase.dart",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:firebase/analysis_options.yaml",
+      "target": "file:firebase/lib/firebase_realtime_remote_gateway.dart",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:firebase/analysis_options.yaml",
+      "target": "file:firebase/test/fake_persistence_test.dart",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:firebase/analysis_options.yaml",
+      "target": "file:firebase/test/persistence_firebase_test.dart",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:firebase/pubspec.yaml",
+      "target": "file:firebase/lib/persistence_firebase.dart",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:firebase/pubspec.yaml",
+      "target": "file:firebase/lib/firebase_realtime_remote_gateway.dart",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:drift/README.md",
+      "target": "file:drift/lib/persistence_drift.dart",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:firebase/README.md",
+      "target": "file:firebase/lib/persistence_firebase.dart",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:firebase/README.md",
+      "target": "file:firebase/lib/firebase_realtime_remote_gateway.dart",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:drift/lib/persistence_drift.dart",
+      "target": "file:core/lib/persistence_core.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:drift/test/persistence_drift_test.dart",
+      "target": "file:core/lib/persistence_core.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:firebase/lib/firebase_realtime_remote_gateway.dart",
+      "target": "file:core/lib/persistence_core.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:firebase/lib/persistence_firebase.dart",
+      "target": "file:core/lib/persistence_core.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:firebase/test/fake_persistence_test.dart",
+      "target": "file:core/lib/persistence_core.dart",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    }
+  ],
+  "layers": [
+    {
+      "id": "layer:domain-contracts",
+      "name": "Domain Contracts",
+      "description": "Abstract ports and shared value types in core/lib/model that define the hexagonal boundary all gateways and the sync runtime depend on.",
+      "nodeIds": [
+        "file:core/lib/model/ports.dart",
+        "file:core/lib/model/types.dart"
+      ]
+    },
+    {
+      "id": "layer:sync-runtime",
+      "name": "Sync Runtime",
+      "description": "Core engine of the persistence_core package: the SyncCoordinator, SyncRuntime, and the public package barrel that orchestrate pull/push cycles against the port contracts.",
+      "nodeIds": [
+        "file:core/lib/core/sync_coordinator.dart",
+        "file:core/lib/sync/sync_runtime.dart",
+        "file:core/lib/persistence_core.dart"
+      ]
+    },
+    {
+      "id": "layer:cross-cutting",
+      "name": "Configuration & Logging",
+      "description": "Cross-cutting infrastructure for the runtime: SyncConfiguration loading/persistence, the YAML file loader, and the SyncLogger used by all sync components.",
+      "nodeIds": [
+        "file:core/lib/configuration/sync_configuration_manager.dart",
+        "file:core/lib/configuration/yaml_file_loader.dart",
+        "file:core/lib/logging/sync_logger.dart"
+      ]
+    },
+    {
+      "id": "layer:drift-adapter",
+      "name": "Drift Local Adapter",
+      "description": "Local SQL persistence gateway implementing the core ports on top of Drift, including the generated companion code.",
+      "nodeIds": [
+        "file:drift/lib/persistence_drift.dart",
+        "file:drift/lib/persistence_drift.g.dart"
+      ]
+    },
+    {
+      "id": "layer:firebase-adapter",
+      "name": "Firebase Remote Adapter",
+      "description": "Remote persistence gateway implementing the core ports against Firebase Realtime Database.",
+      "nodeIds": [
+        "file:firebase/lib/firebase_realtime_remote_gateway.dart",
+        "file:firebase/lib/persistence_firebase.dart"
+      ]
+    },
+    {
+      "id": "layer:tests",
+      "name": "Tests",
+      "description": "Unit and integration tests for the core sync runtime and both Drift and Firebase gateway packages.",
+      "nodeIds": [
+        "file:core/test/persistence_core_test.dart",
+        "file:drift/test/persistence_drift_test.dart",
+        "file:firebase/test/fake_persistence_test.dart",
+        "file:firebase/test/persistence_firebase_test.dart"
+      ]
+    },
+    {
+      "id": "layer:project-support",
+      "name": "Project Support",
+      "description": "Per-package pubspecs, analysis options, Flutter metadata, default sync configuration YAML, READMEs and CHANGELOGs that scaffold and document the three-subpackage workspace.",
+      "nodeIds": [
+        "config:pubspec.yaml",
+        "config:core/.metadata",
+        "config:core/analysis_options.yaml",
+        "config:core/pubspec.yaml",
+        "config:core/config/sync_configuration.defaults.yaml",
+        "document:core/CHANGELOG.md",
+        "document:core/README.md",
+        "config:drift/.metadata",
+        "config:drift/analysis_options.yaml",
+        "config:drift/pubspec.yaml",
+        "document:drift/CHANGELOG.md",
+        "document:drift/README.md",
+        "config:firebase/.metadata",
+        "config:firebase/analysis_options.yaml",
+        "config:firebase/pubspec.yaml",
+        "document:firebase/CHANGELOG.md",
+        "document:firebase/README.md"
+      ]
+    }
+  ],
+  "tour": [
+    {
+      "order": 1,
+      "title": "Workspace and Package Layout",
+      "description": "xuan_storage is a three-package Dart workspace: a core sync runtime plus two pluggable adapters. The top-level pubspec declares the SDK constraint that ties the storage module group together, while each subpackage (core, drift, firebase) has its own pubspec and lints. Reading the workspace pubspec alongside the drift and firebase package READMEs reveals the deliberate split: core is pure Dart and depends only on the yaml package, while drift adds SQLite via Drift and firebase adds Cloud Firestore plus Realtime Database.",
+      "nodeIds": [
+        "config:pubspec.yaml",
+        "document:drift/README.md",
+        "document:firebase/README.md"
+      ]
+    },
+    {
+      "order": 2,
+      "title": "Public API Surface (Barrel)",
+      "description": "persistence_core.dart is the single public entry point of the core package; it re-exports the ports, value types, coordinator, runtime, configuration manager, YAML loader, and logger. By design it has fan-out 21 and fan-in 9 — every consumer of the library imports through here, and almost every internal core file is surfaced through it. Use this file as the map for the rest of the tour: each upcoming step zooms into one symbol re-exported here.",
+      "nodeIds": [
+        "file:core/lib/persistence_core.dart"
+      ],
+      "languageLesson": "Dart barrel files use 'export' (not 're-export') to re-publish symbols from other libraries. The 'show'/'hide' clauses on export statements let a package curate exactly which types form its public API surface without changing the underlying file organization."
+    },
+    {
+      "order": 3,
+      "title": "Hexagonal Ports — the Contracts",
+      "description": "ports.dart is the spine of the hexagonal architecture: it declares the abstract contracts the sync engine talks to. OutboxStore is the local write-ahead log of pending operations, SyncStateStore tracks per-(scope, entity) pull cursors and push timestamps, and RemoteGateway abstracts the remote backend (push + paginated listChanges). LocalApplier, DeviceIdentityProvider, and AuthScopeProvider round out the boundary so the engine never touches Drift, Firebase, or auth code directly. Every adapter in later steps exists to satisfy one of these interfaces.",
+      "nodeIds": [
+        "file:core/lib/model/ports.dart",
+        "class:core/lib/model/ports.dart:OutboxStore",
+        "class:core/lib/model/ports.dart:SyncStateStore",
+        "class:core/lib/model/ports.dart:RemoteGateway",
+        "class:core/lib/model/ports.dart:LocalApplier"
+      ],
+      "languageLesson": "In Dart, any class can be treated as an interface — there is no separate 'interface' keyword. The hexagonal 'ports' pattern leans on Dart's implicit interfaces: concrete adapters declare 'implements OutboxStore' without inheriting any implementation, keeping the domain layer free of adapter code."
+    },
+    {
+      "order": 4,
+      "title": "Shared Value Types and the Cursor Model",
+      "description": "types.dart defines the vocabulary that flows across the ports: SyncStatus snapshots, SyncError classification, OutboxRecord with retry attempt counters, RemoteChange/RemoteChangesPage for paginated pulls, and the PullCursor hierarchy. PullCursor has two concrete forms — TimestampCursor (used by Firestore via serverUpdatedAtUtc + tieBreaker) and RevisionCursor (used by Realtime Database via a monotonic counter). The cursor split is the key abstraction that lets a single coordinator drive two very different remote backends.",
+      "nodeIds": [
+        "file:core/lib/model/types.dart",
+        "class:core/lib/model/types.dart:PullCursor",
+        "class:core/lib/model/types.dart:TimestampCursor",
+        "class:core/lib/model/types.dart:RevisionCursor",
+        "class:core/lib/model/types.dart:OutboxRecord",
+        "class:core/lib/model/types.dart:SyncStatus"
+      ],
+      "languageLesson": "Dart's sealed-style hierarchies (abstract base + small set of subclasses) are commonly paired with pattern-matched dispatch. TimestampCursor vs RevisionCursor demonstrates this: each adapter inspects the concrete subtype to decide how to query the remote source."
+    },
+    {
+      "order": 5,
+      "title": "Sync Coordinator — Push and Pull Engine",
+      "description": "sync_coordinator.dart turns the ports from Step 3 and the types from Step 4 into actual work. OutboxPusher drains a batch from OutboxStore and pushes each record through RemoteGateway, recording success or escalating to failed/dead-letter with attempt counts. SyncCoordinator wraps that with cursor-based pull: it asks RemoteGateway.listChanges using the SyncStateStore's cursor, hands the page to LocalApplier, and only advances the cursor if the applier reports canAdvanceCursor. Every result mutates a SyncStatus snapshot consumers can observe.",
+      "nodeIds": [
+        "file:core/lib/core/sync_coordinator.dart",
+        "class:core/lib/core/sync_coordinator.dart:SyncCoordinator",
+        "class:core/lib/core/sync_coordinator.dart:OutboxPusher"
+      ]
+    },
+    {
+      "order": 6,
+      "title": "Sync Runtime — Lifecycle and Scheduling",
+      "description": "Where SyncCoordinator does one push or one pull, SyncRuntime owns the lifecycle around them. It serializes start/stop/scope/online operations, drives periodic timers, listens to OutboxStore.watchBacklogCount to trigger pushes when work appears, and applies exponential backoff after errors. The SyncStatus broadcast stream from Step 5 is exposed here so the host app can render sync state. PublicSyncRuntime is a thin facade for consumers who prefer a separate type from the engine internals.",
+      "nodeIds": [
+        "file:core/lib/sync/sync_runtime.dart",
+        "class:core/lib/sync/sync_runtime.dart:SyncRuntime",
+        "class:core/lib/sync/sync_runtime.dart:PublicSyncRuntime"
+      ]
+    },
+    {
+      "order": 7,
+      "title": "Configuration Pipeline",
+      "description": "SyncConfiguration is the immutable bag of tunables (batch sizes, retry thresholds, intervals, backoff bounds) that SyncCoordinator and SyncRuntime consume. The configuration module separates three concerns via small ports: SyncConfigurationStorage (where bytes live — in-memory, file, or YAML file), SyncConfigurationCodec (how bytes parse — JSON or YAML), and SyncConfigurationManager (the orchestrator that loads, mutates, persists, broadcasts, and wires the result into a coordinator/runtime). The defaults YAML in core/config seeds initial values.",
+      "nodeIds": [
+        "file:core/lib/configuration/sync_configuration_manager.dart",
+        "class:core/lib/configuration/sync_configuration_manager.dart:SyncConfiguration",
+        "class:core/lib/configuration/sync_configuration_manager.dart:SyncConfigurationManager",
+        "file:core/lib/configuration/yaml_file_loader.dart",
+        "config:core/config/sync_configuration.defaults.yaml"
+      ],
+      "languageLesson": "The defaults YAML uses a top-level 'sync' key so YamlSyncConfigurationCodec can scope its parse. Keeping defaults outside code makes them inspectable and overridable per environment without rebuilding."
+    },
+    {
+      "order": 8,
+      "title": "Structured Logging Facade",
+      "description": "Every sync component emits structured events through SyncLogger rather than print or dart:developer.log. The logger is level-filtered, ships SyncLogRecord (timestamp, level, event name, message, data map, error, stack) to a swappable SyncLogSink, and offers five built-in sinks: PrintLogSink for development, InMemoryLogSink and RingBufferLogSink for tests and diagnostics, CompositeLogSink for fan-out, and a noop default. This is why SyncLogSink has fan-in 5 — it is the seam every adapter and the coordinator hook into for telemetry.",
+      "nodeIds": [
+        "file:core/lib/logging/sync_logger.dart",
+        "class:core/lib/logging/sync_logger.dart:SyncLogger",
+        "class:core/lib/logging/sync_logger.dart:SyncLogSink",
+        "class:core/lib/logging/sync_logger.dart:RingBufferLogSink"
+      ]
+    },
+    {
+      "order": 9,
+      "title": "Drift Local Adapter",
+      "description": "persistence_drift.dart is the first concrete adapter: it implements OutboxStore and SyncStateStore from Step 3 on top of Drift/SQLite. The file is structured as a tight cluster — two Drift Tables (OutboxRecords for t_outbox, SyncStates for t_sync_state), two DAOs (OutboxRecordsDao, SyncStatesDao), an aggregate PersistenceDriftDatabase, and the port-implementing facades DriftOutboxStore and DriftSyncStateStore. The DAOs enforce monotonic cursor advance inside transactions, and the store facades layer SyncLogger telemetry on top. The companion .g.dart file (~1.9k generated lines) provides table classes, row data, and managers.",
+      "nodeIds": [
+        "file:drift/lib/persistence_drift.dart",
+        "class:drift/lib/persistence_drift.dart:PersistenceDriftDatabase",
+        "class:drift/lib/persistence_drift.dart:OutboxRecordsDao",
+        "class:drift/lib/persistence_drift.dart:SyncStatesDao",
+        "class:drift/lib/persistence_drift.dart:DriftOutboxStore",
+        "class:drift/lib/persistence_drift.dart:DriftSyncStateStore",
+        "file:drift/lib/persistence_drift.g.dart"
+      ],
+      "languageLesson": "Drift uses build_runner to generate the .g.dart companion from Dart Table declarations: 'dart run build_runner build'. The generated code provides typed row classes, INSERT/UPDATE companions, and DAO mixins. Treat .g.dart as read-only — regenerate, never hand-edit."
+    },
+    {
+      "order": 10,
+      "title": "Firebase Remote Adapter (Two Gateways)",
+      "description": "The firebase package supplies two RemoteGateway implementations satisfying the same contract from different backends. FirestoreRemoteGateway in persistence_firebase.dart pushes OutboxRecords to entity + oplog collections and pulls RemoteChanges using TimestampCursor pagination, while FirebaseRealtimeRemoteGateway maintains a per-(scope, entity) revision counter for stable pagination against Realtime Database — exactly matching the RevisionCursor branch from Step 4. Both gateways funnel telemetry through the SyncLogger from Step 8. persistence_firebase.dart also re-exports the realtime gateway so consumers can import either via a single barrel.",
+      "nodeIds": [
+        "file:firebase/lib/persistence_firebase.dart",
+        "class:firebase/lib/persistence_firebase.dart:FirestoreRemoteGateway",
+        "file:firebase/lib/firebase_realtime_remote_gateway.dart",
+        "class:firebase/lib/firebase_realtime_remote_gateway.dart:FirebaseRealtimeRemoteGateway"
+      ]
+    },
+    {
+      "order": 11,
+      "title": "Tests as Executable Documentation",
+      "description": "The test suites close the tour by showing the architecture working end-to-end. persistence_core_test.dart exercises SyncCoordinator and SyncRuntime via in-memory fakes for every port, which is the cleanest demonstration of why the hexagonal split matters — the engine needs no real database to be tested. persistence_drift_test.dart spins up an in-memory Drift database to verify DriftOutboxStore enqueue/peek/mark transitions and DriftSyncStateStore cursor monotonicity, and fake_persistence_test.dart uses in-memory fakes to cover the firebase gateway semantics without contacting Firebase.",
+      "nodeIds": [
+        "file:core/test/persistence_core_test.dart",
+        "file:drift/test/persistence_drift_test.dart",
+        "file:firebase/test/fake_persistence_test.dart"
+      ]
+    }
+  ]
+}
