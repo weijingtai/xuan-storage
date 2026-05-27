@@ -267,7 +267,7 @@ abstract class DeviceIdentityProvider {
 
 /// Provides current sync scope uid.
 ///
-/// 用途：
+/// 典型实现：
 /// - 将具体认证系统（FirebaseAuth/自研账号）与同步引擎解耦。
 abstract class AuthScopeProvider {
   /// Returns current scope uid.
@@ -275,4 +275,33 @@ abstract class AuthScopeProvider {
   /// 约定：
   /// - 返回值通常等同于当前登录用户的 uid。
   Future<String> getScopeUid();
+}
+
+/// Resolves the physical path for a shared database file.
+///
+/// 功能说明：
+/// - 跨 APP 共享同一个 `.db` 文件时，需要定位到系统级共享存储。
+/// - iOS: 通过 App Groups 的 containerURLForSecurityApplicationGroupIdentifier。
+/// - Android: 通过 External/Internal shared storage 分区。
+///
+/// 使用场景：
+/// - 单体 APP（如太乙独立版、奇门独立版）同时运行时，利用 WAL + Shared Storage
+///   共享同一个物理 `.db` 文件，避免数据孤岛。
+///
+/// 约束：
+/// - [groupId] 为 null 时，回退到标准本地存储路径。
+/// - 返回的路径必须是绝对路径，以数据库文件名结尾。
+abstract interface class ISharedPathProvider {
+  /// Resolves the absolute physical path for a shared database.
+  ///
+  /// 参数说明：
+  /// - [dbName]: 数据库文件名（如 'xuan.db'）。
+  ///
+  /// 返回值：
+  /// - 绝对路径字符串，以 [dbName] 结尾。
+  ///
+  /// 平台逻辑：
+  /// - 有 groupId → 共享容器路径（iOS App Groups / Android Shared Storage）。
+  /// - 无 groupId → 标准应用私有路径。
+  Future<String> getDatabasePath(String dbName);
 }
