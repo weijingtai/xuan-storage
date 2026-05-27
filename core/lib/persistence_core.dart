@@ -1,5 +1,8 @@
 export 'model/ports.dart';
 export 'model/types.dart';
+export 'model/repository.dart';
+export 'model/storage_error.dart';
+export 'core/schema_registry.dart';
 export 'core/sync_coordinator.dart';
 
 export 'configuration/sync_configuration_manager.dart';
