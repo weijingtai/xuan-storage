@@ -17,12 +17,17 @@ import 'daos/seeker_divination_mappers_dao.dart';
 import 'daos/combined_divinations_dao.dart';
 import 'daos/decision_links_dao.dart';
 import 'daos/divination_tags_dao.dart';
+import 'daos/divination_types_dao.dart';
+import 'daos/divination_sub_divination_type_mappers_dao.dart';
 import 'tables/seekers_table.dart';
 import 'tables/divinations_table.dart';
 import 'tables/seeker_divination_mappers_table.dart';
 import 'tables/combined_divinations_table.dart';
 import 'tables/decision_links_table.dart';
 import 'tables/divination_tags_table.dart';
+import 'tables/divination_types_table.dart';
+import 'tables/sub_divination_types_table.dart';
+import 'tables/divination_sub_divination_type_mappers_table.dart';
 
 export 'daos/seekers_dao.dart';
 export 'daos/divinations_dao.dart';
@@ -30,12 +35,17 @@ export 'daos/seeker_divination_mappers_dao.dart';
 export 'daos/combined_divinations_dao.dart';
 export 'daos/decision_links_dao.dart';
 export 'daos/divination_tags_dao.dart';
+export 'daos/divination_types_dao.dart';
+export 'daos/divination_sub_divination_type_mappers_dao.dart';
 export 'tables/seekers_table.dart';
 export 'tables/divinations_table.dart';
 export 'tables/seeker_divination_mappers_table.dart';
 export 'tables/combined_divinations_table.dart';
 export 'tables/decision_links_table.dart';
 export 'tables/divination_tags_table.dart';
+export 'tables/divination_types_table.dart';
+export 'tables/sub_divination_types_table.dart';
+export 'tables/divination_sub_divination_type_mappers_table.dart';
 export 'tables/auto_incrementing_primary_key.dart';
 
 part 'persistence_drift.g.dart';
@@ -386,6 +396,9 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
     CombinedDivinations,
     DecisionLinks,
     DivinationTags,
+    DivinationTypes,
+    SubDivinationTypes,
+    DivinationSubDivinationTypeMappers,
   ],
   daos: [
     OutboxRecordsDao,
@@ -396,6 +409,8 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
     CombinedDivinationsDao,
     DecisionLinksDao,
     DivinationTagsDao,
+    DivinationTypesDao,
+    DivinationSubDivinationTypeMappersDao,
   ],
 )
 class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
