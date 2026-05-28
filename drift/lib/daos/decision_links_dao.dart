@@ -1,6 +1,5 @@
 import 'package:drift/drift.dart';
 import 'package:persistence_drift/persistence_drift.dart';
-import 'package:persistence_drift/tables/decision_links_table.dart';
 
 part 'decision_links_dao.g.dart';
 

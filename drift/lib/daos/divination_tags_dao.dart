@@ -1,6 +1,5 @@
 import 'package:drift/drift.dart';
 import 'package:persistence_drift/persistence_drift.dart';
-import 'package:persistence_drift/tables/divination_tags_table.dart';
 
 part 'divination_tags_dao.g.dart';
 
