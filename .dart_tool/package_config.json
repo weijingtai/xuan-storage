@@ -1,0 +1,16 @@
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "storage",
+      "rootUri": "../",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    }
+  ],
+  "generator": "pub",
+  "generatorVersion": "3.10.7",
+  "flutterRoot": "file:///Users/jingtaiwei/flutter",
+  "flutterVersion": "3.38.6",
+  "pubCache": "file:///Users/jingtaiwei/.pub-cache"
+}

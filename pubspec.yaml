@@ -1,4 +1,4 @@
-name: xuan_storage
+name: storage
 description: Storage modules for xuan project (core/drift/firebase)
 version: 1.0.0
 publish_to: 'none'
