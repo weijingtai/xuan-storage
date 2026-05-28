@@ -6,6 +6,8 @@ import 'package:common/enums/enum_datetime_type.dart';
 import 'package:common/enums/enum_jia_zi.dart';
 import 'package:common/models/divination_datetime.dart';
 import 'package:common/datamodel/location.dart';
+import 'package:common/datamodel/divination_request_info_datamodel.dart';
+import 'package:common/datamodel/seeker_model.dart';
 import 'package:persistence_drift/converters/divination_datetime_model_converter.dart';
 import 'package:persistence_drift/converters/nullable_location_converter.dart';
 
