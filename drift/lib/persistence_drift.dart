@@ -1,6 +1,41 @@
 import 'package:drift/drift.dart';
 import 'package:persistence_core/persistence_core.dart';
 
+import 'package:common/enums/enum_gender.dart';
+import 'package:common/enums/enum_datetime_type.dart';
+import 'package:common/enums/enum_jia_zi.dart';
+import 'package:common/models/divination_datetime.dart';
+import 'package:common/datamodel/location.dart';
+import 'package:persistence_drift/converters/divination_datetime_model_converter.dart';
+import 'package:persistence_drift/converters/nullable_location_converter.dart';
+
+import 'daos/seekers_dao.dart';
+import 'daos/divinations_dao.dart';
+import 'daos/seeker_divination_mappers_dao.dart';
+import 'daos/combined_divinations_dao.dart';
+import 'daos/decision_links_dao.dart';
+import 'daos/divination_tags_dao.dart';
+import 'tables/seekers_table.dart';
+import 'tables/divinations_table.dart';
+import 'tables/seeker_divination_mappers_table.dart';
+import 'tables/combined_divinations_table.dart';
+import 'tables/decision_links_table.dart';
+import 'tables/divination_tags_table.dart';
+
+export 'daos/seekers_dao.dart';
+export 'daos/divinations_dao.dart';
+export 'daos/seeker_divination_mappers_dao.dart';
+export 'daos/combined_divinations_dao.dart';
+export 'daos/decision_links_dao.dart';
+export 'daos/divination_tags_dao.dart';
+export 'tables/seekers_table.dart';
+export 'tables/divinations_table.dart';
+export 'tables/seeker_divination_mappers_table.dart';
+export 'tables/combined_divinations_table.dart';
+export 'tables/decision_links_table.dart';
+export 'tables/divination_tags_table.dart';
+export 'tables/auto_incrementing_primary_key.dart';
+
 part 'persistence_drift.g.dart';
 
 @DataClassName('OutboxRecordRow')
@@ -340,8 +375,26 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
 }
 
 @DriftDatabase(
-  tables: [OutboxRecords, SyncStates],
-  daos: [OutboxRecordsDao, SyncStatesDao],
+  tables: [
+    OutboxRecords,
+    SyncStates,
+    Seekers,
+    Divinations,
+    SeekerDivinationMappers,
+    CombinedDivinations,
+    DecisionLinks,
+    DivinationTags,
+  ],
+  daos: [
+    OutboxRecordsDao,
+    SyncStatesDao,
+    SeekersDao,
+    DivinationsDao,
+    SeekerDivinationMappersDao,
+    CombinedDivinationsDao,
+    DecisionLinksDao,
+    DivinationTagsDao,
+  ],
 )
 class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
   PersistenceDriftDatabase(super.executor);
