@@ -29,6 +29,14 @@ class SharedQueryExecutor {
 /// - Cache and reuse executors for the same database path within
 ///   a single process to avoid redundant connections.
 abstract interface class IConnectionFactory {
+  /// PRAGMA statements that any implementation MUST apply to the connection
+  /// before returning it. Required for cross-process safety (mode 3 in v2 design).
+  static const List<String> requiredPragmas = [
+    'journal_mode = WAL',
+    'busy_timeout = 5000',
+    'foreign_keys = ON',
+  ];
+
   /// Builds or retrieves a cached [SharedQueryExecutor].
   ///
   /// Parameters:
