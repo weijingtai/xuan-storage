@@ -436,6 +436,34 @@ class OutboxRecord {
   }
 }
 
+/// Capabilities reported by a region's remote backend.
+///
+/// 功能说明：
+/// - 由 [RemoteGateway.getCapabilities] 返回。
+/// - SyncRuntime 可根据 capabilities 做动态 feature gating。
+class RegionCapabilities {
+  /// Creates a [RegionCapabilities].
+  ///
+  /// 参数说明：
+  /// - [entityVersions]: 每种 entityType 对应的 schema 版本号。
+  /// - [supportedFeatures]: 该后端支持的 feature 集合（例如 'outbox_v1'）。
+  /// - [serverProtocolVersion]: 服务端协议版本号。
+  const RegionCapabilities({
+    required this.entityVersions,
+    required this.supportedFeatures,
+    required this.serverProtocolVersion,
+  });
+
+  /// Schema version per entityType.
+  final Map<String, int> entityVersions;
+
+  /// Set of supported feature keys.
+  final Set<String> supportedFeatures;
+
+  /// Server protocol version.
+  final int serverProtocolVersion;
+}
+
 /// Summary result of one push run.
 class OutboxPushRunResult {
   /// Creates an [OutboxPushRunResult].

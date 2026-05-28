@@ -198,6 +198,12 @@ abstract class RemoteGateway {
     required PullCursor? sinceCursor,
     required int limit,
   });
+
+  /// Returns the capabilities of this region's backend.
+  ///
+  /// 用途：
+  /// - SyncRuntime 可根据 capabilities 做动态 feature gating。
+  Future<RegionCapabilities> getCapabilities();
 }
 
 /// Applies remote changes to local storage.
