@@ -51,6 +51,14 @@ import 'daos/panel_skill_class_mappers_dao.dart';
 import 'tables/panels_table.dart';
 import 'tables/divination_panel_mappers_table.dart';
 import 'tables/panel_skill_class_mappers_table.dart';
+import 'daos/skills_dao.dart';
+import 'daos/skill_classes_dao.dart';
+import 'tables/skills_table.dart';
+import 'tables/skill_classes_table.dart';
+export 'daos/skills_dao.dart';
+export 'daos/skill_classes_dao.dart';
+export 'tables/skills_table.dart';
+export 'tables/skill_classes_table.dart';
 export 'daos/panels_dao.dart';
 export 'daos/divination_panel_mappers_dao.dart';
 export 'daos/panel_skill_class_mappers_dao.dart';
@@ -439,6 +447,8 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
     Panels,
     DivinationPanelMappers,
     PanelSkillClassMappers,
+    Skills,
+    SkillClasses,
     DaYunRecords,
     TaiYuanRecords,
   ],
@@ -453,7 +463,6 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
     DivinationTagsDao,
     DivinationTypesDao,
     DivinationSubDivinationTypeMappersDao,
-    DivinationCalendarsDao,
     TimingDivinationsDao,
     PanelsDao,
     DivinationPanelMappersDao,
@@ -995,3 +1004,8 @@ class DriftSyncStateStore implements SyncStateStore {
   }
 }
 
+ 
+ 
+ 
+ 
+ 

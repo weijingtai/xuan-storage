@@ -6870,6 +6870,887 @@ class PanelSkillClassMappersCompanion
   }
 }
 
+class $SkillsTable extends Skills with TableInfo<$SkillsTable, Skill> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SkillsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _lastUpdatedAtMeta =
+      const VerificationMeta('lastUpdatedAt');
+  @override
+  late final GeneratedColumn<DateTime> lastUpdatedAt =
+      GeneratedColumn<DateTime>('last_updated_at', aliasedName, false,
+          type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _isAvailableMeta =
+      const VerificationMeta('isAvailable');
+  @override
+  late final GeneratedColumn<bool> isAvailable = GeneratedColumn<bool>(
+      'is_available', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("is_available" IN (0, 1))'));
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _descriptionsMeta =
+      const VerificationMeta('descriptions');
+  @override
+  late final GeneratedColumn<String> descriptions = GeneratedColumn<String>(
+      'descriptions', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        createdAt,
+        lastUpdatedAt,
+        deletedAt,
+        isAvailable,
+        name,
+        descriptions
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_skills';
+  @override
+  VerificationContext validateIntegrity(Insertable<Skill> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('last_updated_at')) {
+      context.handle(
+          _lastUpdatedAtMeta,
+          lastUpdatedAt.isAcceptableOrUnknown(
+              data['last_updated_at']!, _lastUpdatedAtMeta));
+    } else if (isInserting) {
+      context.missing(_lastUpdatedAtMeta);
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    if (data.containsKey('is_available')) {
+      context.handle(
+          _isAvailableMeta,
+          isAvailable.isAcceptableOrUnknown(
+              data['is_available']!, _isAvailableMeta));
+    } else if (isInserting) {
+      context.missing(_isAvailableMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('descriptions')) {
+      context.handle(
+          _descriptionsMeta,
+          descriptions.isAcceptableOrUnknown(
+              data['descriptions']!, _descriptionsMeta));
+    } else if (isInserting) {
+      context.missing(_descriptionsMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Skill map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Skill(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      lastUpdatedAt: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime, data['${effectivePrefix}last_updated_at'])!,
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      isAvailable: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_available'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      descriptions: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}descriptions'])!,
+    );
+  }
+
+  @override
+  $SkillsTable createAlias(String alias) {
+    return $SkillsTable(attachedDatabase, alias);
+  }
+}
+
+class Skill extends DataClass implements Insertable<Skill> {
+  final int id;
+  final DateTime createdAt;
+  final DateTime lastUpdatedAt;
+  final DateTime? deletedAt;
+  final bool isAvailable;
+  final String name;
+  final String descriptions;
+  const Skill(
+      {required this.id,
+      required this.createdAt,
+      required this.lastUpdatedAt,
+      this.deletedAt,
+      required this.isAvailable,
+      required this.name,
+      required this.descriptions});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['last_updated_at'] = Variable<DateTime>(lastUpdatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['is_available'] = Variable<bool>(isAvailable);
+    map['name'] = Variable<String>(name);
+    map['descriptions'] = Variable<String>(descriptions);
+    return map;
+  }
+
+  SkillsCompanion toCompanion(bool nullToAbsent) {
+    return SkillsCompanion(
+      id: Value(id),
+      createdAt: Value(createdAt),
+      lastUpdatedAt: Value(lastUpdatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      isAvailable: Value(isAvailable),
+      name: Value(name),
+      descriptions: Value(descriptions),
+    );
+  }
+
+  factory Skill.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Skill(
+      id: serializer.fromJson<int>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      lastUpdatedAt: serializer.fromJson<DateTime>(json['lastUpdatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      isAvailable: serializer.fromJson<bool>(json['isAvailable']),
+      name: serializer.fromJson<String>(json['name']),
+      descriptions: serializer.fromJson<String>(json['descriptions']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'lastUpdatedAt': serializer.toJson<DateTime>(lastUpdatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'isAvailable': serializer.toJson<bool>(isAvailable),
+      'name': serializer.toJson<String>(name),
+      'descriptions': serializer.toJson<String>(descriptions),
+    };
+  }
+
+  Skill copyWith(
+          {int? id,
+          DateTime? createdAt,
+          DateTime? lastUpdatedAt,
+          Value<DateTime?> deletedAt = const Value.absent(),
+          bool? isAvailable,
+          String? name,
+          String? descriptions}) =>
+      Skill(
+        id: id ?? this.id,
+        createdAt: createdAt ?? this.createdAt,
+        lastUpdatedAt: lastUpdatedAt ?? this.lastUpdatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        isAvailable: isAvailable ?? this.isAvailable,
+        name: name ?? this.name,
+        descriptions: descriptions ?? this.descriptions,
+      );
+  Skill copyWithCompanion(SkillsCompanion data) {
+    return Skill(
+      id: data.id.present ? data.id.value : this.id,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      lastUpdatedAt: data.lastUpdatedAt.present
+          ? data.lastUpdatedAt.value
+          : this.lastUpdatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      isAvailable:
+          data.isAvailable.present ? data.isAvailable.value : this.isAvailable,
+      name: data.name.present ? data.name.value : this.name,
+      descriptions: data.descriptions.present
+          ? data.descriptions.value
+          : this.descriptions,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Skill(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('lastUpdatedAt: $lastUpdatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('isAvailable: $isAvailable, ')
+          ..write('name: $name, ')
+          ..write('descriptions: $descriptions')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id, createdAt, lastUpdatedAt, deletedAt, isAvailable, name, descriptions);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Skill &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.lastUpdatedAt == this.lastUpdatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.isAvailable == this.isAvailable &&
+          other.name == this.name &&
+          other.descriptions == this.descriptions);
+}
+
+class SkillsCompanion extends UpdateCompanion<Skill> {
+  final Value<int> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> lastUpdatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<bool> isAvailable;
+  final Value<String> name;
+  final Value<String> descriptions;
+  const SkillsCompanion({
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.lastUpdatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.isAvailable = const Value.absent(),
+    this.name = const Value.absent(),
+    this.descriptions = const Value.absent(),
+  });
+  SkillsCompanion.insert({
+    this.id = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime lastUpdatedAt,
+    this.deletedAt = const Value.absent(),
+    required bool isAvailable,
+    required String name,
+    required String descriptions,
+  })  : createdAt = Value(createdAt),
+        lastUpdatedAt = Value(lastUpdatedAt),
+        isAvailable = Value(isAvailable),
+        name = Value(name),
+        descriptions = Value(descriptions);
+  static Insertable<Skill> custom({
+    Expression<int>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? lastUpdatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<bool>? isAvailable,
+    Expression<String>? name,
+    Expression<String>? descriptions,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (lastUpdatedAt != null) 'last_updated_at': lastUpdatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (isAvailable != null) 'is_available': isAvailable,
+      if (name != null) 'name': name,
+      if (descriptions != null) 'descriptions': descriptions,
+    });
+  }
+
+  SkillsCompanion copyWith(
+      {Value<int>? id,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? lastUpdatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<bool>? isAvailable,
+      Value<String>? name,
+      Value<String>? descriptions}) {
+    return SkillsCompanion(
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      lastUpdatedAt: lastUpdatedAt ?? this.lastUpdatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      isAvailable: isAvailable ?? this.isAvailable,
+      name: name ?? this.name,
+      descriptions: descriptions ?? this.descriptions,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (lastUpdatedAt.present) {
+      map['last_updated_at'] = Variable<DateTime>(lastUpdatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (isAvailable.present) {
+      map['is_available'] = Variable<bool>(isAvailable.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (descriptions.present) {
+      map['descriptions'] = Variable<String>(descriptions.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SkillsCompanion(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('lastUpdatedAt: $lastUpdatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('isAvailable: $isAvailable, ')
+          ..write('name: $name, ')
+          ..write('descriptions: $descriptions')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SkillClassesTable extends SkillClasses
+    with TableInfo<$SkillClassesTable, SkillClass> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SkillClassesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid =
+      GeneratedColumn<String>('uuid', aliasedName, false,
+          additionalChecks: GeneratedColumn.checkTextLength(
+            minTextLength: 1,
+          ),
+          type: DriftSqlType.string,
+          requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _lastUpdatedAtMeta =
+      const VerificationMeta('lastUpdatedAt');
+  @override
+  late final GeneratedColumn<DateTime> lastUpdatedAt =
+      GeneratedColumn<DateTime>('last_updated_at', aliasedName, false,
+          type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _skillIdMeta =
+      const VerificationMeta('skillId');
+  @override
+  late final GeneratedColumn<int> skillId = GeneratedColumn<int>(
+      'skill_id', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _specificationMeta =
+      const VerificationMeta('specification');
+  @override
+  late final GeneratedColumn<String> specification = GeneratedColumn<String>(
+      'specification', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _featureMeta =
+      const VerificationMeta('feature');
+  @override
+  late final GeneratedColumn<String> feature = GeneratedColumn<String>(
+      'feature', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _isCustomizedMeta =
+      const VerificationMeta('isCustomized');
+  @override
+  late final GeneratedColumn<bool> isCustomized = GeneratedColumn<bool>(
+      'is_customized', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("is_customized" IN (0, 1))'));
+  @override
+  List<GeneratedColumn> get $columns => [
+        uuid,
+        createdAt,
+        lastUpdatedAt,
+        deletedAt,
+        skillId,
+        name,
+        specification,
+        feature,
+        isCustomized
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_skill_classes';
+  @override
+  VerificationContext validateIntegrity(Insertable<SkillClass> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('last_updated_at')) {
+      context.handle(
+          _lastUpdatedAtMeta,
+          lastUpdatedAt.isAcceptableOrUnknown(
+              data['last_updated_at']!, _lastUpdatedAtMeta));
+    } else if (isInserting) {
+      context.missing(_lastUpdatedAtMeta);
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    if (data.containsKey('skill_id')) {
+      context.handle(_skillIdMeta,
+          skillId.isAcceptableOrUnknown(data['skill_id']!, _skillIdMeta));
+    } else if (isInserting) {
+      context.missing(_skillIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('specification')) {
+      context.handle(
+          _specificationMeta,
+          specification.isAcceptableOrUnknown(
+              data['specification']!, _specificationMeta));
+    } else if (isInserting) {
+      context.missing(_specificationMeta);
+    }
+    if (data.containsKey('feature')) {
+      context.handle(_featureMeta,
+          feature.isAcceptableOrUnknown(data['feature']!, _featureMeta));
+    } else if (isInserting) {
+      context.missing(_featureMeta);
+    }
+    if (data.containsKey('is_customized')) {
+      context.handle(
+          _isCustomizedMeta,
+          isCustomized.isAcceptableOrUnknown(
+              data['is_customized']!, _isCustomizedMeta));
+    } else if (isInserting) {
+      context.missing(_isCustomizedMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  SkillClass map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SkillClass(
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      lastUpdatedAt: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime, data['${effectivePrefix}last_updated_at'])!,
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      skillId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}skill_id'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      specification: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}specification'])!,
+      feature: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}feature'])!,
+      isCustomized: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_customized'])!,
+    );
+  }
+
+  @override
+  $SkillClassesTable createAlias(String alias) {
+    return $SkillClassesTable(attachedDatabase, alias);
+  }
+}
+
+class SkillClass extends DataClass implements Insertable<SkillClass> {
+  final String uuid;
+  final DateTime createdAt;
+  final DateTime lastUpdatedAt;
+  final DateTime? deletedAt;
+  final int skillId;
+  final String name;
+  final String specification;
+  final String feature;
+  final bool isCustomized;
+  const SkillClass(
+      {required this.uuid,
+      required this.createdAt,
+      required this.lastUpdatedAt,
+      this.deletedAt,
+      required this.skillId,
+      required this.name,
+      required this.specification,
+      required this.feature,
+      required this.isCustomized});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['last_updated_at'] = Variable<DateTime>(lastUpdatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['skill_id'] = Variable<int>(skillId);
+    map['name'] = Variable<String>(name);
+    map['specification'] = Variable<String>(specification);
+    map['feature'] = Variable<String>(feature);
+    map['is_customized'] = Variable<bool>(isCustomized);
+    return map;
+  }
+
+  SkillClassesCompanion toCompanion(bool nullToAbsent) {
+    return SkillClassesCompanion(
+      uuid: Value(uuid),
+      createdAt: Value(createdAt),
+      lastUpdatedAt: Value(lastUpdatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      skillId: Value(skillId),
+      name: Value(name),
+      specification: Value(specification),
+      feature: Value(feature),
+      isCustomized: Value(isCustomized),
+    );
+  }
+
+  factory SkillClass.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SkillClass(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      lastUpdatedAt: serializer.fromJson<DateTime>(json['lastUpdatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      skillId: serializer.fromJson<int>(json['skillId']),
+      name: serializer.fromJson<String>(json['name']),
+      specification: serializer.fromJson<String>(json['specification']),
+      feature: serializer.fromJson<String>(json['feature']),
+      isCustomized: serializer.fromJson<bool>(json['isCustomized']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'lastUpdatedAt': serializer.toJson<DateTime>(lastUpdatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'skillId': serializer.toJson<int>(skillId),
+      'name': serializer.toJson<String>(name),
+      'specification': serializer.toJson<String>(specification),
+      'feature': serializer.toJson<String>(feature),
+      'isCustomized': serializer.toJson<bool>(isCustomized),
+    };
+  }
+
+  SkillClass copyWith(
+          {String? uuid,
+          DateTime? createdAt,
+          DateTime? lastUpdatedAt,
+          Value<DateTime?> deletedAt = const Value.absent(),
+          int? skillId,
+          String? name,
+          String? specification,
+          String? feature,
+          bool? isCustomized}) =>
+      SkillClass(
+        uuid: uuid ?? this.uuid,
+        createdAt: createdAt ?? this.createdAt,
+        lastUpdatedAt: lastUpdatedAt ?? this.lastUpdatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        skillId: skillId ?? this.skillId,
+        name: name ?? this.name,
+        specification: specification ?? this.specification,
+        feature: feature ?? this.feature,
+        isCustomized: isCustomized ?? this.isCustomized,
+      );
+  SkillClass copyWithCompanion(SkillClassesCompanion data) {
+    return SkillClass(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      lastUpdatedAt: data.lastUpdatedAt.present
+          ? data.lastUpdatedAt.value
+          : this.lastUpdatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      skillId: data.skillId.present ? data.skillId.value : this.skillId,
+      name: data.name.present ? data.name.value : this.name,
+      specification: data.specification.present
+          ? data.specification.value
+          : this.specification,
+      feature: data.feature.present ? data.feature.value : this.feature,
+      isCustomized: data.isCustomized.present
+          ? data.isCustomized.value
+          : this.isCustomized,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SkillClass(')
+          ..write('uuid: $uuid, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('lastUpdatedAt: $lastUpdatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('skillId: $skillId, ')
+          ..write('name: $name, ')
+          ..write('specification: $specification, ')
+          ..write('feature: $feature, ')
+          ..write('isCustomized: $isCustomized')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(uuid, createdAt, lastUpdatedAt, deletedAt,
+      skillId, name, specification, feature, isCustomized);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SkillClass &&
+          other.uuid == this.uuid &&
+          other.createdAt == this.createdAt &&
+          other.lastUpdatedAt == this.lastUpdatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.skillId == this.skillId &&
+          other.name == this.name &&
+          other.specification == this.specification &&
+          other.feature == this.feature &&
+          other.isCustomized == this.isCustomized);
+}
+
+class SkillClassesCompanion extends UpdateCompanion<SkillClass> {
+  final Value<String> uuid;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> lastUpdatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> skillId;
+  final Value<String> name;
+  final Value<String> specification;
+  final Value<String> feature;
+  final Value<bool> isCustomized;
+  final Value<int> rowid;
+  const SkillClassesCompanion({
+    this.uuid = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.lastUpdatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.skillId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.specification = const Value.absent(),
+    this.feature = const Value.absent(),
+    this.isCustomized = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SkillClassesCompanion.insert({
+    required String uuid,
+    required DateTime createdAt,
+    required DateTime lastUpdatedAt,
+    this.deletedAt = const Value.absent(),
+    required int skillId,
+    required String name,
+    required String specification,
+    required String feature,
+    required bool isCustomized,
+    this.rowid = const Value.absent(),
+  })  : uuid = Value(uuid),
+        createdAt = Value(createdAt),
+        lastUpdatedAt = Value(lastUpdatedAt),
+        skillId = Value(skillId),
+        name = Value(name),
+        specification = Value(specification),
+        feature = Value(feature),
+        isCustomized = Value(isCustomized);
+  static Insertable<SkillClass> custom({
+    Expression<String>? uuid,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? lastUpdatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? skillId,
+    Expression<String>? name,
+    Expression<String>? specification,
+    Expression<String>? feature,
+    Expression<bool>? isCustomized,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (createdAt != null) 'created_at': createdAt,
+      if (lastUpdatedAt != null) 'last_updated_at': lastUpdatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (skillId != null) 'skill_id': skillId,
+      if (name != null) 'name': name,
+      if (specification != null) 'specification': specification,
+      if (feature != null) 'feature': feature,
+      if (isCustomized != null) 'is_customized': isCustomized,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SkillClassesCompanion copyWith(
+      {Value<String>? uuid,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? lastUpdatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<int>? skillId,
+      Value<String>? name,
+      Value<String>? specification,
+      Value<String>? feature,
+      Value<bool>? isCustomized,
+      Value<int>? rowid}) {
+    return SkillClassesCompanion(
+      uuid: uuid ?? this.uuid,
+      createdAt: createdAt ?? this.createdAt,
+      lastUpdatedAt: lastUpdatedAt ?? this.lastUpdatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      skillId: skillId ?? this.skillId,
+      name: name ?? this.name,
+      specification: specification ?? this.specification,
+      feature: feature ?? this.feature,
+      isCustomized: isCustomized ?? this.isCustomized,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (lastUpdatedAt.present) {
+      map['last_updated_at'] = Variable<DateTime>(lastUpdatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (skillId.present) {
+      map['skill_id'] = Variable<int>(skillId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (specification.present) {
+      map['specification'] = Variable<String>(specification.value);
+    }
+    if (feature.present) {
+      map['feature'] = Variable<String>(feature.value);
+    }
+    if (isCustomized.present) {
+      map['is_customized'] = Variable<bool>(isCustomized.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SkillClassesCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('lastUpdatedAt: $lastUpdatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('skillId: $skillId, ')
+          ..write('name: $name, ')
+          ..write('specification: $specification, ')
+          ..write('feature: $feature, ')
+          ..write('isCustomized: $isCustomized, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $DaYunRecordsTable extends DaYunRecords
     with TableInfo<$DaYunRecordsTable, DaYunRecord> {
   @override
@@ -7579,6 +8460,8 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
       $DivinationPanelMappersTable(this);
   late final $PanelSkillClassMappersTable panelSkillClassMappers =
       $PanelSkillClassMappersTable(this);
+  late final $SkillsTable skills = $SkillsTable(this);
+  late final $SkillClassesTable skillClasses = $SkillClassesTable(this);
   late final $DaYunRecordsTable daYunRecords = $DaYunRecordsTable(this);
   late final $TaiYuanRecordsTable taiYuanRecords = $TaiYuanRecordsTable(this);
   late final OutboxRecordsDao outboxRecordsDao =
@@ -7634,6 +8517,8 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
         panels,
         divinationPanelMappers,
         panelSkillClassMappers,
+        skills,
+        skillClasses,
         daYunRecords,
         taiYuanRecords
       ];
@@ -12693,6 +13578,434 @@ typedef $$PanelSkillClassMappersTableProcessedTableManager
         ),
         PanelSkillClassMapper,
         PrefetchHooks Function()>;
+typedef $$SkillsTableCreateCompanionBuilder = SkillsCompanion Function({
+  Value<int> id,
+  required DateTime createdAt,
+  required DateTime lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  required bool isAvailable,
+  required String name,
+  required String descriptions,
+});
+typedef $$SkillsTableUpdateCompanionBuilder = SkillsCompanion Function({
+  Value<int> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  Value<bool> isAvailable,
+  Value<String> name,
+  Value<String> descriptions,
+});
+
+class $$SkillsTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $SkillsTable> {
+  $$SkillsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get lastUpdatedAt => $composableBuilder(
+      column: $table.lastUpdatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isAvailable => $composableBuilder(
+      column: $table.isAvailable, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get descriptions => $composableBuilder(
+      column: $table.descriptions, builder: (column) => ColumnFilters(column));
+}
+
+class $$SkillsTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $SkillsTable> {
+  $$SkillsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get lastUpdatedAt => $composableBuilder(
+      column: $table.lastUpdatedAt,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isAvailable => $composableBuilder(
+      column: $table.isAvailable, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get descriptions => $composableBuilder(
+      column: $table.descriptions,
+      builder: (column) => ColumnOrderings(column));
+}
+
+class $$SkillsTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $SkillsTable> {
+  $$SkillsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastUpdatedAt => $composableBuilder(
+      column: $table.lastUpdatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isAvailable => $composableBuilder(
+      column: $table.isAvailable, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get descriptions => $composableBuilder(
+      column: $table.descriptions, builder: (column) => column);
+}
+
+class $$SkillsTableTableManager extends RootTableManager<
+    _$PersistenceDriftDatabase,
+    $SkillsTable,
+    Skill,
+    $$SkillsTableFilterComposer,
+    $$SkillsTableOrderingComposer,
+    $$SkillsTableAnnotationComposer,
+    $$SkillsTableCreateCompanionBuilder,
+    $$SkillsTableUpdateCompanionBuilder,
+    (Skill, BaseReferences<_$PersistenceDriftDatabase, $SkillsTable, Skill>),
+    Skill,
+    PrefetchHooks Function()> {
+  $$SkillsTableTableManager(_$PersistenceDriftDatabase db, $SkillsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SkillsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SkillsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SkillsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> lastUpdatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<bool> isAvailable = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<String> descriptions = const Value.absent(),
+          }) =>
+              SkillsCompanion(
+            id: id,
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            isAvailable: isAvailable,
+            name: name,
+            descriptions: descriptions,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required DateTime createdAt,
+            required DateTime lastUpdatedAt,
+            Value<DateTime?> deletedAt = const Value.absent(),
+            required bool isAvailable,
+            required String name,
+            required String descriptions,
+          }) =>
+              SkillsCompanion.insert(
+            id: id,
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            isAvailable: isAvailable,
+            name: name,
+            descriptions: descriptions,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$SkillsTableProcessedTableManager = ProcessedTableManager<
+    _$PersistenceDriftDatabase,
+    $SkillsTable,
+    Skill,
+    $$SkillsTableFilterComposer,
+    $$SkillsTableOrderingComposer,
+    $$SkillsTableAnnotationComposer,
+    $$SkillsTableCreateCompanionBuilder,
+    $$SkillsTableUpdateCompanionBuilder,
+    (Skill, BaseReferences<_$PersistenceDriftDatabase, $SkillsTable, Skill>),
+    Skill,
+    PrefetchHooks Function()>;
+typedef $$SkillClassesTableCreateCompanionBuilder = SkillClassesCompanion
+    Function({
+  required String uuid,
+  required DateTime createdAt,
+  required DateTime lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  required int skillId,
+  required String name,
+  required String specification,
+  required String feature,
+  required bool isCustomized,
+  Value<int> rowid,
+});
+typedef $$SkillClassesTableUpdateCompanionBuilder = SkillClassesCompanion
+    Function({
+  Value<String> uuid,
+  Value<DateTime> createdAt,
+  Value<DateTime> lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  Value<int> skillId,
+  Value<String> name,
+  Value<String> specification,
+  Value<String> feature,
+  Value<bool> isCustomized,
+  Value<int> rowid,
+});
+
+class $$SkillClassesTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $SkillClassesTable> {
+  $$SkillClassesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get lastUpdatedAt => $composableBuilder(
+      column: $table.lastUpdatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get skillId => $composableBuilder(
+      column: $table.skillId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get specification => $composableBuilder(
+      column: $table.specification, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get feature => $composableBuilder(
+      column: $table.feature, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isCustomized => $composableBuilder(
+      column: $table.isCustomized, builder: (column) => ColumnFilters(column));
+}
+
+class $$SkillClassesTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $SkillClassesTable> {
+  $$SkillClassesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get lastUpdatedAt => $composableBuilder(
+      column: $table.lastUpdatedAt,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get skillId => $composableBuilder(
+      column: $table.skillId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get specification => $composableBuilder(
+      column: $table.specification,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get feature => $composableBuilder(
+      column: $table.feature, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isCustomized => $composableBuilder(
+      column: $table.isCustomized,
+      builder: (column) => ColumnOrderings(column));
+}
+
+class $$SkillClassesTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $SkillClassesTable> {
+  $$SkillClassesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastUpdatedAt => $composableBuilder(
+      column: $table.lastUpdatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get skillId =>
+      $composableBuilder(column: $table.skillId, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get specification => $composableBuilder(
+      column: $table.specification, builder: (column) => column);
+
+  GeneratedColumn<String> get feature =>
+      $composableBuilder(column: $table.feature, builder: (column) => column);
+
+  GeneratedColumn<bool> get isCustomized => $composableBuilder(
+      column: $table.isCustomized, builder: (column) => column);
+}
+
+class $$SkillClassesTableTableManager extends RootTableManager<
+    _$PersistenceDriftDatabase,
+    $SkillClassesTable,
+    SkillClass,
+    $$SkillClassesTableFilterComposer,
+    $$SkillClassesTableOrderingComposer,
+    $$SkillClassesTableAnnotationComposer,
+    $$SkillClassesTableCreateCompanionBuilder,
+    $$SkillClassesTableUpdateCompanionBuilder,
+    (
+      SkillClass,
+      BaseReferences<_$PersistenceDriftDatabase, $SkillClassesTable, SkillClass>
+    ),
+    SkillClass,
+    PrefetchHooks Function()> {
+  $$SkillClassesTableTableManager(
+      _$PersistenceDriftDatabase db, $SkillClassesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SkillClassesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SkillClassesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SkillClassesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> uuid = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> lastUpdatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<int> skillId = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<String> specification = const Value.absent(),
+            Value<String> feature = const Value.absent(),
+            Value<bool> isCustomized = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              SkillClassesCompanion(
+            uuid: uuid,
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            skillId: skillId,
+            name: name,
+            specification: specification,
+            feature: feature,
+            isCustomized: isCustomized,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String uuid,
+            required DateTime createdAt,
+            required DateTime lastUpdatedAt,
+            Value<DateTime?> deletedAt = const Value.absent(),
+            required int skillId,
+            required String name,
+            required String specification,
+            required String feature,
+            required bool isCustomized,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              SkillClassesCompanion.insert(
+            uuid: uuid,
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            skillId: skillId,
+            name: name,
+            specification: specification,
+            feature: feature,
+            isCustomized: isCustomized,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$SkillClassesTableProcessedTableManager = ProcessedTableManager<
+    _$PersistenceDriftDatabase,
+    $SkillClassesTable,
+    SkillClass,
+    $$SkillClassesTableFilterComposer,
+    $$SkillClassesTableOrderingComposer,
+    $$SkillClassesTableAnnotationComposer,
+    $$SkillClassesTableCreateCompanionBuilder,
+    $$SkillClassesTableUpdateCompanionBuilder,
+    (
+      SkillClass,
+      BaseReferences<_$PersistenceDriftDatabase, $SkillClassesTable, SkillClass>
+    ),
+    SkillClass,
+    PrefetchHooks Function()>;
 typedef $$DaYunRecordsTableCreateCompanionBuilder = DaYunRecordsCompanion
     Function({
   required String uuid,
@@ -13102,6 +14415,10 @@ class $PersistenceDriftDatabaseManager {
   $$PanelSkillClassMappersTableTableManager get panelSkillClassMappers =>
       $$PanelSkillClassMappersTableTableManager(
           _db, _db.panelSkillClassMappers);
+  $$SkillsTableTableManager get skills =>
+      $$SkillsTableTableManager(_db, _db.skills);
+  $$SkillClassesTableTableManager get skillClasses =>
+      $$SkillClassesTableTableManager(_db, _db.skillClasses);
   $$DaYunRecordsTableTableManager get daYunRecords =>
       $$DaYunRecordsTableTableManager(_db, _db.daYunRecords);
   $$TaiYuanRecordsTableTableManager get taiYuanRecords =>
