@@ -4882,6 +4882,685 @@ class DivinationSubDivinationTypeMappersCompanion
   }
 }
 
+class $DaYunRecordsTable extends DaYunRecords
+    with TableInfo<$DaYunRecordsTable, DaYunRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DaYunRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid =
+      GeneratedColumn<String>('uuid', aliasedName, false,
+          additionalChecks: GeneratedColumn.checkTextLength(
+            minTextLength: 1,
+          ),
+          type: DriftSqlType.string,
+          requiredDuringInsert: true);
+  static const VerificationMeta _sourceUuidMeta =
+      const VerificationMeta('sourceUuid');
+  @override
+  late final GeneratedColumn<String> sourceUuid = GeneratedColumn<String>(
+      'source_uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _jieQiTypeMeta =
+      const VerificationMeta('jieQiType');
+  @override
+  late final GeneratedColumn<String> jieQiType = GeneratedColumn<String>(
+      'jie_qi_type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _precisionMeta =
+      const VerificationMeta('precision');
+  @override
+  late final GeneratedColumn<String> precision = GeneratedColumn<String>(
+      'precision', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [uuid, sourceUuid, jieQiType, precision, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_da_yun_records';
+  @override
+  VerificationContext validateIntegrity(Insertable<DaYunRecord> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('source_uuid')) {
+      context.handle(
+          _sourceUuidMeta,
+          sourceUuid.isAcceptableOrUnknown(
+              data['source_uuid']!, _sourceUuidMeta));
+    } else if (isInserting) {
+      context.missing(_sourceUuidMeta);
+    }
+    if (data.containsKey('jie_qi_type')) {
+      context.handle(
+          _jieQiTypeMeta,
+          jieQiType.isAcceptableOrUnknown(
+              data['jie_qi_type']!, _jieQiTypeMeta));
+    } else if (isInserting) {
+      context.missing(_jieQiTypeMeta);
+    }
+    if (data.containsKey('precision')) {
+      context.handle(_precisionMeta,
+          precision.isAcceptableOrUnknown(data['precision']!, _precisionMeta));
+    } else if (isInserting) {
+      context.missing(_precisionMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  DaYunRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DaYunRecord(
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      sourceUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}source_uuid'])!,
+      jieQiType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}jie_qi_type'])!,
+      precision: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}precision'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+    );
+  }
+
+  @override
+  $DaYunRecordsTable createAlias(String alias) {
+    return $DaYunRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class DaYunRecord extends DataClass implements Insertable<DaYunRecord> {
+  final String uuid;
+  final String sourceUuid;
+  final String jieQiType;
+  final String precision;
+  final DateTime createdAt;
+  const DaYunRecord(
+      {required this.uuid,
+      required this.sourceUuid,
+      required this.jieQiType,
+      required this.precision,
+      required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['source_uuid'] = Variable<String>(sourceUuid);
+    map['jie_qi_type'] = Variable<String>(jieQiType);
+    map['precision'] = Variable<String>(precision);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  DaYunRecordsCompanion toCompanion(bool nullToAbsent) {
+    return DaYunRecordsCompanion(
+      uuid: Value(uuid),
+      sourceUuid: Value(sourceUuid),
+      jieQiType: Value(jieQiType),
+      precision: Value(precision),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory DaYunRecord.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DaYunRecord(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      sourceUuid: serializer.fromJson<String>(json['sourceUuid']),
+      jieQiType: serializer.fromJson<String>(json['jieQiType']),
+      precision: serializer.fromJson<String>(json['precision']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'sourceUuid': serializer.toJson<String>(sourceUuid),
+      'jieQiType': serializer.toJson<String>(jieQiType),
+      'precision': serializer.toJson<String>(precision),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  DaYunRecord copyWith(
+          {String? uuid,
+          String? sourceUuid,
+          String? jieQiType,
+          String? precision,
+          DateTime? createdAt}) =>
+      DaYunRecord(
+        uuid: uuid ?? this.uuid,
+        sourceUuid: sourceUuid ?? this.sourceUuid,
+        jieQiType: jieQiType ?? this.jieQiType,
+        precision: precision ?? this.precision,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  DaYunRecord copyWithCompanion(DaYunRecordsCompanion data) {
+    return DaYunRecord(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      sourceUuid:
+          data.sourceUuid.present ? data.sourceUuid.value : this.sourceUuid,
+      jieQiType: data.jieQiType.present ? data.jieQiType.value : this.jieQiType,
+      precision: data.precision.present ? data.precision.value : this.precision,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DaYunRecord(')
+          ..write('uuid: $uuid, ')
+          ..write('sourceUuid: $sourceUuid, ')
+          ..write('jieQiType: $jieQiType, ')
+          ..write('precision: $precision, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(uuid, sourceUuid, jieQiType, precision, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DaYunRecord &&
+          other.uuid == this.uuid &&
+          other.sourceUuid == this.sourceUuid &&
+          other.jieQiType == this.jieQiType &&
+          other.precision == this.precision &&
+          other.createdAt == this.createdAt);
+}
+
+class DaYunRecordsCompanion extends UpdateCompanion<DaYunRecord> {
+  final Value<String> uuid;
+  final Value<String> sourceUuid;
+  final Value<String> jieQiType;
+  final Value<String> precision;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const DaYunRecordsCompanion({
+    this.uuid = const Value.absent(),
+    this.sourceUuid = const Value.absent(),
+    this.jieQiType = const Value.absent(),
+    this.precision = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DaYunRecordsCompanion.insert({
+    required String uuid,
+    required String sourceUuid,
+    required String jieQiType,
+    required String precision,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  })  : uuid = Value(uuid),
+        sourceUuid = Value(sourceUuid),
+        jieQiType = Value(jieQiType),
+        precision = Value(precision),
+        createdAt = Value(createdAt);
+  static Insertable<DaYunRecord> custom({
+    Expression<String>? uuid,
+    Expression<String>? sourceUuid,
+    Expression<String>? jieQiType,
+    Expression<String>? precision,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (sourceUuid != null) 'source_uuid': sourceUuid,
+      if (jieQiType != null) 'jie_qi_type': jieQiType,
+      if (precision != null) 'precision': precision,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DaYunRecordsCompanion copyWith(
+      {Value<String>? uuid,
+      Value<String>? sourceUuid,
+      Value<String>? jieQiType,
+      Value<String>? precision,
+      Value<DateTime>? createdAt,
+      Value<int>? rowid}) {
+    return DaYunRecordsCompanion(
+      uuid: uuid ?? this.uuid,
+      sourceUuid: sourceUuid ?? this.sourceUuid,
+      jieQiType: jieQiType ?? this.jieQiType,
+      precision: precision ?? this.precision,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (sourceUuid.present) {
+      map['source_uuid'] = Variable<String>(sourceUuid.value);
+    }
+    if (jieQiType.present) {
+      map['jie_qi_type'] = Variable<String>(jieQiType.value);
+    }
+    if (precision.present) {
+      map['precision'] = Variable<String>(precision.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DaYunRecordsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('sourceUuid: $sourceUuid, ')
+          ..write('jieQiType: $jieQiType, ')
+          ..write('precision: $precision, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TaiYuanRecordsTable extends TaiYuanRecords
+    with TableInfo<$TaiYuanRecordsTable, TaiYuanRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TaiYuanRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid =
+      GeneratedColumn<String>('uuid', aliasedName, false,
+          additionalChecks: GeneratedColumn.checkTextLength(
+            minTextLength: 1,
+          ),
+          type: DriftSqlType.string,
+          requiredDuringInsert: true);
+  static const VerificationMeta _calendarUuidMeta =
+      const VerificationMeta('calendarUuid');
+  @override
+  late final GeneratedColumn<String> calendarUuid = GeneratedColumn<String>(
+      'calendar_uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _strategyMeta =
+      const VerificationMeta('strategy');
+  @override
+  late final GeneratedColumn<String> strategy = GeneratedColumn<String>(
+      'strategy', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _pillarMeta = const VerificationMeta('pillar');
+  @override
+  late final GeneratedColumn<String> pillar = GeneratedColumn<String>(
+      'pillar', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+      'description', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [uuid, calendarUuid, strategy, pillar, description, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_tai_yuan_records';
+  @override
+  VerificationContext validateIntegrity(Insertable<TaiYuanRecord> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('calendar_uuid')) {
+      context.handle(
+          _calendarUuidMeta,
+          calendarUuid.isAcceptableOrUnknown(
+              data['calendar_uuid']!, _calendarUuidMeta));
+    } else if (isInserting) {
+      context.missing(_calendarUuidMeta);
+    }
+    if (data.containsKey('strategy')) {
+      context.handle(_strategyMeta,
+          strategy.isAcceptableOrUnknown(data['strategy']!, _strategyMeta));
+    } else if (isInserting) {
+      context.missing(_strategyMeta);
+    }
+    if (data.containsKey('pillar')) {
+      context.handle(_pillarMeta,
+          pillar.isAcceptableOrUnknown(data['pillar']!, _pillarMeta));
+    } else if (isInserting) {
+      context.missing(_pillarMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  TaiYuanRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TaiYuanRecord(
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      calendarUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}calendar_uuid'])!,
+      strategy: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}strategy'])!,
+      pillar: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}pillar'])!,
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description']),
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+    );
+  }
+
+  @override
+  $TaiYuanRecordsTable createAlias(String alias) {
+    return $TaiYuanRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class TaiYuanRecord extends DataClass implements Insertable<TaiYuanRecord> {
+  final String uuid;
+  final String calendarUuid;
+  final String strategy;
+  final String pillar;
+  final String? description;
+  final DateTime createdAt;
+  const TaiYuanRecord(
+      {required this.uuid,
+      required this.calendarUuid,
+      required this.strategy,
+      required this.pillar,
+      this.description,
+      required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['calendar_uuid'] = Variable<String>(calendarUuid);
+    map['strategy'] = Variable<String>(strategy);
+    map['pillar'] = Variable<String>(pillar);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  TaiYuanRecordsCompanion toCompanion(bool nullToAbsent) {
+    return TaiYuanRecordsCompanion(
+      uuid: Value(uuid),
+      calendarUuid: Value(calendarUuid),
+      strategy: Value(strategy),
+      pillar: Value(pillar),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory TaiYuanRecord.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TaiYuanRecord(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      calendarUuid: serializer.fromJson<String>(json['calendarUuid']),
+      strategy: serializer.fromJson<String>(json['strategy']),
+      pillar: serializer.fromJson<String>(json['pillar']),
+      description: serializer.fromJson<String?>(json['description']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'calendarUuid': serializer.toJson<String>(calendarUuid),
+      'strategy': serializer.toJson<String>(strategy),
+      'pillar': serializer.toJson<String>(pillar),
+      'description': serializer.toJson<String?>(description),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  TaiYuanRecord copyWith(
+          {String? uuid,
+          String? calendarUuid,
+          String? strategy,
+          String? pillar,
+          Value<String?> description = const Value.absent(),
+          DateTime? createdAt}) =>
+      TaiYuanRecord(
+        uuid: uuid ?? this.uuid,
+        calendarUuid: calendarUuid ?? this.calendarUuid,
+        strategy: strategy ?? this.strategy,
+        pillar: pillar ?? this.pillar,
+        description: description.present ? description.value : this.description,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  TaiYuanRecord copyWithCompanion(TaiYuanRecordsCompanion data) {
+    return TaiYuanRecord(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      calendarUuid: data.calendarUuid.present
+          ? data.calendarUuid.value
+          : this.calendarUuid,
+      strategy: data.strategy.present ? data.strategy.value : this.strategy,
+      pillar: data.pillar.present ? data.pillar.value : this.pillar,
+      description:
+          data.description.present ? data.description.value : this.description,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TaiYuanRecord(')
+          ..write('uuid: $uuid, ')
+          ..write('calendarUuid: $calendarUuid, ')
+          ..write('strategy: $strategy, ')
+          ..write('pillar: $pillar, ')
+          ..write('description: $description, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(uuid, calendarUuid, strategy, pillar, description, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TaiYuanRecord &&
+          other.uuid == this.uuid &&
+          other.calendarUuid == this.calendarUuid &&
+          other.strategy == this.strategy &&
+          other.pillar == this.pillar &&
+          other.description == this.description &&
+          other.createdAt == this.createdAt);
+}
+
+class TaiYuanRecordsCompanion extends UpdateCompanion<TaiYuanRecord> {
+  final Value<String> uuid;
+  final Value<String> calendarUuid;
+  final Value<String> strategy;
+  final Value<String> pillar;
+  final Value<String?> description;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const TaiYuanRecordsCompanion({
+    this.uuid = const Value.absent(),
+    this.calendarUuid = const Value.absent(),
+    this.strategy = const Value.absent(),
+    this.pillar = const Value.absent(),
+    this.description = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TaiYuanRecordsCompanion.insert({
+    required String uuid,
+    required String calendarUuid,
+    required String strategy,
+    required String pillar,
+    this.description = const Value.absent(),
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  })  : uuid = Value(uuid),
+        calendarUuid = Value(calendarUuid),
+        strategy = Value(strategy),
+        pillar = Value(pillar),
+        createdAt = Value(createdAt);
+  static Insertable<TaiYuanRecord> custom({
+    Expression<String>? uuid,
+    Expression<String>? calendarUuid,
+    Expression<String>? strategy,
+    Expression<String>? pillar,
+    Expression<String>? description,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (calendarUuid != null) 'calendar_uuid': calendarUuid,
+      if (strategy != null) 'strategy': strategy,
+      if (pillar != null) 'pillar': pillar,
+      if (description != null) 'description': description,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TaiYuanRecordsCompanion copyWith(
+      {Value<String>? uuid,
+      Value<String>? calendarUuid,
+      Value<String>? strategy,
+      Value<String>? pillar,
+      Value<String?>? description,
+      Value<DateTime>? createdAt,
+      Value<int>? rowid}) {
+    return TaiYuanRecordsCompanion(
+      uuid: uuid ?? this.uuid,
+      calendarUuid: calendarUuid ?? this.calendarUuid,
+      strategy: strategy ?? this.strategy,
+      pillar: pillar ?? this.pillar,
+      description: description ?? this.description,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (calendarUuid.present) {
+      map['calendar_uuid'] = Variable<String>(calendarUuid.value);
+    }
+    if (strategy.present) {
+      map['strategy'] = Variable<String>(strategy.value);
+    }
+    if (pillar.present) {
+      map['pillar'] = Variable<String>(pillar.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TaiYuanRecordsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('calendarUuid: $calendarUuid, ')
+          ..write('strategy: $strategy, ')
+          ..write('pillar: $pillar, ')
+          ..write('description: $description, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
   _$PersistenceDriftDatabase(QueryExecutor e) : super(e);
   $PersistenceDriftDatabaseManager get managers =>
@@ -4903,6 +5582,8 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
   late final $DivinationSubDivinationTypeMappersTable
       divinationSubDivinationTypeMappers =
       $DivinationSubDivinationTypeMappersTable(this);
+  late final $DaYunRecordsTable daYunRecords = $DaYunRecordsTable(this);
+  late final $TaiYuanRecordsTable taiYuanRecords = $TaiYuanRecordsTable(this);
   late final OutboxRecordsDao outboxRecordsDao =
       OutboxRecordsDao(this as PersistenceDriftDatabase);
   late final SyncStatesDao syncStatesDao =
@@ -4924,6 +5605,10 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
   late final DivinationSubDivinationTypeMappersDao
       divinationSubDivinationTypeMappersDao =
       DivinationSubDivinationTypeMappersDao(this as PersistenceDriftDatabase);
+  late final DaYunRecordsDao daYunRecordsDao =
+      DaYunRecordsDao(this as PersistenceDriftDatabase);
+  late final TaiYuanRecordsDao taiYuanRecordsDao =
+      TaiYuanRecordsDao(this as PersistenceDriftDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4939,7 +5624,9 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
         divinationTags,
         divinationTypes,
         subDivinationTypes,
-        divinationSubDivinationTypeMappers
+        divinationSubDivinationTypeMappers,
+        daYunRecords,
+        taiYuanRecords
       ];
 }
 
@@ -8831,6 +9518,374 @@ typedef $$DivinationSubDivinationTypeMappersTableProcessedTableManager
         ),
         DivinationSubDivinationTypeMapper,
         PrefetchHooks Function({bool typeUuid, bool subTypeUuid})>;
+typedef $$DaYunRecordsTableCreateCompanionBuilder = DaYunRecordsCompanion
+    Function({
+  required String uuid,
+  required String sourceUuid,
+  required String jieQiType,
+  required String precision,
+  required DateTime createdAt,
+  Value<int> rowid,
+});
+typedef $$DaYunRecordsTableUpdateCompanionBuilder = DaYunRecordsCompanion
+    Function({
+  Value<String> uuid,
+  Value<String> sourceUuid,
+  Value<String> jieQiType,
+  Value<String> precision,
+  Value<DateTime> createdAt,
+  Value<int> rowid,
+});
+
+class $$DaYunRecordsTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $DaYunRecordsTable> {
+  $$DaYunRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get sourceUuid => $composableBuilder(
+      column: $table.sourceUuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get jieQiType => $composableBuilder(
+      column: $table.jieQiType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get precision => $composableBuilder(
+      column: $table.precision, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$DaYunRecordsTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $DaYunRecordsTable> {
+  $$DaYunRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get sourceUuid => $composableBuilder(
+      column: $table.sourceUuid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get jieQiType => $composableBuilder(
+      column: $table.jieQiType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get precision => $composableBuilder(
+      column: $table.precision, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$DaYunRecordsTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $DaYunRecordsTable> {
+  $$DaYunRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get sourceUuid => $composableBuilder(
+      column: $table.sourceUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get jieQiType =>
+      $composableBuilder(column: $table.jieQiType, builder: (column) => column);
+
+  GeneratedColumn<String> get precision =>
+      $composableBuilder(column: $table.precision, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$DaYunRecordsTableTableManager extends RootTableManager<
+    _$PersistenceDriftDatabase,
+    $DaYunRecordsTable,
+    DaYunRecord,
+    $$DaYunRecordsTableFilterComposer,
+    $$DaYunRecordsTableOrderingComposer,
+    $$DaYunRecordsTableAnnotationComposer,
+    $$DaYunRecordsTableCreateCompanionBuilder,
+    $$DaYunRecordsTableUpdateCompanionBuilder,
+    (
+      DaYunRecord,
+      BaseReferences<_$PersistenceDriftDatabase, $DaYunRecordsTable,
+          DaYunRecord>
+    ),
+    DaYunRecord,
+    PrefetchHooks Function()> {
+  $$DaYunRecordsTableTableManager(
+      _$PersistenceDriftDatabase db, $DaYunRecordsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DaYunRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DaYunRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DaYunRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> uuid = const Value.absent(),
+            Value<String> sourceUuid = const Value.absent(),
+            Value<String> jieQiType = const Value.absent(),
+            Value<String> precision = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              DaYunRecordsCompanion(
+            uuid: uuid,
+            sourceUuid: sourceUuid,
+            jieQiType: jieQiType,
+            precision: precision,
+            createdAt: createdAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String uuid,
+            required String sourceUuid,
+            required String jieQiType,
+            required String precision,
+            required DateTime createdAt,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              DaYunRecordsCompanion.insert(
+            uuid: uuid,
+            sourceUuid: sourceUuid,
+            jieQiType: jieQiType,
+            precision: precision,
+            createdAt: createdAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$DaYunRecordsTableProcessedTableManager = ProcessedTableManager<
+    _$PersistenceDriftDatabase,
+    $DaYunRecordsTable,
+    DaYunRecord,
+    $$DaYunRecordsTableFilterComposer,
+    $$DaYunRecordsTableOrderingComposer,
+    $$DaYunRecordsTableAnnotationComposer,
+    $$DaYunRecordsTableCreateCompanionBuilder,
+    $$DaYunRecordsTableUpdateCompanionBuilder,
+    (
+      DaYunRecord,
+      BaseReferences<_$PersistenceDriftDatabase, $DaYunRecordsTable,
+          DaYunRecord>
+    ),
+    DaYunRecord,
+    PrefetchHooks Function()>;
+typedef $$TaiYuanRecordsTableCreateCompanionBuilder = TaiYuanRecordsCompanion
+    Function({
+  required String uuid,
+  required String calendarUuid,
+  required String strategy,
+  required String pillar,
+  Value<String?> description,
+  required DateTime createdAt,
+  Value<int> rowid,
+});
+typedef $$TaiYuanRecordsTableUpdateCompanionBuilder = TaiYuanRecordsCompanion
+    Function({
+  Value<String> uuid,
+  Value<String> calendarUuid,
+  Value<String> strategy,
+  Value<String> pillar,
+  Value<String?> description,
+  Value<DateTime> createdAt,
+  Value<int> rowid,
+});
+
+class $$TaiYuanRecordsTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $TaiYuanRecordsTable> {
+  $$TaiYuanRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get calendarUuid => $composableBuilder(
+      column: $table.calendarUuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get strategy => $composableBuilder(
+      column: $table.strategy, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get pillar => $composableBuilder(
+      column: $table.pillar, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$TaiYuanRecordsTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $TaiYuanRecordsTable> {
+  $$TaiYuanRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get calendarUuid => $composableBuilder(
+      column: $table.calendarUuid,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get strategy => $composableBuilder(
+      column: $table.strategy, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get pillar => $composableBuilder(
+      column: $table.pillar, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$TaiYuanRecordsTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $TaiYuanRecordsTable> {
+  $$TaiYuanRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get calendarUuid => $composableBuilder(
+      column: $table.calendarUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get strategy =>
+      $composableBuilder(column: $table.strategy, builder: (column) => column);
+
+  GeneratedColumn<String> get pillar =>
+      $composableBuilder(column: $table.pillar, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$TaiYuanRecordsTableTableManager extends RootTableManager<
+    _$PersistenceDriftDatabase,
+    $TaiYuanRecordsTable,
+    TaiYuanRecord,
+    $$TaiYuanRecordsTableFilterComposer,
+    $$TaiYuanRecordsTableOrderingComposer,
+    $$TaiYuanRecordsTableAnnotationComposer,
+    $$TaiYuanRecordsTableCreateCompanionBuilder,
+    $$TaiYuanRecordsTableUpdateCompanionBuilder,
+    (
+      TaiYuanRecord,
+      BaseReferences<_$PersistenceDriftDatabase, $TaiYuanRecordsTable,
+          TaiYuanRecord>
+    ),
+    TaiYuanRecord,
+    PrefetchHooks Function()> {
+  $$TaiYuanRecordsTableTableManager(
+      _$PersistenceDriftDatabase db, $TaiYuanRecordsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TaiYuanRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TaiYuanRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TaiYuanRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> uuid = const Value.absent(),
+            Value<String> calendarUuid = const Value.absent(),
+            Value<String> strategy = const Value.absent(),
+            Value<String> pillar = const Value.absent(),
+            Value<String?> description = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TaiYuanRecordsCompanion(
+            uuid: uuid,
+            calendarUuid: calendarUuid,
+            strategy: strategy,
+            pillar: pillar,
+            description: description,
+            createdAt: createdAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String uuid,
+            required String calendarUuid,
+            required String strategy,
+            required String pillar,
+            Value<String?> description = const Value.absent(),
+            required DateTime createdAt,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TaiYuanRecordsCompanion.insert(
+            uuid: uuid,
+            calendarUuid: calendarUuid,
+            strategy: strategy,
+            pillar: pillar,
+            description: description,
+            createdAt: createdAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$TaiYuanRecordsTableProcessedTableManager = ProcessedTableManager<
+    _$PersistenceDriftDatabase,
+    $TaiYuanRecordsTable,
+    TaiYuanRecord,
+    $$TaiYuanRecordsTableFilterComposer,
+    $$TaiYuanRecordsTableOrderingComposer,
+    $$TaiYuanRecordsTableAnnotationComposer,
+    $$TaiYuanRecordsTableCreateCompanionBuilder,
+    $$TaiYuanRecordsTableUpdateCompanionBuilder,
+    (
+      TaiYuanRecord,
+      BaseReferences<_$PersistenceDriftDatabase, $TaiYuanRecordsTable,
+          TaiYuanRecord>
+    ),
+    TaiYuanRecord,
+    PrefetchHooks Function()>;
 
 class $PersistenceDriftDatabaseManager {
   final _$PersistenceDriftDatabase _db;
@@ -8860,4 +9915,8 @@ class $PersistenceDriftDatabaseManager {
       get divinationSubDivinationTypeMappers =>
           $$DivinationSubDivinationTypeMappersTableTableManager(
               _db, _db.divinationSubDivinationTypeMappers);
+  $$DaYunRecordsTableTableManager get daYunRecords =>
+      $$DaYunRecordsTableTableManager(_db, _db.daYunRecords);
+  $$TaiYuanRecordsTableTableManager get taiYuanRecords =>
+      $$TaiYuanRecordsTableTableManager(_db, _db.taiYuanRecords);
 }

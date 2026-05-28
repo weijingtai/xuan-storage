@@ -7,6 +7,8 @@ import 'package:common/enums/enum_jia_zi.dart';
 import 'package:common/models/divination_datetime.dart';
 import 'package:common/datamodel/location.dart';
 import 'package:common/datamodel/divination_request_info_datamodel.dart';
+import 'package:common/datamodel/divination_type_data_model.dart';
+import 'package:common/datamodel/sub_divination_type_data_model.dart';
 import 'package:common/datamodel/seeker_model.dart';
 import 'package:persistence_drift/converters/divination_datetime_model_converter.dart';
 import 'package:persistence_drift/converters/nullable_location_converter.dart';
@@ -28,6 +30,10 @@ import 'tables/divination_tags_table.dart';
 import 'tables/divination_types_table.dart';
 import 'tables/sub_divination_types_table.dart';
 import 'tables/divination_sub_divination_type_mappers_table.dart';
+import 'daos/da_yun_records_dao.dart';
+import 'daos/tai_yuan_records_dao.dart';
+import 'tables/tai_yuan_records_table.dart';
+import 'tables/da_yun_records_table.dart';
 
 export 'daos/seekers_dao.dart';
 export 'daos/divinations_dao.dart';
@@ -42,6 +48,12 @@ export 'tables/divinations_table.dart';
 export 'tables/seeker_divination_mappers_table.dart';
 export 'tables/combined_divinations_table.dart';
 export 'tables/decision_links_table.dart';
+export 'daos/da_yun_records_dao.dart';
+export 'daos/tai_yuan_records_dao.dart';
+export 'tables/da_yun_records_table.dart';
+export 'tables/tai_yuan_records_table.dart';
+export 'repositories/tai_yuan_record_repository.dart';
+export 'repositories/da_yun_record_repository.dart';
 export 'tables/divination_tags_table.dart';
 export 'tables/divination_types_table.dart';
 export 'tables/sub_divination_types_table.dart';
@@ -399,6 +411,8 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
     DivinationTypes,
     SubDivinationTypes,
     DivinationSubDivinationTypeMappers,
+    DaYunRecords,
+    TaiYuanRecords,
   ],
   daos: [
     OutboxRecordsDao,
@@ -411,6 +425,8 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
     DivinationTagsDao,
     DivinationTypesDao,
     DivinationSubDivinationTypeMappersDao,
+    DaYunRecordsDao,
+    TaiYuanRecordsDao,
   ],
 )
 class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {

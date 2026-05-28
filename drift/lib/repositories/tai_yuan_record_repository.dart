@@ -15,14 +15,6 @@ class TaiYuanRecordRepository {
     return db.taiYuanRecordsDao.getByCalendar(calendarUuid);
   }
 
-  Future<void> saveAndSwitchCurrentTaiYuan(String calendarUuid,
-      Insertable<TaiYuanRecord> record, String newTaiYuanUuid) async {
-    await db.transaction(() async {
-      await insert(record);
-      await (db.update(db.divinationCalendars)
-            ..where((t) => t.uuid.equals(calendarUuid)))
-          .write(DivinationCalendarsCompanion(
-              currentTaiYuanUuid: Value(newTaiYuanUuid)));
-    });
-  }
+  // TODO(S7): restore saveAndSwitchCurrentTaiYuan when DivinationCalendars table is migrated
+  // Future<void> saveAndSwitchCurrentTaiYuan(...) async { ... }
 }
