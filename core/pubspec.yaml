@@ -8,6 +8,8 @@ environment:
 
 dependencies:
   yaml: ^3.1.2
+  persistence_domain:
+    path: ../../xuan-domain
 
 dev_dependencies:
   lints: ^5.0.0

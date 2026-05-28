@@ -15,3 +15,4 @@ export 'configuration/sync_configuration_manager.dart';
 export 'configuration/yaml_file_loader.dart';
 export 'logging/sync_logger.dart';
 export 'sync/sync_runtime.dart';
+export 'tag/tag_extractor_registry.dart';
