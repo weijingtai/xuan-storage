@@ -3,18 +3,17 @@ import 'package:drift/drift.dart';
 
 class TaiYuanRecordRepository {
   final PersistenceDriftDatabase db;
+  late final TaiYuanRecordsDao _dao;
 
-  TaiYuanRecordRepository(this.db);
+  TaiYuanRecordRepository(this.db) : _dao = TaiYuanRecordsDao(db);
 
   Future<int> insert(Insertable<TaiYuanRecord> record) {
-    return db.taiYuanRecordsDao.insertRecord(record);
+    return _dao.insertRecord(record);
   }
 
-  // 根据 calendar_uuid 获取对应胎元版本的方法
   Future<List<TaiYuanRecord>> queryByCalendarUuid(String calendarUuid) {
-    return db.taiYuanRecordsDao.getByCalendar(calendarUuid);
+    return _dao.getByCalendar(calendarUuid);
   }
 
   // TODO(S7): restore saveAndSwitchCurrentTaiYuan when DivinationCalendars table is migrated
-  // Future<void> saveAndSwitchCurrentTaiYuan(...) async { ... }
 }

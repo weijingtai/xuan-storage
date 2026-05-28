@@ -3,25 +3,15 @@ import 'package:drift/drift.dart';
 
 class DaYunRecordRepository {
   final PersistenceDriftDatabase db;
+  late final DaYunRecordsDao _dao;
 
-  DaYunRecordRepository(this.db);
+  DaYunRecordRepository(this.db) : _dao = DaYunRecordsDao(db);
 
   Future<int> insert(Insertable<DaYunRecord> record) {
-    return db.daYunRecordsDao.insertRecord(record);
+    return _dao.insertRecord(record);
   }
 
-  Future<List<DaYunRecord>> queryBySourceUuid(String sourceUuid) {
-    return db.daYunRecordsDao.getBySource(sourceUuid);
-  }
-
-  // 针对特定 sourceUuid 和算法维度组合查询
-  Future<DaYunRecord?> querySpecific(
-      String sourceUuid, String jieQiType, String precision) async {
-    return (db.select(db.daYunRecords)
-          ..where((t) =>
-              t.sourceUuid.equals(sourceUuid) &
-              t.jieQiType.equals(jieQiType) &
-              t.precision.equals(precision)))
-        .getSingleOrNull();
+  Future<List<DaYunRecord>> queryByDivinationId(String divinationId) {
+    return _dao.getBySource(divinationId);
   }
 }

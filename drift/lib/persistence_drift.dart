@@ -4,11 +4,14 @@ import 'package:persistence_core/persistence_core.dart';
 import 'package:common/enums/enum_gender.dart';
 import 'package:common/enums/enum_datetime_type.dart';
 import 'package:common/enums/enum_jia_zi.dart';
+import 'package:common/enums/enum_panel_type.dart';
 import 'package:common/models/divination_datetime.dart';
 import 'package:common/datamodel/location.dart';
 import 'package:common/datamodel/divination_request_info_datamodel.dart';
 import 'package:common/datamodel/divination_type_data_model.dart';
+import 'package:common/datamodel/timing_divination_model.dart';
 import 'package:common/datamodel/sub_divination_type_data_model.dart';
+import 'package:common/datamodel/timing_divination_model.dart';
 import 'package:common/datamodel/seeker_model.dart';
 import 'package:persistence_drift/converters/divination_datetime_model_converter.dart';
 import 'package:persistence_drift/converters/nullable_location_converter.dart';
@@ -34,6 +37,26 @@ import 'daos/da_yun_records_dao.dart';
 import 'daos/tai_yuan_records_dao.dart';
 import 'tables/tai_yuan_records_table.dart';
 import 'tables/da_yun_records_table.dart';
+import 'daos/timing_divinations_dao.dart';
+import 'tables/divination_calendars_table.dart';
+import 'tables/timing_divinations_table.dart';
+import 'daos/divination_calendars_dao.dart';
+export 'daos/divination_calendars_dao.dart';
+export 'daos/timing_divinations_dao.dart';
+export 'tables/divination_calendars_table.dart';
+export 'tables/timing_divinations_table.dart';
+import 'daos/panels_dao.dart';
+import 'daos/divination_panel_mappers_dao.dart';
+import 'daos/panel_skill_class_mappers_dao.dart';
+import 'tables/panels_table.dart';
+import 'tables/divination_panel_mappers_table.dart';
+import 'tables/panel_skill_class_mappers_table.dart';
+export 'daos/panels_dao.dart';
+export 'daos/divination_panel_mappers_dao.dart';
+export 'daos/panel_skill_class_mappers_dao.dart';
+export 'tables/panels_table.dart';
+export 'tables/divination_panel_mappers_table.dart';
+export 'tables/panel_skill_class_mappers_table.dart';
 
 export 'daos/seekers_dao.dart';
 export 'daos/divinations_dao.dart';
@@ -411,6 +434,11 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
     DivinationTypes,
     SubDivinationTypes,
     DivinationSubDivinationTypeMappers,
+    DivinationCalendars,
+    TimingDivinations,
+    Panels,
+    DivinationPanelMappers,
+    PanelSkillClassMappers,
     DaYunRecords,
     TaiYuanRecords,
   ],
@@ -425,6 +453,11 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
     DivinationTagsDao,
     DivinationTypesDao,
     DivinationSubDivinationTypeMappersDao,
+    DivinationCalendarsDao,
+    TimingDivinationsDao,
+    PanelsDao,
+    DivinationPanelMappersDao,
+    PanelSkillClassMappersDao,
     DaYunRecordsDao,
     TaiYuanRecordsDao,
   ],
@@ -961,3 +994,4 @@ class DriftSyncStateStore implements SyncStateStore {
     return _dao.markPushedAt(scopeUid: scopeUid, atUtc: atUtc);
   }
 }
+

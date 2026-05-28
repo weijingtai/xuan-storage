@@ -4882,6 +4882,1994 @@ class DivinationSubDivinationTypeMappersCompanion
   }
 }
 
+class $DivinationCalendarsTable extends DivinationCalendars
+    with TableInfo<$DivinationCalendarsTable, DivinationCalendar> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DivinationCalendarsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid =
+      GeneratedColumn<String>('uuid', aliasedName, false,
+          additionalChecks: GeneratedColumn.checkTextLength(
+            minTextLength: 1,
+          ),
+          type: DriftSqlType.string,
+          requiredDuringInsert: true);
+  static const VerificationMeta _sourceUuidMeta =
+      const VerificationMeta('sourceUuid');
+  @override
+  late final GeneratedColumn<String> sourceUuid = GeneratedColumn<String>(
+      'source_uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sourceTypeMeta =
+      const VerificationMeta('sourceType');
+  @override
+  late final GeneratedColumn<String> sourceType = GeneratedColumn<String>(
+      'source_type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _currentTaiYuanUuidMeta =
+      const VerificationMeta('currentTaiYuanUuid');
+  @override
+  late final GeneratedColumn<String> currentTaiYuanUuid =
+      GeneratedColumn<String>('current_tai_yuan_uuid', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _currentDaYunUuidMeta =
+      const VerificationMeta('currentDaYunUuid');
+  @override
+  late final GeneratedColumn<String> currentDaYunUuid = GeneratedColumn<String>(
+      'current_da_yun_uuid', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [uuid, sourceUuid, sourceType, currentTaiYuanUuid, currentDaYunUuid];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_divination_calendars';
+  @override
+  VerificationContext validateIntegrity(Insertable<DivinationCalendar> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('source_uuid')) {
+      context.handle(
+          _sourceUuidMeta,
+          sourceUuid.isAcceptableOrUnknown(
+              data['source_uuid']!, _sourceUuidMeta));
+    } else if (isInserting) {
+      context.missing(_sourceUuidMeta);
+    }
+    if (data.containsKey('source_type')) {
+      context.handle(
+          _sourceTypeMeta,
+          sourceType.isAcceptableOrUnknown(
+              data['source_type']!, _sourceTypeMeta));
+    } else if (isInserting) {
+      context.missing(_sourceTypeMeta);
+    }
+    if (data.containsKey('current_tai_yuan_uuid')) {
+      context.handle(
+          _currentTaiYuanUuidMeta,
+          currentTaiYuanUuid.isAcceptableOrUnknown(
+              data['current_tai_yuan_uuid']!, _currentTaiYuanUuidMeta));
+    }
+    if (data.containsKey('current_da_yun_uuid')) {
+      context.handle(
+          _currentDaYunUuidMeta,
+          currentDaYunUuid.isAcceptableOrUnknown(
+              data['current_da_yun_uuid']!, _currentDaYunUuidMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  DivinationCalendar map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DivinationCalendar(
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      sourceUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}source_uuid'])!,
+      sourceType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}source_type'])!,
+      currentTaiYuanUuid: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}current_tai_yuan_uuid']),
+      currentDaYunUuid: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}current_da_yun_uuid']),
+    );
+  }
+
+  @override
+  $DivinationCalendarsTable createAlias(String alias) {
+    return $DivinationCalendarsTable(attachedDatabase, alias);
+  }
+}
+
+class DivinationCalendar extends DataClass
+    implements Insertable<DivinationCalendar> {
+  final String uuid;
+  final String sourceUuid;
+  final String sourceType;
+  final String? currentTaiYuanUuid;
+  final String? currentDaYunUuid;
+  const DivinationCalendar(
+      {required this.uuid,
+      required this.sourceUuid,
+      required this.sourceType,
+      this.currentTaiYuanUuid,
+      this.currentDaYunUuid});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['source_uuid'] = Variable<String>(sourceUuid);
+    map['source_type'] = Variable<String>(sourceType);
+    if (!nullToAbsent || currentTaiYuanUuid != null) {
+      map['current_tai_yuan_uuid'] = Variable<String>(currentTaiYuanUuid);
+    }
+    if (!nullToAbsent || currentDaYunUuid != null) {
+      map['current_da_yun_uuid'] = Variable<String>(currentDaYunUuid);
+    }
+    return map;
+  }
+
+  DivinationCalendarsCompanion toCompanion(bool nullToAbsent) {
+    return DivinationCalendarsCompanion(
+      uuid: Value(uuid),
+      sourceUuid: Value(sourceUuid),
+      sourceType: Value(sourceType),
+      currentTaiYuanUuid: currentTaiYuanUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(currentTaiYuanUuid),
+      currentDaYunUuid: currentDaYunUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(currentDaYunUuid),
+    );
+  }
+
+  factory DivinationCalendar.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DivinationCalendar(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      sourceUuid: serializer.fromJson<String>(json['sourceUuid']),
+      sourceType: serializer.fromJson<String>(json['sourceType']),
+      currentTaiYuanUuid:
+          serializer.fromJson<String?>(json['currentTaiYuanUuid']),
+      currentDaYunUuid: serializer.fromJson<String?>(json['currentDaYunUuid']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'sourceUuid': serializer.toJson<String>(sourceUuid),
+      'sourceType': serializer.toJson<String>(sourceType),
+      'currentTaiYuanUuid': serializer.toJson<String?>(currentTaiYuanUuid),
+      'currentDaYunUuid': serializer.toJson<String?>(currentDaYunUuid),
+    };
+  }
+
+  DivinationCalendar copyWith(
+          {String? uuid,
+          String? sourceUuid,
+          String? sourceType,
+          Value<String?> currentTaiYuanUuid = const Value.absent(),
+          Value<String?> currentDaYunUuid = const Value.absent()}) =>
+      DivinationCalendar(
+        uuid: uuid ?? this.uuid,
+        sourceUuid: sourceUuid ?? this.sourceUuid,
+        sourceType: sourceType ?? this.sourceType,
+        currentTaiYuanUuid: currentTaiYuanUuid.present
+            ? currentTaiYuanUuid.value
+            : this.currentTaiYuanUuid,
+        currentDaYunUuid: currentDaYunUuid.present
+            ? currentDaYunUuid.value
+            : this.currentDaYunUuid,
+      );
+  DivinationCalendar copyWithCompanion(DivinationCalendarsCompanion data) {
+    return DivinationCalendar(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      sourceUuid:
+          data.sourceUuid.present ? data.sourceUuid.value : this.sourceUuid,
+      sourceType:
+          data.sourceType.present ? data.sourceType.value : this.sourceType,
+      currentTaiYuanUuid: data.currentTaiYuanUuid.present
+          ? data.currentTaiYuanUuid.value
+          : this.currentTaiYuanUuid,
+      currentDaYunUuid: data.currentDaYunUuid.present
+          ? data.currentDaYunUuid.value
+          : this.currentDaYunUuid,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DivinationCalendar(')
+          ..write('uuid: $uuid, ')
+          ..write('sourceUuid: $sourceUuid, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('currentTaiYuanUuid: $currentTaiYuanUuid, ')
+          ..write('currentDaYunUuid: $currentDaYunUuid')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      uuid, sourceUuid, sourceType, currentTaiYuanUuid, currentDaYunUuid);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DivinationCalendar &&
+          other.uuid == this.uuid &&
+          other.sourceUuid == this.sourceUuid &&
+          other.sourceType == this.sourceType &&
+          other.currentTaiYuanUuid == this.currentTaiYuanUuid &&
+          other.currentDaYunUuid == this.currentDaYunUuid);
+}
+
+class DivinationCalendarsCompanion extends UpdateCompanion<DivinationCalendar> {
+  final Value<String> uuid;
+  final Value<String> sourceUuid;
+  final Value<String> sourceType;
+  final Value<String?> currentTaiYuanUuid;
+  final Value<String?> currentDaYunUuid;
+  final Value<int> rowid;
+  const DivinationCalendarsCompanion({
+    this.uuid = const Value.absent(),
+    this.sourceUuid = const Value.absent(),
+    this.sourceType = const Value.absent(),
+    this.currentTaiYuanUuid = const Value.absent(),
+    this.currentDaYunUuid = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DivinationCalendarsCompanion.insert({
+    required String uuid,
+    required String sourceUuid,
+    required String sourceType,
+    this.currentTaiYuanUuid = const Value.absent(),
+    this.currentDaYunUuid = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : uuid = Value(uuid),
+        sourceUuid = Value(sourceUuid),
+        sourceType = Value(sourceType);
+  static Insertable<DivinationCalendar> custom({
+    Expression<String>? uuid,
+    Expression<String>? sourceUuid,
+    Expression<String>? sourceType,
+    Expression<String>? currentTaiYuanUuid,
+    Expression<String>? currentDaYunUuid,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (sourceUuid != null) 'source_uuid': sourceUuid,
+      if (sourceType != null) 'source_type': sourceType,
+      if (currentTaiYuanUuid != null)
+        'current_tai_yuan_uuid': currentTaiYuanUuid,
+      if (currentDaYunUuid != null) 'current_da_yun_uuid': currentDaYunUuid,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DivinationCalendarsCompanion copyWith(
+      {Value<String>? uuid,
+      Value<String>? sourceUuid,
+      Value<String>? sourceType,
+      Value<String?>? currentTaiYuanUuid,
+      Value<String?>? currentDaYunUuid,
+      Value<int>? rowid}) {
+    return DivinationCalendarsCompanion(
+      uuid: uuid ?? this.uuid,
+      sourceUuid: sourceUuid ?? this.sourceUuid,
+      sourceType: sourceType ?? this.sourceType,
+      currentTaiYuanUuid: currentTaiYuanUuid ?? this.currentTaiYuanUuid,
+      currentDaYunUuid: currentDaYunUuid ?? this.currentDaYunUuid,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (sourceUuid.present) {
+      map['source_uuid'] = Variable<String>(sourceUuid.value);
+    }
+    if (sourceType.present) {
+      map['source_type'] = Variable<String>(sourceType.value);
+    }
+    if (currentTaiYuanUuid.present) {
+      map['current_tai_yuan_uuid'] = Variable<String>(currentTaiYuanUuid.value);
+    }
+    if (currentDaYunUuid.present) {
+      map['current_da_yun_uuid'] = Variable<String>(currentDaYunUuid.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DivinationCalendarsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('sourceUuid: $sourceUuid, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('currentTaiYuanUuid: $currentTaiYuanUuid, ')
+          ..write('currentDaYunUuid: $currentDaYunUuid, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TimingDivinationsTable extends TimingDivinations
+    with TableInfo<$TimingDivinationsTable, TimingDivinationModel> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TimingDivinationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+      'uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      clientDefault: () => DateTime.now());
+  static const VerificationMeta _lastUpdatedAtMeta =
+      const VerificationMeta('lastUpdatedAt');
+  @override
+  late final GeneratedColumn<DateTime> lastUpdatedAt =
+      GeneratedColumn<DateTime>('last_updated_at', aliasedName, true,
+          type: DriftSqlType.dateTime,
+          requiredDuringInsert: false,
+          defaultValue: currentDateAndTime);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _divinationUuidMeta =
+      const VerificationMeta('divinationUuid');
+  @override
+  late final GeneratedColumn<String> divinationUuid = GeneratedColumn<String>(
+      'divination_uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTimeType, int> timingType =
+      GeneratedColumn<int>('timing_type', aliasedName, false,
+              type: DriftSqlType.int, requiredDuringInsert: true)
+          .withConverter<DateTimeType>(
+              $TimingDivinationsTable.$convertertimingType);
+  static const VerificationMeta _datetimeMeta =
+      const VerificationMeta('datetime');
+  @override
+  late final GeneratedColumn<DateTime> datetime = GeneratedColumn<DateTime>(
+      'datetime', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _isManualMeta =
+      const VerificationMeta('isManual');
+  @override
+  late final GeneratedColumn<bool> isManual = GeneratedColumn<bool>(
+      'is_manual', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_manual" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  @override
+  late final GeneratedColumnWithTypeConverter<JiaZi, int> yearGanZhi =
+      GeneratedColumn<int>('year_gan_zhi', aliasedName, false,
+              type: DriftSqlType.int, requiredDuringInsert: true)
+          .withConverter<JiaZi>($TimingDivinationsTable.$converteryearGanZhi);
+  @override
+  late final GeneratedColumnWithTypeConverter<JiaZi, int> monthGanZhi =
+      GeneratedColumn<int>('month_gan_zhi', aliasedName, false,
+              type: DriftSqlType.int, requiredDuringInsert: true)
+          .withConverter<JiaZi>($TimingDivinationsTable.$convertermonthGanZhi);
+  @override
+  late final GeneratedColumnWithTypeConverter<JiaZi, int> dayGanZhi =
+      GeneratedColumn<int>('day_gan_zhi', aliasedName, false,
+              type: DriftSqlType.int, requiredDuringInsert: true)
+          .withConverter<JiaZi>($TimingDivinationsTable.$converterdayGanZhi);
+  @override
+  late final GeneratedColumnWithTypeConverter<JiaZi, int> timeGanZhi =
+      GeneratedColumn<int>('time_gan_zhi', aliasedName, false,
+              type: DriftSqlType.int, requiredDuringInsert: true)
+          .withConverter<JiaZi>($TimingDivinationsTable.$convertertimeGanZhi);
+  static const VerificationMeta _lunarMonthMeta =
+      const VerificationMeta('lunarMonth');
+  @override
+  late final GeneratedColumn<int> lunarMonth = GeneratedColumn<int>(
+      'lunar_month', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _isLeapMonthMeta =
+      const VerificationMeta('isLeapMonth');
+  @override
+  late final GeneratedColumn<bool> isLeapMonth = GeneratedColumn<bool>(
+      'is_leap_month', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("is_leap_month" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _lunarDayMeta =
+      const VerificationMeta('lunarDay');
+  @override
+  late final GeneratedColumn<int> lunarDay = GeneratedColumn<int>(
+      'lunar_day', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _timingInfoUuidMeta =
+      const VerificationMeta('timingInfoUuid');
+  @override
+  late final GeneratedColumn<String> timingInfoUuid = GeneratedColumn<String>(
+      'timing_info_uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  late final GeneratedColumnWithTypeConverter<Location?, String> location =
+      GeneratedColumn<String>('location_json', aliasedName, true,
+              type: DriftSqlType.string, requiredDuringInsert: false)
+          .withConverter<Location?>($TimingDivinationsTable.$converterlocation);
+  @override
+  late final GeneratedColumnWithTypeConverter<List<DivinationDatetimeModel>?,
+      String> timingInfoListJson = GeneratedColumn<String>(
+          'info_list_json', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false)
+      .withConverter<List<DivinationDatetimeModel>?>(
+          $TimingDivinationsTable.$convertertimingInfoListJsonn);
+  static const VerificationMeta _currentCalendarUuidMeta =
+      const VerificationMeta('currentCalendarUuid');
+  @override
+  late final GeneratedColumn<String> currentCalendarUuid =
+      GeneratedColumn<String>('current_calendar_uuid', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        uuid,
+        createdAt,
+        lastUpdatedAt,
+        deletedAt,
+        divinationUuid,
+        timingType,
+        datetime,
+        isManual,
+        yearGanZhi,
+        monthGanZhi,
+        dayGanZhi,
+        timeGanZhi,
+        lunarMonth,
+        isLeapMonth,
+        lunarDay,
+        timingInfoUuid,
+        location,
+        timingInfoListJson,
+        currentCalendarUuid
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_timing_divinations';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<TimingDivinationModel> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('last_updated_at')) {
+      context.handle(
+          _lastUpdatedAtMeta,
+          lastUpdatedAt.isAcceptableOrUnknown(
+              data['last_updated_at']!, _lastUpdatedAtMeta));
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    if (data.containsKey('divination_uuid')) {
+      context.handle(
+          _divinationUuidMeta,
+          divinationUuid.isAcceptableOrUnknown(
+              data['divination_uuid']!, _divinationUuidMeta));
+    } else if (isInserting) {
+      context.missing(_divinationUuidMeta);
+    }
+    if (data.containsKey('datetime')) {
+      context.handle(_datetimeMeta,
+          datetime.isAcceptableOrUnknown(data['datetime']!, _datetimeMeta));
+    } else if (isInserting) {
+      context.missing(_datetimeMeta);
+    }
+    if (data.containsKey('is_manual')) {
+      context.handle(_isManualMeta,
+          isManual.isAcceptableOrUnknown(data['is_manual']!, _isManualMeta));
+    }
+    if (data.containsKey('lunar_month')) {
+      context.handle(
+          _lunarMonthMeta,
+          lunarMonth.isAcceptableOrUnknown(
+              data['lunar_month']!, _lunarMonthMeta));
+    } else if (isInserting) {
+      context.missing(_lunarMonthMeta);
+    }
+    if (data.containsKey('is_leap_month')) {
+      context.handle(
+          _isLeapMonthMeta,
+          isLeapMonth.isAcceptableOrUnknown(
+              data['is_leap_month']!, _isLeapMonthMeta));
+    }
+    if (data.containsKey('lunar_day')) {
+      context.handle(_lunarDayMeta,
+          lunarDay.isAcceptableOrUnknown(data['lunar_day']!, _lunarDayMeta));
+    } else if (isInserting) {
+      context.missing(_lunarDayMeta);
+    }
+    if (data.containsKey('timing_info_uuid')) {
+      context.handle(
+          _timingInfoUuidMeta,
+          timingInfoUuid.isAcceptableOrUnknown(
+              data['timing_info_uuid']!, _timingInfoUuidMeta));
+    } else if (isInserting) {
+      context.missing(_timingInfoUuidMeta);
+    }
+    if (data.containsKey('current_calendar_uuid')) {
+      context.handle(
+          _currentCalendarUuidMeta,
+          currentCalendarUuid.isAcceptableOrUnknown(
+              data['current_calendar_uuid']!, _currentCalendarUuidMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  TimingDivinationModel map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TimingDivinationModel(
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      lastUpdatedAt: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime, data['${effectivePrefix}last_updated_at']),
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      divinationUuid: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}divination_uuid'])!,
+      timingType: $TimingDivinationsTable.$convertertimingType.fromSql(
+          attachedDatabase.typeMapping
+              .read(DriftSqlType.int, data['${effectivePrefix}timing_type'])!),
+      datetime: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}datetime'])!,
+      isManual: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_manual'])!,
+      yearGanZhi: $TimingDivinationsTable.$converteryearGanZhi.fromSql(
+          attachedDatabase.typeMapping
+              .read(DriftSqlType.int, data['${effectivePrefix}year_gan_zhi'])!),
+      monthGanZhi: $TimingDivinationsTable.$convertermonthGanZhi.fromSql(
+          attachedDatabase.typeMapping.read(
+              DriftSqlType.int, data['${effectivePrefix}month_gan_zhi'])!),
+      dayGanZhi: $TimingDivinationsTable.$converterdayGanZhi.fromSql(
+          attachedDatabase.typeMapping
+              .read(DriftSqlType.int, data['${effectivePrefix}day_gan_zhi'])!),
+      timeGanZhi: $TimingDivinationsTable.$convertertimeGanZhi.fromSql(
+          attachedDatabase.typeMapping
+              .read(DriftSqlType.int, data['${effectivePrefix}time_gan_zhi'])!),
+      lunarMonth: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}lunar_month'])!,
+      isLeapMonth: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_leap_month'])!,
+      lunarDay: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}lunar_day'])!,
+      timingInfoUuid: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}timing_info_uuid'])!,
+      location: $TimingDivinationsTable.$converterlocation.fromSql(
+          attachedDatabase.typeMapping.read(
+              DriftSqlType.string, data['${effectivePrefix}location_json'])),
+      timingInfoListJson: $TimingDivinationsTable.$convertertimingInfoListJsonn
+          .fromSql(attachedDatabase.typeMapping.read(
+              DriftSqlType.string, data['${effectivePrefix}info_list_json'])),
+    );
+  }
+
+  @override
+  $TimingDivinationsTable createAlias(String alias) {
+    return $TimingDivinationsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<DateTimeType, int, int> $convertertimingType =
+      const EnumIndexConverter<DateTimeType>(DateTimeType.values);
+  static JsonTypeConverter2<JiaZi, int, int> $converteryearGanZhi =
+      const EnumIndexConverter<JiaZi>(JiaZi.values);
+  static JsonTypeConverter2<JiaZi, int, int> $convertermonthGanZhi =
+      const EnumIndexConverter<JiaZi>(JiaZi.values);
+  static JsonTypeConverter2<JiaZi, int, int> $converterdayGanZhi =
+      const EnumIndexConverter<JiaZi>(JiaZi.values);
+  static JsonTypeConverter2<JiaZi, int, int> $convertertimeGanZhi =
+      const EnumIndexConverter<JiaZi>(JiaZi.values);
+  static TypeConverter<Location?, String?> $converterlocation =
+      const NullableLocationConverter();
+  static TypeConverter<List<DivinationDatetimeModel>, String>
+      $convertertimingInfoListJson = const DivinationDatetimeModelConverter();
+  static TypeConverter<List<DivinationDatetimeModel>?, String?>
+      $convertertimingInfoListJsonn =
+      NullAwareTypeConverter.wrap($convertertimingInfoListJson);
+}
+
+class TimingDivinationsCompanion
+    extends UpdateCompanion<TimingDivinationModel> {
+  final Value<String> uuid;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> lastUpdatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String> divinationUuid;
+  final Value<DateTimeType> timingType;
+  final Value<DateTime> datetime;
+  final Value<bool> isManual;
+  final Value<JiaZi> yearGanZhi;
+  final Value<JiaZi> monthGanZhi;
+  final Value<JiaZi> dayGanZhi;
+  final Value<JiaZi> timeGanZhi;
+  final Value<int> lunarMonth;
+  final Value<bool> isLeapMonth;
+  final Value<int> lunarDay;
+  final Value<String> timingInfoUuid;
+  final Value<Location?> location;
+  final Value<List<DivinationDatetimeModel>?> timingInfoListJson;
+  final Value<String?> currentCalendarUuid;
+  final Value<int> rowid;
+  const TimingDivinationsCompanion({
+    this.uuid = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.lastUpdatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.divinationUuid = const Value.absent(),
+    this.timingType = const Value.absent(),
+    this.datetime = const Value.absent(),
+    this.isManual = const Value.absent(),
+    this.yearGanZhi = const Value.absent(),
+    this.monthGanZhi = const Value.absent(),
+    this.dayGanZhi = const Value.absent(),
+    this.timeGanZhi = const Value.absent(),
+    this.lunarMonth = const Value.absent(),
+    this.isLeapMonth = const Value.absent(),
+    this.lunarDay = const Value.absent(),
+    this.timingInfoUuid = const Value.absent(),
+    this.location = const Value.absent(),
+    this.timingInfoListJson = const Value.absent(),
+    this.currentCalendarUuid = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TimingDivinationsCompanion.insert({
+    required String uuid,
+    this.createdAt = const Value.absent(),
+    this.lastUpdatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String divinationUuid,
+    required DateTimeType timingType,
+    required DateTime datetime,
+    this.isManual = const Value.absent(),
+    required JiaZi yearGanZhi,
+    required JiaZi monthGanZhi,
+    required JiaZi dayGanZhi,
+    required JiaZi timeGanZhi,
+    required int lunarMonth,
+    this.isLeapMonth = const Value.absent(),
+    required int lunarDay,
+    required String timingInfoUuid,
+    this.location = const Value.absent(),
+    this.timingInfoListJson = const Value.absent(),
+    this.currentCalendarUuid = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : uuid = Value(uuid),
+        divinationUuid = Value(divinationUuid),
+        timingType = Value(timingType),
+        datetime = Value(datetime),
+        yearGanZhi = Value(yearGanZhi),
+        monthGanZhi = Value(monthGanZhi),
+        dayGanZhi = Value(dayGanZhi),
+        timeGanZhi = Value(timeGanZhi),
+        lunarMonth = Value(lunarMonth),
+        lunarDay = Value(lunarDay),
+        timingInfoUuid = Value(timingInfoUuid);
+  static Insertable<TimingDivinationModel> custom({
+    Expression<String>? uuid,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? lastUpdatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? divinationUuid,
+    Expression<int>? timingType,
+    Expression<DateTime>? datetime,
+    Expression<bool>? isManual,
+    Expression<int>? yearGanZhi,
+    Expression<int>? monthGanZhi,
+    Expression<int>? dayGanZhi,
+    Expression<int>? timeGanZhi,
+    Expression<int>? lunarMonth,
+    Expression<bool>? isLeapMonth,
+    Expression<int>? lunarDay,
+    Expression<String>? timingInfoUuid,
+    Expression<String>? location,
+    Expression<String>? timingInfoListJson,
+    Expression<String>? currentCalendarUuid,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (createdAt != null) 'created_at': createdAt,
+      if (lastUpdatedAt != null) 'last_updated_at': lastUpdatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (divinationUuid != null) 'divination_uuid': divinationUuid,
+      if (timingType != null) 'timing_type': timingType,
+      if (datetime != null) 'datetime': datetime,
+      if (isManual != null) 'is_manual': isManual,
+      if (yearGanZhi != null) 'year_gan_zhi': yearGanZhi,
+      if (monthGanZhi != null) 'month_gan_zhi': monthGanZhi,
+      if (dayGanZhi != null) 'day_gan_zhi': dayGanZhi,
+      if (timeGanZhi != null) 'time_gan_zhi': timeGanZhi,
+      if (lunarMonth != null) 'lunar_month': lunarMonth,
+      if (isLeapMonth != null) 'is_leap_month': isLeapMonth,
+      if (lunarDay != null) 'lunar_day': lunarDay,
+      if (timingInfoUuid != null) 'timing_info_uuid': timingInfoUuid,
+      if (location != null) 'location_json': location,
+      if (timingInfoListJson != null) 'info_list_json': timingInfoListJson,
+      if (currentCalendarUuid != null)
+        'current_calendar_uuid': currentCalendarUuid,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TimingDivinationsCompanion copyWith(
+      {Value<String>? uuid,
+      Value<DateTime>? createdAt,
+      Value<DateTime?>? lastUpdatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<String>? divinationUuid,
+      Value<DateTimeType>? timingType,
+      Value<DateTime>? datetime,
+      Value<bool>? isManual,
+      Value<JiaZi>? yearGanZhi,
+      Value<JiaZi>? monthGanZhi,
+      Value<JiaZi>? dayGanZhi,
+      Value<JiaZi>? timeGanZhi,
+      Value<int>? lunarMonth,
+      Value<bool>? isLeapMonth,
+      Value<int>? lunarDay,
+      Value<String>? timingInfoUuid,
+      Value<Location?>? location,
+      Value<List<DivinationDatetimeModel>?>? timingInfoListJson,
+      Value<String?>? currentCalendarUuid,
+      Value<int>? rowid}) {
+    return TimingDivinationsCompanion(
+      uuid: uuid ?? this.uuid,
+      createdAt: createdAt ?? this.createdAt,
+      lastUpdatedAt: lastUpdatedAt ?? this.lastUpdatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      divinationUuid: divinationUuid ?? this.divinationUuid,
+      timingType: timingType ?? this.timingType,
+      datetime: datetime ?? this.datetime,
+      isManual: isManual ?? this.isManual,
+      yearGanZhi: yearGanZhi ?? this.yearGanZhi,
+      monthGanZhi: monthGanZhi ?? this.monthGanZhi,
+      dayGanZhi: dayGanZhi ?? this.dayGanZhi,
+      timeGanZhi: timeGanZhi ?? this.timeGanZhi,
+      lunarMonth: lunarMonth ?? this.lunarMonth,
+      isLeapMonth: isLeapMonth ?? this.isLeapMonth,
+      lunarDay: lunarDay ?? this.lunarDay,
+      timingInfoUuid: timingInfoUuid ?? this.timingInfoUuid,
+      location: location ?? this.location,
+      timingInfoListJson: timingInfoListJson ?? this.timingInfoListJson,
+      currentCalendarUuid: currentCalendarUuid ?? this.currentCalendarUuid,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (lastUpdatedAt.present) {
+      map['last_updated_at'] = Variable<DateTime>(lastUpdatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (divinationUuid.present) {
+      map['divination_uuid'] = Variable<String>(divinationUuid.value);
+    }
+    if (timingType.present) {
+      map['timing_type'] = Variable<int>(
+          $TimingDivinationsTable.$convertertimingType.toSql(timingType.value));
+    }
+    if (datetime.present) {
+      map['datetime'] = Variable<DateTime>(datetime.value);
+    }
+    if (isManual.present) {
+      map['is_manual'] = Variable<bool>(isManual.value);
+    }
+    if (yearGanZhi.present) {
+      map['year_gan_zhi'] = Variable<int>(
+          $TimingDivinationsTable.$converteryearGanZhi.toSql(yearGanZhi.value));
+    }
+    if (monthGanZhi.present) {
+      map['month_gan_zhi'] = Variable<int>($TimingDivinationsTable
+          .$convertermonthGanZhi
+          .toSql(monthGanZhi.value));
+    }
+    if (dayGanZhi.present) {
+      map['day_gan_zhi'] = Variable<int>(
+          $TimingDivinationsTable.$converterdayGanZhi.toSql(dayGanZhi.value));
+    }
+    if (timeGanZhi.present) {
+      map['time_gan_zhi'] = Variable<int>(
+          $TimingDivinationsTable.$convertertimeGanZhi.toSql(timeGanZhi.value));
+    }
+    if (lunarMonth.present) {
+      map['lunar_month'] = Variable<int>(lunarMonth.value);
+    }
+    if (isLeapMonth.present) {
+      map['is_leap_month'] = Variable<bool>(isLeapMonth.value);
+    }
+    if (lunarDay.present) {
+      map['lunar_day'] = Variable<int>(lunarDay.value);
+    }
+    if (timingInfoUuid.present) {
+      map['timing_info_uuid'] = Variable<String>(timingInfoUuid.value);
+    }
+    if (location.present) {
+      map['location_json'] = Variable<String>(
+          $TimingDivinationsTable.$converterlocation.toSql(location.value));
+    }
+    if (timingInfoListJson.present) {
+      map['info_list_json'] = Variable<String>($TimingDivinationsTable
+          .$convertertimingInfoListJsonn
+          .toSql(timingInfoListJson.value));
+    }
+    if (currentCalendarUuid.present) {
+      map['current_calendar_uuid'] =
+          Variable<String>(currentCalendarUuid.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TimingDivinationsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('lastUpdatedAt: $lastUpdatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('divinationUuid: $divinationUuid, ')
+          ..write('timingType: $timingType, ')
+          ..write('datetime: $datetime, ')
+          ..write('isManual: $isManual, ')
+          ..write('yearGanZhi: $yearGanZhi, ')
+          ..write('monthGanZhi: $monthGanZhi, ')
+          ..write('dayGanZhi: $dayGanZhi, ')
+          ..write('timeGanZhi: $timeGanZhi, ')
+          ..write('lunarMonth: $lunarMonth, ')
+          ..write('isLeapMonth: $isLeapMonth, ')
+          ..write('lunarDay: $lunarDay, ')
+          ..write('timingInfoUuid: $timingInfoUuid, ')
+          ..write('location: $location, ')
+          ..write('timingInfoListJson: $timingInfoListJson, ')
+          ..write('currentCalendarUuid: $currentCalendarUuid, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PanelsTable extends Panels with TableInfo<$PanelsTable, Panel> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PanelsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _lastUpdatedAtMeta =
+      const VerificationMeta('lastUpdatedAt');
+  @override
+  late final GeneratedColumn<DateTime> lastUpdatedAt =
+      GeneratedColumn<DateTime>('last_updated_at', aliasedName, false,
+          type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid =
+      GeneratedColumn<String>('uuid', aliasedName, false,
+          additionalChecks: GeneratedColumn.checkTextLength(
+            minTextLength: 1,
+          ),
+          type: DriftSqlType.string,
+          requiredDuringInsert: true);
+  @override
+  late final GeneratedColumnWithTypeConverter<EnumPanelType, int> panelType =
+      GeneratedColumn<int>('panel_type', aliasedName, false,
+              type: DriftSqlType.int, requiredDuringInsert: true)
+          .withConverter<EnumPanelType>($PanelsTable.$converterpanelType);
+  static const VerificationMeta _skillIdMeta =
+      const VerificationMeta('skillId');
+  @override
+  late final GeneratedColumn<int> skillId = GeneratedColumn<int>(
+      'skill_id', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _divinateTypeMeta =
+      const VerificationMeta('divinateType');
+  @override
+  late final GeneratedColumn<String> divinateType = GeneratedColumn<String>(
+      'divinate_type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _divinateUuidMeta =
+      const VerificationMeta('divinateUuid');
+  @override
+  late final GeneratedColumn<String> divinateUuid = GeneratedColumn<String>(
+      'divinate_uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [
+        createdAt,
+        lastUpdatedAt,
+        deletedAt,
+        uuid,
+        panelType,
+        skillId,
+        divinateType,
+        divinateUuid
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_panels';
+  @override
+  VerificationContext validateIntegrity(Insertable<Panel> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('last_updated_at')) {
+      context.handle(
+          _lastUpdatedAtMeta,
+          lastUpdatedAt.isAcceptableOrUnknown(
+              data['last_updated_at']!, _lastUpdatedAtMeta));
+    } else if (isInserting) {
+      context.missing(_lastUpdatedAtMeta);
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    if (data.containsKey('uuid')) {
+      context.handle(
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('skill_id')) {
+      context.handle(_skillIdMeta,
+          skillId.isAcceptableOrUnknown(data['skill_id']!, _skillIdMeta));
+    } else if (isInserting) {
+      context.missing(_skillIdMeta);
+    }
+    if (data.containsKey('divinate_type')) {
+      context.handle(
+          _divinateTypeMeta,
+          divinateType.isAcceptableOrUnknown(
+              data['divinate_type']!, _divinateTypeMeta));
+    } else if (isInserting) {
+      context.missing(_divinateTypeMeta);
+    }
+    if (data.containsKey('divinate_uuid')) {
+      context.handle(
+          _divinateUuidMeta,
+          divinateUuid.isAcceptableOrUnknown(
+              data['divinate_uuid']!, _divinateUuidMeta));
+    } else if (isInserting) {
+      context.missing(_divinateUuidMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  Panel map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Panel(
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      lastUpdatedAt: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime, data['${effectivePrefix}last_updated_at'])!,
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      panelType: $PanelsTable.$converterpanelType.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}panel_type'])!),
+      skillId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}skill_id'])!,
+      divinateType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}divinate_type'])!,
+      divinateUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}divinate_uuid'])!,
+    );
+  }
+
+  @override
+  $PanelsTable createAlias(String alias) {
+    return $PanelsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<EnumPanelType, int, int> $converterpanelType =
+      const EnumIndexConverter<EnumPanelType>(EnumPanelType.values);
+}
+
+class Panel extends DataClass implements Insertable<Panel> {
+  final DateTime createdAt;
+  final DateTime lastUpdatedAt;
+  final DateTime? deletedAt;
+  final String uuid;
+  final EnumPanelType panelType;
+  final int skillId;
+  final String divinateType;
+  final String divinateUuid;
+  const Panel(
+      {required this.createdAt,
+      required this.lastUpdatedAt,
+      this.deletedAt,
+      required this.uuid,
+      required this.panelType,
+      required this.skillId,
+      required this.divinateType,
+      required this.divinateUuid});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['last_updated_at'] = Variable<DateTime>(lastUpdatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['uuid'] = Variable<String>(uuid);
+    {
+      map['panel_type'] =
+          Variable<int>($PanelsTable.$converterpanelType.toSql(panelType));
+    }
+    map['skill_id'] = Variable<int>(skillId);
+    map['divinate_type'] = Variable<String>(divinateType);
+    map['divinate_uuid'] = Variable<String>(divinateUuid);
+    return map;
+  }
+
+  PanelsCompanion toCompanion(bool nullToAbsent) {
+    return PanelsCompanion(
+      createdAt: Value(createdAt),
+      lastUpdatedAt: Value(lastUpdatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      uuid: Value(uuid),
+      panelType: Value(panelType),
+      skillId: Value(skillId),
+      divinateType: Value(divinateType),
+      divinateUuid: Value(divinateUuid),
+    );
+  }
+
+  factory Panel.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Panel(
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      lastUpdatedAt: serializer.fromJson<DateTime>(json['lastUpdatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      uuid: serializer.fromJson<String>(json['uuid']),
+      panelType: $PanelsTable.$converterpanelType
+          .fromJson(serializer.fromJson<int>(json['panelType'])),
+      skillId: serializer.fromJson<int>(json['skillId']),
+      divinateType: serializer.fromJson<String>(json['divinateType']),
+      divinateUuid: serializer.fromJson<String>(json['divinateUuid']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'lastUpdatedAt': serializer.toJson<DateTime>(lastUpdatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'uuid': serializer.toJson<String>(uuid),
+      'panelType': serializer
+          .toJson<int>($PanelsTable.$converterpanelType.toJson(panelType)),
+      'skillId': serializer.toJson<int>(skillId),
+      'divinateType': serializer.toJson<String>(divinateType),
+      'divinateUuid': serializer.toJson<String>(divinateUuid),
+    };
+  }
+
+  Panel copyWith(
+          {DateTime? createdAt,
+          DateTime? lastUpdatedAt,
+          Value<DateTime?> deletedAt = const Value.absent(),
+          String? uuid,
+          EnumPanelType? panelType,
+          int? skillId,
+          String? divinateType,
+          String? divinateUuid}) =>
+      Panel(
+        createdAt: createdAt ?? this.createdAt,
+        lastUpdatedAt: lastUpdatedAt ?? this.lastUpdatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        uuid: uuid ?? this.uuid,
+        panelType: panelType ?? this.panelType,
+        skillId: skillId ?? this.skillId,
+        divinateType: divinateType ?? this.divinateType,
+        divinateUuid: divinateUuid ?? this.divinateUuid,
+      );
+  Panel copyWithCompanion(PanelsCompanion data) {
+    return Panel(
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      lastUpdatedAt: data.lastUpdatedAt.present
+          ? data.lastUpdatedAt.value
+          : this.lastUpdatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      panelType: data.panelType.present ? data.panelType.value : this.panelType,
+      skillId: data.skillId.present ? data.skillId.value : this.skillId,
+      divinateType: data.divinateType.present
+          ? data.divinateType.value
+          : this.divinateType,
+      divinateUuid: data.divinateUuid.present
+          ? data.divinateUuid.value
+          : this.divinateUuid,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Panel(')
+          ..write('createdAt: $createdAt, ')
+          ..write('lastUpdatedAt: $lastUpdatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('uuid: $uuid, ')
+          ..write('panelType: $panelType, ')
+          ..write('skillId: $skillId, ')
+          ..write('divinateType: $divinateType, ')
+          ..write('divinateUuid: $divinateUuid')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(createdAt, lastUpdatedAt, deletedAt, uuid,
+      panelType, skillId, divinateType, divinateUuid);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Panel &&
+          other.createdAt == this.createdAt &&
+          other.lastUpdatedAt == this.lastUpdatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.uuid == this.uuid &&
+          other.panelType == this.panelType &&
+          other.skillId == this.skillId &&
+          other.divinateType == this.divinateType &&
+          other.divinateUuid == this.divinateUuid);
+}
+
+class PanelsCompanion extends UpdateCompanion<Panel> {
+  final Value<DateTime> createdAt;
+  final Value<DateTime> lastUpdatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String> uuid;
+  final Value<EnumPanelType> panelType;
+  final Value<int> skillId;
+  final Value<String> divinateType;
+  final Value<String> divinateUuid;
+  final Value<int> rowid;
+  const PanelsCompanion({
+    this.createdAt = const Value.absent(),
+    this.lastUpdatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.uuid = const Value.absent(),
+    this.panelType = const Value.absent(),
+    this.skillId = const Value.absent(),
+    this.divinateType = const Value.absent(),
+    this.divinateUuid = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PanelsCompanion.insert({
+    required DateTime createdAt,
+    required DateTime lastUpdatedAt,
+    this.deletedAt = const Value.absent(),
+    required String uuid,
+    required EnumPanelType panelType,
+    required int skillId,
+    required String divinateType,
+    required String divinateUuid,
+    this.rowid = const Value.absent(),
+  })  : createdAt = Value(createdAt),
+        lastUpdatedAt = Value(lastUpdatedAt),
+        uuid = Value(uuid),
+        panelType = Value(panelType),
+        skillId = Value(skillId),
+        divinateType = Value(divinateType),
+        divinateUuid = Value(divinateUuid);
+  static Insertable<Panel> custom({
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? lastUpdatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? uuid,
+    Expression<int>? panelType,
+    Expression<int>? skillId,
+    Expression<String>? divinateType,
+    Expression<String>? divinateUuid,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (createdAt != null) 'created_at': createdAt,
+      if (lastUpdatedAt != null) 'last_updated_at': lastUpdatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (uuid != null) 'uuid': uuid,
+      if (panelType != null) 'panel_type': panelType,
+      if (skillId != null) 'skill_id': skillId,
+      if (divinateType != null) 'divinate_type': divinateType,
+      if (divinateUuid != null) 'divinate_uuid': divinateUuid,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PanelsCompanion copyWith(
+      {Value<DateTime>? createdAt,
+      Value<DateTime>? lastUpdatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<String>? uuid,
+      Value<EnumPanelType>? panelType,
+      Value<int>? skillId,
+      Value<String>? divinateType,
+      Value<String>? divinateUuid,
+      Value<int>? rowid}) {
+    return PanelsCompanion(
+      createdAt: createdAt ?? this.createdAt,
+      lastUpdatedAt: lastUpdatedAt ?? this.lastUpdatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      uuid: uuid ?? this.uuid,
+      panelType: panelType ?? this.panelType,
+      skillId: skillId ?? this.skillId,
+      divinateType: divinateType ?? this.divinateType,
+      divinateUuid: divinateUuid ?? this.divinateUuid,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (lastUpdatedAt.present) {
+      map['last_updated_at'] = Variable<DateTime>(lastUpdatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (panelType.present) {
+      map['panel_type'] = Variable<int>(
+          $PanelsTable.$converterpanelType.toSql(panelType.value));
+    }
+    if (skillId.present) {
+      map['skill_id'] = Variable<int>(skillId.value);
+    }
+    if (divinateType.present) {
+      map['divinate_type'] = Variable<String>(divinateType.value);
+    }
+    if (divinateUuid.present) {
+      map['divinate_uuid'] = Variable<String>(divinateUuid.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PanelsCompanion(')
+          ..write('createdAt: $createdAt, ')
+          ..write('lastUpdatedAt: $lastUpdatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('uuid: $uuid, ')
+          ..write('panelType: $panelType, ')
+          ..write('skillId: $skillId, ')
+          ..write('divinateType: $divinateType, ')
+          ..write('divinateUuid: $divinateUuid, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DivinationPanelMappersTable extends DivinationPanelMappers
+    with TableInfo<$DivinationPanelMappersTable, DivinationPanelMapper> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DivinationPanelMappersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _divinationUuidMeta =
+      const VerificationMeta('divinationUuid');
+  @override
+  late final GeneratedColumn<String> divinationUuid = GeneratedColumn<String>(
+      'divination_uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _panelUuidMeta =
+      const VerificationMeta('panelUuid');
+  @override
+  late final GeneratedColumn<String> panelUuid = GeneratedColumn<String>(
+      'panel_uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, divinationUuid, panelUuid, createdAt, deletedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_divination_panel_mappers';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<DivinationPanelMapper> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('divination_uuid')) {
+      context.handle(
+          _divinationUuidMeta,
+          divinationUuid.isAcceptableOrUnknown(
+              data['divination_uuid']!, _divinationUuidMeta));
+    } else if (isInserting) {
+      context.missing(_divinationUuidMeta);
+    }
+    if (data.containsKey('panel_uuid')) {
+      context.handle(_panelUuidMeta,
+          panelUuid.isAcceptableOrUnknown(data['panel_uuid']!, _panelUuidMeta));
+    } else if (isInserting) {
+      context.missing(_panelUuidMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DivinationPanelMapper map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DivinationPanelMapper(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      divinationUuid: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}divination_uuid'])!,
+      panelUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}panel_uuid'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+    );
+  }
+
+  @override
+  $DivinationPanelMappersTable createAlias(String alias) {
+    return $DivinationPanelMappersTable(attachedDatabase, alias);
+  }
+}
+
+class DivinationPanelMapper extends DataClass
+    implements Insertable<DivinationPanelMapper> {
+  final int id;
+  final String divinationUuid;
+  final String panelUuid;
+  final DateTime createdAt;
+  final DateTime? deletedAt;
+  const DivinationPanelMapper(
+      {required this.id,
+      required this.divinationUuid,
+      required this.panelUuid,
+      required this.createdAt,
+      this.deletedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['divination_uuid'] = Variable<String>(divinationUuid);
+    map['panel_uuid'] = Variable<String>(panelUuid);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  DivinationPanelMappersCompanion toCompanion(bool nullToAbsent) {
+    return DivinationPanelMappersCompanion(
+      id: Value(id),
+      divinationUuid: Value(divinationUuid),
+      panelUuid: Value(panelUuid),
+      createdAt: Value(createdAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory DivinationPanelMapper.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DivinationPanelMapper(
+      id: serializer.fromJson<int>(json['id']),
+      divinationUuid: serializer.fromJson<String>(json['divinationUuid']),
+      panelUuid: serializer.fromJson<String>(json['panelUuid']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'divinationUuid': serializer.toJson<String>(divinationUuid),
+      'panelUuid': serializer.toJson<String>(panelUuid),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  DivinationPanelMapper copyWith(
+          {int? id,
+          String? divinationUuid,
+          String? panelUuid,
+          DateTime? createdAt,
+          Value<DateTime?> deletedAt = const Value.absent()}) =>
+      DivinationPanelMapper(
+        id: id ?? this.id,
+        divinationUuid: divinationUuid ?? this.divinationUuid,
+        panelUuid: panelUuid ?? this.panelUuid,
+        createdAt: createdAt ?? this.createdAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+      );
+  DivinationPanelMapper copyWithCompanion(
+      DivinationPanelMappersCompanion data) {
+    return DivinationPanelMapper(
+      id: data.id.present ? data.id.value : this.id,
+      divinationUuid: data.divinationUuid.present
+          ? data.divinationUuid.value
+          : this.divinationUuid,
+      panelUuid: data.panelUuid.present ? data.panelUuid.value : this.panelUuid,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DivinationPanelMapper(')
+          ..write('id: $id, ')
+          ..write('divinationUuid: $divinationUuid, ')
+          ..write('panelUuid: $panelUuid, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, divinationUuid, panelUuid, createdAt, deletedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DivinationPanelMapper &&
+          other.id == this.id &&
+          other.divinationUuid == this.divinationUuid &&
+          other.panelUuid == this.panelUuid &&
+          other.createdAt == this.createdAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class DivinationPanelMappersCompanion
+    extends UpdateCompanion<DivinationPanelMapper> {
+  final Value<int> id;
+  final Value<String> divinationUuid;
+  final Value<String> panelUuid;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> deletedAt;
+  const DivinationPanelMappersCompanion({
+    this.id = const Value.absent(),
+    this.divinationUuid = const Value.absent(),
+    this.panelUuid = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+  });
+  DivinationPanelMappersCompanion.insert({
+    this.id = const Value.absent(),
+    required String divinationUuid,
+    required String panelUuid,
+    required DateTime createdAt,
+    this.deletedAt = const Value.absent(),
+  })  : divinationUuid = Value(divinationUuid),
+        panelUuid = Value(panelUuid),
+        createdAt = Value(createdAt);
+  static Insertable<DivinationPanelMapper> custom({
+    Expression<int>? id,
+    Expression<String>? divinationUuid,
+    Expression<String>? panelUuid,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? deletedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (divinationUuid != null) 'divination_uuid': divinationUuid,
+      if (panelUuid != null) 'panel_uuid': panelUuid,
+      if (createdAt != null) 'created_at': createdAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+    });
+  }
+
+  DivinationPanelMappersCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? divinationUuid,
+      Value<String>? panelUuid,
+      Value<DateTime>? createdAt,
+      Value<DateTime?>? deletedAt}) {
+    return DivinationPanelMappersCompanion(
+      id: id ?? this.id,
+      divinationUuid: divinationUuid ?? this.divinationUuid,
+      panelUuid: panelUuid ?? this.panelUuid,
+      createdAt: createdAt ?? this.createdAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (divinationUuid.present) {
+      map['divination_uuid'] = Variable<String>(divinationUuid.value);
+    }
+    if (panelUuid.present) {
+      map['panel_uuid'] = Variable<String>(panelUuid.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DivinationPanelMappersCompanion(')
+          ..write('id: $id, ')
+          ..write('divinationUuid: $divinationUuid, ')
+          ..write('panelUuid: $panelUuid, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PanelSkillClassMappersTable extends PanelSkillClassMappers
+    with TableInfo<$PanelSkillClassMappersTable, PanelSkillClassMapper> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PanelSkillClassMappersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _panelUuidMeta =
+      const VerificationMeta('panelUuid');
+  @override
+  late final GeneratedColumn<String> panelUuid = GeneratedColumn<String>(
+      'panel_uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _skillClassUuidMeta =
+      const VerificationMeta('skillClassUuid');
+  @override
+  late final GeneratedColumn<String> skillClassUuid = GeneratedColumn<String>(
+      'skill_class_uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, panelUuid, skillClassUuid, createdAt, deletedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_panel_skill_class_mapper';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<PanelSkillClassMapper> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('panel_uuid')) {
+      context.handle(_panelUuidMeta,
+          panelUuid.isAcceptableOrUnknown(data['panel_uuid']!, _panelUuidMeta));
+    } else if (isInserting) {
+      context.missing(_panelUuidMeta);
+    }
+    if (data.containsKey('skill_class_uuid')) {
+      context.handle(
+          _skillClassUuidMeta,
+          skillClassUuid.isAcceptableOrUnknown(
+              data['skill_class_uuid']!, _skillClassUuidMeta));
+    } else if (isInserting) {
+      context.missing(_skillClassUuidMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PanelSkillClassMapper map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PanelSkillClassMapper(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      panelUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}panel_uuid'])!,
+      skillClassUuid: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}skill_class_uuid'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+    );
+  }
+
+  @override
+  $PanelSkillClassMappersTable createAlias(String alias) {
+    return $PanelSkillClassMappersTable(attachedDatabase, alias);
+  }
+}
+
+class PanelSkillClassMapper extends DataClass
+    implements Insertable<PanelSkillClassMapper> {
+  final int id;
+  final String panelUuid;
+  final String skillClassUuid;
+  final DateTime createdAt;
+  final DateTime? deletedAt;
+  const PanelSkillClassMapper(
+      {required this.id,
+      required this.panelUuid,
+      required this.skillClassUuid,
+      required this.createdAt,
+      this.deletedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['panel_uuid'] = Variable<String>(panelUuid);
+    map['skill_class_uuid'] = Variable<String>(skillClassUuid);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  PanelSkillClassMappersCompanion toCompanion(bool nullToAbsent) {
+    return PanelSkillClassMappersCompanion(
+      id: Value(id),
+      panelUuid: Value(panelUuid),
+      skillClassUuid: Value(skillClassUuid),
+      createdAt: Value(createdAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory PanelSkillClassMapper.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PanelSkillClassMapper(
+      id: serializer.fromJson<int>(json['id']),
+      panelUuid: serializer.fromJson<String>(json['panelUuid']),
+      skillClassUuid: serializer.fromJson<String>(json['skillClassUuid']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'panelUuid': serializer.toJson<String>(panelUuid),
+      'skillClassUuid': serializer.toJson<String>(skillClassUuid),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  PanelSkillClassMapper copyWith(
+          {int? id,
+          String? panelUuid,
+          String? skillClassUuid,
+          DateTime? createdAt,
+          Value<DateTime?> deletedAt = const Value.absent()}) =>
+      PanelSkillClassMapper(
+        id: id ?? this.id,
+        panelUuid: panelUuid ?? this.panelUuid,
+        skillClassUuid: skillClassUuid ?? this.skillClassUuid,
+        createdAt: createdAt ?? this.createdAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+      );
+  PanelSkillClassMapper copyWithCompanion(
+      PanelSkillClassMappersCompanion data) {
+    return PanelSkillClassMapper(
+      id: data.id.present ? data.id.value : this.id,
+      panelUuid: data.panelUuid.present ? data.panelUuid.value : this.panelUuid,
+      skillClassUuid: data.skillClassUuid.present
+          ? data.skillClassUuid.value
+          : this.skillClassUuid,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PanelSkillClassMapper(')
+          ..write('id: $id, ')
+          ..write('panelUuid: $panelUuid, ')
+          ..write('skillClassUuid: $skillClassUuid, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, panelUuid, skillClassUuid, createdAt, deletedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PanelSkillClassMapper &&
+          other.id == this.id &&
+          other.panelUuid == this.panelUuid &&
+          other.skillClassUuid == this.skillClassUuid &&
+          other.createdAt == this.createdAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class PanelSkillClassMappersCompanion
+    extends UpdateCompanion<PanelSkillClassMapper> {
+  final Value<int> id;
+  final Value<String> panelUuid;
+  final Value<String> skillClassUuid;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> deletedAt;
+  const PanelSkillClassMappersCompanion({
+    this.id = const Value.absent(),
+    this.panelUuid = const Value.absent(),
+    this.skillClassUuid = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+  });
+  PanelSkillClassMappersCompanion.insert({
+    this.id = const Value.absent(),
+    required String panelUuid,
+    required String skillClassUuid,
+    required DateTime createdAt,
+    this.deletedAt = const Value.absent(),
+  })  : panelUuid = Value(panelUuid),
+        skillClassUuid = Value(skillClassUuid),
+        createdAt = Value(createdAt);
+  static Insertable<PanelSkillClassMapper> custom({
+    Expression<int>? id,
+    Expression<String>? panelUuid,
+    Expression<String>? skillClassUuid,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? deletedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (panelUuid != null) 'panel_uuid': panelUuid,
+      if (skillClassUuid != null) 'skill_class_uuid': skillClassUuid,
+      if (createdAt != null) 'created_at': createdAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+    });
+  }
+
+  PanelSkillClassMappersCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? panelUuid,
+      Value<String>? skillClassUuid,
+      Value<DateTime>? createdAt,
+      Value<DateTime?>? deletedAt}) {
+    return PanelSkillClassMappersCompanion(
+      id: id ?? this.id,
+      panelUuid: panelUuid ?? this.panelUuid,
+      skillClassUuid: skillClassUuid ?? this.skillClassUuid,
+      createdAt: createdAt ?? this.createdAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (panelUuid.present) {
+      map['panel_uuid'] = Variable<String>(panelUuid.value);
+    }
+    if (skillClassUuid.present) {
+      map['skill_class_uuid'] = Variable<String>(skillClassUuid.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PanelSkillClassMappersCompanion(')
+          ..write('id: $id, ')
+          ..write('panelUuid: $panelUuid, ')
+          ..write('skillClassUuid: $skillClassUuid, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $DaYunRecordsTable extends DaYunRecords
     with TableInfo<$DaYunRecordsTable, DaYunRecord> {
   @override
@@ -5582,6 +7570,15 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
   late final $DivinationSubDivinationTypeMappersTable
       divinationSubDivinationTypeMappers =
       $DivinationSubDivinationTypeMappersTable(this);
+  late final $DivinationCalendarsTable divinationCalendars =
+      $DivinationCalendarsTable(this);
+  late final $TimingDivinationsTable timingDivinations =
+      $TimingDivinationsTable(this);
+  late final $PanelsTable panels = $PanelsTable(this);
+  late final $DivinationPanelMappersTable divinationPanelMappers =
+      $DivinationPanelMappersTable(this);
+  late final $PanelSkillClassMappersTable panelSkillClassMappers =
+      $PanelSkillClassMappersTable(this);
   late final $DaYunRecordsTable daYunRecords = $DaYunRecordsTable(this);
   late final $TaiYuanRecordsTable taiYuanRecords = $TaiYuanRecordsTable(this);
   late final OutboxRecordsDao outboxRecordsDao =
@@ -5605,6 +7602,13 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
   late final DivinationSubDivinationTypeMappersDao
       divinationSubDivinationTypeMappersDao =
       DivinationSubDivinationTypeMappersDao(this as PersistenceDriftDatabase);
+  late final TimingDivinationsDao timingDivinationsDao =
+      TimingDivinationsDao(this as PersistenceDriftDatabase);
+  late final PanelsDao panelsDao = PanelsDao(this as PersistenceDriftDatabase);
+  late final DivinationPanelMappersDao divinationPanelMappersDao =
+      DivinationPanelMappersDao(this as PersistenceDriftDatabase);
+  late final PanelSkillClassMappersDao panelSkillClassMappersDao =
+      PanelSkillClassMappersDao(this as PersistenceDriftDatabase);
   late final DaYunRecordsDao daYunRecordsDao =
       DaYunRecordsDao(this as PersistenceDriftDatabase);
   late final TaiYuanRecordsDao taiYuanRecordsDao =
@@ -5625,6 +7629,11 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
         divinationTypes,
         subDivinationTypes,
         divinationSubDivinationTypeMappers,
+        divinationCalendars,
+        timingDivinations,
+        panels,
+        divinationPanelMappers,
+        panelSkillClassMappers,
         daYunRecords,
         taiYuanRecords
       ];
@@ -9518,6 +11527,1172 @@ typedef $$DivinationSubDivinationTypeMappersTableProcessedTableManager
         ),
         DivinationSubDivinationTypeMapper,
         PrefetchHooks Function({bool typeUuid, bool subTypeUuid})>;
+typedef $$DivinationCalendarsTableCreateCompanionBuilder
+    = DivinationCalendarsCompanion Function({
+  required String uuid,
+  required String sourceUuid,
+  required String sourceType,
+  Value<String?> currentTaiYuanUuid,
+  Value<String?> currentDaYunUuid,
+  Value<int> rowid,
+});
+typedef $$DivinationCalendarsTableUpdateCompanionBuilder
+    = DivinationCalendarsCompanion Function({
+  Value<String> uuid,
+  Value<String> sourceUuid,
+  Value<String> sourceType,
+  Value<String?> currentTaiYuanUuid,
+  Value<String?> currentDaYunUuid,
+  Value<int> rowid,
+});
+
+class $$DivinationCalendarsTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $DivinationCalendarsTable> {
+  $$DivinationCalendarsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get sourceUuid => $composableBuilder(
+      column: $table.sourceUuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get sourceType => $composableBuilder(
+      column: $table.sourceType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get currentTaiYuanUuid => $composableBuilder(
+      column: $table.currentTaiYuanUuid,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get currentDaYunUuid => $composableBuilder(
+      column: $table.currentDaYunUuid,
+      builder: (column) => ColumnFilters(column));
+}
+
+class $$DivinationCalendarsTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $DivinationCalendarsTable> {
+  $$DivinationCalendarsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get sourceUuid => $composableBuilder(
+      column: $table.sourceUuid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get sourceType => $composableBuilder(
+      column: $table.sourceType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get currentTaiYuanUuid => $composableBuilder(
+      column: $table.currentTaiYuanUuid,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get currentDaYunUuid => $composableBuilder(
+      column: $table.currentDaYunUuid,
+      builder: (column) => ColumnOrderings(column));
+}
+
+class $$DivinationCalendarsTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $DivinationCalendarsTable> {
+  $$DivinationCalendarsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get sourceUuid => $composableBuilder(
+      column: $table.sourceUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get sourceType => $composableBuilder(
+      column: $table.sourceType, builder: (column) => column);
+
+  GeneratedColumn<String> get currentTaiYuanUuid => $composableBuilder(
+      column: $table.currentTaiYuanUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get currentDaYunUuid => $composableBuilder(
+      column: $table.currentDaYunUuid, builder: (column) => column);
+}
+
+class $$DivinationCalendarsTableTableManager extends RootTableManager<
+    _$PersistenceDriftDatabase,
+    $DivinationCalendarsTable,
+    DivinationCalendar,
+    $$DivinationCalendarsTableFilterComposer,
+    $$DivinationCalendarsTableOrderingComposer,
+    $$DivinationCalendarsTableAnnotationComposer,
+    $$DivinationCalendarsTableCreateCompanionBuilder,
+    $$DivinationCalendarsTableUpdateCompanionBuilder,
+    (
+      DivinationCalendar,
+      BaseReferences<_$PersistenceDriftDatabase, $DivinationCalendarsTable,
+          DivinationCalendar>
+    ),
+    DivinationCalendar,
+    PrefetchHooks Function()> {
+  $$DivinationCalendarsTableTableManager(
+      _$PersistenceDriftDatabase db, $DivinationCalendarsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DivinationCalendarsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DivinationCalendarsTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DivinationCalendarsTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> uuid = const Value.absent(),
+            Value<String> sourceUuid = const Value.absent(),
+            Value<String> sourceType = const Value.absent(),
+            Value<String?> currentTaiYuanUuid = const Value.absent(),
+            Value<String?> currentDaYunUuid = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              DivinationCalendarsCompanion(
+            uuid: uuid,
+            sourceUuid: sourceUuid,
+            sourceType: sourceType,
+            currentTaiYuanUuid: currentTaiYuanUuid,
+            currentDaYunUuid: currentDaYunUuid,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String uuid,
+            required String sourceUuid,
+            required String sourceType,
+            Value<String?> currentTaiYuanUuid = const Value.absent(),
+            Value<String?> currentDaYunUuid = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              DivinationCalendarsCompanion.insert(
+            uuid: uuid,
+            sourceUuid: sourceUuid,
+            sourceType: sourceType,
+            currentTaiYuanUuid: currentTaiYuanUuid,
+            currentDaYunUuid: currentDaYunUuid,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$DivinationCalendarsTableProcessedTableManager = ProcessedTableManager<
+    _$PersistenceDriftDatabase,
+    $DivinationCalendarsTable,
+    DivinationCalendar,
+    $$DivinationCalendarsTableFilterComposer,
+    $$DivinationCalendarsTableOrderingComposer,
+    $$DivinationCalendarsTableAnnotationComposer,
+    $$DivinationCalendarsTableCreateCompanionBuilder,
+    $$DivinationCalendarsTableUpdateCompanionBuilder,
+    (
+      DivinationCalendar,
+      BaseReferences<_$PersistenceDriftDatabase, $DivinationCalendarsTable,
+          DivinationCalendar>
+    ),
+    DivinationCalendar,
+    PrefetchHooks Function()>;
+typedef $$TimingDivinationsTableCreateCompanionBuilder
+    = TimingDivinationsCompanion Function({
+  required String uuid,
+  Value<DateTime> createdAt,
+  Value<DateTime?> lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  required String divinationUuid,
+  required DateTimeType timingType,
+  required DateTime datetime,
+  Value<bool> isManual,
+  required JiaZi yearGanZhi,
+  required JiaZi monthGanZhi,
+  required JiaZi dayGanZhi,
+  required JiaZi timeGanZhi,
+  required int lunarMonth,
+  Value<bool> isLeapMonth,
+  required int lunarDay,
+  required String timingInfoUuid,
+  Value<Location?> location,
+  Value<List<DivinationDatetimeModel>?> timingInfoListJson,
+  Value<String?> currentCalendarUuid,
+  Value<int> rowid,
+});
+typedef $$TimingDivinationsTableUpdateCompanionBuilder
+    = TimingDivinationsCompanion Function({
+  Value<String> uuid,
+  Value<DateTime> createdAt,
+  Value<DateTime?> lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String> divinationUuid,
+  Value<DateTimeType> timingType,
+  Value<DateTime> datetime,
+  Value<bool> isManual,
+  Value<JiaZi> yearGanZhi,
+  Value<JiaZi> monthGanZhi,
+  Value<JiaZi> dayGanZhi,
+  Value<JiaZi> timeGanZhi,
+  Value<int> lunarMonth,
+  Value<bool> isLeapMonth,
+  Value<int> lunarDay,
+  Value<String> timingInfoUuid,
+  Value<Location?> location,
+  Value<List<DivinationDatetimeModel>?> timingInfoListJson,
+  Value<String?> currentCalendarUuid,
+  Value<int> rowid,
+});
+
+class $$TimingDivinationsTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $TimingDivinationsTable> {
+  $$TimingDivinationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get lastUpdatedAt => $composableBuilder(
+      column: $table.lastUpdatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get divinationUuid => $composableBuilder(
+      column: $table.divinationUuid,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<DateTimeType, DateTimeType, int>
+      get timingType => $composableBuilder(
+          column: $table.timingType,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<DateTime> get datetime => $composableBuilder(
+      column: $table.datetime, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isManual => $composableBuilder(
+      column: $table.isManual, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<JiaZi, JiaZi, int> get yearGanZhi =>
+      $composableBuilder(
+          column: $table.yearGanZhi,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnWithTypeConverterFilters<JiaZi, JiaZi, int> get monthGanZhi =>
+      $composableBuilder(
+          column: $table.monthGanZhi,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnWithTypeConverterFilters<JiaZi, JiaZi, int> get dayGanZhi =>
+      $composableBuilder(
+          column: $table.dayGanZhi,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnWithTypeConverterFilters<JiaZi, JiaZi, int> get timeGanZhi =>
+      $composableBuilder(
+          column: $table.timeGanZhi,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<int> get lunarMonth => $composableBuilder(
+      column: $table.lunarMonth, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isLeapMonth => $composableBuilder(
+      column: $table.isLeapMonth, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get lunarDay => $composableBuilder(
+      column: $table.lunarDay, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get timingInfoUuid => $composableBuilder(
+      column: $table.timingInfoUuid,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<Location?, Location, String> get location =>
+      $composableBuilder(
+          column: $table.location,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnWithTypeConverterFilters<List<DivinationDatetimeModel>?,
+          List<DivinationDatetimeModel>, String>
+      get timingInfoListJson => $composableBuilder(
+          column: $table.timingInfoListJson,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<String> get currentCalendarUuid => $composableBuilder(
+      column: $table.currentCalendarUuid,
+      builder: (column) => ColumnFilters(column));
+}
+
+class $$TimingDivinationsTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $TimingDivinationsTable> {
+  $$TimingDivinationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get lastUpdatedAt => $composableBuilder(
+      column: $table.lastUpdatedAt,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get divinationUuid => $composableBuilder(
+      column: $table.divinationUuid,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get timingType => $composableBuilder(
+      column: $table.timingType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get datetime => $composableBuilder(
+      column: $table.datetime, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isManual => $composableBuilder(
+      column: $table.isManual, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get yearGanZhi => $composableBuilder(
+      column: $table.yearGanZhi, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get monthGanZhi => $composableBuilder(
+      column: $table.monthGanZhi, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get dayGanZhi => $composableBuilder(
+      column: $table.dayGanZhi, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get timeGanZhi => $composableBuilder(
+      column: $table.timeGanZhi, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get lunarMonth => $composableBuilder(
+      column: $table.lunarMonth, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isLeapMonth => $composableBuilder(
+      column: $table.isLeapMonth, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get lunarDay => $composableBuilder(
+      column: $table.lunarDay, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get timingInfoUuid => $composableBuilder(
+      column: $table.timingInfoUuid,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get location => $composableBuilder(
+      column: $table.location, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get timingInfoListJson => $composableBuilder(
+      column: $table.timingInfoListJson,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get currentCalendarUuid => $composableBuilder(
+      column: $table.currentCalendarUuid,
+      builder: (column) => ColumnOrderings(column));
+}
+
+class $$TimingDivinationsTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $TimingDivinationsTable> {
+  $$TimingDivinationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastUpdatedAt => $composableBuilder(
+      column: $table.lastUpdatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get divinationUuid => $composableBuilder(
+      column: $table.divinationUuid, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<DateTimeType, int> get timingType =>
+      $composableBuilder(
+          column: $table.timingType, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get datetime =>
+      $composableBuilder(column: $table.datetime, builder: (column) => column);
+
+  GeneratedColumn<bool> get isManual =>
+      $composableBuilder(column: $table.isManual, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<JiaZi, int> get yearGanZhi =>
+      $composableBuilder(
+          column: $table.yearGanZhi, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<JiaZi, int> get monthGanZhi =>
+      $composableBuilder(
+          column: $table.monthGanZhi, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<JiaZi, int> get dayGanZhi =>
+      $composableBuilder(column: $table.dayGanZhi, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<JiaZi, int> get timeGanZhi =>
+      $composableBuilder(
+          column: $table.timeGanZhi, builder: (column) => column);
+
+  GeneratedColumn<int> get lunarMonth => $composableBuilder(
+      column: $table.lunarMonth, builder: (column) => column);
+
+  GeneratedColumn<bool> get isLeapMonth => $composableBuilder(
+      column: $table.isLeapMonth, builder: (column) => column);
+
+  GeneratedColumn<int> get lunarDay =>
+      $composableBuilder(column: $table.lunarDay, builder: (column) => column);
+
+  GeneratedColumn<String> get timingInfoUuid => $composableBuilder(
+      column: $table.timingInfoUuid, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Location?, String> get location =>
+      $composableBuilder(column: $table.location, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<List<DivinationDatetimeModel>?, String>
+      get timingInfoListJson => $composableBuilder(
+          column: $table.timingInfoListJson, builder: (column) => column);
+
+  GeneratedColumn<String> get currentCalendarUuid => $composableBuilder(
+      column: $table.currentCalendarUuid, builder: (column) => column);
+}
+
+class $$TimingDivinationsTableTableManager extends RootTableManager<
+    _$PersistenceDriftDatabase,
+    $TimingDivinationsTable,
+    TimingDivinationModel,
+    $$TimingDivinationsTableFilterComposer,
+    $$TimingDivinationsTableOrderingComposer,
+    $$TimingDivinationsTableAnnotationComposer,
+    $$TimingDivinationsTableCreateCompanionBuilder,
+    $$TimingDivinationsTableUpdateCompanionBuilder,
+    (
+      TimingDivinationModel,
+      BaseReferences<_$PersistenceDriftDatabase, $TimingDivinationsTable,
+          TimingDivinationModel>
+    ),
+    TimingDivinationModel,
+    PrefetchHooks Function()> {
+  $$TimingDivinationsTableTableManager(
+      _$PersistenceDriftDatabase db, $TimingDivinationsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TimingDivinationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TimingDivinationsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TimingDivinationsTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> uuid = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime?> lastUpdatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String> divinationUuid = const Value.absent(),
+            Value<DateTimeType> timingType = const Value.absent(),
+            Value<DateTime> datetime = const Value.absent(),
+            Value<bool> isManual = const Value.absent(),
+            Value<JiaZi> yearGanZhi = const Value.absent(),
+            Value<JiaZi> monthGanZhi = const Value.absent(),
+            Value<JiaZi> dayGanZhi = const Value.absent(),
+            Value<JiaZi> timeGanZhi = const Value.absent(),
+            Value<int> lunarMonth = const Value.absent(),
+            Value<bool> isLeapMonth = const Value.absent(),
+            Value<int> lunarDay = const Value.absent(),
+            Value<String> timingInfoUuid = const Value.absent(),
+            Value<Location?> location = const Value.absent(),
+            Value<List<DivinationDatetimeModel>?> timingInfoListJson =
+                const Value.absent(),
+            Value<String?> currentCalendarUuid = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TimingDivinationsCompanion(
+            uuid: uuid,
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            divinationUuid: divinationUuid,
+            timingType: timingType,
+            datetime: datetime,
+            isManual: isManual,
+            yearGanZhi: yearGanZhi,
+            monthGanZhi: monthGanZhi,
+            dayGanZhi: dayGanZhi,
+            timeGanZhi: timeGanZhi,
+            lunarMonth: lunarMonth,
+            isLeapMonth: isLeapMonth,
+            lunarDay: lunarDay,
+            timingInfoUuid: timingInfoUuid,
+            location: location,
+            timingInfoListJson: timingInfoListJson,
+            currentCalendarUuid: currentCalendarUuid,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String uuid,
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime?> lastUpdatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            required String divinationUuid,
+            required DateTimeType timingType,
+            required DateTime datetime,
+            Value<bool> isManual = const Value.absent(),
+            required JiaZi yearGanZhi,
+            required JiaZi monthGanZhi,
+            required JiaZi dayGanZhi,
+            required JiaZi timeGanZhi,
+            required int lunarMonth,
+            Value<bool> isLeapMonth = const Value.absent(),
+            required int lunarDay,
+            required String timingInfoUuid,
+            Value<Location?> location = const Value.absent(),
+            Value<List<DivinationDatetimeModel>?> timingInfoListJson =
+                const Value.absent(),
+            Value<String?> currentCalendarUuid = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TimingDivinationsCompanion.insert(
+            uuid: uuid,
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            divinationUuid: divinationUuid,
+            timingType: timingType,
+            datetime: datetime,
+            isManual: isManual,
+            yearGanZhi: yearGanZhi,
+            monthGanZhi: monthGanZhi,
+            dayGanZhi: dayGanZhi,
+            timeGanZhi: timeGanZhi,
+            lunarMonth: lunarMonth,
+            isLeapMonth: isLeapMonth,
+            lunarDay: lunarDay,
+            timingInfoUuid: timingInfoUuid,
+            location: location,
+            timingInfoListJson: timingInfoListJson,
+            currentCalendarUuid: currentCalendarUuid,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$TimingDivinationsTableProcessedTableManager = ProcessedTableManager<
+    _$PersistenceDriftDatabase,
+    $TimingDivinationsTable,
+    TimingDivinationModel,
+    $$TimingDivinationsTableFilterComposer,
+    $$TimingDivinationsTableOrderingComposer,
+    $$TimingDivinationsTableAnnotationComposer,
+    $$TimingDivinationsTableCreateCompanionBuilder,
+    $$TimingDivinationsTableUpdateCompanionBuilder,
+    (
+      TimingDivinationModel,
+      BaseReferences<_$PersistenceDriftDatabase, $TimingDivinationsTable,
+          TimingDivinationModel>
+    ),
+    TimingDivinationModel,
+    PrefetchHooks Function()>;
+typedef $$PanelsTableCreateCompanionBuilder = PanelsCompanion Function({
+  required DateTime createdAt,
+  required DateTime lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  required String uuid,
+  required EnumPanelType panelType,
+  required int skillId,
+  required String divinateType,
+  required String divinateUuid,
+  Value<int> rowid,
+});
+typedef $$PanelsTableUpdateCompanionBuilder = PanelsCompanion Function({
+  Value<DateTime> createdAt,
+  Value<DateTime> lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String> uuid,
+  Value<EnumPanelType> panelType,
+  Value<int> skillId,
+  Value<String> divinateType,
+  Value<String> divinateUuid,
+  Value<int> rowid,
+});
+
+class $$PanelsTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $PanelsTable> {
+  $$PanelsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get lastUpdatedAt => $composableBuilder(
+      column: $table.lastUpdatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<EnumPanelType, EnumPanelType, int>
+      get panelType => $composableBuilder(
+          column: $table.panelType,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<int> get skillId => $composableBuilder(
+      column: $table.skillId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get divinateType => $composableBuilder(
+      column: $table.divinateType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get divinateUuid => $composableBuilder(
+      column: $table.divinateUuid, builder: (column) => ColumnFilters(column));
+}
+
+class $$PanelsTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $PanelsTable> {
+  $$PanelsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get lastUpdatedAt => $composableBuilder(
+      column: $table.lastUpdatedAt,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get panelType => $composableBuilder(
+      column: $table.panelType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get skillId => $composableBuilder(
+      column: $table.skillId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get divinateType => $composableBuilder(
+      column: $table.divinateType,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get divinateUuid => $composableBuilder(
+      column: $table.divinateUuid,
+      builder: (column) => ColumnOrderings(column));
+}
+
+class $$PanelsTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $PanelsTable> {
+  $$PanelsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastUpdatedAt => $composableBuilder(
+      column: $table.lastUpdatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<EnumPanelType, int> get panelType =>
+      $composableBuilder(column: $table.panelType, builder: (column) => column);
+
+  GeneratedColumn<int> get skillId =>
+      $composableBuilder(column: $table.skillId, builder: (column) => column);
+
+  GeneratedColumn<String> get divinateType => $composableBuilder(
+      column: $table.divinateType, builder: (column) => column);
+
+  GeneratedColumn<String> get divinateUuid => $composableBuilder(
+      column: $table.divinateUuid, builder: (column) => column);
+}
+
+class $$PanelsTableTableManager extends RootTableManager<
+    _$PersistenceDriftDatabase,
+    $PanelsTable,
+    Panel,
+    $$PanelsTableFilterComposer,
+    $$PanelsTableOrderingComposer,
+    $$PanelsTableAnnotationComposer,
+    $$PanelsTableCreateCompanionBuilder,
+    $$PanelsTableUpdateCompanionBuilder,
+    (Panel, BaseReferences<_$PersistenceDriftDatabase, $PanelsTable, Panel>),
+    Panel,
+    PrefetchHooks Function()> {
+  $$PanelsTableTableManager(_$PersistenceDriftDatabase db, $PanelsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PanelsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PanelsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PanelsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> lastUpdatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String> uuid = const Value.absent(),
+            Value<EnumPanelType> panelType = const Value.absent(),
+            Value<int> skillId = const Value.absent(),
+            Value<String> divinateType = const Value.absent(),
+            Value<String> divinateUuid = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              PanelsCompanion(
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            uuid: uuid,
+            panelType: panelType,
+            skillId: skillId,
+            divinateType: divinateType,
+            divinateUuid: divinateUuid,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required DateTime createdAt,
+            required DateTime lastUpdatedAt,
+            Value<DateTime?> deletedAt = const Value.absent(),
+            required String uuid,
+            required EnumPanelType panelType,
+            required int skillId,
+            required String divinateType,
+            required String divinateUuid,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              PanelsCompanion.insert(
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            uuid: uuid,
+            panelType: panelType,
+            skillId: skillId,
+            divinateType: divinateType,
+            divinateUuid: divinateUuid,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$PanelsTableProcessedTableManager = ProcessedTableManager<
+    _$PersistenceDriftDatabase,
+    $PanelsTable,
+    Panel,
+    $$PanelsTableFilterComposer,
+    $$PanelsTableOrderingComposer,
+    $$PanelsTableAnnotationComposer,
+    $$PanelsTableCreateCompanionBuilder,
+    $$PanelsTableUpdateCompanionBuilder,
+    (Panel, BaseReferences<_$PersistenceDriftDatabase, $PanelsTable, Panel>),
+    Panel,
+    PrefetchHooks Function()>;
+typedef $$DivinationPanelMappersTableCreateCompanionBuilder
+    = DivinationPanelMappersCompanion Function({
+  Value<int> id,
+  required String divinationUuid,
+  required String panelUuid,
+  required DateTime createdAt,
+  Value<DateTime?> deletedAt,
+});
+typedef $$DivinationPanelMappersTableUpdateCompanionBuilder
+    = DivinationPanelMappersCompanion Function({
+  Value<int> id,
+  Value<String> divinationUuid,
+  Value<String> panelUuid,
+  Value<DateTime> createdAt,
+  Value<DateTime?> deletedAt,
+});
+
+class $$DivinationPanelMappersTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $DivinationPanelMappersTable> {
+  $$DivinationPanelMappersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get divinationUuid => $composableBuilder(
+      column: $table.divinationUuid,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get panelUuid => $composableBuilder(
+      column: $table.panelUuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$DivinationPanelMappersTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $DivinationPanelMappersTable> {
+  $$DivinationPanelMappersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get divinationUuid => $composableBuilder(
+      column: $table.divinationUuid,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get panelUuid => $composableBuilder(
+      column: $table.panelUuid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$DivinationPanelMappersTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $DivinationPanelMappersTable> {
+  $$DivinationPanelMappersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get divinationUuid => $composableBuilder(
+      column: $table.divinationUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get panelUuid =>
+      $composableBuilder(column: $table.panelUuid, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$DivinationPanelMappersTableTableManager extends RootTableManager<
+    _$PersistenceDriftDatabase,
+    $DivinationPanelMappersTable,
+    DivinationPanelMapper,
+    $$DivinationPanelMappersTableFilterComposer,
+    $$DivinationPanelMappersTableOrderingComposer,
+    $$DivinationPanelMappersTableAnnotationComposer,
+    $$DivinationPanelMappersTableCreateCompanionBuilder,
+    $$DivinationPanelMappersTableUpdateCompanionBuilder,
+    (
+      DivinationPanelMapper,
+      BaseReferences<_$PersistenceDriftDatabase, $DivinationPanelMappersTable,
+          DivinationPanelMapper>
+    ),
+    DivinationPanelMapper,
+    PrefetchHooks Function()> {
+  $$DivinationPanelMappersTableTableManager(
+      _$PersistenceDriftDatabase db, $DivinationPanelMappersTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DivinationPanelMappersTableFilterComposer(
+                  $db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DivinationPanelMappersTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DivinationPanelMappersTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> divinationUuid = const Value.absent(),
+            Value<String> panelUuid = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+          }) =>
+              DivinationPanelMappersCompanion(
+            id: id,
+            divinationUuid: divinationUuid,
+            panelUuid: panelUuid,
+            createdAt: createdAt,
+            deletedAt: deletedAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String divinationUuid,
+            required String panelUuid,
+            required DateTime createdAt,
+            Value<DateTime?> deletedAt = const Value.absent(),
+          }) =>
+              DivinationPanelMappersCompanion.insert(
+            id: id,
+            divinationUuid: divinationUuid,
+            panelUuid: panelUuid,
+            createdAt: createdAt,
+            deletedAt: deletedAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$DivinationPanelMappersTableProcessedTableManager
+    = ProcessedTableManager<
+        _$PersistenceDriftDatabase,
+        $DivinationPanelMappersTable,
+        DivinationPanelMapper,
+        $$DivinationPanelMappersTableFilterComposer,
+        $$DivinationPanelMappersTableOrderingComposer,
+        $$DivinationPanelMappersTableAnnotationComposer,
+        $$DivinationPanelMappersTableCreateCompanionBuilder,
+        $$DivinationPanelMappersTableUpdateCompanionBuilder,
+        (
+          DivinationPanelMapper,
+          BaseReferences<_$PersistenceDriftDatabase,
+              $DivinationPanelMappersTable, DivinationPanelMapper>
+        ),
+        DivinationPanelMapper,
+        PrefetchHooks Function()>;
+typedef $$PanelSkillClassMappersTableCreateCompanionBuilder
+    = PanelSkillClassMappersCompanion Function({
+  Value<int> id,
+  required String panelUuid,
+  required String skillClassUuid,
+  required DateTime createdAt,
+  Value<DateTime?> deletedAt,
+});
+typedef $$PanelSkillClassMappersTableUpdateCompanionBuilder
+    = PanelSkillClassMappersCompanion Function({
+  Value<int> id,
+  Value<String> panelUuid,
+  Value<String> skillClassUuid,
+  Value<DateTime> createdAt,
+  Value<DateTime?> deletedAt,
+});
+
+class $$PanelSkillClassMappersTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $PanelSkillClassMappersTable> {
+  $$PanelSkillClassMappersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get panelUuid => $composableBuilder(
+      column: $table.panelUuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get skillClassUuid => $composableBuilder(
+      column: $table.skillClassUuid,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$PanelSkillClassMappersTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $PanelSkillClassMappersTable> {
+  $$PanelSkillClassMappersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get panelUuid => $composableBuilder(
+      column: $table.panelUuid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get skillClassUuid => $composableBuilder(
+      column: $table.skillClassUuid,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$PanelSkillClassMappersTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $PanelSkillClassMappersTable> {
+  $$PanelSkillClassMappersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get panelUuid =>
+      $composableBuilder(column: $table.panelUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get skillClassUuid => $composableBuilder(
+      column: $table.skillClassUuid, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$PanelSkillClassMappersTableTableManager extends RootTableManager<
+    _$PersistenceDriftDatabase,
+    $PanelSkillClassMappersTable,
+    PanelSkillClassMapper,
+    $$PanelSkillClassMappersTableFilterComposer,
+    $$PanelSkillClassMappersTableOrderingComposer,
+    $$PanelSkillClassMappersTableAnnotationComposer,
+    $$PanelSkillClassMappersTableCreateCompanionBuilder,
+    $$PanelSkillClassMappersTableUpdateCompanionBuilder,
+    (
+      PanelSkillClassMapper,
+      BaseReferences<_$PersistenceDriftDatabase, $PanelSkillClassMappersTable,
+          PanelSkillClassMapper>
+    ),
+    PanelSkillClassMapper,
+    PrefetchHooks Function()> {
+  $$PanelSkillClassMappersTableTableManager(
+      _$PersistenceDriftDatabase db, $PanelSkillClassMappersTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PanelSkillClassMappersTableFilterComposer(
+                  $db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PanelSkillClassMappersTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PanelSkillClassMappersTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> panelUuid = const Value.absent(),
+            Value<String> skillClassUuid = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+          }) =>
+              PanelSkillClassMappersCompanion(
+            id: id,
+            panelUuid: panelUuid,
+            skillClassUuid: skillClassUuid,
+            createdAt: createdAt,
+            deletedAt: deletedAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String panelUuid,
+            required String skillClassUuid,
+            required DateTime createdAt,
+            Value<DateTime?> deletedAt = const Value.absent(),
+          }) =>
+              PanelSkillClassMappersCompanion.insert(
+            id: id,
+            panelUuid: panelUuid,
+            skillClassUuid: skillClassUuid,
+            createdAt: createdAt,
+            deletedAt: deletedAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$PanelSkillClassMappersTableProcessedTableManager
+    = ProcessedTableManager<
+        _$PersistenceDriftDatabase,
+        $PanelSkillClassMappersTable,
+        PanelSkillClassMapper,
+        $$PanelSkillClassMappersTableFilterComposer,
+        $$PanelSkillClassMappersTableOrderingComposer,
+        $$PanelSkillClassMappersTableAnnotationComposer,
+        $$PanelSkillClassMappersTableCreateCompanionBuilder,
+        $$PanelSkillClassMappersTableUpdateCompanionBuilder,
+        (
+          PanelSkillClassMapper,
+          BaseReferences<_$PersistenceDriftDatabase,
+              $PanelSkillClassMappersTable, PanelSkillClassMapper>
+        ),
+        PanelSkillClassMapper,
+        PrefetchHooks Function()>;
 typedef $$DaYunRecordsTableCreateCompanionBuilder = DaYunRecordsCompanion
     Function({
   required String uuid,
@@ -9915,6 +13090,18 @@ class $PersistenceDriftDatabaseManager {
       get divinationSubDivinationTypeMappers =>
           $$DivinationSubDivinationTypeMappersTableTableManager(
               _db, _db.divinationSubDivinationTypeMappers);
+  $$DivinationCalendarsTableTableManager get divinationCalendars =>
+      $$DivinationCalendarsTableTableManager(_db, _db.divinationCalendars);
+  $$TimingDivinationsTableTableManager get timingDivinations =>
+      $$TimingDivinationsTableTableManager(_db, _db.timingDivinations);
+  $$PanelsTableTableManager get panels =>
+      $$PanelsTableTableManager(_db, _db.panels);
+  $$DivinationPanelMappersTableTableManager get divinationPanelMappers =>
+      $$DivinationPanelMappersTableTableManager(
+          _db, _db.divinationPanelMappers);
+  $$PanelSkillClassMappersTableTableManager get panelSkillClassMappers =>
+      $$PanelSkillClassMappersTableTableManager(
+          _db, _db.panelSkillClassMappers);
   $$DaYunRecordsTableTableManager get daYunRecords =>
       $$DaYunRecordsTableTableManager(_db, _db.daYunRecords);
   $$TaiYuanRecordsTableTableManager get taiYuanRecords =>
