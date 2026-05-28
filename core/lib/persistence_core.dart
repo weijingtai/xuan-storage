@@ -16,3 +16,7 @@ export 'configuration/yaml_file_loader.dart';
 export 'logging/sync_logger.dart';
 export 'sync/sync_runtime.dart';
 export 'tag/tag_extractor_registry.dart';
+export 'routing/region.dart';
+export 'routing/remote_gateway_router.dart';
+export 'ipc/anon_identity_provider.dart';
+export 'ipc/anon_identity_local.dart';

@@ -142,6 +142,13 @@ class _FakeRemoteGateway implements RemoteGateway {
     }
     return fn(scopeUid, entityType, sinceCursor, limit);
   }
+
+  @override
+  Future<RegionCapabilities> getCapabilities() async => const RegionCapabilities(
+    entityVersions: {'seeker': 1, 'divination': 1},
+    supportedFeatures: {'outbox_v1', 'tag_index_v1'},
+    serverProtocolVersion: 1,
+  );
 }
 
 class _InMemorySyncStateStore implements SyncStateStore {
