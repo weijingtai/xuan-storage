@@ -55,6 +55,11 @@ import 'daos/skills_dao.dart';
 import 'daos/skill_classes_dao.dart';
 import 'tables/skills_table.dart';
 import 'tables/skill_classes_table.dart';
+import 'divination_case/divination_cases_table.dart';
+import 'divination_case/divination_work_items_table.dart';
+import 'divination_case/case_participants_table.dart';
+import 'divination_case/panel_refs_table.dart';
+import 'divination_case/work_item_panel_refs_table.dart';
 export 'daos/skills_dao.dart';
 export 'daos/skill_classes_dao.dart';
 export 'tables/skills_table.dart';
@@ -450,8 +455,13 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
     Skills,
     SkillClasses,
     DaYunRecords,
-    TaiYuanRecords,
-  ],
+        TaiYuanRecords,
+        DivinationCases,
+        DivinationWorkItems,
+        CaseParticipants,
+        PanelRefs,
+        WorkItemPanelRefs,
+      ],
   daos: [
     OutboxRecordsDao,
     SyncStatesDao,

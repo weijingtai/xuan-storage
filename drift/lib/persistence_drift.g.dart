@@ -8430,6 +8430,1983 @@ class TaiYuanRecordsCompanion extends UpdateCompanion<TaiYuanRecord> {
   }
 }
 
+class $DivinationCasesTable extends DivinationCases
+    with TableInfo<$DivinationCasesTable, DivinationCase> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DivinationCasesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+      'uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+      'title', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _mainQuestionMeta =
+      const VerificationMeta('mainQuestion');
+  @override
+  late final GeneratedColumn<String> mainQuestion = GeneratedColumn<String>(
+      'main_question', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+      'status', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _finalSummaryMeta =
+      const VerificationMeta('finalSummary');
+  @override
+  late final GeneratedColumn<String> finalSummary = GeneratedColumn<String>(
+      'final_summary', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        uuid,
+        title,
+        mainQuestion,
+        status,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        finalSummary
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_divination_cases';
+  @override
+  VerificationContext validateIntegrity(Insertable<DivinationCase> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('main_question')) {
+      context.handle(
+          _mainQuestionMeta,
+          mainQuestion.isAcceptableOrUnknown(
+              data['main_question']!, _mainQuestionMeta));
+    } else if (isInserting) {
+      context.missing(_mainQuestionMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    if (data.containsKey('final_summary')) {
+      context.handle(
+          _finalSummaryMeta,
+          finalSummary.isAcceptableOrUnknown(
+              data['final_summary']!, _finalSummaryMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  DivinationCase map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DivinationCase(
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      title: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      mainQuestion: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}main_question'])!,
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      finalSummary: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}final_summary']),
+    );
+  }
+
+  @override
+  $DivinationCasesTable createAlias(String alias) {
+    return $DivinationCasesTable(attachedDatabase, alias);
+  }
+}
+
+class DivinationCase extends DataClass implements Insertable<DivinationCase> {
+  final String uuid;
+  final String title;
+  final String mainQuestion;
+  final String status;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final String? finalSummary;
+  const DivinationCase(
+      {required this.uuid,
+      required this.title,
+      required this.mainQuestion,
+      required this.status,
+      required this.createdAt,
+      required this.updatedAt,
+      this.deletedAt,
+      this.finalSummary});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['title'] = Variable<String>(title);
+    map['main_question'] = Variable<String>(mainQuestion);
+    map['status'] = Variable<String>(status);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    if (!nullToAbsent || finalSummary != null) {
+      map['final_summary'] = Variable<String>(finalSummary);
+    }
+    return map;
+  }
+
+  DivinationCasesCompanion toCompanion(bool nullToAbsent) {
+    return DivinationCasesCompanion(
+      uuid: Value(uuid),
+      title: Value(title),
+      mainQuestion: Value(mainQuestion),
+      status: Value(status),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      finalSummary: finalSummary == null && nullToAbsent
+          ? const Value.absent()
+          : Value(finalSummary),
+    );
+  }
+
+  factory DivinationCase.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DivinationCase(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      title: serializer.fromJson<String>(json['title']),
+      mainQuestion: serializer.fromJson<String>(json['mainQuestion']),
+      status: serializer.fromJson<String>(json['status']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      finalSummary: serializer.fromJson<String?>(json['finalSummary']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'title': serializer.toJson<String>(title),
+      'mainQuestion': serializer.toJson<String>(mainQuestion),
+      'status': serializer.toJson<String>(status),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'finalSummary': serializer.toJson<String?>(finalSummary),
+    };
+  }
+
+  DivinationCase copyWith(
+          {String? uuid,
+          String? title,
+          String? mainQuestion,
+          String? status,
+          DateTime? createdAt,
+          DateTime? updatedAt,
+          Value<DateTime?> deletedAt = const Value.absent(),
+          Value<String?> finalSummary = const Value.absent()}) =>
+      DivinationCase(
+        uuid: uuid ?? this.uuid,
+        title: title ?? this.title,
+        mainQuestion: mainQuestion ?? this.mainQuestion,
+        status: status ?? this.status,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        finalSummary:
+            finalSummary.present ? finalSummary.value : this.finalSummary,
+      );
+  DivinationCase copyWithCompanion(DivinationCasesCompanion data) {
+    return DivinationCase(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      title: data.title.present ? data.title.value : this.title,
+      mainQuestion: data.mainQuestion.present
+          ? data.mainQuestion.value
+          : this.mainQuestion,
+      status: data.status.present ? data.status.value : this.status,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      finalSummary: data.finalSummary.present
+          ? data.finalSummary.value
+          : this.finalSummary,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DivinationCase(')
+          ..write('uuid: $uuid, ')
+          ..write('title: $title, ')
+          ..write('mainQuestion: $mainQuestion, ')
+          ..write('status: $status, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('finalSummary: $finalSummary')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(uuid, title, mainQuestion, status, createdAt,
+      updatedAt, deletedAt, finalSummary);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DivinationCase &&
+          other.uuid == this.uuid &&
+          other.title == this.title &&
+          other.mainQuestion == this.mainQuestion &&
+          other.status == this.status &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.finalSummary == this.finalSummary);
+}
+
+class DivinationCasesCompanion extends UpdateCompanion<DivinationCase> {
+  final Value<String> uuid;
+  final Value<String> title;
+  final Value<String> mainQuestion;
+  final Value<String> status;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String?> finalSummary;
+  final Value<int> rowid;
+  const DivinationCasesCompanion({
+    this.uuid = const Value.absent(),
+    this.title = const Value.absent(),
+    this.mainQuestion = const Value.absent(),
+    this.status = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.finalSummary = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DivinationCasesCompanion.insert({
+    required String uuid,
+    required String title,
+    required String mainQuestion,
+    required String status,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.deletedAt = const Value.absent(),
+    this.finalSummary = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : uuid = Value(uuid),
+        title = Value(title),
+        mainQuestion = Value(mainQuestion),
+        status = Value(status),
+        createdAt = Value(createdAt),
+        updatedAt = Value(updatedAt);
+  static Insertable<DivinationCase> custom({
+    Expression<String>? uuid,
+    Expression<String>? title,
+    Expression<String>? mainQuestion,
+    Expression<String>? status,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? finalSummary,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (title != null) 'title': title,
+      if (mainQuestion != null) 'main_question': mainQuestion,
+      if (status != null) 'status': status,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (finalSummary != null) 'final_summary': finalSummary,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DivinationCasesCompanion copyWith(
+      {Value<String>? uuid,
+      Value<String>? title,
+      Value<String>? mainQuestion,
+      Value<String>? status,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<String?>? finalSummary,
+      Value<int>? rowid}) {
+    return DivinationCasesCompanion(
+      uuid: uuid ?? this.uuid,
+      title: title ?? this.title,
+      mainQuestion: mainQuestion ?? this.mainQuestion,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      finalSummary: finalSummary ?? this.finalSummary,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (mainQuestion.present) {
+      map['main_question'] = Variable<String>(mainQuestion.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (finalSummary.present) {
+      map['final_summary'] = Variable<String>(finalSummary.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DivinationCasesCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('title: $title, ')
+          ..write('mainQuestion: $mainQuestion, ')
+          ..write('status: $status, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('finalSummary: $finalSummary, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DivinationWorkItemsTable extends DivinationWorkItems
+    with TableInfo<$DivinationWorkItemsTable, DivinationWorkItem> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DivinationWorkItemsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+      'uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _caseUuidMeta =
+      const VerificationMeta('caseUuid');
+  @override
+  late final GeneratedColumn<String> caseUuid = GeneratedColumn<String>(
+      'case_uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _parentWorkItemUuidMeta =
+      const VerificationMeta('parentWorkItemUuid');
+  @override
+  late final GeneratedColumn<String> parentWorkItemUuid =
+      GeneratedColumn<String>('parent_work_item_uuid', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+      'title', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _purposeMeta =
+      const VerificationMeta('purpose');
+  @override
+  late final GeneratedColumn<String> purpose = GeneratedColumn<String>(
+      'purpose', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _methodGroupMeta =
+      const VerificationMeta('methodGroup');
+  @override
+  late final GeneratedColumn<String> methodGroup = GeneratedColumn<String>(
+      'method_group', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _orderMeta = const VerificationMeta('order');
+  @override
+  late final GeneratedColumn<int> order = GeneratedColumn<int>(
+      'order_index', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+      'status', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _summaryMeta =
+      const VerificationMeta('summary');
+  @override
+  late final GeneratedColumn<String> summary = GeneratedColumn<String>(
+      'summary', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _conclusionMeta =
+      const VerificationMeta('conclusion');
+  @override
+  late final GeneratedColumn<String> conclusion = GeneratedColumn<String>(
+      'conclusion', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        uuid,
+        caseUuid,
+        parentWorkItemUuid,
+        title,
+        purpose,
+        methodGroup,
+        order,
+        status,
+        summary,
+        conclusion
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_divination_work_items';
+  @override
+  VerificationContext validateIntegrity(Insertable<DivinationWorkItem> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('case_uuid')) {
+      context.handle(_caseUuidMeta,
+          caseUuid.isAcceptableOrUnknown(data['case_uuid']!, _caseUuidMeta));
+    } else if (isInserting) {
+      context.missing(_caseUuidMeta);
+    }
+    if (data.containsKey('parent_work_item_uuid')) {
+      context.handle(
+          _parentWorkItemUuidMeta,
+          parentWorkItemUuid.isAcceptableOrUnknown(
+              data['parent_work_item_uuid']!, _parentWorkItemUuidMeta));
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('purpose')) {
+      context.handle(_purposeMeta,
+          purpose.isAcceptableOrUnknown(data['purpose']!, _purposeMeta));
+    } else if (isInserting) {
+      context.missing(_purposeMeta);
+    }
+    if (data.containsKey('method_group')) {
+      context.handle(
+          _methodGroupMeta,
+          methodGroup.isAcceptableOrUnknown(
+              data['method_group']!, _methodGroupMeta));
+    } else if (isInserting) {
+      context.missing(_methodGroupMeta);
+    }
+    if (data.containsKey('order_index')) {
+      context.handle(_orderMeta,
+          order.isAcceptableOrUnknown(data['order_index']!, _orderMeta));
+    } else if (isInserting) {
+      context.missing(_orderMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('summary')) {
+      context.handle(_summaryMeta,
+          summary.isAcceptableOrUnknown(data['summary']!, _summaryMeta));
+    }
+    if (data.containsKey('conclusion')) {
+      context.handle(
+          _conclusionMeta,
+          conclusion.isAcceptableOrUnknown(
+              data['conclusion']!, _conclusionMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  DivinationWorkItem map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DivinationWorkItem(
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      caseUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}case_uuid'])!,
+      parentWorkItemUuid: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}parent_work_item_uuid']),
+      title: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      purpose: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}purpose'])!,
+      methodGroup: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}method_group'])!,
+      order: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}order_index'])!,
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      summary: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}summary']),
+      conclusion: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}conclusion']),
+    );
+  }
+
+  @override
+  $DivinationWorkItemsTable createAlias(String alias) {
+    return $DivinationWorkItemsTable(attachedDatabase, alias);
+  }
+}
+
+class DivinationWorkItem extends DataClass
+    implements Insertable<DivinationWorkItem> {
+  final String uuid;
+  final String caseUuid;
+  final String? parentWorkItemUuid;
+  final String title;
+  final String purpose;
+  final String methodGroup;
+  final int order;
+  final String status;
+  final String? summary;
+  final String? conclusion;
+  const DivinationWorkItem(
+      {required this.uuid,
+      required this.caseUuid,
+      this.parentWorkItemUuid,
+      required this.title,
+      required this.purpose,
+      required this.methodGroup,
+      required this.order,
+      required this.status,
+      this.summary,
+      this.conclusion});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['case_uuid'] = Variable<String>(caseUuid);
+    if (!nullToAbsent || parentWorkItemUuid != null) {
+      map['parent_work_item_uuid'] = Variable<String>(parentWorkItemUuid);
+    }
+    map['title'] = Variable<String>(title);
+    map['purpose'] = Variable<String>(purpose);
+    map['method_group'] = Variable<String>(methodGroup);
+    map['order_index'] = Variable<int>(order);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || summary != null) {
+      map['summary'] = Variable<String>(summary);
+    }
+    if (!nullToAbsent || conclusion != null) {
+      map['conclusion'] = Variable<String>(conclusion);
+    }
+    return map;
+  }
+
+  DivinationWorkItemsCompanion toCompanion(bool nullToAbsent) {
+    return DivinationWorkItemsCompanion(
+      uuid: Value(uuid),
+      caseUuid: Value(caseUuid),
+      parentWorkItemUuid: parentWorkItemUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(parentWorkItemUuid),
+      title: Value(title),
+      purpose: Value(purpose),
+      methodGroup: Value(methodGroup),
+      order: Value(order),
+      status: Value(status),
+      summary: summary == null && nullToAbsent
+          ? const Value.absent()
+          : Value(summary),
+      conclusion: conclusion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(conclusion),
+    );
+  }
+
+  factory DivinationWorkItem.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DivinationWorkItem(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      caseUuid: serializer.fromJson<String>(json['caseUuid']),
+      parentWorkItemUuid:
+          serializer.fromJson<String?>(json['parentWorkItemUuid']),
+      title: serializer.fromJson<String>(json['title']),
+      purpose: serializer.fromJson<String>(json['purpose']),
+      methodGroup: serializer.fromJson<String>(json['methodGroup']),
+      order: serializer.fromJson<int>(json['order']),
+      status: serializer.fromJson<String>(json['status']),
+      summary: serializer.fromJson<String?>(json['summary']),
+      conclusion: serializer.fromJson<String?>(json['conclusion']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'caseUuid': serializer.toJson<String>(caseUuid),
+      'parentWorkItemUuid': serializer.toJson<String?>(parentWorkItemUuid),
+      'title': serializer.toJson<String>(title),
+      'purpose': serializer.toJson<String>(purpose),
+      'methodGroup': serializer.toJson<String>(methodGroup),
+      'order': serializer.toJson<int>(order),
+      'status': serializer.toJson<String>(status),
+      'summary': serializer.toJson<String?>(summary),
+      'conclusion': serializer.toJson<String?>(conclusion),
+    };
+  }
+
+  DivinationWorkItem copyWith(
+          {String? uuid,
+          String? caseUuid,
+          Value<String?> parentWorkItemUuid = const Value.absent(),
+          String? title,
+          String? purpose,
+          String? methodGroup,
+          int? order,
+          String? status,
+          Value<String?> summary = const Value.absent(),
+          Value<String?> conclusion = const Value.absent()}) =>
+      DivinationWorkItem(
+        uuid: uuid ?? this.uuid,
+        caseUuid: caseUuid ?? this.caseUuid,
+        parentWorkItemUuid: parentWorkItemUuid.present
+            ? parentWorkItemUuid.value
+            : this.parentWorkItemUuid,
+        title: title ?? this.title,
+        purpose: purpose ?? this.purpose,
+        methodGroup: methodGroup ?? this.methodGroup,
+        order: order ?? this.order,
+        status: status ?? this.status,
+        summary: summary.present ? summary.value : this.summary,
+        conclusion: conclusion.present ? conclusion.value : this.conclusion,
+      );
+  DivinationWorkItem copyWithCompanion(DivinationWorkItemsCompanion data) {
+    return DivinationWorkItem(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      caseUuid: data.caseUuid.present ? data.caseUuid.value : this.caseUuid,
+      parentWorkItemUuid: data.parentWorkItemUuid.present
+          ? data.parentWorkItemUuid.value
+          : this.parentWorkItemUuid,
+      title: data.title.present ? data.title.value : this.title,
+      purpose: data.purpose.present ? data.purpose.value : this.purpose,
+      methodGroup:
+          data.methodGroup.present ? data.methodGroup.value : this.methodGroup,
+      order: data.order.present ? data.order.value : this.order,
+      status: data.status.present ? data.status.value : this.status,
+      summary: data.summary.present ? data.summary.value : this.summary,
+      conclusion:
+          data.conclusion.present ? data.conclusion.value : this.conclusion,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DivinationWorkItem(')
+          ..write('uuid: $uuid, ')
+          ..write('caseUuid: $caseUuid, ')
+          ..write('parentWorkItemUuid: $parentWorkItemUuid, ')
+          ..write('title: $title, ')
+          ..write('purpose: $purpose, ')
+          ..write('methodGroup: $methodGroup, ')
+          ..write('order: $order, ')
+          ..write('status: $status, ')
+          ..write('summary: $summary, ')
+          ..write('conclusion: $conclusion')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(uuid, caseUuid, parentWorkItemUuid, title,
+      purpose, methodGroup, order, status, summary, conclusion);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DivinationWorkItem &&
+          other.uuid == this.uuid &&
+          other.caseUuid == this.caseUuid &&
+          other.parentWorkItemUuid == this.parentWorkItemUuid &&
+          other.title == this.title &&
+          other.purpose == this.purpose &&
+          other.methodGroup == this.methodGroup &&
+          other.order == this.order &&
+          other.status == this.status &&
+          other.summary == this.summary &&
+          other.conclusion == this.conclusion);
+}
+
+class DivinationWorkItemsCompanion extends UpdateCompanion<DivinationWorkItem> {
+  final Value<String> uuid;
+  final Value<String> caseUuid;
+  final Value<String?> parentWorkItemUuid;
+  final Value<String> title;
+  final Value<String> purpose;
+  final Value<String> methodGroup;
+  final Value<int> order;
+  final Value<String> status;
+  final Value<String?> summary;
+  final Value<String?> conclusion;
+  final Value<int> rowid;
+  const DivinationWorkItemsCompanion({
+    this.uuid = const Value.absent(),
+    this.caseUuid = const Value.absent(),
+    this.parentWorkItemUuid = const Value.absent(),
+    this.title = const Value.absent(),
+    this.purpose = const Value.absent(),
+    this.methodGroup = const Value.absent(),
+    this.order = const Value.absent(),
+    this.status = const Value.absent(),
+    this.summary = const Value.absent(),
+    this.conclusion = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DivinationWorkItemsCompanion.insert({
+    required String uuid,
+    required String caseUuid,
+    this.parentWorkItemUuid = const Value.absent(),
+    required String title,
+    required String purpose,
+    required String methodGroup,
+    required int order,
+    required String status,
+    this.summary = const Value.absent(),
+    this.conclusion = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : uuid = Value(uuid),
+        caseUuid = Value(caseUuid),
+        title = Value(title),
+        purpose = Value(purpose),
+        methodGroup = Value(methodGroup),
+        order = Value(order),
+        status = Value(status);
+  static Insertable<DivinationWorkItem> custom({
+    Expression<String>? uuid,
+    Expression<String>? caseUuid,
+    Expression<String>? parentWorkItemUuid,
+    Expression<String>? title,
+    Expression<String>? purpose,
+    Expression<String>? methodGroup,
+    Expression<int>? order,
+    Expression<String>? status,
+    Expression<String>? summary,
+    Expression<String>? conclusion,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (caseUuid != null) 'case_uuid': caseUuid,
+      if (parentWorkItemUuid != null)
+        'parent_work_item_uuid': parentWorkItemUuid,
+      if (title != null) 'title': title,
+      if (purpose != null) 'purpose': purpose,
+      if (methodGroup != null) 'method_group': methodGroup,
+      if (order != null) 'order_index': order,
+      if (status != null) 'status': status,
+      if (summary != null) 'summary': summary,
+      if (conclusion != null) 'conclusion': conclusion,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DivinationWorkItemsCompanion copyWith(
+      {Value<String>? uuid,
+      Value<String>? caseUuid,
+      Value<String?>? parentWorkItemUuid,
+      Value<String>? title,
+      Value<String>? purpose,
+      Value<String>? methodGroup,
+      Value<int>? order,
+      Value<String>? status,
+      Value<String?>? summary,
+      Value<String?>? conclusion,
+      Value<int>? rowid}) {
+    return DivinationWorkItemsCompanion(
+      uuid: uuid ?? this.uuid,
+      caseUuid: caseUuid ?? this.caseUuid,
+      parentWorkItemUuid: parentWorkItemUuid ?? this.parentWorkItemUuid,
+      title: title ?? this.title,
+      purpose: purpose ?? this.purpose,
+      methodGroup: methodGroup ?? this.methodGroup,
+      order: order ?? this.order,
+      status: status ?? this.status,
+      summary: summary ?? this.summary,
+      conclusion: conclusion ?? this.conclusion,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (caseUuid.present) {
+      map['case_uuid'] = Variable<String>(caseUuid.value);
+    }
+    if (parentWorkItemUuid.present) {
+      map['parent_work_item_uuid'] = Variable<String>(parentWorkItemUuid.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (purpose.present) {
+      map['purpose'] = Variable<String>(purpose.value);
+    }
+    if (methodGroup.present) {
+      map['method_group'] = Variable<String>(methodGroup.value);
+    }
+    if (order.present) {
+      map['order_index'] = Variable<int>(order.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (summary.present) {
+      map['summary'] = Variable<String>(summary.value);
+    }
+    if (conclusion.present) {
+      map['conclusion'] = Variable<String>(conclusion.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DivinationWorkItemsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('caseUuid: $caseUuid, ')
+          ..write('parentWorkItemUuid: $parentWorkItemUuid, ')
+          ..write('title: $title, ')
+          ..write('purpose: $purpose, ')
+          ..write('methodGroup: $methodGroup, ')
+          ..write('order: $order, ')
+          ..write('status: $status, ')
+          ..write('summary: $summary, ')
+          ..write('conclusion: $conclusion, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CaseParticipantsTable extends CaseParticipants
+    with TableInfo<$CaseParticipantsTable, CaseParticipant> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CaseParticipantsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+      'uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _caseUuidMeta =
+      const VerificationMeta('caseUuid');
+  @override
+  late final GeneratedColumn<String> caseUuid = GeneratedColumn<String>(
+      'case_uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _recordUuidMeta =
+      const VerificationMeta('recordUuid');
+  @override
+  late final GeneratedColumn<String> recordUuid = GeneratedColumn<String>(
+      'record_uuid', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _roleMeta = const VerificationMeta('role');
+  @override
+  late final GeneratedColumn<String> role = GeneratedColumn<String>(
+      'role', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _seekerUuidMeta =
+      const VerificationMeta('seekerUuid');
+  @override
+  late final GeneratedColumn<String> seekerUuid = GeneratedColumn<String>(
+      'seeker_uuid', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [uuid, caseUuid, recordUuid, name, role, seekerUuid];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_case_participants';
+  @override
+  VerificationContext validateIntegrity(Insertable<CaseParticipant> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('case_uuid')) {
+      context.handle(_caseUuidMeta,
+          caseUuid.isAcceptableOrUnknown(data['case_uuid']!, _caseUuidMeta));
+    } else if (isInserting) {
+      context.missing(_caseUuidMeta);
+    }
+    if (data.containsKey('record_uuid')) {
+      context.handle(
+          _recordUuidMeta,
+          recordUuid.isAcceptableOrUnknown(
+              data['record_uuid']!, _recordUuidMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('role')) {
+      context.handle(
+          _roleMeta, role.isAcceptableOrUnknown(data['role']!, _roleMeta));
+    } else if (isInserting) {
+      context.missing(_roleMeta);
+    }
+    if (data.containsKey('seeker_uuid')) {
+      context.handle(
+          _seekerUuidMeta,
+          seekerUuid.isAcceptableOrUnknown(
+              data['seeker_uuid']!, _seekerUuidMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  CaseParticipant map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CaseParticipant(
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      caseUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}case_uuid'])!,
+      recordUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}record_uuid']),
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      role: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}role'])!,
+      seekerUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}seeker_uuid']),
+    );
+  }
+
+  @override
+  $CaseParticipantsTable createAlias(String alias) {
+    return $CaseParticipantsTable(attachedDatabase, alias);
+  }
+}
+
+class CaseParticipant extends DataClass implements Insertable<CaseParticipant> {
+  final String uuid;
+  final String caseUuid;
+  final String? recordUuid;
+  final String name;
+  final String role;
+  final String? seekerUuid;
+  const CaseParticipant(
+      {required this.uuid,
+      required this.caseUuid,
+      this.recordUuid,
+      required this.name,
+      required this.role,
+      this.seekerUuid});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['case_uuid'] = Variable<String>(caseUuid);
+    if (!nullToAbsent || recordUuid != null) {
+      map['record_uuid'] = Variable<String>(recordUuid);
+    }
+    map['name'] = Variable<String>(name);
+    map['role'] = Variable<String>(role);
+    if (!nullToAbsent || seekerUuid != null) {
+      map['seeker_uuid'] = Variable<String>(seekerUuid);
+    }
+    return map;
+  }
+
+  CaseParticipantsCompanion toCompanion(bool nullToAbsent) {
+    return CaseParticipantsCompanion(
+      uuid: Value(uuid),
+      caseUuid: Value(caseUuid),
+      recordUuid: recordUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recordUuid),
+      name: Value(name),
+      role: Value(role),
+      seekerUuid: seekerUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(seekerUuid),
+    );
+  }
+
+  factory CaseParticipant.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CaseParticipant(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      caseUuid: serializer.fromJson<String>(json['caseUuid']),
+      recordUuid: serializer.fromJson<String?>(json['recordUuid']),
+      name: serializer.fromJson<String>(json['name']),
+      role: serializer.fromJson<String>(json['role']),
+      seekerUuid: serializer.fromJson<String?>(json['seekerUuid']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'caseUuid': serializer.toJson<String>(caseUuid),
+      'recordUuid': serializer.toJson<String?>(recordUuid),
+      'name': serializer.toJson<String>(name),
+      'role': serializer.toJson<String>(role),
+      'seekerUuid': serializer.toJson<String?>(seekerUuid),
+    };
+  }
+
+  CaseParticipant copyWith(
+          {String? uuid,
+          String? caseUuid,
+          Value<String?> recordUuid = const Value.absent(),
+          String? name,
+          String? role,
+          Value<String?> seekerUuid = const Value.absent()}) =>
+      CaseParticipant(
+        uuid: uuid ?? this.uuid,
+        caseUuid: caseUuid ?? this.caseUuid,
+        recordUuid: recordUuid.present ? recordUuid.value : this.recordUuid,
+        name: name ?? this.name,
+        role: role ?? this.role,
+        seekerUuid: seekerUuid.present ? seekerUuid.value : this.seekerUuid,
+      );
+  CaseParticipant copyWithCompanion(CaseParticipantsCompanion data) {
+    return CaseParticipant(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      caseUuid: data.caseUuid.present ? data.caseUuid.value : this.caseUuid,
+      recordUuid:
+          data.recordUuid.present ? data.recordUuid.value : this.recordUuid,
+      name: data.name.present ? data.name.value : this.name,
+      role: data.role.present ? data.role.value : this.role,
+      seekerUuid:
+          data.seekerUuid.present ? data.seekerUuid.value : this.seekerUuid,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CaseParticipant(')
+          ..write('uuid: $uuid, ')
+          ..write('caseUuid: $caseUuid, ')
+          ..write('recordUuid: $recordUuid, ')
+          ..write('name: $name, ')
+          ..write('role: $role, ')
+          ..write('seekerUuid: $seekerUuid')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(uuid, caseUuid, recordUuid, name, role, seekerUuid);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CaseParticipant &&
+          other.uuid == this.uuid &&
+          other.caseUuid == this.caseUuid &&
+          other.recordUuid == this.recordUuid &&
+          other.name == this.name &&
+          other.role == this.role &&
+          other.seekerUuid == this.seekerUuid);
+}
+
+class CaseParticipantsCompanion extends UpdateCompanion<CaseParticipant> {
+  final Value<String> uuid;
+  final Value<String> caseUuid;
+  final Value<String?> recordUuid;
+  final Value<String> name;
+  final Value<String> role;
+  final Value<String?> seekerUuid;
+  final Value<int> rowid;
+  const CaseParticipantsCompanion({
+    this.uuid = const Value.absent(),
+    this.caseUuid = const Value.absent(),
+    this.recordUuid = const Value.absent(),
+    this.name = const Value.absent(),
+    this.role = const Value.absent(),
+    this.seekerUuid = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CaseParticipantsCompanion.insert({
+    required String uuid,
+    required String caseUuid,
+    this.recordUuid = const Value.absent(),
+    required String name,
+    required String role,
+    this.seekerUuid = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : uuid = Value(uuid),
+        caseUuid = Value(caseUuid),
+        name = Value(name),
+        role = Value(role);
+  static Insertable<CaseParticipant> custom({
+    Expression<String>? uuid,
+    Expression<String>? caseUuid,
+    Expression<String>? recordUuid,
+    Expression<String>? name,
+    Expression<String>? role,
+    Expression<String>? seekerUuid,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (caseUuid != null) 'case_uuid': caseUuid,
+      if (recordUuid != null) 'record_uuid': recordUuid,
+      if (name != null) 'name': name,
+      if (role != null) 'role': role,
+      if (seekerUuid != null) 'seeker_uuid': seekerUuid,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CaseParticipantsCompanion copyWith(
+      {Value<String>? uuid,
+      Value<String>? caseUuid,
+      Value<String?>? recordUuid,
+      Value<String>? name,
+      Value<String>? role,
+      Value<String?>? seekerUuid,
+      Value<int>? rowid}) {
+    return CaseParticipantsCompanion(
+      uuid: uuid ?? this.uuid,
+      caseUuid: caseUuid ?? this.caseUuid,
+      recordUuid: recordUuid ?? this.recordUuid,
+      name: name ?? this.name,
+      role: role ?? this.role,
+      seekerUuid: seekerUuid ?? this.seekerUuid,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (caseUuid.present) {
+      map['case_uuid'] = Variable<String>(caseUuid.value);
+    }
+    if (recordUuid.present) {
+      map['record_uuid'] = Variable<String>(recordUuid.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (role.present) {
+      map['role'] = Variable<String>(role.value);
+    }
+    if (seekerUuid.present) {
+      map['seeker_uuid'] = Variable<String>(seekerUuid.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CaseParticipantsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('caseUuid: $caseUuid, ')
+          ..write('recordUuid: $recordUuid, ')
+          ..write('name: $name, ')
+          ..write('role: $role, ')
+          ..write('seekerUuid: $seekerUuid, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PanelRefsTable extends PanelRefs
+    with TableInfo<$PanelRefsTable, PanelRef> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PanelRefsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+      'uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _moduleMeta = const VerificationMeta('module');
+  @override
+  late final GeneratedColumn<String> module = GeneratedColumn<String>(
+      'module', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _panelUuidMeta =
+      const VerificationMeta('panelUuid');
+  @override
+  late final GeneratedColumn<String> panelUuid = GeneratedColumn<String>(
+      'panel_uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _panelTypeMeta =
+      const VerificationMeta('panelType');
+  @override
+  late final GeneratedColumn<String> panelType = GeneratedColumn<String>(
+      'panel_type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _roleMeta = const VerificationMeta('role');
+  @override
+  late final GeneratedColumn<String> role = GeneratedColumn<String>(
+      'role', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+      'title', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [uuid, module, panelUuid, panelType, role, title];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_panel_refs';
+  @override
+  VerificationContext validateIntegrity(Insertable<PanelRef> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('module')) {
+      context.handle(_moduleMeta,
+          module.isAcceptableOrUnknown(data['module']!, _moduleMeta));
+    } else if (isInserting) {
+      context.missing(_moduleMeta);
+    }
+    if (data.containsKey('panel_uuid')) {
+      context.handle(_panelUuidMeta,
+          panelUuid.isAcceptableOrUnknown(data['panel_uuid']!, _panelUuidMeta));
+    } else if (isInserting) {
+      context.missing(_panelUuidMeta);
+    }
+    if (data.containsKey('panel_type')) {
+      context.handle(_panelTypeMeta,
+          panelType.isAcceptableOrUnknown(data['panel_type']!, _panelTypeMeta));
+    } else if (isInserting) {
+      context.missing(_panelTypeMeta);
+    }
+    if (data.containsKey('role')) {
+      context.handle(
+          _roleMeta, role.isAcceptableOrUnknown(data['role']!, _roleMeta));
+    } else if (isInserting) {
+      context.missing(_roleMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  PanelRef map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PanelRef(
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      module: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}module'])!,
+      panelUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}panel_uuid'])!,
+      panelType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}panel_type'])!,
+      role: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}role'])!,
+      title: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}title']),
+    );
+  }
+
+  @override
+  $PanelRefsTable createAlias(String alias) {
+    return $PanelRefsTable(attachedDatabase, alias);
+  }
+}
+
+class PanelRef extends DataClass implements Insertable<PanelRef> {
+  final String uuid;
+  final String module;
+  final String panelUuid;
+  final String panelType;
+  final String role;
+  final String? title;
+  const PanelRef(
+      {required this.uuid,
+      required this.module,
+      required this.panelUuid,
+      required this.panelType,
+      required this.role,
+      this.title});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['module'] = Variable<String>(module);
+    map['panel_uuid'] = Variable<String>(panelUuid);
+    map['panel_type'] = Variable<String>(panelType);
+    map['role'] = Variable<String>(role);
+    if (!nullToAbsent || title != null) {
+      map['title'] = Variable<String>(title);
+    }
+    return map;
+  }
+
+  PanelRefsCompanion toCompanion(bool nullToAbsent) {
+    return PanelRefsCompanion(
+      uuid: Value(uuid),
+      module: Value(module),
+      panelUuid: Value(panelUuid),
+      panelType: Value(panelType),
+      role: Value(role),
+      title:
+          title == null && nullToAbsent ? const Value.absent() : Value(title),
+    );
+  }
+
+  factory PanelRef.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PanelRef(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      module: serializer.fromJson<String>(json['module']),
+      panelUuid: serializer.fromJson<String>(json['panelUuid']),
+      panelType: serializer.fromJson<String>(json['panelType']),
+      role: serializer.fromJson<String>(json['role']),
+      title: serializer.fromJson<String?>(json['title']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'module': serializer.toJson<String>(module),
+      'panelUuid': serializer.toJson<String>(panelUuid),
+      'panelType': serializer.toJson<String>(panelType),
+      'role': serializer.toJson<String>(role),
+      'title': serializer.toJson<String?>(title),
+    };
+  }
+
+  PanelRef copyWith(
+          {String? uuid,
+          String? module,
+          String? panelUuid,
+          String? panelType,
+          String? role,
+          Value<String?> title = const Value.absent()}) =>
+      PanelRef(
+        uuid: uuid ?? this.uuid,
+        module: module ?? this.module,
+        panelUuid: panelUuid ?? this.panelUuid,
+        panelType: panelType ?? this.panelType,
+        role: role ?? this.role,
+        title: title.present ? title.value : this.title,
+      );
+  PanelRef copyWithCompanion(PanelRefsCompanion data) {
+    return PanelRef(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      module: data.module.present ? data.module.value : this.module,
+      panelUuid: data.panelUuid.present ? data.panelUuid.value : this.panelUuid,
+      panelType: data.panelType.present ? data.panelType.value : this.panelType,
+      role: data.role.present ? data.role.value : this.role,
+      title: data.title.present ? data.title.value : this.title,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PanelRef(')
+          ..write('uuid: $uuid, ')
+          ..write('module: $module, ')
+          ..write('panelUuid: $panelUuid, ')
+          ..write('panelType: $panelType, ')
+          ..write('role: $role, ')
+          ..write('title: $title')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(uuid, module, panelUuid, panelType, role, title);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PanelRef &&
+          other.uuid == this.uuid &&
+          other.module == this.module &&
+          other.panelUuid == this.panelUuid &&
+          other.panelType == this.panelType &&
+          other.role == this.role &&
+          other.title == this.title);
+}
+
+class PanelRefsCompanion extends UpdateCompanion<PanelRef> {
+  final Value<String> uuid;
+  final Value<String> module;
+  final Value<String> panelUuid;
+  final Value<String> panelType;
+  final Value<String> role;
+  final Value<String?> title;
+  final Value<int> rowid;
+  const PanelRefsCompanion({
+    this.uuid = const Value.absent(),
+    this.module = const Value.absent(),
+    this.panelUuid = const Value.absent(),
+    this.panelType = const Value.absent(),
+    this.role = const Value.absent(),
+    this.title = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PanelRefsCompanion.insert({
+    required String uuid,
+    required String module,
+    required String panelUuid,
+    required String panelType,
+    required String role,
+    this.title = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : uuid = Value(uuid),
+        module = Value(module),
+        panelUuid = Value(panelUuid),
+        panelType = Value(panelType),
+        role = Value(role);
+  static Insertable<PanelRef> custom({
+    Expression<String>? uuid,
+    Expression<String>? module,
+    Expression<String>? panelUuid,
+    Expression<String>? panelType,
+    Expression<String>? role,
+    Expression<String>? title,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (module != null) 'module': module,
+      if (panelUuid != null) 'panel_uuid': panelUuid,
+      if (panelType != null) 'panel_type': panelType,
+      if (role != null) 'role': role,
+      if (title != null) 'title': title,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PanelRefsCompanion copyWith(
+      {Value<String>? uuid,
+      Value<String>? module,
+      Value<String>? panelUuid,
+      Value<String>? panelType,
+      Value<String>? role,
+      Value<String?>? title,
+      Value<int>? rowid}) {
+    return PanelRefsCompanion(
+      uuid: uuid ?? this.uuid,
+      module: module ?? this.module,
+      panelUuid: panelUuid ?? this.panelUuid,
+      panelType: panelType ?? this.panelType,
+      role: role ?? this.role,
+      title: title ?? this.title,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (module.present) {
+      map['module'] = Variable<String>(module.value);
+    }
+    if (panelUuid.present) {
+      map['panel_uuid'] = Variable<String>(panelUuid.value);
+    }
+    if (panelType.present) {
+      map['panel_type'] = Variable<String>(panelType.value);
+    }
+    if (role.present) {
+      map['role'] = Variable<String>(role.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PanelRefsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('module: $module, ')
+          ..write('panelUuid: $panelUuid, ')
+          ..write('panelType: $panelType, ')
+          ..write('role: $role, ')
+          ..write('title: $title, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $WorkItemPanelRefsTable extends WorkItemPanelRefs
+    with TableInfo<$WorkItemPanelRefsTable, WorkItemPanelRef> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WorkItemPanelRefsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+      'uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _workItemUuidMeta =
+      const VerificationMeta('workItemUuid');
+  @override
+  late final GeneratedColumn<String> workItemUuid = GeneratedColumn<String>(
+      'work_item_uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _panelRefUuidMeta =
+      const VerificationMeta('panelRefUuid');
+  @override
+  late final GeneratedColumn<String> panelRefUuid = GeneratedColumn<String>(
+      'panel_ref_uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _roleMeta = const VerificationMeta('role');
+  @override
+  late final GeneratedColumn<String> role = GeneratedColumn<String>(
+      'role', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _orderMeta = const VerificationMeta('order');
+  @override
+  late final GeneratedColumn<int> order = GeneratedColumn<int>(
+      'order_index', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [uuid, workItemUuid, panelRefUuid, role, order];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_work_item_panel_refs';
+  @override
+  VerificationContext validateIntegrity(Insertable<WorkItemPanelRef> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('work_item_uuid')) {
+      context.handle(
+          _workItemUuidMeta,
+          workItemUuid.isAcceptableOrUnknown(
+              data['work_item_uuid']!, _workItemUuidMeta));
+    } else if (isInserting) {
+      context.missing(_workItemUuidMeta);
+    }
+    if (data.containsKey('panel_ref_uuid')) {
+      context.handle(
+          _panelRefUuidMeta,
+          panelRefUuid.isAcceptableOrUnknown(
+              data['panel_ref_uuid']!, _panelRefUuidMeta));
+    } else if (isInserting) {
+      context.missing(_panelRefUuidMeta);
+    }
+    if (data.containsKey('role')) {
+      context.handle(
+          _roleMeta, role.isAcceptableOrUnknown(data['role']!, _roleMeta));
+    } else if (isInserting) {
+      context.missing(_roleMeta);
+    }
+    if (data.containsKey('order_index')) {
+      context.handle(_orderMeta,
+          order.isAcceptableOrUnknown(data['order_index']!, _orderMeta));
+    } else if (isInserting) {
+      context.missing(_orderMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  WorkItemPanelRef map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return WorkItemPanelRef(
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      workItemUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}work_item_uuid'])!,
+      panelRefUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}panel_ref_uuid'])!,
+      role: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}role'])!,
+      order: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}order_index'])!,
+    );
+  }
+
+  @override
+  $WorkItemPanelRefsTable createAlias(String alias) {
+    return $WorkItemPanelRefsTable(attachedDatabase, alias);
+  }
+}
+
+class WorkItemPanelRef extends DataClass
+    implements Insertable<WorkItemPanelRef> {
+  final String uuid;
+  final String workItemUuid;
+  final String panelRefUuid;
+  final String role;
+  final int order;
+  const WorkItemPanelRef(
+      {required this.uuid,
+      required this.workItemUuid,
+      required this.panelRefUuid,
+      required this.role,
+      required this.order});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['work_item_uuid'] = Variable<String>(workItemUuid);
+    map['panel_ref_uuid'] = Variable<String>(panelRefUuid);
+    map['role'] = Variable<String>(role);
+    map['order_index'] = Variable<int>(order);
+    return map;
+  }
+
+  WorkItemPanelRefsCompanion toCompanion(bool nullToAbsent) {
+    return WorkItemPanelRefsCompanion(
+      uuid: Value(uuid),
+      workItemUuid: Value(workItemUuid),
+      panelRefUuid: Value(panelRefUuid),
+      role: Value(role),
+      order: Value(order),
+    );
+  }
+
+  factory WorkItemPanelRef.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return WorkItemPanelRef(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      workItemUuid: serializer.fromJson<String>(json['workItemUuid']),
+      panelRefUuid: serializer.fromJson<String>(json['panelRefUuid']),
+      role: serializer.fromJson<String>(json['role']),
+      order: serializer.fromJson<int>(json['order']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'workItemUuid': serializer.toJson<String>(workItemUuid),
+      'panelRefUuid': serializer.toJson<String>(panelRefUuid),
+      'role': serializer.toJson<String>(role),
+      'order': serializer.toJson<int>(order),
+    };
+  }
+
+  WorkItemPanelRef copyWith(
+          {String? uuid,
+          String? workItemUuid,
+          String? panelRefUuid,
+          String? role,
+          int? order}) =>
+      WorkItemPanelRef(
+        uuid: uuid ?? this.uuid,
+        workItemUuid: workItemUuid ?? this.workItemUuid,
+        panelRefUuid: panelRefUuid ?? this.panelRefUuid,
+        role: role ?? this.role,
+        order: order ?? this.order,
+      );
+  WorkItemPanelRef copyWithCompanion(WorkItemPanelRefsCompanion data) {
+    return WorkItemPanelRef(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      workItemUuid: data.workItemUuid.present
+          ? data.workItemUuid.value
+          : this.workItemUuid,
+      panelRefUuid: data.panelRefUuid.present
+          ? data.panelRefUuid.value
+          : this.panelRefUuid,
+      role: data.role.present ? data.role.value : this.role,
+      order: data.order.present ? data.order.value : this.order,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WorkItemPanelRef(')
+          ..write('uuid: $uuid, ')
+          ..write('workItemUuid: $workItemUuid, ')
+          ..write('panelRefUuid: $panelRefUuid, ')
+          ..write('role: $role, ')
+          ..write('order: $order')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(uuid, workItemUuid, panelRefUuid, role, order);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is WorkItemPanelRef &&
+          other.uuid == this.uuid &&
+          other.workItemUuid == this.workItemUuid &&
+          other.panelRefUuid == this.panelRefUuid &&
+          other.role == this.role &&
+          other.order == this.order);
+}
+
+class WorkItemPanelRefsCompanion extends UpdateCompanion<WorkItemPanelRef> {
+  final Value<String> uuid;
+  final Value<String> workItemUuid;
+  final Value<String> panelRefUuid;
+  final Value<String> role;
+  final Value<int> order;
+  final Value<int> rowid;
+  const WorkItemPanelRefsCompanion({
+    this.uuid = const Value.absent(),
+    this.workItemUuid = const Value.absent(),
+    this.panelRefUuid = const Value.absent(),
+    this.role = const Value.absent(),
+    this.order = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  WorkItemPanelRefsCompanion.insert({
+    required String uuid,
+    required String workItemUuid,
+    required String panelRefUuid,
+    required String role,
+    required int order,
+    this.rowid = const Value.absent(),
+  })  : uuid = Value(uuid),
+        workItemUuid = Value(workItemUuid),
+        panelRefUuid = Value(panelRefUuid),
+        role = Value(role),
+        order = Value(order);
+  static Insertable<WorkItemPanelRef> custom({
+    Expression<String>? uuid,
+    Expression<String>? workItemUuid,
+    Expression<String>? panelRefUuid,
+    Expression<String>? role,
+    Expression<int>? order,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (workItemUuid != null) 'work_item_uuid': workItemUuid,
+      if (panelRefUuid != null) 'panel_ref_uuid': panelRefUuid,
+      if (role != null) 'role': role,
+      if (order != null) 'order_index': order,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  WorkItemPanelRefsCompanion copyWith(
+      {Value<String>? uuid,
+      Value<String>? workItemUuid,
+      Value<String>? panelRefUuid,
+      Value<String>? role,
+      Value<int>? order,
+      Value<int>? rowid}) {
+    return WorkItemPanelRefsCompanion(
+      uuid: uuid ?? this.uuid,
+      workItemUuid: workItemUuid ?? this.workItemUuid,
+      panelRefUuid: panelRefUuid ?? this.panelRefUuid,
+      role: role ?? this.role,
+      order: order ?? this.order,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (workItemUuid.present) {
+      map['work_item_uuid'] = Variable<String>(workItemUuid.value);
+    }
+    if (panelRefUuid.present) {
+      map['panel_ref_uuid'] = Variable<String>(panelRefUuid.value);
+    }
+    if (role.present) {
+      map['role'] = Variable<String>(role.value);
+    }
+    if (order.present) {
+      map['order_index'] = Variable<int>(order.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WorkItemPanelRefsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('workItemUuid: $workItemUuid, ')
+          ..write('panelRefUuid: $panelRefUuid, ')
+          ..write('role: $role, ')
+          ..write('order: $order, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
   _$PersistenceDriftDatabase(QueryExecutor e) : super(e);
   $PersistenceDriftDatabaseManager get managers =>
@@ -8464,6 +10441,15 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
   late final $SkillClassesTable skillClasses = $SkillClassesTable(this);
   late final $DaYunRecordsTable daYunRecords = $DaYunRecordsTable(this);
   late final $TaiYuanRecordsTable taiYuanRecords = $TaiYuanRecordsTable(this);
+  late final $DivinationCasesTable divinationCases =
+      $DivinationCasesTable(this);
+  late final $DivinationWorkItemsTable divinationWorkItems =
+      $DivinationWorkItemsTable(this);
+  late final $CaseParticipantsTable caseParticipants =
+      $CaseParticipantsTable(this);
+  late final $PanelRefsTable panelRefs = $PanelRefsTable(this);
+  late final $WorkItemPanelRefsTable workItemPanelRefs =
+      $WorkItemPanelRefsTable(this);
   late final OutboxRecordsDao outboxRecordsDao =
       OutboxRecordsDao(this as PersistenceDriftDatabase);
   late final SyncStatesDao syncStatesDao =
@@ -8520,7 +10506,12 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
         skills,
         skillClasses,
         daYunRecords,
-        taiYuanRecords
+        taiYuanRecords,
+        divinationCases,
+        divinationWorkItems,
+        caseParticipants,
+        panelRefs,
+        workItemPanelRefs
       ];
 }
 
@@ -14374,6 +16365,1041 @@ typedef $$TaiYuanRecordsTableProcessedTableManager = ProcessedTableManager<
     ),
     TaiYuanRecord,
     PrefetchHooks Function()>;
+typedef $$DivinationCasesTableCreateCompanionBuilder = DivinationCasesCompanion
+    Function({
+  required String uuid,
+  required String title,
+  required String mainQuestion,
+  required String status,
+  required DateTime createdAt,
+  required DateTime updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String?> finalSummary,
+  Value<int> rowid,
+});
+typedef $$DivinationCasesTableUpdateCompanionBuilder = DivinationCasesCompanion
+    Function({
+  Value<String> uuid,
+  Value<String> title,
+  Value<String> mainQuestion,
+  Value<String> status,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String?> finalSummary,
+  Value<int> rowid,
+});
+
+class $$DivinationCasesTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $DivinationCasesTable> {
+  $$DivinationCasesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get mainQuestion => $composableBuilder(
+      column: $table.mainQuestion, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get finalSummary => $composableBuilder(
+      column: $table.finalSummary, builder: (column) => ColumnFilters(column));
+}
+
+class $$DivinationCasesTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $DivinationCasesTable> {
+  $$DivinationCasesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get mainQuestion => $composableBuilder(
+      column: $table.mainQuestion,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get finalSummary => $composableBuilder(
+      column: $table.finalSummary,
+      builder: (column) => ColumnOrderings(column));
+}
+
+class $$DivinationCasesTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $DivinationCasesTable> {
+  $$DivinationCasesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get mainQuestion => $composableBuilder(
+      column: $table.mainQuestion, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get finalSummary => $composableBuilder(
+      column: $table.finalSummary, builder: (column) => column);
+}
+
+class $$DivinationCasesTableTableManager extends RootTableManager<
+    _$PersistenceDriftDatabase,
+    $DivinationCasesTable,
+    DivinationCase,
+    $$DivinationCasesTableFilterComposer,
+    $$DivinationCasesTableOrderingComposer,
+    $$DivinationCasesTableAnnotationComposer,
+    $$DivinationCasesTableCreateCompanionBuilder,
+    $$DivinationCasesTableUpdateCompanionBuilder,
+    (
+      DivinationCase,
+      BaseReferences<_$PersistenceDriftDatabase, $DivinationCasesTable,
+          DivinationCase>
+    ),
+    DivinationCase,
+    PrefetchHooks Function()> {
+  $$DivinationCasesTableTableManager(
+      _$PersistenceDriftDatabase db, $DivinationCasesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DivinationCasesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DivinationCasesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DivinationCasesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> uuid = const Value.absent(),
+            Value<String> title = const Value.absent(),
+            Value<String> mainQuestion = const Value.absent(),
+            Value<String> status = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String?> finalSummary = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              DivinationCasesCompanion(
+            uuid: uuid,
+            title: title,
+            mainQuestion: mainQuestion,
+            status: status,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            finalSummary: finalSummary,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String uuid,
+            required String title,
+            required String mainQuestion,
+            required String status,
+            required DateTime createdAt,
+            required DateTime updatedAt,
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String?> finalSummary = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              DivinationCasesCompanion.insert(
+            uuid: uuid,
+            title: title,
+            mainQuestion: mainQuestion,
+            status: status,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            finalSummary: finalSummary,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$DivinationCasesTableProcessedTableManager = ProcessedTableManager<
+    _$PersistenceDriftDatabase,
+    $DivinationCasesTable,
+    DivinationCase,
+    $$DivinationCasesTableFilterComposer,
+    $$DivinationCasesTableOrderingComposer,
+    $$DivinationCasesTableAnnotationComposer,
+    $$DivinationCasesTableCreateCompanionBuilder,
+    $$DivinationCasesTableUpdateCompanionBuilder,
+    (
+      DivinationCase,
+      BaseReferences<_$PersistenceDriftDatabase, $DivinationCasesTable,
+          DivinationCase>
+    ),
+    DivinationCase,
+    PrefetchHooks Function()>;
+typedef $$DivinationWorkItemsTableCreateCompanionBuilder
+    = DivinationWorkItemsCompanion Function({
+  required String uuid,
+  required String caseUuid,
+  Value<String?> parentWorkItemUuid,
+  required String title,
+  required String purpose,
+  required String methodGroup,
+  required int order,
+  required String status,
+  Value<String?> summary,
+  Value<String?> conclusion,
+  Value<int> rowid,
+});
+typedef $$DivinationWorkItemsTableUpdateCompanionBuilder
+    = DivinationWorkItemsCompanion Function({
+  Value<String> uuid,
+  Value<String> caseUuid,
+  Value<String?> parentWorkItemUuid,
+  Value<String> title,
+  Value<String> purpose,
+  Value<String> methodGroup,
+  Value<int> order,
+  Value<String> status,
+  Value<String?> summary,
+  Value<String?> conclusion,
+  Value<int> rowid,
+});
+
+class $$DivinationWorkItemsTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $DivinationWorkItemsTable> {
+  $$DivinationWorkItemsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get caseUuid => $composableBuilder(
+      column: $table.caseUuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get parentWorkItemUuid => $composableBuilder(
+      column: $table.parentWorkItemUuid,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get purpose => $composableBuilder(
+      column: $table.purpose, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get methodGroup => $composableBuilder(
+      column: $table.methodGroup, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get order => $composableBuilder(
+      column: $table.order, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get summary => $composableBuilder(
+      column: $table.summary, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get conclusion => $composableBuilder(
+      column: $table.conclusion, builder: (column) => ColumnFilters(column));
+}
+
+class $$DivinationWorkItemsTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $DivinationWorkItemsTable> {
+  $$DivinationWorkItemsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get caseUuid => $composableBuilder(
+      column: $table.caseUuid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get parentWorkItemUuid => $composableBuilder(
+      column: $table.parentWorkItemUuid,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get purpose => $composableBuilder(
+      column: $table.purpose, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get methodGroup => $composableBuilder(
+      column: $table.methodGroup, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get order => $composableBuilder(
+      column: $table.order, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get summary => $composableBuilder(
+      column: $table.summary, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get conclusion => $composableBuilder(
+      column: $table.conclusion, builder: (column) => ColumnOrderings(column));
+}
+
+class $$DivinationWorkItemsTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $DivinationWorkItemsTable> {
+  $$DivinationWorkItemsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get caseUuid =>
+      $composableBuilder(column: $table.caseUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get parentWorkItemUuid => $composableBuilder(
+      column: $table.parentWorkItemUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get purpose =>
+      $composableBuilder(column: $table.purpose, builder: (column) => column);
+
+  GeneratedColumn<String> get methodGroup => $composableBuilder(
+      column: $table.methodGroup, builder: (column) => column);
+
+  GeneratedColumn<int> get order =>
+      $composableBuilder(column: $table.order, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get summary =>
+      $composableBuilder(column: $table.summary, builder: (column) => column);
+
+  GeneratedColumn<String> get conclusion => $composableBuilder(
+      column: $table.conclusion, builder: (column) => column);
+}
+
+class $$DivinationWorkItemsTableTableManager extends RootTableManager<
+    _$PersistenceDriftDatabase,
+    $DivinationWorkItemsTable,
+    DivinationWorkItem,
+    $$DivinationWorkItemsTableFilterComposer,
+    $$DivinationWorkItemsTableOrderingComposer,
+    $$DivinationWorkItemsTableAnnotationComposer,
+    $$DivinationWorkItemsTableCreateCompanionBuilder,
+    $$DivinationWorkItemsTableUpdateCompanionBuilder,
+    (
+      DivinationWorkItem,
+      BaseReferences<_$PersistenceDriftDatabase, $DivinationWorkItemsTable,
+          DivinationWorkItem>
+    ),
+    DivinationWorkItem,
+    PrefetchHooks Function()> {
+  $$DivinationWorkItemsTableTableManager(
+      _$PersistenceDriftDatabase db, $DivinationWorkItemsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DivinationWorkItemsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DivinationWorkItemsTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DivinationWorkItemsTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> uuid = const Value.absent(),
+            Value<String> caseUuid = const Value.absent(),
+            Value<String?> parentWorkItemUuid = const Value.absent(),
+            Value<String> title = const Value.absent(),
+            Value<String> purpose = const Value.absent(),
+            Value<String> methodGroup = const Value.absent(),
+            Value<int> order = const Value.absent(),
+            Value<String> status = const Value.absent(),
+            Value<String?> summary = const Value.absent(),
+            Value<String?> conclusion = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              DivinationWorkItemsCompanion(
+            uuid: uuid,
+            caseUuid: caseUuid,
+            parentWorkItemUuid: parentWorkItemUuid,
+            title: title,
+            purpose: purpose,
+            methodGroup: methodGroup,
+            order: order,
+            status: status,
+            summary: summary,
+            conclusion: conclusion,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String uuid,
+            required String caseUuid,
+            Value<String?> parentWorkItemUuid = const Value.absent(),
+            required String title,
+            required String purpose,
+            required String methodGroup,
+            required int order,
+            required String status,
+            Value<String?> summary = const Value.absent(),
+            Value<String?> conclusion = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              DivinationWorkItemsCompanion.insert(
+            uuid: uuid,
+            caseUuid: caseUuid,
+            parentWorkItemUuid: parentWorkItemUuid,
+            title: title,
+            purpose: purpose,
+            methodGroup: methodGroup,
+            order: order,
+            status: status,
+            summary: summary,
+            conclusion: conclusion,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$DivinationWorkItemsTableProcessedTableManager = ProcessedTableManager<
+    _$PersistenceDriftDatabase,
+    $DivinationWorkItemsTable,
+    DivinationWorkItem,
+    $$DivinationWorkItemsTableFilterComposer,
+    $$DivinationWorkItemsTableOrderingComposer,
+    $$DivinationWorkItemsTableAnnotationComposer,
+    $$DivinationWorkItemsTableCreateCompanionBuilder,
+    $$DivinationWorkItemsTableUpdateCompanionBuilder,
+    (
+      DivinationWorkItem,
+      BaseReferences<_$PersistenceDriftDatabase, $DivinationWorkItemsTable,
+          DivinationWorkItem>
+    ),
+    DivinationWorkItem,
+    PrefetchHooks Function()>;
+typedef $$CaseParticipantsTableCreateCompanionBuilder
+    = CaseParticipantsCompanion Function({
+  required String uuid,
+  required String caseUuid,
+  Value<String?> recordUuid,
+  required String name,
+  required String role,
+  Value<String?> seekerUuid,
+  Value<int> rowid,
+});
+typedef $$CaseParticipantsTableUpdateCompanionBuilder
+    = CaseParticipantsCompanion Function({
+  Value<String> uuid,
+  Value<String> caseUuid,
+  Value<String?> recordUuid,
+  Value<String> name,
+  Value<String> role,
+  Value<String?> seekerUuid,
+  Value<int> rowid,
+});
+
+class $$CaseParticipantsTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $CaseParticipantsTable> {
+  $$CaseParticipantsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get caseUuid => $composableBuilder(
+      column: $table.caseUuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get recordUuid => $composableBuilder(
+      column: $table.recordUuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get role => $composableBuilder(
+      column: $table.role, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get seekerUuid => $composableBuilder(
+      column: $table.seekerUuid, builder: (column) => ColumnFilters(column));
+}
+
+class $$CaseParticipantsTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $CaseParticipantsTable> {
+  $$CaseParticipantsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get caseUuid => $composableBuilder(
+      column: $table.caseUuid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get recordUuid => $composableBuilder(
+      column: $table.recordUuid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get role => $composableBuilder(
+      column: $table.role, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get seekerUuid => $composableBuilder(
+      column: $table.seekerUuid, builder: (column) => ColumnOrderings(column));
+}
+
+class $$CaseParticipantsTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $CaseParticipantsTable> {
+  $$CaseParticipantsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get caseUuid =>
+      $composableBuilder(column: $table.caseUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get recordUuid => $composableBuilder(
+      column: $table.recordUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get role =>
+      $composableBuilder(column: $table.role, builder: (column) => column);
+
+  GeneratedColumn<String> get seekerUuid => $composableBuilder(
+      column: $table.seekerUuid, builder: (column) => column);
+}
+
+class $$CaseParticipantsTableTableManager extends RootTableManager<
+    _$PersistenceDriftDatabase,
+    $CaseParticipantsTable,
+    CaseParticipant,
+    $$CaseParticipantsTableFilterComposer,
+    $$CaseParticipantsTableOrderingComposer,
+    $$CaseParticipantsTableAnnotationComposer,
+    $$CaseParticipantsTableCreateCompanionBuilder,
+    $$CaseParticipantsTableUpdateCompanionBuilder,
+    (
+      CaseParticipant,
+      BaseReferences<_$PersistenceDriftDatabase, $CaseParticipantsTable,
+          CaseParticipant>
+    ),
+    CaseParticipant,
+    PrefetchHooks Function()> {
+  $$CaseParticipantsTableTableManager(
+      _$PersistenceDriftDatabase db, $CaseParticipantsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CaseParticipantsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CaseParticipantsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CaseParticipantsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> uuid = const Value.absent(),
+            Value<String> caseUuid = const Value.absent(),
+            Value<String?> recordUuid = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<String> role = const Value.absent(),
+            Value<String?> seekerUuid = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              CaseParticipantsCompanion(
+            uuid: uuid,
+            caseUuid: caseUuid,
+            recordUuid: recordUuid,
+            name: name,
+            role: role,
+            seekerUuid: seekerUuid,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String uuid,
+            required String caseUuid,
+            Value<String?> recordUuid = const Value.absent(),
+            required String name,
+            required String role,
+            Value<String?> seekerUuid = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              CaseParticipantsCompanion.insert(
+            uuid: uuid,
+            caseUuid: caseUuid,
+            recordUuid: recordUuid,
+            name: name,
+            role: role,
+            seekerUuid: seekerUuid,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$CaseParticipantsTableProcessedTableManager = ProcessedTableManager<
+    _$PersistenceDriftDatabase,
+    $CaseParticipantsTable,
+    CaseParticipant,
+    $$CaseParticipantsTableFilterComposer,
+    $$CaseParticipantsTableOrderingComposer,
+    $$CaseParticipantsTableAnnotationComposer,
+    $$CaseParticipantsTableCreateCompanionBuilder,
+    $$CaseParticipantsTableUpdateCompanionBuilder,
+    (
+      CaseParticipant,
+      BaseReferences<_$PersistenceDriftDatabase, $CaseParticipantsTable,
+          CaseParticipant>
+    ),
+    CaseParticipant,
+    PrefetchHooks Function()>;
+typedef $$PanelRefsTableCreateCompanionBuilder = PanelRefsCompanion Function({
+  required String uuid,
+  required String module,
+  required String panelUuid,
+  required String panelType,
+  required String role,
+  Value<String?> title,
+  Value<int> rowid,
+});
+typedef $$PanelRefsTableUpdateCompanionBuilder = PanelRefsCompanion Function({
+  Value<String> uuid,
+  Value<String> module,
+  Value<String> panelUuid,
+  Value<String> panelType,
+  Value<String> role,
+  Value<String?> title,
+  Value<int> rowid,
+});
+
+class $$PanelRefsTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $PanelRefsTable> {
+  $$PanelRefsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get module => $composableBuilder(
+      column: $table.module, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get panelUuid => $composableBuilder(
+      column: $table.panelUuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get panelType => $composableBuilder(
+      column: $table.panelType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get role => $composableBuilder(
+      column: $table.role, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnFilters(column));
+}
+
+class $$PanelRefsTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $PanelRefsTable> {
+  $$PanelRefsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get module => $composableBuilder(
+      column: $table.module, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get panelUuid => $composableBuilder(
+      column: $table.panelUuid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get panelType => $composableBuilder(
+      column: $table.panelType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get role => $composableBuilder(
+      column: $table.role, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnOrderings(column));
+}
+
+class $$PanelRefsTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $PanelRefsTable> {
+  $$PanelRefsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get module =>
+      $composableBuilder(column: $table.module, builder: (column) => column);
+
+  GeneratedColumn<String> get panelUuid =>
+      $composableBuilder(column: $table.panelUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get panelType =>
+      $composableBuilder(column: $table.panelType, builder: (column) => column);
+
+  GeneratedColumn<String> get role =>
+      $composableBuilder(column: $table.role, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+}
+
+class $$PanelRefsTableTableManager extends RootTableManager<
+    _$PersistenceDriftDatabase,
+    $PanelRefsTable,
+    PanelRef,
+    $$PanelRefsTableFilterComposer,
+    $$PanelRefsTableOrderingComposer,
+    $$PanelRefsTableAnnotationComposer,
+    $$PanelRefsTableCreateCompanionBuilder,
+    $$PanelRefsTableUpdateCompanionBuilder,
+    (
+      PanelRef,
+      BaseReferences<_$PersistenceDriftDatabase, $PanelRefsTable, PanelRef>
+    ),
+    PanelRef,
+    PrefetchHooks Function()> {
+  $$PanelRefsTableTableManager(
+      _$PersistenceDriftDatabase db, $PanelRefsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PanelRefsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PanelRefsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PanelRefsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> uuid = const Value.absent(),
+            Value<String> module = const Value.absent(),
+            Value<String> panelUuid = const Value.absent(),
+            Value<String> panelType = const Value.absent(),
+            Value<String> role = const Value.absent(),
+            Value<String?> title = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              PanelRefsCompanion(
+            uuid: uuid,
+            module: module,
+            panelUuid: panelUuid,
+            panelType: panelType,
+            role: role,
+            title: title,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String uuid,
+            required String module,
+            required String panelUuid,
+            required String panelType,
+            required String role,
+            Value<String?> title = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              PanelRefsCompanion.insert(
+            uuid: uuid,
+            module: module,
+            panelUuid: panelUuid,
+            panelType: panelType,
+            role: role,
+            title: title,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$PanelRefsTableProcessedTableManager = ProcessedTableManager<
+    _$PersistenceDriftDatabase,
+    $PanelRefsTable,
+    PanelRef,
+    $$PanelRefsTableFilterComposer,
+    $$PanelRefsTableOrderingComposer,
+    $$PanelRefsTableAnnotationComposer,
+    $$PanelRefsTableCreateCompanionBuilder,
+    $$PanelRefsTableUpdateCompanionBuilder,
+    (
+      PanelRef,
+      BaseReferences<_$PersistenceDriftDatabase, $PanelRefsTable, PanelRef>
+    ),
+    PanelRef,
+    PrefetchHooks Function()>;
+typedef $$WorkItemPanelRefsTableCreateCompanionBuilder
+    = WorkItemPanelRefsCompanion Function({
+  required String uuid,
+  required String workItemUuid,
+  required String panelRefUuid,
+  required String role,
+  required int order,
+  Value<int> rowid,
+});
+typedef $$WorkItemPanelRefsTableUpdateCompanionBuilder
+    = WorkItemPanelRefsCompanion Function({
+  Value<String> uuid,
+  Value<String> workItemUuid,
+  Value<String> panelRefUuid,
+  Value<String> role,
+  Value<int> order,
+  Value<int> rowid,
+});
+
+class $$WorkItemPanelRefsTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $WorkItemPanelRefsTable> {
+  $$WorkItemPanelRefsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get workItemUuid => $composableBuilder(
+      column: $table.workItemUuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get panelRefUuid => $composableBuilder(
+      column: $table.panelRefUuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get role => $composableBuilder(
+      column: $table.role, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get order => $composableBuilder(
+      column: $table.order, builder: (column) => ColumnFilters(column));
+}
+
+class $$WorkItemPanelRefsTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $WorkItemPanelRefsTable> {
+  $$WorkItemPanelRefsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get workItemUuid => $composableBuilder(
+      column: $table.workItemUuid,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get panelRefUuid => $composableBuilder(
+      column: $table.panelRefUuid,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get role => $composableBuilder(
+      column: $table.role, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get order => $composableBuilder(
+      column: $table.order, builder: (column) => ColumnOrderings(column));
+}
+
+class $$WorkItemPanelRefsTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $WorkItemPanelRefsTable> {
+  $$WorkItemPanelRefsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get workItemUuid => $composableBuilder(
+      column: $table.workItemUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get panelRefUuid => $composableBuilder(
+      column: $table.panelRefUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get role =>
+      $composableBuilder(column: $table.role, builder: (column) => column);
+
+  GeneratedColumn<int> get order =>
+      $composableBuilder(column: $table.order, builder: (column) => column);
+}
+
+class $$WorkItemPanelRefsTableTableManager extends RootTableManager<
+    _$PersistenceDriftDatabase,
+    $WorkItemPanelRefsTable,
+    WorkItemPanelRef,
+    $$WorkItemPanelRefsTableFilterComposer,
+    $$WorkItemPanelRefsTableOrderingComposer,
+    $$WorkItemPanelRefsTableAnnotationComposer,
+    $$WorkItemPanelRefsTableCreateCompanionBuilder,
+    $$WorkItemPanelRefsTableUpdateCompanionBuilder,
+    (
+      WorkItemPanelRef,
+      BaseReferences<_$PersistenceDriftDatabase, $WorkItemPanelRefsTable,
+          WorkItemPanelRef>
+    ),
+    WorkItemPanelRef,
+    PrefetchHooks Function()> {
+  $$WorkItemPanelRefsTableTableManager(
+      _$PersistenceDriftDatabase db, $WorkItemPanelRefsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$WorkItemPanelRefsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$WorkItemPanelRefsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$WorkItemPanelRefsTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> uuid = const Value.absent(),
+            Value<String> workItemUuid = const Value.absent(),
+            Value<String> panelRefUuid = const Value.absent(),
+            Value<String> role = const Value.absent(),
+            Value<int> order = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              WorkItemPanelRefsCompanion(
+            uuid: uuid,
+            workItemUuid: workItemUuid,
+            panelRefUuid: panelRefUuid,
+            role: role,
+            order: order,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String uuid,
+            required String workItemUuid,
+            required String panelRefUuid,
+            required String role,
+            required int order,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              WorkItemPanelRefsCompanion.insert(
+            uuid: uuid,
+            workItemUuid: workItemUuid,
+            panelRefUuid: panelRefUuid,
+            role: role,
+            order: order,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$WorkItemPanelRefsTableProcessedTableManager = ProcessedTableManager<
+    _$PersistenceDriftDatabase,
+    $WorkItemPanelRefsTable,
+    WorkItemPanelRef,
+    $$WorkItemPanelRefsTableFilterComposer,
+    $$WorkItemPanelRefsTableOrderingComposer,
+    $$WorkItemPanelRefsTableAnnotationComposer,
+    $$WorkItemPanelRefsTableCreateCompanionBuilder,
+    $$WorkItemPanelRefsTableUpdateCompanionBuilder,
+    (
+      WorkItemPanelRef,
+      BaseReferences<_$PersistenceDriftDatabase, $WorkItemPanelRefsTable,
+          WorkItemPanelRef>
+    ),
+    WorkItemPanelRef,
+    PrefetchHooks Function()>;
 
 class $PersistenceDriftDatabaseManager {
   final _$PersistenceDriftDatabase _db;
@@ -14423,4 +17449,14 @@ class $PersistenceDriftDatabaseManager {
       $$DaYunRecordsTableTableManager(_db, _db.daYunRecords);
   $$TaiYuanRecordsTableTableManager get taiYuanRecords =>
       $$TaiYuanRecordsTableTableManager(_db, _db.taiYuanRecords);
+  $$DivinationCasesTableTableManager get divinationCases =>
+      $$DivinationCasesTableTableManager(_db, _db.divinationCases);
+  $$DivinationWorkItemsTableTableManager get divinationWorkItems =>
+      $$DivinationWorkItemsTableTableManager(_db, _db.divinationWorkItems);
+  $$CaseParticipantsTableTableManager get caseParticipants =>
+      $$CaseParticipantsTableTableManager(_db, _db.caseParticipants);
+  $$PanelRefsTableTableManager get panelRefs =>
+      $$PanelRefsTableTableManager(_db, _db.panelRefs);
+  $$WorkItemPanelRefsTableTableManager get workItemPanelRefs =>
+      $$WorkItemPanelRefsTableTableManager(_db, _db.workItemPanelRefs);
 }

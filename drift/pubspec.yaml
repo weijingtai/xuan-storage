@@ -20,6 +20,8 @@ dependencies:
     path: ../../xuan-domain
   common:
     path: ../../xuan-common
+  divination_case:
+    path: ../../xuan-divination-case
 
 dev_dependencies:
   flutter_test:
