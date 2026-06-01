@@ -17,6 +17,8 @@ dependencies:
       url: http://xuan:***@192.168.0.165:3000/xuan/xuan-storage.git
       ref: main
       path: core
+  divination_case:
+    path: ../../xuan-divination-case
 
 dev_dependencies:
   flutter_test:
