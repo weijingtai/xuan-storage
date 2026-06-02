@@ -3,7 +3,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:theme/theme.dart';
 
-import '../../templates/internal/four_zhu_const_resources_mapper.dart';
+import '../templates/internal/four_zhu_const_resources_mapper.dart';
 import 'package:metaphysics_core/enums.dart';
 
 class _Unset {

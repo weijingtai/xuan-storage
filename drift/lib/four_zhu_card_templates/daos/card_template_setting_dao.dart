@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import '../four_zhu_tables.dart';
 
-import '../../models/card_template_setting.dart';
+import '../models/card_template_setting_dto.dart';
 import '../app_database.dart';
 
 part 'card_template_setting_dao.g.dart';
@@ -20,7 +20,7 @@ class CardTemplateSettingDao extends DatabaseAccessor<AppDatabase>
     return select(db.cardTemplateSettings)..where((t) => t.deletedAt.isNull());
   }
 
-  Future<CardTemplateSetting?> findByTemplateUuid(String templateUuid) async {
+  Future<CardTemplateSettingDto?> findByTemplateUuid(String templateUuid) async {
     final row = await (_baseSelect()
           ..where((t) => t.templateUuid.equals(templateUuid)))
         .getSingleOrNull();
@@ -28,10 +28,10 @@ class CardTemplateSettingDao extends DatabaseAccessor<AppDatabase>
 
     final decoded = jsonDecode(row.settingJson);
     if (decoded is! Map<String, dynamic>) return null;
-    return CardTemplateSetting.fromJson(decoded);
+    return CardTemplateSettingDto.fromJson(decoded);
   }
 
-  Future<void> upsert(CardTemplateSetting setting) async {
+  Future<void> upsert(CardTemplateSettingDto setting) async {
     final encoded = jsonEncode(setting.toJson());
 
     final updated = await (update(db.cardTemplateSettings)

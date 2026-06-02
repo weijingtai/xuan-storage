@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:persistence_drift/persistence_drift.dart';
+import '../app_database.dart';
 import '../four_zhu_tables.dart';
 
 part 'card_template_meta_dao.g.dart';

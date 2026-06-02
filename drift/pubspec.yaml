@@ -22,6 +22,8 @@ dependencies:
     path: ../../xuan-common
   divination_case:
     path: ../../xuan-divination-case
+  repository_interface_four_zhu_card:
+    path: ../../repository-interface-four-zhu-card
 
 dev_dependencies:
   flutter_test:

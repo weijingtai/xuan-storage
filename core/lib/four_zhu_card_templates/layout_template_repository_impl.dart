@@ -1,8 +1,8 @@
 import 'package:collection/collection.dart';
 import 'package:persistence_core/persistence_core.dart';
-import 'package:repository_interface_four_zhu_card/repository_interface_four_zhu_card.dart';
+import 'package:xuan_four_zhu_card/repositories/layout_template_repository.dart';
 
-import 'models/layout_template.dart';
+import '../models/layout_template.dart';
 
 import 'layout_template_local_data_source.dart';
 

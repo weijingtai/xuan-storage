@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 
-import '../../models/layout_template.dart';
+import '../models/layout_template.dart';
 import '../app_database.dart';
 import '../four_zhu_tables.dart';
 

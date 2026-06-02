@@ -3,6 +3,8 @@ import 'package:drift/drift.dart';
 import '../app_database.dart';
 import '../four_zhu_tables.dart';
 
+part 'market_template_installs_dao.g.dart';
+
 @DriftAccessor(tables: [MarketTemplateInstalls])
 class MarketTemplateInstallsDao extends DatabaseAccessor<AppDatabase>
     with _$MarketTemplateInstallsDaoMixin {

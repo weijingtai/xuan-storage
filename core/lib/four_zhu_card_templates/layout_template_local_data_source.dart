@@ -4,11 +4,11 @@ import 'package:drift/drift.dart';
 import 'package:persistence_core/persistence_core.dart';
 import 'package:uuid/uuid.dart';
 
-import 'app_database.dart';
+import '../database/app_database.dart';
 
-import 'daos/card_template_meta_dao.dart';
-import 'daos/layout_templates_dao.dart';
-import 'models/layout_template.dart';
+import '../database/daos/card_template_meta_dao.dart';
+import '../database/daos/layout_templates_dao.dart';
+import '../models/layout_template.dart';
 import 'models/layout_template_dto.dart';
 
 class LayoutTemplateLocalDataSource implements LocalApplier {
