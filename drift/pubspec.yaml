@@ -18,7 +18,7 @@ dependencies:
       path: core
   persistence_domain:
     path: ../../xuan-domain
-  common:
+  xuan_common:
     path: ../../xuan-common
   divination_case:
     path: ../../xuan-divination-case
