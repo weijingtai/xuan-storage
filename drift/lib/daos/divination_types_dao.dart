@@ -1,4 +1,4 @@
-import 'package:common/datamodel/divination_type_data_model.dart';
+import 'package:metaphysics_core/datamodel/divination_type_data_model.dart';
 import 'package:drift/drift.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:persistence_drift/tables/divination_types_table.dart';

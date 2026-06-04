@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:common/enums/enum_panel_type.dart';
+import 'package:metaphysics_core/enums/enum_panel_type.dart';
 
 class Panels extends Table {
   @override

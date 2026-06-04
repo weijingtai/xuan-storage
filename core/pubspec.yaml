@@ -7,8 +7,14 @@ environment:
   sdk: '>=3.0.2 <4.0.0'
 
 dependencies:
+  flutter:
+    sdk: flutter
   yaml: ^3.1.2
   shared_preferences: ^2.3.2
+  protobuf: ^6.0.0
+  json_annotation: ^4.10.0
+  metaphysics_core:
+    path: ../../xuan-metaphysics-core
   persistence_domain:
     path: ../../xuan-domain
   divination_case:

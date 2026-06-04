@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:common/datamodel/sub_divination_type_data_model.dart';
+import 'package:metaphysics_core/datamodel/sub_divination_type_data_model.dart';
 
 @UseRowClass(SubDivinationTypeDataModel)
 class SubDivinationTypes extends Table {

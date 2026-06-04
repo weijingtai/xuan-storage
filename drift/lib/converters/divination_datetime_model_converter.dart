@@ -1,7 +1,7 @@
 // 天干地支组合存储适配器
 import 'dart:convert';
 
-import 'package:common/models/divination_datetime.dart';
+import 'package:metaphysics_core/models/divination_datetime.dart';
 import 'package:drift/drift.dart';
 
 class DivinationDatetimeModelConverter

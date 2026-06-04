@@ -1,10 +1,9 @@
-import 'package:common/database/world_info_database.dart';
-import 'package:common/datasource/loca_binary/country.pb.dart' as pb;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert';
 
+import 'country.pb.dart' as pb;
 import '../local/regions.dart';
 
 class WorldCountryRepository {

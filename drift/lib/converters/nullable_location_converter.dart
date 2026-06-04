@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 
-import 'package:common/datamodel/location.dart';
+import 'package:metaphysics_core/datamodel/location.dart';
 
 class NullableLocationConverter extends TypeConverter<Location?, String?> {
   const NullableLocationConverter();

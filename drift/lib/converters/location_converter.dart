@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 
-import 'package:common/datamodel/location.dart';
+import 'package:metaphysics_core/datamodel/location.dart';
 
 class LocationConverter extends TypeConverter<Location, String> {
   const LocationConverter();

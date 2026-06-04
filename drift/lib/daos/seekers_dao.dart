@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:common/datamodel/seeker_model.dart';
+import 'package:metaphysics_core/datamodel/seeker_model.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 
 part 'seekers_dao.g.dart';

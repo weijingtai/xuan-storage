@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
-import 'package:common/enums/enum_gender.dart';
+import 'package:metaphysics_core/enums/enum_gender.dart';
 import 'package:persistence_drift/tables/seekers_table.dart';
-import 'package:common/datamodel/divination_request_info_datamodel.dart';
+import 'package:metaphysics_core/datamodel/divination_request_info_datamodel.dart';
 
 
 @UseRowClass(DivinationRequestInfoDataModel)

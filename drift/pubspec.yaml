@@ -11,6 +11,11 @@ dependencies:
   flutter:
     sdk: flutter
   drift: ^2.30.1
+  drift_flutter: ^0.2.8
+  path_provider: ^2.1.5
+  uuid: 4.5.2
+  collection: ^1.19.1
+  json_annotation: ^4.10.0
   persistence_core:
     git:
       url: http://xuan:***@192.168.0.165:3000/xuan/xuan-storage.git
@@ -18,8 +23,12 @@ dependencies:
       path: core
   persistence_domain:
     path: ../../xuan-domain
-  xuan_common:
-    path: ../../xuan-common
+  metaphysics_core:
+    path: ../../xuan-metaphysics-core
+  theme:
+    path: ../../theme
+  xuan_four_zhu_card:
+    path: ../../xuan-four-zhu-card
   divination_case:
     path: ../../xuan-divination-case
   repository_interface_four_zhu_card:

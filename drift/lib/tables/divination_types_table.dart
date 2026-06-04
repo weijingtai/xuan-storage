@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:common/datamodel/divination_type_data_model.dart';
+import 'package:metaphysics_core/datamodel/divination_type_data_model.dart';
 
 @UseRowClass(DivinationTypeDataModel)
 class DivinationTypes extends Table {

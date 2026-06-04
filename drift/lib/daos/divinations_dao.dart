@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:common/datamodel/divination_request_info_datamodel.dart';
+import 'package:metaphysics_core/datamodel/divination_request_info_datamodel.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 
 part 'divinations_dao.g.dart';

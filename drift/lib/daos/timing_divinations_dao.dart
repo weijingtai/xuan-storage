@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:common/datamodel/timing_divination_model.dart';
+import 'package:metaphysics_core/datamodel/timing_divination_model.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:persistence_drift/tables/tables.dart';
 
