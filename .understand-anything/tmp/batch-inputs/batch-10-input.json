@@ -1,0 +1,182 @@
+{
+  "projectRoot": "/Users/jingtaiwei/Git/Public/xuan-migration/xuan-storage",
+  "batchFiles": [
+    {
+      "path": "drift/lib/divination_case/drift_divination_case_repository.dart",
+      "language": "dart",
+      "sizeLines": 249,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/divination_case/panel_refs_table.dart",
+      "language": "dart",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/divination_case/work_item_panel_refs_table.dart",
+      "language": "dart",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/app_database.dart",
+      "language": "dart",
+      "sizeLines": 198,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/app_database.g.dart",
+      "language": "dart",
+      "sizeLines": 4212,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/connection.dart",
+      "language": "dart",
+      "sizeLines": 3,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/daos/card_template_meta_dao.dart",
+      "language": "dart",
+      "sizeLines": 50,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/daos/card_template_meta_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 18,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/daos/card_template_setting_dao.dart",
+      "language": "dart",
+      "sizeLines": 72,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/daos/card_template_setting_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/daos/card_template_skill_usage_dao.dart",
+      "language": "dart",
+      "sizeLines": 80,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/daos/card_template_skill_usage_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/daos/layout_templates_dao.dart",
+      "language": "dart",
+      "sizeLines": 115,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/daos/layout_templates_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/daos/market_template_installs_dao.dart",
+      "language": "dart",
+      "sizeLines": 77,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/daos/market_template_installs_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/four_zhu_tables.dart",
+      "language": "dart",
+      "sizeLines": 169,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/layout_template_local_data_source.dart",
+      "language": "dart",
+      "sizeLines": 550,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/layout_template_repository_impl.dart",
+      "language": "dart",
+      "sizeLines": 70,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/models/card_template_setting_dto.dart",
+      "language": "dart",
+      "sizeLines": 65,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/models/layout_template_dto.dart",
+      "language": "dart",
+      "sizeLines": 36,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/models/layout_template.dart",
+      "language": "dart",
+      "sizeLines": 572,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/templates/internal/four_zhu_const_resources_mapper.dart",
+      "language": "dart",
+      "sizeLines": 32,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/unsupported.dart",
+      "language": "dart",
+      "sizeLines": 13,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/persistence_drift.dart",
+      "language": "dart",
+      "sizeLines": 1021,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "drift/lib/divination_case/drift_divination_case_repository.dart": [],
+    "drift/lib/divination_case/panel_refs_table.dart": [],
+    "drift/lib/divination_case/work_item_panel_refs_table.dart": [],
+    "drift/lib/four_zhu_card_templates/app_database.dart": [],
+    "drift/lib/four_zhu_card_templates/app_database.g.dart": [],
+    "drift/lib/four_zhu_card_templates/connection.dart": [],
+    "drift/lib/four_zhu_card_templates/daos/card_template_meta_dao.dart": [],
+    "drift/lib/four_zhu_card_templates/daos/card_template_meta_dao.g.dart": [],
+    "drift/lib/four_zhu_card_templates/daos/card_template_setting_dao.dart": [],
+    "drift/lib/four_zhu_card_templates/daos/card_template_setting_dao.g.dart": [],
+    "drift/lib/four_zhu_card_templates/daos/card_template_skill_usage_dao.dart": [],
+    "drift/lib/four_zhu_card_templates/daos/card_template_skill_usage_dao.g.dart": [],
+    "drift/lib/four_zhu_card_templates/daos/layout_templates_dao.dart": [],
+    "drift/lib/four_zhu_card_templates/daos/layout_templates_dao.g.dart": [],
+    "drift/lib/four_zhu_card_templates/daos/market_template_installs_dao.dart": [],
+    "drift/lib/four_zhu_card_templates/daos/market_template_installs_dao.g.dart": [],
+    "drift/lib/four_zhu_card_templates/four_zhu_tables.dart": [],
+    "drift/lib/four_zhu_card_templates/layout_template_local_data_source.dart": [],
+    "drift/lib/four_zhu_card_templates/layout_template_repository_impl.dart": [],
+    "drift/lib/four_zhu_card_templates/models/card_template_setting_dto.dart": [],
+    "drift/lib/four_zhu_card_templates/models/layout_template_dto.dart": [],
+    "drift/lib/four_zhu_card_templates/models/layout_template.dart": [],
+    "drift/lib/four_zhu_card_templates/templates/internal/four_zhu_const_resources_mapper.dart": [],
+    "drift/lib/four_zhu_card_templates/unsupported.dart": [],
+    "drift/lib/persistence_drift.dart": []
+  }
+}

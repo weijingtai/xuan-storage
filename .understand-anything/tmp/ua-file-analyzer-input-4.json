@@ -1,0 +1,35 @@
+{
+  "projectRoot": "/Users/jingtaiwei/Git/Public/xuan-migration/xuan-storage",
+  "batchFiles": [
+    {
+      "path": "drift/CHANGELOG.md",
+      "language": "markdown",
+      "sizeLines": 3,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "drift/README.md",
+      "language": "markdown",
+      "sizeLines": 39,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "drift/analysis_options.yaml",
+      "language": "yaml",
+      "sizeLines": 4,
+      "fileCategory": "config"
+    },
+    {
+      "path": "drift/pubspec.yaml",
+      "language": "yaml",
+      "sizeLines": 83,
+      "fileCategory": "config"
+    }
+  ],
+  "batchImportData": {
+    "drift/CHANGELOG.md": [],
+    "drift/README.md": [],
+    "drift/analysis_options.yaml": [],
+    "drift/pubspec.yaml": []
+  }
+}

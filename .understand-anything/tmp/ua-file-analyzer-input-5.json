@@ -1,0 +1,35 @@
+{
+  "projectRoot": "/Users/jingtaiwei/Git/Public/xuan-migration/xuan-storage",
+  "batchFiles": [
+    {
+      "path": "firebase/CHANGELOG.md",
+      "language": "markdown",
+      "sizeLines": 3,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "firebase/README.md",
+      "language": "markdown",
+      "sizeLines": 39,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "firebase/analysis_options.yaml",
+      "language": "yaml",
+      "sizeLines": 4,
+      "fileCategory": "config"
+    },
+    {
+      "path": "firebase/pubspec.yaml",
+      "language": "yaml",
+      "sizeLines": 64,
+      "fileCategory": "config"
+    }
+  ],
+  "batchImportData": {
+    "firebase/CHANGELOG.md": [],
+    "firebase/README.md": [],
+    "firebase/analysis_options.yaml": [],
+    "firebase/pubspec.yaml": []
+  }
+}

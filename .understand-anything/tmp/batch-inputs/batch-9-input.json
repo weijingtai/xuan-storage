@@ -1,0 +1,182 @@
+{
+  "projectRoot": "/Users/jingtaiwei/Git/Public/xuan-migration/xuan-storage",
+  "batchFiles": [
+    {
+      "path": "drift/lib/daos/divination_sub_divination_type_mappers_dao.dart",
+      "language": "dart",
+      "sizeLines": 60,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/divination_sub_divination_type_mappers_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 31,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/divination_tags_dao.dart",
+      "language": "dart",
+      "sizeLines": 35,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/divination_tags_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/divination_types_dao.dart",
+      "language": "dart",
+      "sizeLines": 46,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/divination_types_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/divinations_dao.dart",
+      "language": "dart",
+      "sizeLines": 38,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/divinations_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/panel_skill_class_mappers_dao.dart",
+      "language": "dart",
+      "sizeLines": 57,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/panel_skill_class_mappers_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/panels_dao.dart",
+      "language": "dart",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/panels_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/seeker_divination_mappers_dao.dart",
+      "language": "dart",
+      "sizeLines": 49,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/seeker_divination_mappers_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 26,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/seekers_dao.dart",
+      "language": "dart",
+      "sizeLines": 44,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/seekers_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/skill_classes_dao.dart",
+      "language": "dart",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/skills_dao.dart",
+      "language": "dart",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/tai_yuan_records_dao.dart",
+      "language": "dart",
+      "sizeLines": 22,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/tai_yuan_records_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/timing_divinations_dao.dart",
+      "language": "dart",
+      "sizeLines": 39,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/timing_divinations_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/divination_case/case_participants_table.dart",
+      "language": "dart",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/divination_case/divination_cases_table.dart",
+      "language": "dart",
+      "sizeLines": 18,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/divination_case/divination_work_items_table.dart",
+      "language": "dart",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "drift/lib/daos/divination_sub_divination_type_mappers_dao.dart": [],
+    "drift/lib/daos/divination_sub_divination_type_mappers_dao.g.dart": [],
+    "drift/lib/daos/divination_tags_dao.dart": [],
+    "drift/lib/daos/divination_tags_dao.g.dart": [],
+    "drift/lib/daos/divination_types_dao.dart": [],
+    "drift/lib/daos/divination_types_dao.g.dart": [],
+    "drift/lib/daos/divinations_dao.dart": [],
+    "drift/lib/daos/divinations_dao.g.dart": [],
+    "drift/lib/daos/panel_skill_class_mappers_dao.dart": [],
+    "drift/lib/daos/panel_skill_class_mappers_dao.g.dart": [],
+    "drift/lib/daos/panels_dao.dart": [],
+    "drift/lib/daos/panels_dao.g.dart": [],
+    "drift/lib/daos/seeker_divination_mappers_dao.dart": [],
+    "drift/lib/daos/seeker_divination_mappers_dao.g.dart": [],
+    "drift/lib/daos/seekers_dao.dart": [],
+    "drift/lib/daos/seekers_dao.g.dart": [],
+    "drift/lib/daos/skill_classes_dao.dart": [],
+    "drift/lib/daos/skills_dao.dart": [],
+    "drift/lib/daos/tai_yuan_records_dao.dart": [],
+    "drift/lib/daos/tai_yuan_records_dao.g.dart": [],
+    "drift/lib/daos/timing_divinations_dao.dart": [],
+    "drift/lib/daos/timing_divinations_dao.g.dart": [],
+    "drift/lib/divination_case/case_participants_table.dart": [],
+    "drift/lib/divination_case/divination_cases_table.dart": [],
+    "drift/lib/divination_case/divination_work_items_table.dart": []
+  }
+}

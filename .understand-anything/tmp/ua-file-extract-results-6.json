@@ -1,0 +1,330 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 25,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": ".dart_tool/package_config.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 16,
+      "nonEmptyLines": 16,
+      "sections": [
+        {
+          "heading": "configVersion",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "packages",
+          "level": 1,
+          "line": 3
+        },
+        {
+          "heading": "generator",
+          "level": 1,
+          "line": 11
+        },
+        {
+          "heading": "generatorVersion",
+          "level": 1,
+          "line": 12
+        },
+        {
+          "heading": "flutterRoot",
+          "level": 1,
+          "line": 13
+        },
+        {
+          "heading": "flutterVersion",
+          "level": 1,
+          "line": 14
+        },
+        {
+          "heading": "pubCache",
+          "level": 1,
+          "line": 15
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 7
+      }
+    },
+    {
+      "path": ".dart_tool/package_graph.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 14,
+      "nonEmptyLines": 14,
+      "sections": [
+        {
+          "heading": "roots",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "packages",
+          "level": 1,
+          "line": 5
+        },
+        {
+          "heading": "configVersion",
+          "level": 1,
+          "line": 13
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 3
+      }
+    },
+    {
+      "path": ".dart_tool/version",
+      "language": "unknown",
+      "fileCategory": "code",
+      "totalLines": 1,
+      "nonEmptyLines": 1,
+      "metrics": {}
+    },
+    {
+      "path": ".understand-anything/.understandignore",
+      "language": "unknown",
+      "fileCategory": "code",
+      "totalLines": 12,
+      "nonEmptyLines": 8,
+      "metrics": {}
+    },
+    {
+      "path": ".understand-anything/intermediate/scan-partial.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 1133,
+      "nonEmptyLines": 1133,
+      "sections": [
+        {
+          "heading": "scriptCompleted",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "files",
+          "level": 1,
+          "line": 3
+        },
+        {
+          "heading": "totalFiles",
+          "level": 1,
+          "line": 1115
+        },
+        {
+          "heading": "filteredByIgnore",
+          "level": 1,
+          "line": 1116
+        },
+        {
+          "heading": "estimatedComplexity",
+          "level": 1,
+          "line": 1117
+        },
+        {
+          "heading": "stats",
+          "level": 1,
+          "line": 1118
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 6
+      }
+    },
+    {
+      "path": "AGENTS.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 28,
+      "nonEmptyLines": 27,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 0
+      }
+    },
+    {
+      "path": "core/.metadata",
+      "language": "unknown",
+      "fileCategory": "code",
+      "totalLines": 10,
+      "nonEmptyLines": 8,
+      "metrics": {}
+    },
+    {
+      "path": "core/config/sync_configuration.defaults.yaml",
+      "language": "yaml",
+      "fileCategory": "config",
+      "totalLines": 14,
+      "nonEmptyLines": 11,
+      "sections": [
+        {
+          "heading": "sync",
+          "level": 1,
+          "line": 1
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 1
+      }
+    },
+    {
+      "path": "core/lib/configuration/sync_configuration_manager.dart",
+      "language": "dart",
+      "fileCategory": "code",
+      "totalLines": 653,
+      "nonEmptyLines": 582,
+      "metrics": {}
+    },
+    {
+      "path": "core/lib/configuration/yaml_file_loader.dart",
+      "language": "dart",
+      "fileCategory": "code",
+      "totalLines": 55,
+      "nonEmptyLines": 44,
+      "metrics": {}
+    },
+    {
+      "path": "core/lib/core/connection_factory.dart",
+      "language": "dart",
+      "fileCategory": "code",
+      "totalLines": 68,
+      "nonEmptyLines": 61,
+      "metrics": {}
+    },
+    {
+      "path": "core/lib/core/omni_coordinator.dart",
+      "language": "dart",
+      "fileCategory": "code",
+      "totalLines": 82,
+      "nonEmptyLines": 74,
+      "metrics": {}
+    },
+    {
+      "path": "core/lib/core/schema_registry.dart",
+      "language": "dart",
+      "fileCategory": "code",
+      "totalLines": 48,
+      "nonEmptyLines": 40,
+      "metrics": {}
+    },
+    {
+      "path": "core/lib/core/sync_coordinator.dart",
+      "language": "dart",
+      "fileCategory": "code",
+      "totalLines": 471,
+      "nonEmptyLines": 426,
+      "metrics": {}
+    },
+    {
+      "path": "core/lib/core/version_guard.dart",
+      "language": "dart",
+      "fileCategory": "code",
+      "totalLines": 51,
+      "nonEmptyLines": 47,
+      "metrics": {}
+    },
+    {
+      "path": "core/lib/datasource/loca_binary/color.pb.dart",
+      "language": "dart",
+      "fileCategory": "code",
+      "totalLines": 184,
+      "nonEmptyLines": 157,
+      "metrics": {}
+    },
+    {
+      "path": "core/lib/datasource/loca_binary/country.pb.dart",
+      "language": "dart",
+      "fileCategory": "code",
+      "totalLines": 704,
+      "nonEmptyLines": 622,
+      "metrics": {}
+    },
+    {
+      "path": "core/lib/datasource/loca_binary/world_country_repository.dart",
+      "language": "dart",
+      "fileCategory": "code",
+      "totalLines": 93,
+      "nonEmptyLines": 81,
+      "metrics": {}
+    },
+    {
+      "path": "core/lib/datasource/local/regions.dart",
+      "language": "dart",
+      "fileCategory": "code",
+      "totalLines": 49,
+      "nonEmptyLines": 42,
+      "metrics": {}
+    },
+    {
+      "path": "core/lib/divination_case/synced_divination_case_repository.dart",
+      "language": "dart",
+      "fileCategory": "code",
+      "totalLines": 103,
+      "nonEmptyLines": 81,
+      "metrics": {}
+    },
+    {
+      "path": "core/lib/four_zhu_card_templates/layout_template_local_data_source.dart",
+      "language": "dart",
+      "fileCategory": "code",
+      "totalLines": 550,
+      "nonEmptyLines": 496,
+      "metrics": {}
+    },
+    {
+      "path": "core/lib/four_zhu_card_templates/layout_template_repository_impl.dart",
+      "language": "dart",
+      "fileCategory": "code",
+      "totalLines": 70,
+      "nonEmptyLines": 60,
+      "metrics": {}
+    },
+    {
+      "path": "core/lib/ipc/anon_identity_local.dart",
+      "language": "dart",
+      "fileCategory": "code",
+      "totalLines": 42,
+      "nonEmptyLines": 37,
+      "metrics": {}
+    },
+    {
+      "path": "core/lib/ipc/anon_identity_provider.dart",
+      "language": "dart",
+      "fileCategory": "code",
+      "totalLines": 19,
+      "nonEmptyLines": 17,
+      "metrics": {}
+    },
+    {
+      "path": "core/lib/logging/sync_logger.dart",
+      "language": "dart",
+      "fileCategory": "code",
+      "totalLines": 224,
+      "nonEmptyLines": 191,
+      "metrics": {}
+    }
+  ]
+}

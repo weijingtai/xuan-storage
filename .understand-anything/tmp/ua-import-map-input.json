@@ -1,0 +1,1115 @@
+{
+  "projectRoot": "/Users/jingtaiwei/Git/Public/xuan-migration/xuan-storage",
+  "files": [
+    {
+      "path": ".dart_tool/package_config.json",
+      "language": "json",
+      "sizeLines": 16,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".dart_tool/package_graph.json",
+      "language": "json",
+      "sizeLines": 13,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".dart_tool/version",
+      "language": "unknown",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".understand-anything/.understandignore",
+      "language": "unknown",
+      "sizeLines": 12,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".understand-anything/fingerprints.json",
+      "language": "json",
+      "sizeLines": 336,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".understand-anything/knowledge-graph.json",
+      "language": "json",
+      "sizeLines": 2566,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".understand-anything/meta.json",
+      "language": "json",
+      "sizeLines": 5,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".understand-anything/tmp/ua-import-map-input.json",
+      "language": "json",
+      "sizeLines": 186,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".understand-anything/tmp/ua-import-map-output.json",
+      "language": "json",
+      "sizeLines": 191,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".understand-anything/tmp/ua-scan-files.json",
+      "language": "json",
+      "sizeLines": 1114,
+      "fileCategory": "config"
+    },
+    {
+      "path": "AGENTS.md",
+      "language": "markdown",
+      "sizeLines": 27,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "core/.metadata",
+      "language": "unknown",
+      "sizeLines": 10,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/analysis_options.yaml",
+      "language": "yaml",
+      "sizeLines": 1,
+      "fileCategory": "config"
+    },
+    {
+      "path": "core/CHANGELOG.md",
+      "language": "markdown",
+      "sizeLines": 3,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "core/config/sync_configuration.defaults.yaml",
+      "language": "yaml",
+      "sizeLines": 14,
+      "fileCategory": "config"
+    },
+    {
+      "path": "core/lib/configuration/sync_configuration_manager.dart",
+      "language": "dart",
+      "sizeLines": 653,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/configuration/yaml_file_loader.dart",
+      "language": "dart",
+      "sizeLines": 55,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/core/connection_factory.dart",
+      "language": "dart",
+      "sizeLines": 68,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/core/omni_coordinator.dart",
+      "language": "dart",
+      "sizeLines": 82,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/core/schema_registry.dart",
+      "language": "dart",
+      "sizeLines": 48,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/core/sync_coordinator.dart",
+      "language": "dart",
+      "sizeLines": 471,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/core/version_guard.dart",
+      "language": "dart",
+      "sizeLines": 51,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/datasource/loca_binary/color.pb.dart",
+      "language": "dart",
+      "sizeLines": 184,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/datasource/loca_binary/country.pb.dart",
+      "language": "dart",
+      "sizeLines": 704,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/datasource/loca_binary/world_country_repository.dart",
+      "language": "dart",
+      "sizeLines": 93,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/datasource/local/regions.dart",
+      "language": "dart",
+      "sizeLines": 49,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/divination_case/synced_divination_case_repository.dart",
+      "language": "dart",
+      "sizeLines": 103,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/four_zhu_card_templates/layout_template_local_data_source.dart",
+      "language": "dart",
+      "sizeLines": 550,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/four_zhu_card_templates/layout_template_repository_impl.dart",
+      "language": "dart",
+      "sizeLines": 70,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/ipc/anon_identity_local.dart",
+      "language": "dart",
+      "sizeLines": 42,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/ipc/anon_identity_provider.dart",
+      "language": "dart",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/logging/sync_logger.dart",
+      "language": "dart",
+      "sizeLines": 224,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/model/calculation_strategy_config_data_model.dart",
+      "language": "dart",
+      "sizeLines": 54,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/model/datetime_details_bundle_data_model.dart",
+      "language": "dart",
+      "sizeLines": 93,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/model/decision_link.dart",
+      "language": "dart",
+      "sizeLines": 41,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/model/lunar_date_info_v2_data_model.dart",
+      "language": "dart",
+      "sizeLines": 38,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/model/omni_entity.dart",
+      "language": "dart",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/model/omni_op.dart",
+      "language": "dart",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/model/ports.dart",
+      "language": "dart",
+      "sizeLines": 313,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/model/repository.dart",
+      "language": "dart",
+      "sizeLines": 45,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/model/storage_error.dart",
+      "language": "dart",
+      "sizeLines": 82,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/model/types.dart",
+      "language": "dart",
+      "sizeLines": 511,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/persistence_core.dart",
+      "language": "dart",
+      "sizeLines": 25,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/routing/region.dart",
+      "language": "dart",
+      "sizeLines": 9,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/routing/remote_gateway_router.dart",
+      "language": "dart",
+      "sizeLines": 51,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/store/datetime_details/jieqi_entry_strategy_store.dart",
+      "language": "dart",
+      "sizeLines": 44,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/store/datetime_details/jieqi_phenology_store.dart",
+      "language": "dart",
+      "sizeLines": 62,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/store/datetime_details/zi_strategy_store.dart",
+      "language": "dart",
+      "sizeLines": 55,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/sync/sync_runtime.dart",
+      "language": "dart",
+      "sizeLines": 769,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/lib/tag/tag_extractor_registry.dart",
+      "language": "dart",
+      "sizeLines": 27,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/pubspec.yaml",
+      "language": "yaml",
+      "sizeLines": 25,
+      "fileCategory": "config"
+    },
+    {
+      "path": "core/README.md",
+      "language": "markdown",
+      "sizeLines": 39,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "core/test/anon_identity_local_test.dart",
+      "language": "dart",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/test/connection_factory_test.dart",
+      "language": "dart",
+      "sizeLines": 57,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/test/connection_factory_wal_test.dart",
+      "language": "dart",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/test/decision_chain_test.dart",
+      "language": "dart",
+      "sizeLines": 60,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/test/federated_registration_test.dart",
+      "language": "dart",
+      "sizeLines": 42,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/test/omni_coordinator_test.dart",
+      "language": "dart",
+      "sizeLines": 112,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/test/persistence_core_test.dart",
+      "language": "dart",
+      "sizeLines": 591,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/test/remote_gateway_router_test.dart",
+      "language": "dart",
+      "sizeLines": 48,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/test/repository_contracts_test.dart",
+      "language": "dart",
+      "sizeLines": 64,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/test/shared_path_provider_test.dart",
+      "language": "dart",
+      "sizeLines": 53,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/test/storage_error_test.dart",
+      "language": "dart",
+      "sizeLines": 121,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/test/synced_divination_case_repository_test.dart",
+      "language": "dart",
+      "sizeLines": 63,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/test/tag_extractor_registry_test.dart",
+      "language": "dart",
+      "sizeLines": 60,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/test/version_guard_test.dart",
+      "language": "dart",
+      "sizeLines": 44,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/.metadata",
+      "language": "unknown",
+      "sizeLines": 10,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/analysis_options.yaml",
+      "language": "yaml",
+      "sizeLines": 4,
+      "fileCategory": "config"
+    },
+    {
+      "path": "drift/CHANGELOG.md",
+      "language": "markdown",
+      "sizeLines": 3,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "drift/lib/converters/.gitkeep",
+      "language": "unknown",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/converters/coordinates_converter.dart",
+      "language": "dart",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/converters/divination_datetime_model_converter.dart",
+      "language": "dart",
+      "sizeLines": 22,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/converters/gan_zhi_converter.dart",
+      "language": "dart",
+      "sizeLines": 13,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/converters/jie_qi_info_converter.dart",
+      "language": "dart",
+      "sizeLines": 26,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/converters/location_converter.dart",
+      "language": "dart",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/converters/nullable_location_converter.dart",
+      "language": "dart",
+      "sizeLines": 32,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/.gitkeep",
+      "language": "unknown",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/combined_divinations_dao.dart",
+      "language": "dart",
+      "sizeLines": 38,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/combined_divinations_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 26,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/da_yun_records_dao.dart",
+      "language": "dart",
+      "sizeLines": 21,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/da_yun_records_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/decision_links_dao.dart",
+      "language": "dart",
+      "sizeLines": 25,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/decision_links_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/divination_calendars_dao.dart",
+      "language": "dart",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/divination_panel_mappers_dao.dart",
+      "language": "dart",
+      "sizeLines": 57,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/divination_panel_mappers_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/divination_sub_divination_type_mappers_dao.dart",
+      "language": "dart",
+      "sizeLines": 60,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/divination_sub_divination_type_mappers_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 31,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/divination_tags_dao.dart",
+      "language": "dart",
+      "sizeLines": 35,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/divination_tags_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/divination_types_dao.dart",
+      "language": "dart",
+      "sizeLines": 46,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/divination_types_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/divinations_dao.dart",
+      "language": "dart",
+      "sizeLines": 38,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/divinations_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/panel_skill_class_mappers_dao.dart",
+      "language": "dart",
+      "sizeLines": 57,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/panel_skill_class_mappers_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/panels_dao.dart",
+      "language": "dart",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/panels_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/seeker_divination_mappers_dao.dart",
+      "language": "dart",
+      "sizeLines": 49,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/seeker_divination_mappers_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 26,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/seekers_dao.dart",
+      "language": "dart",
+      "sizeLines": 44,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/seekers_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/skill_classes_dao.dart",
+      "language": "dart",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/skills_dao.dart",
+      "language": "dart",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/tai_yuan_records_dao.dart",
+      "language": "dart",
+      "sizeLines": 22,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/tai_yuan_records_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/timing_divinations_dao.dart",
+      "language": "dart",
+      "sizeLines": 39,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/daos/timing_divinations_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/divination_case/case_participants_table.dart",
+      "language": "dart",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/divination_case/divination_cases_table.dart",
+      "language": "dart",
+      "sizeLines": 18,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/divination_case/divination_work_items_table.dart",
+      "language": "dart",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/divination_case/drift_divination_case_repository.dart",
+      "language": "dart",
+      "sizeLines": 249,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/divination_case/panel_refs_table.dart",
+      "language": "dart",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/divination_case/work_item_panel_refs_table.dart",
+      "language": "dart",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/app_database.dart",
+      "language": "dart",
+      "sizeLines": 198,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/app_database.g.dart",
+      "language": "dart",
+      "sizeLines": 4212,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/connection.dart",
+      "language": "dart",
+      "sizeLines": 3,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/daos/card_template_meta_dao.dart",
+      "language": "dart",
+      "sizeLines": 50,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/daos/card_template_meta_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 18,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/daos/card_template_setting_dao.dart",
+      "language": "dart",
+      "sizeLines": 72,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/daos/card_template_setting_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/daos/card_template_skill_usage_dao.dart",
+      "language": "dart",
+      "sizeLines": 80,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/daos/card_template_skill_usage_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/daos/layout_templates_dao.dart",
+      "language": "dart",
+      "sizeLines": 115,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/daos/layout_templates_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/daos/market_template_installs_dao.dart",
+      "language": "dart",
+      "sizeLines": 77,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/daos/market_template_installs_dao.g.dart",
+      "language": "dart",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/four_zhu_tables.dart",
+      "language": "dart",
+      "sizeLines": 169,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/layout_template_local_data_source.dart",
+      "language": "dart",
+      "sizeLines": 550,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/layout_template_repository_impl.dart",
+      "language": "dart",
+      "sizeLines": 70,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/models/card_template_setting_dto.dart",
+      "language": "dart",
+      "sizeLines": 65,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/models/layout_template_dto.dart",
+      "language": "dart",
+      "sizeLines": 36,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/models/layout_template.dart",
+      "language": "dart",
+      "sizeLines": 572,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/templates/internal/four_zhu_const_resources_mapper.dart",
+      "language": "dart",
+      "sizeLines": 32,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/four_zhu_card_templates/unsupported.dart",
+      "language": "dart",
+      "sizeLines": 13,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/persistence_drift.dart",
+      "language": "dart",
+      "sizeLines": 1021,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/persistence_drift.g.dart",
+      "language": "dart",
+      "sizeLines": 17462,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/repositories/.gitkeep",
+      "language": "unknown",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/repositories/da_yun_record_repository.dart",
+      "language": "dart",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/repositories/divination_calendar_repository.dart",
+      "language": "dart",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/repositories/tai_yuan_record_repository.dart",
+      "language": "dart",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/seed/divination_types_seed.dart",
+      "language": "dart",
+      "sizeLines": 21,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/sync/.gitkeep",
+      "language": "unknown",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/sync/drift_sync_state_store.dart",
+      "language": "dart",
+      "sizeLines": 8,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/tables/.gitkeep",
+      "language": "unknown",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/tables/auto_incrementing_primary_key.dart",
+      "language": "dart",
+      "sizeLines": 4,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/tables/combined_divinations_table.dart",
+      "language": "dart",
+      "sizeLines": 21,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/tables/da_yun_records_table.dart",
+      "language": "dart",
+      "sizeLines": 18,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/tables/decision_links_table.dart",
+      "language": "dart",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/tables/divination_calendars_table.dart",
+      "language": "dart",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/tables/divination_panel_mappers_table.dart",
+      "language": "dart",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/tables/divination_sub_divination_type_mappers_table.dart",
+      "language": "dart",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/tables/divination_tags_table.dart",
+      "language": "dart",
+      "sizeLines": 25,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/tables/divination_types_table.dart",
+      "language": "dart",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/tables/divinations_table.dart",
+      "language": "dart",
+      "sizeLines": 38,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/tables/panel_skill_class_mappers_table.dart",
+      "language": "dart",
+      "sizeLines": 13,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/tables/panels_table.dart",
+      "language": "dart",
+      "sizeLines": 24,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/tables/seeker_divination_mappers_table.dart",
+      "language": "dart",
+      "sizeLines": 21,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/tables/seekers_table.dart",
+      "language": "dart",
+      "sizeLines": 64,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/tables/skill_classes_table.dart",
+      "language": "dart",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/tables/skills_table.dart",
+      "language": "dart",
+      "sizeLines": 14,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/tables/sub_divination_types_table.dart",
+      "language": "dart",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/tables/tables.dart",
+      "language": "dart",
+      "sizeLines": 7,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/tables/tai_yuan_records_table.dart",
+      "language": "dart",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/lib/tables/timing_divinations_table.dart",
+      "language": "dart",
+      "sizeLines": 62,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/pubspec.yaml",
+      "language": "yaml",
+      "sizeLines": 83,
+      "fileCategory": "config"
+    },
+    {
+      "path": "drift/README.md",
+      "language": "markdown",
+      "sizeLines": 39,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "drift/test/decision_links_dao_test.dart",
+      "language": "dart",
+      "sizeLines": 50,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/test/divination_tags_dao_test.dart",
+      "language": "dart",
+      "sizeLines": 50,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/test/drift_sync_state_store_test.dart",
+      "language": "dart",
+      "sizeLines": 215,
+      "fileCategory": "code"
+    },
+    {
+      "path": "drift/test/persistence_drift_test.dart",
+      "language": "dart",
+      "sizeLines": 182,
+      "fileCategory": "code"
+    },
+    {
+      "path": "firebase/.metadata",
+      "language": "unknown",
+      "sizeLines": 10,
+      "fileCategory": "code"
+    },
+    {
+      "path": "firebase/analysis_options.yaml",
+      "language": "yaml",
+      "sizeLines": 4,
+      "fileCategory": "config"
+    },
+    {
+      "path": "firebase/CHANGELOG.md",
+      "language": "markdown",
+      "sizeLines": 3,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "firebase/lib/divination_case/firebase_divination_case_repository.dart",
+      "language": "dart",
+      "sizeLines": 129,
+      "fileCategory": "code"
+    },
+    {
+      "path": "firebase/lib/firebase_realtime_remote_gateway.dart",
+      "language": "dart",
+      "sizeLines": 952,
+      "fileCategory": "code"
+    },
+    {
+      "path": "firebase/lib/persistence_firebase.dart",
+      "language": "dart",
+      "sizeLines": 942,
+      "fileCategory": "code"
+    },
+    {
+      "path": "firebase/pubspec.yaml",
+      "language": "yaml",
+      "sizeLines": 64,
+      "fileCategory": "config"
+    },
+    {
+      "path": "firebase/README.md",
+      "language": "markdown",
+      "sizeLines": 39,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "firebase/test/fake_persistence_test.dart",
+      "language": "dart",
+      "sizeLines": 464,
+      "fileCategory": "code"
+    },
+    {
+      "path": "firebase/test/persistence_firebase_test.dart",
+      "language": "dart",
+      "sizeLines": 9,
+      "fileCategory": "code"
+    },
+    {
+      "path": "pubspec.yaml",
+      "language": "yaml",
+      "sizeLines": 7,
+      "fileCategory": "config"
+    },
+    {
+      "path": "supabase/lib/persistence_supabase.dart",
+      "language": "dart",
+      "sizeLines": 7,
+      "fileCategory": "code"
+    },
+    {
+      "path": "supabase/pubspec.yaml",
+      "language": "yaml",
+      "sizeLines": 22,
+      "fileCategory": "config"
+    },
+    {
+      "path": "supabase/README.md",
+      "language": "markdown",
+      "sizeLines": 11,
+      "fileCategory": "docs"
+    }
+  ]
+}
