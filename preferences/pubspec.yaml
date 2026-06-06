@@ -1,0 +1,19 @@
+name: persistence_preferences
+description: Account session and preference persistence via SharedPreferences.
+publish_to: none
+
+environment:
+  sdk: ">=3.8.0 <4.0.0"
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  repository_interface_account:
+    path: ../../repository-interface-account
+  shared_preferences: ^2.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
