@@ -14,6 +14,10 @@ dependencies:
     path: ../core
   repository_interface_qimendunjia:
     path: ../../repository-interface-qimendunjia
+  repository_interface_tiebanshenshu:
+    path: ../../repository-interface-tiebanshenshu
+  metaphysics_core:
+    path: ../../xuan-metaphysics-core
 
 dev_dependencies:
   flutter_test:
