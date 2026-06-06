@@ -12,6 +12,8 @@ dependencies:
     sdk: flutter
   persistence_core:
     path: ../core
+  repository_interface_qimendunjia:
+    path: ../../repository-interface-qimendunjia
 
 dev_dependencies:
   flutter_test:
