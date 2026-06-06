@@ -12,6 +12,8 @@ dependencies:
   repository_interface_account:
     path: ../../repository-interface-account
   shared_preferences: ^2.3.2
+  repository_interface_meihuayishu:
+    path: ../../repository-interface-meihuayishu
 
 dev_dependencies:
   flutter_test:

@@ -3,3 +3,4 @@ library persistence_preferences;
 
 export 'src/account/preferences_account_session_repository.dart';
 export 'src/account/preferences_account_preference_repository.dart';
+export 'meihuayishu/shared_preferences_meihua_preference_repository.dart';
