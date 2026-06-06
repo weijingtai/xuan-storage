@@ -1,0 +1,21 @@
+name: persistence_assets
+description: Asset/JSON adapters for persistence_core (official immutable resources).
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: '>=3.0.2 <4.0.0'
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  persistence_core:
+    path: ../core
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
