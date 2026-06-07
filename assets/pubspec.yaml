@@ -18,10 +18,18 @@ dependencies:
     path: ../../repository-interface-tiebanshenshu
   metaphysics_core:
     path: ../../xuan-metaphysics-core
+  repository_interface_taiyishenshu:
+    path: ../../repository-interface-taiyishenshu
+  taiyishenshu:
+    path: ../../xuan-taiyishenshu
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+
+dependency_overrides:
+  persistence_core:
+    path: ../core
 
 flutter:

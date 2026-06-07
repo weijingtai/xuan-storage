@@ -1,10 +1,6 @@
 import 'package:repository_interface_taiyishenshu/repository_interface_taiyishenshu.dart';
 import 'package:taiyishenshu/taiyi/taiyi.dart'
-    show TaiYiSchool, DeityDefinition, SchoolEpochConfig, DeityAlgorithmSpec;
-import 'package:taiyishenshu/taiyi/core/algorithm_enums.dart';
-import 'package:taiyishenshu/taiyi/core/chart_config.dart';
-import 'package:taiyishenshu/taiyi/core/deity_override.dart';
-import 'package:taiyishenshu/enums/deity_kind.dart';
+    show TaiYiSchool, DeityDefinition, SchoolEpochConfig;
 
 // ---------------------------------------------------------------------------
 // TaiYiSchool → TaiYiSchoolContract (read-only assets side)
