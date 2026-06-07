@@ -1,4 +1,5 @@
 import 'package:repository_interface_ai/repository_interface_ai.dart';
+import 'package:drift/drift.dart';
 
 import '../ai_database.dart';
 
