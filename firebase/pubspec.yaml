@@ -11,7 +11,9 @@ dependencies:
   flutter:
     sdk: flutter
   cloud_firestore: ^6.1.2
+  firebase_auth: ^6.1.4
   firebase_database: ^12.1.2
+  uuid: 4.5.2
   persistence_core:
     git:
       url: http://xuan:***@192.168.0.165:3000/xuan/xuan-storage.git
@@ -19,11 +21,15 @@ dependencies:
       path: core
   divination_case:
     path: ../../xuan-divination-case
+  repository_interface_account:
+    path: ../../repository-interface-account
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   fake_cloud_firestore: any
+  firebase_auth_mocks: any
+  mock_exceptions: any
   flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
