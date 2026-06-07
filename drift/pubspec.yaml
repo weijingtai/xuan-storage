@@ -39,6 +39,10 @@ dependencies:
     path: ../../repository-interface-account
   repository_interface_ai:
     path: ../../repository-interface-ai
+  repository_interface_taiyishenshu:
+    path: ../../repository-interface-taiyishenshu
+  taiyishenshu:
+    path: ../../xuan-taiyishenshu
 
 dev_dependencies:
   flutter_test:
