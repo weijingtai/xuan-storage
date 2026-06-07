@@ -18,8 +18,10 @@ class DivinationTags extends Table {
   @override
   String? get tableName => 't_divination_tags';
 
-  @override
-  List<String> get customConstraints => [
-        'INDEX idx_tags_lookup (domain, tag_key, tag_value)',
+  List<Index> get indexes => [
+        Index(
+          'idx_tags_lookup',
+          'CREATE INDEX idx_tags_lookup ON t_divination_tags (domain, tag_key, tag_value);',
+        ),
       ];
 }
