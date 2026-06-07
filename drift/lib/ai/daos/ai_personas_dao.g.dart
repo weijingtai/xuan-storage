@@ -20,9 +20,7 @@ class AiPersonasDaoManager {
       $$LlmModelsTableTableManager(_db.attachedDatabase, _db.llmModels);
   $$PromptTemplatesTableTableManager get promptTemplates =>
       $$PromptTemplatesTableTableManager(
-        _db.attachedDatabase,
-        _db.promptTemplates,
-      );
+          _db.attachedDatabase, _db.promptTemplates);
   $$AiPersonasTableTableManager get aiPersonas =>
       $$AiPersonasTableTableManager(_db.attachedDatabase, _db.aiPersonas);
 }

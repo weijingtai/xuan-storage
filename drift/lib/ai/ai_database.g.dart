@@ -12,224 +12,151 @@ class $LlmProvidersTable extends LlmProviders
   static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
   @override
   late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
-    'uuid',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 36,
-      maxTextLength: 36,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
+      'uuid', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 36, maxTextLength: 36),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
   @override
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _lastUpdatedAtMeta = const VerificationMeta(
-    'lastUpdatedAt',
-  );
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _lastUpdatedAtMeta =
+      const VerificationMeta('lastUpdatedAt');
   @override
   late final GeneratedColumn<DateTime> lastUpdatedAt =
-      GeneratedColumn<DateTime>(
-        'last_updated_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
-    'deletedAt',
-  );
+      GeneratedColumn<DateTime>('last_updated_at', aliasedName, true,
+          type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
   @override
   late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
-    'deleted_at',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
-    'name',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 1,
-      maxTextLength: 100,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _baseUrlMeta = const VerificationMeta(
-    'baseUrl',
-  );
+      'name', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 100),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _baseUrlMeta =
+      const VerificationMeta('baseUrl');
   @override
   late final GeneratedColumn<String> baseUrl = GeneratedColumn<String>(
-    'base_url',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _encryptedApiKeyMeta = const VerificationMeta(
-    'encryptedApiKey',
-  );
+      'base_url', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _encryptedApiKeyMeta =
+      const VerificationMeta('encryptedApiKey');
   @override
   late final GeneratedColumn<String> encryptedApiKey = GeneratedColumn<String>(
-    'encrypted_api_key',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _isDefaultMeta = const VerificationMeta(
-    'isDefault',
-  );
+      'encrypted_api_key', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _isDefaultMeta =
+      const VerificationMeta('isDefault');
   @override
   late final GeneratedColumn<bool> isDefault = GeneratedColumn<bool>(
-    'is_default',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_default" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
-  static const VerificationMeta _isEnabledMeta = const VerificationMeta(
-    'isEnabled',
-  );
+      'is_default', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_default" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _isEnabledMeta =
+      const VerificationMeta('isEnabled');
   @override
   late final GeneratedColumn<bool> isEnabled = GeneratedColumn<bool>(
-    'is_enabled',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_enabled" IN (0, 1))',
-    ),
-    defaultValue: const Constant(true),
-  );
-  static const VerificationMeta _configJsonMeta = const VerificationMeta(
-    'configJson',
-  );
+      'is_enabled', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_enabled" IN (0, 1))'),
+      defaultValue: const Constant(true));
+  static const VerificationMeta _configJsonMeta =
+      const VerificationMeta('configJson');
   @override
   late final GeneratedColumn<String> configJson = GeneratedColumn<String>(
-    'config_json',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
+      'config_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
-    uuid,
-    createdAt,
-    lastUpdatedAt,
-    deletedAt,
-    name,
-    baseUrl,
-    encryptedApiKey,
-    isDefault,
-    isEnabled,
-    configJson,
-  ];
+        uuid,
+        createdAt,
+        lastUpdatedAt,
+        deletedAt,
+        name,
+        baseUrl,
+        encryptedApiKey,
+        isDefault,
+        isEnabled,
+        configJson
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 't_llm_providers';
   @override
-  VerificationContext validateIntegrity(
-    Insertable<LlmProvider> instance, {
-    bool isInserting = false,
-  }) {
+  VerificationContext validateIntegrity(Insertable<LlmProvider> instance,
+      {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('uuid')) {
       context.handle(
-        _uuidMeta,
-        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
-      );
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
     } else if (isInserting) {
       context.missing(_uuidMeta);
     }
     if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
     if (data.containsKey('last_updated_at')) {
       context.handle(
-        _lastUpdatedAtMeta,
-        lastUpdatedAt.isAcceptableOrUnknown(
-          data['last_updated_at']!,
           _lastUpdatedAtMeta,
-        ),
-      );
+          lastUpdatedAt.isAcceptableOrUnknown(
+              data['last_updated_at']!, _lastUpdatedAtMeta));
     }
     if (data.containsKey('deleted_at')) {
-      context.handle(
-        _deletedAtMeta,
-        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
-      );
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
     }
     if (data.containsKey('name')) {
       context.handle(
-        _nameMeta,
-        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
-      );
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
     if (data.containsKey('base_url')) {
-      context.handle(
-        _baseUrlMeta,
-        baseUrl.isAcceptableOrUnknown(data['base_url']!, _baseUrlMeta),
-      );
+      context.handle(_baseUrlMeta,
+          baseUrl.isAcceptableOrUnknown(data['base_url']!, _baseUrlMeta));
     } else if (isInserting) {
       context.missing(_baseUrlMeta);
     }
     if (data.containsKey('encrypted_api_key')) {
       context.handle(
-        _encryptedApiKeyMeta,
-        encryptedApiKey.isAcceptableOrUnknown(
-          data['encrypted_api_key']!,
           _encryptedApiKeyMeta,
-        ),
-      );
+          encryptedApiKey.isAcceptableOrUnknown(
+              data['encrypted_api_key']!, _encryptedApiKeyMeta));
     }
     if (data.containsKey('is_default')) {
-      context.handle(
-        _isDefaultMeta,
-        isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta),
-      );
+      context.handle(_isDefaultMeta,
+          isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta));
     }
     if (data.containsKey('is_enabled')) {
-      context.handle(
-        _isEnabledMeta,
-        isEnabled.isAcceptableOrUnknown(data['is_enabled']!, _isEnabledMeta),
-      );
+      context.handle(_isEnabledMeta,
+          isEnabled.isAcceptableOrUnknown(data['is_enabled']!, _isEnabledMeta));
     }
     if (data.containsKey('config_json')) {
       context.handle(
-        _configJsonMeta,
-        configJson.isAcceptableOrUnknown(data['config_json']!, _configJsonMeta),
-      );
+          _configJsonMeta,
+          configJson.isAcceptableOrUnknown(
+              data['config_json']!, _configJsonMeta));
     }
     return context;
   }
@@ -240,46 +167,26 @@ class $LlmProvidersTable extends LlmProviders
   LlmProvider map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return LlmProvider(
-      uuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}uuid'],
-      )!,
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
       lastUpdatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}last_updated_at'],
-      ),
-      deletedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}deleted_at'],
-      ),
-      name: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}name'],
-      )!,
-      baseUrl: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}base_url'],
-      )!,
+          DriftSqlType.dateTime, data['${effectivePrefix}last_updated_at']),
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      baseUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}base_url'])!,
       encryptedApiKey: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}encrypted_api_key'],
-      ),
-      isDefault: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_default'],
-      )!,
-      isEnabled: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_enabled'],
-      )!,
-      configJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}config_json'],
-      ),
+          DriftSqlType.string, data['${effectivePrefix}encrypted_api_key']),
+      isDefault: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_default'])!,
+      isEnabled: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_enabled'])!,
+      configJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}config_json']),
     );
   }
 
@@ -312,18 +219,17 @@ class LlmProvider extends DataClass implements Insertable<LlmProvider> {
 
   /// 额外配置 (JSON)
   final String? configJson;
-  const LlmProvider({
-    required this.uuid,
-    required this.createdAt,
-    this.lastUpdatedAt,
-    this.deletedAt,
-    required this.name,
-    required this.baseUrl,
-    this.encryptedApiKey,
-    required this.isDefault,
-    required this.isEnabled,
-    this.configJson,
-  });
+  const LlmProvider(
+      {required this.uuid,
+      required this.createdAt,
+      this.lastUpdatedAt,
+      this.deletedAt,
+      required this.name,
+      required this.baseUrl,
+      this.encryptedApiKey,
+      required this.isDefault,
+      required this.isEnabled,
+      this.configJson});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -371,10 +277,8 @@ class LlmProvider extends DataClass implements Insertable<LlmProvider> {
     );
   }
 
-  factory LlmProvider.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory LlmProvider.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return LlmProvider(
       uuid: serializer.fromJson<String>(json['uuid']),
@@ -406,33 +310,32 @@ class LlmProvider extends DataClass implements Insertable<LlmProvider> {
     };
   }
 
-  LlmProvider copyWith({
-    String? uuid,
-    DateTime? createdAt,
-    Value<DateTime?> lastUpdatedAt = const Value.absent(),
-    Value<DateTime?> deletedAt = const Value.absent(),
-    String? name,
-    String? baseUrl,
-    Value<String?> encryptedApiKey = const Value.absent(),
-    bool? isDefault,
-    bool? isEnabled,
-    Value<String?> configJson = const Value.absent(),
-  }) => LlmProvider(
-    uuid: uuid ?? this.uuid,
-    createdAt: createdAt ?? this.createdAt,
-    lastUpdatedAt: lastUpdatedAt.present
-        ? lastUpdatedAt.value
-        : this.lastUpdatedAt,
-    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
-    name: name ?? this.name,
-    baseUrl: baseUrl ?? this.baseUrl,
-    encryptedApiKey: encryptedApiKey.present
-        ? encryptedApiKey.value
-        : this.encryptedApiKey,
-    isDefault: isDefault ?? this.isDefault,
-    isEnabled: isEnabled ?? this.isEnabled,
-    configJson: configJson.present ? configJson.value : this.configJson,
-  );
+  LlmProvider copyWith(
+          {String? uuid,
+          DateTime? createdAt,
+          Value<DateTime?> lastUpdatedAt = const Value.absent(),
+          Value<DateTime?> deletedAt = const Value.absent(),
+          String? name,
+          String? baseUrl,
+          Value<String?> encryptedApiKey = const Value.absent(),
+          bool? isDefault,
+          bool? isEnabled,
+          Value<String?> configJson = const Value.absent()}) =>
+      LlmProvider(
+        uuid: uuid ?? this.uuid,
+        createdAt: createdAt ?? this.createdAt,
+        lastUpdatedAt:
+            lastUpdatedAt.present ? lastUpdatedAt.value : this.lastUpdatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        name: name ?? this.name,
+        baseUrl: baseUrl ?? this.baseUrl,
+        encryptedApiKey: encryptedApiKey.present
+            ? encryptedApiKey.value
+            : this.encryptedApiKey,
+        isDefault: isDefault ?? this.isDefault,
+        isEnabled: isEnabled ?? this.isEnabled,
+        configJson: configJson.present ? configJson.value : this.configJson,
+      );
   LlmProvider copyWithCompanion(LlmProvidersCompanion data) {
     return LlmProvider(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
@@ -448,9 +351,8 @@ class LlmProvider extends DataClass implements Insertable<LlmProvider> {
           : this.encryptedApiKey,
       isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
       isEnabled: data.isEnabled.present ? data.isEnabled.value : this.isEnabled,
-      configJson: data.configJson.present
-          ? data.configJson.value
-          : this.configJson,
+      configJson:
+          data.configJson.present ? data.configJson.value : this.configJson,
     );
   }
 
@@ -472,18 +374,8 @@ class LlmProvider extends DataClass implements Insertable<LlmProvider> {
   }
 
   @override
-  int get hashCode => Object.hash(
-    uuid,
-    createdAt,
-    lastUpdatedAt,
-    deletedAt,
-    name,
-    baseUrl,
-    encryptedApiKey,
-    isDefault,
-    isEnabled,
-    configJson,
-  );
+  int get hashCode => Object.hash(uuid, createdAt, lastUpdatedAt, deletedAt,
+      name, baseUrl, encryptedApiKey, isDefault, isEnabled, configJson);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -537,10 +429,10 @@ class LlmProvidersCompanion extends UpdateCompanion<LlmProvider> {
     this.isEnabled = const Value.absent(),
     this.configJson = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : uuid = Value(uuid),
-       createdAt = Value(createdAt),
-       name = Value(name),
-       baseUrl = Value(baseUrl);
+  })  : uuid = Value(uuid),
+        createdAt = Value(createdAt),
+        name = Value(name),
+        baseUrl = Value(baseUrl);
   static Insertable<LlmProvider> custom({
     Expression<String>? uuid,
     Expression<DateTime>? createdAt,
@@ -569,19 +461,18 @@ class LlmProvidersCompanion extends UpdateCompanion<LlmProvider> {
     });
   }
 
-  LlmProvidersCompanion copyWith({
-    Value<String>? uuid,
-    Value<DateTime>? createdAt,
-    Value<DateTime?>? lastUpdatedAt,
-    Value<DateTime?>? deletedAt,
-    Value<String>? name,
-    Value<String>? baseUrl,
-    Value<String?>? encryptedApiKey,
-    Value<bool>? isDefault,
-    Value<bool>? isEnabled,
-    Value<String?>? configJson,
-    Value<int>? rowid,
-  }) {
+  LlmProvidersCompanion copyWith(
+      {Value<String>? uuid,
+      Value<DateTime>? createdAt,
+      Value<DateTime?>? lastUpdatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<String>? name,
+      Value<String>? baseUrl,
+      Value<String?>? encryptedApiKey,
+      Value<bool>? isDefault,
+      Value<bool>? isEnabled,
+      Value<String?>? configJson,
+      Value<int>? rowid}) {
     return LlmProvidersCompanion(
       uuid: uuid ?? this.uuid,
       createdAt: createdAt ?? this.createdAt,
@@ -664,356 +555,243 @@ class $LlmModelsTable extends LlmModels
   static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
   @override
   late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
-    'uuid',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 36,
-      maxTextLength: 36,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
+      'uuid', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 36, maxTextLength: 36),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
   @override
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _lastUpdatedAtMeta = const VerificationMeta(
-    'lastUpdatedAt',
-  );
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _lastUpdatedAtMeta =
+      const VerificationMeta('lastUpdatedAt');
   @override
   late final GeneratedColumn<DateTime> lastUpdatedAt =
-      GeneratedColumn<DateTime>(
-        'last_updated_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
-    'deletedAt',
-  );
+      GeneratedColumn<DateTime>('last_updated_at', aliasedName, true,
+          type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
   @override
   late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
-    'deleted_at',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _providerUuidMeta = const VerificationMeta(
-    'providerUuid',
-  );
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _providerUuidMeta =
+      const VerificationMeta('providerUuid');
   @override
   late final GeneratedColumn<String> providerUuid = GeneratedColumn<String>(
-    'provider_uuid',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_llm_providers (uuid)',
-    ),
-  );
-  static const VerificationMeta _modelIdMeta = const VerificationMeta(
-    'modelId',
-  );
+      'provider_uuid', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES t_llm_providers (uuid)'));
+  static const VerificationMeta _modelIdMeta =
+      const VerificationMeta('modelId');
   @override
   late final GeneratedColumn<String> modelId = GeneratedColumn<String>(
-    'model_id',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 1,
-      maxTextLength: 100,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _displayNameMeta = const VerificationMeta(
-    'displayName',
-  );
+      'model_id', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 100),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _displayNameMeta =
+      const VerificationMeta('displayName');
   @override
   late final GeneratedColumn<String> displayName = GeneratedColumn<String>(
-    'display_name',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 1,
-      maxTextLength: 200,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _modelTypeMeta = const VerificationMeta(
-    'modelType',
-  );
+      'display_name', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 200),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _modelTypeMeta =
+      const VerificationMeta('modelType');
   @override
   late final GeneratedColumn<String> modelType = GeneratedColumn<String>(
-    'model_type',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 1,
-      maxTextLength: 50,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _maxContextLengthMeta = const VerificationMeta(
-    'maxContextLength',
-  );
+      'model_type', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 50),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _maxContextLengthMeta =
+      const VerificationMeta('maxContextLength');
   @override
   late final GeneratedColumn<int> maxContextLength = GeneratedColumn<int>(
-    'max_context_length',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(4096),
-  );
-  static const VerificationMeta _maxOutputTokensMeta = const VerificationMeta(
-    'maxOutputTokens',
-  );
+      'max_context_length', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(4096));
+  static const VerificationMeta _maxOutputTokensMeta =
+      const VerificationMeta('maxOutputTokens');
   @override
   late final GeneratedColumn<int> maxOutputTokens = GeneratedColumn<int>(
-    'max_output_tokens',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(4096),
-  );
-  static const VerificationMeta _supportsStreamingMeta = const VerificationMeta(
-    'supportsStreaming',
-  );
+      'max_output_tokens', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(4096));
+  static const VerificationMeta _supportsStreamingMeta =
+      const VerificationMeta('supportsStreaming');
   @override
   late final GeneratedColumn<bool> supportsStreaming = GeneratedColumn<bool>(
-    'supports_streaming',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("supports_streaming" IN (0, 1))',
-    ),
-    defaultValue: const Constant(true),
-  );
+      'supports_streaming', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("supports_streaming" IN (0, 1))'),
+      defaultValue: const Constant(true));
   static const VerificationMeta _supportsFunctionCallingMeta =
       const VerificationMeta('supportsFunctionCalling');
   @override
   late final GeneratedColumn<bool> supportsFunctionCalling =
-      GeneratedColumn<bool>(
-        'supports_function_calling',
-        aliasedName,
-        false,
-        type: DriftSqlType.bool,
-        requiredDuringInsert: false,
-        defaultConstraints: GeneratedColumn.constraintIsAlways(
-          'CHECK ("supports_function_calling" IN (0, 1))',
-        ),
-        defaultValue: const Constant(false),
-      );
-  static const VerificationMeta _isDefaultMeta = const VerificationMeta(
-    'isDefault',
-  );
+      GeneratedColumn<bool>('supports_function_calling', aliasedName, false,
+          type: DriftSqlType.bool,
+          requiredDuringInsert: false,
+          defaultConstraints: GeneratedColumn.constraintIsAlways(
+              'CHECK ("supports_function_calling" IN (0, 1))'),
+          defaultValue: const Constant(false));
+  static const VerificationMeta _isDefaultMeta =
+      const VerificationMeta('isDefault');
   @override
   late final GeneratedColumn<bool> isDefault = GeneratedColumn<bool>(
-    'is_default',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_default" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
-  static const VerificationMeta _isEnabledMeta = const VerificationMeta(
-    'isEnabled',
-  );
+      'is_default', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_default" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _isEnabledMeta =
+      const VerificationMeta('isEnabled');
   @override
   late final GeneratedColumn<bool> isEnabled = GeneratedColumn<bool>(
-    'is_enabled',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_enabled" IN (0, 1))',
-    ),
-    defaultValue: const Constant(true),
-  );
-  static const VerificationMeta _configJsonMeta = const VerificationMeta(
-    'configJson',
-  );
+      'is_enabled', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_enabled" IN (0, 1))'),
+      defaultValue: const Constant(true));
+  static const VerificationMeta _configJsonMeta =
+      const VerificationMeta('configJson');
   @override
   late final GeneratedColumn<String> configJson = GeneratedColumn<String>(
-    'config_json',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
+      'config_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
-    uuid,
-    createdAt,
-    lastUpdatedAt,
-    deletedAt,
-    providerUuid,
-    modelId,
-    displayName,
-    modelType,
-    maxContextLength,
-    maxOutputTokens,
-    supportsStreaming,
-    supportsFunctionCalling,
-    isDefault,
-    isEnabled,
-    configJson,
-  ];
+        uuid,
+        createdAt,
+        lastUpdatedAt,
+        deletedAt,
+        providerUuid,
+        modelId,
+        displayName,
+        modelType,
+        maxContextLength,
+        maxOutputTokens,
+        supportsStreaming,
+        supportsFunctionCalling,
+        isDefault,
+        isEnabled,
+        configJson
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 't_llm_models';
   @override
-  VerificationContext validateIntegrity(
-    Insertable<LlmModel> instance, {
-    bool isInserting = false,
-  }) {
+  VerificationContext validateIntegrity(Insertable<LlmModel> instance,
+      {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('uuid')) {
       context.handle(
-        _uuidMeta,
-        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
-      );
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
     } else if (isInserting) {
       context.missing(_uuidMeta);
     }
     if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
     if (data.containsKey('last_updated_at')) {
       context.handle(
-        _lastUpdatedAtMeta,
-        lastUpdatedAt.isAcceptableOrUnknown(
-          data['last_updated_at']!,
           _lastUpdatedAtMeta,
-        ),
-      );
+          lastUpdatedAt.isAcceptableOrUnknown(
+              data['last_updated_at']!, _lastUpdatedAtMeta));
     }
     if (data.containsKey('deleted_at')) {
-      context.handle(
-        _deletedAtMeta,
-        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
-      );
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
     }
     if (data.containsKey('provider_uuid')) {
       context.handle(
-        _providerUuidMeta,
-        providerUuid.isAcceptableOrUnknown(
-          data['provider_uuid']!,
           _providerUuidMeta,
-        ),
-      );
+          providerUuid.isAcceptableOrUnknown(
+              data['provider_uuid']!, _providerUuidMeta));
     } else if (isInserting) {
       context.missing(_providerUuidMeta);
     }
     if (data.containsKey('model_id')) {
-      context.handle(
-        _modelIdMeta,
-        modelId.isAcceptableOrUnknown(data['model_id']!, _modelIdMeta),
-      );
+      context.handle(_modelIdMeta,
+          modelId.isAcceptableOrUnknown(data['model_id']!, _modelIdMeta));
     } else if (isInserting) {
       context.missing(_modelIdMeta);
     }
     if (data.containsKey('display_name')) {
       context.handle(
-        _displayNameMeta,
-        displayName.isAcceptableOrUnknown(
-          data['display_name']!,
           _displayNameMeta,
-        ),
-      );
+          displayName.isAcceptableOrUnknown(
+              data['display_name']!, _displayNameMeta));
     } else if (isInserting) {
       context.missing(_displayNameMeta);
     }
     if (data.containsKey('model_type')) {
-      context.handle(
-        _modelTypeMeta,
-        modelType.isAcceptableOrUnknown(data['model_type']!, _modelTypeMeta),
-      );
+      context.handle(_modelTypeMeta,
+          modelType.isAcceptableOrUnknown(data['model_type']!, _modelTypeMeta));
     } else if (isInserting) {
       context.missing(_modelTypeMeta);
     }
     if (data.containsKey('max_context_length')) {
       context.handle(
-        _maxContextLengthMeta,
-        maxContextLength.isAcceptableOrUnknown(
-          data['max_context_length']!,
           _maxContextLengthMeta,
-        ),
-      );
+          maxContextLength.isAcceptableOrUnknown(
+              data['max_context_length']!, _maxContextLengthMeta));
     }
     if (data.containsKey('max_output_tokens')) {
       context.handle(
-        _maxOutputTokensMeta,
-        maxOutputTokens.isAcceptableOrUnknown(
-          data['max_output_tokens']!,
           _maxOutputTokensMeta,
-        ),
-      );
+          maxOutputTokens.isAcceptableOrUnknown(
+              data['max_output_tokens']!, _maxOutputTokensMeta));
     }
     if (data.containsKey('supports_streaming')) {
       context.handle(
-        _supportsStreamingMeta,
-        supportsStreaming.isAcceptableOrUnknown(
-          data['supports_streaming']!,
           _supportsStreamingMeta,
-        ),
-      );
+          supportsStreaming.isAcceptableOrUnknown(
+              data['supports_streaming']!, _supportsStreamingMeta));
     }
     if (data.containsKey('supports_function_calling')) {
       context.handle(
-        _supportsFunctionCallingMeta,
-        supportsFunctionCalling.isAcceptableOrUnknown(
-          data['supports_function_calling']!,
           _supportsFunctionCallingMeta,
-        ),
-      );
+          supportsFunctionCalling.isAcceptableOrUnknown(
+              data['supports_function_calling']!,
+              _supportsFunctionCallingMeta));
     }
     if (data.containsKey('is_default')) {
-      context.handle(
-        _isDefaultMeta,
-        isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta),
-      );
+      context.handle(_isDefaultMeta,
+          isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta));
     }
     if (data.containsKey('is_enabled')) {
-      context.handle(
-        _isEnabledMeta,
-        isEnabled.isAcceptableOrUnknown(data['is_enabled']!, _isEnabledMeta),
-      );
+      context.handle(_isEnabledMeta,
+          isEnabled.isAcceptableOrUnknown(data['is_enabled']!, _isEnabledMeta));
     }
     if (data.containsKey('config_json')) {
       context.handle(
-        _configJsonMeta,
-        configJson.isAcceptableOrUnknown(data['config_json']!, _configJsonMeta),
-      );
+          _configJsonMeta,
+          configJson.isAcceptableOrUnknown(
+              data['config_json']!, _configJsonMeta));
     }
     return context;
   }
@@ -1024,66 +802,37 @@ class $LlmModelsTable extends LlmModels
   LlmModel map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return LlmModel(
-      uuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}uuid'],
-      )!,
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
       lastUpdatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}last_updated_at'],
-      ),
-      deletedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}deleted_at'],
-      ),
-      providerUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}provider_uuid'],
-      )!,
-      modelId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}model_id'],
-      )!,
-      displayName: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}display_name'],
-      )!,
-      modelType: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}model_type'],
-      )!,
+          DriftSqlType.dateTime, data['${effectivePrefix}last_updated_at']),
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      providerUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}provider_uuid'])!,
+      modelId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}model_id'])!,
+      displayName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}display_name'])!,
+      modelType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}model_type'])!,
       maxContextLength: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}max_context_length'],
-      )!,
-      maxOutputTokens: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}max_output_tokens'],
-      )!,
+          DriftSqlType.int, data['${effectivePrefix}max_context_length'])!,
+      maxOutputTokens: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}max_output_tokens'])!,
       supportsStreaming: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}supports_streaming'],
-      )!,
+          DriftSqlType.bool, data['${effectivePrefix}supports_streaming'])!,
       supportsFunctionCalling: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}supports_function_calling'],
-      )!,
-      isDefault: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_default'],
-      )!,
-      isEnabled: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_enabled'],
-      )!,
-      configJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}config_json'],
-      ),
+          DriftSqlType.bool,
+          data['${effectivePrefix}supports_function_calling'])!,
+      isDefault: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_default'])!,
+      isEnabled: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_enabled'])!,
+      configJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}config_json']),
     );
   }
 
@@ -1131,23 +880,22 @@ class LlmModel extends DataClass implements Insertable<LlmModel> {
 
   /// 额外配置 (JSON)
   final String? configJson;
-  const LlmModel({
-    required this.uuid,
-    required this.createdAt,
-    this.lastUpdatedAt,
-    this.deletedAt,
-    required this.providerUuid,
-    required this.modelId,
-    required this.displayName,
-    required this.modelType,
-    required this.maxContextLength,
-    required this.maxOutputTokens,
-    required this.supportsStreaming,
-    required this.supportsFunctionCalling,
-    required this.isDefault,
-    required this.isEnabled,
-    this.configJson,
-  });
+  const LlmModel(
+      {required this.uuid,
+      required this.createdAt,
+      this.lastUpdatedAt,
+      this.deletedAt,
+      required this.providerUuid,
+      required this.modelId,
+      required this.displayName,
+      required this.modelType,
+      required this.maxContextLength,
+      required this.maxOutputTokens,
+      required this.supportsStreaming,
+      required this.supportsFunctionCalling,
+      required this.isDefault,
+      required this.isEnabled,
+      this.configJson});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1201,10 +949,8 @@ class LlmModel extends DataClass implements Insertable<LlmModel> {
     );
   }
 
-  factory LlmModel.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory LlmModel.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return LlmModel(
       uuid: serializer.fromJson<String>(json['uuid']),
@@ -1218,9 +964,8 @@ class LlmModel extends DataClass implements Insertable<LlmModel> {
       maxContextLength: serializer.fromJson<int>(json['maxContextLength']),
       maxOutputTokens: serializer.fromJson<int>(json['maxOutputTokens']),
       supportsStreaming: serializer.fromJson<bool>(json['supportsStreaming']),
-      supportsFunctionCalling: serializer.fromJson<bool>(
-        json['supportsFunctionCalling'],
-      ),
+      supportsFunctionCalling:
+          serializer.fromJson<bool>(json['supportsFunctionCalling']),
       isDefault: serializer.fromJson<bool>(json['isDefault']),
       isEnabled: serializer.fromJson<bool>(json['isEnabled']),
       configJson: serializer.fromJson<String?>(json['configJson']),
@@ -1241,51 +986,49 @@ class LlmModel extends DataClass implements Insertable<LlmModel> {
       'maxContextLength': serializer.toJson<int>(maxContextLength),
       'maxOutputTokens': serializer.toJson<int>(maxOutputTokens),
       'supportsStreaming': serializer.toJson<bool>(supportsStreaming),
-      'supportsFunctionCalling': serializer.toJson<bool>(
-        supportsFunctionCalling,
-      ),
+      'supportsFunctionCalling':
+          serializer.toJson<bool>(supportsFunctionCalling),
       'isDefault': serializer.toJson<bool>(isDefault),
       'isEnabled': serializer.toJson<bool>(isEnabled),
       'configJson': serializer.toJson<String?>(configJson),
     };
   }
 
-  LlmModel copyWith({
-    String? uuid,
-    DateTime? createdAt,
-    Value<DateTime?> lastUpdatedAt = const Value.absent(),
-    Value<DateTime?> deletedAt = const Value.absent(),
-    String? providerUuid,
-    String? modelId,
-    String? displayName,
-    String? modelType,
-    int? maxContextLength,
-    int? maxOutputTokens,
-    bool? supportsStreaming,
-    bool? supportsFunctionCalling,
-    bool? isDefault,
-    bool? isEnabled,
-    Value<String?> configJson = const Value.absent(),
-  }) => LlmModel(
-    uuid: uuid ?? this.uuid,
-    createdAt: createdAt ?? this.createdAt,
-    lastUpdatedAt: lastUpdatedAt.present
-        ? lastUpdatedAt.value
-        : this.lastUpdatedAt,
-    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
-    providerUuid: providerUuid ?? this.providerUuid,
-    modelId: modelId ?? this.modelId,
-    displayName: displayName ?? this.displayName,
-    modelType: modelType ?? this.modelType,
-    maxContextLength: maxContextLength ?? this.maxContextLength,
-    maxOutputTokens: maxOutputTokens ?? this.maxOutputTokens,
-    supportsStreaming: supportsStreaming ?? this.supportsStreaming,
-    supportsFunctionCalling:
-        supportsFunctionCalling ?? this.supportsFunctionCalling,
-    isDefault: isDefault ?? this.isDefault,
-    isEnabled: isEnabled ?? this.isEnabled,
-    configJson: configJson.present ? configJson.value : this.configJson,
-  );
+  LlmModel copyWith(
+          {String? uuid,
+          DateTime? createdAt,
+          Value<DateTime?> lastUpdatedAt = const Value.absent(),
+          Value<DateTime?> deletedAt = const Value.absent(),
+          String? providerUuid,
+          String? modelId,
+          String? displayName,
+          String? modelType,
+          int? maxContextLength,
+          int? maxOutputTokens,
+          bool? supportsStreaming,
+          bool? supportsFunctionCalling,
+          bool? isDefault,
+          bool? isEnabled,
+          Value<String?> configJson = const Value.absent()}) =>
+      LlmModel(
+        uuid: uuid ?? this.uuid,
+        createdAt: createdAt ?? this.createdAt,
+        lastUpdatedAt:
+            lastUpdatedAt.present ? lastUpdatedAt.value : this.lastUpdatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        providerUuid: providerUuid ?? this.providerUuid,
+        modelId: modelId ?? this.modelId,
+        displayName: displayName ?? this.displayName,
+        modelType: modelType ?? this.modelType,
+        maxContextLength: maxContextLength ?? this.maxContextLength,
+        maxOutputTokens: maxOutputTokens ?? this.maxOutputTokens,
+        supportsStreaming: supportsStreaming ?? this.supportsStreaming,
+        supportsFunctionCalling:
+            supportsFunctionCalling ?? this.supportsFunctionCalling,
+        isDefault: isDefault ?? this.isDefault,
+        isEnabled: isEnabled ?? this.isEnabled,
+        configJson: configJson.present ? configJson.value : this.configJson,
+      );
   LlmModel copyWithCompanion(LlmModelsCompanion data) {
     return LlmModel(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
@@ -1298,9 +1041,8 @@ class LlmModel extends DataClass implements Insertable<LlmModel> {
           ? data.providerUuid.value
           : this.providerUuid,
       modelId: data.modelId.present ? data.modelId.value : this.modelId,
-      displayName: data.displayName.present
-          ? data.displayName.value
-          : this.displayName,
+      displayName:
+          data.displayName.present ? data.displayName.value : this.displayName,
       modelType: data.modelType.present ? data.modelType.value : this.modelType,
       maxContextLength: data.maxContextLength.present
           ? data.maxContextLength.value
@@ -1316,9 +1058,8 @@ class LlmModel extends DataClass implements Insertable<LlmModel> {
           : this.supportsFunctionCalling,
       isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
       isEnabled: data.isEnabled.present ? data.isEnabled.value : this.isEnabled,
-      configJson: data.configJson.present
-          ? data.configJson.value
-          : this.configJson,
+      configJson:
+          data.configJson.present ? data.configJson.value : this.configJson,
     );
   }
 
@@ -1346,22 +1087,21 @@ class LlmModel extends DataClass implements Insertable<LlmModel> {
 
   @override
   int get hashCode => Object.hash(
-    uuid,
-    createdAt,
-    lastUpdatedAt,
-    deletedAt,
-    providerUuid,
-    modelId,
-    displayName,
-    modelType,
-    maxContextLength,
-    maxOutputTokens,
-    supportsStreaming,
-    supportsFunctionCalling,
-    isDefault,
-    isEnabled,
-    configJson,
-  );
+      uuid,
+      createdAt,
+      lastUpdatedAt,
+      deletedAt,
+      providerUuid,
+      modelId,
+      displayName,
+      modelType,
+      maxContextLength,
+      maxOutputTokens,
+      supportsStreaming,
+      supportsFunctionCalling,
+      isDefault,
+      isEnabled,
+      configJson);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1435,12 +1175,12 @@ class LlmModelsCompanion extends UpdateCompanion<LlmModel> {
     this.isEnabled = const Value.absent(),
     this.configJson = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : uuid = Value(uuid),
-       createdAt = Value(createdAt),
-       providerUuid = Value(providerUuid),
-       modelId = Value(modelId),
-       displayName = Value(displayName),
-       modelType = Value(modelType);
+  })  : uuid = Value(uuid),
+        createdAt = Value(createdAt),
+        providerUuid = Value(providerUuid),
+        modelId = Value(modelId),
+        displayName = Value(displayName),
+        modelType = Value(modelType);
   static Insertable<LlmModel> custom({
     Expression<String>? uuid,
     Expression<DateTime>? createdAt,
@@ -1480,24 +1220,23 @@ class LlmModelsCompanion extends UpdateCompanion<LlmModel> {
     });
   }
 
-  LlmModelsCompanion copyWith({
-    Value<String>? uuid,
-    Value<DateTime>? createdAt,
-    Value<DateTime?>? lastUpdatedAt,
-    Value<DateTime?>? deletedAt,
-    Value<String>? providerUuid,
-    Value<String>? modelId,
-    Value<String>? displayName,
-    Value<String>? modelType,
-    Value<int>? maxContextLength,
-    Value<int>? maxOutputTokens,
-    Value<bool>? supportsStreaming,
-    Value<bool>? supportsFunctionCalling,
-    Value<bool>? isDefault,
-    Value<bool>? isEnabled,
-    Value<String?>? configJson,
-    Value<int>? rowid,
-  }) {
+  LlmModelsCompanion copyWith(
+      {Value<String>? uuid,
+      Value<DateTime>? createdAt,
+      Value<DateTime?>? lastUpdatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<String>? providerUuid,
+      Value<String>? modelId,
+      Value<String>? displayName,
+      Value<String>? modelType,
+      Value<int>? maxContextLength,
+      Value<int>? maxOutputTokens,
+      Value<bool>? supportsStreaming,
+      Value<bool>? supportsFunctionCalling,
+      Value<bool>? isDefault,
+      Value<bool>? isEnabled,
+      Value<String?>? configJson,
+      Value<int>? rowid}) {
     return LlmModelsCompanion(
       uuid: uuid ?? this.uuid,
       createdAt: createdAt ?? this.createdAt,
@@ -1556,9 +1295,8 @@ class LlmModelsCompanion extends UpdateCompanion<LlmModel> {
       map['supports_streaming'] = Variable<bool>(supportsStreaming.value);
     }
     if (supportsFunctionCalling.present) {
-      map['supports_function_calling'] = Variable<bool>(
-        supportsFunctionCalling.value,
-      );
+      map['supports_function_calling'] =
+          Variable<bool>(supportsFunctionCalling.value);
     }
     if (isDefault.present) {
       map['is_default'] = Variable<bool>(isDefault.value);
@@ -1608,276 +1346,184 @@ class $PromptTemplatesTable extends PromptTemplates
   static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
   @override
   late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
-    'uuid',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 36,
-      maxTextLength: 36,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
+      'uuid', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 36, maxTextLength: 36),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
   @override
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _lastUpdatedAtMeta = const VerificationMeta(
-    'lastUpdatedAt',
-  );
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _lastUpdatedAtMeta =
+      const VerificationMeta('lastUpdatedAt');
   @override
   late final GeneratedColumn<DateTime> lastUpdatedAt =
-      GeneratedColumn<DateTime>(
-        'last_updated_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
-    'deletedAt',
-  );
+      GeneratedColumn<DateTime>('last_updated_at', aliasedName, true,
+          type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
   @override
   late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
-    'deleted_at',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
-    'name',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 1,
-      maxTextLength: 200,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _descriptionMeta = const VerificationMeta(
-    'description',
-  );
+      'name', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 200),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
   @override
   late final GeneratedColumn<String> description = GeneratedColumn<String>(
-    'description',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _templateTypeMeta = const VerificationMeta(
-    'templateType',
-  );
+      'description', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _templateTypeMeta =
+      const VerificationMeta('templateType');
   @override
   late final GeneratedColumn<String> templateType = GeneratedColumn<String>(
-    'template_type',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 1,
-      maxTextLength: 50,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _contentMeta = const VerificationMeta(
-    'content',
-  );
+      'template_type', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 50),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _contentMeta =
+      const VerificationMeta('content');
   @override
   late final GeneratedColumn<String> content = GeneratedColumn<String>(
-    'content',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _variablesJsonMeta = const VerificationMeta(
-    'variablesJson',
-  );
+      'content', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _variablesJsonMeta =
+      const VerificationMeta('variablesJson');
   @override
   late final GeneratedColumn<String> variablesJson = GeneratedColumn<String>(
-    'variables_json',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _currentVersionMeta = const VerificationMeta(
-    'currentVersion',
-  );
+      'variables_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _currentVersionMeta =
+      const VerificationMeta('currentVersion');
   @override
   late final GeneratedColumn<int> currentVersion = GeneratedColumn<int>(
-    'current_version',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(1),
-  );
-  static const VerificationMeta _isBuiltinMeta = const VerificationMeta(
-    'isBuiltin',
-  );
+      'current_version', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(1));
+  static const VerificationMeta _isBuiltinMeta =
+      const VerificationMeta('isBuiltin');
   @override
   late final GeneratedColumn<bool> isBuiltin = GeneratedColumn<bool>(
-    'is_builtin',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_builtin" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
-  static const VerificationMeta _isEnabledMeta = const VerificationMeta(
-    'isEnabled',
-  );
+      'is_builtin', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_builtin" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _isEnabledMeta =
+      const VerificationMeta('isEnabled');
   @override
   late final GeneratedColumn<bool> isEnabled = GeneratedColumn<bool>(
-    'is_enabled',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_enabled" IN (0, 1))',
-    ),
-    defaultValue: const Constant(true),
-  );
+      'is_enabled', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_enabled" IN (0, 1))'),
+      defaultValue: const Constant(true));
   @override
   List<GeneratedColumn> get $columns => [
-    uuid,
-    createdAt,
-    lastUpdatedAt,
-    deletedAt,
-    name,
-    description,
-    templateType,
-    content,
-    variablesJson,
-    currentVersion,
-    isBuiltin,
-    isEnabled,
-  ];
+        uuid,
+        createdAt,
+        lastUpdatedAt,
+        deletedAt,
+        name,
+        description,
+        templateType,
+        content,
+        variablesJson,
+        currentVersion,
+        isBuiltin,
+        isEnabled
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 't_prompt_templates';
   @override
-  VerificationContext validateIntegrity(
-    Insertable<PromptTemplate> instance, {
-    bool isInserting = false,
-  }) {
+  VerificationContext validateIntegrity(Insertable<PromptTemplate> instance,
+      {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('uuid')) {
       context.handle(
-        _uuidMeta,
-        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
-      );
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
     } else if (isInserting) {
       context.missing(_uuidMeta);
     }
     if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
     if (data.containsKey('last_updated_at')) {
       context.handle(
-        _lastUpdatedAtMeta,
-        lastUpdatedAt.isAcceptableOrUnknown(
-          data['last_updated_at']!,
           _lastUpdatedAtMeta,
-        ),
-      );
+          lastUpdatedAt.isAcceptableOrUnknown(
+              data['last_updated_at']!, _lastUpdatedAtMeta));
     }
     if (data.containsKey('deleted_at')) {
-      context.handle(
-        _deletedAtMeta,
-        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
-      );
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
     }
     if (data.containsKey('name')) {
       context.handle(
-        _nameMeta,
-        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
-      );
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
     if (data.containsKey('description')) {
       context.handle(
-        _descriptionMeta,
-        description.isAcceptableOrUnknown(
-          data['description']!,
           _descriptionMeta,
-        ),
-      );
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
     }
     if (data.containsKey('template_type')) {
       context.handle(
-        _templateTypeMeta,
-        templateType.isAcceptableOrUnknown(
-          data['template_type']!,
           _templateTypeMeta,
-        ),
-      );
+          templateType.isAcceptableOrUnknown(
+              data['template_type']!, _templateTypeMeta));
     } else if (isInserting) {
       context.missing(_templateTypeMeta);
     }
     if (data.containsKey('content')) {
-      context.handle(
-        _contentMeta,
-        content.isAcceptableOrUnknown(data['content']!, _contentMeta),
-      );
+      context.handle(_contentMeta,
+          content.isAcceptableOrUnknown(data['content']!, _contentMeta));
     } else if (isInserting) {
       context.missing(_contentMeta);
     }
     if (data.containsKey('variables_json')) {
       context.handle(
-        _variablesJsonMeta,
-        variablesJson.isAcceptableOrUnknown(
-          data['variables_json']!,
           _variablesJsonMeta,
-        ),
-      );
+          variablesJson.isAcceptableOrUnknown(
+              data['variables_json']!, _variablesJsonMeta));
     }
     if (data.containsKey('current_version')) {
       context.handle(
-        _currentVersionMeta,
-        currentVersion.isAcceptableOrUnknown(
-          data['current_version']!,
           _currentVersionMeta,
-        ),
-      );
+          currentVersion.isAcceptableOrUnknown(
+              data['current_version']!, _currentVersionMeta));
     }
     if (data.containsKey('is_builtin')) {
-      context.handle(
-        _isBuiltinMeta,
-        isBuiltin.isAcceptableOrUnknown(data['is_builtin']!, _isBuiltinMeta),
-      );
+      context.handle(_isBuiltinMeta,
+          isBuiltin.isAcceptableOrUnknown(data['is_builtin']!, _isBuiltinMeta));
     }
     if (data.containsKey('is_enabled')) {
-      context.handle(
-        _isEnabledMeta,
-        isEnabled.isAcceptableOrUnknown(data['is_enabled']!, _isEnabledMeta),
-      );
+      context.handle(_isEnabledMeta,
+          isEnabled.isAcceptableOrUnknown(data['is_enabled']!, _isEnabledMeta));
     }
     return context;
   }
@@ -1888,54 +1534,30 @@ class $PromptTemplatesTable extends PromptTemplates
   PromptTemplate map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return PromptTemplate(
-      uuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}uuid'],
-      )!,
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
       lastUpdatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}last_updated_at'],
-      ),
-      deletedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}deleted_at'],
-      ),
-      name: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}name'],
-      )!,
-      description: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}description'],
-      ),
-      templateType: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}template_type'],
-      )!,
-      content: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}content'],
-      )!,
-      variablesJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}variables_json'],
-      ),
-      currentVersion: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}current_version'],
-      )!,
-      isBuiltin: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_builtin'],
-      )!,
-      isEnabled: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_enabled'],
-      )!,
+          DriftSqlType.dateTime, data['${effectivePrefix}last_updated_at']),
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description']),
+      templateType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}template_type'])!,
+      content: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}content'])!,
+      variablesJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}variables_json']),
+      currentVersion: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}current_version'])!,
+      isBuiltin: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_builtin'])!,
+      isEnabled: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_enabled'])!,
     );
   }
 
@@ -1974,20 +1596,19 @@ class PromptTemplate extends DataClass implements Insertable<PromptTemplate> {
 
   /// 是否启用
   final bool isEnabled;
-  const PromptTemplate({
-    required this.uuid,
-    required this.createdAt,
-    this.lastUpdatedAt,
-    this.deletedAt,
-    required this.name,
-    this.description,
-    required this.templateType,
-    required this.content,
-    this.variablesJson,
-    required this.currentVersion,
-    required this.isBuiltin,
-    required this.isEnabled,
-  });
+  const PromptTemplate(
+      {required this.uuid,
+      required this.createdAt,
+      this.lastUpdatedAt,
+      this.deletedAt,
+      required this.name,
+      this.description,
+      required this.templateType,
+      required this.content,
+      this.variablesJson,
+      required this.currentVersion,
+      required this.isBuiltin,
+      required this.isEnabled});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -2039,10 +1660,8 @@ class PromptTemplate extends DataClass implements Insertable<PromptTemplate> {
     );
   }
 
-  factory PromptTemplate.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory PromptTemplate.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return PromptTemplate(
       uuid: serializer.fromJson<String>(json['uuid']),
@@ -2078,37 +1697,35 @@ class PromptTemplate extends DataClass implements Insertable<PromptTemplate> {
     };
   }
 
-  PromptTemplate copyWith({
-    String? uuid,
-    DateTime? createdAt,
-    Value<DateTime?> lastUpdatedAt = const Value.absent(),
-    Value<DateTime?> deletedAt = const Value.absent(),
-    String? name,
-    Value<String?> description = const Value.absent(),
-    String? templateType,
-    String? content,
-    Value<String?> variablesJson = const Value.absent(),
-    int? currentVersion,
-    bool? isBuiltin,
-    bool? isEnabled,
-  }) => PromptTemplate(
-    uuid: uuid ?? this.uuid,
-    createdAt: createdAt ?? this.createdAt,
-    lastUpdatedAt: lastUpdatedAt.present
-        ? lastUpdatedAt.value
-        : this.lastUpdatedAt,
-    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
-    name: name ?? this.name,
-    description: description.present ? description.value : this.description,
-    templateType: templateType ?? this.templateType,
-    content: content ?? this.content,
-    variablesJson: variablesJson.present
-        ? variablesJson.value
-        : this.variablesJson,
-    currentVersion: currentVersion ?? this.currentVersion,
-    isBuiltin: isBuiltin ?? this.isBuiltin,
-    isEnabled: isEnabled ?? this.isEnabled,
-  );
+  PromptTemplate copyWith(
+          {String? uuid,
+          DateTime? createdAt,
+          Value<DateTime?> lastUpdatedAt = const Value.absent(),
+          Value<DateTime?> deletedAt = const Value.absent(),
+          String? name,
+          Value<String?> description = const Value.absent(),
+          String? templateType,
+          String? content,
+          Value<String?> variablesJson = const Value.absent(),
+          int? currentVersion,
+          bool? isBuiltin,
+          bool? isEnabled}) =>
+      PromptTemplate(
+        uuid: uuid ?? this.uuid,
+        createdAt: createdAt ?? this.createdAt,
+        lastUpdatedAt:
+            lastUpdatedAt.present ? lastUpdatedAt.value : this.lastUpdatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        name: name ?? this.name,
+        description: description.present ? description.value : this.description,
+        templateType: templateType ?? this.templateType,
+        content: content ?? this.content,
+        variablesJson:
+            variablesJson.present ? variablesJson.value : this.variablesJson,
+        currentVersion: currentVersion ?? this.currentVersion,
+        isBuiltin: isBuiltin ?? this.isBuiltin,
+        isEnabled: isEnabled ?? this.isEnabled,
+      );
   PromptTemplate copyWithCompanion(PromptTemplatesCompanion data) {
     return PromptTemplate(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
@@ -2118,9 +1735,8 @@ class PromptTemplate extends DataClass implements Insertable<PromptTemplate> {
           : this.lastUpdatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
       name: data.name.present ? data.name.value : this.name,
-      description: data.description.present
-          ? data.description.value
-          : this.description,
+      description:
+          data.description.present ? data.description.value : this.description,
       templateType: data.templateType.present
           ? data.templateType.value
           : this.templateType,
@@ -2157,19 +1773,18 @@ class PromptTemplate extends DataClass implements Insertable<PromptTemplate> {
 
   @override
   int get hashCode => Object.hash(
-    uuid,
-    createdAt,
-    lastUpdatedAt,
-    deletedAt,
-    name,
-    description,
-    templateType,
-    content,
-    variablesJson,
-    currentVersion,
-    isBuiltin,
-    isEnabled,
-  );
+      uuid,
+      createdAt,
+      lastUpdatedAt,
+      deletedAt,
+      name,
+      description,
+      templateType,
+      content,
+      variablesJson,
+      currentVersion,
+      isBuiltin,
+      isEnabled);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2231,11 +1846,11 @@ class PromptTemplatesCompanion extends UpdateCompanion<PromptTemplate> {
     this.isBuiltin = const Value.absent(),
     this.isEnabled = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : uuid = Value(uuid),
-       createdAt = Value(createdAt),
-       name = Value(name),
-       templateType = Value(templateType),
-       content = Value(content);
+  })  : uuid = Value(uuid),
+        createdAt = Value(createdAt),
+        name = Value(name),
+        templateType = Value(templateType),
+        content = Value(content);
   static Insertable<PromptTemplate> custom({
     Expression<String>? uuid,
     Expression<DateTime>? createdAt,
@@ -2268,21 +1883,20 @@ class PromptTemplatesCompanion extends UpdateCompanion<PromptTemplate> {
     });
   }
 
-  PromptTemplatesCompanion copyWith({
-    Value<String>? uuid,
-    Value<DateTime>? createdAt,
-    Value<DateTime?>? lastUpdatedAt,
-    Value<DateTime?>? deletedAt,
-    Value<String>? name,
-    Value<String?>? description,
-    Value<String>? templateType,
-    Value<String>? content,
-    Value<String?>? variablesJson,
-    Value<int>? currentVersion,
-    Value<bool>? isBuiltin,
-    Value<bool>? isEnabled,
-    Value<int>? rowid,
-  }) {
+  PromptTemplatesCompanion copyWith(
+      {Value<String>? uuid,
+      Value<DateTime>? createdAt,
+      Value<DateTime?>? lastUpdatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<String>? name,
+      Value<String?>? description,
+      Value<String>? templateType,
+      Value<String>? content,
+      Value<String?>? variablesJson,
+      Value<int>? currentVersion,
+      Value<bool>? isBuiltin,
+      Value<bool>? isEnabled,
+      Value<int>? rowid}) {
     return PromptTemplatesCompanion(
       uuid: uuid ?? this.uuid,
       createdAt: createdAt ?? this.createdAt,
@@ -2375,191 +1989,131 @@ class $PromptVersionsTable extends PromptVersions
   static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
   @override
   late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
-    'uuid',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 36,
-      maxTextLength: 36,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _templateUuidMeta = const VerificationMeta(
-    'templateUuid',
-  );
+      'uuid', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 36, maxTextLength: 36),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _templateUuidMeta =
+      const VerificationMeta('templateUuid');
   @override
   late final GeneratedColumn<String> templateUuid = GeneratedColumn<String>(
-    'template_uuid',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_prompt_templates (uuid)',
-    ),
-  );
-  static const VerificationMeta _versionMeta = const VerificationMeta(
-    'version',
-  );
+      'template_uuid', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES t_prompt_templates (uuid)'));
+  static const VerificationMeta _versionMeta =
+      const VerificationMeta('version');
   @override
   late final GeneratedColumn<int> version = GeneratedColumn<int>(
-    'version',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _contentMeta = const VerificationMeta(
-    'content',
-  );
+      'version', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _contentMeta =
+      const VerificationMeta('content');
   @override
   late final GeneratedColumn<String> content = GeneratedColumn<String>(
-    'content',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _variablesJsonMeta = const VerificationMeta(
-    'variablesJson',
-  );
+      'content', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _variablesJsonMeta =
+      const VerificationMeta('variablesJson');
   @override
   late final GeneratedColumn<String> variablesJson = GeneratedColumn<String>(
-    'variables_json',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _contentHashMeta = const VerificationMeta(
-    'contentHash',
-  );
+      'variables_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _contentHashMeta =
+      const VerificationMeta('contentHash');
   @override
   late final GeneratedColumn<String> contentHash = GeneratedColumn<String>(
-    'content_hash',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 64,
-      maxTextLength: 64,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
+      'content_hash', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 64, maxTextLength: 64),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
   @override
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _changeNoteMeta = const VerificationMeta(
-    'changeNote',
-  );
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _changeNoteMeta =
+      const VerificationMeta('changeNote');
   @override
   late final GeneratedColumn<String> changeNote = GeneratedColumn<String>(
-    'change_note',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
+      'change_note', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
-    uuid,
-    templateUuid,
-    version,
-    content,
-    variablesJson,
-    contentHash,
-    createdAt,
-    changeNote,
-  ];
+        uuid,
+        templateUuid,
+        version,
+        content,
+        variablesJson,
+        contentHash,
+        createdAt,
+        changeNote
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 't_prompt_versions';
   @override
-  VerificationContext validateIntegrity(
-    Insertable<PromptVersion> instance, {
-    bool isInserting = false,
-  }) {
+  VerificationContext validateIntegrity(Insertable<PromptVersion> instance,
+      {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('uuid')) {
       context.handle(
-        _uuidMeta,
-        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
-      );
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
     } else if (isInserting) {
       context.missing(_uuidMeta);
     }
     if (data.containsKey('template_uuid')) {
       context.handle(
-        _templateUuidMeta,
-        templateUuid.isAcceptableOrUnknown(
-          data['template_uuid']!,
           _templateUuidMeta,
-        ),
-      );
+          templateUuid.isAcceptableOrUnknown(
+              data['template_uuid']!, _templateUuidMeta));
     } else if (isInserting) {
       context.missing(_templateUuidMeta);
     }
     if (data.containsKey('version')) {
-      context.handle(
-        _versionMeta,
-        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
-      );
+      context.handle(_versionMeta,
+          version.isAcceptableOrUnknown(data['version']!, _versionMeta));
     } else if (isInserting) {
       context.missing(_versionMeta);
     }
     if (data.containsKey('content')) {
-      context.handle(
-        _contentMeta,
-        content.isAcceptableOrUnknown(data['content']!, _contentMeta),
-      );
+      context.handle(_contentMeta,
+          content.isAcceptableOrUnknown(data['content']!, _contentMeta));
     } else if (isInserting) {
       context.missing(_contentMeta);
     }
     if (data.containsKey('variables_json')) {
       context.handle(
-        _variablesJsonMeta,
-        variablesJson.isAcceptableOrUnknown(
-          data['variables_json']!,
           _variablesJsonMeta,
-        ),
-      );
+          variablesJson.isAcceptableOrUnknown(
+              data['variables_json']!, _variablesJsonMeta));
     }
     if (data.containsKey('content_hash')) {
       context.handle(
-        _contentHashMeta,
-        contentHash.isAcceptableOrUnknown(
-          data['content_hash']!,
           _contentHashMeta,
-        ),
-      );
+          contentHash.isAcceptableOrUnknown(
+              data['content_hash']!, _contentHashMeta));
     } else if (isInserting) {
       context.missing(_contentHashMeta);
     }
     if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
     if (data.containsKey('change_note')) {
       context.handle(
-        _changeNoteMeta,
-        changeNote.isAcceptableOrUnknown(data['change_note']!, _changeNoteMeta),
-      );
+          _changeNoteMeta,
+          changeNote.isAcceptableOrUnknown(
+              data['change_note']!, _changeNoteMeta));
     }
     return context;
   }
@@ -2570,38 +2124,22 @@ class $PromptVersionsTable extends PromptVersions
   PromptVersion map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return PromptVersion(
-      uuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}uuid'],
-      )!,
-      templateUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}template_uuid'],
-      )!,
-      version: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}version'],
-      )!,
-      content: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}content'],
-      )!,
-      variablesJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}variables_json'],
-      ),
-      contentHash: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}content_hash'],
-      )!,
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-      changeNote: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}change_note'],
-      ),
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      templateUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}template_uuid'])!,
+      version: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}version'])!,
+      content: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}content'])!,
+      variablesJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}variables_json']),
+      contentHash: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}content_hash'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      changeNote: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}change_note']),
     );
   }
 
@@ -2634,16 +2172,15 @@ class PromptVersion extends DataClass implements Insertable<PromptVersion> {
 
   /// 创建说明
   final String? changeNote;
-  const PromptVersion({
-    required this.uuid,
-    required this.templateUuid,
-    required this.version,
-    required this.content,
-    this.variablesJson,
-    required this.contentHash,
-    required this.createdAt,
-    this.changeNote,
-  });
+  const PromptVersion(
+      {required this.uuid,
+      required this.templateUuid,
+      required this.version,
+      required this.content,
+      this.variablesJson,
+      required this.contentHash,
+      required this.createdAt,
+      this.changeNote});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -2679,10 +2216,8 @@ class PromptVersion extends DataClass implements Insertable<PromptVersion> {
     );
   }
 
-  factory PromptVersion.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory PromptVersion.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return PromptVersion(
       uuid: serializer.fromJson<String>(json['uuid']),
@@ -2710,27 +2245,26 @@ class PromptVersion extends DataClass implements Insertable<PromptVersion> {
     };
   }
 
-  PromptVersion copyWith({
-    String? uuid,
-    String? templateUuid,
-    int? version,
-    String? content,
-    Value<String?> variablesJson = const Value.absent(),
-    String? contentHash,
-    DateTime? createdAt,
-    Value<String?> changeNote = const Value.absent(),
-  }) => PromptVersion(
-    uuid: uuid ?? this.uuid,
-    templateUuid: templateUuid ?? this.templateUuid,
-    version: version ?? this.version,
-    content: content ?? this.content,
-    variablesJson: variablesJson.present
-        ? variablesJson.value
-        : this.variablesJson,
-    contentHash: contentHash ?? this.contentHash,
-    createdAt: createdAt ?? this.createdAt,
-    changeNote: changeNote.present ? changeNote.value : this.changeNote,
-  );
+  PromptVersion copyWith(
+          {String? uuid,
+          String? templateUuid,
+          int? version,
+          String? content,
+          Value<String?> variablesJson = const Value.absent(),
+          String? contentHash,
+          DateTime? createdAt,
+          Value<String?> changeNote = const Value.absent()}) =>
+      PromptVersion(
+        uuid: uuid ?? this.uuid,
+        templateUuid: templateUuid ?? this.templateUuid,
+        version: version ?? this.version,
+        content: content ?? this.content,
+        variablesJson:
+            variablesJson.present ? variablesJson.value : this.variablesJson,
+        contentHash: contentHash ?? this.contentHash,
+        createdAt: createdAt ?? this.createdAt,
+        changeNote: changeNote.present ? changeNote.value : this.changeNote,
+      );
   PromptVersion copyWithCompanion(PromptVersionsCompanion data) {
     return PromptVersion(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
@@ -2742,13 +2276,11 @@ class PromptVersion extends DataClass implements Insertable<PromptVersion> {
       variablesJson: data.variablesJson.present
           ? data.variablesJson.value
           : this.variablesJson,
-      contentHash: data.contentHash.present
-          ? data.contentHash.value
-          : this.contentHash,
+      contentHash:
+          data.contentHash.present ? data.contentHash.value : this.contentHash,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      changeNote: data.changeNote.present
-          ? data.changeNote.value
-          : this.changeNote,
+      changeNote:
+          data.changeNote.present ? data.changeNote.value : this.changeNote,
     );
   }
 
@@ -2768,16 +2300,8 @@ class PromptVersion extends DataClass implements Insertable<PromptVersion> {
   }
 
   @override
-  int get hashCode => Object.hash(
-    uuid,
-    templateUuid,
-    version,
-    content,
-    variablesJson,
-    contentHash,
-    createdAt,
-    changeNote,
-  );
+  int get hashCode => Object.hash(uuid, templateUuid, version, content,
+      variablesJson, contentHash, createdAt, changeNote);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2823,12 +2347,12 @@ class PromptVersionsCompanion extends UpdateCompanion<PromptVersion> {
     required DateTime createdAt,
     this.changeNote = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : uuid = Value(uuid),
-       templateUuid = Value(templateUuid),
-       version = Value(version),
-       content = Value(content),
-       contentHash = Value(contentHash),
-       createdAt = Value(createdAt);
+  })  : uuid = Value(uuid),
+        templateUuid = Value(templateUuid),
+        version = Value(version),
+        content = Value(content),
+        contentHash = Value(contentHash),
+        createdAt = Value(createdAt);
   static Insertable<PromptVersion> custom({
     Expression<String>? uuid,
     Expression<String>? templateUuid,
@@ -2853,17 +2377,16 @@ class PromptVersionsCompanion extends UpdateCompanion<PromptVersion> {
     });
   }
 
-  PromptVersionsCompanion copyWith({
-    Value<String>? uuid,
-    Value<String>? templateUuid,
-    Value<int>? version,
-    Value<String>? content,
-    Value<String?>? variablesJson,
-    Value<String>? contentHash,
-    Value<DateTime>? createdAt,
-    Value<String?>? changeNote,
-    Value<int>? rowid,
-  }) {
+  PromptVersionsCompanion copyWith(
+      {Value<String>? uuid,
+      Value<String>? templateUuid,
+      Value<int>? version,
+      Value<String>? content,
+      Value<String?>? variablesJson,
+      Value<String>? contentHash,
+      Value<DateTime>? createdAt,
+      Value<String?>? changeNote,
+      Value<int>? rowid}) {
     return PromptVersionsCompanion(
       uuid: uuid ?? this.uuid,
       templateUuid: templateUuid ?? this.templateUuid,
@@ -2936,208 +2459,142 @@ class $PromptSkillBindingsTable extends PromptSkillBindings
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
   @override
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _lastUpdatedAtMeta = const VerificationMeta(
-    'lastUpdatedAt',
-  );
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _lastUpdatedAtMeta =
+      const VerificationMeta('lastUpdatedAt');
   @override
   late final GeneratedColumn<DateTime> lastUpdatedAt =
-      GeneratedColumn<DateTime>(
-        'last_updated_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
-    'deletedAt',
-  );
+      GeneratedColumn<DateTime>('last_updated_at', aliasedName, true,
+          type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
   @override
   late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
-    'deleted_at',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
   static const VerificationMeta _promptTemplateUuidMeta =
       const VerificationMeta('promptTemplateUuid');
   @override
   late final GeneratedColumn<String> promptTemplateUuid =
-      GeneratedColumn<String>(
-        'prompt_template_uuid',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-        defaultConstraints: GeneratedColumn.constraintIsAlways(
-          'REFERENCES t_prompt_templates (uuid)',
-        ),
-      );
-  static const VerificationMeta _skillIdMeta = const VerificationMeta(
-    'skillId',
-  );
+      GeneratedColumn<String>('prompt_template_uuid', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: true,
+          defaultConstraints: GeneratedColumn.constraintIsAlways(
+              'REFERENCES t_prompt_templates (uuid)'));
+  static const VerificationMeta _skillIdMeta =
+      const VerificationMeta('skillId');
   @override
   late final GeneratedColumn<int> skillId = GeneratedColumn<int>(
-    'skill_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _bindingTypeMeta = const VerificationMeta(
-    'bindingType',
-  );
+      'skill_id', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _bindingTypeMeta =
+      const VerificationMeta('bindingType');
   @override
   late final GeneratedColumn<String> bindingType = GeneratedColumn<String>(
-    'binding_type',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 1,
-      maxTextLength: 50,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _priorityMeta = const VerificationMeta(
-    'priority',
-  );
+      'binding_type', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 50),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _priorityMeta =
+      const VerificationMeta('priority');
   @override
   late final GeneratedColumn<int> priority = GeneratedColumn<int>(
-    'priority',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(0),
-  );
-  static const VerificationMeta _isEnabledMeta = const VerificationMeta(
-    'isEnabled',
-  );
+      'priority', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _isEnabledMeta =
+      const VerificationMeta('isEnabled');
   @override
   late final GeneratedColumn<bool> isEnabled = GeneratedColumn<bool>(
-    'is_enabled',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_enabled" IN (0, 1))',
-    ),
-    defaultValue: const Constant(true),
-  );
+      'is_enabled', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_enabled" IN (0, 1))'),
+      defaultValue: const Constant(true));
   @override
   List<GeneratedColumn> get $columns => [
-    id,
-    createdAt,
-    lastUpdatedAt,
-    deletedAt,
-    promptTemplateUuid,
-    skillId,
-    bindingType,
-    priority,
-    isEnabled,
-  ];
+        id,
+        createdAt,
+        lastUpdatedAt,
+        deletedAt,
+        promptTemplateUuid,
+        skillId,
+        bindingType,
+        priority,
+        isEnabled
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 't_prompt_skill_bindings';
   @override
-  VerificationContext validateIntegrity(
-    Insertable<PromptSkillBinding> instance, {
-    bool isInserting = false,
-  }) {
+  VerificationContext validateIntegrity(Insertable<PromptSkillBinding> instance,
+      {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
     if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
     if (data.containsKey('last_updated_at')) {
       context.handle(
-        _lastUpdatedAtMeta,
-        lastUpdatedAt.isAcceptableOrUnknown(
-          data['last_updated_at']!,
           _lastUpdatedAtMeta,
-        ),
-      );
+          lastUpdatedAt.isAcceptableOrUnknown(
+              data['last_updated_at']!, _lastUpdatedAtMeta));
     }
     if (data.containsKey('deleted_at')) {
-      context.handle(
-        _deletedAtMeta,
-        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
-      );
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
     }
     if (data.containsKey('prompt_template_uuid')) {
       context.handle(
-        _promptTemplateUuidMeta,
-        promptTemplateUuid.isAcceptableOrUnknown(
-          data['prompt_template_uuid']!,
           _promptTemplateUuidMeta,
-        ),
-      );
+          promptTemplateUuid.isAcceptableOrUnknown(
+              data['prompt_template_uuid']!, _promptTemplateUuidMeta));
     } else if (isInserting) {
       context.missing(_promptTemplateUuidMeta);
     }
     if (data.containsKey('skill_id')) {
-      context.handle(
-        _skillIdMeta,
-        skillId.isAcceptableOrUnknown(data['skill_id']!, _skillIdMeta),
-      );
+      context.handle(_skillIdMeta,
+          skillId.isAcceptableOrUnknown(data['skill_id']!, _skillIdMeta));
     } else if (isInserting) {
       context.missing(_skillIdMeta);
     }
     if (data.containsKey('binding_type')) {
       context.handle(
-        _bindingTypeMeta,
-        bindingType.isAcceptableOrUnknown(
-          data['binding_type']!,
           _bindingTypeMeta,
-        ),
-      );
+          bindingType.isAcceptableOrUnknown(
+              data['binding_type']!, _bindingTypeMeta));
     } else if (isInserting) {
       context.missing(_bindingTypeMeta);
     }
     if (data.containsKey('priority')) {
-      context.handle(
-        _priorityMeta,
-        priority.isAcceptableOrUnknown(data['priority']!, _priorityMeta),
-      );
+      context.handle(_priorityMeta,
+          priority.isAcceptableOrUnknown(data['priority']!, _priorityMeta));
     }
     if (data.containsKey('is_enabled')) {
-      context.handle(
-        _isEnabledMeta,
-        isEnabled.isAcceptableOrUnknown(data['is_enabled']!, _isEnabledMeta),
-      );
+      context.handle(_isEnabledMeta,
+          isEnabled.isAcceptableOrUnknown(data['is_enabled']!, _isEnabledMeta));
     }
     return context;
   }
@@ -3148,42 +2605,24 @@ class $PromptSkillBindingsTable extends PromptSkillBindings
   PromptSkillBinding map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return PromptSkillBinding(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
       lastUpdatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}last_updated_at'],
-      ),
-      deletedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}deleted_at'],
-      ),
+          DriftSqlType.dateTime, data['${effectivePrefix}last_updated_at']),
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
       promptTemplateUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}prompt_template_uuid'],
-      )!,
-      skillId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}skill_id'],
-      )!,
-      bindingType: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}binding_type'],
-      )!,
-      priority: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}priority'],
-      )!,
-      isEnabled: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_enabled'],
-      )!,
+          DriftSqlType.string, data['${effectivePrefix}prompt_template_uuid'])!,
+      skillId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}skill_id'])!,
+      bindingType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}binding_type'])!,
+      priority: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}priority'])!,
+      isEnabled: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_enabled'])!,
     );
   }
 
@@ -3214,17 +2653,16 @@ class PromptSkillBinding extends DataClass
 
   /// 是否启用
   final bool isEnabled;
-  const PromptSkillBinding({
-    required this.id,
-    required this.createdAt,
-    this.lastUpdatedAt,
-    this.deletedAt,
-    required this.promptTemplateUuid,
-    required this.skillId,
-    required this.bindingType,
-    required this.priority,
-    required this.isEnabled,
-  });
+  const PromptSkillBinding(
+      {required this.id,
+      required this.createdAt,
+      this.lastUpdatedAt,
+      this.deletedAt,
+      required this.promptTemplateUuid,
+      required this.skillId,
+      required this.bindingType,
+      required this.priority,
+      required this.isEnabled});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -3262,19 +2700,16 @@ class PromptSkillBinding extends DataClass
     );
   }
 
-  factory PromptSkillBinding.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory PromptSkillBinding.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return PromptSkillBinding(
       id: serializer.fromJson<int>(json['id']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       lastUpdatedAt: serializer.fromJson<DateTime?>(json['lastUpdatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
-      promptTemplateUuid: serializer.fromJson<String>(
-        json['promptTemplateUuid'],
-      ),
+      promptTemplateUuid:
+          serializer.fromJson<String>(json['promptTemplateUuid']),
       skillId: serializer.fromJson<int>(json['skillId']),
       bindingType: serializer.fromJson<String>(json['bindingType']),
       priority: serializer.fromJson<int>(json['priority']),
@@ -3297,29 +2732,28 @@ class PromptSkillBinding extends DataClass
     };
   }
 
-  PromptSkillBinding copyWith({
-    int? id,
-    DateTime? createdAt,
-    Value<DateTime?> lastUpdatedAt = const Value.absent(),
-    Value<DateTime?> deletedAt = const Value.absent(),
-    String? promptTemplateUuid,
-    int? skillId,
-    String? bindingType,
-    int? priority,
-    bool? isEnabled,
-  }) => PromptSkillBinding(
-    id: id ?? this.id,
-    createdAt: createdAt ?? this.createdAt,
-    lastUpdatedAt: lastUpdatedAt.present
-        ? lastUpdatedAt.value
-        : this.lastUpdatedAt,
-    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
-    promptTemplateUuid: promptTemplateUuid ?? this.promptTemplateUuid,
-    skillId: skillId ?? this.skillId,
-    bindingType: bindingType ?? this.bindingType,
-    priority: priority ?? this.priority,
-    isEnabled: isEnabled ?? this.isEnabled,
-  );
+  PromptSkillBinding copyWith(
+          {int? id,
+          DateTime? createdAt,
+          Value<DateTime?> lastUpdatedAt = const Value.absent(),
+          Value<DateTime?> deletedAt = const Value.absent(),
+          String? promptTemplateUuid,
+          int? skillId,
+          String? bindingType,
+          int? priority,
+          bool? isEnabled}) =>
+      PromptSkillBinding(
+        id: id ?? this.id,
+        createdAt: createdAt ?? this.createdAt,
+        lastUpdatedAt:
+            lastUpdatedAt.present ? lastUpdatedAt.value : this.lastUpdatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        promptTemplateUuid: promptTemplateUuid ?? this.promptTemplateUuid,
+        skillId: skillId ?? this.skillId,
+        bindingType: bindingType ?? this.bindingType,
+        priority: priority ?? this.priority,
+        isEnabled: isEnabled ?? this.isEnabled,
+      );
   PromptSkillBinding copyWithCompanion(PromptSkillBindingsCompanion data) {
     return PromptSkillBinding(
       id: data.id.present ? data.id.value : this.id,
@@ -3332,9 +2766,8 @@ class PromptSkillBinding extends DataClass
           ? data.promptTemplateUuid.value
           : this.promptTemplateUuid,
       skillId: data.skillId.present ? data.skillId.value : this.skillId,
-      bindingType: data.bindingType.present
-          ? data.bindingType.value
-          : this.bindingType,
+      bindingType:
+          data.bindingType.present ? data.bindingType.value : this.bindingType,
       priority: data.priority.present ? data.priority.value : this.priority,
       isEnabled: data.isEnabled.present ? data.isEnabled.value : this.isEnabled,
     );
@@ -3357,17 +2790,8 @@ class PromptSkillBinding extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(
-    id,
-    createdAt,
-    lastUpdatedAt,
-    deletedAt,
-    promptTemplateUuid,
-    skillId,
-    bindingType,
-    priority,
-    isEnabled,
-  );
+  int get hashCode => Object.hash(id, createdAt, lastUpdatedAt, deletedAt,
+      promptTemplateUuid, skillId, bindingType, priority, isEnabled);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3414,10 +2838,10 @@ class PromptSkillBindingsCompanion extends UpdateCompanion<PromptSkillBinding> {
     required String bindingType,
     this.priority = const Value.absent(),
     this.isEnabled = const Value.absent(),
-  }) : createdAt = Value(createdAt),
-       promptTemplateUuid = Value(promptTemplateUuid),
-       skillId = Value(skillId),
-       bindingType = Value(bindingType);
+  })  : createdAt = Value(createdAt),
+        promptTemplateUuid = Value(promptTemplateUuid),
+        skillId = Value(skillId),
+        bindingType = Value(bindingType);
   static Insertable<PromptSkillBinding> custom({
     Expression<int>? id,
     Expression<DateTime>? createdAt,
@@ -3443,17 +2867,16 @@ class PromptSkillBindingsCompanion extends UpdateCompanion<PromptSkillBinding> {
     });
   }
 
-  PromptSkillBindingsCompanion copyWith({
-    Value<int>? id,
-    Value<DateTime>? createdAt,
-    Value<DateTime?>? lastUpdatedAt,
-    Value<DateTime?>? deletedAt,
-    Value<String>? promptTemplateUuid,
-    Value<int>? skillId,
-    Value<String>? bindingType,
-    Value<int>? priority,
-    Value<bool>? isEnabled,
-  }) {
+  PromptSkillBindingsCompanion copyWith(
+      {Value<int>? id,
+      Value<DateTime>? createdAt,
+      Value<DateTime?>? lastUpdatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<String>? promptTemplateUuid,
+      Value<int>? skillId,
+      Value<String>? bindingType,
+      Value<int>? priority,
+      Value<bool>? isEnabled}) {
     return PromptSkillBindingsCompanion(
       id: id ?? this.id,
       createdAt: createdAt ?? this.createdAt,
@@ -3526,351 +2949,234 @@ class $AiPersonasTable extends AiPersonas
   static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
   @override
   late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
-    'uuid',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 36,
-      maxTextLength: 36,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
+      'uuid', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 36, maxTextLength: 36),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
   @override
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _lastUpdatedAtMeta = const VerificationMeta(
-    'lastUpdatedAt',
-  );
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _lastUpdatedAtMeta =
+      const VerificationMeta('lastUpdatedAt');
   @override
   late final GeneratedColumn<DateTime> lastUpdatedAt =
-      GeneratedColumn<DateTime>(
-        'last_updated_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
-    'deletedAt',
-  );
+      GeneratedColumn<DateTime>('last_updated_at', aliasedName, true,
+          type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
   @override
   late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
-    'deleted_at',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
-    'name',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 1,
-      maxTextLength: 100,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _avatarUrlMeta = const VerificationMeta(
-    'avatarUrl',
-  );
+      'name', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 100),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _avatarUrlMeta =
+      const VerificationMeta('avatarUrl');
   @override
   late final GeneratedColumn<String> avatarUrl = GeneratedColumn<String>(
-    'avatar_url',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _descriptionMeta = const VerificationMeta(
-    'description',
-  );
+      'avatar_url', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
   @override
   late final GeneratedColumn<String> description = GeneratedColumn<String>(
-    'description',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _modelUuidMeta = const VerificationMeta(
-    'modelUuid',
-  );
+      'description', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _modelUuidMeta =
+      const VerificationMeta('modelUuid');
   @override
   late final GeneratedColumn<String> modelUuid = GeneratedColumn<String>(
-    'model_uuid',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_llm_models (uuid)',
-    ),
-  );
-  static const VerificationMeta _systemPromptUuidMeta = const VerificationMeta(
-    'systemPromptUuid',
-  );
+      'model_uuid', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES t_llm_models (uuid)'));
+  static const VerificationMeta _systemPromptUuidMeta =
+      const VerificationMeta('systemPromptUuid');
   @override
   late final GeneratedColumn<String> systemPromptUuid = GeneratedColumn<String>(
-    'system_prompt_uuid',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_prompt_templates (uuid)',
-    ),
-  );
-  static const VerificationMeta _temperatureMeta = const VerificationMeta(
-    'temperature',
-  );
+      'system_prompt_uuid', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES t_prompt_templates (uuid)'));
+  static const VerificationMeta _temperatureMeta =
+      const VerificationMeta('temperature');
   @override
   late final GeneratedColumn<double> temperature = GeneratedColumn<double>(
-    'temperature',
-    aliasedName,
-    false,
-    type: DriftSqlType.double,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(0.7),
-  );
+      'temperature', aliasedName, false,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0.7));
   static const VerificationMeta _topPMeta = const VerificationMeta('topP');
   @override
   late final GeneratedColumn<double> topP = GeneratedColumn<double>(
-    'top_p',
-    aliasedName,
-    false,
-    type: DriftSqlType.double,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(1.0),
-  );
-  static const VerificationMeta _maxTokensMeta = const VerificationMeta(
-    'maxTokens',
-  );
+      'top_p', aliasedName, false,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(1.0));
+  static const VerificationMeta _maxTokensMeta =
+      const VerificationMeta('maxTokens');
   @override
   late final GeneratedColumn<int> maxTokens = GeneratedColumn<int>(
-    'max_tokens',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(2048),
-  );
-  static const VerificationMeta _personalityJsonMeta = const VerificationMeta(
-    'personalityJson',
-  );
+      'max_tokens', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(2048));
+  static const VerificationMeta _personalityJsonMeta =
+      const VerificationMeta('personalityJson');
   @override
   late final GeneratedColumn<String> personalityJson = GeneratedColumn<String>(
-    'personality_json',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _expertiseJsonMeta = const VerificationMeta(
-    'expertiseJson',
-  );
+      'personality_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _expertiseJsonMeta =
+      const VerificationMeta('expertiseJson');
   @override
   late final GeneratedColumn<String> expertiseJson = GeneratedColumn<String>(
-    'expertise_json',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _isDefaultMeta = const VerificationMeta(
-    'isDefault',
-  );
+      'expertise_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _isDefaultMeta =
+      const VerificationMeta('isDefault');
   @override
   late final GeneratedColumn<bool> isDefault = GeneratedColumn<bool>(
-    'is_default',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_default" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
-  static const VerificationMeta _isEnabledMeta = const VerificationMeta(
-    'isEnabled',
-  );
+      'is_default', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_default" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _isEnabledMeta =
+      const VerificationMeta('isEnabled');
   @override
   late final GeneratedColumn<bool> isEnabled = GeneratedColumn<bool>(
-    'is_enabled',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_enabled" IN (0, 1))',
-    ),
-    defaultValue: const Constant(true),
-  );
+      'is_enabled', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_enabled" IN (0, 1))'),
+      defaultValue: const Constant(true));
   @override
   List<GeneratedColumn> get $columns => [
-    uuid,
-    createdAt,
-    lastUpdatedAt,
-    deletedAt,
-    name,
-    avatarUrl,
-    description,
-    modelUuid,
-    systemPromptUuid,
-    temperature,
-    topP,
-    maxTokens,
-    personalityJson,
-    expertiseJson,
-    isDefault,
-    isEnabled,
-  ];
+        uuid,
+        createdAt,
+        lastUpdatedAt,
+        deletedAt,
+        name,
+        avatarUrl,
+        description,
+        modelUuid,
+        systemPromptUuid,
+        temperature,
+        topP,
+        maxTokens,
+        personalityJson,
+        expertiseJson,
+        isDefault,
+        isEnabled
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 't_ai_personas';
   @override
-  VerificationContext validateIntegrity(
-    Insertable<AiPersona> instance, {
-    bool isInserting = false,
-  }) {
+  VerificationContext validateIntegrity(Insertable<AiPersona> instance,
+      {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('uuid')) {
       context.handle(
-        _uuidMeta,
-        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
-      );
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
     } else if (isInserting) {
       context.missing(_uuidMeta);
     }
     if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
     if (data.containsKey('last_updated_at')) {
       context.handle(
-        _lastUpdatedAtMeta,
-        lastUpdatedAt.isAcceptableOrUnknown(
-          data['last_updated_at']!,
           _lastUpdatedAtMeta,
-        ),
-      );
+          lastUpdatedAt.isAcceptableOrUnknown(
+              data['last_updated_at']!, _lastUpdatedAtMeta));
     }
     if (data.containsKey('deleted_at')) {
-      context.handle(
-        _deletedAtMeta,
-        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
-      );
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
     }
     if (data.containsKey('name')) {
       context.handle(
-        _nameMeta,
-        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
-      );
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
     if (data.containsKey('avatar_url')) {
-      context.handle(
-        _avatarUrlMeta,
-        avatarUrl.isAcceptableOrUnknown(data['avatar_url']!, _avatarUrlMeta),
-      );
+      context.handle(_avatarUrlMeta,
+          avatarUrl.isAcceptableOrUnknown(data['avatar_url']!, _avatarUrlMeta));
     }
     if (data.containsKey('description')) {
       context.handle(
-        _descriptionMeta,
-        description.isAcceptableOrUnknown(
-          data['description']!,
           _descriptionMeta,
-        ),
-      );
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
     }
     if (data.containsKey('model_uuid')) {
-      context.handle(
-        _modelUuidMeta,
-        modelUuid.isAcceptableOrUnknown(data['model_uuid']!, _modelUuidMeta),
-      );
+      context.handle(_modelUuidMeta,
+          modelUuid.isAcceptableOrUnknown(data['model_uuid']!, _modelUuidMeta));
     } else if (isInserting) {
       context.missing(_modelUuidMeta);
     }
     if (data.containsKey('system_prompt_uuid')) {
       context.handle(
-        _systemPromptUuidMeta,
-        systemPromptUuid.isAcceptableOrUnknown(
-          data['system_prompt_uuid']!,
           _systemPromptUuidMeta,
-        ),
-      );
+          systemPromptUuid.isAcceptableOrUnknown(
+              data['system_prompt_uuid']!, _systemPromptUuidMeta));
     }
     if (data.containsKey('temperature')) {
       context.handle(
-        _temperatureMeta,
-        temperature.isAcceptableOrUnknown(
-          data['temperature']!,
           _temperatureMeta,
-        ),
-      );
+          temperature.isAcceptableOrUnknown(
+              data['temperature']!, _temperatureMeta));
     }
     if (data.containsKey('top_p')) {
       context.handle(
-        _topPMeta,
-        topP.isAcceptableOrUnknown(data['top_p']!, _topPMeta),
-      );
+          _topPMeta, topP.isAcceptableOrUnknown(data['top_p']!, _topPMeta));
     }
     if (data.containsKey('max_tokens')) {
-      context.handle(
-        _maxTokensMeta,
-        maxTokens.isAcceptableOrUnknown(data['max_tokens']!, _maxTokensMeta),
-      );
+      context.handle(_maxTokensMeta,
+          maxTokens.isAcceptableOrUnknown(data['max_tokens']!, _maxTokensMeta));
     }
     if (data.containsKey('personality_json')) {
       context.handle(
-        _personalityJsonMeta,
-        personalityJson.isAcceptableOrUnknown(
-          data['personality_json']!,
           _personalityJsonMeta,
-        ),
-      );
+          personalityJson.isAcceptableOrUnknown(
+              data['personality_json']!, _personalityJsonMeta));
     }
     if (data.containsKey('expertise_json')) {
       context.handle(
-        _expertiseJsonMeta,
-        expertiseJson.isAcceptableOrUnknown(
-          data['expertise_json']!,
           _expertiseJsonMeta,
-        ),
-      );
+          expertiseJson.isAcceptableOrUnknown(
+              data['expertise_json']!, _expertiseJsonMeta));
     }
     if (data.containsKey('is_default')) {
-      context.handle(
-        _isDefaultMeta,
-        isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta),
-      );
+      context.handle(_isDefaultMeta,
+          isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta));
     }
     if (data.containsKey('is_enabled')) {
-      context.handle(
-        _isEnabledMeta,
-        isEnabled.isAcceptableOrUnknown(data['is_enabled']!, _isEnabledMeta),
-      );
+      context.handle(_isEnabledMeta,
+          isEnabled.isAcceptableOrUnknown(data['is_enabled']!, _isEnabledMeta));
     }
     return context;
   }
@@ -3881,70 +3187,38 @@ class $AiPersonasTable extends AiPersonas
   AiPersona map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return AiPersona(
-      uuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}uuid'],
-      )!,
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
       lastUpdatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}last_updated_at'],
-      ),
-      deletedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}deleted_at'],
-      ),
-      name: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}name'],
-      )!,
-      avatarUrl: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}avatar_url'],
-      ),
-      description: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}description'],
-      ),
-      modelUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}model_uuid'],
-      )!,
+          DriftSqlType.dateTime, data['${effectivePrefix}last_updated_at']),
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      avatarUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}avatar_url']),
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description']),
+      modelUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}model_uuid'])!,
       systemPromptUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}system_prompt_uuid'],
-      ),
-      temperature: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}temperature'],
-      )!,
-      topP: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}top_p'],
-      )!,
-      maxTokens: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}max_tokens'],
-      )!,
+          DriftSqlType.string, data['${effectivePrefix}system_prompt_uuid']),
+      temperature: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}temperature'])!,
+      topP: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}top_p'])!,
+      maxTokens: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}max_tokens'])!,
       personalityJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}personality_json'],
-      ),
-      expertiseJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}expertise_json'],
-      ),
-      isDefault: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_default'],
-      )!,
-      isEnabled: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_enabled'],
-      )!,
+          DriftSqlType.string, data['${effectivePrefix}personality_json']),
+      expertiseJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}expertise_json']),
+      isDefault: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_default'])!,
+      isEnabled: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_enabled'])!,
     );
   }
 
@@ -3995,24 +3269,23 @@ class AiPersona extends DataClass implements Insertable<AiPersona> {
 
   /// 是否启用
   final bool isEnabled;
-  const AiPersona({
-    required this.uuid,
-    required this.createdAt,
-    this.lastUpdatedAt,
-    this.deletedAt,
-    required this.name,
-    this.avatarUrl,
-    this.description,
-    required this.modelUuid,
-    this.systemPromptUuid,
-    required this.temperature,
-    required this.topP,
-    required this.maxTokens,
-    this.personalityJson,
-    this.expertiseJson,
-    required this.isDefault,
-    required this.isEnabled,
-  });
+  const AiPersona(
+      {required this.uuid,
+      required this.createdAt,
+      this.lastUpdatedAt,
+      this.deletedAt,
+      required this.name,
+      this.avatarUrl,
+      this.description,
+      required this.modelUuid,
+      this.systemPromptUuid,
+      required this.temperature,
+      required this.topP,
+      required this.maxTokens,
+      this.personalityJson,
+      this.expertiseJson,
+      required this.isDefault,
+      required this.isEnabled});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -4084,10 +3357,8 @@ class AiPersona extends DataClass implements Insertable<AiPersona> {
     );
   }
 
-  factory AiPersona.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory AiPersona.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return AiPersona(
       uuid: serializer.fromJson<String>(json['uuid']),
@@ -4131,49 +3402,47 @@ class AiPersona extends DataClass implements Insertable<AiPersona> {
     };
   }
 
-  AiPersona copyWith({
-    String? uuid,
-    DateTime? createdAt,
-    Value<DateTime?> lastUpdatedAt = const Value.absent(),
-    Value<DateTime?> deletedAt = const Value.absent(),
-    String? name,
-    Value<String?> avatarUrl = const Value.absent(),
-    Value<String?> description = const Value.absent(),
-    String? modelUuid,
-    Value<String?> systemPromptUuid = const Value.absent(),
-    double? temperature,
-    double? topP,
-    int? maxTokens,
-    Value<String?> personalityJson = const Value.absent(),
-    Value<String?> expertiseJson = const Value.absent(),
-    bool? isDefault,
-    bool? isEnabled,
-  }) => AiPersona(
-    uuid: uuid ?? this.uuid,
-    createdAt: createdAt ?? this.createdAt,
-    lastUpdatedAt: lastUpdatedAt.present
-        ? lastUpdatedAt.value
-        : this.lastUpdatedAt,
-    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
-    name: name ?? this.name,
-    avatarUrl: avatarUrl.present ? avatarUrl.value : this.avatarUrl,
-    description: description.present ? description.value : this.description,
-    modelUuid: modelUuid ?? this.modelUuid,
-    systemPromptUuid: systemPromptUuid.present
-        ? systemPromptUuid.value
-        : this.systemPromptUuid,
-    temperature: temperature ?? this.temperature,
-    topP: topP ?? this.topP,
-    maxTokens: maxTokens ?? this.maxTokens,
-    personalityJson: personalityJson.present
-        ? personalityJson.value
-        : this.personalityJson,
-    expertiseJson: expertiseJson.present
-        ? expertiseJson.value
-        : this.expertiseJson,
-    isDefault: isDefault ?? this.isDefault,
-    isEnabled: isEnabled ?? this.isEnabled,
-  );
+  AiPersona copyWith(
+          {String? uuid,
+          DateTime? createdAt,
+          Value<DateTime?> lastUpdatedAt = const Value.absent(),
+          Value<DateTime?> deletedAt = const Value.absent(),
+          String? name,
+          Value<String?> avatarUrl = const Value.absent(),
+          Value<String?> description = const Value.absent(),
+          String? modelUuid,
+          Value<String?> systemPromptUuid = const Value.absent(),
+          double? temperature,
+          double? topP,
+          int? maxTokens,
+          Value<String?> personalityJson = const Value.absent(),
+          Value<String?> expertiseJson = const Value.absent(),
+          bool? isDefault,
+          bool? isEnabled}) =>
+      AiPersona(
+        uuid: uuid ?? this.uuid,
+        createdAt: createdAt ?? this.createdAt,
+        lastUpdatedAt:
+            lastUpdatedAt.present ? lastUpdatedAt.value : this.lastUpdatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        name: name ?? this.name,
+        avatarUrl: avatarUrl.present ? avatarUrl.value : this.avatarUrl,
+        description: description.present ? description.value : this.description,
+        modelUuid: modelUuid ?? this.modelUuid,
+        systemPromptUuid: systemPromptUuid.present
+            ? systemPromptUuid.value
+            : this.systemPromptUuid,
+        temperature: temperature ?? this.temperature,
+        topP: topP ?? this.topP,
+        maxTokens: maxTokens ?? this.maxTokens,
+        personalityJson: personalityJson.present
+            ? personalityJson.value
+            : this.personalityJson,
+        expertiseJson:
+            expertiseJson.present ? expertiseJson.value : this.expertiseJson,
+        isDefault: isDefault ?? this.isDefault,
+        isEnabled: isEnabled ?? this.isEnabled,
+      );
   AiPersona copyWithCompanion(AiPersonasCompanion data) {
     return AiPersona(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
@@ -4184,16 +3453,14 @@ class AiPersona extends DataClass implements Insertable<AiPersona> {
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
       name: data.name.present ? data.name.value : this.name,
       avatarUrl: data.avatarUrl.present ? data.avatarUrl.value : this.avatarUrl,
-      description: data.description.present
-          ? data.description.value
-          : this.description,
+      description:
+          data.description.present ? data.description.value : this.description,
       modelUuid: data.modelUuid.present ? data.modelUuid.value : this.modelUuid,
       systemPromptUuid: data.systemPromptUuid.present
           ? data.systemPromptUuid.value
           : this.systemPromptUuid,
-      temperature: data.temperature.present
-          ? data.temperature.value
-          : this.temperature,
+      temperature:
+          data.temperature.present ? data.temperature.value : this.temperature,
       topP: data.topP.present ? data.topP.value : this.topP,
       maxTokens: data.maxTokens.present ? data.maxTokens.value : this.maxTokens,
       personalityJson: data.personalityJson.present
@@ -4232,23 +3499,22 @@ class AiPersona extends DataClass implements Insertable<AiPersona> {
 
   @override
   int get hashCode => Object.hash(
-    uuid,
-    createdAt,
-    lastUpdatedAt,
-    deletedAt,
-    name,
-    avatarUrl,
-    description,
-    modelUuid,
-    systemPromptUuid,
-    temperature,
-    topP,
-    maxTokens,
-    personalityJson,
-    expertiseJson,
-    isDefault,
-    isEnabled,
-  );
+      uuid,
+      createdAt,
+      lastUpdatedAt,
+      deletedAt,
+      name,
+      avatarUrl,
+      description,
+      modelUuid,
+      systemPromptUuid,
+      temperature,
+      topP,
+      maxTokens,
+      personalityJson,
+      expertiseJson,
+      isDefault,
+      isEnabled);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4326,10 +3592,10 @@ class AiPersonasCompanion extends UpdateCompanion<AiPersona> {
     this.isDefault = const Value.absent(),
     this.isEnabled = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : uuid = Value(uuid),
-       createdAt = Value(createdAt),
-       name = Value(name),
-       modelUuid = Value(modelUuid);
+  })  : uuid = Value(uuid),
+        createdAt = Value(createdAt),
+        name = Value(name),
+        modelUuid = Value(modelUuid);
   static Insertable<AiPersona> custom({
     Expression<String>? uuid,
     Expression<DateTime>? createdAt,
@@ -4370,25 +3636,24 @@ class AiPersonasCompanion extends UpdateCompanion<AiPersona> {
     });
   }
 
-  AiPersonasCompanion copyWith({
-    Value<String>? uuid,
-    Value<DateTime>? createdAt,
-    Value<DateTime?>? lastUpdatedAt,
-    Value<DateTime?>? deletedAt,
-    Value<String>? name,
-    Value<String?>? avatarUrl,
-    Value<String?>? description,
-    Value<String>? modelUuid,
-    Value<String?>? systemPromptUuid,
-    Value<double>? temperature,
-    Value<double>? topP,
-    Value<int>? maxTokens,
-    Value<String?>? personalityJson,
-    Value<String?>? expertiseJson,
-    Value<bool>? isDefault,
-    Value<bool>? isEnabled,
-    Value<int>? rowid,
-  }) {
+  AiPersonasCompanion copyWith(
+      {Value<String>? uuid,
+      Value<DateTime>? createdAt,
+      Value<DateTime?>? lastUpdatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<String>? name,
+      Value<String?>? avatarUrl,
+      Value<String?>? description,
+      Value<String>? modelUuid,
+      Value<String?>? systemPromptUuid,
+      Value<double>? temperature,
+      Value<double>? topP,
+      Value<int>? maxTokens,
+      Value<String?>? personalityJson,
+      Value<String?>? expertiseJson,
+      Value<bool>? isDefault,
+      Value<bool>? isEnabled,
+      Value<int>? rowid}) {
     return AiPersonasCompanion(
       uuid: uuid ?? this.uuid,
       createdAt: createdAt ?? this.createdAt,
@@ -4501,244 +3766,161 @@ class $AiChatSessionsTable extends AiChatSessions
   static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
   @override
   late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
-    'uuid',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 36,
-      maxTextLength: 36,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
+      'uuid', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 36, maxTextLength: 36),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
   @override
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _lastUpdatedAtMeta = const VerificationMeta(
-    'lastUpdatedAt',
-  );
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _lastUpdatedAtMeta =
+      const VerificationMeta('lastUpdatedAt');
   @override
   late final GeneratedColumn<DateTime> lastUpdatedAt =
-      GeneratedColumn<DateTime>(
-        'last_updated_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
-    'deletedAt',
-  );
+      GeneratedColumn<DateTime>('last_updated_at', aliasedName, true,
+          type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
   @override
   late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
-    'deleted_at',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
-    'title',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _personaUuidMeta = const VerificationMeta(
-    'personaUuid',
-  );
+      'title', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _personaUuidMeta =
+      const VerificationMeta('personaUuid');
   @override
   late final GeneratedColumn<String> personaUuid = GeneratedColumn<String>(
-    'persona_uuid',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_ai_personas (uuid)',
-    ),
-  );
-  static const VerificationMeta _divinationUuidMeta = const VerificationMeta(
-    'divinationUuid',
-  );
+      'persona_uuid', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES t_ai_personas (uuid)'));
+  static const VerificationMeta _divinationUuidMeta =
+      const VerificationMeta('divinationUuid');
   @override
   late final GeneratedColumn<String> divinationUuid = GeneratedColumn<String>(
-    'divination_uuid',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
+      'divination_uuid', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _statusMeta = const VerificationMeta('status');
   @override
   late final GeneratedColumn<String> status = GeneratedColumn<String>(
-    'status',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant('active'),
-  );
-  static const VerificationMeta _contextJsonMeta = const VerificationMeta(
-    'contextJson',
-  );
+      'status', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('active'));
+  static const VerificationMeta _contextJsonMeta =
+      const VerificationMeta('contextJson');
   @override
   late final GeneratedColumn<String> contextJson = GeneratedColumn<String>(
-    'context_json',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _messageCountMeta = const VerificationMeta(
-    'messageCount',
-  );
+      'context_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _messageCountMeta =
+      const VerificationMeta('messageCount');
   @override
   late final GeneratedColumn<int> messageCount = GeneratedColumn<int>(
-    'message_count',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(0),
-  );
-  static const VerificationMeta _lastMessageAtMeta = const VerificationMeta(
-    'lastMessageAt',
-  );
+      'message_count', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _lastMessageAtMeta =
+      const VerificationMeta('lastMessageAt');
   @override
   late final GeneratedColumn<DateTime> lastMessageAt =
-      GeneratedColumn<DateTime>(
-        'last_message_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
+      GeneratedColumn<DateTime>('last_message_at', aliasedName, true,
+          type: DriftSqlType.dateTime, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
-    uuid,
-    createdAt,
-    lastUpdatedAt,
-    deletedAt,
-    title,
-    personaUuid,
-    divinationUuid,
-    status,
-    contextJson,
-    messageCount,
-    lastMessageAt,
-  ];
+        uuid,
+        createdAt,
+        lastUpdatedAt,
+        deletedAt,
+        title,
+        personaUuid,
+        divinationUuid,
+        status,
+        contextJson,
+        messageCount,
+        lastMessageAt
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 't_ai_chat_sessions';
   @override
-  VerificationContext validateIntegrity(
-    Insertable<AiChatSession> instance, {
-    bool isInserting = false,
-  }) {
+  VerificationContext validateIntegrity(Insertable<AiChatSession> instance,
+      {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('uuid')) {
       context.handle(
-        _uuidMeta,
-        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
-      );
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
     } else if (isInserting) {
       context.missing(_uuidMeta);
     }
     if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
     if (data.containsKey('last_updated_at')) {
       context.handle(
-        _lastUpdatedAtMeta,
-        lastUpdatedAt.isAcceptableOrUnknown(
-          data['last_updated_at']!,
           _lastUpdatedAtMeta,
-        ),
-      );
+          lastUpdatedAt.isAcceptableOrUnknown(
+              data['last_updated_at']!, _lastUpdatedAtMeta));
     }
     if (data.containsKey('deleted_at')) {
-      context.handle(
-        _deletedAtMeta,
-        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
-      );
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
     }
     if (data.containsKey('title')) {
       context.handle(
-        _titleMeta,
-        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
-      );
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
     }
     if (data.containsKey('persona_uuid')) {
       context.handle(
-        _personaUuidMeta,
-        personaUuid.isAcceptableOrUnknown(
-          data['persona_uuid']!,
           _personaUuidMeta,
-        ),
-      );
+          personaUuid.isAcceptableOrUnknown(
+              data['persona_uuid']!, _personaUuidMeta));
     } else if (isInserting) {
       context.missing(_personaUuidMeta);
     }
     if (data.containsKey('divination_uuid')) {
       context.handle(
-        _divinationUuidMeta,
-        divinationUuid.isAcceptableOrUnknown(
-          data['divination_uuid']!,
           _divinationUuidMeta,
-        ),
-      );
+          divinationUuid.isAcceptableOrUnknown(
+              data['divination_uuid']!, _divinationUuidMeta));
     }
     if (data.containsKey('status')) {
-      context.handle(
-        _statusMeta,
-        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
-      );
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
     }
     if (data.containsKey('context_json')) {
       context.handle(
-        _contextJsonMeta,
-        contextJson.isAcceptableOrUnknown(
-          data['context_json']!,
           _contextJsonMeta,
-        ),
-      );
+          contextJson.isAcceptableOrUnknown(
+              data['context_json']!, _contextJsonMeta));
     }
     if (data.containsKey('message_count')) {
       context.handle(
-        _messageCountMeta,
-        messageCount.isAcceptableOrUnknown(
-          data['message_count']!,
           _messageCountMeta,
-        ),
-      );
+          messageCount.isAcceptableOrUnknown(
+              data['message_count']!, _messageCountMeta));
     }
     if (data.containsKey('last_message_at')) {
       context.handle(
-        _lastMessageAtMeta,
-        lastMessageAt.isAcceptableOrUnknown(
-          data['last_message_at']!,
           _lastMessageAtMeta,
-        ),
-      );
+          lastMessageAt.isAcceptableOrUnknown(
+              data['last_message_at']!, _lastMessageAtMeta));
     }
     return context;
   }
@@ -4749,50 +3931,28 @@ class $AiChatSessionsTable extends AiChatSessions
   AiChatSession map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return AiChatSession(
-      uuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}uuid'],
-      )!,
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
       lastUpdatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}last_updated_at'],
-      ),
-      deletedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}deleted_at'],
-      ),
-      title: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}title'],
-      ),
-      personaUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}persona_uuid'],
-      )!,
-      divinationUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}divination_uuid'],
-      ),
-      status: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}status'],
-      )!,
-      contextJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}context_json'],
-      ),
-      messageCount: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}message_count'],
-      )!,
+          DriftSqlType.dateTime, data['${effectivePrefix}last_updated_at']),
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      title: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}title']),
+      personaUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}persona_uuid'])!,
+      divinationUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}divination_uuid']),
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      contextJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}context_json']),
+      messageCount: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}message_count'])!,
       lastMessageAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}last_message_at'],
-      ),
+          DriftSqlType.dateTime, data['${effectivePrefix}last_message_at']),
     );
   }
 
@@ -4828,19 +3988,18 @@ class AiChatSession extends DataClass implements Insertable<AiChatSession> {
 
   /// 最后消息时间
   final DateTime? lastMessageAt;
-  const AiChatSession({
-    required this.uuid,
-    required this.createdAt,
-    this.lastUpdatedAt,
-    this.deletedAt,
-    this.title,
-    required this.personaUuid,
-    this.divinationUuid,
-    required this.status,
-    this.contextJson,
-    required this.messageCount,
-    this.lastMessageAt,
-  });
+  const AiChatSession(
+      {required this.uuid,
+      required this.createdAt,
+      this.lastUpdatedAt,
+      this.deletedAt,
+      this.title,
+      required this.personaUuid,
+      this.divinationUuid,
+      required this.status,
+      this.contextJson,
+      required this.messageCount,
+      this.lastMessageAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -4880,9 +4039,8 @@ class AiChatSession extends DataClass implements Insertable<AiChatSession> {
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
-      title: title == null && nullToAbsent
-          ? const Value.absent()
-          : Value(title),
+      title:
+          title == null && nullToAbsent ? const Value.absent() : Value(title),
       personaUuid: Value(personaUuid),
       divinationUuid: divinationUuid == null && nullToAbsent
           ? const Value.absent()
@@ -4898,10 +4056,8 @@ class AiChatSession extends DataClass implements Insertable<AiChatSession> {
     );
   }
 
-  factory AiChatSession.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory AiChatSession.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return AiChatSession(
       uuid: serializer.fromJson<String>(json['uuid']),
@@ -4935,37 +4091,34 @@ class AiChatSession extends DataClass implements Insertable<AiChatSession> {
     };
   }
 
-  AiChatSession copyWith({
-    String? uuid,
-    DateTime? createdAt,
-    Value<DateTime?> lastUpdatedAt = const Value.absent(),
-    Value<DateTime?> deletedAt = const Value.absent(),
-    Value<String?> title = const Value.absent(),
-    String? personaUuid,
-    Value<String?> divinationUuid = const Value.absent(),
-    String? status,
-    Value<String?> contextJson = const Value.absent(),
-    int? messageCount,
-    Value<DateTime?> lastMessageAt = const Value.absent(),
-  }) => AiChatSession(
-    uuid: uuid ?? this.uuid,
-    createdAt: createdAt ?? this.createdAt,
-    lastUpdatedAt: lastUpdatedAt.present
-        ? lastUpdatedAt.value
-        : this.lastUpdatedAt,
-    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
-    title: title.present ? title.value : this.title,
-    personaUuid: personaUuid ?? this.personaUuid,
-    divinationUuid: divinationUuid.present
-        ? divinationUuid.value
-        : this.divinationUuid,
-    status: status ?? this.status,
-    contextJson: contextJson.present ? contextJson.value : this.contextJson,
-    messageCount: messageCount ?? this.messageCount,
-    lastMessageAt: lastMessageAt.present
-        ? lastMessageAt.value
-        : this.lastMessageAt,
-  );
+  AiChatSession copyWith(
+          {String? uuid,
+          DateTime? createdAt,
+          Value<DateTime?> lastUpdatedAt = const Value.absent(),
+          Value<DateTime?> deletedAt = const Value.absent(),
+          Value<String?> title = const Value.absent(),
+          String? personaUuid,
+          Value<String?> divinationUuid = const Value.absent(),
+          String? status,
+          Value<String?> contextJson = const Value.absent(),
+          int? messageCount,
+          Value<DateTime?> lastMessageAt = const Value.absent()}) =>
+      AiChatSession(
+        uuid: uuid ?? this.uuid,
+        createdAt: createdAt ?? this.createdAt,
+        lastUpdatedAt:
+            lastUpdatedAt.present ? lastUpdatedAt.value : this.lastUpdatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        title: title.present ? title.value : this.title,
+        personaUuid: personaUuid ?? this.personaUuid,
+        divinationUuid:
+            divinationUuid.present ? divinationUuid.value : this.divinationUuid,
+        status: status ?? this.status,
+        contextJson: contextJson.present ? contextJson.value : this.contextJson,
+        messageCount: messageCount ?? this.messageCount,
+        lastMessageAt:
+            lastMessageAt.present ? lastMessageAt.value : this.lastMessageAt,
+      );
   AiChatSession copyWithCompanion(AiChatSessionsCompanion data) {
     return AiChatSession(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
@@ -4975,16 +4128,14 @@ class AiChatSession extends DataClass implements Insertable<AiChatSession> {
           : this.lastUpdatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
       title: data.title.present ? data.title.value : this.title,
-      personaUuid: data.personaUuid.present
-          ? data.personaUuid.value
-          : this.personaUuid,
+      personaUuid:
+          data.personaUuid.present ? data.personaUuid.value : this.personaUuid,
       divinationUuid: data.divinationUuid.present
           ? data.divinationUuid.value
           : this.divinationUuid,
       status: data.status.present ? data.status.value : this.status,
-      contextJson: data.contextJson.present
-          ? data.contextJson.value
-          : this.contextJson,
+      contextJson:
+          data.contextJson.present ? data.contextJson.value : this.contextJson,
       messageCount: data.messageCount.present
           ? data.messageCount.value
           : this.messageCount,
@@ -5014,18 +4165,17 @@ class AiChatSession extends DataClass implements Insertable<AiChatSession> {
 
   @override
   int get hashCode => Object.hash(
-    uuid,
-    createdAt,
-    lastUpdatedAt,
-    deletedAt,
-    title,
-    personaUuid,
-    divinationUuid,
-    status,
-    contextJson,
-    messageCount,
-    lastMessageAt,
-  );
+      uuid,
+      createdAt,
+      lastUpdatedAt,
+      deletedAt,
+      title,
+      personaUuid,
+      divinationUuid,
+      status,
+      contextJson,
+      messageCount,
+      lastMessageAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -5083,9 +4233,9 @@ class AiChatSessionsCompanion extends UpdateCompanion<AiChatSession> {
     this.messageCount = const Value.absent(),
     this.lastMessageAt = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : uuid = Value(uuid),
-       createdAt = Value(createdAt),
-       personaUuid = Value(personaUuid);
+  })  : uuid = Value(uuid),
+        createdAt = Value(createdAt),
+        personaUuid = Value(personaUuid);
   static Insertable<AiChatSession> custom({
     Expression<String>? uuid,
     Expression<DateTime>? createdAt,
@@ -5116,20 +4266,19 @@ class AiChatSessionsCompanion extends UpdateCompanion<AiChatSession> {
     });
   }
 
-  AiChatSessionsCompanion copyWith({
-    Value<String>? uuid,
-    Value<DateTime>? createdAt,
-    Value<DateTime?>? lastUpdatedAt,
-    Value<DateTime?>? deletedAt,
-    Value<String?>? title,
-    Value<String>? personaUuid,
-    Value<String?>? divinationUuid,
-    Value<String>? status,
-    Value<String?>? contextJson,
-    Value<int>? messageCount,
-    Value<DateTime?>? lastMessageAt,
-    Value<int>? rowid,
-  }) {
+  AiChatSessionsCompanion copyWith(
+      {Value<String>? uuid,
+      Value<DateTime>? createdAt,
+      Value<DateTime?>? lastUpdatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<String?>? title,
+      Value<String>? personaUuid,
+      Value<String?>? divinationUuid,
+      Value<String>? status,
+      Value<String?>? contextJson,
+      Value<int>? messageCount,
+      Value<DateTime?>? lastMessageAt,
+      Value<int>? rowid}) {
     return AiChatSessionsCompanion(
       uuid: uuid ?? this.uuid,
       createdAt: createdAt ?? this.createdAt,
@@ -5217,318 +4366,210 @@ class $AiApiCallsTable extends AiApiCalls
   static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
   @override
   late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
-    'uuid',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 36,
-      maxTextLength: 36,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _sessionUuidMeta = const VerificationMeta(
-    'sessionUuid',
-  );
+      'uuid', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 36, maxTextLength: 36),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _sessionUuidMeta =
+      const VerificationMeta('sessionUuid');
   @override
   late final GeneratedColumn<String> sessionUuid = GeneratedColumn<String>(
-    'session_uuid',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_ai_chat_sessions (uuid)',
-    ),
-  );
-  static const VerificationMeta _modelUuidMeta = const VerificationMeta(
-    'modelUuid',
-  );
+      'session_uuid', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES t_ai_chat_sessions (uuid)'));
+  static const VerificationMeta _modelUuidMeta =
+      const VerificationMeta('modelUuid');
   @override
   late final GeneratedColumn<String> modelUuid = GeneratedColumn<String>(
-    'model_uuid',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_llm_models (uuid)',
-    ),
-  );
-  static const VerificationMeta _requestedAtMeta = const VerificationMeta(
-    'requestedAt',
-  );
+      'model_uuid', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES t_llm_models (uuid)'));
+  static const VerificationMeta _requestedAtMeta =
+      const VerificationMeta('requestedAt');
   @override
   late final GeneratedColumn<DateTime> requestedAt = GeneratedColumn<DateTime>(
-    'requested_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _respondedAtMeta = const VerificationMeta(
-    'respondedAt',
-  );
+      'requested_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _respondedAtMeta =
+      const VerificationMeta('respondedAt');
   @override
   late final GeneratedColumn<DateTime> respondedAt = GeneratedColumn<DateTime>(
-    'responded_at',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _requestJsonMeta = const VerificationMeta(
-    'requestJson',
-  );
+      'responded_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _requestJsonMeta =
+      const VerificationMeta('requestJson');
   @override
   late final GeneratedColumn<String> requestJson = GeneratedColumn<String>(
-    'request_json',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _responseJsonMeta = const VerificationMeta(
-    'responseJson',
-  );
+      'request_json', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _responseJsonMeta =
+      const VerificationMeta('responseJson');
   @override
   late final GeneratedColumn<String> responseJson = GeneratedColumn<String>(
-    'response_json',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
+      'response_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _statusMeta = const VerificationMeta('status');
   @override
   late final GeneratedColumn<String> status = GeneratedColumn<String>(
-    'status',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant('pending'),
-  );
-  static const VerificationMeta _errorMessageMeta = const VerificationMeta(
-    'errorMessage',
-  );
+      'status', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('pending'));
+  static const VerificationMeta _errorMessageMeta =
+      const VerificationMeta('errorMessage');
   @override
   late final GeneratedColumn<String> errorMessage = GeneratedColumn<String>(
-    'error_message',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _inputTokensMeta = const VerificationMeta(
-    'inputTokens',
-  );
+      'error_message', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _inputTokensMeta =
+      const VerificationMeta('inputTokens');
   @override
   late final GeneratedColumn<int> inputTokens = GeneratedColumn<int>(
-    'input_tokens',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _outputTokensMeta = const VerificationMeta(
-    'outputTokens',
-  );
+      'input_tokens', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _outputTokensMeta =
+      const VerificationMeta('outputTokens');
   @override
   late final GeneratedColumn<int> outputTokens = GeneratedColumn<int>(
-    'output_tokens',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _totalTokensMeta = const VerificationMeta(
-    'totalTokens',
-  );
+      'output_tokens', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _totalTokensMeta =
+      const VerificationMeta('totalTokens');
   @override
   late final GeneratedColumn<int> totalTokens = GeneratedColumn<int>(
-    'total_tokens',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _latencyMsMeta = const VerificationMeta(
-    'latencyMs',
-  );
+      'total_tokens', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _latencyMsMeta =
+      const VerificationMeta('latencyMs');
   @override
   late final GeneratedColumn<int> latencyMs = GeneratedColumn<int>(
-    'latency_ms',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _isStreamingMeta = const VerificationMeta(
-    'isStreaming',
-  );
+      'latency_ms', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _isStreamingMeta =
+      const VerificationMeta('isStreaming');
   @override
   late final GeneratedColumn<bool> isStreaming = GeneratedColumn<bool>(
-    'is_streaming',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_streaming" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
+      'is_streaming', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("is_streaming" IN (0, 1))'),
+      defaultValue: const Constant(false));
   @override
   List<GeneratedColumn> get $columns => [
-    uuid,
-    sessionUuid,
-    modelUuid,
-    requestedAt,
-    respondedAt,
-    requestJson,
-    responseJson,
-    status,
-    errorMessage,
-    inputTokens,
-    outputTokens,
-    totalTokens,
-    latencyMs,
-    isStreaming,
-  ];
+        uuid,
+        sessionUuid,
+        modelUuid,
+        requestedAt,
+        respondedAt,
+        requestJson,
+        responseJson,
+        status,
+        errorMessage,
+        inputTokens,
+        outputTokens,
+        totalTokens,
+        latencyMs,
+        isStreaming
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 't_ai_api_calls';
   @override
-  VerificationContext validateIntegrity(
-    Insertable<AiApiCall> instance, {
-    bool isInserting = false,
-  }) {
+  VerificationContext validateIntegrity(Insertable<AiApiCall> instance,
+      {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('uuid')) {
       context.handle(
-        _uuidMeta,
-        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
-      );
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
     } else if (isInserting) {
       context.missing(_uuidMeta);
     }
     if (data.containsKey('session_uuid')) {
       context.handle(
-        _sessionUuidMeta,
-        sessionUuid.isAcceptableOrUnknown(
-          data['session_uuid']!,
           _sessionUuidMeta,
-        ),
-      );
+          sessionUuid.isAcceptableOrUnknown(
+              data['session_uuid']!, _sessionUuidMeta));
     }
     if (data.containsKey('model_uuid')) {
-      context.handle(
-        _modelUuidMeta,
-        modelUuid.isAcceptableOrUnknown(data['model_uuid']!, _modelUuidMeta),
-      );
+      context.handle(_modelUuidMeta,
+          modelUuid.isAcceptableOrUnknown(data['model_uuid']!, _modelUuidMeta));
     } else if (isInserting) {
       context.missing(_modelUuidMeta);
     }
     if (data.containsKey('requested_at')) {
       context.handle(
-        _requestedAtMeta,
-        requestedAt.isAcceptableOrUnknown(
-          data['requested_at']!,
           _requestedAtMeta,
-        ),
-      );
+          requestedAt.isAcceptableOrUnknown(
+              data['requested_at']!, _requestedAtMeta));
     } else if (isInserting) {
       context.missing(_requestedAtMeta);
     }
     if (data.containsKey('responded_at')) {
       context.handle(
-        _respondedAtMeta,
-        respondedAt.isAcceptableOrUnknown(
-          data['responded_at']!,
           _respondedAtMeta,
-        ),
-      );
+          respondedAt.isAcceptableOrUnknown(
+              data['responded_at']!, _respondedAtMeta));
     }
     if (data.containsKey('request_json')) {
       context.handle(
-        _requestJsonMeta,
-        requestJson.isAcceptableOrUnknown(
-          data['request_json']!,
           _requestJsonMeta,
-        ),
-      );
+          requestJson.isAcceptableOrUnknown(
+              data['request_json']!, _requestJsonMeta));
     } else if (isInserting) {
       context.missing(_requestJsonMeta);
     }
     if (data.containsKey('response_json')) {
       context.handle(
-        _responseJsonMeta,
-        responseJson.isAcceptableOrUnknown(
-          data['response_json']!,
           _responseJsonMeta,
-        ),
-      );
+          responseJson.isAcceptableOrUnknown(
+              data['response_json']!, _responseJsonMeta));
     }
     if (data.containsKey('status')) {
-      context.handle(
-        _statusMeta,
-        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
-      );
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
     }
     if (data.containsKey('error_message')) {
       context.handle(
-        _errorMessageMeta,
-        errorMessage.isAcceptableOrUnknown(
-          data['error_message']!,
           _errorMessageMeta,
-        ),
-      );
+          errorMessage.isAcceptableOrUnknown(
+              data['error_message']!, _errorMessageMeta));
     }
     if (data.containsKey('input_tokens')) {
       context.handle(
-        _inputTokensMeta,
-        inputTokens.isAcceptableOrUnknown(
-          data['input_tokens']!,
           _inputTokensMeta,
-        ),
-      );
+          inputTokens.isAcceptableOrUnknown(
+              data['input_tokens']!, _inputTokensMeta));
     }
     if (data.containsKey('output_tokens')) {
       context.handle(
-        _outputTokensMeta,
-        outputTokens.isAcceptableOrUnknown(
-          data['output_tokens']!,
           _outputTokensMeta,
-        ),
-      );
+          outputTokens.isAcceptableOrUnknown(
+              data['output_tokens']!, _outputTokensMeta));
     }
     if (data.containsKey('total_tokens')) {
       context.handle(
-        _totalTokensMeta,
-        totalTokens.isAcceptableOrUnknown(
-          data['total_tokens']!,
           _totalTokensMeta,
-        ),
-      );
+          totalTokens.isAcceptableOrUnknown(
+              data['total_tokens']!, _totalTokensMeta));
     }
     if (data.containsKey('latency_ms')) {
-      context.handle(
-        _latencyMsMeta,
-        latencyMs.isAcceptableOrUnknown(data['latency_ms']!, _latencyMsMeta),
-      );
+      context.handle(_latencyMsMeta,
+          latencyMs.isAcceptableOrUnknown(data['latency_ms']!, _latencyMsMeta));
     }
     if (data.containsKey('is_streaming')) {
       context.handle(
-        _isStreamingMeta,
-        isStreaming.isAcceptableOrUnknown(
-          data['is_streaming']!,
           _isStreamingMeta,
-        ),
-      );
+          isStreaming.isAcceptableOrUnknown(
+              data['is_streaming']!, _isStreamingMeta));
     }
     return context;
   }
@@ -5539,62 +4580,34 @@ class $AiApiCallsTable extends AiApiCalls
   AiApiCall map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return AiApiCall(
-      uuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}uuid'],
-      )!,
-      sessionUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}session_uuid'],
-      ),
-      modelUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}model_uuid'],
-      )!,
-      requestedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}requested_at'],
-      )!,
-      respondedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}responded_at'],
-      ),
-      requestJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}request_json'],
-      )!,
-      responseJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}response_json'],
-      ),
-      status: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}status'],
-      )!,
-      errorMessage: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}error_message'],
-      ),
-      inputTokens: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}input_tokens'],
-      ),
-      outputTokens: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}output_tokens'],
-      ),
-      totalTokens: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}total_tokens'],
-      ),
-      latencyMs: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}latency_ms'],
-      ),
-      isStreaming: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_streaming'],
-      )!,
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      sessionUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}session_uuid']),
+      modelUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}model_uuid'])!,
+      requestedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}requested_at'])!,
+      respondedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}responded_at']),
+      requestJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}request_json'])!,
+      responseJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}response_json']),
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      errorMessage: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}error_message']),
+      inputTokens: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}input_tokens']),
+      outputTokens: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}output_tokens']),
+      totalTokens: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}total_tokens']),
+      latencyMs: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}latency_ms']),
+      isStreaming: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_streaming'])!,
     );
   }
 
@@ -5645,22 +4658,21 @@ class AiApiCall extends DataClass implements Insertable<AiApiCall> {
 
   /// 是否为流式请求
   final bool isStreaming;
-  const AiApiCall({
-    required this.uuid,
-    this.sessionUuid,
-    required this.modelUuid,
-    required this.requestedAt,
-    this.respondedAt,
-    required this.requestJson,
-    this.responseJson,
-    required this.status,
-    this.errorMessage,
-    this.inputTokens,
-    this.outputTokens,
-    this.totalTokens,
-    this.latencyMs,
-    required this.isStreaming,
-  });
+  const AiApiCall(
+      {required this.uuid,
+      this.sessionUuid,
+      required this.modelUuid,
+      required this.requestedAt,
+      this.respondedAt,
+      required this.requestJson,
+      this.responseJson,
+      required this.status,
+      this.errorMessage,
+      this.inputTokens,
+      this.outputTokens,
+      this.totalTokens,
+      this.latencyMs,
+      required this.isStreaming});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -5732,10 +4744,8 @@ class AiApiCall extends DataClass implements Insertable<AiApiCall> {
     );
   }
 
-  factory AiApiCall.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory AiApiCall.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return AiApiCall(
       uuid: serializer.fromJson<String>(json['uuid']),
@@ -5775,53 +4785,52 @@ class AiApiCall extends DataClass implements Insertable<AiApiCall> {
     };
   }
 
-  AiApiCall copyWith({
-    String? uuid,
-    Value<String?> sessionUuid = const Value.absent(),
-    String? modelUuid,
-    DateTime? requestedAt,
-    Value<DateTime?> respondedAt = const Value.absent(),
-    String? requestJson,
-    Value<String?> responseJson = const Value.absent(),
-    String? status,
-    Value<String?> errorMessage = const Value.absent(),
-    Value<int?> inputTokens = const Value.absent(),
-    Value<int?> outputTokens = const Value.absent(),
-    Value<int?> totalTokens = const Value.absent(),
-    Value<int?> latencyMs = const Value.absent(),
-    bool? isStreaming,
-  }) => AiApiCall(
-    uuid: uuid ?? this.uuid,
-    sessionUuid: sessionUuid.present ? sessionUuid.value : this.sessionUuid,
-    modelUuid: modelUuid ?? this.modelUuid,
-    requestedAt: requestedAt ?? this.requestedAt,
-    respondedAt: respondedAt.present ? respondedAt.value : this.respondedAt,
-    requestJson: requestJson ?? this.requestJson,
-    responseJson: responseJson.present ? responseJson.value : this.responseJson,
-    status: status ?? this.status,
-    errorMessage: errorMessage.present ? errorMessage.value : this.errorMessage,
-    inputTokens: inputTokens.present ? inputTokens.value : this.inputTokens,
-    outputTokens: outputTokens.present ? outputTokens.value : this.outputTokens,
-    totalTokens: totalTokens.present ? totalTokens.value : this.totalTokens,
-    latencyMs: latencyMs.present ? latencyMs.value : this.latencyMs,
-    isStreaming: isStreaming ?? this.isStreaming,
-  );
+  AiApiCall copyWith(
+          {String? uuid,
+          Value<String?> sessionUuid = const Value.absent(),
+          String? modelUuid,
+          DateTime? requestedAt,
+          Value<DateTime?> respondedAt = const Value.absent(),
+          String? requestJson,
+          Value<String?> responseJson = const Value.absent(),
+          String? status,
+          Value<String?> errorMessage = const Value.absent(),
+          Value<int?> inputTokens = const Value.absent(),
+          Value<int?> outputTokens = const Value.absent(),
+          Value<int?> totalTokens = const Value.absent(),
+          Value<int?> latencyMs = const Value.absent(),
+          bool? isStreaming}) =>
+      AiApiCall(
+        uuid: uuid ?? this.uuid,
+        sessionUuid: sessionUuid.present ? sessionUuid.value : this.sessionUuid,
+        modelUuid: modelUuid ?? this.modelUuid,
+        requestedAt: requestedAt ?? this.requestedAt,
+        respondedAt: respondedAt.present ? respondedAt.value : this.respondedAt,
+        requestJson: requestJson ?? this.requestJson,
+        responseJson:
+            responseJson.present ? responseJson.value : this.responseJson,
+        status: status ?? this.status,
+        errorMessage:
+            errorMessage.present ? errorMessage.value : this.errorMessage,
+        inputTokens: inputTokens.present ? inputTokens.value : this.inputTokens,
+        outputTokens:
+            outputTokens.present ? outputTokens.value : this.outputTokens,
+        totalTokens: totalTokens.present ? totalTokens.value : this.totalTokens,
+        latencyMs: latencyMs.present ? latencyMs.value : this.latencyMs,
+        isStreaming: isStreaming ?? this.isStreaming,
+      );
   AiApiCall copyWithCompanion(AiApiCallsCompanion data) {
     return AiApiCall(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
-      sessionUuid: data.sessionUuid.present
-          ? data.sessionUuid.value
-          : this.sessionUuid,
+      sessionUuid:
+          data.sessionUuid.present ? data.sessionUuid.value : this.sessionUuid,
       modelUuid: data.modelUuid.present ? data.modelUuid.value : this.modelUuid,
-      requestedAt: data.requestedAt.present
-          ? data.requestedAt.value
-          : this.requestedAt,
-      respondedAt: data.respondedAt.present
-          ? data.respondedAt.value
-          : this.respondedAt,
-      requestJson: data.requestJson.present
-          ? data.requestJson.value
-          : this.requestJson,
+      requestedAt:
+          data.requestedAt.present ? data.requestedAt.value : this.requestedAt,
+      respondedAt:
+          data.respondedAt.present ? data.respondedAt.value : this.respondedAt,
+      requestJson:
+          data.requestJson.present ? data.requestJson.value : this.requestJson,
       responseJson: data.responseJson.present
           ? data.responseJson.value
           : this.responseJson,
@@ -5829,19 +4838,16 @@ class AiApiCall extends DataClass implements Insertable<AiApiCall> {
       errorMessage: data.errorMessage.present
           ? data.errorMessage.value
           : this.errorMessage,
-      inputTokens: data.inputTokens.present
-          ? data.inputTokens.value
-          : this.inputTokens,
+      inputTokens:
+          data.inputTokens.present ? data.inputTokens.value : this.inputTokens,
       outputTokens: data.outputTokens.present
           ? data.outputTokens.value
           : this.outputTokens,
-      totalTokens: data.totalTokens.present
-          ? data.totalTokens.value
-          : this.totalTokens,
+      totalTokens:
+          data.totalTokens.present ? data.totalTokens.value : this.totalTokens,
       latencyMs: data.latencyMs.present ? data.latencyMs.value : this.latencyMs,
-      isStreaming: data.isStreaming.present
-          ? data.isStreaming.value
-          : this.isStreaming,
+      isStreaming:
+          data.isStreaming.present ? data.isStreaming.value : this.isStreaming,
     );
   }
 
@@ -5868,21 +4874,20 @@ class AiApiCall extends DataClass implements Insertable<AiApiCall> {
 
   @override
   int get hashCode => Object.hash(
-    uuid,
-    sessionUuid,
-    modelUuid,
-    requestedAt,
-    respondedAt,
-    requestJson,
-    responseJson,
-    status,
-    errorMessage,
-    inputTokens,
-    outputTokens,
-    totalTokens,
-    latencyMs,
-    isStreaming,
-  );
+      uuid,
+      sessionUuid,
+      modelUuid,
+      requestedAt,
+      respondedAt,
+      requestJson,
+      responseJson,
+      status,
+      errorMessage,
+      inputTokens,
+      outputTokens,
+      totalTokens,
+      latencyMs,
+      isStreaming);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -5952,10 +4957,10 @@ class AiApiCallsCompanion extends UpdateCompanion<AiApiCall> {
     this.latencyMs = const Value.absent(),
     this.isStreaming = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : uuid = Value(uuid),
-       modelUuid = Value(modelUuid),
-       requestedAt = Value(requestedAt),
-       requestJson = Value(requestJson);
+  })  : uuid = Value(uuid),
+        modelUuid = Value(modelUuid),
+        requestedAt = Value(requestedAt),
+        requestJson = Value(requestJson);
   static Insertable<AiApiCall> custom({
     Expression<String>? uuid,
     Expression<String>? sessionUuid,
@@ -5992,23 +4997,22 @@ class AiApiCallsCompanion extends UpdateCompanion<AiApiCall> {
     });
   }
 
-  AiApiCallsCompanion copyWith({
-    Value<String>? uuid,
-    Value<String?>? sessionUuid,
-    Value<String>? modelUuid,
-    Value<DateTime>? requestedAt,
-    Value<DateTime?>? respondedAt,
-    Value<String>? requestJson,
-    Value<String?>? responseJson,
-    Value<String>? status,
-    Value<String?>? errorMessage,
-    Value<int?>? inputTokens,
-    Value<int?>? outputTokens,
-    Value<int?>? totalTokens,
-    Value<int?>? latencyMs,
-    Value<bool>? isStreaming,
-    Value<int>? rowid,
-  }) {
+  AiApiCallsCompanion copyWith(
+      {Value<String>? uuid,
+      Value<String?>? sessionUuid,
+      Value<String>? modelUuid,
+      Value<DateTime>? requestedAt,
+      Value<DateTime?>? respondedAt,
+      Value<String>? requestJson,
+      Value<String?>? responseJson,
+      Value<String>? status,
+      Value<String?>? errorMessage,
+      Value<int?>? inputTokens,
+      Value<int?>? outputTokens,
+      Value<int?>? totalTokens,
+      Value<int?>? latencyMs,
+      Value<bool>? isStreaming,
+      Value<int>? rowid}) {
     return AiApiCallsCompanion(
       uuid: uuid ?? this.uuid,
       sessionUuid: sessionUuid ?? this.sessionUuid,
@@ -6111,278 +5115,185 @@ class $AiChatMessagesTable extends AiChatMessages
   static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
   @override
   late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
-    'uuid',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 36,
-      maxTextLength: 36,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _sessionUuidMeta = const VerificationMeta(
-    'sessionUuid',
-  );
+      'uuid', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 36, maxTextLength: 36),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _sessionUuidMeta =
+      const VerificationMeta('sessionUuid');
   @override
   late final GeneratedColumn<String> sessionUuid = GeneratedColumn<String>(
-    'session_uuid',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_ai_chat_sessions (uuid)',
-    ),
-  );
+      'session_uuid', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES t_ai_chat_sessions (uuid)'));
   static const VerificationMeta _roleMeta = const VerificationMeta('role');
   @override
   late final GeneratedColumn<String> role = GeneratedColumn<String>(
-    'role',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 1,
-      maxTextLength: 20,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _contentMeta = const VerificationMeta(
-    'content',
-  );
+      'role', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 20),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _contentMeta =
+      const VerificationMeta('content');
   @override
   late final GeneratedColumn<String> content = GeneratedColumn<String>(
-    'content',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _sequenceMeta = const VerificationMeta(
-    'sequence',
-  );
+      'content', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sequenceMeta =
+      const VerificationMeta('sequence');
   @override
   late final GeneratedColumn<int> sequence = GeneratedColumn<int>(
-    'sequence',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
+      'sequence', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
   @override
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _isStreamingMeta = const VerificationMeta(
-    'isStreaming',
-  );
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _isStreamingMeta =
+      const VerificationMeta('isStreaming');
   @override
   late final GeneratedColumn<bool> isStreaming = GeneratedColumn<bool>(
-    'is_streaming',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_streaming" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
-  static const VerificationMeta _streamCompletedAtMeta = const VerificationMeta(
-    'streamCompletedAt',
-  );
+      'is_streaming', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("is_streaming" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _streamCompletedAtMeta =
+      const VerificationMeta('streamCompletedAt');
   @override
   late final GeneratedColumn<DateTime> streamCompletedAt =
-      GeneratedColumn<DateTime>(
-        'stream_completed_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _toolCallIdMeta = const VerificationMeta(
-    'toolCallId',
-  );
+      GeneratedColumn<DateTime>('stream_completed_at', aliasedName, true,
+          type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _toolCallIdMeta =
+      const VerificationMeta('toolCallId');
   @override
   late final GeneratedColumn<String> toolCallId = GeneratedColumn<String>(
-    'tool_call_id',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _toolCallsJsonMeta = const VerificationMeta(
-    'toolCallsJson',
-  );
+      'tool_call_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _toolCallsJsonMeta =
+      const VerificationMeta('toolCallsJson');
   @override
   late final GeneratedColumn<String> toolCallsJson = GeneratedColumn<String>(
-    'tool_calls_json',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _usageJsonMeta = const VerificationMeta(
-    'usageJson',
-  );
+      'tool_calls_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _usageJsonMeta =
+      const VerificationMeta('usageJson');
   @override
   late final GeneratedColumn<String> usageJson = GeneratedColumn<String>(
-    'usage_json',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _apiCallUuidMeta = const VerificationMeta(
-    'apiCallUuid',
-  );
+      'usage_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _apiCallUuidMeta =
+      const VerificationMeta('apiCallUuid');
   @override
   late final GeneratedColumn<String> apiCallUuid = GeneratedColumn<String>(
-    'api_call_uuid',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_ai_api_calls (uuid)',
-    ),
-  );
+      'api_call_uuid', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES t_ai_api_calls (uuid)'));
   @override
   List<GeneratedColumn> get $columns => [
-    uuid,
-    sessionUuid,
-    role,
-    content,
-    sequence,
-    createdAt,
-    isStreaming,
-    streamCompletedAt,
-    toolCallId,
-    toolCallsJson,
-    usageJson,
-    apiCallUuid,
-  ];
+        uuid,
+        sessionUuid,
+        role,
+        content,
+        sequence,
+        createdAt,
+        isStreaming,
+        streamCompletedAt,
+        toolCallId,
+        toolCallsJson,
+        usageJson,
+        apiCallUuid
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 't_ai_chat_messages';
   @override
-  VerificationContext validateIntegrity(
-    Insertable<AiChatMessage> instance, {
-    bool isInserting = false,
-  }) {
+  VerificationContext validateIntegrity(Insertable<AiChatMessage> instance,
+      {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('uuid')) {
       context.handle(
-        _uuidMeta,
-        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
-      );
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
     } else if (isInserting) {
       context.missing(_uuidMeta);
     }
     if (data.containsKey('session_uuid')) {
       context.handle(
-        _sessionUuidMeta,
-        sessionUuid.isAcceptableOrUnknown(
-          data['session_uuid']!,
           _sessionUuidMeta,
-        ),
-      );
+          sessionUuid.isAcceptableOrUnknown(
+              data['session_uuid']!, _sessionUuidMeta));
     } else if (isInserting) {
       context.missing(_sessionUuidMeta);
     }
     if (data.containsKey('role')) {
       context.handle(
-        _roleMeta,
-        role.isAcceptableOrUnknown(data['role']!, _roleMeta),
-      );
+          _roleMeta, role.isAcceptableOrUnknown(data['role']!, _roleMeta));
     } else if (isInserting) {
       context.missing(_roleMeta);
     }
     if (data.containsKey('content')) {
-      context.handle(
-        _contentMeta,
-        content.isAcceptableOrUnknown(data['content']!, _contentMeta),
-      );
+      context.handle(_contentMeta,
+          content.isAcceptableOrUnknown(data['content']!, _contentMeta));
     } else if (isInserting) {
       context.missing(_contentMeta);
     }
     if (data.containsKey('sequence')) {
-      context.handle(
-        _sequenceMeta,
-        sequence.isAcceptableOrUnknown(data['sequence']!, _sequenceMeta),
-      );
+      context.handle(_sequenceMeta,
+          sequence.isAcceptableOrUnknown(data['sequence']!, _sequenceMeta));
     } else if (isInserting) {
       context.missing(_sequenceMeta);
     }
     if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
     if (data.containsKey('is_streaming')) {
       context.handle(
-        _isStreamingMeta,
-        isStreaming.isAcceptableOrUnknown(
-          data['is_streaming']!,
           _isStreamingMeta,
-        ),
-      );
+          isStreaming.isAcceptableOrUnknown(
+              data['is_streaming']!, _isStreamingMeta));
     }
     if (data.containsKey('stream_completed_at')) {
       context.handle(
-        _streamCompletedAtMeta,
-        streamCompletedAt.isAcceptableOrUnknown(
-          data['stream_completed_at']!,
           _streamCompletedAtMeta,
-        ),
-      );
+          streamCompletedAt.isAcceptableOrUnknown(
+              data['stream_completed_at']!, _streamCompletedAtMeta));
     }
     if (data.containsKey('tool_call_id')) {
       context.handle(
-        _toolCallIdMeta,
-        toolCallId.isAcceptableOrUnknown(
-          data['tool_call_id']!,
           _toolCallIdMeta,
-        ),
-      );
+          toolCallId.isAcceptableOrUnknown(
+              data['tool_call_id']!, _toolCallIdMeta));
     }
     if (data.containsKey('tool_calls_json')) {
       context.handle(
-        _toolCallsJsonMeta,
-        toolCallsJson.isAcceptableOrUnknown(
-          data['tool_calls_json']!,
           _toolCallsJsonMeta,
-        ),
-      );
+          toolCallsJson.isAcceptableOrUnknown(
+              data['tool_calls_json']!, _toolCallsJsonMeta));
     }
     if (data.containsKey('usage_json')) {
-      context.handle(
-        _usageJsonMeta,
-        usageJson.isAcceptableOrUnknown(data['usage_json']!, _usageJsonMeta),
-      );
+      context.handle(_usageJsonMeta,
+          usageJson.isAcceptableOrUnknown(data['usage_json']!, _usageJsonMeta));
     }
     if (data.containsKey('api_call_uuid')) {
       context.handle(
-        _apiCallUuidMeta,
-        apiCallUuid.isAcceptableOrUnknown(
-          data['api_call_uuid']!,
           _apiCallUuidMeta,
-        ),
-      );
+          apiCallUuid.isAcceptableOrUnknown(
+              data['api_call_uuid']!, _apiCallUuidMeta));
     }
     return context;
   }
@@ -6393,54 +5304,30 @@ class $AiChatMessagesTable extends AiChatMessages
   AiChatMessage map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return AiChatMessage(
-      uuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}uuid'],
-      )!,
-      sessionUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}session_uuid'],
-      )!,
-      role: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}role'],
-      )!,
-      content: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}content'],
-      )!,
-      sequence: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}sequence'],
-      )!,
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-      isStreaming: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_streaming'],
-      )!,
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      sessionUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}session_uuid'])!,
+      role: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}role'])!,
+      content: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}content'])!,
+      sequence: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sequence'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      isStreaming: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_streaming'])!,
       streamCompletedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}stream_completed_at'],
-      ),
-      toolCallId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}tool_call_id'],
-      ),
-      toolCallsJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}tool_calls_json'],
-      ),
-      usageJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}usage_json'],
-      ),
-      apiCallUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}api_call_uuid'],
-      ),
+          DriftSqlType.dateTime, data['${effectivePrefix}stream_completed_at']),
+      toolCallId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tool_call_id']),
+      toolCallsJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tool_calls_json']),
+      usageJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}usage_json']),
+      apiCallUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}api_call_uuid']),
     );
   }
 
@@ -6485,20 +5372,19 @@ class AiChatMessage extends DataClass implements Insertable<AiChatMessage> {
 
   /// 关联的 API 调用 UUID
   final String? apiCallUuid;
-  const AiChatMessage({
-    required this.uuid,
-    required this.sessionUuid,
-    required this.role,
-    required this.content,
-    required this.sequence,
-    required this.createdAt,
-    required this.isStreaming,
-    this.streamCompletedAt,
-    this.toolCallId,
-    this.toolCallsJson,
-    this.usageJson,
-    this.apiCallUuid,
-  });
+  const AiChatMessage(
+      {required this.uuid,
+      required this.sessionUuid,
+      required this.role,
+      required this.content,
+      required this.sequence,
+      required this.createdAt,
+      required this.isStreaming,
+      this.streamCompletedAt,
+      this.toolCallId,
+      this.toolCallsJson,
+      this.usageJson,
+      this.apiCallUuid});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -6554,10 +5440,8 @@ class AiChatMessage extends DataClass implements Insertable<AiChatMessage> {
     );
   }
 
-  factory AiChatMessage.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory AiChatMessage.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return AiChatMessage(
       uuid: serializer.fromJson<String>(json['uuid']),
@@ -6567,9 +5451,8 @@ class AiChatMessage extends DataClass implements Insertable<AiChatMessage> {
       sequence: serializer.fromJson<int>(json['sequence']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       isStreaming: serializer.fromJson<bool>(json['isStreaming']),
-      streamCompletedAt: serializer.fromJson<DateTime?>(
-        json['streamCompletedAt'],
-      ),
+      streamCompletedAt:
+          serializer.fromJson<DateTime?>(json['streamCompletedAt']),
       toolCallId: serializer.fromJson<String?>(json['toolCallId']),
       toolCallsJson: serializer.fromJson<String?>(json['toolCallsJson']),
       usageJson: serializer.fromJson<String?>(json['usageJson']),
@@ -6595,63 +5478,58 @@ class AiChatMessage extends DataClass implements Insertable<AiChatMessage> {
     };
   }
 
-  AiChatMessage copyWith({
-    String? uuid,
-    String? sessionUuid,
-    String? role,
-    String? content,
-    int? sequence,
-    DateTime? createdAt,
-    bool? isStreaming,
-    Value<DateTime?> streamCompletedAt = const Value.absent(),
-    Value<String?> toolCallId = const Value.absent(),
-    Value<String?> toolCallsJson = const Value.absent(),
-    Value<String?> usageJson = const Value.absent(),
-    Value<String?> apiCallUuid = const Value.absent(),
-  }) => AiChatMessage(
-    uuid: uuid ?? this.uuid,
-    sessionUuid: sessionUuid ?? this.sessionUuid,
-    role: role ?? this.role,
-    content: content ?? this.content,
-    sequence: sequence ?? this.sequence,
-    createdAt: createdAt ?? this.createdAt,
-    isStreaming: isStreaming ?? this.isStreaming,
-    streamCompletedAt: streamCompletedAt.present
-        ? streamCompletedAt.value
-        : this.streamCompletedAt,
-    toolCallId: toolCallId.present ? toolCallId.value : this.toolCallId,
-    toolCallsJson: toolCallsJson.present
-        ? toolCallsJson.value
-        : this.toolCallsJson,
-    usageJson: usageJson.present ? usageJson.value : this.usageJson,
-    apiCallUuid: apiCallUuid.present ? apiCallUuid.value : this.apiCallUuid,
-  );
+  AiChatMessage copyWith(
+          {String? uuid,
+          String? sessionUuid,
+          String? role,
+          String? content,
+          int? sequence,
+          DateTime? createdAt,
+          bool? isStreaming,
+          Value<DateTime?> streamCompletedAt = const Value.absent(),
+          Value<String?> toolCallId = const Value.absent(),
+          Value<String?> toolCallsJson = const Value.absent(),
+          Value<String?> usageJson = const Value.absent(),
+          Value<String?> apiCallUuid = const Value.absent()}) =>
+      AiChatMessage(
+        uuid: uuid ?? this.uuid,
+        sessionUuid: sessionUuid ?? this.sessionUuid,
+        role: role ?? this.role,
+        content: content ?? this.content,
+        sequence: sequence ?? this.sequence,
+        createdAt: createdAt ?? this.createdAt,
+        isStreaming: isStreaming ?? this.isStreaming,
+        streamCompletedAt: streamCompletedAt.present
+            ? streamCompletedAt.value
+            : this.streamCompletedAt,
+        toolCallId: toolCallId.present ? toolCallId.value : this.toolCallId,
+        toolCallsJson:
+            toolCallsJson.present ? toolCallsJson.value : this.toolCallsJson,
+        usageJson: usageJson.present ? usageJson.value : this.usageJson,
+        apiCallUuid: apiCallUuid.present ? apiCallUuid.value : this.apiCallUuid,
+      );
   AiChatMessage copyWithCompanion(AiChatMessagesCompanion data) {
     return AiChatMessage(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
-      sessionUuid: data.sessionUuid.present
-          ? data.sessionUuid.value
-          : this.sessionUuid,
+      sessionUuid:
+          data.sessionUuid.present ? data.sessionUuid.value : this.sessionUuid,
       role: data.role.present ? data.role.value : this.role,
       content: data.content.present ? data.content.value : this.content,
       sequence: data.sequence.present ? data.sequence.value : this.sequence,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      isStreaming: data.isStreaming.present
-          ? data.isStreaming.value
-          : this.isStreaming,
+      isStreaming:
+          data.isStreaming.present ? data.isStreaming.value : this.isStreaming,
       streamCompletedAt: data.streamCompletedAt.present
           ? data.streamCompletedAt.value
           : this.streamCompletedAt,
-      toolCallId: data.toolCallId.present
-          ? data.toolCallId.value
-          : this.toolCallId,
+      toolCallId:
+          data.toolCallId.present ? data.toolCallId.value : this.toolCallId,
       toolCallsJson: data.toolCallsJson.present
           ? data.toolCallsJson.value
           : this.toolCallsJson,
       usageJson: data.usageJson.present ? data.usageJson.value : this.usageJson,
-      apiCallUuid: data.apiCallUuid.present
-          ? data.apiCallUuid.value
-          : this.apiCallUuid,
+      apiCallUuid:
+          data.apiCallUuid.present ? data.apiCallUuid.value : this.apiCallUuid,
     );
   }
 
@@ -6676,19 +5554,18 @@ class AiChatMessage extends DataClass implements Insertable<AiChatMessage> {
 
   @override
   int get hashCode => Object.hash(
-    uuid,
-    sessionUuid,
-    role,
-    content,
-    sequence,
-    createdAt,
-    isStreaming,
-    streamCompletedAt,
-    toolCallId,
-    toolCallsJson,
-    usageJson,
-    apiCallUuid,
-  );
+      uuid,
+      sessionUuid,
+      role,
+      content,
+      sequence,
+      createdAt,
+      isStreaming,
+      streamCompletedAt,
+      toolCallId,
+      toolCallsJson,
+      usageJson,
+      apiCallUuid);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -6750,12 +5627,12 @@ class AiChatMessagesCompanion extends UpdateCompanion<AiChatMessage> {
     this.usageJson = const Value.absent(),
     this.apiCallUuid = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : uuid = Value(uuid),
-       sessionUuid = Value(sessionUuid),
-       role = Value(role),
-       content = Value(content),
-       sequence = Value(sequence),
-       createdAt = Value(createdAt);
+  })  : uuid = Value(uuid),
+        sessionUuid = Value(sessionUuid),
+        role = Value(role),
+        content = Value(content),
+        sequence = Value(sequence),
+        createdAt = Value(createdAt);
   static Insertable<AiChatMessage> custom({
     Expression<String>? uuid,
     Expression<String>? sessionUuid,
@@ -6788,21 +5665,20 @@ class AiChatMessagesCompanion extends UpdateCompanion<AiChatMessage> {
     });
   }
 
-  AiChatMessagesCompanion copyWith({
-    Value<String>? uuid,
-    Value<String>? sessionUuid,
-    Value<String>? role,
-    Value<String>? content,
-    Value<int>? sequence,
-    Value<DateTime>? createdAt,
-    Value<bool>? isStreaming,
-    Value<DateTime?>? streamCompletedAt,
-    Value<String?>? toolCallId,
-    Value<String?>? toolCallsJson,
-    Value<String?>? usageJson,
-    Value<String?>? apiCallUuid,
-    Value<int>? rowid,
-  }) {
+  AiChatMessagesCompanion copyWith(
+      {Value<String>? uuid,
+      Value<String>? sessionUuid,
+      Value<String>? role,
+      Value<String>? content,
+      Value<int>? sequence,
+      Value<DateTime>? createdAt,
+      Value<bool>? isStreaming,
+      Value<DateTime?>? streamCompletedAt,
+      Value<String?>? toolCallId,
+      Value<String?>? toolCallsJson,
+      Value<String?>? usageJson,
+      Value<String?>? apiCallUuid,
+      Value<int>? rowid}) {
     return AiChatMessagesCompanion(
       uuid: uuid ?? this.uuid,
       sessionUuid: sessionUuid ?? this.sessionUuid,
@@ -6895,284 +5771,190 @@ class $AiProvenancesTable extends AiProvenances
   static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
   @override
   late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
-    'uuid',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 36,
-      maxTextLength: 36,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _provenanceTypeMeta = const VerificationMeta(
-    'provenanceType',
-  );
+      'uuid', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 36, maxTextLength: 36),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _provenanceTypeMeta =
+      const VerificationMeta('provenanceType');
   @override
   late final GeneratedColumn<String> provenanceType = GeneratedColumn<String>(
-    'provenance_type',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 1,
-      maxTextLength: 50,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _entityUuidMeta = const VerificationMeta(
-    'entityUuid',
-  );
+      'provenance_type', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 50),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _entityUuidMeta =
+      const VerificationMeta('entityUuid');
   @override
   late final GeneratedColumn<String> entityUuid = GeneratedColumn<String>(
-    'entity_uuid',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _entityTypeMeta = const VerificationMeta(
-    'entityType',
-  );
+      'entity_uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _entityTypeMeta =
+      const VerificationMeta('entityType');
   @override
   late final GeneratedColumn<String> entityType = GeneratedColumn<String>(
-    'entity_type',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 1,
-      maxTextLength: 50,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
+      'entity_type', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 50),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
   @override
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
   static const VerificationMeta _contextSnapshotJsonMeta =
       const VerificationMeta('contextSnapshotJson');
   @override
   late final GeneratedColumn<String> contextSnapshotJson =
-      GeneratedColumn<String>(
-        'context_snapshot_json',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-      );
-  static const VerificationMeta _inputSnapshotJsonMeta = const VerificationMeta(
-    'inputSnapshotJson',
-  );
+      GeneratedColumn<String>('context_snapshot_json', aliasedName, false,
+          type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _inputSnapshotJsonMeta =
+      const VerificationMeta('inputSnapshotJson');
   @override
   late final GeneratedColumn<String> inputSnapshotJson =
-      GeneratedColumn<String>(
-        'input_snapshot_json',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-      );
+      GeneratedColumn<String>('input_snapshot_json', aliasedName, false,
+          type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _outputSnapshotJsonMeta =
       const VerificationMeta('outputSnapshotJson');
   @override
   late final GeneratedColumn<String> outputSnapshotJson =
-      GeneratedColumn<String>(
-        'output_snapshot_json',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _promptVersionUuidMeta = const VerificationMeta(
-    'promptVersionUuid',
-  );
+      GeneratedColumn<String>('output_snapshot_json', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _promptVersionUuidMeta =
+      const VerificationMeta('promptVersionUuid');
   @override
   late final GeneratedColumn<String> promptVersionUuid =
-      GeneratedColumn<String>(
-        'prompt_version_uuid',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _modelUuidMeta = const VerificationMeta(
-    'modelUuid',
-  );
+      GeneratedColumn<String>('prompt_version_uuid', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _modelUuidMeta =
+      const VerificationMeta('modelUuid');
   @override
   late final GeneratedColumn<String> modelUuid = GeneratedColumn<String>(
-    'model_uuid',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
+      'model_uuid', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _previousProvenanceUuidMeta =
       const VerificationMeta('previousProvenanceUuid');
   @override
   late final GeneratedColumn<String> previousProvenanceUuid =
-      GeneratedColumn<String>(
-        'previous_provenance_uuid',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _integrityHashMeta = const VerificationMeta(
-    'integrityHash',
-  );
+      GeneratedColumn<String>('previous_provenance_uuid', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _integrityHashMeta =
+      const VerificationMeta('integrityHash');
   @override
   late final GeneratedColumn<String> integrityHash = GeneratedColumn<String>(
-    'integrity_hash',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 64,
-      maxTextLength: 64,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
+      'integrity_hash', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 64, maxTextLength: 64),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns => [
-    uuid,
-    provenanceType,
-    entityUuid,
-    entityType,
-    createdAt,
-    contextSnapshotJson,
-    inputSnapshotJson,
-    outputSnapshotJson,
-    promptVersionUuid,
-    modelUuid,
-    previousProvenanceUuid,
-    integrityHash,
-  ];
+        uuid,
+        provenanceType,
+        entityUuid,
+        entityType,
+        createdAt,
+        contextSnapshotJson,
+        inputSnapshotJson,
+        outputSnapshotJson,
+        promptVersionUuid,
+        modelUuid,
+        previousProvenanceUuid,
+        integrityHash
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 't_ai_provenance';
   @override
-  VerificationContext validateIntegrity(
-    Insertable<AiProvenance> instance, {
-    bool isInserting = false,
-  }) {
+  VerificationContext validateIntegrity(Insertable<AiProvenance> instance,
+      {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('uuid')) {
       context.handle(
-        _uuidMeta,
-        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
-      );
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
     } else if (isInserting) {
       context.missing(_uuidMeta);
     }
     if (data.containsKey('provenance_type')) {
       context.handle(
-        _provenanceTypeMeta,
-        provenanceType.isAcceptableOrUnknown(
-          data['provenance_type']!,
           _provenanceTypeMeta,
-        ),
-      );
+          provenanceType.isAcceptableOrUnknown(
+              data['provenance_type']!, _provenanceTypeMeta));
     } else if (isInserting) {
       context.missing(_provenanceTypeMeta);
     }
     if (data.containsKey('entity_uuid')) {
       context.handle(
-        _entityUuidMeta,
-        entityUuid.isAcceptableOrUnknown(data['entity_uuid']!, _entityUuidMeta),
-      );
+          _entityUuidMeta,
+          entityUuid.isAcceptableOrUnknown(
+              data['entity_uuid']!, _entityUuidMeta));
     } else if (isInserting) {
       context.missing(_entityUuidMeta);
     }
     if (data.containsKey('entity_type')) {
       context.handle(
-        _entityTypeMeta,
-        entityType.isAcceptableOrUnknown(data['entity_type']!, _entityTypeMeta),
-      );
+          _entityTypeMeta,
+          entityType.isAcceptableOrUnknown(
+              data['entity_type']!, _entityTypeMeta));
     } else if (isInserting) {
       context.missing(_entityTypeMeta);
     }
     if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
     if (data.containsKey('context_snapshot_json')) {
       context.handle(
-        _contextSnapshotJsonMeta,
-        contextSnapshotJson.isAcceptableOrUnknown(
-          data['context_snapshot_json']!,
           _contextSnapshotJsonMeta,
-        ),
-      );
+          contextSnapshotJson.isAcceptableOrUnknown(
+              data['context_snapshot_json']!, _contextSnapshotJsonMeta));
     } else if (isInserting) {
       context.missing(_contextSnapshotJsonMeta);
     }
     if (data.containsKey('input_snapshot_json')) {
       context.handle(
-        _inputSnapshotJsonMeta,
-        inputSnapshotJson.isAcceptableOrUnknown(
-          data['input_snapshot_json']!,
           _inputSnapshotJsonMeta,
-        ),
-      );
+          inputSnapshotJson.isAcceptableOrUnknown(
+              data['input_snapshot_json']!, _inputSnapshotJsonMeta));
     } else if (isInserting) {
       context.missing(_inputSnapshotJsonMeta);
     }
     if (data.containsKey('output_snapshot_json')) {
       context.handle(
-        _outputSnapshotJsonMeta,
-        outputSnapshotJson.isAcceptableOrUnknown(
-          data['output_snapshot_json']!,
           _outputSnapshotJsonMeta,
-        ),
-      );
+          outputSnapshotJson.isAcceptableOrUnknown(
+              data['output_snapshot_json']!, _outputSnapshotJsonMeta));
     }
     if (data.containsKey('prompt_version_uuid')) {
       context.handle(
-        _promptVersionUuidMeta,
-        promptVersionUuid.isAcceptableOrUnknown(
-          data['prompt_version_uuid']!,
           _promptVersionUuidMeta,
-        ),
-      );
+          promptVersionUuid.isAcceptableOrUnknown(
+              data['prompt_version_uuid']!, _promptVersionUuidMeta));
     }
     if (data.containsKey('model_uuid')) {
-      context.handle(
-        _modelUuidMeta,
-        modelUuid.isAcceptableOrUnknown(data['model_uuid']!, _modelUuidMeta),
-      );
+      context.handle(_modelUuidMeta,
+          modelUuid.isAcceptableOrUnknown(data['model_uuid']!, _modelUuidMeta));
     }
     if (data.containsKey('previous_provenance_uuid')) {
       context.handle(
-        _previousProvenanceUuidMeta,
-        previousProvenanceUuid.isAcceptableOrUnknown(
-          data['previous_provenance_uuid']!,
           _previousProvenanceUuidMeta,
-        ),
-      );
+          previousProvenanceUuid.isAcceptableOrUnknown(
+              data['previous_provenance_uuid']!, _previousProvenanceUuidMeta));
     }
     if (data.containsKey('integrity_hash')) {
       context.handle(
-        _integrityHashMeta,
-        integrityHash.isAcceptableOrUnknown(
-          data['integrity_hash']!,
           _integrityHashMeta,
-        ),
-      );
+          integrityHash.isAcceptableOrUnknown(
+              data['integrity_hash']!, _integrityHashMeta));
     } else if (isInserting) {
       context.missing(_integrityHashMeta);
     }
@@ -7185,54 +5967,32 @@ class $AiProvenancesTable extends AiProvenances
   AiProvenance map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return AiProvenance(
-      uuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}uuid'],
-      )!,
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
       provenanceType: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}provenance_type'],
-      )!,
-      entityUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}entity_uuid'],
-      )!,
-      entityType: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}entity_type'],
-      )!,
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
+          DriftSqlType.string, data['${effectivePrefix}provenance_type'])!,
+      entityUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}entity_uuid'])!,
+      entityType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}entity_type'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
       contextSnapshotJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}context_snapshot_json'],
-      )!,
+          DriftSqlType.string,
+          data['${effectivePrefix}context_snapshot_json'])!,
       inputSnapshotJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}input_snapshot_json'],
-      )!,
+          DriftSqlType.string, data['${effectivePrefix}input_snapshot_json'])!,
       outputSnapshotJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}output_snapshot_json'],
-      ),
+          DriftSqlType.string, data['${effectivePrefix}output_snapshot_json']),
       promptVersionUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}prompt_version_uuid'],
-      ),
-      modelUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}model_uuid'],
-      ),
+          DriftSqlType.string, data['${effectivePrefix}prompt_version_uuid']),
+      modelUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}model_uuid']),
       previousProvenanceUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}previous_provenance_uuid'],
-      ),
-      integrityHash: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}integrity_hash'],
-      )!,
+          DriftSqlType.string,
+          data['${effectivePrefix}previous_provenance_uuid']),
+      integrityHash: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}integrity_hash'])!,
     );
   }
 
@@ -7277,20 +6037,19 @@ class AiProvenance extends DataClass implements Insertable<AiProvenance> {
 
   /// 整体哈希 (用于完整性校验)
   final String integrityHash;
-  const AiProvenance({
-    required this.uuid,
-    required this.provenanceType,
-    required this.entityUuid,
-    required this.entityType,
-    required this.createdAt,
-    required this.contextSnapshotJson,
-    required this.inputSnapshotJson,
-    this.outputSnapshotJson,
-    this.promptVersionUuid,
-    this.modelUuid,
-    this.previousProvenanceUuid,
-    required this.integrityHash,
-  });
+  const AiProvenance(
+      {required this.uuid,
+      required this.provenanceType,
+      required this.entityUuid,
+      required this.entityType,
+      required this.createdAt,
+      required this.contextSnapshotJson,
+      required this.inputSnapshotJson,
+      this.outputSnapshotJson,
+      this.promptVersionUuid,
+      this.modelUuid,
+      this.previousProvenanceUuid,
+      required this.integrityHash});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -7311,9 +6070,8 @@ class AiProvenance extends DataClass implements Insertable<AiProvenance> {
       map['model_uuid'] = Variable<String>(modelUuid);
     }
     if (!nullToAbsent || previousProvenanceUuid != null) {
-      map['previous_provenance_uuid'] = Variable<String>(
-        previousProvenanceUuid,
-      );
+      map['previous_provenance_uuid'] =
+          Variable<String>(previousProvenanceUuid);
     }
     map['integrity_hash'] = Variable<String>(integrityHash);
     return map;
@@ -7344,10 +6102,8 @@ class AiProvenance extends DataClass implements Insertable<AiProvenance> {
     );
   }
 
-  factory AiProvenance.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory AiProvenance.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return AiProvenance(
       uuid: serializer.fromJson<String>(json['uuid']),
@@ -7355,20 +6111,16 @@ class AiProvenance extends DataClass implements Insertable<AiProvenance> {
       entityUuid: serializer.fromJson<String>(json['entityUuid']),
       entityType: serializer.fromJson<String>(json['entityType']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      contextSnapshotJson: serializer.fromJson<String>(
-        json['contextSnapshotJson'],
-      ),
+      contextSnapshotJson:
+          serializer.fromJson<String>(json['contextSnapshotJson']),
       inputSnapshotJson: serializer.fromJson<String>(json['inputSnapshotJson']),
-      outputSnapshotJson: serializer.fromJson<String?>(
-        json['outputSnapshotJson'],
-      ),
-      promptVersionUuid: serializer.fromJson<String?>(
-        json['promptVersionUuid'],
-      ),
+      outputSnapshotJson:
+          serializer.fromJson<String?>(json['outputSnapshotJson']),
+      promptVersionUuid:
+          serializer.fromJson<String?>(json['promptVersionUuid']),
       modelUuid: serializer.fromJson<String?>(json['modelUuid']),
-      previousProvenanceUuid: serializer.fromJson<String?>(
-        json['previousProvenanceUuid'],
-      ),
+      previousProvenanceUuid:
+          serializer.fromJson<String?>(json['previousProvenanceUuid']),
       integrityHash: serializer.fromJson<String>(json['integrityHash']),
     );
   }
@@ -7386,58 +6138,55 @@ class AiProvenance extends DataClass implements Insertable<AiProvenance> {
       'outputSnapshotJson': serializer.toJson<String?>(outputSnapshotJson),
       'promptVersionUuid': serializer.toJson<String?>(promptVersionUuid),
       'modelUuid': serializer.toJson<String?>(modelUuid),
-      'previousProvenanceUuid': serializer.toJson<String?>(
-        previousProvenanceUuid,
-      ),
+      'previousProvenanceUuid':
+          serializer.toJson<String?>(previousProvenanceUuid),
       'integrityHash': serializer.toJson<String>(integrityHash),
     };
   }
 
-  AiProvenance copyWith({
-    String? uuid,
-    String? provenanceType,
-    String? entityUuid,
-    String? entityType,
-    DateTime? createdAt,
-    String? contextSnapshotJson,
-    String? inputSnapshotJson,
-    Value<String?> outputSnapshotJson = const Value.absent(),
-    Value<String?> promptVersionUuid = const Value.absent(),
-    Value<String?> modelUuid = const Value.absent(),
-    Value<String?> previousProvenanceUuid = const Value.absent(),
-    String? integrityHash,
-  }) => AiProvenance(
-    uuid: uuid ?? this.uuid,
-    provenanceType: provenanceType ?? this.provenanceType,
-    entityUuid: entityUuid ?? this.entityUuid,
-    entityType: entityType ?? this.entityType,
-    createdAt: createdAt ?? this.createdAt,
-    contextSnapshotJson: contextSnapshotJson ?? this.contextSnapshotJson,
-    inputSnapshotJson: inputSnapshotJson ?? this.inputSnapshotJson,
-    outputSnapshotJson: outputSnapshotJson.present
-        ? outputSnapshotJson.value
-        : this.outputSnapshotJson,
-    promptVersionUuid: promptVersionUuid.present
-        ? promptVersionUuid.value
-        : this.promptVersionUuid,
-    modelUuid: modelUuid.present ? modelUuid.value : this.modelUuid,
-    previousProvenanceUuid: previousProvenanceUuid.present
-        ? previousProvenanceUuid.value
-        : this.previousProvenanceUuid,
-    integrityHash: integrityHash ?? this.integrityHash,
-  );
+  AiProvenance copyWith(
+          {String? uuid,
+          String? provenanceType,
+          String? entityUuid,
+          String? entityType,
+          DateTime? createdAt,
+          String? contextSnapshotJson,
+          String? inputSnapshotJson,
+          Value<String?> outputSnapshotJson = const Value.absent(),
+          Value<String?> promptVersionUuid = const Value.absent(),
+          Value<String?> modelUuid = const Value.absent(),
+          Value<String?> previousProvenanceUuid = const Value.absent(),
+          String? integrityHash}) =>
+      AiProvenance(
+        uuid: uuid ?? this.uuid,
+        provenanceType: provenanceType ?? this.provenanceType,
+        entityUuid: entityUuid ?? this.entityUuid,
+        entityType: entityType ?? this.entityType,
+        createdAt: createdAt ?? this.createdAt,
+        contextSnapshotJson: contextSnapshotJson ?? this.contextSnapshotJson,
+        inputSnapshotJson: inputSnapshotJson ?? this.inputSnapshotJson,
+        outputSnapshotJson: outputSnapshotJson.present
+            ? outputSnapshotJson.value
+            : this.outputSnapshotJson,
+        promptVersionUuid: promptVersionUuid.present
+            ? promptVersionUuid.value
+            : this.promptVersionUuid,
+        modelUuid: modelUuid.present ? modelUuid.value : this.modelUuid,
+        previousProvenanceUuid: previousProvenanceUuid.present
+            ? previousProvenanceUuid.value
+            : this.previousProvenanceUuid,
+        integrityHash: integrityHash ?? this.integrityHash,
+      );
   AiProvenance copyWithCompanion(AiProvenancesCompanion data) {
     return AiProvenance(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
       provenanceType: data.provenanceType.present
           ? data.provenanceType.value
           : this.provenanceType,
-      entityUuid: data.entityUuid.present
-          ? data.entityUuid.value
-          : this.entityUuid,
-      entityType: data.entityType.present
-          ? data.entityType.value
-          : this.entityType,
+      entityUuid:
+          data.entityUuid.present ? data.entityUuid.value : this.entityUuid,
+      entityType:
+          data.entityType.present ? data.entityType.value : this.entityType,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       contextSnapshotJson: data.contextSnapshotJson.present
           ? data.contextSnapshotJson.value
@@ -7482,19 +6231,18 @@ class AiProvenance extends DataClass implements Insertable<AiProvenance> {
 
   @override
   int get hashCode => Object.hash(
-    uuid,
-    provenanceType,
-    entityUuid,
-    entityType,
-    createdAt,
-    contextSnapshotJson,
-    inputSnapshotJson,
-    outputSnapshotJson,
-    promptVersionUuid,
-    modelUuid,
-    previousProvenanceUuid,
-    integrityHash,
-  );
+      uuid,
+      provenanceType,
+      entityUuid,
+      entityType,
+      createdAt,
+      contextSnapshotJson,
+      inputSnapshotJson,
+      outputSnapshotJson,
+      promptVersionUuid,
+      modelUuid,
+      previousProvenanceUuid,
+      integrityHash);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -7556,14 +6304,14 @@ class AiProvenancesCompanion extends UpdateCompanion<AiProvenance> {
     this.previousProvenanceUuid = const Value.absent(),
     required String integrityHash,
     this.rowid = const Value.absent(),
-  }) : uuid = Value(uuid),
-       provenanceType = Value(provenanceType),
-       entityUuid = Value(entityUuid),
-       entityType = Value(entityType),
-       createdAt = Value(createdAt),
-       contextSnapshotJson = Value(contextSnapshotJson),
-       inputSnapshotJson = Value(inputSnapshotJson),
-       integrityHash = Value(integrityHash);
+  })  : uuid = Value(uuid),
+        provenanceType = Value(provenanceType),
+        entityUuid = Value(entityUuid),
+        entityType = Value(entityType),
+        createdAt = Value(createdAt),
+        contextSnapshotJson = Value(contextSnapshotJson),
+        inputSnapshotJson = Value(inputSnapshotJson),
+        integrityHash = Value(integrityHash);
   static Insertable<AiProvenance> custom({
     Expression<String>? uuid,
     Expression<String>? provenanceType,
@@ -7599,21 +6347,20 @@ class AiProvenancesCompanion extends UpdateCompanion<AiProvenance> {
     });
   }
 
-  AiProvenancesCompanion copyWith({
-    Value<String>? uuid,
-    Value<String>? provenanceType,
-    Value<String>? entityUuid,
-    Value<String>? entityType,
-    Value<DateTime>? createdAt,
-    Value<String>? contextSnapshotJson,
-    Value<String>? inputSnapshotJson,
-    Value<String?>? outputSnapshotJson,
-    Value<String?>? promptVersionUuid,
-    Value<String?>? modelUuid,
-    Value<String?>? previousProvenanceUuid,
-    Value<String>? integrityHash,
-    Value<int>? rowid,
-  }) {
+  AiProvenancesCompanion copyWith(
+      {Value<String>? uuid,
+      Value<String>? provenanceType,
+      Value<String>? entityUuid,
+      Value<String>? entityType,
+      Value<DateTime>? createdAt,
+      Value<String>? contextSnapshotJson,
+      Value<String>? inputSnapshotJson,
+      Value<String?>? outputSnapshotJson,
+      Value<String?>? promptVersionUuid,
+      Value<String?>? modelUuid,
+      Value<String?>? previousProvenanceUuid,
+      Value<String>? integrityHash,
+      Value<int>? rowid}) {
     return AiProvenancesCompanion(
       uuid: uuid ?? this.uuid,
       provenanceType: provenanceType ?? this.provenanceType,
@@ -7651,9 +6398,8 @@ class AiProvenancesCompanion extends UpdateCompanion<AiProvenance> {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
     if (contextSnapshotJson.present) {
-      map['context_snapshot_json'] = Variable<String>(
-        contextSnapshotJson.value,
-      );
+      map['context_snapshot_json'] =
+          Variable<String>(contextSnapshotJson.value);
     }
     if (inputSnapshotJson.present) {
       map['input_snapshot_json'] = Variable<String>(inputSnapshotJson.value);
@@ -7668,9 +6414,8 @@ class AiProvenancesCompanion extends UpdateCompanion<AiProvenance> {
       map['model_uuid'] = Variable<String>(modelUuid.value);
     }
     if (previousProvenanceUuid.present) {
-      map['previous_provenance_uuid'] = Variable<String>(
-        previousProvenanceUuid.value,
-      );
+      map['previous_provenance_uuid'] =
+          Variable<String>(previousProvenanceUuid.value);
     }
     if (integrityHash.present) {
       map['integrity_hash'] = Variable<String>(integrityHash.value);
@@ -7711,314 +6456,211 @@ class $AiDivinationsTable extends AiDivinations
   static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
   @override
   late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
-    'uuid',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 36,
-      maxTextLength: 36,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
+      'uuid', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 36, maxTextLength: 36),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
   @override
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _lastUpdatedAtMeta = const VerificationMeta(
-    'lastUpdatedAt',
-  );
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _lastUpdatedAtMeta =
+      const VerificationMeta('lastUpdatedAt');
   @override
   late final GeneratedColumn<DateTime> lastUpdatedAt =
-      GeneratedColumn<DateTime>(
-        'last_updated_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
-    'deletedAt',
-  );
+      GeneratedColumn<DateTime>('last_updated_at', aliasedName, true,
+          type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
   @override
   late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
-    'deleted_at',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _divinationUuidMeta = const VerificationMeta(
-    'divinationUuid',
-  );
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _divinationUuidMeta =
+      const VerificationMeta('divinationUuid');
   @override
   late final GeneratedColumn<String> divinationUuid = GeneratedColumn<String>(
-    'divination_uuid',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _personaUuidMeta = const VerificationMeta(
-    'personaUuid',
-  );
+      'divination_uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _personaUuidMeta =
+      const VerificationMeta('personaUuid');
   @override
   late final GeneratedColumn<String> personaUuid = GeneratedColumn<String>(
-    'persona_uuid',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_ai_personas (uuid)',
-    ),
-  );
-  static const VerificationMeta _sessionUuidMeta = const VerificationMeta(
-    'sessionUuid',
-  );
+      'persona_uuid', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES t_ai_personas (uuid)'));
+  static const VerificationMeta _sessionUuidMeta =
+      const VerificationMeta('sessionUuid');
   @override
   late final GeneratedColumn<String> sessionUuid = GeneratedColumn<String>(
-    'session_uuid',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_ai_chat_sessions (uuid)',
-    ),
-  );
-  static const VerificationMeta _interpretationMeta = const VerificationMeta(
-    'interpretation',
-  );
+      'session_uuid', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES t_ai_chat_sessions (uuid)'));
+  static const VerificationMeta _interpretationMeta =
+      const VerificationMeta('interpretation');
   @override
   late final GeneratedColumn<String> interpretation = GeneratedColumn<String>(
-    'interpretation',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _fortuneLevelMeta = const VerificationMeta(
-    'fortuneLevel',
-  );
+      'interpretation', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _fortuneLevelMeta =
+      const VerificationMeta('fortuneLevel');
   @override
   late final GeneratedColumn<String> fortuneLevel = GeneratedColumn<String>(
-    'fortune_level',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
+      'fortune_level', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _adviceMeta = const VerificationMeta('advice');
   @override
   late final GeneratedColumn<String> advice = GeneratedColumn<String>(
-    'advice',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _resultTypeMeta = const VerificationMeta(
-    'resultType',
-  );
+      'advice', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _resultTypeMeta =
+      const VerificationMeta('resultType');
   @override
   late final GeneratedColumn<String> resultType = GeneratedColumn<String>(
-    'result_type',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant('summary'),
-  );
-  static const VerificationMeta _userRatingMeta = const VerificationMeta(
-    'userRating',
-  );
+      'result_type', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('summary'));
+  static const VerificationMeta _userRatingMeta =
+      const VerificationMeta('userRating');
   @override
   late final GeneratedColumn<int> userRating = GeneratedColumn<int>(
-    'user_rating',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _userFeedbackMeta = const VerificationMeta(
-    'userFeedback',
-  );
+      'user_rating', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _userFeedbackMeta =
+      const VerificationMeta('userFeedback');
   @override
   late final GeneratedColumn<String> userFeedback = GeneratedColumn<String>(
-    'user_feedback',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _provenanceUuidMeta = const VerificationMeta(
-    'provenanceUuid',
-  );
+      'user_feedback', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _provenanceUuidMeta =
+      const VerificationMeta('provenanceUuid');
   @override
   late final GeneratedColumn<String> provenanceUuid = GeneratedColumn<String>(
-    'provenance_uuid',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_ai_provenance (uuid)',
-    ),
-  );
+      'provenance_uuid', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES t_ai_provenance (uuid)'));
   @override
   List<GeneratedColumn> get $columns => [
-    uuid,
-    createdAt,
-    lastUpdatedAt,
-    deletedAt,
-    divinationUuid,
-    personaUuid,
-    sessionUuid,
-    interpretation,
-    fortuneLevel,
-    advice,
-    resultType,
-    userRating,
-    userFeedback,
-    provenanceUuid,
-  ];
+        uuid,
+        createdAt,
+        lastUpdatedAt,
+        deletedAt,
+        divinationUuid,
+        personaUuid,
+        sessionUuid,
+        interpretation,
+        fortuneLevel,
+        advice,
+        resultType,
+        userRating,
+        userFeedback,
+        provenanceUuid
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 't_ai_divinations';
   @override
-  VerificationContext validateIntegrity(
-    Insertable<AiDivination> instance, {
-    bool isInserting = false,
-  }) {
+  VerificationContext validateIntegrity(Insertable<AiDivination> instance,
+      {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('uuid')) {
       context.handle(
-        _uuidMeta,
-        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
-      );
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
     } else if (isInserting) {
       context.missing(_uuidMeta);
     }
     if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
     if (data.containsKey('last_updated_at')) {
       context.handle(
-        _lastUpdatedAtMeta,
-        lastUpdatedAt.isAcceptableOrUnknown(
-          data['last_updated_at']!,
           _lastUpdatedAtMeta,
-        ),
-      );
+          lastUpdatedAt.isAcceptableOrUnknown(
+              data['last_updated_at']!, _lastUpdatedAtMeta));
     }
     if (data.containsKey('deleted_at')) {
-      context.handle(
-        _deletedAtMeta,
-        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
-      );
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
     }
     if (data.containsKey('divination_uuid')) {
       context.handle(
-        _divinationUuidMeta,
-        divinationUuid.isAcceptableOrUnknown(
-          data['divination_uuid']!,
           _divinationUuidMeta,
-        ),
-      );
+          divinationUuid.isAcceptableOrUnknown(
+              data['divination_uuid']!, _divinationUuidMeta));
     } else if (isInserting) {
       context.missing(_divinationUuidMeta);
     }
     if (data.containsKey('persona_uuid')) {
       context.handle(
-        _personaUuidMeta,
-        personaUuid.isAcceptableOrUnknown(
-          data['persona_uuid']!,
           _personaUuidMeta,
-        ),
-      );
+          personaUuid.isAcceptableOrUnknown(
+              data['persona_uuid']!, _personaUuidMeta));
     } else if (isInserting) {
       context.missing(_personaUuidMeta);
     }
     if (data.containsKey('session_uuid')) {
       context.handle(
-        _sessionUuidMeta,
-        sessionUuid.isAcceptableOrUnknown(
-          data['session_uuid']!,
           _sessionUuidMeta,
-        ),
-      );
+          sessionUuid.isAcceptableOrUnknown(
+              data['session_uuid']!, _sessionUuidMeta));
     }
     if (data.containsKey('interpretation')) {
       context.handle(
-        _interpretationMeta,
-        interpretation.isAcceptableOrUnknown(
-          data['interpretation']!,
           _interpretationMeta,
-        ),
-      );
+          interpretation.isAcceptableOrUnknown(
+              data['interpretation']!, _interpretationMeta));
     } else if (isInserting) {
       context.missing(_interpretationMeta);
     }
     if (data.containsKey('fortune_level')) {
       context.handle(
-        _fortuneLevelMeta,
-        fortuneLevel.isAcceptableOrUnknown(
-          data['fortune_level']!,
           _fortuneLevelMeta,
-        ),
-      );
+          fortuneLevel.isAcceptableOrUnknown(
+              data['fortune_level']!, _fortuneLevelMeta));
     }
     if (data.containsKey('advice')) {
-      context.handle(
-        _adviceMeta,
-        advice.isAcceptableOrUnknown(data['advice']!, _adviceMeta),
-      );
+      context.handle(_adviceMeta,
+          advice.isAcceptableOrUnknown(data['advice']!, _adviceMeta));
     }
     if (data.containsKey('result_type')) {
       context.handle(
-        _resultTypeMeta,
-        resultType.isAcceptableOrUnknown(data['result_type']!, _resultTypeMeta),
-      );
+          _resultTypeMeta,
+          resultType.isAcceptableOrUnknown(
+              data['result_type']!, _resultTypeMeta));
     }
     if (data.containsKey('user_rating')) {
       context.handle(
-        _userRatingMeta,
-        userRating.isAcceptableOrUnknown(data['user_rating']!, _userRatingMeta),
-      );
+          _userRatingMeta,
+          userRating.isAcceptableOrUnknown(
+              data['user_rating']!, _userRatingMeta));
     }
     if (data.containsKey('user_feedback')) {
       context.handle(
-        _userFeedbackMeta,
-        userFeedback.isAcceptableOrUnknown(
-          data['user_feedback']!,
           _userFeedbackMeta,
-        ),
-      );
+          userFeedback.isAcceptableOrUnknown(
+              data['user_feedback']!, _userFeedbackMeta));
     }
     if (data.containsKey('provenance_uuid')) {
       context.handle(
-        _provenanceUuidMeta,
-        provenanceUuid.isAcceptableOrUnknown(
-          data['provenance_uuid']!,
           _provenanceUuidMeta,
-        ),
-      );
+          provenanceUuid.isAcceptableOrUnknown(
+              data['provenance_uuid']!, _provenanceUuidMeta));
     }
     return context;
   }
@@ -8029,62 +6671,34 @@ class $AiDivinationsTable extends AiDivinations
   AiDivination map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return AiDivination(
-      uuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}uuid'],
-      )!,
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
       lastUpdatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}last_updated_at'],
-      ),
-      deletedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}deleted_at'],
-      ),
+          DriftSqlType.dateTime, data['${effectivePrefix}last_updated_at']),
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
       divinationUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}divination_uuid'],
-      )!,
-      personaUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}persona_uuid'],
-      )!,
-      sessionUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}session_uuid'],
-      ),
-      interpretation: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}interpretation'],
-      )!,
-      fortuneLevel: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}fortune_level'],
-      ),
-      advice: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}advice'],
-      ),
-      resultType: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}result_type'],
-      )!,
-      userRating: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}user_rating'],
-      ),
-      userFeedback: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}user_feedback'],
-      ),
-      provenanceUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}provenance_uuid'],
-      ),
+          DriftSqlType.string, data['${effectivePrefix}divination_uuid'])!,
+      personaUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}persona_uuid'])!,
+      sessionUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}session_uuid']),
+      interpretation: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}interpretation'])!,
+      fortuneLevel: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}fortune_level']),
+      advice: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}advice']),
+      resultType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}result_type'])!,
+      userRating: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}user_rating']),
+      userFeedback: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_feedback']),
+      provenanceUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}provenance_uuid']),
     );
   }
 
@@ -8129,22 +6743,21 @@ class AiDivination extends DataClass implements Insertable<AiDivination> {
 
   /// 溯源记录 UUID
   final String? provenanceUuid;
-  const AiDivination({
-    required this.uuid,
-    required this.createdAt,
-    this.lastUpdatedAt,
-    this.deletedAt,
-    required this.divinationUuid,
-    required this.personaUuid,
-    this.sessionUuid,
-    required this.interpretation,
-    this.fortuneLevel,
-    this.advice,
-    required this.resultType,
-    this.userRating,
-    this.userFeedback,
-    this.provenanceUuid,
-  });
+  const AiDivination(
+      {required this.uuid,
+      required this.createdAt,
+      this.lastUpdatedAt,
+      this.deletedAt,
+      required this.divinationUuid,
+      required this.personaUuid,
+      this.sessionUuid,
+      required this.interpretation,
+      this.fortuneLevel,
+      this.advice,
+      required this.resultType,
+      this.userRating,
+      this.userFeedback,
+      this.provenanceUuid});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -8200,9 +6813,8 @@ class AiDivination extends DataClass implements Insertable<AiDivination> {
       fortuneLevel: fortuneLevel == null && nullToAbsent
           ? const Value.absent()
           : Value(fortuneLevel),
-      advice: advice == null && nullToAbsent
-          ? const Value.absent()
-          : Value(advice),
+      advice:
+          advice == null && nullToAbsent ? const Value.absent() : Value(advice),
       resultType: Value(resultType),
       userRating: userRating == null && nullToAbsent
           ? const Value.absent()
@@ -8216,10 +6828,8 @@ class AiDivination extends DataClass implements Insertable<AiDivination> {
     );
   }
 
-  factory AiDivination.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory AiDivination.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return AiDivination(
       uuid: serializer.fromJson<String>(json['uuid']),
@@ -8259,41 +6869,41 @@ class AiDivination extends DataClass implements Insertable<AiDivination> {
     };
   }
 
-  AiDivination copyWith({
-    String? uuid,
-    DateTime? createdAt,
-    Value<DateTime?> lastUpdatedAt = const Value.absent(),
-    Value<DateTime?> deletedAt = const Value.absent(),
-    String? divinationUuid,
-    String? personaUuid,
-    Value<String?> sessionUuid = const Value.absent(),
-    String? interpretation,
-    Value<String?> fortuneLevel = const Value.absent(),
-    Value<String?> advice = const Value.absent(),
-    String? resultType,
-    Value<int?> userRating = const Value.absent(),
-    Value<String?> userFeedback = const Value.absent(),
-    Value<String?> provenanceUuid = const Value.absent(),
-  }) => AiDivination(
-    uuid: uuid ?? this.uuid,
-    createdAt: createdAt ?? this.createdAt,
-    lastUpdatedAt: lastUpdatedAt.present
-        ? lastUpdatedAt.value
-        : this.lastUpdatedAt,
-    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
-    divinationUuid: divinationUuid ?? this.divinationUuid,
-    personaUuid: personaUuid ?? this.personaUuid,
-    sessionUuid: sessionUuid.present ? sessionUuid.value : this.sessionUuid,
-    interpretation: interpretation ?? this.interpretation,
-    fortuneLevel: fortuneLevel.present ? fortuneLevel.value : this.fortuneLevel,
-    advice: advice.present ? advice.value : this.advice,
-    resultType: resultType ?? this.resultType,
-    userRating: userRating.present ? userRating.value : this.userRating,
-    userFeedback: userFeedback.present ? userFeedback.value : this.userFeedback,
-    provenanceUuid: provenanceUuid.present
-        ? provenanceUuid.value
-        : this.provenanceUuid,
-  );
+  AiDivination copyWith(
+          {String? uuid,
+          DateTime? createdAt,
+          Value<DateTime?> lastUpdatedAt = const Value.absent(),
+          Value<DateTime?> deletedAt = const Value.absent(),
+          String? divinationUuid,
+          String? personaUuid,
+          Value<String?> sessionUuid = const Value.absent(),
+          String? interpretation,
+          Value<String?> fortuneLevel = const Value.absent(),
+          Value<String?> advice = const Value.absent(),
+          String? resultType,
+          Value<int?> userRating = const Value.absent(),
+          Value<String?> userFeedback = const Value.absent(),
+          Value<String?> provenanceUuid = const Value.absent()}) =>
+      AiDivination(
+        uuid: uuid ?? this.uuid,
+        createdAt: createdAt ?? this.createdAt,
+        lastUpdatedAt:
+            lastUpdatedAt.present ? lastUpdatedAt.value : this.lastUpdatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        divinationUuid: divinationUuid ?? this.divinationUuid,
+        personaUuid: personaUuid ?? this.personaUuid,
+        sessionUuid: sessionUuid.present ? sessionUuid.value : this.sessionUuid,
+        interpretation: interpretation ?? this.interpretation,
+        fortuneLevel:
+            fortuneLevel.present ? fortuneLevel.value : this.fortuneLevel,
+        advice: advice.present ? advice.value : this.advice,
+        resultType: resultType ?? this.resultType,
+        userRating: userRating.present ? userRating.value : this.userRating,
+        userFeedback:
+            userFeedback.present ? userFeedback.value : this.userFeedback,
+        provenanceUuid:
+            provenanceUuid.present ? provenanceUuid.value : this.provenanceUuid,
+      );
   AiDivination copyWithCompanion(AiDivinationsCompanion data) {
     return AiDivination(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
@@ -8305,12 +6915,10 @@ class AiDivination extends DataClass implements Insertable<AiDivination> {
       divinationUuid: data.divinationUuid.present
           ? data.divinationUuid.value
           : this.divinationUuid,
-      personaUuid: data.personaUuid.present
-          ? data.personaUuid.value
-          : this.personaUuid,
-      sessionUuid: data.sessionUuid.present
-          ? data.sessionUuid.value
-          : this.sessionUuid,
+      personaUuid:
+          data.personaUuid.present ? data.personaUuid.value : this.personaUuid,
+      sessionUuid:
+          data.sessionUuid.present ? data.sessionUuid.value : this.sessionUuid,
       interpretation: data.interpretation.present
           ? data.interpretation.value
           : this.interpretation,
@@ -8318,12 +6926,10 @@ class AiDivination extends DataClass implements Insertable<AiDivination> {
           ? data.fortuneLevel.value
           : this.fortuneLevel,
       advice: data.advice.present ? data.advice.value : this.advice,
-      resultType: data.resultType.present
-          ? data.resultType.value
-          : this.resultType,
-      userRating: data.userRating.present
-          ? data.userRating.value
-          : this.userRating,
+      resultType:
+          data.resultType.present ? data.resultType.value : this.resultType,
+      userRating:
+          data.userRating.present ? data.userRating.value : this.userRating,
       userFeedback: data.userFeedback.present
           ? data.userFeedback.value
           : this.userFeedback,
@@ -8356,21 +6962,20 @@ class AiDivination extends DataClass implements Insertable<AiDivination> {
 
   @override
   int get hashCode => Object.hash(
-    uuid,
-    createdAt,
-    lastUpdatedAt,
-    deletedAt,
-    divinationUuid,
-    personaUuid,
-    sessionUuid,
-    interpretation,
-    fortuneLevel,
-    advice,
-    resultType,
-    userRating,
-    userFeedback,
-    provenanceUuid,
-  );
+      uuid,
+      createdAt,
+      lastUpdatedAt,
+      deletedAt,
+      divinationUuid,
+      personaUuid,
+      sessionUuid,
+      interpretation,
+      fortuneLevel,
+      advice,
+      resultType,
+      userRating,
+      userFeedback,
+      provenanceUuid);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -8440,11 +7045,11 @@ class AiDivinationsCompanion extends UpdateCompanion<AiDivination> {
     this.userFeedback = const Value.absent(),
     this.provenanceUuid = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : uuid = Value(uuid),
-       createdAt = Value(createdAt),
-       divinationUuid = Value(divinationUuid),
-       personaUuid = Value(personaUuid),
-       interpretation = Value(interpretation);
+  })  : uuid = Value(uuid),
+        createdAt = Value(createdAt),
+        divinationUuid = Value(divinationUuid),
+        personaUuid = Value(personaUuid),
+        interpretation = Value(interpretation);
   static Insertable<AiDivination> custom({
     Expression<String>? uuid,
     Expression<DateTime>? createdAt,
@@ -8481,23 +7086,22 @@ class AiDivinationsCompanion extends UpdateCompanion<AiDivination> {
     });
   }
 
-  AiDivinationsCompanion copyWith({
-    Value<String>? uuid,
-    Value<DateTime>? createdAt,
-    Value<DateTime?>? lastUpdatedAt,
-    Value<DateTime?>? deletedAt,
-    Value<String>? divinationUuid,
-    Value<String>? personaUuid,
-    Value<String?>? sessionUuid,
-    Value<String>? interpretation,
-    Value<String?>? fortuneLevel,
-    Value<String?>? advice,
-    Value<String>? resultType,
-    Value<int?>? userRating,
-    Value<String?>? userFeedback,
-    Value<String?>? provenanceUuid,
-    Value<int>? rowid,
-  }) {
+  AiDivinationsCompanion copyWith(
+      {Value<String>? uuid,
+      Value<DateTime>? createdAt,
+      Value<DateTime?>? lastUpdatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<String>? divinationUuid,
+      Value<String>? personaUuid,
+      Value<String?>? sessionUuid,
+      Value<String>? interpretation,
+      Value<String?>? fortuneLevel,
+      Value<String?>? advice,
+      Value<String>? resultType,
+      Value<int?>? userRating,
+      Value<String?>? userFeedback,
+      Value<String?>? provenanceUuid,
+      Value<int>? rowid}) {
     return AiDivinationsCompanion(
       uuid: uuid ?? this.uuid,
       createdAt: createdAt ?? this.createdAt,
@@ -8600,294 +7204,197 @@ class $AgentInvocationsTable extends AgentInvocations
   static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
   @override
   late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
-    'uuid',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 36,
-      maxTextLength: 36,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _callerPersonaUuidMeta = const VerificationMeta(
-    'callerPersonaUuid',
-  );
+      'uuid', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 36, maxTextLength: 36),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _callerPersonaUuidMeta =
+      const VerificationMeta('callerPersonaUuid');
   @override
   late final GeneratedColumn<String> callerPersonaUuid =
-      GeneratedColumn<String>(
-        'caller_persona_uuid',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-        defaultConstraints: GeneratedColumn.constraintIsAlways(
-          'REFERENCES t_ai_personas (uuid)',
-        ),
-      );
-  static const VerificationMeta _calleePersonaUuidMeta = const VerificationMeta(
-    'calleePersonaUuid',
-  );
+      GeneratedColumn<String>('caller_persona_uuid', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: true,
+          defaultConstraints: GeneratedColumn.constraintIsAlways(
+              'REFERENCES t_ai_personas (uuid)'));
+  static const VerificationMeta _calleePersonaUuidMeta =
+      const VerificationMeta('calleePersonaUuid');
   @override
   late final GeneratedColumn<String> calleePersonaUuid =
-      GeneratedColumn<String>(
-        'callee_persona_uuid',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-        defaultConstraints: GeneratedColumn.constraintIsAlways(
-          'REFERENCES t_ai_personas (uuid)',
-        ),
-      );
-  static const VerificationMeta _sessionUuidMeta = const VerificationMeta(
-    'sessionUuid',
-  );
+      GeneratedColumn<String>('callee_persona_uuid', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: true,
+          defaultConstraints: GeneratedColumn.constraintIsAlways(
+              'REFERENCES t_ai_personas (uuid)'));
+  static const VerificationMeta _sessionUuidMeta =
+      const VerificationMeta('sessionUuid');
   @override
   late final GeneratedColumn<String> sessionUuid = GeneratedColumn<String>(
-    'session_uuid',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_ai_chat_sessions (uuid)',
-    ),
-  );
-  static const VerificationMeta _invokedAtMeta = const VerificationMeta(
-    'invokedAt',
-  );
+      'session_uuid', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES t_ai_chat_sessions (uuid)'));
+  static const VerificationMeta _invokedAtMeta =
+      const VerificationMeta('invokedAt');
   @override
   late final GeneratedColumn<DateTime> invokedAt = GeneratedColumn<DateTime>(
-    'invoked_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _completedAtMeta = const VerificationMeta(
-    'completedAt',
-  );
+      'invoked_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _completedAtMeta =
+      const VerificationMeta('completedAt');
   @override
   late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
-    'completed_at',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _purposeMeta = const VerificationMeta(
-    'purpose',
-  );
+      'completed_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _purposeMeta =
+      const VerificationMeta('purpose');
   @override
   late final GeneratedColumn<String> purpose = GeneratedColumn<String>(
-    'purpose',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _sharedContextJsonMeta = const VerificationMeta(
-    'sharedContextJson',
-  );
+      'purpose', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sharedContextJsonMeta =
+      const VerificationMeta('sharedContextJson');
   @override
   late final GeneratedColumn<String> sharedContextJson =
-      GeneratedColumn<String>(
-        'shared_context_json',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _resultJsonMeta = const VerificationMeta(
-    'resultJson',
-  );
+      GeneratedColumn<String>('shared_context_json', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _resultJsonMeta =
+      const VerificationMeta('resultJson');
   @override
   late final GeneratedColumn<String> resultJson = GeneratedColumn<String>(
-    'result_json',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
+      'result_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _statusMeta = const VerificationMeta('status');
   @override
   late final GeneratedColumn<String> status = GeneratedColumn<String>(
-    'status',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant('pending'),
-  );
-  static const VerificationMeta _errorMessageMeta = const VerificationMeta(
-    'errorMessage',
-  );
+      'status', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('pending'));
+  static const VerificationMeta _errorMessageMeta =
+      const VerificationMeta('errorMessage');
   @override
   late final GeneratedColumn<String> errorMessage = GeneratedColumn<String>(
-    'error_message',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
+      'error_message', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _parentInvocationUuidMeta =
       const VerificationMeta('parentInvocationUuid');
   @override
   late final GeneratedColumn<String> parentInvocationUuid =
-      GeneratedColumn<String>(
-        'parent_invocation_uuid',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-      );
+      GeneratedColumn<String>('parent_invocation_uuid', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _depthMeta = const VerificationMeta('depth');
   @override
   late final GeneratedColumn<int> depth = GeneratedColumn<int>(
-    'depth',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(0),
-  );
+      'depth', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
   @override
   List<GeneratedColumn> get $columns => [
-    uuid,
-    callerPersonaUuid,
-    calleePersonaUuid,
-    sessionUuid,
-    invokedAt,
-    completedAt,
-    purpose,
-    sharedContextJson,
-    resultJson,
-    status,
-    errorMessage,
-    parentInvocationUuid,
-    depth,
-  ];
+        uuid,
+        callerPersonaUuid,
+        calleePersonaUuid,
+        sessionUuid,
+        invokedAt,
+        completedAt,
+        purpose,
+        sharedContextJson,
+        resultJson,
+        status,
+        errorMessage,
+        parentInvocationUuid,
+        depth
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 't_agent_invocations';
   @override
-  VerificationContext validateIntegrity(
-    Insertable<AgentInvocation> instance, {
-    bool isInserting = false,
-  }) {
+  VerificationContext validateIntegrity(Insertable<AgentInvocation> instance,
+      {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('uuid')) {
       context.handle(
-        _uuidMeta,
-        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
-      );
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
     } else if (isInserting) {
       context.missing(_uuidMeta);
     }
     if (data.containsKey('caller_persona_uuid')) {
       context.handle(
-        _callerPersonaUuidMeta,
-        callerPersonaUuid.isAcceptableOrUnknown(
-          data['caller_persona_uuid']!,
           _callerPersonaUuidMeta,
-        ),
-      );
+          callerPersonaUuid.isAcceptableOrUnknown(
+              data['caller_persona_uuid']!, _callerPersonaUuidMeta));
     } else if (isInserting) {
       context.missing(_callerPersonaUuidMeta);
     }
     if (data.containsKey('callee_persona_uuid')) {
       context.handle(
-        _calleePersonaUuidMeta,
-        calleePersonaUuid.isAcceptableOrUnknown(
-          data['callee_persona_uuid']!,
           _calleePersonaUuidMeta,
-        ),
-      );
+          calleePersonaUuid.isAcceptableOrUnknown(
+              data['callee_persona_uuid']!, _calleePersonaUuidMeta));
     } else if (isInserting) {
       context.missing(_calleePersonaUuidMeta);
     }
     if (data.containsKey('session_uuid')) {
       context.handle(
-        _sessionUuidMeta,
-        sessionUuid.isAcceptableOrUnknown(
-          data['session_uuid']!,
           _sessionUuidMeta,
-        ),
-      );
+          sessionUuid.isAcceptableOrUnknown(
+              data['session_uuid']!, _sessionUuidMeta));
     }
     if (data.containsKey('invoked_at')) {
-      context.handle(
-        _invokedAtMeta,
-        invokedAt.isAcceptableOrUnknown(data['invoked_at']!, _invokedAtMeta),
-      );
+      context.handle(_invokedAtMeta,
+          invokedAt.isAcceptableOrUnknown(data['invoked_at']!, _invokedAtMeta));
     } else if (isInserting) {
       context.missing(_invokedAtMeta);
     }
     if (data.containsKey('completed_at')) {
       context.handle(
-        _completedAtMeta,
-        completedAt.isAcceptableOrUnknown(
-          data['completed_at']!,
           _completedAtMeta,
-        ),
-      );
+          completedAt.isAcceptableOrUnknown(
+              data['completed_at']!, _completedAtMeta));
     }
     if (data.containsKey('purpose')) {
-      context.handle(
-        _purposeMeta,
-        purpose.isAcceptableOrUnknown(data['purpose']!, _purposeMeta),
-      );
+      context.handle(_purposeMeta,
+          purpose.isAcceptableOrUnknown(data['purpose']!, _purposeMeta));
     } else if (isInserting) {
       context.missing(_purposeMeta);
     }
     if (data.containsKey('shared_context_json')) {
       context.handle(
-        _sharedContextJsonMeta,
-        sharedContextJson.isAcceptableOrUnknown(
-          data['shared_context_json']!,
           _sharedContextJsonMeta,
-        ),
-      );
+          sharedContextJson.isAcceptableOrUnknown(
+              data['shared_context_json']!, _sharedContextJsonMeta));
     }
     if (data.containsKey('result_json')) {
       context.handle(
-        _resultJsonMeta,
-        resultJson.isAcceptableOrUnknown(data['result_json']!, _resultJsonMeta),
-      );
+          _resultJsonMeta,
+          resultJson.isAcceptableOrUnknown(
+              data['result_json']!, _resultJsonMeta));
     }
     if (data.containsKey('status')) {
-      context.handle(
-        _statusMeta,
-        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
-      );
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
     }
     if (data.containsKey('error_message')) {
       context.handle(
-        _errorMessageMeta,
-        errorMessage.isAcceptableOrUnknown(
-          data['error_message']!,
           _errorMessageMeta,
-        ),
-      );
+          errorMessage.isAcceptableOrUnknown(
+              data['error_message']!, _errorMessageMeta));
     }
     if (data.containsKey('parent_invocation_uuid')) {
       context.handle(
-        _parentInvocationUuidMeta,
-        parentInvocationUuid.isAcceptableOrUnknown(
-          data['parent_invocation_uuid']!,
           _parentInvocationUuidMeta,
-        ),
-      );
+          parentInvocationUuid.isAcceptableOrUnknown(
+              data['parent_invocation_uuid']!, _parentInvocationUuidMeta));
     }
     if (data.containsKey('depth')) {
       context.handle(
-        _depthMeta,
-        depth.isAcceptableOrUnknown(data['depth']!, _depthMeta),
-      );
+          _depthMeta, depth.isAcceptableOrUnknown(data['depth']!, _depthMeta));
     }
     return context;
   }
@@ -8898,58 +7405,33 @@ class $AgentInvocationsTable extends AgentInvocations
   AgentInvocation map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return AgentInvocation(
-      uuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}uuid'],
-      )!,
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
       callerPersonaUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}caller_persona_uuid'],
-      )!,
+          DriftSqlType.string, data['${effectivePrefix}caller_persona_uuid'])!,
       calleePersonaUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}callee_persona_uuid'],
-      )!,
-      sessionUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}session_uuid'],
-      ),
-      invokedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}invoked_at'],
-      )!,
-      completedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}completed_at'],
-      ),
-      purpose: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}purpose'],
-      )!,
+          DriftSqlType.string, data['${effectivePrefix}callee_persona_uuid'])!,
+      sessionUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}session_uuid']),
+      invokedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}invoked_at'])!,
+      completedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}completed_at']),
+      purpose: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}purpose'])!,
       sharedContextJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}shared_context_json'],
-      ),
-      resultJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}result_json'],
-      ),
-      status: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}status'],
-      )!,
-      errorMessage: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}error_message'],
-      ),
+          DriftSqlType.string, data['${effectivePrefix}shared_context_json']),
+      resultJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}result_json']),
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      errorMessage: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}error_message']),
       parentInvocationUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}parent_invocation_uuid'],
-      ),
-      depth: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}depth'],
-      )!,
+          DriftSqlType.string,
+          data['${effectivePrefix}parent_invocation_uuid']),
+      depth: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}depth'])!,
     );
   }
 
@@ -8997,21 +7479,20 @@ class AgentInvocation extends DataClass implements Insertable<AgentInvocation> {
 
   /// 调用深度
   final int depth;
-  const AgentInvocation({
-    required this.uuid,
-    required this.callerPersonaUuid,
-    required this.calleePersonaUuid,
-    this.sessionUuid,
-    required this.invokedAt,
-    this.completedAt,
-    required this.purpose,
-    this.sharedContextJson,
-    this.resultJson,
-    required this.status,
-    this.errorMessage,
-    this.parentInvocationUuid,
-    required this.depth,
-  });
+  const AgentInvocation(
+      {required this.uuid,
+      required this.callerPersonaUuid,
+      required this.calleePersonaUuid,
+      this.sessionUuid,
+      required this.invokedAt,
+      this.completedAt,
+      required this.purpose,
+      this.sharedContextJson,
+      this.resultJson,
+      required this.status,
+      this.errorMessage,
+      this.parentInvocationUuid,
+      required this.depth});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -9073,10 +7554,8 @@ class AgentInvocation extends DataClass implements Insertable<AgentInvocation> {
     );
   }
 
-  factory AgentInvocation.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory AgentInvocation.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return AgentInvocation(
       uuid: serializer.fromJson<String>(json['uuid']),
@@ -9086,15 +7565,13 @@ class AgentInvocation extends DataClass implements Insertable<AgentInvocation> {
       invokedAt: serializer.fromJson<DateTime>(json['invokedAt']),
       completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
       purpose: serializer.fromJson<String>(json['purpose']),
-      sharedContextJson: serializer.fromJson<String?>(
-        json['sharedContextJson'],
-      ),
+      sharedContextJson:
+          serializer.fromJson<String?>(json['sharedContextJson']),
       resultJson: serializer.fromJson<String?>(json['resultJson']),
       status: serializer.fromJson<String>(json['status']),
       errorMessage: serializer.fromJson<String?>(json['errorMessage']),
-      parentInvocationUuid: serializer.fromJson<String?>(
-        json['parentInvocationUuid'],
-      ),
+      parentInvocationUuid:
+          serializer.fromJson<String?>(json['parentInvocationUuid']),
       depth: serializer.fromJson<int>(json['depth']),
     );
   }
@@ -9118,39 +7595,40 @@ class AgentInvocation extends DataClass implements Insertable<AgentInvocation> {
     };
   }
 
-  AgentInvocation copyWith({
-    String? uuid,
-    String? callerPersonaUuid,
-    String? calleePersonaUuid,
-    Value<String?> sessionUuid = const Value.absent(),
-    DateTime? invokedAt,
-    Value<DateTime?> completedAt = const Value.absent(),
-    String? purpose,
-    Value<String?> sharedContextJson = const Value.absent(),
-    Value<String?> resultJson = const Value.absent(),
-    String? status,
-    Value<String?> errorMessage = const Value.absent(),
-    Value<String?> parentInvocationUuid = const Value.absent(),
-    int? depth,
-  }) => AgentInvocation(
-    uuid: uuid ?? this.uuid,
-    callerPersonaUuid: callerPersonaUuid ?? this.callerPersonaUuid,
-    calleePersonaUuid: calleePersonaUuid ?? this.calleePersonaUuid,
-    sessionUuid: sessionUuid.present ? sessionUuid.value : this.sessionUuid,
-    invokedAt: invokedAt ?? this.invokedAt,
-    completedAt: completedAt.present ? completedAt.value : this.completedAt,
-    purpose: purpose ?? this.purpose,
-    sharedContextJson: sharedContextJson.present
-        ? sharedContextJson.value
-        : this.sharedContextJson,
-    resultJson: resultJson.present ? resultJson.value : this.resultJson,
-    status: status ?? this.status,
-    errorMessage: errorMessage.present ? errorMessage.value : this.errorMessage,
-    parentInvocationUuid: parentInvocationUuid.present
-        ? parentInvocationUuid.value
-        : this.parentInvocationUuid,
-    depth: depth ?? this.depth,
-  );
+  AgentInvocation copyWith(
+          {String? uuid,
+          String? callerPersonaUuid,
+          String? calleePersonaUuid,
+          Value<String?> sessionUuid = const Value.absent(),
+          DateTime? invokedAt,
+          Value<DateTime?> completedAt = const Value.absent(),
+          String? purpose,
+          Value<String?> sharedContextJson = const Value.absent(),
+          Value<String?> resultJson = const Value.absent(),
+          String? status,
+          Value<String?> errorMessage = const Value.absent(),
+          Value<String?> parentInvocationUuid = const Value.absent(),
+          int? depth}) =>
+      AgentInvocation(
+        uuid: uuid ?? this.uuid,
+        callerPersonaUuid: callerPersonaUuid ?? this.callerPersonaUuid,
+        calleePersonaUuid: calleePersonaUuid ?? this.calleePersonaUuid,
+        sessionUuid: sessionUuid.present ? sessionUuid.value : this.sessionUuid,
+        invokedAt: invokedAt ?? this.invokedAt,
+        completedAt: completedAt.present ? completedAt.value : this.completedAt,
+        purpose: purpose ?? this.purpose,
+        sharedContextJson: sharedContextJson.present
+            ? sharedContextJson.value
+            : this.sharedContextJson,
+        resultJson: resultJson.present ? resultJson.value : this.resultJson,
+        status: status ?? this.status,
+        errorMessage:
+            errorMessage.present ? errorMessage.value : this.errorMessage,
+        parentInvocationUuid: parentInvocationUuid.present
+            ? parentInvocationUuid.value
+            : this.parentInvocationUuid,
+        depth: depth ?? this.depth,
+      );
   AgentInvocation copyWithCompanion(AgentInvocationsCompanion data) {
     return AgentInvocation(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
@@ -9160,20 +7638,17 @@ class AgentInvocation extends DataClass implements Insertable<AgentInvocation> {
       calleePersonaUuid: data.calleePersonaUuid.present
           ? data.calleePersonaUuid.value
           : this.calleePersonaUuid,
-      sessionUuid: data.sessionUuid.present
-          ? data.sessionUuid.value
-          : this.sessionUuid,
+      sessionUuid:
+          data.sessionUuid.present ? data.sessionUuid.value : this.sessionUuid,
       invokedAt: data.invokedAt.present ? data.invokedAt.value : this.invokedAt,
-      completedAt: data.completedAt.present
-          ? data.completedAt.value
-          : this.completedAt,
+      completedAt:
+          data.completedAt.present ? data.completedAt.value : this.completedAt,
       purpose: data.purpose.present ? data.purpose.value : this.purpose,
       sharedContextJson: data.sharedContextJson.present
           ? data.sharedContextJson.value
           : this.sharedContextJson,
-      resultJson: data.resultJson.present
-          ? data.resultJson.value
-          : this.resultJson,
+      resultJson:
+          data.resultJson.present ? data.resultJson.value : this.resultJson,
       status: data.status.present ? data.status.value : this.status,
       errorMessage: data.errorMessage.present
           ? data.errorMessage.value
@@ -9207,20 +7682,19 @@ class AgentInvocation extends DataClass implements Insertable<AgentInvocation> {
 
   @override
   int get hashCode => Object.hash(
-    uuid,
-    callerPersonaUuid,
-    calleePersonaUuid,
-    sessionUuid,
-    invokedAt,
-    completedAt,
-    purpose,
-    sharedContextJson,
-    resultJson,
-    status,
-    errorMessage,
-    parentInvocationUuid,
-    depth,
-  );
+      uuid,
+      callerPersonaUuid,
+      calleePersonaUuid,
+      sessionUuid,
+      invokedAt,
+      completedAt,
+      purpose,
+      sharedContextJson,
+      resultJson,
+      status,
+      errorMessage,
+      parentInvocationUuid,
+      depth);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -9286,11 +7760,11 @@ class AgentInvocationsCompanion extends UpdateCompanion<AgentInvocation> {
     this.parentInvocationUuid = const Value.absent(),
     this.depth = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : uuid = Value(uuid),
-       callerPersonaUuid = Value(callerPersonaUuid),
-       calleePersonaUuid = Value(calleePersonaUuid),
-       invokedAt = Value(invokedAt),
-       purpose = Value(purpose);
+  })  : uuid = Value(uuid),
+        callerPersonaUuid = Value(callerPersonaUuid),
+        calleePersonaUuid = Value(calleePersonaUuid),
+        invokedAt = Value(invokedAt),
+        purpose = Value(purpose);
   static Insertable<AgentInvocation> custom({
     Expression<String>? uuid,
     Expression<String>? callerPersonaUuid,
@@ -9326,22 +7800,21 @@ class AgentInvocationsCompanion extends UpdateCompanion<AgentInvocation> {
     });
   }
 
-  AgentInvocationsCompanion copyWith({
-    Value<String>? uuid,
-    Value<String>? callerPersonaUuid,
-    Value<String>? calleePersonaUuid,
-    Value<String?>? sessionUuid,
-    Value<DateTime>? invokedAt,
-    Value<DateTime?>? completedAt,
-    Value<String>? purpose,
-    Value<String?>? sharedContextJson,
-    Value<String?>? resultJson,
-    Value<String>? status,
-    Value<String?>? errorMessage,
-    Value<String?>? parentInvocationUuid,
-    Value<int>? depth,
-    Value<int>? rowid,
-  }) {
+  AgentInvocationsCompanion copyWith(
+      {Value<String>? uuid,
+      Value<String>? callerPersonaUuid,
+      Value<String>? calleePersonaUuid,
+      Value<String?>? sessionUuid,
+      Value<DateTime>? invokedAt,
+      Value<DateTime?>? completedAt,
+      Value<String>? purpose,
+      Value<String?>? sharedContextJson,
+      Value<String?>? resultJson,
+      Value<String>? status,
+      Value<String?>? errorMessage,
+      Value<String?>? parentInvocationUuid,
+      Value<int>? depth,
+      Value<int>? rowid}) {
     return AgentInvocationsCompanion(
       uuid: uuid ?? this.uuid,
       callerPersonaUuid: callerPersonaUuid ?? this.callerPersonaUuid,
@@ -9397,9 +7870,8 @@ class AgentInvocationsCompanion extends UpdateCompanion<AgentInvocation> {
       map['error_message'] = Variable<String>(errorMessage.value);
     }
     if (parentInvocationUuid.present) {
-      map['parent_invocation_uuid'] = Variable<String>(
-        parentInvocationUuid.value,
-      );
+      map['parent_invocation_uuid'] =
+          Variable<String>(parentInvocationUuid.value);
     }
     if (depth.present) {
       map['depth'] = Variable<int>(depth.value);
@@ -9441,249 +7913,171 @@ class $AiUsageAuditsTable extends AiUsageAudits
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
-  static const VerificationMeta _auditedAtMeta = const VerificationMeta(
-    'auditedAt',
-  );
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _auditedAtMeta =
+      const VerificationMeta('auditedAt');
   @override
   late final GeneratedColumn<DateTime> auditedAt = GeneratedColumn<DateTime>(
-    'audited_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _auditTypeMeta = const VerificationMeta(
-    'auditType',
-  );
+      'audited_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _auditTypeMeta =
+      const VerificationMeta('auditType');
   @override
   late final GeneratedColumn<String> auditType = GeneratedColumn<String>(
-    'audit_type',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 1,
-      maxTextLength: 50,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _entityUuidMeta = const VerificationMeta(
-    'entityUuid',
-  );
+      'audit_type', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 50),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _entityUuidMeta =
+      const VerificationMeta('entityUuid');
   @override
   late final GeneratedColumn<String> entityUuid = GeneratedColumn<String>(
-    'entity_uuid',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _entityTypeMeta = const VerificationMeta(
-    'entityType',
-  );
+      'entity_uuid', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _entityTypeMeta =
+      const VerificationMeta('entityType');
   @override
   late final GeneratedColumn<String> entityType = GeneratedColumn<String>(
-    'entity_type',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _userIdentifierMeta = const VerificationMeta(
-    'userIdentifier',
-  );
+      'entity_type', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _userIdentifierMeta =
+      const VerificationMeta('userIdentifier');
   @override
   late final GeneratedColumn<String> userIdentifier = GeneratedColumn<String>(
-    'user_identifier',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
+      'user_identifier', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _actionMeta = const VerificationMeta('action');
   @override
   late final GeneratedColumn<String> action = GeneratedColumn<String>(
-    'action',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _detailsJsonMeta = const VerificationMeta(
-    'detailsJson',
-  );
+      'action', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _detailsJsonMeta =
+      const VerificationMeta('detailsJson');
   @override
   late final GeneratedColumn<String> detailsJson = GeneratedColumn<String>(
-    'details_json',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _tokensUsedMeta = const VerificationMeta(
-    'tokensUsed',
-  );
+      'details_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _tokensUsedMeta =
+      const VerificationMeta('tokensUsed');
   @override
   late final GeneratedColumn<int> tokensUsed = GeneratedColumn<int>(
-    'tokens_used',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _estimatedCostMeta = const VerificationMeta(
-    'estimatedCost',
-  );
+      'tokens_used', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _estimatedCostMeta =
+      const VerificationMeta('estimatedCost');
   @override
   late final GeneratedColumn<double> estimatedCost = GeneratedColumn<double>(
-    'estimated_cost',
-    aliasedName,
-    true,
-    type: DriftSqlType.double,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _ipAddressMeta = const VerificationMeta(
-    'ipAddress',
-  );
+      'estimated_cost', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _ipAddressMeta =
+      const VerificationMeta('ipAddress');
   @override
   late final GeneratedColumn<String> ipAddress = GeneratedColumn<String>(
-    'ip_address',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _deviceInfoMeta = const VerificationMeta(
-    'deviceInfo',
-  );
+      'ip_address', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _deviceInfoMeta =
+      const VerificationMeta('deviceInfo');
   @override
   late final GeneratedColumn<String> deviceInfo = GeneratedColumn<String>(
-    'device_info',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
+      'device_info', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
-    id,
-    auditedAt,
-    auditType,
-    entityUuid,
-    entityType,
-    userIdentifier,
-    action,
-    detailsJson,
-    tokensUsed,
-    estimatedCost,
-    ipAddress,
-    deviceInfo,
-  ];
+        id,
+        auditedAt,
+        auditType,
+        entityUuid,
+        entityType,
+        userIdentifier,
+        action,
+        detailsJson,
+        tokensUsed,
+        estimatedCost,
+        ipAddress,
+        deviceInfo
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 't_ai_usage_audits';
   @override
-  VerificationContext validateIntegrity(
-    Insertable<AiUsageAudit> instance, {
-    bool isInserting = false,
-  }) {
+  VerificationContext validateIntegrity(Insertable<AiUsageAudit> instance,
+      {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
     if (data.containsKey('audited_at')) {
-      context.handle(
-        _auditedAtMeta,
-        auditedAt.isAcceptableOrUnknown(data['audited_at']!, _auditedAtMeta),
-      );
+      context.handle(_auditedAtMeta,
+          auditedAt.isAcceptableOrUnknown(data['audited_at']!, _auditedAtMeta));
     } else if (isInserting) {
       context.missing(_auditedAtMeta);
     }
     if (data.containsKey('audit_type')) {
-      context.handle(
-        _auditTypeMeta,
-        auditType.isAcceptableOrUnknown(data['audit_type']!, _auditTypeMeta),
-      );
+      context.handle(_auditTypeMeta,
+          auditType.isAcceptableOrUnknown(data['audit_type']!, _auditTypeMeta));
     } else if (isInserting) {
       context.missing(_auditTypeMeta);
     }
     if (data.containsKey('entity_uuid')) {
       context.handle(
-        _entityUuidMeta,
-        entityUuid.isAcceptableOrUnknown(data['entity_uuid']!, _entityUuidMeta),
-      );
+          _entityUuidMeta,
+          entityUuid.isAcceptableOrUnknown(
+              data['entity_uuid']!, _entityUuidMeta));
     }
     if (data.containsKey('entity_type')) {
       context.handle(
-        _entityTypeMeta,
-        entityType.isAcceptableOrUnknown(data['entity_type']!, _entityTypeMeta),
-      );
+          _entityTypeMeta,
+          entityType.isAcceptableOrUnknown(
+              data['entity_type']!, _entityTypeMeta));
     }
     if (data.containsKey('user_identifier')) {
       context.handle(
-        _userIdentifierMeta,
-        userIdentifier.isAcceptableOrUnknown(
-          data['user_identifier']!,
           _userIdentifierMeta,
-        ),
-      );
+          userIdentifier.isAcceptableOrUnknown(
+              data['user_identifier']!, _userIdentifierMeta));
     }
     if (data.containsKey('action')) {
-      context.handle(
-        _actionMeta,
-        action.isAcceptableOrUnknown(data['action']!, _actionMeta),
-      );
+      context.handle(_actionMeta,
+          action.isAcceptableOrUnknown(data['action']!, _actionMeta));
     } else if (isInserting) {
       context.missing(_actionMeta);
     }
     if (data.containsKey('details_json')) {
       context.handle(
-        _detailsJsonMeta,
-        detailsJson.isAcceptableOrUnknown(
-          data['details_json']!,
           _detailsJsonMeta,
-        ),
-      );
+          detailsJson.isAcceptableOrUnknown(
+              data['details_json']!, _detailsJsonMeta));
     }
     if (data.containsKey('tokens_used')) {
       context.handle(
-        _tokensUsedMeta,
-        tokensUsed.isAcceptableOrUnknown(data['tokens_used']!, _tokensUsedMeta),
-      );
+          _tokensUsedMeta,
+          tokensUsed.isAcceptableOrUnknown(
+              data['tokens_used']!, _tokensUsedMeta));
     }
     if (data.containsKey('estimated_cost')) {
       context.handle(
-        _estimatedCostMeta,
-        estimatedCost.isAcceptableOrUnknown(
-          data['estimated_cost']!,
           _estimatedCostMeta,
-        ),
-      );
+          estimatedCost.isAcceptableOrUnknown(
+              data['estimated_cost']!, _estimatedCostMeta));
     }
     if (data.containsKey('ip_address')) {
-      context.handle(
-        _ipAddressMeta,
-        ipAddress.isAcceptableOrUnknown(data['ip_address']!, _ipAddressMeta),
-      );
+      context.handle(_ipAddressMeta,
+          ipAddress.isAcceptableOrUnknown(data['ip_address']!, _ipAddressMeta));
     }
     if (data.containsKey('device_info')) {
       context.handle(
-        _deviceInfoMeta,
-        deviceInfo.isAcceptableOrUnknown(data['device_info']!, _deviceInfoMeta),
-      );
+          _deviceInfoMeta,
+          deviceInfo.isAcceptableOrUnknown(
+              data['device_info']!, _deviceInfoMeta));
     }
     return context;
   }
@@ -9694,54 +8088,30 @@ class $AiUsageAuditsTable extends AiUsageAudits
   AiUsageAudit map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return AiUsageAudit(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
-      auditedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}audited_at'],
-      )!,
-      auditType: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}audit_type'],
-      )!,
-      entityUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}entity_uuid'],
-      ),
-      entityType: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}entity_type'],
-      ),
-      userIdentifier: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}user_identifier'],
-      ),
-      action: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}action'],
-      )!,
-      detailsJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}details_json'],
-      ),
-      tokensUsed: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}tokens_used'],
-      ),
-      estimatedCost: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}estimated_cost'],
-      ),
-      ipAddress: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}ip_address'],
-      ),
-      deviceInfo: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}device_info'],
-      ),
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      auditedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}audited_at'])!,
+      auditType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}audit_type'])!,
+      entityUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}entity_uuid']),
+      entityType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}entity_type']),
+      userIdentifier: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_identifier']),
+      action: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}action'])!,
+      detailsJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}details_json']),
+      tokensUsed: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}tokens_used']),
+      estimatedCost: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}estimated_cost']),
+      ipAddress: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}ip_address']),
+      deviceInfo: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}device_info']),
     );
   }
 
@@ -9786,20 +8156,19 @@ class AiUsageAudit extends DataClass implements Insertable<AiUsageAudit> {
 
   /// 设备信息
   final String? deviceInfo;
-  const AiUsageAudit({
-    required this.id,
-    required this.auditedAt,
-    required this.auditType,
-    this.entityUuid,
-    this.entityType,
-    this.userIdentifier,
-    required this.action,
-    this.detailsJson,
-    this.tokensUsed,
-    this.estimatedCost,
-    this.ipAddress,
-    this.deviceInfo,
-  });
+  const AiUsageAudit(
+      {required this.id,
+      required this.auditedAt,
+      required this.auditType,
+      this.entityUuid,
+      this.entityType,
+      this.userIdentifier,
+      required this.action,
+      this.detailsJson,
+      this.tokensUsed,
+      this.estimatedCost,
+      this.ipAddress,
+      this.deviceInfo});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -9867,10 +8236,8 @@ class AiUsageAudit extends DataClass implements Insertable<AiUsageAudit> {
     );
   }
 
-  factory AiUsageAudit.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory AiUsageAudit.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return AiUsageAudit(
       id: serializer.fromJson<int>(json['id']),
@@ -9906,65 +8273,58 @@ class AiUsageAudit extends DataClass implements Insertable<AiUsageAudit> {
     };
   }
 
-  AiUsageAudit copyWith({
-    int? id,
-    DateTime? auditedAt,
-    String? auditType,
-    Value<String?> entityUuid = const Value.absent(),
-    Value<String?> entityType = const Value.absent(),
-    Value<String?> userIdentifier = const Value.absent(),
-    String? action,
-    Value<String?> detailsJson = const Value.absent(),
-    Value<int?> tokensUsed = const Value.absent(),
-    Value<double?> estimatedCost = const Value.absent(),
-    Value<String?> ipAddress = const Value.absent(),
-    Value<String?> deviceInfo = const Value.absent(),
-  }) => AiUsageAudit(
-    id: id ?? this.id,
-    auditedAt: auditedAt ?? this.auditedAt,
-    auditType: auditType ?? this.auditType,
-    entityUuid: entityUuid.present ? entityUuid.value : this.entityUuid,
-    entityType: entityType.present ? entityType.value : this.entityType,
-    userIdentifier: userIdentifier.present
-        ? userIdentifier.value
-        : this.userIdentifier,
-    action: action ?? this.action,
-    detailsJson: detailsJson.present ? detailsJson.value : this.detailsJson,
-    tokensUsed: tokensUsed.present ? tokensUsed.value : this.tokensUsed,
-    estimatedCost: estimatedCost.present
-        ? estimatedCost.value
-        : this.estimatedCost,
-    ipAddress: ipAddress.present ? ipAddress.value : this.ipAddress,
-    deviceInfo: deviceInfo.present ? deviceInfo.value : this.deviceInfo,
-  );
+  AiUsageAudit copyWith(
+          {int? id,
+          DateTime? auditedAt,
+          String? auditType,
+          Value<String?> entityUuid = const Value.absent(),
+          Value<String?> entityType = const Value.absent(),
+          Value<String?> userIdentifier = const Value.absent(),
+          String? action,
+          Value<String?> detailsJson = const Value.absent(),
+          Value<int?> tokensUsed = const Value.absent(),
+          Value<double?> estimatedCost = const Value.absent(),
+          Value<String?> ipAddress = const Value.absent(),
+          Value<String?> deviceInfo = const Value.absent()}) =>
+      AiUsageAudit(
+        id: id ?? this.id,
+        auditedAt: auditedAt ?? this.auditedAt,
+        auditType: auditType ?? this.auditType,
+        entityUuid: entityUuid.present ? entityUuid.value : this.entityUuid,
+        entityType: entityType.present ? entityType.value : this.entityType,
+        userIdentifier:
+            userIdentifier.present ? userIdentifier.value : this.userIdentifier,
+        action: action ?? this.action,
+        detailsJson: detailsJson.present ? detailsJson.value : this.detailsJson,
+        tokensUsed: tokensUsed.present ? tokensUsed.value : this.tokensUsed,
+        estimatedCost:
+            estimatedCost.present ? estimatedCost.value : this.estimatedCost,
+        ipAddress: ipAddress.present ? ipAddress.value : this.ipAddress,
+        deviceInfo: deviceInfo.present ? deviceInfo.value : this.deviceInfo,
+      );
   AiUsageAudit copyWithCompanion(AiUsageAuditsCompanion data) {
     return AiUsageAudit(
       id: data.id.present ? data.id.value : this.id,
       auditedAt: data.auditedAt.present ? data.auditedAt.value : this.auditedAt,
       auditType: data.auditType.present ? data.auditType.value : this.auditType,
-      entityUuid: data.entityUuid.present
-          ? data.entityUuid.value
-          : this.entityUuid,
-      entityType: data.entityType.present
-          ? data.entityType.value
-          : this.entityType,
+      entityUuid:
+          data.entityUuid.present ? data.entityUuid.value : this.entityUuid,
+      entityType:
+          data.entityType.present ? data.entityType.value : this.entityType,
       userIdentifier: data.userIdentifier.present
           ? data.userIdentifier.value
           : this.userIdentifier,
       action: data.action.present ? data.action.value : this.action,
-      detailsJson: data.detailsJson.present
-          ? data.detailsJson.value
-          : this.detailsJson,
-      tokensUsed: data.tokensUsed.present
-          ? data.tokensUsed.value
-          : this.tokensUsed,
+      detailsJson:
+          data.detailsJson.present ? data.detailsJson.value : this.detailsJson,
+      tokensUsed:
+          data.tokensUsed.present ? data.tokensUsed.value : this.tokensUsed,
       estimatedCost: data.estimatedCost.present
           ? data.estimatedCost.value
           : this.estimatedCost,
       ipAddress: data.ipAddress.present ? data.ipAddress.value : this.ipAddress,
-      deviceInfo: data.deviceInfo.present
-          ? data.deviceInfo.value
-          : this.deviceInfo,
+      deviceInfo:
+          data.deviceInfo.present ? data.deviceInfo.value : this.deviceInfo,
     );
   }
 
@@ -9989,19 +8349,18 @@ class AiUsageAudit extends DataClass implements Insertable<AiUsageAudit> {
 
   @override
   int get hashCode => Object.hash(
-    id,
-    auditedAt,
-    auditType,
-    entityUuid,
-    entityType,
-    userIdentifier,
-    action,
-    detailsJson,
-    tokensUsed,
-    estimatedCost,
-    ipAddress,
-    deviceInfo,
-  );
+      id,
+      auditedAt,
+      auditType,
+      entityUuid,
+      entityType,
+      userIdentifier,
+      action,
+      detailsJson,
+      tokensUsed,
+      estimatedCost,
+      ipAddress,
+      deviceInfo);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -10060,9 +8419,9 @@ class AiUsageAuditsCompanion extends UpdateCompanion<AiUsageAudit> {
     this.estimatedCost = const Value.absent(),
     this.ipAddress = const Value.absent(),
     this.deviceInfo = const Value.absent(),
-  }) : auditedAt = Value(auditedAt),
-       auditType = Value(auditType),
-       action = Value(action);
+  })  : auditedAt = Value(auditedAt),
+        auditType = Value(auditType),
+        action = Value(action);
   static Insertable<AiUsageAudit> custom({
     Expression<int>? id,
     Expression<DateTime>? auditedAt,
@@ -10093,20 +8452,19 @@ class AiUsageAuditsCompanion extends UpdateCompanion<AiUsageAudit> {
     });
   }
 
-  AiUsageAuditsCompanion copyWith({
-    Value<int>? id,
-    Value<DateTime>? auditedAt,
-    Value<String>? auditType,
-    Value<String?>? entityUuid,
-    Value<String?>? entityType,
-    Value<String?>? userIdentifier,
-    Value<String>? action,
-    Value<String?>? detailsJson,
-    Value<int?>? tokensUsed,
-    Value<double?>? estimatedCost,
-    Value<String?>? ipAddress,
-    Value<String?>? deviceInfo,
-  }) {
+  AiUsageAuditsCompanion copyWith(
+      {Value<int>? id,
+      Value<DateTime>? auditedAt,
+      Value<String>? auditType,
+      Value<String?>? entityUuid,
+      Value<String?>? entityType,
+      Value<String?>? userIdentifier,
+      Value<String>? action,
+      Value<String?>? detailsJson,
+      Value<int?>? tokensUsed,
+      Value<double?>? estimatedCost,
+      Value<String?>? ipAddress,
+      Value<String?>? deviceInfo}) {
     return AiUsageAuditsCompanion(
       id: id ?? this.id,
       auditedAt: auditedAt ?? this.auditedAt,
@@ -10193,319 +8551,212 @@ class $AiToolsTable extends AiTools with TableInfo<$AiToolsTable, AiTool> {
   static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
   @override
   late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
-    'uuid',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 36,
-      maxTextLength: 36,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
+      'uuid', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 36, maxTextLength: 36),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
   @override
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _lastUpdatedAtMeta = const VerificationMeta(
-    'lastUpdatedAt',
-  );
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _lastUpdatedAtMeta =
+      const VerificationMeta('lastUpdatedAt');
   @override
   late final GeneratedColumn<DateTime> lastUpdatedAt =
-      GeneratedColumn<DateTime>(
-        'last_updated_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
-    'deletedAt',
-  );
+      GeneratedColumn<DateTime>('last_updated_at', aliasedName, true,
+          type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
   @override
   late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
-    'deleted_at',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
-    'name',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 1,
-      maxTextLength: 100,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _descriptionMeta = const VerificationMeta(
-    'description',
-  );
+      'name', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 100),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
   @override
   late final GeneratedColumn<String> description = GeneratedColumn<String>(
-    'description',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _toolTypeMeta = const VerificationMeta(
-    'toolType',
-  );
+      'description', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _toolTypeMeta =
+      const VerificationMeta('toolType');
   @override
   late final GeneratedColumn<String> toolType = GeneratedColumn<String>(
-    'tool_type',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 1,
-      maxTextLength: 50,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _skillIdMeta = const VerificationMeta(
-    'skillId',
-  );
+      'tool_type', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 50),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _skillIdMeta =
+      const VerificationMeta('skillId');
   @override
   late final GeneratedColumn<int> skillId = GeneratedColumn<int>(
-    'skill_id',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
+      'skill_id', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   static const VerificationMeta _parametersSchemaJsonMeta =
       const VerificationMeta('parametersSchemaJson');
   @override
   late final GeneratedColumn<String> parametersSchemaJson =
-      GeneratedColumn<String>(
-        'parameters_schema_json',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-      );
-  static const VerificationMeta _returnSchemaJsonMeta = const VerificationMeta(
-    'returnSchemaJson',
-  );
+      GeneratedColumn<String>('parameters_schema_json', aliasedName, false,
+          type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _returnSchemaJsonMeta =
+      const VerificationMeta('returnSchemaJson');
   @override
   late final GeneratedColumn<String> returnSchemaJson = GeneratedColumn<String>(
-    'return_schema_json',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
+      'return_schema_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _requiresConfirmationMeta =
       const VerificationMeta('requiresConfirmation');
   @override
   late final GeneratedColumn<bool> requiresConfirmation = GeneratedColumn<bool>(
-    'requires_confirmation',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("requires_confirmation" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
-  static const VerificationMeta _isEnabledMeta = const VerificationMeta(
-    'isEnabled',
-  );
+      'requires_confirmation', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("requires_confirmation" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _isEnabledMeta =
+      const VerificationMeta('isEnabled');
   @override
   late final GeneratedColumn<bool> isEnabled = GeneratedColumn<bool>(
-    'is_enabled',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_enabled" IN (0, 1))',
-    ),
-    defaultValue: const Constant(true),
-  );
-  static const VerificationMeta _executorTypeMeta = const VerificationMeta(
-    'executorType',
-  );
+      'is_enabled', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_enabled" IN (0, 1))'),
+      defaultValue: const Constant(true));
+  static const VerificationMeta _executorTypeMeta =
+      const VerificationMeta('executorType');
   @override
   late final GeneratedColumn<String> executorType = GeneratedColumn<String>(
-    'executor_type',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant('native'),
-  );
+      'executor_type', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('native'));
   static const VerificationMeta _executorConfigJsonMeta =
       const VerificationMeta('executorConfigJson');
   @override
   late final GeneratedColumn<String> executorConfigJson =
-      GeneratedColumn<String>(
-        'executor_config_json',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-      );
+      GeneratedColumn<String>('executor_config_json', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
-    uuid,
-    createdAt,
-    lastUpdatedAt,
-    deletedAt,
-    name,
-    description,
-    toolType,
-    skillId,
-    parametersSchemaJson,
-    returnSchemaJson,
-    requiresConfirmation,
-    isEnabled,
-    executorType,
-    executorConfigJson,
-  ];
+        uuid,
+        createdAt,
+        lastUpdatedAt,
+        deletedAt,
+        name,
+        description,
+        toolType,
+        skillId,
+        parametersSchemaJson,
+        returnSchemaJson,
+        requiresConfirmation,
+        isEnabled,
+        executorType,
+        executorConfigJson
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 't_ai_tools';
   @override
-  VerificationContext validateIntegrity(
-    Insertable<AiTool> instance, {
-    bool isInserting = false,
-  }) {
+  VerificationContext validateIntegrity(Insertable<AiTool> instance,
+      {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('uuid')) {
       context.handle(
-        _uuidMeta,
-        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
-      );
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
     } else if (isInserting) {
       context.missing(_uuidMeta);
     }
     if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
     if (data.containsKey('last_updated_at')) {
       context.handle(
-        _lastUpdatedAtMeta,
-        lastUpdatedAt.isAcceptableOrUnknown(
-          data['last_updated_at']!,
           _lastUpdatedAtMeta,
-        ),
-      );
+          lastUpdatedAt.isAcceptableOrUnknown(
+              data['last_updated_at']!, _lastUpdatedAtMeta));
     }
     if (data.containsKey('deleted_at')) {
-      context.handle(
-        _deletedAtMeta,
-        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
-      );
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
     }
     if (data.containsKey('name')) {
       context.handle(
-        _nameMeta,
-        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
-      );
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
     if (data.containsKey('description')) {
       context.handle(
-        _descriptionMeta,
-        description.isAcceptableOrUnknown(
-          data['description']!,
           _descriptionMeta,
-        ),
-      );
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
     } else if (isInserting) {
       context.missing(_descriptionMeta);
     }
     if (data.containsKey('tool_type')) {
-      context.handle(
-        _toolTypeMeta,
-        toolType.isAcceptableOrUnknown(data['tool_type']!, _toolTypeMeta),
-      );
+      context.handle(_toolTypeMeta,
+          toolType.isAcceptableOrUnknown(data['tool_type']!, _toolTypeMeta));
     } else if (isInserting) {
       context.missing(_toolTypeMeta);
     }
     if (data.containsKey('skill_id')) {
-      context.handle(
-        _skillIdMeta,
-        skillId.isAcceptableOrUnknown(data['skill_id']!, _skillIdMeta),
-      );
+      context.handle(_skillIdMeta,
+          skillId.isAcceptableOrUnknown(data['skill_id']!, _skillIdMeta));
     }
     if (data.containsKey('parameters_schema_json')) {
       context.handle(
-        _parametersSchemaJsonMeta,
-        parametersSchemaJson.isAcceptableOrUnknown(
-          data['parameters_schema_json']!,
           _parametersSchemaJsonMeta,
-        ),
-      );
+          parametersSchemaJson.isAcceptableOrUnknown(
+              data['parameters_schema_json']!, _parametersSchemaJsonMeta));
     } else if (isInserting) {
       context.missing(_parametersSchemaJsonMeta);
     }
     if (data.containsKey('return_schema_json')) {
       context.handle(
-        _returnSchemaJsonMeta,
-        returnSchemaJson.isAcceptableOrUnknown(
-          data['return_schema_json']!,
           _returnSchemaJsonMeta,
-        ),
-      );
+          returnSchemaJson.isAcceptableOrUnknown(
+              data['return_schema_json']!, _returnSchemaJsonMeta));
     }
     if (data.containsKey('requires_confirmation')) {
       context.handle(
-        _requiresConfirmationMeta,
-        requiresConfirmation.isAcceptableOrUnknown(
-          data['requires_confirmation']!,
           _requiresConfirmationMeta,
-        ),
-      );
+          requiresConfirmation.isAcceptableOrUnknown(
+              data['requires_confirmation']!, _requiresConfirmationMeta));
     }
     if (data.containsKey('is_enabled')) {
-      context.handle(
-        _isEnabledMeta,
-        isEnabled.isAcceptableOrUnknown(data['is_enabled']!, _isEnabledMeta),
-      );
+      context.handle(_isEnabledMeta,
+          isEnabled.isAcceptableOrUnknown(data['is_enabled']!, _isEnabledMeta));
     }
     if (data.containsKey('executor_type')) {
       context.handle(
-        _executorTypeMeta,
-        executorType.isAcceptableOrUnknown(
-          data['executor_type']!,
           _executorTypeMeta,
-        ),
-      );
+          executorType.isAcceptableOrUnknown(
+              data['executor_type']!, _executorTypeMeta));
     }
     if (data.containsKey('executor_config_json')) {
       context.handle(
-        _executorConfigJsonMeta,
-        executorConfigJson.isAcceptableOrUnknown(
-          data['executor_config_json']!,
           _executorConfigJsonMeta,
-        ),
-      );
+          executorConfigJson.isAcceptableOrUnknown(
+              data['executor_config_json']!, _executorConfigJsonMeta));
     }
     return context;
   }
@@ -10516,62 +8767,35 @@ class $AiToolsTable extends AiTools with TableInfo<$AiToolsTable, AiTool> {
   AiTool map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return AiTool(
-      uuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}uuid'],
-      )!,
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
       lastUpdatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}last_updated_at'],
-      ),
-      deletedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}deleted_at'],
-      ),
-      name: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}name'],
-      )!,
-      description: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}description'],
-      )!,
-      toolType: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}tool_type'],
-      )!,
-      skillId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}skill_id'],
-      ),
+          DriftSqlType.dateTime, data['${effectivePrefix}last_updated_at']),
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description'])!,
+      toolType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tool_type'])!,
+      skillId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}skill_id']),
       parametersSchemaJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}parameters_schema_json'],
-      )!,
+          DriftSqlType.string,
+          data['${effectivePrefix}parameters_schema_json'])!,
       returnSchemaJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}return_schema_json'],
-      ),
+          DriftSqlType.string, data['${effectivePrefix}return_schema_json']),
       requiresConfirmation: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}requires_confirmation'],
-      )!,
-      isEnabled: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_enabled'],
-      )!,
-      executorType: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}executor_type'],
-      )!,
+          DriftSqlType.bool, data['${effectivePrefix}requires_confirmation'])!,
+      isEnabled: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_enabled'])!,
+      executorType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}executor_type'])!,
       executorConfigJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}executor_config_json'],
-      ),
+          DriftSqlType.string, data['${effectivePrefix}executor_config_json']),
     );
   }
 
@@ -10616,22 +8840,21 @@ class AiTool extends DataClass implements Insertable<AiTool> {
 
   /// 执行器配置 (JSON)
   final String? executorConfigJson;
-  const AiTool({
-    required this.uuid,
-    required this.createdAt,
-    this.lastUpdatedAt,
-    this.deletedAt,
-    required this.name,
-    required this.description,
-    required this.toolType,
-    this.skillId,
-    required this.parametersSchemaJson,
-    this.returnSchemaJson,
-    required this.requiresConfirmation,
-    required this.isEnabled,
-    required this.executorType,
-    this.executorConfigJson,
-  });
+  const AiTool(
+      {required this.uuid,
+      required this.createdAt,
+      this.lastUpdatedAt,
+      this.deletedAt,
+      required this.name,
+      required this.description,
+      required this.toolType,
+      this.skillId,
+      required this.parametersSchemaJson,
+      this.returnSchemaJson,
+      required this.requiresConfirmation,
+      required this.isEnabled,
+      required this.executorType,
+      this.executorConfigJson});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -10691,10 +8914,8 @@ class AiTool extends DataClass implements Insertable<AiTool> {
     );
   }
 
-  factory AiTool.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory AiTool.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return AiTool(
       uuid: serializer.fromJson<String>(json['uuid']),
@@ -10705,18 +8926,15 @@ class AiTool extends DataClass implements Insertable<AiTool> {
       description: serializer.fromJson<String>(json['description']),
       toolType: serializer.fromJson<String>(json['toolType']),
       skillId: serializer.fromJson<int?>(json['skillId']),
-      parametersSchemaJson: serializer.fromJson<String>(
-        json['parametersSchemaJson'],
-      ),
+      parametersSchemaJson:
+          serializer.fromJson<String>(json['parametersSchemaJson']),
       returnSchemaJson: serializer.fromJson<String?>(json['returnSchemaJson']),
-      requiresConfirmation: serializer.fromJson<bool>(
-        json['requiresConfirmation'],
-      ),
+      requiresConfirmation:
+          serializer.fromJson<bool>(json['requiresConfirmation']),
       isEnabled: serializer.fromJson<bool>(json['isEnabled']),
       executorType: serializer.fromJson<String>(json['executorType']),
-      executorConfigJson: serializer.fromJson<String?>(
-        json['executorConfigJson'],
-      ),
+      executorConfigJson:
+          serializer.fromJson<String?>(json['executorConfigJson']),
     );
   }
   @override
@@ -10740,43 +8958,42 @@ class AiTool extends DataClass implements Insertable<AiTool> {
     };
   }
 
-  AiTool copyWith({
-    String? uuid,
-    DateTime? createdAt,
-    Value<DateTime?> lastUpdatedAt = const Value.absent(),
-    Value<DateTime?> deletedAt = const Value.absent(),
-    String? name,
-    String? description,
-    String? toolType,
-    Value<int?> skillId = const Value.absent(),
-    String? parametersSchemaJson,
-    Value<String?> returnSchemaJson = const Value.absent(),
-    bool? requiresConfirmation,
-    bool? isEnabled,
-    String? executorType,
-    Value<String?> executorConfigJson = const Value.absent(),
-  }) => AiTool(
-    uuid: uuid ?? this.uuid,
-    createdAt: createdAt ?? this.createdAt,
-    lastUpdatedAt: lastUpdatedAt.present
-        ? lastUpdatedAt.value
-        : this.lastUpdatedAt,
-    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
-    name: name ?? this.name,
-    description: description ?? this.description,
-    toolType: toolType ?? this.toolType,
-    skillId: skillId.present ? skillId.value : this.skillId,
-    parametersSchemaJson: parametersSchemaJson ?? this.parametersSchemaJson,
-    returnSchemaJson: returnSchemaJson.present
-        ? returnSchemaJson.value
-        : this.returnSchemaJson,
-    requiresConfirmation: requiresConfirmation ?? this.requiresConfirmation,
-    isEnabled: isEnabled ?? this.isEnabled,
-    executorType: executorType ?? this.executorType,
-    executorConfigJson: executorConfigJson.present
-        ? executorConfigJson.value
-        : this.executorConfigJson,
-  );
+  AiTool copyWith(
+          {String? uuid,
+          DateTime? createdAt,
+          Value<DateTime?> lastUpdatedAt = const Value.absent(),
+          Value<DateTime?> deletedAt = const Value.absent(),
+          String? name,
+          String? description,
+          String? toolType,
+          Value<int?> skillId = const Value.absent(),
+          String? parametersSchemaJson,
+          Value<String?> returnSchemaJson = const Value.absent(),
+          bool? requiresConfirmation,
+          bool? isEnabled,
+          String? executorType,
+          Value<String?> executorConfigJson = const Value.absent()}) =>
+      AiTool(
+        uuid: uuid ?? this.uuid,
+        createdAt: createdAt ?? this.createdAt,
+        lastUpdatedAt:
+            lastUpdatedAt.present ? lastUpdatedAt.value : this.lastUpdatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        name: name ?? this.name,
+        description: description ?? this.description,
+        toolType: toolType ?? this.toolType,
+        skillId: skillId.present ? skillId.value : this.skillId,
+        parametersSchemaJson: parametersSchemaJson ?? this.parametersSchemaJson,
+        returnSchemaJson: returnSchemaJson.present
+            ? returnSchemaJson.value
+            : this.returnSchemaJson,
+        requiresConfirmation: requiresConfirmation ?? this.requiresConfirmation,
+        isEnabled: isEnabled ?? this.isEnabled,
+        executorType: executorType ?? this.executorType,
+        executorConfigJson: executorConfigJson.present
+            ? executorConfigJson.value
+            : this.executorConfigJson,
+      );
   AiTool copyWithCompanion(AiToolsCompanion data) {
     return AiTool(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
@@ -10786,9 +9003,8 @@ class AiTool extends DataClass implements Insertable<AiTool> {
           : this.lastUpdatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
       name: data.name.present ? data.name.value : this.name,
-      description: data.description.present
-          ? data.description.value
-          : this.description,
+      description:
+          data.description.present ? data.description.value : this.description,
       toolType: data.toolType.present ? data.toolType.value : this.toolType,
       skillId: data.skillId.present ? data.skillId.value : this.skillId,
       parametersSchemaJson: data.parametersSchemaJson.present
@@ -10833,21 +9049,20 @@ class AiTool extends DataClass implements Insertable<AiTool> {
 
   @override
   int get hashCode => Object.hash(
-    uuid,
-    createdAt,
-    lastUpdatedAt,
-    deletedAt,
-    name,
-    description,
-    toolType,
-    skillId,
-    parametersSchemaJson,
-    returnSchemaJson,
-    requiresConfirmation,
-    isEnabled,
-    executorType,
-    executorConfigJson,
-  );
+      uuid,
+      createdAt,
+      lastUpdatedAt,
+      deletedAt,
+      name,
+      description,
+      toolType,
+      skillId,
+      parametersSchemaJson,
+      returnSchemaJson,
+      requiresConfirmation,
+      isEnabled,
+      executorType,
+      executorConfigJson);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -10917,12 +9132,12 @@ class AiToolsCompanion extends UpdateCompanion<AiTool> {
     this.executorType = const Value.absent(),
     this.executorConfigJson = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : uuid = Value(uuid),
-       createdAt = Value(createdAt),
-       name = Value(name),
-       description = Value(description),
-       toolType = Value(toolType),
-       parametersSchemaJson = Value(parametersSchemaJson);
+  })  : uuid = Value(uuid),
+        createdAt = Value(createdAt),
+        name = Value(name),
+        description = Value(description),
+        toolType = Value(toolType),
+        parametersSchemaJson = Value(parametersSchemaJson);
   static Insertable<AiTool> custom({
     Expression<String>? uuid,
     Expression<DateTime>? createdAt,
@@ -10962,23 +9177,22 @@ class AiToolsCompanion extends UpdateCompanion<AiTool> {
     });
   }
 
-  AiToolsCompanion copyWith({
-    Value<String>? uuid,
-    Value<DateTime>? createdAt,
-    Value<DateTime?>? lastUpdatedAt,
-    Value<DateTime?>? deletedAt,
-    Value<String>? name,
-    Value<String>? description,
-    Value<String>? toolType,
-    Value<int?>? skillId,
-    Value<String>? parametersSchemaJson,
-    Value<String?>? returnSchemaJson,
-    Value<bool>? requiresConfirmation,
-    Value<bool>? isEnabled,
-    Value<String>? executorType,
-    Value<String?>? executorConfigJson,
-    Value<int>? rowid,
-  }) {
+  AiToolsCompanion copyWith(
+      {Value<String>? uuid,
+      Value<DateTime>? createdAt,
+      Value<DateTime?>? lastUpdatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<String>? name,
+      Value<String>? description,
+      Value<String>? toolType,
+      Value<int?>? skillId,
+      Value<String>? parametersSchemaJson,
+      Value<String?>? returnSchemaJson,
+      Value<bool>? requiresConfirmation,
+      Value<bool>? isEnabled,
+      Value<String>? executorType,
+      Value<String?>? executorConfigJson,
+      Value<int>? rowid}) {
     return AiToolsCompanion(
       uuid: uuid ?? this.uuid,
       createdAt: createdAt ?? this.createdAt,
@@ -11026,9 +9240,8 @@ class AiToolsCompanion extends UpdateCompanion<AiTool> {
       map['skill_id'] = Variable<int>(skillId.value);
     }
     if (parametersSchemaJson.present) {
-      map['parameters_schema_json'] = Variable<String>(
-        parametersSchemaJson.value,
-      );
+      map['parameters_schema_json'] =
+          Variable<String>(parametersSchemaJson.value);
     }
     if (returnSchemaJson.present) {
       map['return_schema_json'] = Variable<String>(returnSchemaJson.value);
@@ -11079,9 +9292,8 @@ abstract class _$AiDatabase extends GeneratedDatabase {
   $AiDatabaseManager get managers => $AiDatabaseManager(this);
   late final $LlmProvidersTable llmProviders = $LlmProvidersTable(this);
   late final $LlmModelsTable llmModels = $LlmModelsTable(this);
-  late final $PromptTemplatesTable promptTemplates = $PromptTemplatesTable(
-    this,
-  );
+  late final $PromptTemplatesTable promptTemplates =
+      $PromptTemplatesTable(this);
   late final $PromptVersionsTable promptVersions = $PromptVersionsTable(this);
   late final $PromptSkillBindingsTable promptSkillBindings =
       $PromptSkillBindingsTable(this);
@@ -11091,120 +9303,102 @@ abstract class _$AiDatabase extends GeneratedDatabase {
   late final $AiChatMessagesTable aiChatMessages = $AiChatMessagesTable(this);
   late final $AiProvenancesTable aiProvenances = $AiProvenancesTable(this);
   late final $AiDivinationsTable aiDivinations = $AiDivinationsTable(this);
-  late final $AgentInvocationsTable agentInvocations = $AgentInvocationsTable(
-    this,
-  );
+  late final $AgentInvocationsTable agentInvocations =
+      $AgentInvocationsTable(this);
   late final $AiUsageAuditsTable aiUsageAudits = $AiUsageAuditsTable(this);
   late final $AiToolsTable aiTools = $AiToolsTable(this);
-  late final LlmProvidersDao llmProvidersDao = LlmProvidersDao(
-    this as AiDatabase,
-  );
+  late final LlmProvidersDao llmProvidersDao =
+      LlmProvidersDao(this as AiDatabase);
   late final LlmModelsDao llmModelsDao = LlmModelsDao(this as AiDatabase);
-  late final PromptTemplatesDao promptTemplatesDao = PromptTemplatesDao(
-    this as AiDatabase,
-  );
-  late final PromptVersionsDao promptVersionsDao = PromptVersionsDao(
-    this as AiDatabase,
-  );
+  late final PromptTemplatesDao promptTemplatesDao =
+      PromptTemplatesDao(this as AiDatabase);
+  late final PromptVersionsDao promptVersionsDao =
+      PromptVersionsDao(this as AiDatabase);
   late final PromptSkillBindingsDao promptSkillBindingsDao =
       PromptSkillBindingsDao(this as AiDatabase);
   late final AiPersonasDao aiPersonasDao = AiPersonasDao(this as AiDatabase);
-  late final AiChatSessionsDao aiChatSessionsDao = AiChatSessionsDao(
-    this as AiDatabase,
-  );
-  late final AiChatMessagesDao aiChatMessagesDao = AiChatMessagesDao(
-    this as AiDatabase,
-  );
+  late final AiChatSessionsDao aiChatSessionsDao =
+      AiChatSessionsDao(this as AiDatabase);
+  late final AiChatMessagesDao aiChatMessagesDao =
+      AiChatMessagesDao(this as AiDatabase);
   late final AiApiCallsDao aiApiCallsDao = AiApiCallsDao(this as AiDatabase);
-  late final AiProvenancesDao aiProvenancesDao = AiProvenancesDao(
-    this as AiDatabase,
-  );
-  late final AiDivinationsDao aiDivinationsDao = AiDivinationsDao(
-    this as AiDatabase,
-  );
-  late final AgentInvocationsDao agentInvocationsDao = AgentInvocationsDao(
-    this as AiDatabase,
-  );
-  late final AiUsageAuditsDao aiUsageAuditsDao = AiUsageAuditsDao(
-    this as AiDatabase,
-  );
+  late final AiProvenancesDao aiProvenancesDao =
+      AiProvenancesDao(this as AiDatabase);
+  late final AiDivinationsDao aiDivinationsDao =
+      AiDivinationsDao(this as AiDatabase);
+  late final AgentInvocationsDao agentInvocationsDao =
+      AgentInvocationsDao(this as AiDatabase);
+  late final AiUsageAuditsDao aiUsageAuditsDao =
+      AiUsageAuditsDao(this as AiDatabase);
   late final AiToolsDao aiToolsDao = AiToolsDao(this as AiDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
-    llmProviders,
-    llmModels,
-    promptTemplates,
-    promptVersions,
-    promptSkillBindings,
-    aiPersonas,
-    aiChatSessions,
-    aiApiCalls,
-    aiChatMessages,
-    aiProvenances,
-    aiDivinations,
-    agentInvocations,
-    aiUsageAudits,
-    aiTools,
-  ];
-  @override
-  DriftDatabaseOptions get options =>
-      const DriftDatabaseOptions(storeDateTimeAsText: true);
+        llmProviders,
+        llmModels,
+        promptTemplates,
+        promptVersions,
+        promptSkillBindings,
+        aiPersonas,
+        aiChatSessions,
+        aiApiCalls,
+        aiChatMessages,
+        aiProvenances,
+        aiDivinations,
+        agentInvocations,
+        aiUsageAudits,
+        aiTools
+      ];
 }
 
-typedef $$LlmProvidersTableCreateCompanionBuilder =
-    LlmProvidersCompanion Function({
-      required String uuid,
-      required DateTime createdAt,
-      Value<DateTime?> lastUpdatedAt,
-      Value<DateTime?> deletedAt,
-      required String name,
-      required String baseUrl,
-      Value<String?> encryptedApiKey,
-      Value<bool> isDefault,
-      Value<bool> isEnabled,
-      Value<String?> configJson,
-      Value<int> rowid,
-    });
-typedef $$LlmProvidersTableUpdateCompanionBuilder =
-    LlmProvidersCompanion Function({
-      Value<String> uuid,
-      Value<DateTime> createdAt,
-      Value<DateTime?> lastUpdatedAt,
-      Value<DateTime?> deletedAt,
-      Value<String> name,
-      Value<String> baseUrl,
-      Value<String?> encryptedApiKey,
-      Value<bool> isDefault,
-      Value<bool> isEnabled,
-      Value<String?> configJson,
-      Value<int> rowid,
-    });
+typedef $$LlmProvidersTableCreateCompanionBuilder = LlmProvidersCompanion
+    Function({
+  required String uuid,
+  required DateTime createdAt,
+  Value<DateTime?> lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  required String name,
+  required String baseUrl,
+  Value<String?> encryptedApiKey,
+  Value<bool> isDefault,
+  Value<bool> isEnabled,
+  Value<String?> configJson,
+  Value<int> rowid,
+});
+typedef $$LlmProvidersTableUpdateCompanionBuilder = LlmProvidersCompanion
+    Function({
+  Value<String> uuid,
+  Value<DateTime> createdAt,
+  Value<DateTime?> lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String> name,
+  Value<String> baseUrl,
+  Value<String?> encryptedApiKey,
+  Value<bool> isDefault,
+  Value<bool> isEnabled,
+  Value<String?> configJson,
+  Value<int> rowid,
+});
 
 final class $$LlmProvidersTableReferences
     extends BaseReferences<_$AiDatabase, $LlmProvidersTable, LlmProvider> {
   $$LlmProvidersTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static MultiTypedResultKey<$LlmModelsTable, List<LlmModel>>
-  _llmModelsRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.llmModels,
-    aliasName: $_aliasNameGenerator(
-      db.llmProviders.uuid,
-      db.llmModels.providerUuid,
-    ),
-  );
+      _llmModelsRefsTable(_$AiDatabase db) =>
+          MultiTypedResultKey.fromTable(db.llmModels,
+              aliasName: $_aliasNameGenerator(
+                  db.llmProviders.uuid, db.llmModels.providerUuid));
 
   $$LlmModelsTableProcessedTableManager get llmModelsRefs {
     final manager = $$LlmModelsTableTableManager($_db, $_db.llmModels).filter(
-      (f) => f.providerUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-    );
+        (f) => f.providerUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
 
     final cache = $_typedResult.readTableOrNull(_llmModelsRefsTable($_db));
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
+        manager.$state.copyWith(prefetchedData: cache));
   }
 }
 
@@ -11218,77 +9412,54 @@ class $$LlmProvidersTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.lastUpdatedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
-    column: $table.deletedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.name, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get baseUrl => $composableBuilder(
-    column: $table.baseUrl,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.baseUrl, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get encryptedApiKey => $composableBuilder(
-    column: $table.encryptedApiKey,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.encryptedApiKey,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get isDefault => $composableBuilder(
-    column: $table.isDefault,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.isDefault, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get isEnabled => $composableBuilder(
-    column: $table.isEnabled,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.isEnabled, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get configJson => $composableBuilder(
-    column: $table.configJson,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.configJson, builder: (column) => ColumnFilters(column));
 
   Expression<bool> llmModelsRefs(
-    Expression<bool> Function($$LlmModelsTableFilterComposer f) f,
-  ) {
+      Expression<bool> Function($$LlmModelsTableFilterComposer f) f) {
     final $$LlmModelsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.llmModels,
-      getReferencedColumn: (t) => t.providerUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LlmModelsTableFilterComposer(
-            $db: $db,
-            $table: $db.llmModels,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.llmModels,
+        getReferencedColumn: (t) => t.providerUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LlmModelsTableFilterComposer(
+              $db: $db,
+              $table: $db.llmModels,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 }
@@ -11303,54 +9474,36 @@ class $$LlmProvidersTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.lastUpdatedAt,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
-    column: $table.deletedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.name, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get baseUrl => $composableBuilder(
-    column: $table.baseUrl,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.baseUrl, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get encryptedApiKey => $composableBuilder(
-    column: $table.encryptedApiKey,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.encryptedApiKey,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<bool> get isDefault => $composableBuilder(
-    column: $table.isDefault,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.isDefault, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<bool> get isEnabled => $composableBuilder(
-    column: $table.isEnabled,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.isEnabled, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get configJson => $composableBuilder(
-    column: $table.configJson,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.configJson, builder: (column) => ColumnOrderings(column));
 }
 
 class $$LlmProvidersTableAnnotationComposer
@@ -11369,9 +9522,7 @@ class $$LlmProvidersTableAnnotationComposer
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => column,
-  );
+      column: $table.lastUpdatedAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
@@ -11383,9 +9534,7 @@ class $$LlmProvidersTableAnnotationComposer
       $composableBuilder(column: $table.baseUrl, builder: (column) => column);
 
   GeneratedColumn<String> get encryptedApiKey => $composableBuilder(
-    column: $table.encryptedApiKey,
-    builder: (column) => column,
-  );
+      column: $table.encryptedApiKey, builder: (column) => column);
 
   GeneratedColumn<bool> get isDefault =>
       $composableBuilder(column: $table.isDefault, builder: (column) => column);
@@ -11394,54 +9543,44 @@ class $$LlmProvidersTableAnnotationComposer
       $composableBuilder(column: $table.isEnabled, builder: (column) => column);
 
   GeneratedColumn<String> get configJson => $composableBuilder(
-    column: $table.configJson,
-    builder: (column) => column,
-  );
+      column: $table.configJson, builder: (column) => column);
 
   Expression<T> llmModelsRefs<T extends Object>(
-    Expression<T> Function($$LlmModelsTableAnnotationComposer a) f,
-  ) {
+      Expression<T> Function($$LlmModelsTableAnnotationComposer a) f) {
     final $$LlmModelsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.llmModels,
-      getReferencedColumn: (t) => t.providerUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LlmModelsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.llmModels,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.llmModels,
+        getReferencedColumn: (t) => t.providerUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LlmModelsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.llmModels,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 }
 
-class $$LlmProvidersTableTableManager
-    extends
-        RootTableManager<
-          _$AiDatabase,
-          $LlmProvidersTable,
-          LlmProvider,
-          $$LlmProvidersTableFilterComposer,
-          $$LlmProvidersTableOrderingComposer,
-          $$LlmProvidersTableAnnotationComposer,
-          $$LlmProvidersTableCreateCompanionBuilder,
-          $$LlmProvidersTableUpdateCompanionBuilder,
-          (LlmProvider, $$LlmProvidersTableReferences),
-          LlmProvider,
-          PrefetchHooks Function({bool llmModelsRefs})
-        > {
+class $$LlmProvidersTableTableManager extends RootTableManager<
+    _$AiDatabase,
+    $LlmProvidersTable,
+    LlmProvider,
+    $$LlmProvidersTableFilterComposer,
+    $$LlmProvidersTableOrderingComposer,
+    $$LlmProvidersTableAnnotationComposer,
+    $$LlmProvidersTableCreateCompanionBuilder,
+    $$LlmProvidersTableUpdateCompanionBuilder,
+    (LlmProvider, $$LlmProvidersTableReferences),
+    LlmProvider,
+    PrefetchHooks Function({bool llmModelsRefs})> {
   $$LlmProvidersTableTableManager(_$AiDatabase db, $LlmProvidersTable table)
-    : super(
-        TableManagerState(
+      : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -11450,65 +9589,63 @@ class $$LlmProvidersTableTableManager
               $$LlmProvidersTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$LlmProvidersTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> uuid = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime?> lastUpdatedAt = const Value.absent(),
-                Value<DateTime?> deletedAt = const Value.absent(),
-                Value<String> name = const Value.absent(),
-                Value<String> baseUrl = const Value.absent(),
-                Value<String?> encryptedApiKey = const Value.absent(),
-                Value<bool> isDefault = const Value.absent(),
-                Value<bool> isEnabled = const Value.absent(),
-                Value<String?> configJson = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => LlmProvidersCompanion(
-                uuid: uuid,
-                createdAt: createdAt,
-                lastUpdatedAt: lastUpdatedAt,
-                deletedAt: deletedAt,
-                name: name,
-                baseUrl: baseUrl,
-                encryptedApiKey: encryptedApiKey,
-                isDefault: isDefault,
-                isEnabled: isEnabled,
-                configJson: configJson,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String uuid,
-                required DateTime createdAt,
-                Value<DateTime?> lastUpdatedAt = const Value.absent(),
-                Value<DateTime?> deletedAt = const Value.absent(),
-                required String name,
-                required String baseUrl,
-                Value<String?> encryptedApiKey = const Value.absent(),
-                Value<bool> isDefault = const Value.absent(),
-                Value<bool> isEnabled = const Value.absent(),
-                Value<String?> configJson = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => LlmProvidersCompanion.insert(
-                uuid: uuid,
-                createdAt: createdAt,
-                lastUpdatedAt: lastUpdatedAt,
-                deletedAt: deletedAt,
-                name: name,
-                baseUrl: baseUrl,
-                encryptedApiKey: encryptedApiKey,
-                isDefault: isDefault,
-                isEnabled: isEnabled,
-                configJson: configJson,
-                rowid: rowid,
-              ),
+          updateCompanionCallback: ({
+            Value<String> uuid = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime?> lastUpdatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<String> baseUrl = const Value.absent(),
+            Value<String?> encryptedApiKey = const Value.absent(),
+            Value<bool> isDefault = const Value.absent(),
+            Value<bool> isEnabled = const Value.absent(),
+            Value<String?> configJson = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              LlmProvidersCompanion(
+            uuid: uuid,
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            name: name,
+            baseUrl: baseUrl,
+            encryptedApiKey: encryptedApiKey,
+            isDefault: isDefault,
+            isEnabled: isEnabled,
+            configJson: configJson,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String uuid,
+            required DateTime createdAt,
+            Value<DateTime?> lastUpdatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            required String name,
+            required String baseUrl,
+            Value<String?> encryptedApiKey = const Value.absent(),
+            Value<bool> isDefault = const Value.absent(),
+            Value<bool> isEnabled = const Value.absent(),
+            Value<String?> configJson = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              LlmProvidersCompanion.insert(
+            uuid: uuid,
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            name: name,
+            baseUrl: baseUrl,
+            encryptedApiKey: encryptedApiKey,
+            isDefault: isDefault,
+            isEnabled: isEnabled,
+            configJson: configJson,
+            rowid: rowid,
+          ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$LlmProvidersTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (
+                    e.readTable(table),
+                    $$LlmProvidersTableReferences(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: ({llmModelsRefs = false}) {
             return PrefetchHooks(
@@ -11518,144 +9655,121 @@ class $$LlmProvidersTableTableManager
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (llmModelsRefs)
-                    await $_getPrefetchedData<
-                      LlmProvider,
-                      $LlmProvidersTable,
-                      LlmModel
-                    >(
-                      currentTable: table,
-                      referencedTable: $$LlmProvidersTableReferences
-                          ._llmModelsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$LlmProvidersTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).llmModelsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where(
-                            (e) => e.providerUuid == item.uuid,
-                          ),
-                      typedResults: items,
-                    ),
+                    await $_getPrefetchedData<LlmProvider, $LlmProvidersTable,
+                            LlmModel>(
+                        currentTable: table,
+                        referencedTable: $$LlmProvidersTableReferences
+                            ._llmModelsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$LlmProvidersTableReferences(db, table, p0)
+                                .llmModelsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.providerUuid == item.uuid),
+                        typedResults: items)
                 ];
               },
             );
           },
-        ),
-      );
+        ));
 }
 
-typedef $$LlmProvidersTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AiDatabase,
-      $LlmProvidersTable,
-      LlmProvider,
-      $$LlmProvidersTableFilterComposer,
-      $$LlmProvidersTableOrderingComposer,
-      $$LlmProvidersTableAnnotationComposer,
-      $$LlmProvidersTableCreateCompanionBuilder,
-      $$LlmProvidersTableUpdateCompanionBuilder,
-      (LlmProvider, $$LlmProvidersTableReferences),
-      LlmProvider,
-      PrefetchHooks Function({bool llmModelsRefs})
-    >;
-typedef $$LlmModelsTableCreateCompanionBuilder =
-    LlmModelsCompanion Function({
-      required String uuid,
-      required DateTime createdAt,
-      Value<DateTime?> lastUpdatedAt,
-      Value<DateTime?> deletedAt,
-      required String providerUuid,
-      required String modelId,
-      required String displayName,
-      required String modelType,
-      Value<int> maxContextLength,
-      Value<int> maxOutputTokens,
-      Value<bool> supportsStreaming,
-      Value<bool> supportsFunctionCalling,
-      Value<bool> isDefault,
-      Value<bool> isEnabled,
-      Value<String?> configJson,
-      Value<int> rowid,
-    });
-typedef $$LlmModelsTableUpdateCompanionBuilder =
-    LlmModelsCompanion Function({
-      Value<String> uuid,
-      Value<DateTime> createdAt,
-      Value<DateTime?> lastUpdatedAt,
-      Value<DateTime?> deletedAt,
-      Value<String> providerUuid,
-      Value<String> modelId,
-      Value<String> displayName,
-      Value<String> modelType,
-      Value<int> maxContextLength,
-      Value<int> maxOutputTokens,
-      Value<bool> supportsStreaming,
-      Value<bool> supportsFunctionCalling,
-      Value<bool> isDefault,
-      Value<bool> isEnabled,
-      Value<String?> configJson,
-      Value<int> rowid,
-    });
+typedef $$LlmProvidersTableProcessedTableManager = ProcessedTableManager<
+    _$AiDatabase,
+    $LlmProvidersTable,
+    LlmProvider,
+    $$LlmProvidersTableFilterComposer,
+    $$LlmProvidersTableOrderingComposer,
+    $$LlmProvidersTableAnnotationComposer,
+    $$LlmProvidersTableCreateCompanionBuilder,
+    $$LlmProvidersTableUpdateCompanionBuilder,
+    (LlmProvider, $$LlmProvidersTableReferences),
+    LlmProvider,
+    PrefetchHooks Function({bool llmModelsRefs})>;
+typedef $$LlmModelsTableCreateCompanionBuilder = LlmModelsCompanion Function({
+  required String uuid,
+  required DateTime createdAt,
+  Value<DateTime?> lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  required String providerUuid,
+  required String modelId,
+  required String displayName,
+  required String modelType,
+  Value<int> maxContextLength,
+  Value<int> maxOutputTokens,
+  Value<bool> supportsStreaming,
+  Value<bool> supportsFunctionCalling,
+  Value<bool> isDefault,
+  Value<bool> isEnabled,
+  Value<String?> configJson,
+  Value<int> rowid,
+});
+typedef $$LlmModelsTableUpdateCompanionBuilder = LlmModelsCompanion Function({
+  Value<String> uuid,
+  Value<DateTime> createdAt,
+  Value<DateTime?> lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String> providerUuid,
+  Value<String> modelId,
+  Value<String> displayName,
+  Value<String> modelType,
+  Value<int> maxContextLength,
+  Value<int> maxOutputTokens,
+  Value<bool> supportsStreaming,
+  Value<bool> supportsFunctionCalling,
+  Value<bool> isDefault,
+  Value<bool> isEnabled,
+  Value<String?> configJson,
+  Value<int> rowid,
+});
 
 final class $$LlmModelsTableReferences
     extends BaseReferences<_$AiDatabase, $LlmModelsTable, LlmModel> {
   $$LlmModelsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static $LlmProvidersTable _providerUuidTable(_$AiDatabase db) =>
-      db.llmProviders.createAlias(
-        $_aliasNameGenerator(db.llmModels.providerUuid, db.llmProviders.uuid),
-      );
+      db.llmProviders.createAlias($_aliasNameGenerator(
+          db.llmModels.providerUuid, db.llmProviders.uuid));
 
   $$LlmProvidersTableProcessedTableManager get providerUuid {
     final $_column = $_itemColumn<String>('provider_uuid')!;
 
-    final manager = $$LlmProvidersTableTableManager(
-      $_db,
-      $_db.llmProviders,
-    ).filter((f) => f.uuid.sqlEquals($_column));
+    final manager = $$LlmProvidersTableTableManager($_db, $_db.llmProviders)
+        .filter((f) => f.uuid.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_providerUuidTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
+        manager.$state.copyWith(prefetchedData: [item]));
   }
 
   static MultiTypedResultKey<$AiPersonasTable, List<AiPersona>>
-  _aiPersonasRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.aiPersonas,
-    aliasName: $_aliasNameGenerator(db.llmModels.uuid, db.aiPersonas.modelUuid),
-  );
+      _aiPersonasRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
+          db.aiPersonas,
+          aliasName:
+              $_aliasNameGenerator(db.llmModels.uuid, db.aiPersonas.modelUuid));
 
   $$AiPersonasTableProcessedTableManager get aiPersonasRefs {
-    final manager = $$AiPersonasTableTableManager(
-      $_db,
-      $_db.aiPersonas,
-    ).filter((f) => f.modelUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
+    final manager = $$AiPersonasTableTableManager($_db, $_db.aiPersonas).filter(
+        (f) => f.modelUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
 
     final cache = $_typedResult.readTableOrNull(_aiPersonasRefsTable($_db));
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
+        manager.$state.copyWith(prefetchedData: cache));
   }
 
   static MultiTypedResultKey<$AiApiCallsTable, List<AiApiCall>>
-  _aiApiCallsRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.aiApiCalls,
-    aliasName: $_aliasNameGenerator(db.llmModels.uuid, db.aiApiCalls.modelUuid),
-  );
+      _aiApiCallsRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
+          db.aiApiCalls,
+          aliasName:
+              $_aliasNameGenerator(db.llmModels.uuid, db.aiApiCalls.modelUuid));
 
   $$AiApiCallsTableProcessedTableManager get aiApiCallsRefs {
-    final manager = $$AiApiCallsTableTableManager(
-      $_db,
-      $_db.aiApiCalls,
-    ).filter((f) => f.modelUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
+    final manager = $$AiApiCallsTableTableManager($_db, $_db.aiApiCalls).filter(
+        (f) => f.modelUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
 
     final cache = $_typedResult.readTableOrNull(_aiApiCallsRefsTable($_db));
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
+        manager.$state.copyWith(prefetchedData: cache));
   }
 }
 
@@ -11669,145 +9783,110 @@ class $$LlmModelsTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.lastUpdatedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
-    column: $table.deletedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get modelId => $composableBuilder(
-    column: $table.modelId,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.modelId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get displayName => $composableBuilder(
-    column: $table.displayName,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.displayName, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get modelType => $composableBuilder(
-    column: $table.modelType,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.modelType, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get maxContextLength => $composableBuilder(
-    column: $table.maxContextLength,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.maxContextLength,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get maxOutputTokens => $composableBuilder(
-    column: $table.maxOutputTokens,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.maxOutputTokens,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get supportsStreaming => $composableBuilder(
-    column: $table.supportsStreaming,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.supportsStreaming,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get supportsFunctionCalling => $composableBuilder(
-    column: $table.supportsFunctionCalling,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.supportsFunctionCalling,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get isDefault => $composableBuilder(
-    column: $table.isDefault,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.isDefault, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get isEnabled => $composableBuilder(
-    column: $table.isEnabled,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.isEnabled, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get configJson => $composableBuilder(
-    column: $table.configJson,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.configJson, builder: (column) => ColumnFilters(column));
 
   $$LlmProvidersTableFilterComposer get providerUuid {
     final $$LlmProvidersTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.providerUuid,
-      referencedTable: $db.llmProviders,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LlmProvidersTableFilterComposer(
-            $db: $db,
-            $table: $db.llmProviders,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.providerUuid,
+        referencedTable: $db.llmProviders,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LlmProvidersTableFilterComposer(
+              $db: $db,
+              $table: $db.llmProviders,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   Expression<bool> aiPersonasRefs(
-    Expression<bool> Function($$AiPersonasTableFilterComposer f) f,
-  ) {
+      Expression<bool> Function($$AiPersonasTableFilterComposer f) f) {
     final $$AiPersonasTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.modelUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableFilterComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.aiPersonas,
+        getReferencedColumn: (t) => t.modelUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiPersonasTableFilterComposer(
+              $db: $db,
+              $table: $db.aiPersonas,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 
   Expression<bool> aiApiCallsRefs(
-    Expression<bool> Function($$AiApiCallsTableFilterComposer f) f,
-  ) {
+      Expression<bool> Function($$AiApiCallsTableFilterComposer f) f) {
     final $$AiApiCallsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiApiCalls,
-      getReferencedColumn: (t) => t.modelUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiApiCallsTableFilterComposer(
-            $db: $db,
-            $table: $db.aiApiCalls,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.aiApiCalls,
+        getReferencedColumn: (t) => t.modelUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiApiCallsTableFilterComposer(
+              $db: $db,
+              $table: $db.aiApiCalls,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 }
@@ -11822,95 +9901,69 @@ class $$LlmModelsTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.lastUpdatedAt,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
-    column: $table.deletedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get modelId => $composableBuilder(
-    column: $table.modelId,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.modelId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get displayName => $composableBuilder(
-    column: $table.displayName,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.displayName, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get modelType => $composableBuilder(
-    column: $table.modelType,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.modelType, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get maxContextLength => $composableBuilder(
-    column: $table.maxContextLength,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.maxContextLength,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get maxOutputTokens => $composableBuilder(
-    column: $table.maxOutputTokens,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.maxOutputTokens,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<bool> get supportsStreaming => $composableBuilder(
-    column: $table.supportsStreaming,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.supportsStreaming,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<bool> get supportsFunctionCalling => $composableBuilder(
-    column: $table.supportsFunctionCalling,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.supportsFunctionCalling,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<bool> get isDefault => $composableBuilder(
-    column: $table.isDefault,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.isDefault, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<bool> get isEnabled => $composableBuilder(
-    column: $table.isEnabled,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.isEnabled, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get configJson => $composableBuilder(
-    column: $table.configJson,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.configJson, builder: (column) => ColumnOrderings(column));
 
   $$LlmProvidersTableOrderingComposer get providerUuid {
     final $$LlmProvidersTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.providerUuid,
-      referencedTable: $db.llmProviders,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LlmProvidersTableOrderingComposer(
-            $db: $db,
-            $table: $db.llmProviders,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.providerUuid,
+        referencedTable: $db.llmProviders,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LlmProvidersTableOrderingComposer(
+              $db: $db,
+              $table: $db.llmProviders,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 }
@@ -11931,9 +9984,7 @@ class $$LlmModelsTableAnnotationComposer
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => column,
-  );
+      column: $table.lastUpdatedAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
@@ -11942,32 +9993,22 @@ class $$LlmModelsTableAnnotationComposer
       $composableBuilder(column: $table.modelId, builder: (column) => column);
 
   GeneratedColumn<String> get displayName => $composableBuilder(
-    column: $table.displayName,
-    builder: (column) => column,
-  );
+      column: $table.displayName, builder: (column) => column);
 
   GeneratedColumn<String> get modelType =>
       $composableBuilder(column: $table.modelType, builder: (column) => column);
 
   GeneratedColumn<int> get maxContextLength => $composableBuilder(
-    column: $table.maxContextLength,
-    builder: (column) => column,
-  );
+      column: $table.maxContextLength, builder: (column) => column);
 
   GeneratedColumn<int> get maxOutputTokens => $composableBuilder(
-    column: $table.maxOutputTokens,
-    builder: (column) => column,
-  );
+      column: $table.maxOutputTokens, builder: (column) => column);
 
   GeneratedColumn<bool> get supportsStreaming => $composableBuilder(
-    column: $table.supportsStreaming,
-    builder: (column) => column,
-  );
+      column: $table.supportsStreaming, builder: (column) => column);
 
   GeneratedColumn<bool> get supportsFunctionCalling => $composableBuilder(
-    column: $table.supportsFunctionCalling,
-    builder: (column) => column,
-  );
+      column: $table.supportsFunctionCalling, builder: (column) => column);
 
   GeneratedColumn<bool> get isDefault =>
       $composableBuilder(column: $table.isDefault, builder: (column) => column);
@@ -11976,106 +10017,86 @@ class $$LlmModelsTableAnnotationComposer
       $composableBuilder(column: $table.isEnabled, builder: (column) => column);
 
   GeneratedColumn<String> get configJson => $composableBuilder(
-    column: $table.configJson,
-    builder: (column) => column,
-  );
+      column: $table.configJson, builder: (column) => column);
 
   $$LlmProvidersTableAnnotationComposer get providerUuid {
     final $$LlmProvidersTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.providerUuid,
-      referencedTable: $db.llmProviders,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LlmProvidersTableAnnotationComposer(
-            $db: $db,
-            $table: $db.llmProviders,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.providerUuid,
+        referencedTable: $db.llmProviders,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LlmProvidersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.llmProviders,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   Expression<T> aiPersonasRefs<T extends Object>(
-    Expression<T> Function($$AiPersonasTableAnnotationComposer a) f,
-  ) {
+      Expression<T> Function($$AiPersonasTableAnnotationComposer a) f) {
     final $$AiPersonasTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.modelUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.aiPersonas,
+        getReferencedColumn: (t) => t.modelUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiPersonasTableAnnotationComposer(
+              $db: $db,
+              $table: $db.aiPersonas,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 
   Expression<T> aiApiCallsRefs<T extends Object>(
-    Expression<T> Function($$AiApiCallsTableAnnotationComposer a) f,
-  ) {
+      Expression<T> Function($$AiApiCallsTableAnnotationComposer a) f) {
     final $$AiApiCallsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiApiCalls,
-      getReferencedColumn: (t) => t.modelUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiApiCallsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiApiCalls,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.aiApiCalls,
+        getReferencedColumn: (t) => t.modelUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiApiCallsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.aiApiCalls,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 }
 
-class $$LlmModelsTableTableManager
-    extends
-        RootTableManager<
-          _$AiDatabase,
-          $LlmModelsTable,
-          LlmModel,
-          $$LlmModelsTableFilterComposer,
-          $$LlmModelsTableOrderingComposer,
-          $$LlmModelsTableAnnotationComposer,
-          $$LlmModelsTableCreateCompanionBuilder,
-          $$LlmModelsTableUpdateCompanionBuilder,
-          (LlmModel, $$LlmModelsTableReferences),
-          LlmModel,
-          PrefetchHooks Function({
-            bool providerUuid,
-            bool aiPersonasRefs,
-            bool aiApiCallsRefs,
-          })
-        > {
+class $$LlmModelsTableTableManager extends RootTableManager<
+    _$AiDatabase,
+    $LlmModelsTable,
+    LlmModel,
+    $$LlmModelsTableFilterComposer,
+    $$LlmModelsTableOrderingComposer,
+    $$LlmModelsTableAnnotationComposer,
+    $$LlmModelsTableCreateCompanionBuilder,
+    $$LlmModelsTableUpdateCompanionBuilder,
+    (LlmModel, $$LlmModelsTableReferences),
+    LlmModel,
+    PrefetchHooks Function(
+        {bool providerUuid, bool aiPersonasRefs, bool aiApiCallsRefs})> {
   $$LlmModelsTableTableManager(_$AiDatabase db, $LlmModelsTable table)
-    : super(
-        TableManagerState(
+      : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -12084,313 +10105,255 @@ class $$LlmModelsTableTableManager
               $$LlmModelsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$LlmModelsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> uuid = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime?> lastUpdatedAt = const Value.absent(),
-                Value<DateTime?> deletedAt = const Value.absent(),
-                Value<String> providerUuid = const Value.absent(),
-                Value<String> modelId = const Value.absent(),
-                Value<String> displayName = const Value.absent(),
-                Value<String> modelType = const Value.absent(),
-                Value<int> maxContextLength = const Value.absent(),
-                Value<int> maxOutputTokens = const Value.absent(),
-                Value<bool> supportsStreaming = const Value.absent(),
-                Value<bool> supportsFunctionCalling = const Value.absent(),
-                Value<bool> isDefault = const Value.absent(),
-                Value<bool> isEnabled = const Value.absent(),
-                Value<String?> configJson = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => LlmModelsCompanion(
-                uuid: uuid,
-                createdAt: createdAt,
-                lastUpdatedAt: lastUpdatedAt,
-                deletedAt: deletedAt,
-                providerUuid: providerUuid,
-                modelId: modelId,
-                displayName: displayName,
-                modelType: modelType,
-                maxContextLength: maxContextLength,
-                maxOutputTokens: maxOutputTokens,
-                supportsStreaming: supportsStreaming,
-                supportsFunctionCalling: supportsFunctionCalling,
-                isDefault: isDefault,
-                isEnabled: isEnabled,
-                configJson: configJson,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String uuid,
-                required DateTime createdAt,
-                Value<DateTime?> lastUpdatedAt = const Value.absent(),
-                Value<DateTime?> deletedAt = const Value.absent(),
-                required String providerUuid,
-                required String modelId,
-                required String displayName,
-                required String modelType,
-                Value<int> maxContextLength = const Value.absent(),
-                Value<int> maxOutputTokens = const Value.absent(),
-                Value<bool> supportsStreaming = const Value.absent(),
-                Value<bool> supportsFunctionCalling = const Value.absent(),
-                Value<bool> isDefault = const Value.absent(),
-                Value<bool> isEnabled = const Value.absent(),
-                Value<String?> configJson = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => LlmModelsCompanion.insert(
-                uuid: uuid,
-                createdAt: createdAt,
-                lastUpdatedAt: lastUpdatedAt,
-                deletedAt: deletedAt,
-                providerUuid: providerUuid,
-                modelId: modelId,
-                displayName: displayName,
-                modelType: modelType,
-                maxContextLength: maxContextLength,
-                maxOutputTokens: maxOutputTokens,
-                supportsStreaming: supportsStreaming,
-                supportsFunctionCalling: supportsFunctionCalling,
-                isDefault: isDefault,
-                isEnabled: isEnabled,
-                configJson: configJson,
-                rowid: rowid,
-              ),
+          updateCompanionCallback: ({
+            Value<String> uuid = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime?> lastUpdatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String> providerUuid = const Value.absent(),
+            Value<String> modelId = const Value.absent(),
+            Value<String> displayName = const Value.absent(),
+            Value<String> modelType = const Value.absent(),
+            Value<int> maxContextLength = const Value.absent(),
+            Value<int> maxOutputTokens = const Value.absent(),
+            Value<bool> supportsStreaming = const Value.absent(),
+            Value<bool> supportsFunctionCalling = const Value.absent(),
+            Value<bool> isDefault = const Value.absent(),
+            Value<bool> isEnabled = const Value.absent(),
+            Value<String?> configJson = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              LlmModelsCompanion(
+            uuid: uuid,
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            providerUuid: providerUuid,
+            modelId: modelId,
+            displayName: displayName,
+            modelType: modelType,
+            maxContextLength: maxContextLength,
+            maxOutputTokens: maxOutputTokens,
+            supportsStreaming: supportsStreaming,
+            supportsFunctionCalling: supportsFunctionCalling,
+            isDefault: isDefault,
+            isEnabled: isEnabled,
+            configJson: configJson,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String uuid,
+            required DateTime createdAt,
+            Value<DateTime?> lastUpdatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            required String providerUuid,
+            required String modelId,
+            required String displayName,
+            required String modelType,
+            Value<int> maxContextLength = const Value.absent(),
+            Value<int> maxOutputTokens = const Value.absent(),
+            Value<bool> supportsStreaming = const Value.absent(),
+            Value<bool> supportsFunctionCalling = const Value.absent(),
+            Value<bool> isDefault = const Value.absent(),
+            Value<bool> isEnabled = const Value.absent(),
+            Value<String?> configJson = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              LlmModelsCompanion.insert(
+            uuid: uuid,
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            providerUuid: providerUuid,
+            modelId: modelId,
+            displayName: displayName,
+            modelType: modelType,
+            maxContextLength: maxContextLength,
+            maxOutputTokens: maxOutputTokens,
+            supportsStreaming: supportsStreaming,
+            supportsFunctionCalling: supportsFunctionCalling,
+            isDefault: isDefault,
+            isEnabled: isEnabled,
+            configJson: configJson,
+            rowid: rowid,
+          ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$LlmModelsTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (
+                    e.readTable(table),
+                    $$LlmModelsTableReferences(db, table, e)
+                  ))
               .toList(),
-          prefetchHooksCallback:
-              ({
-                providerUuid = false,
-                aiPersonasRefs = false,
-                aiApiCallsRefs = false,
-              }) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [
-                    if (aiPersonasRefs) db.aiPersonas,
-                    if (aiApiCallsRefs) db.aiApiCalls,
-                  ],
-                  addJoins:
-                      <
-                        T extends TableManagerState<
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic
-                        >
-                      >(state) {
-                        if (providerUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.providerUuid,
-                                    referencedTable: $$LlmModelsTableReferences
-                                        ._providerUuidTable(db),
-                                    referencedColumn: $$LlmModelsTableReferences
-                                        ._providerUuidTable(db)
-                                        .uuid,
-                                  )
-                                  as T;
-                        }
+          prefetchHooksCallback: (
+              {providerUuid = false,
+              aiPersonasRefs = false,
+              aiApiCallsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (aiPersonasRefs) db.aiPersonas,
+                if (aiApiCallsRefs) db.aiApiCalls
+              ],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (providerUuid) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.providerUuid,
+                    referencedTable:
+                        $$LlmModelsTableReferences._providerUuidTable(db),
+                    referencedColumn:
+                        $$LlmModelsTableReferences._providerUuidTable(db).uuid,
+                  ) as T;
+                }
 
-                        return state;
-                      },
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (aiPersonasRefs)
-                        await $_getPrefetchedData<
-                          LlmModel,
-                          $LlmModelsTable,
-                          AiPersona
-                        >(
-                          currentTable: table,
-                          referencedTable: $$LlmModelsTableReferences
-                              ._aiPersonasRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$LlmModelsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).aiPersonasRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.modelUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (aiApiCallsRefs)
-                        await $_getPrefetchedData<
-                          LlmModel,
-                          $LlmModelsTable,
-                          AiApiCall
-                        >(
-                          currentTable: table,
-                          referencedTable: $$LlmModelsTableReferences
-                              ._aiApiCallsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$LlmModelsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).aiApiCallsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.modelUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
+                return state;
               },
-        ),
-      );
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (aiPersonasRefs)
+                    await $_getPrefetchedData<LlmModel, $LlmModelsTable,
+                            AiPersona>(
+                        currentTable: table,
+                        referencedTable:
+                            $$LlmModelsTableReferences._aiPersonasRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$LlmModelsTableReferences(db, table, p0)
+                                .aiPersonasRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.modelUuid == item.uuid),
+                        typedResults: items),
+                  if (aiApiCallsRefs)
+                    await $_getPrefetchedData<LlmModel, $LlmModelsTable,
+                            AiApiCall>(
+                        currentTable: table,
+                        referencedTable:
+                            $$LlmModelsTableReferences._aiApiCallsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$LlmModelsTableReferences(db, table, p0)
+                                .aiApiCallsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.modelUuid == item.uuid),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
 }
 
-typedef $$LlmModelsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AiDatabase,
-      $LlmModelsTable,
-      LlmModel,
-      $$LlmModelsTableFilterComposer,
-      $$LlmModelsTableOrderingComposer,
-      $$LlmModelsTableAnnotationComposer,
-      $$LlmModelsTableCreateCompanionBuilder,
-      $$LlmModelsTableUpdateCompanionBuilder,
-      (LlmModel, $$LlmModelsTableReferences),
-      LlmModel,
-      PrefetchHooks Function({
-        bool providerUuid,
-        bool aiPersonasRefs,
-        bool aiApiCallsRefs,
-      })
-    >;
-typedef $$PromptTemplatesTableCreateCompanionBuilder =
-    PromptTemplatesCompanion Function({
-      required String uuid,
-      required DateTime createdAt,
-      Value<DateTime?> lastUpdatedAt,
-      Value<DateTime?> deletedAt,
-      required String name,
-      Value<String?> description,
-      required String templateType,
-      required String content,
-      Value<String?> variablesJson,
-      Value<int> currentVersion,
-      Value<bool> isBuiltin,
-      Value<bool> isEnabled,
-      Value<int> rowid,
-    });
-typedef $$PromptTemplatesTableUpdateCompanionBuilder =
-    PromptTemplatesCompanion Function({
-      Value<String> uuid,
-      Value<DateTime> createdAt,
-      Value<DateTime?> lastUpdatedAt,
-      Value<DateTime?> deletedAt,
-      Value<String> name,
-      Value<String?> description,
-      Value<String> templateType,
-      Value<String> content,
-      Value<String?> variablesJson,
-      Value<int> currentVersion,
-      Value<bool> isBuiltin,
-      Value<bool> isEnabled,
-      Value<int> rowid,
-    });
+typedef $$LlmModelsTableProcessedTableManager = ProcessedTableManager<
+    _$AiDatabase,
+    $LlmModelsTable,
+    LlmModel,
+    $$LlmModelsTableFilterComposer,
+    $$LlmModelsTableOrderingComposer,
+    $$LlmModelsTableAnnotationComposer,
+    $$LlmModelsTableCreateCompanionBuilder,
+    $$LlmModelsTableUpdateCompanionBuilder,
+    (LlmModel, $$LlmModelsTableReferences),
+    LlmModel,
+    PrefetchHooks Function(
+        {bool providerUuid, bool aiPersonasRefs, bool aiApiCallsRefs})>;
+typedef $$PromptTemplatesTableCreateCompanionBuilder = PromptTemplatesCompanion
+    Function({
+  required String uuid,
+  required DateTime createdAt,
+  Value<DateTime?> lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  required String name,
+  Value<String?> description,
+  required String templateType,
+  required String content,
+  Value<String?> variablesJson,
+  Value<int> currentVersion,
+  Value<bool> isBuiltin,
+  Value<bool> isEnabled,
+  Value<int> rowid,
+});
+typedef $$PromptTemplatesTableUpdateCompanionBuilder = PromptTemplatesCompanion
+    Function({
+  Value<String> uuid,
+  Value<DateTime> createdAt,
+  Value<DateTime?> lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String> name,
+  Value<String?> description,
+  Value<String> templateType,
+  Value<String> content,
+  Value<String?> variablesJson,
+  Value<int> currentVersion,
+  Value<bool> isBuiltin,
+  Value<bool> isEnabled,
+  Value<int> rowid,
+});
 
-final class $$PromptTemplatesTableReferences
-    extends
-        BaseReferences<_$AiDatabase, $PromptTemplatesTable, PromptTemplate> {
+final class $$PromptTemplatesTableReferences extends BaseReferences<
+    _$AiDatabase, $PromptTemplatesTable, PromptTemplate> {
   $$PromptTemplatesTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
+      super.$_db, super.$_table, super.$_typedResult);
 
   static MultiTypedResultKey<$PromptVersionsTable, List<PromptVersion>>
-  _promptVersionsRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.promptVersions,
-    aliasName: $_aliasNameGenerator(
-      db.promptTemplates.uuid,
-      db.promptVersions.templateUuid,
-    ),
-  );
+      _promptVersionsRefsTable(_$AiDatabase db) =>
+          MultiTypedResultKey.fromTable(db.promptVersions,
+              aliasName: $_aliasNameGenerator(
+                  db.promptTemplates.uuid, db.promptVersions.templateUuid));
 
   $$PromptVersionsTableProcessedTableManager get promptVersionsRefs {
     final manager = $$PromptVersionsTableTableManager($_db, $_db.promptVersions)
-        .filter(
-          (f) => f.templateUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
+        .filter((f) =>
+            f.templateUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
 
     final cache = $_typedResult.readTableOrNull(_promptVersionsRefsTable($_db));
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
+        manager.$state.copyWith(prefetchedData: cache));
   }
 
-  static MultiTypedResultKey<
-    $PromptSkillBindingsTable,
-    List<PromptSkillBinding>
-  >
-  _promptSkillBindingsRefsTable(_$AiDatabase db) =>
-      MultiTypedResultKey.fromTable(
-        db.promptSkillBindings,
-        aliasName: $_aliasNameGenerator(
-          db.promptTemplates.uuid,
-          db.promptSkillBindings.promptTemplateUuid,
-        ),
-      );
+  static MultiTypedResultKey<$PromptSkillBindingsTable,
+      List<PromptSkillBinding>> _promptSkillBindingsRefsTable(
+          _$AiDatabase db) =>
+      MultiTypedResultKey.fromTable(db.promptSkillBindings,
+          aliasName: $_aliasNameGenerator(db.promptTemplates.uuid,
+              db.promptSkillBindings.promptTemplateUuid));
 
   $$PromptSkillBindingsTableProcessedTableManager get promptSkillBindingsRefs {
-    final manager =
-        $$PromptSkillBindingsTableTableManager(
-          $_db,
-          $_db.promptSkillBindings,
-        ).filter(
-          (f) => f.promptTemplateUuid.uuid.sqlEquals(
-            $_itemColumn<String>('uuid')!,
-          ),
-        );
+    final manager = $$PromptSkillBindingsTableTableManager(
+            $_db, $_db.promptSkillBindings)
+        .filter((f) =>
+            f.promptTemplateUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
 
-    final cache = $_typedResult.readTableOrNull(
-      _promptSkillBindingsRefsTable($_db),
-    );
+    final cache =
+        $_typedResult.readTableOrNull(_promptSkillBindingsRefsTable($_db));
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
+        manager.$state.copyWith(prefetchedData: cache));
   }
 
   static MultiTypedResultKey<$AiPersonasTable, List<AiPersona>>
-  _aiPersonasRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.aiPersonas,
-    aliasName: $_aliasNameGenerator(
-      db.promptTemplates.uuid,
-      db.aiPersonas.systemPromptUuid,
-    ),
-  );
+      _aiPersonasRefsTable(_$AiDatabase db) =>
+          MultiTypedResultKey.fromTable(db.aiPersonas,
+              aliasName: $_aliasNameGenerator(
+                  db.promptTemplates.uuid, db.aiPersonas.systemPromptUuid));
 
   $$AiPersonasTableProcessedTableManager get aiPersonasRefs {
     final manager = $$AiPersonasTableTableManager($_db, $_db.aiPersonas).filter(
-      (f) => f.systemPromptUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-    );
+        (f) =>
+            f.systemPromptUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
 
     final cache = $_typedResult.readTableOrNull(_aiPersonasRefsTable($_db));
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
+        manager.$state.copyWith(prefetchedData: cache));
   }
 }
 
@@ -12404,137 +10367,102 @@ class $$PromptTemplatesTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.lastUpdatedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
-    column: $table.deletedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.name, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get description => $composableBuilder(
-    column: $table.description,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.description, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get templateType => $composableBuilder(
-    column: $table.templateType,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.templateType, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get content => $composableBuilder(
-    column: $table.content,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.content, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get variablesJson => $composableBuilder(
-    column: $table.variablesJson,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.variablesJson, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get currentVersion => $composableBuilder(
-    column: $table.currentVersion,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.currentVersion,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get isBuiltin => $composableBuilder(
-    column: $table.isBuiltin,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.isBuiltin, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get isEnabled => $composableBuilder(
-    column: $table.isEnabled,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.isEnabled, builder: (column) => ColumnFilters(column));
 
   Expression<bool> promptVersionsRefs(
-    Expression<bool> Function($$PromptVersionsTableFilterComposer f) f,
-  ) {
+      Expression<bool> Function($$PromptVersionsTableFilterComposer f) f) {
     final $$PromptVersionsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.promptVersions,
-      getReferencedColumn: (t) => t.templateUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptVersionsTableFilterComposer(
-            $db: $db,
-            $table: $db.promptVersions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.promptVersions,
+        getReferencedColumn: (t) => t.templateUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PromptVersionsTableFilterComposer(
+              $db: $db,
+              $table: $db.promptVersions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 
   Expression<bool> promptSkillBindingsRefs(
-    Expression<bool> Function($$PromptSkillBindingsTableFilterComposer f) f,
-  ) {
+      Expression<bool> Function($$PromptSkillBindingsTableFilterComposer f) f) {
     final $$PromptSkillBindingsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.promptSkillBindings,
-      getReferencedColumn: (t) => t.promptTemplateUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptSkillBindingsTableFilterComposer(
-            $db: $db,
-            $table: $db.promptSkillBindings,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.promptSkillBindings,
+        getReferencedColumn: (t) => t.promptTemplateUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PromptSkillBindingsTableFilterComposer(
+              $db: $db,
+              $table: $db.promptSkillBindings,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 
   Expression<bool> aiPersonasRefs(
-    Expression<bool> Function($$AiPersonasTableFilterComposer f) f,
-  ) {
+      Expression<bool> Function($$AiPersonasTableFilterComposer f) f) {
     final $$AiPersonasTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.systemPromptUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableFilterComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.aiPersonas,
+        getReferencedColumn: (t) => t.systemPromptUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiPersonasTableFilterComposer(
+              $db: $db,
+              $table: $db.aiPersonas,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 }
@@ -12549,64 +10477,44 @@ class $$PromptTemplatesTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.lastUpdatedAt,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
-    column: $table.deletedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.name, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get description => $composableBuilder(
-    column: $table.description,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.description, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get templateType => $composableBuilder(
-    column: $table.templateType,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.templateType,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get content => $composableBuilder(
-    column: $table.content,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.content, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get variablesJson => $composableBuilder(
-    column: $table.variablesJson,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.variablesJson,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get currentVersion => $composableBuilder(
-    column: $table.currentVersion,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.currentVersion,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<bool> get isBuiltin => $composableBuilder(
-    column: $table.isBuiltin,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.isBuiltin, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<bool> get isEnabled => $composableBuilder(
-    column: $table.isEnabled,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.isEnabled, builder: (column) => ColumnOrderings(column));
 }
 
 class $$PromptTemplatesTableAnnotationComposer
@@ -12625,9 +10533,7 @@ class $$PromptTemplatesTableAnnotationComposer
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => column,
-  );
+      column: $table.lastUpdatedAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
@@ -12636,27 +10542,19 @@ class $$PromptTemplatesTableAnnotationComposer
       $composableBuilder(column: $table.name, builder: (column) => column);
 
   GeneratedColumn<String> get description => $composableBuilder(
-    column: $table.description,
-    builder: (column) => column,
-  );
+      column: $table.description, builder: (column) => column);
 
   GeneratedColumn<String> get templateType => $composableBuilder(
-    column: $table.templateType,
-    builder: (column) => column,
-  );
+      column: $table.templateType, builder: (column) => column);
 
   GeneratedColumn<String> get content =>
       $composableBuilder(column: $table.content, builder: (column) => column);
 
   GeneratedColumn<String> get variablesJson => $composableBuilder(
-    column: $table.variablesJson,
-    builder: (column) => column,
-  );
+      column: $table.variablesJson, builder: (column) => column);
 
   GeneratedColumn<int> get currentVersion => $composableBuilder(
-    column: $table.currentVersion,
-    builder: (column) => column,
-  );
+      column: $table.currentVersion, builder: (column) => column);
 
   GeneratedColumn<bool> get isBuiltin =>
       $composableBuilder(column: $table.isBuiltin, builder: (column) => column);
@@ -12665,106 +10563,89 @@ class $$PromptTemplatesTableAnnotationComposer
       $composableBuilder(column: $table.isEnabled, builder: (column) => column);
 
   Expression<T> promptVersionsRefs<T extends Object>(
-    Expression<T> Function($$PromptVersionsTableAnnotationComposer a) f,
-  ) {
+      Expression<T> Function($$PromptVersionsTableAnnotationComposer a) f) {
     final $$PromptVersionsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.promptVersions,
-      getReferencedColumn: (t) => t.templateUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptVersionsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.promptVersions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.promptVersions,
+        getReferencedColumn: (t) => t.templateUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PromptVersionsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.promptVersions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 
   Expression<T> promptSkillBindingsRefs<T extends Object>(
-    Expression<T> Function($$PromptSkillBindingsTableAnnotationComposer a) f,
-  ) {
+      Expression<T> Function($$PromptSkillBindingsTableAnnotationComposer a)
+          f) {
     final $$PromptSkillBindingsTableAnnotationComposer composer =
         $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.uuid,
-          referencedTable: $db.promptSkillBindings,
-          getReferencedColumn: (t) => t.promptTemplateUuid,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$PromptSkillBindingsTableAnnotationComposer(
-                $db: $db,
-                $table: $db.promptSkillBindings,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
+            composer: this,
+            getCurrentColumn: (t) => t.uuid,
+            referencedTable: $db.promptSkillBindings,
+            getReferencedColumn: (t) => t.promptTemplateUuid,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$PromptSkillBindingsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.promptSkillBindings,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
     return f(composer);
   }
 
   Expression<T> aiPersonasRefs<T extends Object>(
-    Expression<T> Function($$AiPersonasTableAnnotationComposer a) f,
-  ) {
+      Expression<T> Function($$AiPersonasTableAnnotationComposer a) f) {
     final $$AiPersonasTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.systemPromptUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.aiPersonas,
+        getReferencedColumn: (t) => t.systemPromptUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiPersonasTableAnnotationComposer(
+              $db: $db,
+              $table: $db.aiPersonas,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 }
 
-class $$PromptTemplatesTableTableManager
-    extends
-        RootTableManager<
-          _$AiDatabase,
-          $PromptTemplatesTable,
-          PromptTemplate,
-          $$PromptTemplatesTableFilterComposer,
-          $$PromptTemplatesTableOrderingComposer,
-          $$PromptTemplatesTableAnnotationComposer,
-          $$PromptTemplatesTableCreateCompanionBuilder,
-          $$PromptTemplatesTableUpdateCompanionBuilder,
-          (PromptTemplate, $$PromptTemplatesTableReferences),
-          PromptTemplate,
-          PrefetchHooks Function({
-            bool promptVersionsRefs,
-            bool promptSkillBindingsRefs,
-            bool aiPersonasRefs,
-          })
-        > {
+class $$PromptTemplatesTableTableManager extends RootTableManager<
+    _$AiDatabase,
+    $PromptTemplatesTable,
+    PromptTemplate,
+    $$PromptTemplatesTableFilterComposer,
+    $$PromptTemplatesTableOrderingComposer,
+    $$PromptTemplatesTableAnnotationComposer,
+    $$PromptTemplatesTableCreateCompanionBuilder,
+    $$PromptTemplatesTableUpdateCompanionBuilder,
+    (PromptTemplate, $$PromptTemplatesTableReferences),
+    PromptTemplate,
+    PrefetchHooks Function(
+        {bool promptVersionsRefs,
+        bool promptSkillBindingsRefs,
+        bool aiPersonasRefs})> {
   $$PromptTemplatesTableTableManager(
-    _$AiDatabase db,
-    $PromptTemplatesTable table,
-  ) : super(
-        TableManagerState(
+      _$AiDatabase db, $PromptTemplatesTable table)
+      : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -12773,232 +10654,191 @@ class $$PromptTemplatesTableTableManager
               $$PromptTemplatesTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$PromptTemplatesTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> uuid = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime?> lastUpdatedAt = const Value.absent(),
-                Value<DateTime?> deletedAt = const Value.absent(),
-                Value<String> name = const Value.absent(),
-                Value<String?> description = const Value.absent(),
-                Value<String> templateType = const Value.absent(),
-                Value<String> content = const Value.absent(),
-                Value<String?> variablesJson = const Value.absent(),
-                Value<int> currentVersion = const Value.absent(),
-                Value<bool> isBuiltin = const Value.absent(),
-                Value<bool> isEnabled = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => PromptTemplatesCompanion(
-                uuid: uuid,
-                createdAt: createdAt,
-                lastUpdatedAt: lastUpdatedAt,
-                deletedAt: deletedAt,
-                name: name,
-                description: description,
-                templateType: templateType,
-                content: content,
-                variablesJson: variablesJson,
-                currentVersion: currentVersion,
-                isBuiltin: isBuiltin,
-                isEnabled: isEnabled,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String uuid,
-                required DateTime createdAt,
-                Value<DateTime?> lastUpdatedAt = const Value.absent(),
-                Value<DateTime?> deletedAt = const Value.absent(),
-                required String name,
-                Value<String?> description = const Value.absent(),
-                required String templateType,
-                required String content,
-                Value<String?> variablesJson = const Value.absent(),
-                Value<int> currentVersion = const Value.absent(),
-                Value<bool> isBuiltin = const Value.absent(),
-                Value<bool> isEnabled = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => PromptTemplatesCompanion.insert(
-                uuid: uuid,
-                createdAt: createdAt,
-                lastUpdatedAt: lastUpdatedAt,
-                deletedAt: deletedAt,
-                name: name,
-                description: description,
-                templateType: templateType,
-                content: content,
-                variablesJson: variablesJson,
-                currentVersion: currentVersion,
-                isBuiltin: isBuiltin,
-                isEnabled: isEnabled,
-                rowid: rowid,
-              ),
+          updateCompanionCallback: ({
+            Value<String> uuid = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime?> lastUpdatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<String?> description = const Value.absent(),
+            Value<String> templateType = const Value.absent(),
+            Value<String> content = const Value.absent(),
+            Value<String?> variablesJson = const Value.absent(),
+            Value<int> currentVersion = const Value.absent(),
+            Value<bool> isBuiltin = const Value.absent(),
+            Value<bool> isEnabled = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              PromptTemplatesCompanion(
+            uuid: uuid,
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            name: name,
+            description: description,
+            templateType: templateType,
+            content: content,
+            variablesJson: variablesJson,
+            currentVersion: currentVersion,
+            isBuiltin: isBuiltin,
+            isEnabled: isEnabled,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String uuid,
+            required DateTime createdAt,
+            Value<DateTime?> lastUpdatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            required String name,
+            Value<String?> description = const Value.absent(),
+            required String templateType,
+            required String content,
+            Value<String?> variablesJson = const Value.absent(),
+            Value<int> currentVersion = const Value.absent(),
+            Value<bool> isBuiltin = const Value.absent(),
+            Value<bool> isEnabled = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              PromptTemplatesCompanion.insert(
+            uuid: uuid,
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            name: name,
+            description: description,
+            templateType: templateType,
+            content: content,
+            variablesJson: variablesJson,
+            currentVersion: currentVersion,
+            isBuiltin: isBuiltin,
+            isEnabled: isEnabled,
+            rowid: rowid,
+          ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$PromptTemplatesTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (
+                    e.readTable(table),
+                    $$PromptTemplatesTableReferences(db, table, e)
+                  ))
               .toList(),
-          prefetchHooksCallback:
-              ({
-                promptVersionsRefs = false,
-                promptSkillBindingsRefs = false,
-                aiPersonasRefs = false,
-              }) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [
-                    if (promptVersionsRefs) db.promptVersions,
-                    if (promptSkillBindingsRefs) db.promptSkillBindings,
-                    if (aiPersonasRefs) db.aiPersonas,
-                  ],
-                  addJoins: null,
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (promptVersionsRefs)
-                        await $_getPrefetchedData<
-                          PromptTemplate,
-                          $PromptTemplatesTable,
-                          PromptVersion
-                        >(
-                          currentTable: table,
-                          referencedTable: $$PromptTemplatesTableReferences
-                              ._promptVersionsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$PromptTemplatesTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).promptVersionsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.templateUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (promptSkillBindingsRefs)
-                        await $_getPrefetchedData<
-                          PromptTemplate,
-                          $PromptTemplatesTable,
-                          PromptSkillBinding
-                        >(
-                          currentTable: table,
-                          referencedTable: $$PromptTemplatesTableReferences
-                              ._promptSkillBindingsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$PromptTemplatesTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).promptSkillBindingsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.promptTemplateUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (aiPersonasRefs)
-                        await $_getPrefetchedData<
-                          PromptTemplate,
-                          $PromptTemplatesTable,
-                          AiPersona
-                        >(
-                          currentTable: table,
-                          referencedTable: $$PromptTemplatesTableReferences
-                              ._aiPersonasRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$PromptTemplatesTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).aiPersonasRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.systemPromptUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
+          prefetchHooksCallback: (
+              {promptVersionsRefs = false,
+              promptSkillBindingsRefs = false,
+              aiPersonasRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (promptVersionsRefs) db.promptVersions,
+                if (promptSkillBindingsRefs) db.promptSkillBindings,
+                if (aiPersonasRefs) db.aiPersonas
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (promptVersionsRefs)
+                    await $_getPrefetchedData<PromptTemplate,
+                            $PromptTemplatesTable, PromptVersion>(
+                        currentTable: table,
+                        referencedTable: $$PromptTemplatesTableReferences
+                            ._promptVersionsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$PromptTemplatesTableReferences(db, table, p0)
+                                .promptVersionsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.templateUuid == item.uuid),
+                        typedResults: items),
+                  if (promptSkillBindingsRefs)
+                    await $_getPrefetchedData<PromptTemplate,
+                            $PromptTemplatesTable, PromptSkillBinding>(
+                        currentTable: table,
+                        referencedTable: $$PromptTemplatesTableReferences
+                            ._promptSkillBindingsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$PromptTemplatesTableReferences(db, table, p0)
+                                .promptSkillBindingsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems.where(
+                                (e) => e.promptTemplateUuid == item.uuid),
+                        typedResults: items),
+                  if (aiPersonasRefs)
+                    await $_getPrefetchedData<PromptTemplate,
+                            $PromptTemplatesTable, AiPersona>(
+                        currentTable: table,
+                        referencedTable: $$PromptTemplatesTableReferences
+                            ._aiPersonasRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$PromptTemplatesTableReferences(db, table, p0)
+                                .aiPersonasRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.systemPromptUuid == item.uuid),
+                        typedResults: items)
+                ];
               },
-        ),
-      );
+            );
+          },
+        ));
 }
 
-typedef $$PromptTemplatesTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AiDatabase,
-      $PromptTemplatesTable,
-      PromptTemplate,
-      $$PromptTemplatesTableFilterComposer,
-      $$PromptTemplatesTableOrderingComposer,
-      $$PromptTemplatesTableAnnotationComposer,
-      $$PromptTemplatesTableCreateCompanionBuilder,
-      $$PromptTemplatesTableUpdateCompanionBuilder,
-      (PromptTemplate, $$PromptTemplatesTableReferences),
-      PromptTemplate,
-      PrefetchHooks Function({
-        bool promptVersionsRefs,
+typedef $$PromptTemplatesTableProcessedTableManager = ProcessedTableManager<
+    _$AiDatabase,
+    $PromptTemplatesTable,
+    PromptTemplate,
+    $$PromptTemplatesTableFilterComposer,
+    $$PromptTemplatesTableOrderingComposer,
+    $$PromptTemplatesTableAnnotationComposer,
+    $$PromptTemplatesTableCreateCompanionBuilder,
+    $$PromptTemplatesTableUpdateCompanionBuilder,
+    (PromptTemplate, $$PromptTemplatesTableReferences),
+    PromptTemplate,
+    PrefetchHooks Function(
+        {bool promptVersionsRefs,
         bool promptSkillBindingsRefs,
-        bool aiPersonasRefs,
-      })
-    >;
-typedef $$PromptVersionsTableCreateCompanionBuilder =
-    PromptVersionsCompanion Function({
-      required String uuid,
-      required String templateUuid,
-      required int version,
-      required String content,
-      Value<String?> variablesJson,
-      required String contentHash,
-      required DateTime createdAt,
-      Value<String?> changeNote,
-      Value<int> rowid,
-    });
-typedef $$PromptVersionsTableUpdateCompanionBuilder =
-    PromptVersionsCompanion Function({
-      Value<String> uuid,
-      Value<String> templateUuid,
-      Value<int> version,
-      Value<String> content,
-      Value<String?> variablesJson,
-      Value<String> contentHash,
-      Value<DateTime> createdAt,
-      Value<String?> changeNote,
-      Value<int> rowid,
-    });
+        bool aiPersonasRefs})>;
+typedef $$PromptVersionsTableCreateCompanionBuilder = PromptVersionsCompanion
+    Function({
+  required String uuid,
+  required String templateUuid,
+  required int version,
+  required String content,
+  Value<String?> variablesJson,
+  required String contentHash,
+  required DateTime createdAt,
+  Value<String?> changeNote,
+  Value<int> rowid,
+});
+typedef $$PromptVersionsTableUpdateCompanionBuilder = PromptVersionsCompanion
+    Function({
+  Value<String> uuid,
+  Value<String> templateUuid,
+  Value<int> version,
+  Value<String> content,
+  Value<String?> variablesJson,
+  Value<String> contentHash,
+  Value<DateTime> createdAt,
+  Value<String?> changeNote,
+  Value<int> rowid,
+});
 
 final class $$PromptVersionsTableReferences
     extends BaseReferences<_$AiDatabase, $PromptVersionsTable, PromptVersion> {
   $$PromptVersionsTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
+      super.$_db, super.$_table, super.$_typedResult);
 
   static $PromptTemplatesTable _templateUuidTable(_$AiDatabase db) =>
-      db.promptTemplates.createAlias(
-        $_aliasNameGenerator(
-          db.promptVersions.templateUuid,
-          db.promptTemplates.uuid,
-        ),
-      );
+      db.promptTemplates.createAlias($_aliasNameGenerator(
+          db.promptVersions.templateUuid, db.promptTemplates.uuid));
 
   $$PromptTemplatesTableProcessedTableManager get templateUuid {
     final $_column = $_itemColumn<String>('template_uuid')!;
 
-    final manager = $$PromptTemplatesTableTableManager(
-      $_db,
-      $_db.promptTemplates,
-    ).filter((f) => f.uuid.sqlEquals($_column));
+    final manager =
+        $$PromptTemplatesTableTableManager($_db, $_db.promptTemplates)
+            .filter((f) => f.uuid.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_templateUuidTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
+        manager.$state.copyWith(prefetchedData: [item]));
   }
 }
 
@@ -13012,60 +10852,43 @@ class $$PromptVersionsTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get version => $composableBuilder(
-    column: $table.version,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.version, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get content => $composableBuilder(
-    column: $table.content,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.content, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get variablesJson => $composableBuilder(
-    column: $table.variablesJson,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.variablesJson, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get contentHash => $composableBuilder(
-    column: $table.contentHash,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.contentHash, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get changeNote => $composableBuilder(
-    column: $table.changeNote,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.changeNote, builder: (column) => ColumnFilters(column));
 
   $$PromptTemplatesTableFilterComposer get templateUuid {
     final $$PromptTemplatesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.templateUuid,
-      referencedTable: $db.promptTemplates,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptTemplatesTableFilterComposer(
-            $db: $db,
-            $table: $db.promptTemplates,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.templateUuid,
+        referencedTable: $db.promptTemplates,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PromptTemplatesTableFilterComposer(
+              $db: $db,
+              $table: $db.promptTemplates,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 }
@@ -13080,60 +10903,44 @@ class $$PromptVersionsTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get version => $composableBuilder(
-    column: $table.version,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.version, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get content => $composableBuilder(
-    column: $table.content,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.content, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get variablesJson => $composableBuilder(
-    column: $table.variablesJson,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.variablesJson,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get contentHash => $composableBuilder(
-    column: $table.contentHash,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.contentHash, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get changeNote => $composableBuilder(
-    column: $table.changeNote,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.changeNote, builder: (column) => ColumnOrderings(column));
 
   $$PromptTemplatesTableOrderingComposer get templateUuid {
     final $$PromptTemplatesTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.templateUuid,
-      referencedTable: $db.promptTemplates,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptTemplatesTableOrderingComposer(
-            $db: $db,
-            $table: $db.promptTemplates,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.templateUuid,
+        referencedTable: $db.promptTemplates,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PromptTemplatesTableOrderingComposer(
+              $db: $db,
+              $table: $db.promptTemplates,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 }
@@ -13157,65 +10964,52 @@ class $$PromptVersionsTableAnnotationComposer
       $composableBuilder(column: $table.content, builder: (column) => column);
 
   GeneratedColumn<String> get variablesJson => $composableBuilder(
-    column: $table.variablesJson,
-    builder: (column) => column,
-  );
+      column: $table.variablesJson, builder: (column) => column);
 
   GeneratedColumn<String> get contentHash => $composableBuilder(
-    column: $table.contentHash,
-    builder: (column) => column,
-  );
+      column: $table.contentHash, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<String> get changeNote => $composableBuilder(
-    column: $table.changeNote,
-    builder: (column) => column,
-  );
+      column: $table.changeNote, builder: (column) => column);
 
   $$PromptTemplatesTableAnnotationComposer get templateUuid {
     final $$PromptTemplatesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.templateUuid,
-      referencedTable: $db.promptTemplates,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptTemplatesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.promptTemplates,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.templateUuid,
+        referencedTable: $db.promptTemplates,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PromptTemplatesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.promptTemplates,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 }
 
-class $$PromptVersionsTableTableManager
-    extends
-        RootTableManager<
-          _$AiDatabase,
-          $PromptVersionsTable,
-          PromptVersion,
-          $$PromptVersionsTableFilterComposer,
-          $$PromptVersionsTableOrderingComposer,
-          $$PromptVersionsTableAnnotationComposer,
-          $$PromptVersionsTableCreateCompanionBuilder,
-          $$PromptVersionsTableUpdateCompanionBuilder,
-          (PromptVersion, $$PromptVersionsTableReferences),
-          PromptVersion,
-          PrefetchHooks Function({bool templateUuid})
-        > {
+class $$PromptVersionsTableTableManager extends RootTableManager<
+    _$AiDatabase,
+    $PromptVersionsTable,
+    PromptVersion,
+    $$PromptVersionsTableFilterComposer,
+    $$PromptVersionsTableOrderingComposer,
+    $$PromptVersionsTableAnnotationComposer,
+    $$PromptVersionsTableCreateCompanionBuilder,
+    $$PromptVersionsTableUpdateCompanionBuilder,
+    (PromptVersion, $$PromptVersionsTableReferences),
+    PromptVersion,
+    PrefetchHooks Function({bool templateUuid})> {
   $$PromptVersionsTableTableManager(_$AiDatabase db, $PromptVersionsTable table)
-    : super(
-        TableManagerState(
+      : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -13224,65 +11018,62 @@ class $$PromptVersionsTableTableManager
               $$PromptVersionsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$PromptVersionsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> uuid = const Value.absent(),
-                Value<String> templateUuid = const Value.absent(),
-                Value<int> version = const Value.absent(),
-                Value<String> content = const Value.absent(),
-                Value<String?> variablesJson = const Value.absent(),
-                Value<String> contentHash = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<String?> changeNote = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => PromptVersionsCompanion(
-                uuid: uuid,
-                templateUuid: templateUuid,
-                version: version,
-                content: content,
-                variablesJson: variablesJson,
-                contentHash: contentHash,
-                createdAt: createdAt,
-                changeNote: changeNote,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String uuid,
-                required String templateUuid,
-                required int version,
-                required String content,
-                Value<String?> variablesJson = const Value.absent(),
-                required String contentHash,
-                required DateTime createdAt,
-                Value<String?> changeNote = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => PromptVersionsCompanion.insert(
-                uuid: uuid,
-                templateUuid: templateUuid,
-                version: version,
-                content: content,
-                variablesJson: variablesJson,
-                contentHash: contentHash,
-                createdAt: createdAt,
-                changeNote: changeNote,
-                rowid: rowid,
-              ),
+          updateCompanionCallback: ({
+            Value<String> uuid = const Value.absent(),
+            Value<String> templateUuid = const Value.absent(),
+            Value<int> version = const Value.absent(),
+            Value<String> content = const Value.absent(),
+            Value<String?> variablesJson = const Value.absent(),
+            Value<String> contentHash = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<String?> changeNote = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              PromptVersionsCompanion(
+            uuid: uuid,
+            templateUuid: templateUuid,
+            version: version,
+            content: content,
+            variablesJson: variablesJson,
+            contentHash: contentHash,
+            createdAt: createdAt,
+            changeNote: changeNote,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String uuid,
+            required String templateUuid,
+            required int version,
+            required String content,
+            Value<String?> variablesJson = const Value.absent(),
+            required String contentHash,
+            required DateTime createdAt,
+            Value<String?> changeNote = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              PromptVersionsCompanion.insert(
+            uuid: uuid,
+            templateUuid: templateUuid,
+            version: version,
+            content: content,
+            variablesJson: variablesJson,
+            contentHash: contentHash,
+            createdAt: createdAt,
+            changeNote: changeNote,
+            rowid: rowid,
+          ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$PromptVersionsTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (
+                    e.readTable(table),
+                    $$PromptVersionsTableReferences(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: ({templateUuid = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
+              addJoins: <
+                  T extends TableManagerState<
                       dynamic,
                       dynamic,
                       dynamic,
@@ -13293,107 +11084,85 @@ class $$PromptVersionsTableTableManager
                       dynamic,
                       dynamic,
                       dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (templateUuid) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.templateUuid,
-                                referencedTable: $$PromptVersionsTableReferences
-                                    ._templateUuidTable(db),
-                                referencedColumn:
-                                    $$PromptVersionsTableReferences
-                                        ._templateUuidTable(db)
-                                        .uuid,
-                              )
-                              as T;
-                    }
+                      dynamic>>(state) {
+                if (templateUuid) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.templateUuid,
+                    referencedTable:
+                        $$PromptVersionsTableReferences._templateUuidTable(db),
+                    referencedColumn: $$PromptVersionsTableReferences
+                        ._templateUuidTable(db)
+                        .uuid,
+                  ) as T;
+                }
 
-                    return state;
-                  },
+                return state;
+              },
               getPrefetchedDataCallback: (items) async {
                 return [];
               },
             );
           },
-        ),
-      );
+        ));
 }
 
-typedef $$PromptVersionsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AiDatabase,
-      $PromptVersionsTable,
-      PromptVersion,
-      $$PromptVersionsTableFilterComposer,
-      $$PromptVersionsTableOrderingComposer,
-      $$PromptVersionsTableAnnotationComposer,
-      $$PromptVersionsTableCreateCompanionBuilder,
-      $$PromptVersionsTableUpdateCompanionBuilder,
-      (PromptVersion, $$PromptVersionsTableReferences),
-      PromptVersion,
-      PrefetchHooks Function({bool templateUuid})
-    >;
-typedef $$PromptSkillBindingsTableCreateCompanionBuilder =
-    PromptSkillBindingsCompanion Function({
-      Value<int> id,
-      required DateTime createdAt,
-      Value<DateTime?> lastUpdatedAt,
-      Value<DateTime?> deletedAt,
-      required String promptTemplateUuid,
-      required int skillId,
-      required String bindingType,
-      Value<int> priority,
-      Value<bool> isEnabled,
-    });
-typedef $$PromptSkillBindingsTableUpdateCompanionBuilder =
-    PromptSkillBindingsCompanion Function({
-      Value<int> id,
-      Value<DateTime> createdAt,
-      Value<DateTime?> lastUpdatedAt,
-      Value<DateTime?> deletedAt,
-      Value<String> promptTemplateUuid,
-      Value<int> skillId,
-      Value<String> bindingType,
-      Value<int> priority,
-      Value<bool> isEnabled,
-    });
+typedef $$PromptVersionsTableProcessedTableManager = ProcessedTableManager<
+    _$AiDatabase,
+    $PromptVersionsTable,
+    PromptVersion,
+    $$PromptVersionsTableFilterComposer,
+    $$PromptVersionsTableOrderingComposer,
+    $$PromptVersionsTableAnnotationComposer,
+    $$PromptVersionsTableCreateCompanionBuilder,
+    $$PromptVersionsTableUpdateCompanionBuilder,
+    (PromptVersion, $$PromptVersionsTableReferences),
+    PromptVersion,
+    PrefetchHooks Function({bool templateUuid})>;
+typedef $$PromptSkillBindingsTableCreateCompanionBuilder
+    = PromptSkillBindingsCompanion Function({
+  Value<int> id,
+  required DateTime createdAt,
+  Value<DateTime?> lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  required String promptTemplateUuid,
+  required int skillId,
+  required String bindingType,
+  Value<int> priority,
+  Value<bool> isEnabled,
+});
+typedef $$PromptSkillBindingsTableUpdateCompanionBuilder
+    = PromptSkillBindingsCompanion Function({
+  Value<int> id,
+  Value<DateTime> createdAt,
+  Value<DateTime?> lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String> promptTemplateUuid,
+  Value<int> skillId,
+  Value<String> bindingType,
+  Value<int> priority,
+  Value<bool> isEnabled,
+});
 
-final class $$PromptSkillBindingsTableReferences
-    extends
-        BaseReferences<
-          _$AiDatabase,
-          $PromptSkillBindingsTable,
-          PromptSkillBinding
-        > {
+final class $$PromptSkillBindingsTableReferences extends BaseReferences<
+    _$AiDatabase, $PromptSkillBindingsTable, PromptSkillBinding> {
   $$PromptSkillBindingsTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
+      super.$_db, super.$_table, super.$_typedResult);
 
   static $PromptTemplatesTable _promptTemplateUuidTable(_$AiDatabase db) =>
-      db.promptTemplates.createAlias(
-        $_aliasNameGenerator(
-          db.promptSkillBindings.promptTemplateUuid,
-          db.promptTemplates.uuid,
-        ),
-      );
+      db.promptTemplates.createAlias($_aliasNameGenerator(
+          db.promptSkillBindings.promptTemplateUuid, db.promptTemplates.uuid));
 
   $$PromptTemplatesTableProcessedTableManager get promptTemplateUuid {
     final $_column = $_itemColumn<String>('prompt_template_uuid')!;
 
-    final manager = $$PromptTemplatesTableTableManager(
-      $_db,
-      $_db.promptTemplates,
-    ).filter((f) => f.uuid.sqlEquals($_column));
+    final manager =
+        $$PromptTemplatesTableTableManager($_db, $_db.promptTemplates)
+            .filter((f) => f.uuid.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_promptTemplateUuidTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
+        manager.$state.copyWith(prefetchedData: [item]));
   }
 }
 
@@ -13407,65 +11176,46 @@ class $$PromptSkillBindingsTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.id, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.lastUpdatedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
-    column: $table.deletedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get skillId => $composableBuilder(
-    column: $table.skillId,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.skillId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get bindingType => $composableBuilder(
-    column: $table.bindingType,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.bindingType, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get priority => $composableBuilder(
-    column: $table.priority,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.priority, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get isEnabled => $composableBuilder(
-    column: $table.isEnabled,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.isEnabled, builder: (column) => ColumnFilters(column));
 
   $$PromptTemplatesTableFilterComposer get promptTemplateUuid {
     final $$PromptTemplatesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.promptTemplateUuid,
-      referencedTable: $db.promptTemplates,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptTemplatesTableFilterComposer(
-            $db: $db,
-            $table: $db.promptTemplates,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.promptTemplateUuid,
+        referencedTable: $db.promptTemplates,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PromptTemplatesTableFilterComposer(
+              $db: $db,
+              $table: $db.promptTemplates,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 }
@@ -13480,65 +11230,47 @@ class $$PromptSkillBindingsTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.id, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.lastUpdatedAt,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
-    column: $table.deletedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get skillId => $composableBuilder(
-    column: $table.skillId,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.skillId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get bindingType => $composableBuilder(
-    column: $table.bindingType,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.bindingType, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get priority => $composableBuilder(
-    column: $table.priority,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.priority, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<bool> get isEnabled => $composableBuilder(
-    column: $table.isEnabled,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.isEnabled, builder: (column) => ColumnOrderings(column));
 
   $$PromptTemplatesTableOrderingComposer get promptTemplateUuid {
     final $$PromptTemplatesTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.promptTemplateUuid,
-      referencedTable: $db.promptTemplates,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptTemplatesTableOrderingComposer(
-            $db: $db,
-            $table: $db.promptTemplates,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.promptTemplateUuid,
+        referencedTable: $db.promptTemplates,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PromptTemplatesTableOrderingComposer(
+              $db: $db,
+              $table: $db.promptTemplates,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 }
@@ -13559,9 +11291,7 @@ class $$PromptSkillBindingsTableAnnotationComposer
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => column,
-  );
+      column: $table.lastUpdatedAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
@@ -13570,9 +11300,7 @@ class $$PromptSkillBindingsTableAnnotationComposer
       $composableBuilder(column: $table.skillId, builder: (column) => column);
 
   GeneratedColumn<String> get bindingType => $composableBuilder(
-    column: $table.bindingType,
-    builder: (column) => column,
-  );
+      column: $table.bindingType, builder: (column) => column);
 
   GeneratedColumn<int> get priority =>
       $composableBuilder(column: $table.priority, builder: (column) => column);
@@ -13582,121 +11310,106 @@ class $$PromptSkillBindingsTableAnnotationComposer
 
   $$PromptTemplatesTableAnnotationComposer get promptTemplateUuid {
     final $$PromptTemplatesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.promptTemplateUuid,
-      referencedTable: $db.promptTemplates,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptTemplatesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.promptTemplates,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.promptTemplateUuid,
+        referencedTable: $db.promptTemplates,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PromptTemplatesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.promptTemplates,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 }
 
-class $$PromptSkillBindingsTableTableManager
-    extends
-        RootTableManager<
-          _$AiDatabase,
-          $PromptSkillBindingsTable,
-          PromptSkillBinding,
-          $$PromptSkillBindingsTableFilterComposer,
-          $$PromptSkillBindingsTableOrderingComposer,
-          $$PromptSkillBindingsTableAnnotationComposer,
-          $$PromptSkillBindingsTableCreateCompanionBuilder,
-          $$PromptSkillBindingsTableUpdateCompanionBuilder,
-          (PromptSkillBinding, $$PromptSkillBindingsTableReferences),
-          PromptSkillBinding,
-          PrefetchHooks Function({bool promptTemplateUuid})
-        > {
+class $$PromptSkillBindingsTableTableManager extends RootTableManager<
+    _$AiDatabase,
+    $PromptSkillBindingsTable,
+    PromptSkillBinding,
+    $$PromptSkillBindingsTableFilterComposer,
+    $$PromptSkillBindingsTableOrderingComposer,
+    $$PromptSkillBindingsTableAnnotationComposer,
+    $$PromptSkillBindingsTableCreateCompanionBuilder,
+    $$PromptSkillBindingsTableUpdateCompanionBuilder,
+    (PromptSkillBinding, $$PromptSkillBindingsTableReferences),
+    PromptSkillBinding,
+    PrefetchHooks Function({bool promptTemplateUuid})> {
   $$PromptSkillBindingsTableTableManager(
-    _$AiDatabase db,
-    $PromptSkillBindingsTable table,
-  ) : super(
-        TableManagerState(
+      _$AiDatabase db, $PromptSkillBindingsTable table)
+      : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
               $$PromptSkillBindingsTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
               $$PromptSkillBindingsTableOrderingComposer(
-                $db: db,
-                $table: table,
-              ),
+                  $db: db, $table: table),
           createComputedFieldComposer: () =>
               $$PromptSkillBindingsTableAnnotationComposer(
-                $db: db,
-                $table: table,
-              ),
-          updateCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime?> lastUpdatedAt = const Value.absent(),
-                Value<DateTime?> deletedAt = const Value.absent(),
-                Value<String> promptTemplateUuid = const Value.absent(),
-                Value<int> skillId = const Value.absent(),
-                Value<String> bindingType = const Value.absent(),
-                Value<int> priority = const Value.absent(),
-                Value<bool> isEnabled = const Value.absent(),
-              }) => PromptSkillBindingsCompanion(
-                id: id,
-                createdAt: createdAt,
-                lastUpdatedAt: lastUpdatedAt,
-                deletedAt: deletedAt,
-                promptTemplateUuid: promptTemplateUuid,
-                skillId: skillId,
-                bindingType: bindingType,
-                priority: priority,
-                isEnabled: isEnabled,
-              ),
-          createCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                required DateTime createdAt,
-                Value<DateTime?> lastUpdatedAt = const Value.absent(),
-                Value<DateTime?> deletedAt = const Value.absent(),
-                required String promptTemplateUuid,
-                required int skillId,
-                required String bindingType,
-                Value<int> priority = const Value.absent(),
-                Value<bool> isEnabled = const Value.absent(),
-              }) => PromptSkillBindingsCompanion.insert(
-                id: id,
-                createdAt: createdAt,
-                lastUpdatedAt: lastUpdatedAt,
-                deletedAt: deletedAt,
-                promptTemplateUuid: promptTemplateUuid,
-                skillId: skillId,
-                bindingType: bindingType,
-                priority: priority,
-                isEnabled: isEnabled,
-              ),
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime?> lastUpdatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String> promptTemplateUuid = const Value.absent(),
+            Value<int> skillId = const Value.absent(),
+            Value<String> bindingType = const Value.absent(),
+            Value<int> priority = const Value.absent(),
+            Value<bool> isEnabled = const Value.absent(),
+          }) =>
+              PromptSkillBindingsCompanion(
+            id: id,
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            promptTemplateUuid: promptTemplateUuid,
+            skillId: skillId,
+            bindingType: bindingType,
+            priority: priority,
+            isEnabled: isEnabled,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required DateTime createdAt,
+            Value<DateTime?> lastUpdatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            required String promptTemplateUuid,
+            required int skillId,
+            required String bindingType,
+            Value<int> priority = const Value.absent(),
+            Value<bool> isEnabled = const Value.absent(),
+          }) =>
+              PromptSkillBindingsCompanion.insert(
+            id: id,
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            promptTemplateUuid: promptTemplateUuid,
+            skillId: skillId,
+            bindingType: bindingType,
+            priority: priority,
+            isEnabled: isEnabled,
+          ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$PromptSkillBindingsTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (
+                    e.readTable(table),
+                    $$PromptSkillBindingsTableReferences(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: ({promptTemplateUuid = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
+              addJoins: <
+                  T extends TableManagerState<
                       dynamic,
                       dynamic,
                       dynamic,
@@ -13707,90 +11420,79 @@ class $$PromptSkillBindingsTableTableManager
                       dynamic,
                       dynamic,
                       dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (promptTemplateUuid) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.promptTemplateUuid,
-                                referencedTable:
-                                    $$PromptSkillBindingsTableReferences
-                                        ._promptTemplateUuidTable(db),
-                                referencedColumn:
-                                    $$PromptSkillBindingsTableReferences
-                                        ._promptTemplateUuidTable(db)
-                                        .uuid,
-                              )
-                              as T;
-                    }
+                      dynamic>>(state) {
+                if (promptTemplateUuid) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.promptTemplateUuid,
+                    referencedTable: $$PromptSkillBindingsTableReferences
+                        ._promptTemplateUuidTable(db),
+                    referencedColumn: $$PromptSkillBindingsTableReferences
+                        ._promptTemplateUuidTable(db)
+                        .uuid,
+                  ) as T;
+                }
 
-                    return state;
-                  },
+                return state;
+              },
               getPrefetchedDataCallback: (items) async {
                 return [];
               },
             );
           },
-        ),
-      );
+        ));
 }
 
-typedef $$PromptSkillBindingsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AiDatabase,
-      $PromptSkillBindingsTable,
-      PromptSkillBinding,
-      $$PromptSkillBindingsTableFilterComposer,
-      $$PromptSkillBindingsTableOrderingComposer,
-      $$PromptSkillBindingsTableAnnotationComposer,
-      $$PromptSkillBindingsTableCreateCompanionBuilder,
-      $$PromptSkillBindingsTableUpdateCompanionBuilder,
-      (PromptSkillBinding, $$PromptSkillBindingsTableReferences),
-      PromptSkillBinding,
-      PrefetchHooks Function({bool promptTemplateUuid})
-    >;
-typedef $$AiPersonasTableCreateCompanionBuilder =
-    AiPersonasCompanion Function({
-      required String uuid,
-      required DateTime createdAt,
-      Value<DateTime?> lastUpdatedAt,
-      Value<DateTime?> deletedAt,
-      required String name,
-      Value<String?> avatarUrl,
-      Value<String?> description,
-      required String modelUuid,
-      Value<String?> systemPromptUuid,
-      Value<double> temperature,
-      Value<double> topP,
-      Value<int> maxTokens,
-      Value<String?> personalityJson,
-      Value<String?> expertiseJson,
-      Value<bool> isDefault,
-      Value<bool> isEnabled,
-      Value<int> rowid,
-    });
-typedef $$AiPersonasTableUpdateCompanionBuilder =
-    AiPersonasCompanion Function({
-      Value<String> uuid,
-      Value<DateTime> createdAt,
-      Value<DateTime?> lastUpdatedAt,
-      Value<DateTime?> deletedAt,
-      Value<String> name,
-      Value<String?> avatarUrl,
-      Value<String?> description,
-      Value<String> modelUuid,
-      Value<String?> systemPromptUuid,
-      Value<double> temperature,
-      Value<double> topP,
-      Value<int> maxTokens,
-      Value<String?> personalityJson,
-      Value<String?> expertiseJson,
-      Value<bool> isDefault,
-      Value<bool> isEnabled,
-      Value<int> rowid,
-    });
+typedef $$PromptSkillBindingsTableProcessedTableManager = ProcessedTableManager<
+    _$AiDatabase,
+    $PromptSkillBindingsTable,
+    PromptSkillBinding,
+    $$PromptSkillBindingsTableFilterComposer,
+    $$PromptSkillBindingsTableOrderingComposer,
+    $$PromptSkillBindingsTableAnnotationComposer,
+    $$PromptSkillBindingsTableCreateCompanionBuilder,
+    $$PromptSkillBindingsTableUpdateCompanionBuilder,
+    (PromptSkillBinding, $$PromptSkillBindingsTableReferences),
+    PromptSkillBinding,
+    PrefetchHooks Function({bool promptTemplateUuid})>;
+typedef $$AiPersonasTableCreateCompanionBuilder = AiPersonasCompanion Function({
+  required String uuid,
+  required DateTime createdAt,
+  Value<DateTime?> lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  required String name,
+  Value<String?> avatarUrl,
+  Value<String?> description,
+  required String modelUuid,
+  Value<String?> systemPromptUuid,
+  Value<double> temperature,
+  Value<double> topP,
+  Value<int> maxTokens,
+  Value<String?> personalityJson,
+  Value<String?> expertiseJson,
+  Value<bool> isDefault,
+  Value<bool> isEnabled,
+  Value<int> rowid,
+});
+typedef $$AiPersonasTableUpdateCompanionBuilder = AiPersonasCompanion Function({
+  Value<String> uuid,
+  Value<DateTime> createdAt,
+  Value<DateTime?> lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String> name,
+  Value<String?> avatarUrl,
+  Value<String?> description,
+  Value<String> modelUuid,
+  Value<String?> systemPromptUuid,
+  Value<double> temperature,
+  Value<double> topP,
+  Value<int> maxTokens,
+  Value<String?> personalityJson,
+  Value<String?> expertiseJson,
+  Value<bool> isDefault,
+  Value<bool> isEnabled,
+  Value<int> rowid,
+});
 
 final class $$AiPersonasTableReferences
     extends BaseReferences<_$AiDatabase, $AiPersonasTable, AiPersona> {
@@ -13798,129 +11500,99 @@ final class $$AiPersonasTableReferences
 
   static $LlmModelsTable _modelUuidTable(_$AiDatabase db) =>
       db.llmModels.createAlias(
-        $_aliasNameGenerator(db.aiPersonas.modelUuid, db.llmModels.uuid),
-      );
+          $_aliasNameGenerator(db.aiPersonas.modelUuid, db.llmModels.uuid));
 
   $$LlmModelsTableProcessedTableManager get modelUuid {
     final $_column = $_itemColumn<String>('model_uuid')!;
 
-    final manager = $$LlmModelsTableTableManager(
-      $_db,
-      $_db.llmModels,
-    ).filter((f) => f.uuid.sqlEquals($_column));
+    final manager = $$LlmModelsTableTableManager($_db, $_db.llmModels)
+        .filter((f) => f.uuid.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_modelUuidTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
+        manager.$state.copyWith(prefetchedData: [item]));
   }
 
   static $PromptTemplatesTable _systemPromptUuidTable(_$AiDatabase db) =>
-      db.promptTemplates.createAlias(
-        $_aliasNameGenerator(
-          db.aiPersonas.systemPromptUuid,
-          db.promptTemplates.uuid,
-        ),
-      );
+      db.promptTemplates.createAlias($_aliasNameGenerator(
+          db.aiPersonas.systemPromptUuid, db.promptTemplates.uuid));
 
   $$PromptTemplatesTableProcessedTableManager? get systemPromptUuid {
     final $_column = $_itemColumn<String>('system_prompt_uuid');
     if ($_column == null) return null;
-    final manager = $$PromptTemplatesTableTableManager(
-      $_db,
-      $_db.promptTemplates,
-    ).filter((f) => f.uuid.sqlEquals($_column));
+    final manager =
+        $$PromptTemplatesTableTableManager($_db, $_db.promptTemplates)
+            .filter((f) => f.uuid.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_systemPromptUuidTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
+        manager.$state.copyWith(prefetchedData: [item]));
   }
 
   static MultiTypedResultKey<$AiChatSessionsTable, List<AiChatSession>>
-  _aiChatSessionsRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.aiChatSessions,
-    aliasName: $_aliasNameGenerator(
-      db.aiPersonas.uuid,
-      db.aiChatSessions.personaUuid,
-    ),
-  );
+      _aiChatSessionsRefsTable(_$AiDatabase db) =>
+          MultiTypedResultKey.fromTable(db.aiChatSessions,
+              aliasName: $_aliasNameGenerator(
+                  db.aiPersonas.uuid, db.aiChatSessions.personaUuid));
 
   $$AiChatSessionsTableProcessedTableManager get aiChatSessionsRefs {
     final manager = $$AiChatSessionsTableTableManager($_db, $_db.aiChatSessions)
         .filter(
-          (f) => f.personaUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
+            (f) => f.personaUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
 
     final cache = $_typedResult.readTableOrNull(_aiChatSessionsRefsTable($_db));
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
+        manager.$state.copyWith(prefetchedData: cache));
   }
 
   static MultiTypedResultKey<$AiDivinationsTable, List<AiDivination>>
-  _aiDivinationsRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.aiDivinations,
-    aliasName: $_aliasNameGenerator(
-      db.aiPersonas.uuid,
-      db.aiDivinations.personaUuid,
-    ),
-  );
+      _aiDivinationsRefsTable(_$AiDatabase db) =>
+          MultiTypedResultKey.fromTable(db.aiDivinations,
+              aliasName: $_aliasNameGenerator(
+                  db.aiPersonas.uuid, db.aiDivinations.personaUuid));
 
   $$AiDivinationsTableProcessedTableManager get aiDivinationsRefs {
     final manager = $$AiDivinationsTableTableManager($_db, $_db.aiDivinations)
         .filter(
-          (f) => f.personaUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
+            (f) => f.personaUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
 
     final cache = $_typedResult.readTableOrNull(_aiDivinationsRefsTable($_db));
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
+        manager.$state.copyWith(prefetchedData: cache));
   }
 
   static MultiTypedResultKey<$AgentInvocationsTable, List<AgentInvocation>>
-  _callerInvocationsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.agentInvocations,
-    aliasName: $_aliasNameGenerator(
-      db.aiPersonas.uuid,
-      db.agentInvocations.callerPersonaUuid,
-    ),
-  );
+      _callerInvocationsTable(_$AiDatabase db) =>
+          MultiTypedResultKey.fromTable(db.agentInvocations,
+              aliasName: $_aliasNameGenerator(
+                  db.aiPersonas.uuid, db.agentInvocations.callerPersonaUuid));
 
   $$AgentInvocationsTableProcessedTableManager get callerInvocations {
-    final manager =
-        $$AgentInvocationsTableTableManager($_db, $_db.agentInvocations).filter(
-          (f) =>
-              f.callerPersonaUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
+    final manager = $$AgentInvocationsTableTableManager(
+            $_db, $_db.agentInvocations)
+        .filter((f) =>
+            f.callerPersonaUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
 
     final cache = $_typedResult.readTableOrNull(_callerInvocationsTable($_db));
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
+        manager.$state.copyWith(prefetchedData: cache));
   }
 
   static MultiTypedResultKey<$AgentInvocationsTable, List<AgentInvocation>>
-  _calleeInvocationsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.agentInvocations,
-    aliasName: $_aliasNameGenerator(
-      db.aiPersonas.uuid,
-      db.agentInvocations.calleePersonaUuid,
-    ),
-  );
+      _calleeInvocationsTable(_$AiDatabase db) =>
+          MultiTypedResultKey.fromTable(db.agentInvocations,
+              aliasName: $_aliasNameGenerator(
+                  db.aiPersonas.uuid, db.agentInvocations.calleePersonaUuid));
 
   $$AgentInvocationsTableProcessedTableManager get calleeInvocations {
-    final manager =
-        $$AgentInvocationsTableTableManager($_db, $_db.agentInvocations).filter(
-          (f) =>
-              f.calleePersonaUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
+    final manager = $$AgentInvocationsTableTableManager(
+            $_db, $_db.agentInvocations)
+        .filter((f) =>
+            f.calleePersonaUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
 
     final cache = $_typedResult.readTableOrNull(_calleeInvocationsTable($_db));
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
+        manager.$state.copyWith(prefetchedData: cache));
   }
 }
 
@@ -13934,218 +11606,169 @@ class $$AiPersonasTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.lastUpdatedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
-    column: $table.deletedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.name, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get avatarUrl => $composableBuilder(
-    column: $table.avatarUrl,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.avatarUrl, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get description => $composableBuilder(
-    column: $table.description,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.description, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<double> get temperature => $composableBuilder(
-    column: $table.temperature,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.temperature, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<double> get topP => $composableBuilder(
-    column: $table.topP,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.topP, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get maxTokens => $composableBuilder(
-    column: $table.maxTokens,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.maxTokens, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get personalityJson => $composableBuilder(
-    column: $table.personalityJson,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.personalityJson,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get expertiseJson => $composableBuilder(
-    column: $table.expertiseJson,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.expertiseJson, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get isDefault => $composableBuilder(
-    column: $table.isDefault,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.isDefault, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get isEnabled => $composableBuilder(
-    column: $table.isEnabled,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.isEnabled, builder: (column) => ColumnFilters(column));
 
   $$LlmModelsTableFilterComposer get modelUuid {
     final $$LlmModelsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.modelUuid,
-      referencedTable: $db.llmModels,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LlmModelsTableFilterComposer(
-            $db: $db,
-            $table: $db.llmModels,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.modelUuid,
+        referencedTable: $db.llmModels,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LlmModelsTableFilterComposer(
+              $db: $db,
+              $table: $db.llmModels,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$PromptTemplatesTableFilterComposer get systemPromptUuid {
     final $$PromptTemplatesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.systemPromptUuid,
-      referencedTable: $db.promptTemplates,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptTemplatesTableFilterComposer(
-            $db: $db,
-            $table: $db.promptTemplates,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.systemPromptUuid,
+        referencedTable: $db.promptTemplates,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PromptTemplatesTableFilterComposer(
+              $db: $db,
+              $table: $db.promptTemplates,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   Expression<bool> aiChatSessionsRefs(
-    Expression<bool> Function($$AiChatSessionsTableFilterComposer f) f,
-  ) {
+      Expression<bool> Function($$AiChatSessionsTableFilterComposer f) f) {
     final $$AiChatSessionsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.personaUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableFilterComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.aiChatSessions,
+        getReferencedColumn: (t) => t.personaUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiChatSessionsTableFilterComposer(
+              $db: $db,
+              $table: $db.aiChatSessions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 
   Expression<bool> aiDivinationsRefs(
-    Expression<bool> Function($$AiDivinationsTableFilterComposer f) f,
-  ) {
+      Expression<bool> Function($$AiDivinationsTableFilterComposer f) f) {
     final $$AiDivinationsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiDivinations,
-      getReferencedColumn: (t) => t.personaUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiDivinationsTableFilterComposer(
-            $db: $db,
-            $table: $db.aiDivinations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.aiDivinations,
+        getReferencedColumn: (t) => t.personaUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiDivinationsTableFilterComposer(
+              $db: $db,
+              $table: $db.aiDivinations,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 
   Expression<bool> callerInvocations(
-    Expression<bool> Function($$AgentInvocationsTableFilterComposer f) f,
-  ) {
+      Expression<bool> Function($$AgentInvocationsTableFilterComposer f) f) {
     final $$AgentInvocationsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.agentInvocations,
-      getReferencedColumn: (t) => t.callerPersonaUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AgentInvocationsTableFilterComposer(
-            $db: $db,
-            $table: $db.agentInvocations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.agentInvocations,
+        getReferencedColumn: (t) => t.callerPersonaUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AgentInvocationsTableFilterComposer(
+              $db: $db,
+              $table: $db.agentInvocations,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 
   Expression<bool> calleeInvocations(
-    Expression<bool> Function($$AgentInvocationsTableFilterComposer f) f,
-  ) {
+      Expression<bool> Function($$AgentInvocationsTableFilterComposer f) f) {
     final $$AgentInvocationsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.agentInvocations,
-      getReferencedColumn: (t) => t.calleePersonaUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AgentInvocationsTableFilterComposer(
-            $db: $db,
-            $table: $db.agentInvocations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.agentInvocations,
+        getReferencedColumn: (t) => t.calleePersonaUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AgentInvocationsTableFilterComposer(
+              $db: $db,
+              $table: $db.agentInvocations,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 }
@@ -14160,118 +11783,87 @@ class $$AiPersonasTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.lastUpdatedAt,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
-    column: $table.deletedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.name, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get avatarUrl => $composableBuilder(
-    column: $table.avatarUrl,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.avatarUrl, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get description => $composableBuilder(
-    column: $table.description,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.description, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<double> get temperature => $composableBuilder(
-    column: $table.temperature,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.temperature, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<double> get topP => $composableBuilder(
-    column: $table.topP,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.topP, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get maxTokens => $composableBuilder(
-    column: $table.maxTokens,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.maxTokens, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get personalityJson => $composableBuilder(
-    column: $table.personalityJson,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.personalityJson,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get expertiseJson => $composableBuilder(
-    column: $table.expertiseJson,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.expertiseJson,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<bool> get isDefault => $composableBuilder(
-    column: $table.isDefault,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.isDefault, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<bool> get isEnabled => $composableBuilder(
-    column: $table.isEnabled,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.isEnabled, builder: (column) => ColumnOrderings(column));
 
   $$LlmModelsTableOrderingComposer get modelUuid {
     final $$LlmModelsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.modelUuid,
-      referencedTable: $db.llmModels,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LlmModelsTableOrderingComposer(
-            $db: $db,
-            $table: $db.llmModels,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.modelUuid,
+        referencedTable: $db.llmModels,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LlmModelsTableOrderingComposer(
+              $db: $db,
+              $table: $db.llmModels,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$PromptTemplatesTableOrderingComposer get systemPromptUuid {
     final $$PromptTemplatesTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.systemPromptUuid,
-      referencedTable: $db.promptTemplates,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptTemplatesTableOrderingComposer(
-            $db: $db,
-            $table: $db.promptTemplates,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.systemPromptUuid,
+        referencedTable: $db.promptTemplates,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PromptTemplatesTableOrderingComposer(
+              $db: $db,
+              $table: $db.promptTemplates,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 }
@@ -14292,9 +11884,7 @@ class $$AiPersonasTableAnnotationComposer
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => column,
-  );
+      column: $table.lastUpdatedAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
@@ -14306,14 +11896,10 @@ class $$AiPersonasTableAnnotationComposer
       $composableBuilder(column: $table.avatarUrl, builder: (column) => column);
 
   GeneratedColumn<String> get description => $composableBuilder(
-    column: $table.description,
-    builder: (column) => column,
-  );
+      column: $table.description, builder: (column) => column);
 
   GeneratedColumn<double> get temperature => $composableBuilder(
-    column: $table.temperature,
-    builder: (column) => column,
-  );
+      column: $table.temperature, builder: (column) => column);
 
   GeneratedColumn<double> get topP =>
       $composableBuilder(column: $table.topP, builder: (column) => column);
@@ -14322,14 +11908,10 @@ class $$AiPersonasTableAnnotationComposer
       $composableBuilder(column: $table.maxTokens, builder: (column) => column);
 
   GeneratedColumn<String> get personalityJson => $composableBuilder(
-    column: $table.personalityJson,
-    builder: (column) => column,
-  );
+      column: $table.personalityJson, builder: (column) => column);
 
   GeneratedColumn<String> get expertiseJson => $composableBuilder(
-    column: $table.expertiseJson,
-    builder: (column) => column,
-  );
+      column: $table.expertiseJson, builder: (column) => column);
 
   GeneratedColumn<bool> get isDefault =>
       $composableBuilder(column: $table.isDefault, builder: (column) => column);
@@ -14339,176 +11921,149 @@ class $$AiPersonasTableAnnotationComposer
 
   $$LlmModelsTableAnnotationComposer get modelUuid {
     final $$LlmModelsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.modelUuid,
-      referencedTable: $db.llmModels,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LlmModelsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.llmModels,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.modelUuid,
+        referencedTable: $db.llmModels,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LlmModelsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.llmModels,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$PromptTemplatesTableAnnotationComposer get systemPromptUuid {
     final $$PromptTemplatesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.systemPromptUuid,
-      referencedTable: $db.promptTemplates,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptTemplatesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.promptTemplates,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.systemPromptUuid,
+        referencedTable: $db.promptTemplates,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PromptTemplatesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.promptTemplates,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   Expression<T> aiChatSessionsRefs<T extends Object>(
-    Expression<T> Function($$AiChatSessionsTableAnnotationComposer a) f,
-  ) {
+      Expression<T> Function($$AiChatSessionsTableAnnotationComposer a) f) {
     final $$AiChatSessionsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.personaUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.aiChatSessions,
+        getReferencedColumn: (t) => t.personaUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiChatSessionsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.aiChatSessions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 
   Expression<T> aiDivinationsRefs<T extends Object>(
-    Expression<T> Function($$AiDivinationsTableAnnotationComposer a) f,
-  ) {
+      Expression<T> Function($$AiDivinationsTableAnnotationComposer a) f) {
     final $$AiDivinationsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiDivinations,
-      getReferencedColumn: (t) => t.personaUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiDivinationsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiDivinations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.aiDivinations,
+        getReferencedColumn: (t) => t.personaUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiDivinationsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.aiDivinations,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 
   Expression<T> callerInvocations<T extends Object>(
-    Expression<T> Function($$AgentInvocationsTableAnnotationComposer a) f,
-  ) {
+      Expression<T> Function($$AgentInvocationsTableAnnotationComposer a) f) {
     final $$AgentInvocationsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.agentInvocations,
-      getReferencedColumn: (t) => t.callerPersonaUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AgentInvocationsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.agentInvocations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.agentInvocations,
+        getReferencedColumn: (t) => t.callerPersonaUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AgentInvocationsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.agentInvocations,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 
   Expression<T> calleeInvocations<T extends Object>(
-    Expression<T> Function($$AgentInvocationsTableAnnotationComposer a) f,
-  ) {
+      Expression<T> Function($$AgentInvocationsTableAnnotationComposer a) f) {
     final $$AgentInvocationsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.agentInvocations,
-      getReferencedColumn: (t) => t.calleePersonaUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AgentInvocationsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.agentInvocations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.agentInvocations,
+        getReferencedColumn: (t) => t.calleePersonaUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AgentInvocationsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.agentInvocations,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 }
 
-class $$AiPersonasTableTableManager
-    extends
-        RootTableManager<
-          _$AiDatabase,
-          $AiPersonasTable,
-          AiPersona,
-          $$AiPersonasTableFilterComposer,
-          $$AiPersonasTableOrderingComposer,
-          $$AiPersonasTableAnnotationComposer,
-          $$AiPersonasTableCreateCompanionBuilder,
-          $$AiPersonasTableUpdateCompanionBuilder,
-          (AiPersona, $$AiPersonasTableReferences),
-          AiPersona,
-          PrefetchHooks Function({
-            bool modelUuid,
-            bool systemPromptUuid,
-            bool aiChatSessionsRefs,
-            bool aiDivinationsRefs,
-            bool callerInvocations,
-            bool calleeInvocations,
-          })
-        > {
+class $$AiPersonasTableTableManager extends RootTableManager<
+    _$AiDatabase,
+    $AiPersonasTable,
+    AiPersona,
+    $$AiPersonasTableFilterComposer,
+    $$AiPersonasTableOrderingComposer,
+    $$AiPersonasTableAnnotationComposer,
+    $$AiPersonasTableCreateCompanionBuilder,
+    $$AiPersonasTableUpdateCompanionBuilder,
+    (AiPersona, $$AiPersonasTableReferences),
+    AiPersona,
+    PrefetchHooks Function(
+        {bool modelUuid,
+        bool systemPromptUuid,
+        bool aiChatSessionsRefs,
+        bool aiDivinationsRefs,
+        bool callerInvocations,
+        bool calleeInvocations})> {
   $$AiPersonasTableTableManager(_$AiDatabase db, $AiPersonasTable table)
-    : super(
-        TableManagerState(
+      : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -14517,410 +12072,332 @@ class $$AiPersonasTableTableManager
               $$AiPersonasTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$AiPersonasTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> uuid = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime?> lastUpdatedAt = const Value.absent(),
-                Value<DateTime?> deletedAt = const Value.absent(),
-                Value<String> name = const Value.absent(),
-                Value<String?> avatarUrl = const Value.absent(),
-                Value<String?> description = const Value.absent(),
-                Value<String> modelUuid = const Value.absent(),
-                Value<String?> systemPromptUuid = const Value.absent(),
-                Value<double> temperature = const Value.absent(),
-                Value<double> topP = const Value.absent(),
-                Value<int> maxTokens = const Value.absent(),
-                Value<String?> personalityJson = const Value.absent(),
-                Value<String?> expertiseJson = const Value.absent(),
-                Value<bool> isDefault = const Value.absent(),
-                Value<bool> isEnabled = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => AiPersonasCompanion(
-                uuid: uuid,
-                createdAt: createdAt,
-                lastUpdatedAt: lastUpdatedAt,
-                deletedAt: deletedAt,
-                name: name,
-                avatarUrl: avatarUrl,
-                description: description,
-                modelUuid: modelUuid,
-                systemPromptUuid: systemPromptUuid,
-                temperature: temperature,
-                topP: topP,
-                maxTokens: maxTokens,
-                personalityJson: personalityJson,
-                expertiseJson: expertiseJson,
-                isDefault: isDefault,
-                isEnabled: isEnabled,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String uuid,
-                required DateTime createdAt,
-                Value<DateTime?> lastUpdatedAt = const Value.absent(),
-                Value<DateTime?> deletedAt = const Value.absent(),
-                required String name,
-                Value<String?> avatarUrl = const Value.absent(),
-                Value<String?> description = const Value.absent(),
-                required String modelUuid,
-                Value<String?> systemPromptUuid = const Value.absent(),
-                Value<double> temperature = const Value.absent(),
-                Value<double> topP = const Value.absent(),
-                Value<int> maxTokens = const Value.absent(),
-                Value<String?> personalityJson = const Value.absent(),
-                Value<String?> expertiseJson = const Value.absent(),
-                Value<bool> isDefault = const Value.absent(),
-                Value<bool> isEnabled = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => AiPersonasCompanion.insert(
-                uuid: uuid,
-                createdAt: createdAt,
-                lastUpdatedAt: lastUpdatedAt,
-                deletedAt: deletedAt,
-                name: name,
-                avatarUrl: avatarUrl,
-                description: description,
-                modelUuid: modelUuid,
-                systemPromptUuid: systemPromptUuid,
-                temperature: temperature,
-                topP: topP,
-                maxTokens: maxTokens,
-                personalityJson: personalityJson,
-                expertiseJson: expertiseJson,
-                isDefault: isDefault,
-                isEnabled: isEnabled,
-                rowid: rowid,
-              ),
+          updateCompanionCallback: ({
+            Value<String> uuid = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime?> lastUpdatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<String?> avatarUrl = const Value.absent(),
+            Value<String?> description = const Value.absent(),
+            Value<String> modelUuid = const Value.absent(),
+            Value<String?> systemPromptUuid = const Value.absent(),
+            Value<double> temperature = const Value.absent(),
+            Value<double> topP = const Value.absent(),
+            Value<int> maxTokens = const Value.absent(),
+            Value<String?> personalityJson = const Value.absent(),
+            Value<String?> expertiseJson = const Value.absent(),
+            Value<bool> isDefault = const Value.absent(),
+            Value<bool> isEnabled = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AiPersonasCompanion(
+            uuid: uuid,
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            name: name,
+            avatarUrl: avatarUrl,
+            description: description,
+            modelUuid: modelUuid,
+            systemPromptUuid: systemPromptUuid,
+            temperature: temperature,
+            topP: topP,
+            maxTokens: maxTokens,
+            personalityJson: personalityJson,
+            expertiseJson: expertiseJson,
+            isDefault: isDefault,
+            isEnabled: isEnabled,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String uuid,
+            required DateTime createdAt,
+            Value<DateTime?> lastUpdatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            required String name,
+            Value<String?> avatarUrl = const Value.absent(),
+            Value<String?> description = const Value.absent(),
+            required String modelUuid,
+            Value<String?> systemPromptUuid = const Value.absent(),
+            Value<double> temperature = const Value.absent(),
+            Value<double> topP = const Value.absent(),
+            Value<int> maxTokens = const Value.absent(),
+            Value<String?> personalityJson = const Value.absent(),
+            Value<String?> expertiseJson = const Value.absent(),
+            Value<bool> isDefault = const Value.absent(),
+            Value<bool> isEnabled = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AiPersonasCompanion.insert(
+            uuid: uuid,
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            name: name,
+            avatarUrl: avatarUrl,
+            description: description,
+            modelUuid: modelUuid,
+            systemPromptUuid: systemPromptUuid,
+            temperature: temperature,
+            topP: topP,
+            maxTokens: maxTokens,
+            personalityJson: personalityJson,
+            expertiseJson: expertiseJson,
+            isDefault: isDefault,
+            isEnabled: isEnabled,
+            rowid: rowid,
+          ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$AiPersonasTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (
+                    e.readTable(table),
+                    $$AiPersonasTableReferences(db, table, e)
+                  ))
               .toList(),
-          prefetchHooksCallback:
-              ({
-                modelUuid = false,
-                systemPromptUuid = false,
-                aiChatSessionsRefs = false,
-                aiDivinationsRefs = false,
-                callerInvocations = false,
-                calleeInvocations = false,
-              }) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [
-                    if (aiChatSessionsRefs) db.aiChatSessions,
-                    if (aiDivinationsRefs) db.aiDivinations,
-                    if (callerInvocations) db.agentInvocations,
-                    if (calleeInvocations) db.agentInvocations,
-                  ],
-                  addJoins:
-                      <
-                        T extends TableManagerState<
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic
-                        >
-                      >(state) {
-                        if (modelUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.modelUuid,
-                                    referencedTable: $$AiPersonasTableReferences
-                                        ._modelUuidTable(db),
-                                    referencedColumn:
-                                        $$AiPersonasTableReferences
-                                            ._modelUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
-                        if (systemPromptUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.systemPromptUuid,
-                                    referencedTable: $$AiPersonasTableReferences
-                                        ._systemPromptUuidTable(db),
-                                    referencedColumn:
-                                        $$AiPersonasTableReferences
-                                            ._systemPromptUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
+          prefetchHooksCallback: (
+              {modelUuid = false,
+              systemPromptUuid = false,
+              aiChatSessionsRefs = false,
+              aiDivinationsRefs = false,
+              callerInvocations = false,
+              calleeInvocations = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (aiChatSessionsRefs) db.aiChatSessions,
+                if (aiDivinationsRefs) db.aiDivinations,
+                if (callerInvocations) db.agentInvocations,
+                if (calleeInvocations) db.agentInvocations
+              ],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (modelUuid) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.modelUuid,
+                    referencedTable:
+                        $$AiPersonasTableReferences._modelUuidTable(db),
+                    referencedColumn:
+                        $$AiPersonasTableReferences._modelUuidTable(db).uuid,
+                  ) as T;
+                }
+                if (systemPromptUuid) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.systemPromptUuid,
+                    referencedTable:
+                        $$AiPersonasTableReferences._systemPromptUuidTable(db),
+                    referencedColumn: $$AiPersonasTableReferences
+                        ._systemPromptUuidTable(db)
+                        .uuid,
+                  ) as T;
+                }
 
-                        return state;
-                      },
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (aiChatSessionsRefs)
-                        await $_getPrefetchedData<
-                          AiPersona,
-                          $AiPersonasTable,
-                          AiChatSession
-                        >(
-                          currentTable: table,
-                          referencedTable: $$AiPersonasTableReferences
-                              ._aiChatSessionsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$AiPersonasTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).aiChatSessionsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.personaUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (aiDivinationsRefs)
-                        await $_getPrefetchedData<
-                          AiPersona,
-                          $AiPersonasTable,
-                          AiDivination
-                        >(
-                          currentTable: table,
-                          referencedTable: $$AiPersonasTableReferences
-                              ._aiDivinationsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$AiPersonasTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).aiDivinationsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.personaUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (callerInvocations)
-                        await $_getPrefetchedData<
-                          AiPersona,
-                          $AiPersonasTable,
-                          AgentInvocation
-                        >(
-                          currentTable: table,
-                          referencedTable: $$AiPersonasTableReferences
-                              ._callerInvocationsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$AiPersonasTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).callerInvocations,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.callerPersonaUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (calleeInvocations)
-                        await $_getPrefetchedData<
-                          AiPersona,
-                          $AiPersonasTable,
-                          AgentInvocation
-                        >(
-                          currentTable: table,
-                          referencedTable: $$AiPersonasTableReferences
-                              ._calleeInvocationsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$AiPersonasTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).calleeInvocations,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.calleePersonaUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
+                return state;
               },
-        ),
-      );
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (aiChatSessionsRefs)
+                    await $_getPrefetchedData<AiPersona, $AiPersonasTable,
+                            AiChatSession>(
+                        currentTable: table,
+                        referencedTable: $$AiPersonasTableReferences
+                            ._aiChatSessionsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$AiPersonasTableReferences(db, table, p0)
+                                .aiChatSessionsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.personaUuid == item.uuid),
+                        typedResults: items),
+                  if (aiDivinationsRefs)
+                    await $_getPrefetchedData<AiPersona, $AiPersonasTable,
+                            AiDivination>(
+                        currentTable: table,
+                        referencedTable: $$AiPersonasTableReferences
+                            ._aiDivinationsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$AiPersonasTableReferences(db, table, p0)
+                                .aiDivinationsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.personaUuid == item.uuid),
+                        typedResults: items),
+                  if (callerInvocations)
+                    await $_getPrefetchedData<AiPersona, $AiPersonasTable,
+                            AgentInvocation>(
+                        currentTable: table,
+                        referencedTable: $$AiPersonasTableReferences
+                            ._callerInvocationsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$AiPersonasTableReferences(db, table, p0)
+                                .callerInvocations,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.callerPersonaUuid == item.uuid),
+                        typedResults: items),
+                  if (calleeInvocations)
+                    await $_getPrefetchedData<AiPersona, $AiPersonasTable,
+                            AgentInvocation>(
+                        currentTable: table,
+                        referencedTable: $$AiPersonasTableReferences
+                            ._calleeInvocationsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$AiPersonasTableReferences(db, table, p0)
+                                .calleeInvocations,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.calleePersonaUuid == item.uuid),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
 }
 
-typedef $$AiPersonasTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AiDatabase,
-      $AiPersonasTable,
-      AiPersona,
-      $$AiPersonasTableFilterComposer,
-      $$AiPersonasTableOrderingComposer,
-      $$AiPersonasTableAnnotationComposer,
-      $$AiPersonasTableCreateCompanionBuilder,
-      $$AiPersonasTableUpdateCompanionBuilder,
-      (AiPersona, $$AiPersonasTableReferences),
-      AiPersona,
-      PrefetchHooks Function({
-        bool modelUuid,
+typedef $$AiPersonasTableProcessedTableManager = ProcessedTableManager<
+    _$AiDatabase,
+    $AiPersonasTable,
+    AiPersona,
+    $$AiPersonasTableFilterComposer,
+    $$AiPersonasTableOrderingComposer,
+    $$AiPersonasTableAnnotationComposer,
+    $$AiPersonasTableCreateCompanionBuilder,
+    $$AiPersonasTableUpdateCompanionBuilder,
+    (AiPersona, $$AiPersonasTableReferences),
+    AiPersona,
+    PrefetchHooks Function(
+        {bool modelUuid,
         bool systemPromptUuid,
         bool aiChatSessionsRefs,
         bool aiDivinationsRefs,
         bool callerInvocations,
-        bool calleeInvocations,
-      })
-    >;
-typedef $$AiChatSessionsTableCreateCompanionBuilder =
-    AiChatSessionsCompanion Function({
-      required String uuid,
-      required DateTime createdAt,
-      Value<DateTime?> lastUpdatedAt,
-      Value<DateTime?> deletedAt,
-      Value<String?> title,
-      required String personaUuid,
-      Value<String?> divinationUuid,
-      Value<String> status,
-      Value<String?> contextJson,
-      Value<int> messageCount,
-      Value<DateTime?> lastMessageAt,
-      Value<int> rowid,
-    });
-typedef $$AiChatSessionsTableUpdateCompanionBuilder =
-    AiChatSessionsCompanion Function({
-      Value<String> uuid,
-      Value<DateTime> createdAt,
-      Value<DateTime?> lastUpdatedAt,
-      Value<DateTime?> deletedAt,
-      Value<String?> title,
-      Value<String> personaUuid,
-      Value<String?> divinationUuid,
-      Value<String> status,
-      Value<String?> contextJson,
-      Value<int> messageCount,
-      Value<DateTime?> lastMessageAt,
-      Value<int> rowid,
-    });
+        bool calleeInvocations})>;
+typedef $$AiChatSessionsTableCreateCompanionBuilder = AiChatSessionsCompanion
+    Function({
+  required String uuid,
+  required DateTime createdAt,
+  Value<DateTime?> lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String?> title,
+  required String personaUuid,
+  Value<String?> divinationUuid,
+  Value<String> status,
+  Value<String?> contextJson,
+  Value<int> messageCount,
+  Value<DateTime?> lastMessageAt,
+  Value<int> rowid,
+});
+typedef $$AiChatSessionsTableUpdateCompanionBuilder = AiChatSessionsCompanion
+    Function({
+  Value<String> uuid,
+  Value<DateTime> createdAt,
+  Value<DateTime?> lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String?> title,
+  Value<String> personaUuid,
+  Value<String?> divinationUuid,
+  Value<String> status,
+  Value<String?> contextJson,
+  Value<int> messageCount,
+  Value<DateTime?> lastMessageAt,
+  Value<int> rowid,
+});
 
 final class $$AiChatSessionsTableReferences
     extends BaseReferences<_$AiDatabase, $AiChatSessionsTable, AiChatSession> {
   $$AiChatSessionsTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
+      super.$_db, super.$_table, super.$_typedResult);
 
   static $AiPersonasTable _personaUuidTable(_$AiDatabase db) =>
-      db.aiPersonas.createAlias(
-        $_aliasNameGenerator(db.aiChatSessions.personaUuid, db.aiPersonas.uuid),
-      );
+      db.aiPersonas.createAlias($_aliasNameGenerator(
+          db.aiChatSessions.personaUuid, db.aiPersonas.uuid));
 
   $$AiPersonasTableProcessedTableManager get personaUuid {
     final $_column = $_itemColumn<String>('persona_uuid')!;
 
-    final manager = $$AiPersonasTableTableManager(
-      $_db,
-      $_db.aiPersonas,
-    ).filter((f) => f.uuid.sqlEquals($_column));
+    final manager = $$AiPersonasTableTableManager($_db, $_db.aiPersonas)
+        .filter((f) => f.uuid.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_personaUuidTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
+        manager.$state.copyWith(prefetchedData: [item]));
   }
 
   static MultiTypedResultKey<$AiApiCallsTable, List<AiApiCall>>
-  _aiApiCallsRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.aiApiCalls,
-    aliasName: $_aliasNameGenerator(
-      db.aiChatSessions.uuid,
-      db.aiApiCalls.sessionUuid,
-    ),
-  );
+      _aiApiCallsRefsTable(_$AiDatabase db) =>
+          MultiTypedResultKey.fromTable(db.aiApiCalls,
+              aliasName: $_aliasNameGenerator(
+                  db.aiChatSessions.uuid, db.aiApiCalls.sessionUuid));
 
   $$AiApiCallsTableProcessedTableManager get aiApiCallsRefs {
     final manager = $$AiApiCallsTableTableManager($_db, $_db.aiApiCalls).filter(
-      (f) => f.sessionUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-    );
+        (f) => f.sessionUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
 
     final cache = $_typedResult.readTableOrNull(_aiApiCallsRefsTable($_db));
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
+        manager.$state.copyWith(prefetchedData: cache));
   }
 
   static MultiTypedResultKey<$AiChatMessagesTable, List<AiChatMessage>>
-  _aiChatMessagesRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.aiChatMessages,
-    aliasName: $_aliasNameGenerator(
-      db.aiChatSessions.uuid,
-      db.aiChatMessages.sessionUuid,
-    ),
-  );
+      _aiChatMessagesRefsTable(_$AiDatabase db) =>
+          MultiTypedResultKey.fromTable(db.aiChatMessages,
+              aliasName: $_aliasNameGenerator(
+                  db.aiChatSessions.uuid, db.aiChatMessages.sessionUuid));
 
   $$AiChatMessagesTableProcessedTableManager get aiChatMessagesRefs {
     final manager = $$AiChatMessagesTableTableManager($_db, $_db.aiChatMessages)
         .filter(
-          (f) => f.sessionUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
+            (f) => f.sessionUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
 
     final cache = $_typedResult.readTableOrNull(_aiChatMessagesRefsTable($_db));
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
+        manager.$state.copyWith(prefetchedData: cache));
   }
 
   static MultiTypedResultKey<$AiDivinationsTable, List<AiDivination>>
-  _aiDivinationsRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.aiDivinations,
-    aliasName: $_aliasNameGenerator(
-      db.aiChatSessions.uuid,
-      db.aiDivinations.sessionUuid,
-    ),
-  );
+      _aiDivinationsRefsTable(_$AiDatabase db) =>
+          MultiTypedResultKey.fromTable(db.aiDivinations,
+              aliasName: $_aliasNameGenerator(
+                  db.aiChatSessions.uuid, db.aiDivinations.sessionUuid));
 
   $$AiDivinationsTableProcessedTableManager get aiDivinationsRefs {
     final manager = $$AiDivinationsTableTableManager($_db, $_db.aiDivinations)
         .filter(
-          (f) => f.sessionUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
+            (f) => f.sessionUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
 
     final cache = $_typedResult.readTableOrNull(_aiDivinationsRefsTable($_db));
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
+        manager.$state.copyWith(prefetchedData: cache));
   }
 
   static MultiTypedResultKey<$AgentInvocationsTable, List<AgentInvocation>>
-  _agentInvocationsRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.agentInvocations,
-    aliasName: $_aliasNameGenerator(
-      db.aiChatSessions.uuid,
-      db.agentInvocations.sessionUuid,
-    ),
-  );
+      _agentInvocationsRefsTable(_$AiDatabase db) =>
+          MultiTypedResultKey.fromTable(db.agentInvocations,
+              aliasName: $_aliasNameGenerator(
+                  db.aiChatSessions.uuid, db.agentInvocations.sessionUuid));
 
   $$AgentInvocationsTableProcessedTableManager get agentInvocationsRefs {
     final manager =
         $$AgentInvocationsTableTableManager($_db, $_db.agentInvocations).filter(
-          (f) => f.sessionUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
+            (f) => f.sessionUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
 
-    final cache = $_typedResult.readTableOrNull(
-      _agentInvocationsRefsTable($_db),
-    );
+    final cache =
+        $_typedResult.readTableOrNull(_agentInvocationsRefsTable($_db));
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
+        manager.$state.copyWith(prefetchedData: cache));
   }
 }
 
@@ -14934,175 +12411,137 @@ class $$AiChatSessionsTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.lastUpdatedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
-    column: $table.deletedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get title => $composableBuilder(
-    column: $table.title,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.title, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get divinationUuid => $composableBuilder(
-    column: $table.divinationUuid,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.divinationUuid,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get status => $composableBuilder(
-    column: $table.status,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.status, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get contextJson => $composableBuilder(
-    column: $table.contextJson,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.contextJson, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get messageCount => $composableBuilder(
-    column: $table.messageCount,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.messageCount, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get lastMessageAt => $composableBuilder(
-    column: $table.lastMessageAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.lastMessageAt, builder: (column) => ColumnFilters(column));
 
   $$AiPersonasTableFilterComposer get personaUuid {
     final $$AiPersonasTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.personaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableFilterComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.personaUuid,
+        referencedTable: $db.aiPersonas,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiPersonasTableFilterComposer(
+              $db: $db,
+              $table: $db.aiPersonas,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   Expression<bool> aiApiCallsRefs(
-    Expression<bool> Function($$AiApiCallsTableFilterComposer f) f,
-  ) {
+      Expression<bool> Function($$AiApiCallsTableFilterComposer f) f) {
     final $$AiApiCallsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiApiCalls,
-      getReferencedColumn: (t) => t.sessionUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiApiCallsTableFilterComposer(
-            $db: $db,
-            $table: $db.aiApiCalls,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.aiApiCalls,
+        getReferencedColumn: (t) => t.sessionUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiApiCallsTableFilterComposer(
+              $db: $db,
+              $table: $db.aiApiCalls,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 
   Expression<bool> aiChatMessagesRefs(
-    Expression<bool> Function($$AiChatMessagesTableFilterComposer f) f,
-  ) {
+      Expression<bool> Function($$AiChatMessagesTableFilterComposer f) f) {
     final $$AiChatMessagesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiChatMessages,
-      getReferencedColumn: (t) => t.sessionUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatMessagesTableFilterComposer(
-            $db: $db,
-            $table: $db.aiChatMessages,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.aiChatMessages,
+        getReferencedColumn: (t) => t.sessionUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiChatMessagesTableFilterComposer(
+              $db: $db,
+              $table: $db.aiChatMessages,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 
   Expression<bool> aiDivinationsRefs(
-    Expression<bool> Function($$AiDivinationsTableFilterComposer f) f,
-  ) {
+      Expression<bool> Function($$AiDivinationsTableFilterComposer f) f) {
     final $$AiDivinationsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiDivinations,
-      getReferencedColumn: (t) => t.sessionUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiDivinationsTableFilterComposer(
-            $db: $db,
-            $table: $db.aiDivinations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.aiDivinations,
+        getReferencedColumn: (t) => t.sessionUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiDivinationsTableFilterComposer(
+              $db: $db,
+              $table: $db.aiDivinations,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 
   Expression<bool> agentInvocationsRefs(
-    Expression<bool> Function($$AgentInvocationsTableFilterComposer f) f,
-  ) {
+      Expression<bool> Function($$AgentInvocationsTableFilterComposer f) f) {
     final $$AgentInvocationsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.agentInvocations,
-      getReferencedColumn: (t) => t.sessionUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AgentInvocationsTableFilterComposer(
-            $db: $db,
-            $table: $db.agentInvocations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.agentInvocations,
+        getReferencedColumn: (t) => t.sessionUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AgentInvocationsTableFilterComposer(
+              $db: $db,
+              $table: $db.agentInvocations,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 }
@@ -15117,75 +12556,56 @@ class $$AiChatSessionsTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.lastUpdatedAt,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
-    column: $table.deletedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get title => $composableBuilder(
-    column: $table.title,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.title, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get divinationUuid => $composableBuilder(
-    column: $table.divinationUuid,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.divinationUuid,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get status => $composableBuilder(
-    column: $table.status,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.status, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get contextJson => $composableBuilder(
-    column: $table.contextJson,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.contextJson, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get messageCount => $composableBuilder(
-    column: $table.messageCount,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.messageCount,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get lastMessageAt => $composableBuilder(
-    column: $table.lastMessageAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.lastMessageAt,
+      builder: (column) => ColumnOrderings(column));
 
   $$AiPersonasTableOrderingComposer get personaUuid {
     final $$AiPersonasTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.personaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableOrderingComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.personaUuid,
+        referencedTable: $db.aiPersonas,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiPersonasTableOrderingComposer(
+              $db: $db,
+              $table: $db.aiPersonas,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 }
@@ -15206,9 +12626,7 @@ class $$AiChatSessionsTableAnnotationComposer
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => column,
-  );
+      column: $table.lastUpdatedAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
@@ -15217,176 +12635,144 @@ class $$AiChatSessionsTableAnnotationComposer
       $composableBuilder(column: $table.title, builder: (column) => column);
 
   GeneratedColumn<String> get divinationUuid => $composableBuilder(
-    column: $table.divinationUuid,
-    builder: (column) => column,
-  );
+      column: $table.divinationUuid, builder: (column) => column);
 
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
 
   GeneratedColumn<String> get contextJson => $composableBuilder(
-    column: $table.contextJson,
-    builder: (column) => column,
-  );
+      column: $table.contextJson, builder: (column) => column);
 
   GeneratedColumn<int> get messageCount => $composableBuilder(
-    column: $table.messageCount,
-    builder: (column) => column,
-  );
+      column: $table.messageCount, builder: (column) => column);
 
   GeneratedColumn<DateTime> get lastMessageAt => $composableBuilder(
-    column: $table.lastMessageAt,
-    builder: (column) => column,
-  );
+      column: $table.lastMessageAt, builder: (column) => column);
 
   $$AiPersonasTableAnnotationComposer get personaUuid {
     final $$AiPersonasTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.personaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.personaUuid,
+        referencedTable: $db.aiPersonas,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiPersonasTableAnnotationComposer(
+              $db: $db,
+              $table: $db.aiPersonas,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   Expression<T> aiApiCallsRefs<T extends Object>(
-    Expression<T> Function($$AiApiCallsTableAnnotationComposer a) f,
-  ) {
+      Expression<T> Function($$AiApiCallsTableAnnotationComposer a) f) {
     final $$AiApiCallsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiApiCalls,
-      getReferencedColumn: (t) => t.sessionUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiApiCallsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiApiCalls,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.aiApiCalls,
+        getReferencedColumn: (t) => t.sessionUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiApiCallsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.aiApiCalls,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 
   Expression<T> aiChatMessagesRefs<T extends Object>(
-    Expression<T> Function($$AiChatMessagesTableAnnotationComposer a) f,
-  ) {
+      Expression<T> Function($$AiChatMessagesTableAnnotationComposer a) f) {
     final $$AiChatMessagesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiChatMessages,
-      getReferencedColumn: (t) => t.sessionUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatMessagesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiChatMessages,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.aiChatMessages,
+        getReferencedColumn: (t) => t.sessionUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiChatMessagesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.aiChatMessages,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 
   Expression<T> aiDivinationsRefs<T extends Object>(
-    Expression<T> Function($$AiDivinationsTableAnnotationComposer a) f,
-  ) {
+      Expression<T> Function($$AiDivinationsTableAnnotationComposer a) f) {
     final $$AiDivinationsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiDivinations,
-      getReferencedColumn: (t) => t.sessionUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiDivinationsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiDivinations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.aiDivinations,
+        getReferencedColumn: (t) => t.sessionUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiDivinationsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.aiDivinations,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 
   Expression<T> agentInvocationsRefs<T extends Object>(
-    Expression<T> Function($$AgentInvocationsTableAnnotationComposer a) f,
-  ) {
+      Expression<T> Function($$AgentInvocationsTableAnnotationComposer a) f) {
     final $$AgentInvocationsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.agentInvocations,
-      getReferencedColumn: (t) => t.sessionUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AgentInvocationsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.agentInvocations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.agentInvocations,
+        getReferencedColumn: (t) => t.sessionUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AgentInvocationsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.agentInvocations,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 }
 
-class $$AiChatSessionsTableTableManager
-    extends
-        RootTableManager<
-          _$AiDatabase,
-          $AiChatSessionsTable,
-          AiChatSession,
-          $$AiChatSessionsTableFilterComposer,
-          $$AiChatSessionsTableOrderingComposer,
-          $$AiChatSessionsTableAnnotationComposer,
-          $$AiChatSessionsTableCreateCompanionBuilder,
-          $$AiChatSessionsTableUpdateCompanionBuilder,
-          (AiChatSession, $$AiChatSessionsTableReferences),
-          AiChatSession,
-          PrefetchHooks Function({
-            bool personaUuid,
-            bool aiApiCallsRefs,
-            bool aiChatMessagesRefs,
-            bool aiDivinationsRefs,
-            bool agentInvocationsRefs,
-          })
-        > {
+class $$AiChatSessionsTableTableManager extends RootTableManager<
+    _$AiDatabase,
+    $AiChatSessionsTable,
+    AiChatSession,
+    $$AiChatSessionsTableFilterComposer,
+    $$AiChatSessionsTableOrderingComposer,
+    $$AiChatSessionsTableAnnotationComposer,
+    $$AiChatSessionsTableCreateCompanionBuilder,
+    $$AiChatSessionsTableUpdateCompanionBuilder,
+    (AiChatSession, $$AiChatSessionsTableReferences),
+    AiChatSession,
+    PrefetchHooks Function(
+        {bool personaUuid,
+        bool aiApiCallsRefs,
+        bool aiChatMessagesRefs,
+        bool aiDivinationsRefs,
+        bool agentInvocationsRefs})> {
   $$AiChatSessionsTableTableManager(_$AiDatabase db, $AiChatSessionsTable table)
-    : super(
-        TableManagerState(
+      : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -15395,332 +12781,270 @@ class $$AiChatSessionsTableTableManager
               $$AiChatSessionsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$AiChatSessionsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> uuid = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime?> lastUpdatedAt = const Value.absent(),
-                Value<DateTime?> deletedAt = const Value.absent(),
-                Value<String?> title = const Value.absent(),
-                Value<String> personaUuid = const Value.absent(),
-                Value<String?> divinationUuid = const Value.absent(),
-                Value<String> status = const Value.absent(),
-                Value<String?> contextJson = const Value.absent(),
-                Value<int> messageCount = const Value.absent(),
-                Value<DateTime?> lastMessageAt = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => AiChatSessionsCompanion(
-                uuid: uuid,
-                createdAt: createdAt,
-                lastUpdatedAt: lastUpdatedAt,
-                deletedAt: deletedAt,
-                title: title,
-                personaUuid: personaUuid,
-                divinationUuid: divinationUuid,
-                status: status,
-                contextJson: contextJson,
-                messageCount: messageCount,
-                lastMessageAt: lastMessageAt,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String uuid,
-                required DateTime createdAt,
-                Value<DateTime?> lastUpdatedAt = const Value.absent(),
-                Value<DateTime?> deletedAt = const Value.absent(),
-                Value<String?> title = const Value.absent(),
-                required String personaUuid,
-                Value<String?> divinationUuid = const Value.absent(),
-                Value<String> status = const Value.absent(),
-                Value<String?> contextJson = const Value.absent(),
-                Value<int> messageCount = const Value.absent(),
-                Value<DateTime?> lastMessageAt = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => AiChatSessionsCompanion.insert(
-                uuid: uuid,
-                createdAt: createdAt,
-                lastUpdatedAt: lastUpdatedAt,
-                deletedAt: deletedAt,
-                title: title,
-                personaUuid: personaUuid,
-                divinationUuid: divinationUuid,
-                status: status,
-                contextJson: contextJson,
-                messageCount: messageCount,
-                lastMessageAt: lastMessageAt,
-                rowid: rowid,
-              ),
+          updateCompanionCallback: ({
+            Value<String> uuid = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime?> lastUpdatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String?> title = const Value.absent(),
+            Value<String> personaUuid = const Value.absent(),
+            Value<String?> divinationUuid = const Value.absent(),
+            Value<String> status = const Value.absent(),
+            Value<String?> contextJson = const Value.absent(),
+            Value<int> messageCount = const Value.absent(),
+            Value<DateTime?> lastMessageAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AiChatSessionsCompanion(
+            uuid: uuid,
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            title: title,
+            personaUuid: personaUuid,
+            divinationUuid: divinationUuid,
+            status: status,
+            contextJson: contextJson,
+            messageCount: messageCount,
+            lastMessageAt: lastMessageAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String uuid,
+            required DateTime createdAt,
+            Value<DateTime?> lastUpdatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String?> title = const Value.absent(),
+            required String personaUuid,
+            Value<String?> divinationUuid = const Value.absent(),
+            Value<String> status = const Value.absent(),
+            Value<String?> contextJson = const Value.absent(),
+            Value<int> messageCount = const Value.absent(),
+            Value<DateTime?> lastMessageAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AiChatSessionsCompanion.insert(
+            uuid: uuid,
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            title: title,
+            personaUuid: personaUuid,
+            divinationUuid: divinationUuid,
+            status: status,
+            contextJson: contextJson,
+            messageCount: messageCount,
+            lastMessageAt: lastMessageAt,
+            rowid: rowid,
+          ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$AiChatSessionsTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (
+                    e.readTable(table),
+                    $$AiChatSessionsTableReferences(db, table, e)
+                  ))
               .toList(),
-          prefetchHooksCallback:
-              ({
-                personaUuid = false,
-                aiApiCallsRefs = false,
-                aiChatMessagesRefs = false,
-                aiDivinationsRefs = false,
-                agentInvocationsRefs = false,
-              }) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [
-                    if (aiApiCallsRefs) db.aiApiCalls,
-                    if (aiChatMessagesRefs) db.aiChatMessages,
-                    if (aiDivinationsRefs) db.aiDivinations,
-                    if (agentInvocationsRefs) db.agentInvocations,
-                  ],
-                  addJoins:
-                      <
-                        T extends TableManagerState<
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic
-                        >
-                      >(state) {
-                        if (personaUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.personaUuid,
-                                    referencedTable:
-                                        $$AiChatSessionsTableReferences
-                                            ._personaUuidTable(db),
-                                    referencedColumn:
-                                        $$AiChatSessionsTableReferences
-                                            ._personaUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
+          prefetchHooksCallback: (
+              {personaUuid = false,
+              aiApiCallsRefs = false,
+              aiChatMessagesRefs = false,
+              aiDivinationsRefs = false,
+              agentInvocationsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (aiApiCallsRefs) db.aiApiCalls,
+                if (aiChatMessagesRefs) db.aiChatMessages,
+                if (aiDivinationsRefs) db.aiDivinations,
+                if (agentInvocationsRefs) db.agentInvocations
+              ],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (personaUuid) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.personaUuid,
+                    referencedTable:
+                        $$AiChatSessionsTableReferences._personaUuidTable(db),
+                    referencedColumn: $$AiChatSessionsTableReferences
+                        ._personaUuidTable(db)
+                        .uuid,
+                  ) as T;
+                }
 
-                        return state;
-                      },
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (aiApiCallsRefs)
-                        await $_getPrefetchedData<
-                          AiChatSession,
-                          $AiChatSessionsTable,
-                          AiApiCall
-                        >(
-                          currentTable: table,
-                          referencedTable: $$AiChatSessionsTableReferences
-                              ._aiApiCallsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$AiChatSessionsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).aiApiCallsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.sessionUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (aiChatMessagesRefs)
-                        await $_getPrefetchedData<
-                          AiChatSession,
-                          $AiChatSessionsTable,
-                          AiChatMessage
-                        >(
-                          currentTable: table,
-                          referencedTable: $$AiChatSessionsTableReferences
-                              ._aiChatMessagesRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$AiChatSessionsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).aiChatMessagesRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.sessionUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (aiDivinationsRefs)
-                        await $_getPrefetchedData<
-                          AiChatSession,
-                          $AiChatSessionsTable,
-                          AiDivination
-                        >(
-                          currentTable: table,
-                          referencedTable: $$AiChatSessionsTableReferences
-                              ._aiDivinationsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$AiChatSessionsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).aiDivinationsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.sessionUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (agentInvocationsRefs)
-                        await $_getPrefetchedData<
-                          AiChatSession,
-                          $AiChatSessionsTable,
-                          AgentInvocation
-                        >(
-                          currentTable: table,
-                          referencedTable: $$AiChatSessionsTableReferences
-                              ._agentInvocationsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$AiChatSessionsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).agentInvocationsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.sessionUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
+                return state;
               },
-        ),
-      );
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (aiApiCallsRefs)
+                    await $_getPrefetchedData<AiChatSession,
+                            $AiChatSessionsTable, AiApiCall>(
+                        currentTable: table,
+                        referencedTable: $$AiChatSessionsTableReferences
+                            ._aiApiCallsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$AiChatSessionsTableReferences(db, table, p0)
+                                .aiApiCallsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.sessionUuid == item.uuid),
+                        typedResults: items),
+                  if (aiChatMessagesRefs)
+                    await $_getPrefetchedData<AiChatSession,
+                            $AiChatSessionsTable, AiChatMessage>(
+                        currentTable: table,
+                        referencedTable: $$AiChatSessionsTableReferences
+                            ._aiChatMessagesRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$AiChatSessionsTableReferences(db, table, p0)
+                                .aiChatMessagesRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.sessionUuid == item.uuid),
+                        typedResults: items),
+                  if (aiDivinationsRefs)
+                    await $_getPrefetchedData<AiChatSession, $AiChatSessionsTable,
+                            AiDivination>(
+                        currentTable: table,
+                        referencedTable: $$AiChatSessionsTableReferences
+                            ._aiDivinationsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$AiChatSessionsTableReferences(db, table, p0)
+                                .aiDivinationsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.sessionUuid == item.uuid),
+                        typedResults: items),
+                  if (agentInvocationsRefs)
+                    await $_getPrefetchedData<AiChatSession,
+                            $AiChatSessionsTable, AgentInvocation>(
+                        currentTable: table,
+                        referencedTable: $$AiChatSessionsTableReferences
+                            ._agentInvocationsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$AiChatSessionsTableReferences(db, table, p0)
+                                .agentInvocationsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.sessionUuid == item.uuid),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
 }
 
-typedef $$AiChatSessionsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AiDatabase,
-      $AiChatSessionsTable,
-      AiChatSession,
-      $$AiChatSessionsTableFilterComposer,
-      $$AiChatSessionsTableOrderingComposer,
-      $$AiChatSessionsTableAnnotationComposer,
-      $$AiChatSessionsTableCreateCompanionBuilder,
-      $$AiChatSessionsTableUpdateCompanionBuilder,
-      (AiChatSession, $$AiChatSessionsTableReferences),
-      AiChatSession,
-      PrefetchHooks Function({
-        bool personaUuid,
+typedef $$AiChatSessionsTableProcessedTableManager = ProcessedTableManager<
+    _$AiDatabase,
+    $AiChatSessionsTable,
+    AiChatSession,
+    $$AiChatSessionsTableFilterComposer,
+    $$AiChatSessionsTableOrderingComposer,
+    $$AiChatSessionsTableAnnotationComposer,
+    $$AiChatSessionsTableCreateCompanionBuilder,
+    $$AiChatSessionsTableUpdateCompanionBuilder,
+    (AiChatSession, $$AiChatSessionsTableReferences),
+    AiChatSession,
+    PrefetchHooks Function(
+        {bool personaUuid,
         bool aiApiCallsRefs,
         bool aiChatMessagesRefs,
         bool aiDivinationsRefs,
-        bool agentInvocationsRefs,
-      })
-    >;
-typedef $$AiApiCallsTableCreateCompanionBuilder =
-    AiApiCallsCompanion Function({
-      required String uuid,
-      Value<String?> sessionUuid,
-      required String modelUuid,
-      required DateTime requestedAt,
-      Value<DateTime?> respondedAt,
-      required String requestJson,
-      Value<String?> responseJson,
-      Value<String> status,
-      Value<String?> errorMessage,
-      Value<int?> inputTokens,
-      Value<int?> outputTokens,
-      Value<int?> totalTokens,
-      Value<int?> latencyMs,
-      Value<bool> isStreaming,
-      Value<int> rowid,
-    });
-typedef $$AiApiCallsTableUpdateCompanionBuilder =
-    AiApiCallsCompanion Function({
-      Value<String> uuid,
-      Value<String?> sessionUuid,
-      Value<String> modelUuid,
-      Value<DateTime> requestedAt,
-      Value<DateTime?> respondedAt,
-      Value<String> requestJson,
-      Value<String?> responseJson,
-      Value<String> status,
-      Value<String?> errorMessage,
-      Value<int?> inputTokens,
-      Value<int?> outputTokens,
-      Value<int?> totalTokens,
-      Value<int?> latencyMs,
-      Value<bool> isStreaming,
-      Value<int> rowid,
-    });
+        bool agentInvocationsRefs})>;
+typedef $$AiApiCallsTableCreateCompanionBuilder = AiApiCallsCompanion Function({
+  required String uuid,
+  Value<String?> sessionUuid,
+  required String modelUuid,
+  required DateTime requestedAt,
+  Value<DateTime?> respondedAt,
+  required String requestJson,
+  Value<String?> responseJson,
+  Value<String> status,
+  Value<String?> errorMessage,
+  Value<int?> inputTokens,
+  Value<int?> outputTokens,
+  Value<int?> totalTokens,
+  Value<int?> latencyMs,
+  Value<bool> isStreaming,
+  Value<int> rowid,
+});
+typedef $$AiApiCallsTableUpdateCompanionBuilder = AiApiCallsCompanion Function({
+  Value<String> uuid,
+  Value<String?> sessionUuid,
+  Value<String> modelUuid,
+  Value<DateTime> requestedAt,
+  Value<DateTime?> respondedAt,
+  Value<String> requestJson,
+  Value<String?> responseJson,
+  Value<String> status,
+  Value<String?> errorMessage,
+  Value<int?> inputTokens,
+  Value<int?> outputTokens,
+  Value<int?> totalTokens,
+  Value<int?> latencyMs,
+  Value<bool> isStreaming,
+  Value<int> rowid,
+});
 
 final class $$AiApiCallsTableReferences
     extends BaseReferences<_$AiDatabase, $AiApiCallsTable, AiApiCall> {
   $$AiApiCallsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static $AiChatSessionsTable _sessionUuidTable(_$AiDatabase db) =>
-      db.aiChatSessions.createAlias(
-        $_aliasNameGenerator(db.aiApiCalls.sessionUuid, db.aiChatSessions.uuid),
-      );
+      db.aiChatSessions.createAlias($_aliasNameGenerator(
+          db.aiApiCalls.sessionUuid, db.aiChatSessions.uuid));
 
   $$AiChatSessionsTableProcessedTableManager? get sessionUuid {
     final $_column = $_itemColumn<String>('session_uuid');
     if ($_column == null) return null;
-    final manager = $$AiChatSessionsTableTableManager(
-      $_db,
-      $_db.aiChatSessions,
-    ).filter((f) => f.uuid.sqlEquals($_column));
+    final manager = $$AiChatSessionsTableTableManager($_db, $_db.aiChatSessions)
+        .filter((f) => f.uuid.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_sessionUuidTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
+        manager.$state.copyWith(prefetchedData: [item]));
   }
 
   static $LlmModelsTable _modelUuidTable(_$AiDatabase db) =>
       db.llmModels.createAlias(
-        $_aliasNameGenerator(db.aiApiCalls.modelUuid, db.llmModels.uuid),
-      );
+          $_aliasNameGenerator(db.aiApiCalls.modelUuid, db.llmModels.uuid));
 
   $$LlmModelsTableProcessedTableManager get modelUuid {
     final $_column = $_itemColumn<String>('model_uuid')!;
 
-    final manager = $$LlmModelsTableTableManager(
-      $_db,
-      $_db.llmModels,
-    ).filter((f) => f.uuid.sqlEquals($_column));
+    final manager = $$LlmModelsTableTableManager($_db, $_db.llmModels)
+        .filter((f) => f.uuid.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_modelUuidTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
+        manager.$state.copyWith(prefetchedData: [item]));
   }
 
   static MultiTypedResultKey<$AiChatMessagesTable, List<AiChatMessage>>
-  _aiChatMessagesRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.aiChatMessages,
-    aliasName: $_aliasNameGenerator(
-      db.aiApiCalls.uuid,
-      db.aiChatMessages.apiCallUuid,
-    ),
-  );
+      _aiChatMessagesRefsTable(_$AiDatabase db) =>
+          MultiTypedResultKey.fromTable(db.aiChatMessages,
+              aliasName: $_aliasNameGenerator(
+                  db.aiApiCalls.uuid, db.aiChatMessages.apiCallUuid));
 
   $$AiChatMessagesTableProcessedTableManager get aiChatMessagesRefs {
     final manager = $$AiChatMessagesTableTableManager($_db, $_db.aiChatMessages)
         .filter(
-          (f) => f.apiCallUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
+            (f) => f.apiCallUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
 
     final cache = $_typedResult.readTableOrNull(_aiChatMessagesRefsTable($_db));
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
+        manager.$state.copyWith(prefetchedData: cache));
   }
 }
 
@@ -15734,133 +13058,99 @@ class $$AiApiCallsTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get requestedAt => $composableBuilder(
-    column: $table.requestedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.requestedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get respondedAt => $composableBuilder(
-    column: $table.respondedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.respondedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get requestJson => $composableBuilder(
-    column: $table.requestJson,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.requestJson, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get responseJson => $composableBuilder(
-    column: $table.responseJson,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.responseJson, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get status => $composableBuilder(
-    column: $table.status,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.status, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get errorMessage => $composableBuilder(
-    column: $table.errorMessage,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.errorMessage, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get inputTokens => $composableBuilder(
-    column: $table.inputTokens,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.inputTokens, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get outputTokens => $composableBuilder(
-    column: $table.outputTokens,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.outputTokens, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get totalTokens => $composableBuilder(
-    column: $table.totalTokens,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.totalTokens, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get latencyMs => $composableBuilder(
-    column: $table.latencyMs,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.latencyMs, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get isStreaming => $composableBuilder(
-    column: $table.isStreaming,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.isStreaming, builder: (column) => ColumnFilters(column));
 
   $$AiChatSessionsTableFilterComposer get sessionUuid {
     final $$AiChatSessionsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableFilterComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.sessionUuid,
+        referencedTable: $db.aiChatSessions,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiChatSessionsTableFilterComposer(
+              $db: $db,
+              $table: $db.aiChatSessions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$LlmModelsTableFilterComposer get modelUuid {
     final $$LlmModelsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.modelUuid,
-      referencedTable: $db.llmModels,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LlmModelsTableFilterComposer(
-            $db: $db,
-            $table: $db.llmModels,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.modelUuid,
+        referencedTable: $db.llmModels,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LlmModelsTableFilterComposer(
+              $db: $db,
+              $table: $db.llmModels,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   Expression<bool> aiChatMessagesRefs(
-    Expression<bool> Function($$AiChatMessagesTableFilterComposer f) f,
-  ) {
+      Expression<bool> Function($$AiChatMessagesTableFilterComposer f) f) {
     final $$AiChatMessagesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiChatMessages,
-      getReferencedColumn: (t) => t.apiCallUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatMessagesTableFilterComposer(
-            $db: $db,
-            $table: $db.aiChatMessages,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.aiChatMessages,
+        getReferencedColumn: (t) => t.apiCallUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiChatMessagesTableFilterComposer(
+              $db: $db,
+              $table: $db.aiChatMessages,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 }
@@ -15875,108 +13165,81 @@ class $$AiApiCallsTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get requestedAt => $composableBuilder(
-    column: $table.requestedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.requestedAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get respondedAt => $composableBuilder(
-    column: $table.respondedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.respondedAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get requestJson => $composableBuilder(
-    column: $table.requestJson,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.requestJson, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get responseJson => $composableBuilder(
-    column: $table.responseJson,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.responseJson,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get status => $composableBuilder(
-    column: $table.status,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.status, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get errorMessage => $composableBuilder(
-    column: $table.errorMessage,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.errorMessage,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get inputTokens => $composableBuilder(
-    column: $table.inputTokens,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.inputTokens, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get outputTokens => $composableBuilder(
-    column: $table.outputTokens,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.outputTokens,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get totalTokens => $composableBuilder(
-    column: $table.totalTokens,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.totalTokens, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get latencyMs => $composableBuilder(
-    column: $table.latencyMs,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.latencyMs, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<bool> get isStreaming => $composableBuilder(
-    column: $table.isStreaming,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.isStreaming, builder: (column) => ColumnOrderings(column));
 
   $$AiChatSessionsTableOrderingComposer get sessionUuid {
     final $$AiChatSessionsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableOrderingComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.sessionUuid,
+        referencedTable: $db.aiChatSessions,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiChatSessionsTableOrderingComposer(
+              $db: $db,
+              $table: $db.aiChatSessions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$LlmModelsTableOrderingComposer get modelUuid {
     final $$LlmModelsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.modelUuid,
-      referencedTable: $db.llmModels,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LlmModelsTableOrderingComposer(
-            $db: $db,
-            $table: $db.llmModels,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.modelUuid,
+        referencedTable: $db.llmModels,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LlmModelsTableOrderingComposer(
+              $db: $db,
+              $table: $db.llmModels,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 }
@@ -15994,150 +13257,115 @@ class $$AiApiCallsTableAnnotationComposer
       $composableBuilder(column: $table.uuid, builder: (column) => column);
 
   GeneratedColumn<DateTime> get requestedAt => $composableBuilder(
-    column: $table.requestedAt,
-    builder: (column) => column,
-  );
+      column: $table.requestedAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get respondedAt => $composableBuilder(
-    column: $table.respondedAt,
-    builder: (column) => column,
-  );
+      column: $table.respondedAt, builder: (column) => column);
 
   GeneratedColumn<String> get requestJson => $composableBuilder(
-    column: $table.requestJson,
-    builder: (column) => column,
-  );
+      column: $table.requestJson, builder: (column) => column);
 
   GeneratedColumn<String> get responseJson => $composableBuilder(
-    column: $table.responseJson,
-    builder: (column) => column,
-  );
+      column: $table.responseJson, builder: (column) => column);
 
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
 
   GeneratedColumn<String> get errorMessage => $composableBuilder(
-    column: $table.errorMessage,
-    builder: (column) => column,
-  );
+      column: $table.errorMessage, builder: (column) => column);
 
   GeneratedColumn<int> get inputTokens => $composableBuilder(
-    column: $table.inputTokens,
-    builder: (column) => column,
-  );
+      column: $table.inputTokens, builder: (column) => column);
 
   GeneratedColumn<int> get outputTokens => $composableBuilder(
-    column: $table.outputTokens,
-    builder: (column) => column,
-  );
+      column: $table.outputTokens, builder: (column) => column);
 
   GeneratedColumn<int> get totalTokens => $composableBuilder(
-    column: $table.totalTokens,
-    builder: (column) => column,
-  );
+      column: $table.totalTokens, builder: (column) => column);
 
   GeneratedColumn<int> get latencyMs =>
       $composableBuilder(column: $table.latencyMs, builder: (column) => column);
 
   GeneratedColumn<bool> get isStreaming => $composableBuilder(
-    column: $table.isStreaming,
-    builder: (column) => column,
-  );
+      column: $table.isStreaming, builder: (column) => column);
 
   $$AiChatSessionsTableAnnotationComposer get sessionUuid {
     final $$AiChatSessionsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.sessionUuid,
+        referencedTable: $db.aiChatSessions,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiChatSessionsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.aiChatSessions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$LlmModelsTableAnnotationComposer get modelUuid {
     final $$LlmModelsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.modelUuid,
-      referencedTable: $db.llmModels,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LlmModelsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.llmModels,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.modelUuid,
+        referencedTable: $db.llmModels,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LlmModelsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.llmModels,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   Expression<T> aiChatMessagesRefs<T extends Object>(
-    Expression<T> Function($$AiChatMessagesTableAnnotationComposer a) f,
-  ) {
+      Expression<T> Function($$AiChatMessagesTableAnnotationComposer a) f) {
     final $$AiChatMessagesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiChatMessages,
-      getReferencedColumn: (t) => t.apiCallUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatMessagesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiChatMessages,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.aiChatMessages,
+        getReferencedColumn: (t) => t.apiCallUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiChatMessagesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.aiChatMessages,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 }
 
-class $$AiApiCallsTableTableManager
-    extends
-        RootTableManager<
-          _$AiDatabase,
-          $AiApiCallsTable,
-          AiApiCall,
-          $$AiApiCallsTableFilterComposer,
-          $$AiApiCallsTableOrderingComposer,
-          $$AiApiCallsTableAnnotationComposer,
-          $$AiApiCallsTableCreateCompanionBuilder,
-          $$AiApiCallsTableUpdateCompanionBuilder,
-          (AiApiCall, $$AiApiCallsTableReferences),
-          AiApiCall,
-          PrefetchHooks Function({
-            bool sessionUuid,
-            bool modelUuid,
-            bool aiChatMessagesRefs,
-          })
-        > {
+class $$AiApiCallsTableTableManager extends RootTableManager<
+    _$AiDatabase,
+    $AiApiCallsTable,
+    AiApiCall,
+    $$AiApiCallsTableFilterComposer,
+    $$AiApiCallsTableOrderingComposer,
+    $$AiApiCallsTableAnnotationComposer,
+    $$AiApiCallsTableCreateCompanionBuilder,
+    $$AiApiCallsTableUpdateCompanionBuilder,
+    (AiApiCall, $$AiApiCallsTableReferences),
+    AiApiCall,
+    PrefetchHooks Function(
+        {bool sessionUuid, bool modelUuid, bool aiChatMessagesRefs})> {
   $$AiApiCallsTableTableManager(_$AiDatabase db, $AiApiCallsTable table)
-    : super(
-        TableManagerState(
+      : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -16146,269 +13374,226 @@ class $$AiApiCallsTableTableManager
               $$AiApiCallsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$AiApiCallsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> uuid = const Value.absent(),
-                Value<String?> sessionUuid = const Value.absent(),
-                Value<String> modelUuid = const Value.absent(),
-                Value<DateTime> requestedAt = const Value.absent(),
-                Value<DateTime?> respondedAt = const Value.absent(),
-                Value<String> requestJson = const Value.absent(),
-                Value<String?> responseJson = const Value.absent(),
-                Value<String> status = const Value.absent(),
-                Value<String?> errorMessage = const Value.absent(),
-                Value<int?> inputTokens = const Value.absent(),
-                Value<int?> outputTokens = const Value.absent(),
-                Value<int?> totalTokens = const Value.absent(),
-                Value<int?> latencyMs = const Value.absent(),
-                Value<bool> isStreaming = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => AiApiCallsCompanion(
-                uuid: uuid,
-                sessionUuid: sessionUuid,
-                modelUuid: modelUuid,
-                requestedAt: requestedAt,
-                respondedAt: respondedAt,
-                requestJson: requestJson,
-                responseJson: responseJson,
-                status: status,
-                errorMessage: errorMessage,
-                inputTokens: inputTokens,
-                outputTokens: outputTokens,
-                totalTokens: totalTokens,
-                latencyMs: latencyMs,
-                isStreaming: isStreaming,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String uuid,
-                Value<String?> sessionUuid = const Value.absent(),
-                required String modelUuid,
-                required DateTime requestedAt,
-                Value<DateTime?> respondedAt = const Value.absent(),
-                required String requestJson,
-                Value<String?> responseJson = const Value.absent(),
-                Value<String> status = const Value.absent(),
-                Value<String?> errorMessage = const Value.absent(),
-                Value<int?> inputTokens = const Value.absent(),
-                Value<int?> outputTokens = const Value.absent(),
-                Value<int?> totalTokens = const Value.absent(),
-                Value<int?> latencyMs = const Value.absent(),
-                Value<bool> isStreaming = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => AiApiCallsCompanion.insert(
-                uuid: uuid,
-                sessionUuid: sessionUuid,
-                modelUuid: modelUuid,
-                requestedAt: requestedAt,
-                respondedAt: respondedAt,
-                requestJson: requestJson,
-                responseJson: responseJson,
-                status: status,
-                errorMessage: errorMessage,
-                inputTokens: inputTokens,
-                outputTokens: outputTokens,
-                totalTokens: totalTokens,
-                latencyMs: latencyMs,
-                isStreaming: isStreaming,
-                rowid: rowid,
-              ),
+          updateCompanionCallback: ({
+            Value<String> uuid = const Value.absent(),
+            Value<String?> sessionUuid = const Value.absent(),
+            Value<String> modelUuid = const Value.absent(),
+            Value<DateTime> requestedAt = const Value.absent(),
+            Value<DateTime?> respondedAt = const Value.absent(),
+            Value<String> requestJson = const Value.absent(),
+            Value<String?> responseJson = const Value.absent(),
+            Value<String> status = const Value.absent(),
+            Value<String?> errorMessage = const Value.absent(),
+            Value<int?> inputTokens = const Value.absent(),
+            Value<int?> outputTokens = const Value.absent(),
+            Value<int?> totalTokens = const Value.absent(),
+            Value<int?> latencyMs = const Value.absent(),
+            Value<bool> isStreaming = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AiApiCallsCompanion(
+            uuid: uuid,
+            sessionUuid: sessionUuid,
+            modelUuid: modelUuid,
+            requestedAt: requestedAt,
+            respondedAt: respondedAt,
+            requestJson: requestJson,
+            responseJson: responseJson,
+            status: status,
+            errorMessage: errorMessage,
+            inputTokens: inputTokens,
+            outputTokens: outputTokens,
+            totalTokens: totalTokens,
+            latencyMs: latencyMs,
+            isStreaming: isStreaming,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String uuid,
+            Value<String?> sessionUuid = const Value.absent(),
+            required String modelUuid,
+            required DateTime requestedAt,
+            Value<DateTime?> respondedAt = const Value.absent(),
+            required String requestJson,
+            Value<String?> responseJson = const Value.absent(),
+            Value<String> status = const Value.absent(),
+            Value<String?> errorMessage = const Value.absent(),
+            Value<int?> inputTokens = const Value.absent(),
+            Value<int?> outputTokens = const Value.absent(),
+            Value<int?> totalTokens = const Value.absent(),
+            Value<int?> latencyMs = const Value.absent(),
+            Value<bool> isStreaming = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AiApiCallsCompanion.insert(
+            uuid: uuid,
+            sessionUuid: sessionUuid,
+            modelUuid: modelUuid,
+            requestedAt: requestedAt,
+            respondedAt: respondedAt,
+            requestJson: requestJson,
+            responseJson: responseJson,
+            status: status,
+            errorMessage: errorMessage,
+            inputTokens: inputTokens,
+            outputTokens: outputTokens,
+            totalTokens: totalTokens,
+            latencyMs: latencyMs,
+            isStreaming: isStreaming,
+            rowid: rowid,
+          ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$AiApiCallsTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (
+                    e.readTable(table),
+                    $$AiApiCallsTableReferences(db, table, e)
+                  ))
               .toList(),
-          prefetchHooksCallback:
-              ({
-                sessionUuid = false,
-                modelUuid = false,
-                aiChatMessagesRefs = false,
-              }) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [
-                    if (aiChatMessagesRefs) db.aiChatMessages,
-                  ],
-                  addJoins:
-                      <
-                        T extends TableManagerState<
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic
-                        >
-                      >(state) {
-                        if (sessionUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.sessionUuid,
-                                    referencedTable: $$AiApiCallsTableReferences
-                                        ._sessionUuidTable(db),
-                                    referencedColumn:
-                                        $$AiApiCallsTableReferences
-                                            ._sessionUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
-                        if (modelUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.modelUuid,
-                                    referencedTable: $$AiApiCallsTableReferences
-                                        ._modelUuidTable(db),
-                                    referencedColumn:
-                                        $$AiApiCallsTableReferences
-                                            ._modelUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
+          prefetchHooksCallback: (
+              {sessionUuid = false,
+              modelUuid = false,
+              aiChatMessagesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (aiChatMessagesRefs) db.aiChatMessages
+              ],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (sessionUuid) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.sessionUuid,
+                    referencedTable:
+                        $$AiApiCallsTableReferences._sessionUuidTable(db),
+                    referencedColumn:
+                        $$AiApiCallsTableReferences._sessionUuidTable(db).uuid,
+                  ) as T;
+                }
+                if (modelUuid) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.modelUuid,
+                    referencedTable:
+                        $$AiApiCallsTableReferences._modelUuidTable(db),
+                    referencedColumn:
+                        $$AiApiCallsTableReferences._modelUuidTable(db).uuid,
+                  ) as T;
+                }
 
-                        return state;
-                      },
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (aiChatMessagesRefs)
-                        await $_getPrefetchedData<
-                          AiApiCall,
-                          $AiApiCallsTable,
-                          AiChatMessage
-                        >(
-                          currentTable: table,
-                          referencedTable: $$AiApiCallsTableReferences
-                              ._aiChatMessagesRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$AiApiCallsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).aiChatMessagesRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.apiCallUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
+                return state;
               },
-        ),
-      );
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (aiChatMessagesRefs)
+                    await $_getPrefetchedData<AiApiCall, $AiApiCallsTable,
+                            AiChatMessage>(
+                        currentTable: table,
+                        referencedTable: $$AiApiCallsTableReferences
+                            ._aiChatMessagesRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$AiApiCallsTableReferences(db, table, p0)
+                                .aiChatMessagesRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.apiCallUuid == item.uuid),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
 }
 
-typedef $$AiApiCallsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AiDatabase,
-      $AiApiCallsTable,
-      AiApiCall,
-      $$AiApiCallsTableFilterComposer,
-      $$AiApiCallsTableOrderingComposer,
-      $$AiApiCallsTableAnnotationComposer,
-      $$AiApiCallsTableCreateCompanionBuilder,
-      $$AiApiCallsTableUpdateCompanionBuilder,
-      (AiApiCall, $$AiApiCallsTableReferences),
-      AiApiCall,
-      PrefetchHooks Function({
-        bool sessionUuid,
-        bool modelUuid,
-        bool aiChatMessagesRefs,
-      })
-    >;
-typedef $$AiChatMessagesTableCreateCompanionBuilder =
-    AiChatMessagesCompanion Function({
-      required String uuid,
-      required String sessionUuid,
-      required String role,
-      required String content,
-      required int sequence,
-      required DateTime createdAt,
-      Value<bool> isStreaming,
-      Value<DateTime?> streamCompletedAt,
-      Value<String?> toolCallId,
-      Value<String?> toolCallsJson,
-      Value<String?> usageJson,
-      Value<String?> apiCallUuid,
-      Value<int> rowid,
-    });
-typedef $$AiChatMessagesTableUpdateCompanionBuilder =
-    AiChatMessagesCompanion Function({
-      Value<String> uuid,
-      Value<String> sessionUuid,
-      Value<String> role,
-      Value<String> content,
-      Value<int> sequence,
-      Value<DateTime> createdAt,
-      Value<bool> isStreaming,
-      Value<DateTime?> streamCompletedAt,
-      Value<String?> toolCallId,
-      Value<String?> toolCallsJson,
-      Value<String?> usageJson,
-      Value<String?> apiCallUuid,
-      Value<int> rowid,
-    });
+typedef $$AiApiCallsTableProcessedTableManager = ProcessedTableManager<
+    _$AiDatabase,
+    $AiApiCallsTable,
+    AiApiCall,
+    $$AiApiCallsTableFilterComposer,
+    $$AiApiCallsTableOrderingComposer,
+    $$AiApiCallsTableAnnotationComposer,
+    $$AiApiCallsTableCreateCompanionBuilder,
+    $$AiApiCallsTableUpdateCompanionBuilder,
+    (AiApiCall, $$AiApiCallsTableReferences),
+    AiApiCall,
+    PrefetchHooks Function(
+        {bool sessionUuid, bool modelUuid, bool aiChatMessagesRefs})>;
+typedef $$AiChatMessagesTableCreateCompanionBuilder = AiChatMessagesCompanion
+    Function({
+  required String uuid,
+  required String sessionUuid,
+  required String role,
+  required String content,
+  required int sequence,
+  required DateTime createdAt,
+  Value<bool> isStreaming,
+  Value<DateTime?> streamCompletedAt,
+  Value<String?> toolCallId,
+  Value<String?> toolCallsJson,
+  Value<String?> usageJson,
+  Value<String?> apiCallUuid,
+  Value<int> rowid,
+});
+typedef $$AiChatMessagesTableUpdateCompanionBuilder = AiChatMessagesCompanion
+    Function({
+  Value<String> uuid,
+  Value<String> sessionUuid,
+  Value<String> role,
+  Value<String> content,
+  Value<int> sequence,
+  Value<DateTime> createdAt,
+  Value<bool> isStreaming,
+  Value<DateTime?> streamCompletedAt,
+  Value<String?> toolCallId,
+  Value<String?> toolCallsJson,
+  Value<String?> usageJson,
+  Value<String?> apiCallUuid,
+  Value<int> rowid,
+});
 
 final class $$AiChatMessagesTableReferences
     extends BaseReferences<_$AiDatabase, $AiChatMessagesTable, AiChatMessage> {
   $$AiChatMessagesTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
+      super.$_db, super.$_table, super.$_typedResult);
 
   static $AiChatSessionsTable _sessionUuidTable(_$AiDatabase db) =>
-      db.aiChatSessions.createAlias(
-        $_aliasNameGenerator(
-          db.aiChatMessages.sessionUuid,
-          db.aiChatSessions.uuid,
-        ),
-      );
+      db.aiChatSessions.createAlias($_aliasNameGenerator(
+          db.aiChatMessages.sessionUuid, db.aiChatSessions.uuid));
 
   $$AiChatSessionsTableProcessedTableManager get sessionUuid {
     final $_column = $_itemColumn<String>('session_uuid')!;
 
-    final manager = $$AiChatSessionsTableTableManager(
-      $_db,
-      $_db.aiChatSessions,
-    ).filter((f) => f.uuid.sqlEquals($_column));
+    final manager = $$AiChatSessionsTableTableManager($_db, $_db.aiChatSessions)
+        .filter((f) => f.uuid.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_sessionUuidTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
+        manager.$state.copyWith(prefetchedData: [item]));
   }
 
   static $AiApiCallsTable _apiCallUuidTable(_$AiDatabase db) =>
-      db.aiApiCalls.createAlias(
-        $_aliasNameGenerator(db.aiChatMessages.apiCallUuid, db.aiApiCalls.uuid),
-      );
+      db.aiApiCalls.createAlias($_aliasNameGenerator(
+          db.aiChatMessages.apiCallUuid, db.aiApiCalls.uuid));
 
   $$AiApiCallsTableProcessedTableManager? get apiCallUuid {
     final $_column = $_itemColumn<String>('api_call_uuid');
     if ($_column == null) return null;
-    final manager = $$AiApiCallsTableTableManager(
-      $_db,
-      $_db.aiApiCalls,
-    ).filter((f) => f.uuid.sqlEquals($_column));
+    final manager = $$AiApiCallsTableTableManager($_db, $_db.aiApiCalls)
+        .filter((f) => f.uuid.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_apiCallUuidTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
+        manager.$state.copyWith(prefetchedData: [item]));
   }
 }
 
@@ -16422,98 +13607,73 @@ class $$AiChatMessagesTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get role => $composableBuilder(
-    column: $table.role,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.role, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get content => $composableBuilder(
-    column: $table.content,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.content, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get sequence => $composableBuilder(
-    column: $table.sequence,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.sequence, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get isStreaming => $composableBuilder(
-    column: $table.isStreaming,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.isStreaming, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get streamCompletedAt => $composableBuilder(
-    column: $table.streamCompletedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.streamCompletedAt,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get toolCallId => $composableBuilder(
-    column: $table.toolCallId,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.toolCallId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get toolCallsJson => $composableBuilder(
-    column: $table.toolCallsJson,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.toolCallsJson, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get usageJson => $composableBuilder(
-    column: $table.usageJson,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.usageJson, builder: (column) => ColumnFilters(column));
 
   $$AiChatSessionsTableFilterComposer get sessionUuid {
     final $$AiChatSessionsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableFilterComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.sessionUuid,
+        referencedTable: $db.aiChatSessions,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiChatSessionsTableFilterComposer(
+              $db: $db,
+              $table: $db.aiChatSessions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$AiApiCallsTableFilterComposer get apiCallUuid {
     final $$AiApiCallsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.apiCallUuid,
-      referencedTable: $db.aiApiCalls,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiApiCallsTableFilterComposer(
-            $db: $db,
-            $table: $db.aiApiCalls,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.apiCallUuid,
+        referencedTable: $db.aiApiCalls,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiApiCallsTableFilterComposer(
+              $db: $db,
+              $table: $db.aiApiCalls,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 }
@@ -16528,98 +13688,74 @@ class $$AiChatMessagesTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get role => $composableBuilder(
-    column: $table.role,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.role, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get content => $composableBuilder(
-    column: $table.content,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.content, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get sequence => $composableBuilder(
-    column: $table.sequence,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.sequence, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<bool> get isStreaming => $composableBuilder(
-    column: $table.isStreaming,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.isStreaming, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get streamCompletedAt => $composableBuilder(
-    column: $table.streamCompletedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.streamCompletedAt,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get toolCallId => $composableBuilder(
-    column: $table.toolCallId,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.toolCallId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get toolCallsJson => $composableBuilder(
-    column: $table.toolCallsJson,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.toolCallsJson,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get usageJson => $composableBuilder(
-    column: $table.usageJson,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.usageJson, builder: (column) => ColumnOrderings(column));
 
   $$AiChatSessionsTableOrderingComposer get sessionUuid {
     final $$AiChatSessionsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableOrderingComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.sessionUuid,
+        referencedTable: $db.aiChatSessions,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiChatSessionsTableOrderingComposer(
+              $db: $db,
+              $table: $db.aiChatSessions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$AiApiCallsTableOrderingComposer get apiCallUuid {
     final $$AiApiCallsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.apiCallUuid,
-      referencedTable: $db.aiApiCalls,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiApiCallsTableOrderingComposer(
-            $db: $db,
-            $table: $db.aiApiCalls,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.apiCallUuid,
+        referencedTable: $db.aiApiCalls,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiApiCallsTableOrderingComposer(
+              $db: $db,
+              $table: $db.aiApiCalls,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 }
@@ -16649,93 +13785,75 @@ class $$AiChatMessagesTableAnnotationComposer
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<bool> get isStreaming => $composableBuilder(
-    column: $table.isStreaming,
-    builder: (column) => column,
-  );
+      column: $table.isStreaming, builder: (column) => column);
 
   GeneratedColumn<DateTime> get streamCompletedAt => $composableBuilder(
-    column: $table.streamCompletedAt,
-    builder: (column) => column,
-  );
+      column: $table.streamCompletedAt, builder: (column) => column);
 
   GeneratedColumn<String> get toolCallId => $composableBuilder(
-    column: $table.toolCallId,
-    builder: (column) => column,
-  );
+      column: $table.toolCallId, builder: (column) => column);
 
   GeneratedColumn<String> get toolCallsJson => $composableBuilder(
-    column: $table.toolCallsJson,
-    builder: (column) => column,
-  );
+      column: $table.toolCallsJson, builder: (column) => column);
 
   GeneratedColumn<String> get usageJson =>
       $composableBuilder(column: $table.usageJson, builder: (column) => column);
 
   $$AiChatSessionsTableAnnotationComposer get sessionUuid {
     final $$AiChatSessionsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.sessionUuid,
+        referencedTable: $db.aiChatSessions,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiChatSessionsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.aiChatSessions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$AiApiCallsTableAnnotationComposer get apiCallUuid {
     final $$AiApiCallsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.apiCallUuid,
-      referencedTable: $db.aiApiCalls,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiApiCallsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiApiCalls,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.apiCallUuid,
+        referencedTable: $db.aiApiCalls,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiApiCallsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.aiApiCalls,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 }
 
-class $$AiChatMessagesTableTableManager
-    extends
-        RootTableManager<
-          _$AiDatabase,
-          $AiChatMessagesTable,
-          AiChatMessage,
-          $$AiChatMessagesTableFilterComposer,
-          $$AiChatMessagesTableOrderingComposer,
-          $$AiChatMessagesTableAnnotationComposer,
-          $$AiChatMessagesTableCreateCompanionBuilder,
-          $$AiChatMessagesTableUpdateCompanionBuilder,
-          (AiChatMessage, $$AiChatMessagesTableReferences),
-          AiChatMessage,
-          PrefetchHooks Function({bool sessionUuid, bool apiCallUuid})
-        > {
+class $$AiChatMessagesTableTableManager extends RootTableManager<
+    _$AiDatabase,
+    $AiChatMessagesTable,
+    AiChatMessage,
+    $$AiChatMessagesTableFilterComposer,
+    $$AiChatMessagesTableOrderingComposer,
+    $$AiChatMessagesTableAnnotationComposer,
+    $$AiChatMessagesTableCreateCompanionBuilder,
+    $$AiChatMessagesTableUpdateCompanionBuilder,
+    (AiChatMessage, $$AiChatMessagesTableReferences),
+    AiChatMessage,
+    PrefetchHooks Function({bool sessionUuid, bool apiCallUuid})> {
   $$AiChatMessagesTableTableManager(_$AiDatabase db, $AiChatMessagesTable table)
-    : super(
-        TableManagerState(
+      : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -16744,81 +13862,78 @@ class $$AiChatMessagesTableTableManager
               $$AiChatMessagesTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$AiChatMessagesTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> uuid = const Value.absent(),
-                Value<String> sessionUuid = const Value.absent(),
-                Value<String> role = const Value.absent(),
-                Value<String> content = const Value.absent(),
-                Value<int> sequence = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<bool> isStreaming = const Value.absent(),
-                Value<DateTime?> streamCompletedAt = const Value.absent(),
-                Value<String?> toolCallId = const Value.absent(),
-                Value<String?> toolCallsJson = const Value.absent(),
-                Value<String?> usageJson = const Value.absent(),
-                Value<String?> apiCallUuid = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => AiChatMessagesCompanion(
-                uuid: uuid,
-                sessionUuid: sessionUuid,
-                role: role,
-                content: content,
-                sequence: sequence,
-                createdAt: createdAt,
-                isStreaming: isStreaming,
-                streamCompletedAt: streamCompletedAt,
-                toolCallId: toolCallId,
-                toolCallsJson: toolCallsJson,
-                usageJson: usageJson,
-                apiCallUuid: apiCallUuid,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String uuid,
-                required String sessionUuid,
-                required String role,
-                required String content,
-                required int sequence,
-                required DateTime createdAt,
-                Value<bool> isStreaming = const Value.absent(),
-                Value<DateTime?> streamCompletedAt = const Value.absent(),
-                Value<String?> toolCallId = const Value.absent(),
-                Value<String?> toolCallsJson = const Value.absent(),
-                Value<String?> usageJson = const Value.absent(),
-                Value<String?> apiCallUuid = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => AiChatMessagesCompanion.insert(
-                uuid: uuid,
-                sessionUuid: sessionUuid,
-                role: role,
-                content: content,
-                sequence: sequence,
-                createdAt: createdAt,
-                isStreaming: isStreaming,
-                streamCompletedAt: streamCompletedAt,
-                toolCallId: toolCallId,
-                toolCallsJson: toolCallsJson,
-                usageJson: usageJson,
-                apiCallUuid: apiCallUuid,
-                rowid: rowid,
-              ),
+          updateCompanionCallback: ({
+            Value<String> uuid = const Value.absent(),
+            Value<String> sessionUuid = const Value.absent(),
+            Value<String> role = const Value.absent(),
+            Value<String> content = const Value.absent(),
+            Value<int> sequence = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<bool> isStreaming = const Value.absent(),
+            Value<DateTime?> streamCompletedAt = const Value.absent(),
+            Value<String?> toolCallId = const Value.absent(),
+            Value<String?> toolCallsJson = const Value.absent(),
+            Value<String?> usageJson = const Value.absent(),
+            Value<String?> apiCallUuid = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AiChatMessagesCompanion(
+            uuid: uuid,
+            sessionUuid: sessionUuid,
+            role: role,
+            content: content,
+            sequence: sequence,
+            createdAt: createdAt,
+            isStreaming: isStreaming,
+            streamCompletedAt: streamCompletedAt,
+            toolCallId: toolCallId,
+            toolCallsJson: toolCallsJson,
+            usageJson: usageJson,
+            apiCallUuid: apiCallUuid,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String uuid,
+            required String sessionUuid,
+            required String role,
+            required String content,
+            required int sequence,
+            required DateTime createdAt,
+            Value<bool> isStreaming = const Value.absent(),
+            Value<DateTime?> streamCompletedAt = const Value.absent(),
+            Value<String?> toolCallId = const Value.absent(),
+            Value<String?> toolCallsJson = const Value.absent(),
+            Value<String?> usageJson = const Value.absent(),
+            Value<String?> apiCallUuid = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AiChatMessagesCompanion.insert(
+            uuid: uuid,
+            sessionUuid: sessionUuid,
+            role: role,
+            content: content,
+            sequence: sequence,
+            createdAt: createdAt,
+            isStreaming: isStreaming,
+            streamCompletedAt: streamCompletedAt,
+            toolCallId: toolCallId,
+            toolCallsJson: toolCallsJson,
+            usageJson: usageJson,
+            apiCallUuid: apiCallUuid,
+            rowid: rowid,
+          ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$AiChatMessagesTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (
+                    e.readTable(table),
+                    $$AiChatMessagesTableReferences(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: ({sessionUuid = false, apiCallUuid = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
+              addJoins: <
+                  T extends TableManagerState<
                       dynamic,
                       dynamic,
                       dynamic,
@@ -16829,123 +13944,104 @@ class $$AiChatMessagesTableTableManager
                       dynamic,
                       dynamic,
                       dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (sessionUuid) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.sessionUuid,
-                                referencedTable: $$AiChatMessagesTableReferences
-                                    ._sessionUuidTable(db),
-                                referencedColumn:
-                                    $$AiChatMessagesTableReferences
-                                        ._sessionUuidTable(db)
-                                        .uuid,
-                              )
-                              as T;
-                    }
-                    if (apiCallUuid) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.apiCallUuid,
-                                referencedTable: $$AiChatMessagesTableReferences
-                                    ._apiCallUuidTable(db),
-                                referencedColumn:
-                                    $$AiChatMessagesTableReferences
-                                        ._apiCallUuidTable(db)
-                                        .uuid,
-                              )
-                              as T;
-                    }
+                      dynamic>>(state) {
+                if (sessionUuid) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.sessionUuid,
+                    referencedTable:
+                        $$AiChatMessagesTableReferences._sessionUuidTable(db),
+                    referencedColumn: $$AiChatMessagesTableReferences
+                        ._sessionUuidTable(db)
+                        .uuid,
+                  ) as T;
+                }
+                if (apiCallUuid) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.apiCallUuid,
+                    referencedTable:
+                        $$AiChatMessagesTableReferences._apiCallUuidTable(db),
+                    referencedColumn: $$AiChatMessagesTableReferences
+                        ._apiCallUuidTable(db)
+                        .uuid,
+                  ) as T;
+                }
 
-                    return state;
-                  },
+                return state;
+              },
               getPrefetchedDataCallback: (items) async {
                 return [];
               },
             );
           },
-        ),
-      );
+        ));
 }
 
-typedef $$AiChatMessagesTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AiDatabase,
-      $AiChatMessagesTable,
-      AiChatMessage,
-      $$AiChatMessagesTableFilterComposer,
-      $$AiChatMessagesTableOrderingComposer,
-      $$AiChatMessagesTableAnnotationComposer,
-      $$AiChatMessagesTableCreateCompanionBuilder,
-      $$AiChatMessagesTableUpdateCompanionBuilder,
-      (AiChatMessage, $$AiChatMessagesTableReferences),
-      AiChatMessage,
-      PrefetchHooks Function({bool sessionUuid, bool apiCallUuid})
-    >;
-typedef $$AiProvenancesTableCreateCompanionBuilder =
-    AiProvenancesCompanion Function({
-      required String uuid,
-      required String provenanceType,
-      required String entityUuid,
-      required String entityType,
-      required DateTime createdAt,
-      required String contextSnapshotJson,
-      required String inputSnapshotJson,
-      Value<String?> outputSnapshotJson,
-      Value<String?> promptVersionUuid,
-      Value<String?> modelUuid,
-      Value<String?> previousProvenanceUuid,
-      required String integrityHash,
-      Value<int> rowid,
-    });
-typedef $$AiProvenancesTableUpdateCompanionBuilder =
-    AiProvenancesCompanion Function({
-      Value<String> uuid,
-      Value<String> provenanceType,
-      Value<String> entityUuid,
-      Value<String> entityType,
-      Value<DateTime> createdAt,
-      Value<String> contextSnapshotJson,
-      Value<String> inputSnapshotJson,
-      Value<String?> outputSnapshotJson,
-      Value<String?> promptVersionUuid,
-      Value<String?> modelUuid,
-      Value<String?> previousProvenanceUuid,
-      Value<String> integrityHash,
-      Value<int> rowid,
-    });
+typedef $$AiChatMessagesTableProcessedTableManager = ProcessedTableManager<
+    _$AiDatabase,
+    $AiChatMessagesTable,
+    AiChatMessage,
+    $$AiChatMessagesTableFilterComposer,
+    $$AiChatMessagesTableOrderingComposer,
+    $$AiChatMessagesTableAnnotationComposer,
+    $$AiChatMessagesTableCreateCompanionBuilder,
+    $$AiChatMessagesTableUpdateCompanionBuilder,
+    (AiChatMessage, $$AiChatMessagesTableReferences),
+    AiChatMessage,
+    PrefetchHooks Function({bool sessionUuid, bool apiCallUuid})>;
+typedef $$AiProvenancesTableCreateCompanionBuilder = AiProvenancesCompanion
+    Function({
+  required String uuid,
+  required String provenanceType,
+  required String entityUuid,
+  required String entityType,
+  required DateTime createdAt,
+  required String contextSnapshotJson,
+  required String inputSnapshotJson,
+  Value<String?> outputSnapshotJson,
+  Value<String?> promptVersionUuid,
+  Value<String?> modelUuid,
+  Value<String?> previousProvenanceUuid,
+  required String integrityHash,
+  Value<int> rowid,
+});
+typedef $$AiProvenancesTableUpdateCompanionBuilder = AiProvenancesCompanion
+    Function({
+  Value<String> uuid,
+  Value<String> provenanceType,
+  Value<String> entityUuid,
+  Value<String> entityType,
+  Value<DateTime> createdAt,
+  Value<String> contextSnapshotJson,
+  Value<String> inputSnapshotJson,
+  Value<String?> outputSnapshotJson,
+  Value<String?> promptVersionUuid,
+  Value<String?> modelUuid,
+  Value<String?> previousProvenanceUuid,
+  Value<String> integrityHash,
+  Value<int> rowid,
+});
 
 final class $$AiProvenancesTableReferences
     extends BaseReferences<_$AiDatabase, $AiProvenancesTable, AiProvenance> {
   $$AiProvenancesTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
+      super.$_db, super.$_table, super.$_typedResult);
 
   static MultiTypedResultKey<$AiDivinationsTable, List<AiDivination>>
-  _aiDivinationsRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.aiDivinations,
-    aliasName: $_aliasNameGenerator(
-      db.aiProvenances.uuid,
-      db.aiDivinations.provenanceUuid,
-    ),
-  );
+      _aiDivinationsRefsTable(_$AiDatabase db) =>
+          MultiTypedResultKey.fromTable(db.aiDivinations,
+              aliasName: $_aliasNameGenerator(
+                  db.aiProvenances.uuid, db.aiDivinations.provenanceUuid));
 
   $$AiDivinationsTableProcessedTableManager get aiDivinationsRefs {
     final manager = $$AiDivinationsTableTableManager($_db, $_db.aiDivinations)
-        .filter(
-          (f) => f.provenanceUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
+        .filter((f) =>
+            f.provenanceUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
 
     final cache = $_typedResult.readTableOrNull(_aiDivinationsRefsTable($_db));
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
+        manager.$state.copyWith(prefetchedData: cache));
   }
 }
 
@@ -16959,87 +14055,65 @@ class $$AiProvenancesTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get provenanceType => $composableBuilder(
-    column: $table.provenanceType,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.provenanceType,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get entityUuid => $composableBuilder(
-    column: $table.entityUuid,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.entityUuid, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get entityType => $composableBuilder(
-    column: $table.entityType,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.entityType, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get contextSnapshotJson => $composableBuilder(
-    column: $table.contextSnapshotJson,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.contextSnapshotJson,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get inputSnapshotJson => $composableBuilder(
-    column: $table.inputSnapshotJson,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.inputSnapshotJson,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get outputSnapshotJson => $composableBuilder(
-    column: $table.outputSnapshotJson,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.outputSnapshotJson,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get promptVersionUuid => $composableBuilder(
-    column: $table.promptVersionUuid,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.promptVersionUuid,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get modelUuid => $composableBuilder(
-    column: $table.modelUuid,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.modelUuid, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get previousProvenanceUuid => $composableBuilder(
-    column: $table.previousProvenanceUuid,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.previousProvenanceUuid,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get integrityHash => $composableBuilder(
-    column: $table.integrityHash,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.integrityHash, builder: (column) => ColumnFilters(column));
 
   Expression<bool> aiDivinationsRefs(
-    Expression<bool> Function($$AiDivinationsTableFilterComposer f) f,
-  ) {
+      Expression<bool> Function($$AiDivinationsTableFilterComposer f) f) {
     final $$AiDivinationsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiDivinations,
-      getReferencedColumn: (t) => t.provenanceUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiDivinationsTableFilterComposer(
-            $db: $db,
-            $table: $db.aiDivinations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.aiDivinations,
+        getReferencedColumn: (t) => t.provenanceUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiDivinationsTableFilterComposer(
+              $db: $db,
+              $table: $db.aiDivinations,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 }
@@ -17054,64 +14128,47 @@ class $$AiProvenancesTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get provenanceType => $composableBuilder(
-    column: $table.provenanceType,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.provenanceType,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get entityUuid => $composableBuilder(
-    column: $table.entityUuid,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.entityUuid, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get entityType => $composableBuilder(
-    column: $table.entityType,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.entityType, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get contextSnapshotJson => $composableBuilder(
-    column: $table.contextSnapshotJson,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.contextSnapshotJson,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get inputSnapshotJson => $composableBuilder(
-    column: $table.inputSnapshotJson,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.inputSnapshotJson,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get outputSnapshotJson => $composableBuilder(
-    column: $table.outputSnapshotJson,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.outputSnapshotJson,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get promptVersionUuid => $composableBuilder(
-    column: $table.promptVersionUuid,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.promptVersionUuid,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get modelUuid => $composableBuilder(
-    column: $table.modelUuid,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.modelUuid, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get previousProvenanceUuid => $composableBuilder(
-    column: $table.previousProvenanceUuid,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.previousProvenanceUuid,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get integrityHash => $composableBuilder(
-    column: $table.integrityHash,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.integrityHash,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$AiProvenancesTableAnnotationComposer
@@ -17127,100 +14184,74 @@ class $$AiProvenancesTableAnnotationComposer
       $composableBuilder(column: $table.uuid, builder: (column) => column);
 
   GeneratedColumn<String> get provenanceType => $composableBuilder(
-    column: $table.provenanceType,
-    builder: (column) => column,
-  );
+      column: $table.provenanceType, builder: (column) => column);
 
   GeneratedColumn<String> get entityUuid => $composableBuilder(
-    column: $table.entityUuid,
-    builder: (column) => column,
-  );
+      column: $table.entityUuid, builder: (column) => column);
 
   GeneratedColumn<String> get entityType => $composableBuilder(
-    column: $table.entityType,
-    builder: (column) => column,
-  );
+      column: $table.entityType, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<String> get contextSnapshotJson => $composableBuilder(
-    column: $table.contextSnapshotJson,
-    builder: (column) => column,
-  );
+      column: $table.contextSnapshotJson, builder: (column) => column);
 
   GeneratedColumn<String> get inputSnapshotJson => $composableBuilder(
-    column: $table.inputSnapshotJson,
-    builder: (column) => column,
-  );
+      column: $table.inputSnapshotJson, builder: (column) => column);
 
   GeneratedColumn<String> get outputSnapshotJson => $composableBuilder(
-    column: $table.outputSnapshotJson,
-    builder: (column) => column,
-  );
+      column: $table.outputSnapshotJson, builder: (column) => column);
 
   GeneratedColumn<String> get promptVersionUuid => $composableBuilder(
-    column: $table.promptVersionUuid,
-    builder: (column) => column,
-  );
+      column: $table.promptVersionUuid, builder: (column) => column);
 
   GeneratedColumn<String> get modelUuid =>
       $composableBuilder(column: $table.modelUuid, builder: (column) => column);
 
   GeneratedColumn<String> get previousProvenanceUuid => $composableBuilder(
-    column: $table.previousProvenanceUuid,
-    builder: (column) => column,
-  );
+      column: $table.previousProvenanceUuid, builder: (column) => column);
 
   GeneratedColumn<String> get integrityHash => $composableBuilder(
-    column: $table.integrityHash,
-    builder: (column) => column,
-  );
+      column: $table.integrityHash, builder: (column) => column);
 
   Expression<T> aiDivinationsRefs<T extends Object>(
-    Expression<T> Function($$AiDivinationsTableAnnotationComposer a) f,
-  ) {
+      Expression<T> Function($$AiDivinationsTableAnnotationComposer a) f) {
     final $$AiDivinationsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiDivinations,
-      getReferencedColumn: (t) => t.provenanceUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiDivinationsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiDivinations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.uuid,
+        referencedTable: $db.aiDivinations,
+        getReferencedColumn: (t) => t.provenanceUuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiDivinationsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.aiDivinations,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 }
 
-class $$AiProvenancesTableTableManager
-    extends
-        RootTableManager<
-          _$AiDatabase,
-          $AiProvenancesTable,
-          AiProvenance,
-          $$AiProvenancesTableFilterComposer,
-          $$AiProvenancesTableOrderingComposer,
-          $$AiProvenancesTableAnnotationComposer,
-          $$AiProvenancesTableCreateCompanionBuilder,
-          $$AiProvenancesTableUpdateCompanionBuilder,
-          (AiProvenance, $$AiProvenancesTableReferences),
-          AiProvenance,
-          PrefetchHooks Function({bool aiDivinationsRefs})
-        > {
+class $$AiProvenancesTableTableManager extends RootTableManager<
+    _$AiDatabase,
+    $AiProvenancesTable,
+    AiProvenance,
+    $$AiProvenancesTableFilterComposer,
+    $$AiProvenancesTableOrderingComposer,
+    $$AiProvenancesTableAnnotationComposer,
+    $$AiProvenancesTableCreateCompanionBuilder,
+    $$AiProvenancesTableUpdateCompanionBuilder,
+    (AiProvenance, $$AiProvenancesTableReferences),
+    AiProvenance,
+    PrefetchHooks Function({bool aiDivinationsRefs})> {
   $$AiProvenancesTableTableManager(_$AiDatabase db, $AiProvenancesTable table)
-    : super(
-        TableManagerState(
+      : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -17229,232 +14260,198 @@ class $$AiProvenancesTableTableManager
               $$AiProvenancesTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$AiProvenancesTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> uuid = const Value.absent(),
-                Value<String> provenanceType = const Value.absent(),
-                Value<String> entityUuid = const Value.absent(),
-                Value<String> entityType = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<String> contextSnapshotJson = const Value.absent(),
-                Value<String> inputSnapshotJson = const Value.absent(),
-                Value<String?> outputSnapshotJson = const Value.absent(),
-                Value<String?> promptVersionUuid = const Value.absent(),
-                Value<String?> modelUuid = const Value.absent(),
-                Value<String?> previousProvenanceUuid = const Value.absent(),
-                Value<String> integrityHash = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => AiProvenancesCompanion(
-                uuid: uuid,
-                provenanceType: provenanceType,
-                entityUuid: entityUuid,
-                entityType: entityType,
-                createdAt: createdAt,
-                contextSnapshotJson: contextSnapshotJson,
-                inputSnapshotJson: inputSnapshotJson,
-                outputSnapshotJson: outputSnapshotJson,
-                promptVersionUuid: promptVersionUuid,
-                modelUuid: modelUuid,
-                previousProvenanceUuid: previousProvenanceUuid,
-                integrityHash: integrityHash,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String uuid,
-                required String provenanceType,
-                required String entityUuid,
-                required String entityType,
-                required DateTime createdAt,
-                required String contextSnapshotJson,
-                required String inputSnapshotJson,
-                Value<String?> outputSnapshotJson = const Value.absent(),
-                Value<String?> promptVersionUuid = const Value.absent(),
-                Value<String?> modelUuid = const Value.absent(),
-                Value<String?> previousProvenanceUuid = const Value.absent(),
-                required String integrityHash,
-                Value<int> rowid = const Value.absent(),
-              }) => AiProvenancesCompanion.insert(
-                uuid: uuid,
-                provenanceType: provenanceType,
-                entityUuid: entityUuid,
-                entityType: entityType,
-                createdAt: createdAt,
-                contextSnapshotJson: contextSnapshotJson,
-                inputSnapshotJson: inputSnapshotJson,
-                outputSnapshotJson: outputSnapshotJson,
-                promptVersionUuid: promptVersionUuid,
-                modelUuid: modelUuid,
-                previousProvenanceUuid: previousProvenanceUuid,
-                integrityHash: integrityHash,
-                rowid: rowid,
-              ),
+          updateCompanionCallback: ({
+            Value<String> uuid = const Value.absent(),
+            Value<String> provenanceType = const Value.absent(),
+            Value<String> entityUuid = const Value.absent(),
+            Value<String> entityType = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<String> contextSnapshotJson = const Value.absent(),
+            Value<String> inputSnapshotJson = const Value.absent(),
+            Value<String?> outputSnapshotJson = const Value.absent(),
+            Value<String?> promptVersionUuid = const Value.absent(),
+            Value<String?> modelUuid = const Value.absent(),
+            Value<String?> previousProvenanceUuid = const Value.absent(),
+            Value<String> integrityHash = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AiProvenancesCompanion(
+            uuid: uuid,
+            provenanceType: provenanceType,
+            entityUuid: entityUuid,
+            entityType: entityType,
+            createdAt: createdAt,
+            contextSnapshotJson: contextSnapshotJson,
+            inputSnapshotJson: inputSnapshotJson,
+            outputSnapshotJson: outputSnapshotJson,
+            promptVersionUuid: promptVersionUuid,
+            modelUuid: modelUuid,
+            previousProvenanceUuid: previousProvenanceUuid,
+            integrityHash: integrityHash,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String uuid,
+            required String provenanceType,
+            required String entityUuid,
+            required String entityType,
+            required DateTime createdAt,
+            required String contextSnapshotJson,
+            required String inputSnapshotJson,
+            Value<String?> outputSnapshotJson = const Value.absent(),
+            Value<String?> promptVersionUuid = const Value.absent(),
+            Value<String?> modelUuid = const Value.absent(),
+            Value<String?> previousProvenanceUuid = const Value.absent(),
+            required String integrityHash,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AiProvenancesCompanion.insert(
+            uuid: uuid,
+            provenanceType: provenanceType,
+            entityUuid: entityUuid,
+            entityType: entityType,
+            createdAt: createdAt,
+            contextSnapshotJson: contextSnapshotJson,
+            inputSnapshotJson: inputSnapshotJson,
+            outputSnapshotJson: outputSnapshotJson,
+            promptVersionUuid: promptVersionUuid,
+            modelUuid: modelUuid,
+            previousProvenanceUuid: previousProvenanceUuid,
+            integrityHash: integrityHash,
+            rowid: rowid,
+          ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$AiProvenancesTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (
+                    e.readTable(table),
+                    $$AiProvenancesTableReferences(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: ({aiDivinationsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
-                if (aiDivinationsRefs) db.aiDivinations,
+                if (aiDivinationsRefs) db.aiDivinations
               ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (aiDivinationsRefs)
-                    await $_getPrefetchedData<
-                      AiProvenance,
-                      $AiProvenancesTable,
-                      AiDivination
-                    >(
-                      currentTable: table,
-                      referencedTable: $$AiProvenancesTableReferences
-                          ._aiDivinationsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$AiProvenancesTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).aiDivinationsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where(
-                            (e) => e.provenanceUuid == item.uuid,
-                          ),
-                      typedResults: items,
-                    ),
+                    await $_getPrefetchedData<AiProvenance, $AiProvenancesTable,
+                            AiDivination>(
+                        currentTable: table,
+                        referencedTable: $$AiProvenancesTableReferences
+                            ._aiDivinationsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$AiProvenancesTableReferences(db, table, p0)
+                                .aiDivinationsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.provenanceUuid == item.uuid),
+                        typedResults: items)
                 ];
               },
             );
           },
-        ),
-      );
+        ));
 }
 
-typedef $$AiProvenancesTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AiDatabase,
-      $AiProvenancesTable,
-      AiProvenance,
-      $$AiProvenancesTableFilterComposer,
-      $$AiProvenancesTableOrderingComposer,
-      $$AiProvenancesTableAnnotationComposer,
-      $$AiProvenancesTableCreateCompanionBuilder,
-      $$AiProvenancesTableUpdateCompanionBuilder,
-      (AiProvenance, $$AiProvenancesTableReferences),
-      AiProvenance,
-      PrefetchHooks Function({bool aiDivinationsRefs})
-    >;
-typedef $$AiDivinationsTableCreateCompanionBuilder =
-    AiDivinationsCompanion Function({
-      required String uuid,
-      required DateTime createdAt,
-      Value<DateTime?> lastUpdatedAt,
-      Value<DateTime?> deletedAt,
-      required String divinationUuid,
-      required String personaUuid,
-      Value<String?> sessionUuid,
-      required String interpretation,
-      Value<String?> fortuneLevel,
-      Value<String?> advice,
-      Value<String> resultType,
-      Value<int?> userRating,
-      Value<String?> userFeedback,
-      Value<String?> provenanceUuid,
-      Value<int> rowid,
-    });
-typedef $$AiDivinationsTableUpdateCompanionBuilder =
-    AiDivinationsCompanion Function({
-      Value<String> uuid,
-      Value<DateTime> createdAt,
-      Value<DateTime?> lastUpdatedAt,
-      Value<DateTime?> deletedAt,
-      Value<String> divinationUuid,
-      Value<String> personaUuid,
-      Value<String?> sessionUuid,
-      Value<String> interpretation,
-      Value<String?> fortuneLevel,
-      Value<String?> advice,
-      Value<String> resultType,
-      Value<int?> userRating,
-      Value<String?> userFeedback,
-      Value<String?> provenanceUuid,
-      Value<int> rowid,
-    });
+typedef $$AiProvenancesTableProcessedTableManager = ProcessedTableManager<
+    _$AiDatabase,
+    $AiProvenancesTable,
+    AiProvenance,
+    $$AiProvenancesTableFilterComposer,
+    $$AiProvenancesTableOrderingComposer,
+    $$AiProvenancesTableAnnotationComposer,
+    $$AiProvenancesTableCreateCompanionBuilder,
+    $$AiProvenancesTableUpdateCompanionBuilder,
+    (AiProvenance, $$AiProvenancesTableReferences),
+    AiProvenance,
+    PrefetchHooks Function({bool aiDivinationsRefs})>;
+typedef $$AiDivinationsTableCreateCompanionBuilder = AiDivinationsCompanion
+    Function({
+  required String uuid,
+  required DateTime createdAt,
+  Value<DateTime?> lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  required String divinationUuid,
+  required String personaUuid,
+  Value<String?> sessionUuid,
+  required String interpretation,
+  Value<String?> fortuneLevel,
+  Value<String?> advice,
+  Value<String> resultType,
+  Value<int?> userRating,
+  Value<String?> userFeedback,
+  Value<String?> provenanceUuid,
+  Value<int> rowid,
+});
+typedef $$AiDivinationsTableUpdateCompanionBuilder = AiDivinationsCompanion
+    Function({
+  Value<String> uuid,
+  Value<DateTime> createdAt,
+  Value<DateTime?> lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String> divinationUuid,
+  Value<String> personaUuid,
+  Value<String?> sessionUuid,
+  Value<String> interpretation,
+  Value<String?> fortuneLevel,
+  Value<String?> advice,
+  Value<String> resultType,
+  Value<int?> userRating,
+  Value<String?> userFeedback,
+  Value<String?> provenanceUuid,
+  Value<int> rowid,
+});
 
 final class $$AiDivinationsTableReferences
     extends BaseReferences<_$AiDatabase, $AiDivinationsTable, AiDivination> {
   $$AiDivinationsTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
+      super.$_db, super.$_table, super.$_typedResult);
 
   static $AiPersonasTable _personaUuidTable(_$AiDatabase db) =>
-      db.aiPersonas.createAlias(
-        $_aliasNameGenerator(db.aiDivinations.personaUuid, db.aiPersonas.uuid),
-      );
+      db.aiPersonas.createAlias($_aliasNameGenerator(
+          db.aiDivinations.personaUuid, db.aiPersonas.uuid));
 
   $$AiPersonasTableProcessedTableManager get personaUuid {
     final $_column = $_itemColumn<String>('persona_uuid')!;
 
-    final manager = $$AiPersonasTableTableManager(
-      $_db,
-      $_db.aiPersonas,
-    ).filter((f) => f.uuid.sqlEquals($_column));
+    final manager = $$AiPersonasTableTableManager($_db, $_db.aiPersonas)
+        .filter((f) => f.uuid.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_personaUuidTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
+        manager.$state.copyWith(prefetchedData: [item]));
   }
 
   static $AiChatSessionsTable _sessionUuidTable(_$AiDatabase db) =>
-      db.aiChatSessions.createAlias(
-        $_aliasNameGenerator(
-          db.aiDivinations.sessionUuid,
-          db.aiChatSessions.uuid,
-        ),
-      );
+      db.aiChatSessions.createAlias($_aliasNameGenerator(
+          db.aiDivinations.sessionUuid, db.aiChatSessions.uuid));
 
   $$AiChatSessionsTableProcessedTableManager? get sessionUuid {
     final $_column = $_itemColumn<String>('session_uuid');
     if ($_column == null) return null;
-    final manager = $$AiChatSessionsTableTableManager(
-      $_db,
-      $_db.aiChatSessions,
-    ).filter((f) => f.uuid.sqlEquals($_column));
+    final manager = $$AiChatSessionsTableTableManager($_db, $_db.aiChatSessions)
+        .filter((f) => f.uuid.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_sessionUuidTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
+        manager.$state.copyWith(prefetchedData: [item]));
   }
 
   static $AiProvenancesTable _provenanceUuidTable(_$AiDatabase db) =>
-      db.aiProvenances.createAlias(
-        $_aliasNameGenerator(
-          db.aiDivinations.provenanceUuid,
-          db.aiProvenances.uuid,
-        ),
-      );
+      db.aiProvenances.createAlias($_aliasNameGenerator(
+          db.aiDivinations.provenanceUuid, db.aiProvenances.uuid));
 
   $$AiProvenancesTableProcessedTableManager? get provenanceUuid {
     final $_column = $_itemColumn<String>('provenance_uuid');
     if ($_column == null) return null;
-    final manager = $$AiProvenancesTableTableManager(
-      $_db,
-      $_db.aiProvenances,
-    ).filter((f) => f.uuid.sqlEquals($_column));
+    final manager = $$AiProvenancesTableTableManager($_db, $_db.aiProvenances)
+        .filter((f) => f.uuid.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_provenanceUuidTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
+        manager.$state.copyWith(prefetchedData: [item]));
   }
 }
 
@@ -17468,126 +14465,97 @@ class $$AiDivinationsTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.lastUpdatedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
-    column: $table.deletedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get divinationUuid => $composableBuilder(
-    column: $table.divinationUuid,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.divinationUuid,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get interpretation => $composableBuilder(
-    column: $table.interpretation,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.interpretation,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get fortuneLevel => $composableBuilder(
-    column: $table.fortuneLevel,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.fortuneLevel, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get advice => $composableBuilder(
-    column: $table.advice,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.advice, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get resultType => $composableBuilder(
-    column: $table.resultType,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.resultType, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get userRating => $composableBuilder(
-    column: $table.userRating,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.userRating, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get userFeedback => $composableBuilder(
-    column: $table.userFeedback,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.userFeedback, builder: (column) => ColumnFilters(column));
 
   $$AiPersonasTableFilterComposer get personaUuid {
     final $$AiPersonasTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.personaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableFilterComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.personaUuid,
+        referencedTable: $db.aiPersonas,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiPersonasTableFilterComposer(
+              $db: $db,
+              $table: $db.aiPersonas,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$AiChatSessionsTableFilterComposer get sessionUuid {
     final $$AiChatSessionsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableFilterComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.sessionUuid,
+        referencedTable: $db.aiChatSessions,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiChatSessionsTableFilterComposer(
+              $db: $db,
+              $table: $db.aiChatSessions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$AiProvenancesTableFilterComposer get provenanceUuid {
     final $$AiProvenancesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.provenanceUuid,
-      referencedTable: $db.aiProvenances,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiProvenancesTableFilterComposer(
-            $db: $db,
-            $table: $db.aiProvenances,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.provenanceUuid,
+        referencedTable: $db.aiProvenances,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiProvenancesTableFilterComposer(
+              $db: $db,
+              $table: $db.aiProvenances,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 }
@@ -17602,126 +14570,100 @@ class $$AiDivinationsTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.lastUpdatedAt,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
-    column: $table.deletedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get divinationUuid => $composableBuilder(
-    column: $table.divinationUuid,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.divinationUuid,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get interpretation => $composableBuilder(
-    column: $table.interpretation,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.interpretation,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get fortuneLevel => $composableBuilder(
-    column: $table.fortuneLevel,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.fortuneLevel,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get advice => $composableBuilder(
-    column: $table.advice,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.advice, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get resultType => $composableBuilder(
-    column: $table.resultType,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.resultType, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get userRating => $composableBuilder(
-    column: $table.userRating,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.userRating, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get userFeedback => $composableBuilder(
-    column: $table.userFeedback,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.userFeedback,
+      builder: (column) => ColumnOrderings(column));
 
   $$AiPersonasTableOrderingComposer get personaUuid {
     final $$AiPersonasTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.personaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableOrderingComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.personaUuid,
+        referencedTable: $db.aiPersonas,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiPersonasTableOrderingComposer(
+              $db: $db,
+              $table: $db.aiPersonas,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$AiChatSessionsTableOrderingComposer get sessionUuid {
     final $$AiChatSessionsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableOrderingComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.sessionUuid,
+        referencedTable: $db.aiChatSessions,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiChatSessionsTableOrderingComposer(
+              $db: $db,
+              $table: $db.aiChatSessions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$AiProvenancesTableOrderingComposer get provenanceUuid {
     final $$AiProvenancesTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.provenanceUuid,
-      referencedTable: $db.aiProvenances,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiProvenancesTableOrderingComposer(
-            $db: $db,
-            $table: $db.aiProvenances,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.provenanceUuid,
+        referencedTable: $db.aiProvenances,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiProvenancesTableOrderingComposer(
+              $db: $db,
+              $table: $db.aiProvenances,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 }
@@ -17742,138 +14684,108 @@ class $$AiDivinationsTableAnnotationComposer
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => column,
-  );
+      column: $table.lastUpdatedAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 
   GeneratedColumn<String> get divinationUuid => $composableBuilder(
-    column: $table.divinationUuid,
-    builder: (column) => column,
-  );
+      column: $table.divinationUuid, builder: (column) => column);
 
   GeneratedColumn<String> get interpretation => $composableBuilder(
-    column: $table.interpretation,
-    builder: (column) => column,
-  );
+      column: $table.interpretation, builder: (column) => column);
 
   GeneratedColumn<String> get fortuneLevel => $composableBuilder(
-    column: $table.fortuneLevel,
-    builder: (column) => column,
-  );
+      column: $table.fortuneLevel, builder: (column) => column);
 
   GeneratedColumn<String> get advice =>
       $composableBuilder(column: $table.advice, builder: (column) => column);
 
   GeneratedColumn<String> get resultType => $composableBuilder(
-    column: $table.resultType,
-    builder: (column) => column,
-  );
+      column: $table.resultType, builder: (column) => column);
 
   GeneratedColumn<int> get userRating => $composableBuilder(
-    column: $table.userRating,
-    builder: (column) => column,
-  );
+      column: $table.userRating, builder: (column) => column);
 
   GeneratedColumn<String> get userFeedback => $composableBuilder(
-    column: $table.userFeedback,
-    builder: (column) => column,
-  );
+      column: $table.userFeedback, builder: (column) => column);
 
   $$AiPersonasTableAnnotationComposer get personaUuid {
     final $$AiPersonasTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.personaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.personaUuid,
+        referencedTable: $db.aiPersonas,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiPersonasTableAnnotationComposer(
+              $db: $db,
+              $table: $db.aiPersonas,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$AiChatSessionsTableAnnotationComposer get sessionUuid {
     final $$AiChatSessionsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.sessionUuid,
+        referencedTable: $db.aiChatSessions,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiChatSessionsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.aiChatSessions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$AiProvenancesTableAnnotationComposer get provenanceUuid {
     final $$AiProvenancesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.provenanceUuid,
-      referencedTable: $db.aiProvenances,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiProvenancesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiProvenances,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.provenanceUuid,
+        referencedTable: $db.aiProvenances,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiProvenancesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.aiProvenances,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 }
 
-class $$AiDivinationsTableTableManager
-    extends
-        RootTableManager<
-          _$AiDatabase,
-          $AiDivinationsTable,
-          AiDivination,
-          $$AiDivinationsTableFilterComposer,
-          $$AiDivinationsTableOrderingComposer,
-          $$AiDivinationsTableAnnotationComposer,
-          $$AiDivinationsTableCreateCompanionBuilder,
-          $$AiDivinationsTableUpdateCompanionBuilder,
-          (AiDivination, $$AiDivinationsTableReferences),
-          AiDivination,
-          PrefetchHooks Function({
-            bool personaUuid,
-            bool sessionUuid,
-            bool provenanceUuid,
-          })
-        > {
+class $$AiDivinationsTableTableManager extends RootTableManager<
+    _$AiDatabase,
+    $AiDivinationsTable,
+    AiDivination,
+    $$AiDivinationsTableFilterComposer,
+    $$AiDivinationsTableOrderingComposer,
+    $$AiDivinationsTableAnnotationComposer,
+    $$AiDivinationsTableCreateCompanionBuilder,
+    $$AiDivinationsTableUpdateCompanionBuilder,
+    (AiDivination, $$AiDivinationsTableReferences),
+    AiDivination,
+    PrefetchHooks Function(
+        {bool personaUuid, bool sessionUuid, bool provenanceUuid})> {
   $$AiDivinationsTableTableManager(_$AiDatabase db, $AiDivinationsTable table)
-    : super(
-        TableManagerState(
+      : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -17882,290 +14794,240 @@ class $$AiDivinationsTableTableManager
               $$AiDivinationsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$AiDivinationsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> uuid = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime?> lastUpdatedAt = const Value.absent(),
-                Value<DateTime?> deletedAt = const Value.absent(),
-                Value<String> divinationUuid = const Value.absent(),
-                Value<String> personaUuid = const Value.absent(),
-                Value<String?> sessionUuid = const Value.absent(),
-                Value<String> interpretation = const Value.absent(),
-                Value<String?> fortuneLevel = const Value.absent(),
-                Value<String?> advice = const Value.absent(),
-                Value<String> resultType = const Value.absent(),
-                Value<int?> userRating = const Value.absent(),
-                Value<String?> userFeedback = const Value.absent(),
-                Value<String?> provenanceUuid = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => AiDivinationsCompanion(
-                uuid: uuid,
-                createdAt: createdAt,
-                lastUpdatedAt: lastUpdatedAt,
-                deletedAt: deletedAt,
-                divinationUuid: divinationUuid,
-                personaUuid: personaUuid,
-                sessionUuid: sessionUuid,
-                interpretation: interpretation,
-                fortuneLevel: fortuneLevel,
-                advice: advice,
-                resultType: resultType,
-                userRating: userRating,
-                userFeedback: userFeedback,
-                provenanceUuid: provenanceUuid,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String uuid,
-                required DateTime createdAt,
-                Value<DateTime?> lastUpdatedAt = const Value.absent(),
-                Value<DateTime?> deletedAt = const Value.absent(),
-                required String divinationUuid,
-                required String personaUuid,
-                Value<String?> sessionUuid = const Value.absent(),
-                required String interpretation,
-                Value<String?> fortuneLevel = const Value.absent(),
-                Value<String?> advice = const Value.absent(),
-                Value<String> resultType = const Value.absent(),
-                Value<int?> userRating = const Value.absent(),
-                Value<String?> userFeedback = const Value.absent(),
-                Value<String?> provenanceUuid = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => AiDivinationsCompanion.insert(
-                uuid: uuid,
-                createdAt: createdAt,
-                lastUpdatedAt: lastUpdatedAt,
-                deletedAt: deletedAt,
-                divinationUuid: divinationUuid,
-                personaUuid: personaUuid,
-                sessionUuid: sessionUuid,
-                interpretation: interpretation,
-                fortuneLevel: fortuneLevel,
-                advice: advice,
-                resultType: resultType,
-                userRating: userRating,
-                userFeedback: userFeedback,
-                provenanceUuid: provenanceUuid,
-                rowid: rowid,
-              ),
+          updateCompanionCallback: ({
+            Value<String> uuid = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime?> lastUpdatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String> divinationUuid = const Value.absent(),
+            Value<String> personaUuid = const Value.absent(),
+            Value<String?> sessionUuid = const Value.absent(),
+            Value<String> interpretation = const Value.absent(),
+            Value<String?> fortuneLevel = const Value.absent(),
+            Value<String?> advice = const Value.absent(),
+            Value<String> resultType = const Value.absent(),
+            Value<int?> userRating = const Value.absent(),
+            Value<String?> userFeedback = const Value.absent(),
+            Value<String?> provenanceUuid = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AiDivinationsCompanion(
+            uuid: uuid,
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            divinationUuid: divinationUuid,
+            personaUuid: personaUuid,
+            sessionUuid: sessionUuid,
+            interpretation: interpretation,
+            fortuneLevel: fortuneLevel,
+            advice: advice,
+            resultType: resultType,
+            userRating: userRating,
+            userFeedback: userFeedback,
+            provenanceUuid: provenanceUuid,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String uuid,
+            required DateTime createdAt,
+            Value<DateTime?> lastUpdatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            required String divinationUuid,
+            required String personaUuid,
+            Value<String?> sessionUuid = const Value.absent(),
+            required String interpretation,
+            Value<String?> fortuneLevel = const Value.absent(),
+            Value<String?> advice = const Value.absent(),
+            Value<String> resultType = const Value.absent(),
+            Value<int?> userRating = const Value.absent(),
+            Value<String?> userFeedback = const Value.absent(),
+            Value<String?> provenanceUuid = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AiDivinationsCompanion.insert(
+            uuid: uuid,
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            divinationUuid: divinationUuid,
+            personaUuid: personaUuid,
+            sessionUuid: sessionUuid,
+            interpretation: interpretation,
+            fortuneLevel: fortuneLevel,
+            advice: advice,
+            resultType: resultType,
+            userRating: userRating,
+            userFeedback: userFeedback,
+            provenanceUuid: provenanceUuid,
+            rowid: rowid,
+          ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$AiDivinationsTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (
+                    e.readTable(table),
+                    $$AiDivinationsTableReferences(db, table, e)
+                  ))
               .toList(),
-          prefetchHooksCallback:
-              ({
-                personaUuid = false,
-                sessionUuid = false,
-                provenanceUuid = false,
-              }) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [],
-                  addJoins:
-                      <
-                        T extends TableManagerState<
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic
-                        >
-                      >(state) {
-                        if (personaUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.personaUuid,
-                                    referencedTable:
-                                        $$AiDivinationsTableReferences
-                                            ._personaUuidTable(db),
-                                    referencedColumn:
-                                        $$AiDivinationsTableReferences
-                                            ._personaUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
-                        if (sessionUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.sessionUuid,
-                                    referencedTable:
-                                        $$AiDivinationsTableReferences
-                                            ._sessionUuidTable(db),
-                                    referencedColumn:
-                                        $$AiDivinationsTableReferences
-                                            ._sessionUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
-                        if (provenanceUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.provenanceUuid,
-                                    referencedTable:
-                                        $$AiDivinationsTableReferences
-                                            ._provenanceUuidTable(db),
-                                    referencedColumn:
-                                        $$AiDivinationsTableReferences
-                                            ._provenanceUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
+          prefetchHooksCallback: (
+              {personaUuid = false,
+              sessionUuid = false,
+              provenanceUuid = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (personaUuid) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.personaUuid,
+                    referencedTable:
+                        $$AiDivinationsTableReferences._personaUuidTable(db),
+                    referencedColumn: $$AiDivinationsTableReferences
+                        ._personaUuidTable(db)
+                        .uuid,
+                  ) as T;
+                }
+                if (sessionUuid) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.sessionUuid,
+                    referencedTable:
+                        $$AiDivinationsTableReferences._sessionUuidTable(db),
+                    referencedColumn: $$AiDivinationsTableReferences
+                        ._sessionUuidTable(db)
+                        .uuid,
+                  ) as T;
+                }
+                if (provenanceUuid) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.provenanceUuid,
+                    referencedTable:
+                        $$AiDivinationsTableReferences._provenanceUuidTable(db),
+                    referencedColumn: $$AiDivinationsTableReferences
+                        ._provenanceUuidTable(db)
+                        .uuid,
+                  ) as T;
+                }
 
-                        return state;
-                      },
-                  getPrefetchedDataCallback: (items) async {
-                    return [];
-                  },
-                );
+                return state;
               },
-        ),
-      );
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
 }
 
-typedef $$AiDivinationsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AiDatabase,
-      $AiDivinationsTable,
-      AiDivination,
-      $$AiDivinationsTableFilterComposer,
-      $$AiDivinationsTableOrderingComposer,
-      $$AiDivinationsTableAnnotationComposer,
-      $$AiDivinationsTableCreateCompanionBuilder,
-      $$AiDivinationsTableUpdateCompanionBuilder,
-      (AiDivination, $$AiDivinationsTableReferences),
-      AiDivination,
-      PrefetchHooks Function({
-        bool personaUuid,
-        bool sessionUuid,
-        bool provenanceUuid,
-      })
-    >;
-typedef $$AgentInvocationsTableCreateCompanionBuilder =
-    AgentInvocationsCompanion Function({
-      required String uuid,
-      required String callerPersonaUuid,
-      required String calleePersonaUuid,
-      Value<String?> sessionUuid,
-      required DateTime invokedAt,
-      Value<DateTime?> completedAt,
-      required String purpose,
-      Value<String?> sharedContextJson,
-      Value<String?> resultJson,
-      Value<String> status,
-      Value<String?> errorMessage,
-      Value<String?> parentInvocationUuid,
-      Value<int> depth,
-      Value<int> rowid,
-    });
-typedef $$AgentInvocationsTableUpdateCompanionBuilder =
-    AgentInvocationsCompanion Function({
-      Value<String> uuid,
-      Value<String> callerPersonaUuid,
-      Value<String> calleePersonaUuid,
-      Value<String?> sessionUuid,
-      Value<DateTime> invokedAt,
-      Value<DateTime?> completedAt,
-      Value<String> purpose,
-      Value<String?> sharedContextJson,
-      Value<String?> resultJson,
-      Value<String> status,
-      Value<String?> errorMessage,
-      Value<String?> parentInvocationUuid,
-      Value<int> depth,
-      Value<int> rowid,
-    });
+typedef $$AiDivinationsTableProcessedTableManager = ProcessedTableManager<
+    _$AiDatabase,
+    $AiDivinationsTable,
+    AiDivination,
+    $$AiDivinationsTableFilterComposer,
+    $$AiDivinationsTableOrderingComposer,
+    $$AiDivinationsTableAnnotationComposer,
+    $$AiDivinationsTableCreateCompanionBuilder,
+    $$AiDivinationsTableUpdateCompanionBuilder,
+    (AiDivination, $$AiDivinationsTableReferences),
+    AiDivination,
+    PrefetchHooks Function(
+        {bool personaUuid, bool sessionUuid, bool provenanceUuid})>;
+typedef $$AgentInvocationsTableCreateCompanionBuilder
+    = AgentInvocationsCompanion Function({
+  required String uuid,
+  required String callerPersonaUuid,
+  required String calleePersonaUuid,
+  Value<String?> sessionUuid,
+  required DateTime invokedAt,
+  Value<DateTime?> completedAt,
+  required String purpose,
+  Value<String?> sharedContextJson,
+  Value<String?> resultJson,
+  Value<String> status,
+  Value<String?> errorMessage,
+  Value<String?> parentInvocationUuid,
+  Value<int> depth,
+  Value<int> rowid,
+});
+typedef $$AgentInvocationsTableUpdateCompanionBuilder
+    = AgentInvocationsCompanion Function({
+  Value<String> uuid,
+  Value<String> callerPersonaUuid,
+  Value<String> calleePersonaUuid,
+  Value<String?> sessionUuid,
+  Value<DateTime> invokedAt,
+  Value<DateTime?> completedAt,
+  Value<String> purpose,
+  Value<String?> sharedContextJson,
+  Value<String?> resultJson,
+  Value<String> status,
+  Value<String?> errorMessage,
+  Value<String?> parentInvocationUuid,
+  Value<int> depth,
+  Value<int> rowid,
+});
 
-final class $$AgentInvocationsTableReferences
-    extends
-        BaseReferences<_$AiDatabase, $AgentInvocationsTable, AgentInvocation> {
+final class $$AgentInvocationsTableReferences extends BaseReferences<
+    _$AiDatabase, $AgentInvocationsTable, AgentInvocation> {
   $$AgentInvocationsTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
+      super.$_db, super.$_table, super.$_typedResult);
 
   static $AiPersonasTable _callerPersonaUuidTable(_$AiDatabase db) =>
-      db.aiPersonas.createAlias(
-        $_aliasNameGenerator(
-          db.agentInvocations.callerPersonaUuid,
-          db.aiPersonas.uuid,
-        ),
-      );
+      db.aiPersonas.createAlias($_aliasNameGenerator(
+          db.agentInvocations.callerPersonaUuid, db.aiPersonas.uuid));
 
   $$AiPersonasTableProcessedTableManager get callerPersonaUuid {
     final $_column = $_itemColumn<String>('caller_persona_uuid')!;
 
-    final manager = $$AiPersonasTableTableManager(
-      $_db,
-      $_db.aiPersonas,
-    ).filter((f) => f.uuid.sqlEquals($_column));
+    final manager = $$AiPersonasTableTableManager($_db, $_db.aiPersonas)
+        .filter((f) => f.uuid.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_callerPersonaUuidTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
+        manager.$state.copyWith(prefetchedData: [item]));
   }
 
   static $AiPersonasTable _calleePersonaUuidTable(_$AiDatabase db) =>
-      db.aiPersonas.createAlias(
-        $_aliasNameGenerator(
-          db.agentInvocations.calleePersonaUuid,
-          db.aiPersonas.uuid,
-        ),
-      );
+      db.aiPersonas.createAlias($_aliasNameGenerator(
+          db.agentInvocations.calleePersonaUuid, db.aiPersonas.uuid));
 
   $$AiPersonasTableProcessedTableManager get calleePersonaUuid {
     final $_column = $_itemColumn<String>('callee_persona_uuid')!;
 
-    final manager = $$AiPersonasTableTableManager(
-      $_db,
-      $_db.aiPersonas,
-    ).filter((f) => f.uuid.sqlEquals($_column));
+    final manager = $$AiPersonasTableTableManager($_db, $_db.aiPersonas)
+        .filter((f) => f.uuid.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_calleePersonaUuidTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
+        manager.$state.copyWith(prefetchedData: [item]));
   }
 
   static $AiChatSessionsTable _sessionUuidTable(_$AiDatabase db) =>
-      db.aiChatSessions.createAlias(
-        $_aliasNameGenerator(
-          db.agentInvocations.sessionUuid,
-          db.aiChatSessions.uuid,
-        ),
-      );
+      db.aiChatSessions.createAlias($_aliasNameGenerator(
+          db.agentInvocations.sessionUuid, db.aiChatSessions.uuid));
 
   $$AiChatSessionsTableProcessedTableManager? get sessionUuid {
     final $_column = $_itemColumn<String>('session_uuid');
     if ($_column == null) return null;
-    final manager = $$AiChatSessionsTableTableManager(
-      $_db,
-      $_db.aiChatSessions,
-    ).filter((f) => f.uuid.sqlEquals($_column));
+    final manager = $$AiChatSessionsTableTableManager($_db, $_db.aiChatSessions)
+        .filter((f) => f.uuid.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_sessionUuidTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
+        manager.$state.copyWith(prefetchedData: [item]));
   }
 }
 
@@ -18179,121 +15041,94 @@ class $$AgentInvocationsTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get invokedAt => $composableBuilder(
-    column: $table.invokedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.invokedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get completedAt => $composableBuilder(
-    column: $table.completedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.completedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get purpose => $composableBuilder(
-    column: $table.purpose,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.purpose, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get sharedContextJson => $composableBuilder(
-    column: $table.sharedContextJson,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.sharedContextJson,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get resultJson => $composableBuilder(
-    column: $table.resultJson,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.resultJson, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get status => $composableBuilder(
-    column: $table.status,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.status, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get errorMessage => $composableBuilder(
-    column: $table.errorMessage,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.errorMessage, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get parentInvocationUuid => $composableBuilder(
-    column: $table.parentInvocationUuid,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.parentInvocationUuid,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get depth => $composableBuilder(
-    column: $table.depth,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.depth, builder: (column) => ColumnFilters(column));
 
   $$AiPersonasTableFilterComposer get callerPersonaUuid {
     final $$AiPersonasTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.callerPersonaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableFilterComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.callerPersonaUuid,
+        referencedTable: $db.aiPersonas,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiPersonasTableFilterComposer(
+              $db: $db,
+              $table: $db.aiPersonas,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$AiPersonasTableFilterComposer get calleePersonaUuid {
     final $$AiPersonasTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.calleePersonaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableFilterComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.calleePersonaUuid,
+        referencedTable: $db.aiPersonas,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiPersonasTableFilterComposer(
+              $db: $db,
+              $table: $db.aiPersonas,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$AiChatSessionsTableFilterComposer get sessionUuid {
     final $$AiChatSessionsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableFilterComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.sessionUuid,
+        referencedTable: $db.aiChatSessions,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiChatSessionsTableFilterComposer(
+              $db: $db,
+              $table: $db.aiChatSessions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 }
@@ -18308,121 +15143,95 @@ class $$AgentInvocationsTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get invokedAt => $composableBuilder(
-    column: $table.invokedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.invokedAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get completedAt => $composableBuilder(
-    column: $table.completedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.completedAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get purpose => $composableBuilder(
-    column: $table.purpose,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.purpose, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get sharedContextJson => $composableBuilder(
-    column: $table.sharedContextJson,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.sharedContextJson,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get resultJson => $composableBuilder(
-    column: $table.resultJson,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.resultJson, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get status => $composableBuilder(
-    column: $table.status,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.status, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get errorMessage => $composableBuilder(
-    column: $table.errorMessage,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.errorMessage,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get parentInvocationUuid => $composableBuilder(
-    column: $table.parentInvocationUuid,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.parentInvocationUuid,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get depth => $composableBuilder(
-    column: $table.depth,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.depth, builder: (column) => ColumnOrderings(column));
 
   $$AiPersonasTableOrderingComposer get callerPersonaUuid {
     final $$AiPersonasTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.callerPersonaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableOrderingComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.callerPersonaUuid,
+        referencedTable: $db.aiPersonas,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiPersonasTableOrderingComposer(
+              $db: $db,
+              $table: $db.aiPersonas,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$AiPersonasTableOrderingComposer get calleePersonaUuid {
     final $$AiPersonasTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.calleePersonaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableOrderingComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.calleePersonaUuid,
+        referencedTable: $db.aiPersonas,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiPersonasTableOrderingComposer(
+              $db: $db,
+              $table: $db.aiPersonas,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$AiChatSessionsTableOrderingComposer get sessionUuid {
     final $$AiChatSessionsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableOrderingComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.sessionUuid,
+        referencedTable: $db.aiChatSessions,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiChatSessionsTableOrderingComposer(
+              $db: $db,
+              $table: $db.aiChatSessions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 }
@@ -18443,133 +15252,106 @@ class $$AgentInvocationsTableAnnotationComposer
       $composableBuilder(column: $table.invokedAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get completedAt => $composableBuilder(
-    column: $table.completedAt,
-    builder: (column) => column,
-  );
+      column: $table.completedAt, builder: (column) => column);
 
   GeneratedColumn<String> get purpose =>
       $composableBuilder(column: $table.purpose, builder: (column) => column);
 
   GeneratedColumn<String> get sharedContextJson => $composableBuilder(
-    column: $table.sharedContextJson,
-    builder: (column) => column,
-  );
+      column: $table.sharedContextJson, builder: (column) => column);
 
   GeneratedColumn<String> get resultJson => $composableBuilder(
-    column: $table.resultJson,
-    builder: (column) => column,
-  );
+      column: $table.resultJson, builder: (column) => column);
 
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
 
   GeneratedColumn<String> get errorMessage => $composableBuilder(
-    column: $table.errorMessage,
-    builder: (column) => column,
-  );
+      column: $table.errorMessage, builder: (column) => column);
 
   GeneratedColumn<String> get parentInvocationUuid => $composableBuilder(
-    column: $table.parentInvocationUuid,
-    builder: (column) => column,
-  );
+      column: $table.parentInvocationUuid, builder: (column) => column);
 
   GeneratedColumn<int> get depth =>
       $composableBuilder(column: $table.depth, builder: (column) => column);
 
   $$AiPersonasTableAnnotationComposer get callerPersonaUuid {
     final $$AiPersonasTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.callerPersonaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.callerPersonaUuid,
+        referencedTable: $db.aiPersonas,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiPersonasTableAnnotationComposer(
+              $db: $db,
+              $table: $db.aiPersonas,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$AiPersonasTableAnnotationComposer get calleePersonaUuid {
     final $$AiPersonasTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.calleePersonaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.calleePersonaUuid,
+        referencedTable: $db.aiPersonas,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiPersonasTableAnnotationComposer(
+              $db: $db,
+              $table: $db.aiPersonas,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 
   $$AiChatSessionsTableAnnotationComposer get sessionUuid {
     final $$AiChatSessionsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
+        composer: this,
+        getCurrentColumn: (t) => t.sessionUuid,
+        referencedTable: $db.aiChatSessions,
+        getReferencedColumn: (t) => t.uuid,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AiChatSessionsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.aiChatSessions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return composer;
   }
 }
 
-class $$AgentInvocationsTableTableManager
-    extends
-        RootTableManager<
-          _$AiDatabase,
-          $AgentInvocationsTable,
-          AgentInvocation,
-          $$AgentInvocationsTableFilterComposer,
-          $$AgentInvocationsTableOrderingComposer,
-          $$AgentInvocationsTableAnnotationComposer,
-          $$AgentInvocationsTableCreateCompanionBuilder,
-          $$AgentInvocationsTableUpdateCompanionBuilder,
-          (AgentInvocation, $$AgentInvocationsTableReferences),
-          AgentInvocation,
-          PrefetchHooks Function({
-            bool callerPersonaUuid,
-            bool calleePersonaUuid,
-            bool sessionUuid,
-          })
-        > {
+class $$AgentInvocationsTableTableManager extends RootTableManager<
+    _$AiDatabase,
+    $AgentInvocationsTable,
+    AgentInvocation,
+    $$AgentInvocationsTableFilterComposer,
+    $$AgentInvocationsTableOrderingComposer,
+    $$AgentInvocationsTableAnnotationComposer,
+    $$AgentInvocationsTableCreateCompanionBuilder,
+    $$AgentInvocationsTableUpdateCompanionBuilder,
+    (AgentInvocation, $$AgentInvocationsTableReferences),
+    AgentInvocation,
+    PrefetchHooks Function(
+        {bool callerPersonaUuid, bool calleePersonaUuid, bool sessionUuid})> {
   $$AgentInvocationsTableTableManager(
-    _$AiDatabase db,
-    $AgentInvocationsTable table,
-  ) : super(
-        TableManagerState(
+      _$AiDatabase db, $AgentInvocationsTable table)
+      : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -18578,208 +15360,183 @@ class $$AgentInvocationsTableTableManager
               $$AgentInvocationsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$AgentInvocationsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> uuid = const Value.absent(),
-                Value<String> callerPersonaUuid = const Value.absent(),
-                Value<String> calleePersonaUuid = const Value.absent(),
-                Value<String?> sessionUuid = const Value.absent(),
-                Value<DateTime> invokedAt = const Value.absent(),
-                Value<DateTime?> completedAt = const Value.absent(),
-                Value<String> purpose = const Value.absent(),
-                Value<String?> sharedContextJson = const Value.absent(),
-                Value<String?> resultJson = const Value.absent(),
-                Value<String> status = const Value.absent(),
-                Value<String?> errorMessage = const Value.absent(),
-                Value<String?> parentInvocationUuid = const Value.absent(),
-                Value<int> depth = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => AgentInvocationsCompanion(
-                uuid: uuid,
-                callerPersonaUuid: callerPersonaUuid,
-                calleePersonaUuid: calleePersonaUuid,
-                sessionUuid: sessionUuid,
-                invokedAt: invokedAt,
-                completedAt: completedAt,
-                purpose: purpose,
-                sharedContextJson: sharedContextJson,
-                resultJson: resultJson,
-                status: status,
-                errorMessage: errorMessage,
-                parentInvocationUuid: parentInvocationUuid,
-                depth: depth,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String uuid,
-                required String callerPersonaUuid,
-                required String calleePersonaUuid,
-                Value<String?> sessionUuid = const Value.absent(),
-                required DateTime invokedAt,
-                Value<DateTime?> completedAt = const Value.absent(),
-                required String purpose,
-                Value<String?> sharedContextJson = const Value.absent(),
-                Value<String?> resultJson = const Value.absent(),
-                Value<String> status = const Value.absent(),
-                Value<String?> errorMessage = const Value.absent(),
-                Value<String?> parentInvocationUuid = const Value.absent(),
-                Value<int> depth = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => AgentInvocationsCompanion.insert(
-                uuid: uuid,
-                callerPersonaUuid: callerPersonaUuid,
-                calleePersonaUuid: calleePersonaUuid,
-                sessionUuid: sessionUuid,
-                invokedAt: invokedAt,
-                completedAt: completedAt,
-                purpose: purpose,
-                sharedContextJson: sharedContextJson,
-                resultJson: resultJson,
-                status: status,
-                errorMessage: errorMessage,
-                parentInvocationUuid: parentInvocationUuid,
-                depth: depth,
-                rowid: rowid,
-              ),
+          updateCompanionCallback: ({
+            Value<String> uuid = const Value.absent(),
+            Value<String> callerPersonaUuid = const Value.absent(),
+            Value<String> calleePersonaUuid = const Value.absent(),
+            Value<String?> sessionUuid = const Value.absent(),
+            Value<DateTime> invokedAt = const Value.absent(),
+            Value<DateTime?> completedAt = const Value.absent(),
+            Value<String> purpose = const Value.absent(),
+            Value<String?> sharedContextJson = const Value.absent(),
+            Value<String?> resultJson = const Value.absent(),
+            Value<String> status = const Value.absent(),
+            Value<String?> errorMessage = const Value.absent(),
+            Value<String?> parentInvocationUuid = const Value.absent(),
+            Value<int> depth = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AgentInvocationsCompanion(
+            uuid: uuid,
+            callerPersonaUuid: callerPersonaUuid,
+            calleePersonaUuid: calleePersonaUuid,
+            sessionUuid: sessionUuid,
+            invokedAt: invokedAt,
+            completedAt: completedAt,
+            purpose: purpose,
+            sharedContextJson: sharedContextJson,
+            resultJson: resultJson,
+            status: status,
+            errorMessage: errorMessage,
+            parentInvocationUuid: parentInvocationUuid,
+            depth: depth,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String uuid,
+            required String callerPersonaUuid,
+            required String calleePersonaUuid,
+            Value<String?> sessionUuid = const Value.absent(),
+            required DateTime invokedAt,
+            Value<DateTime?> completedAt = const Value.absent(),
+            required String purpose,
+            Value<String?> sharedContextJson = const Value.absent(),
+            Value<String?> resultJson = const Value.absent(),
+            Value<String> status = const Value.absent(),
+            Value<String?> errorMessage = const Value.absent(),
+            Value<String?> parentInvocationUuid = const Value.absent(),
+            Value<int> depth = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AgentInvocationsCompanion.insert(
+            uuid: uuid,
+            callerPersonaUuid: callerPersonaUuid,
+            calleePersonaUuid: calleePersonaUuid,
+            sessionUuid: sessionUuid,
+            invokedAt: invokedAt,
+            completedAt: completedAt,
+            purpose: purpose,
+            sharedContextJson: sharedContextJson,
+            resultJson: resultJson,
+            status: status,
+            errorMessage: errorMessage,
+            parentInvocationUuid: parentInvocationUuid,
+            depth: depth,
+            rowid: rowid,
+          ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$AgentInvocationsTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (
+                    e.readTable(table),
+                    $$AgentInvocationsTableReferences(db, table, e)
+                  ))
               .toList(),
-          prefetchHooksCallback:
-              ({
-                callerPersonaUuid = false,
-                calleePersonaUuid = false,
-                sessionUuid = false,
-              }) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [],
-                  addJoins:
-                      <
-                        T extends TableManagerState<
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic
-                        >
-                      >(state) {
-                        if (callerPersonaUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.callerPersonaUuid,
-                                    referencedTable:
-                                        $$AgentInvocationsTableReferences
-                                            ._callerPersonaUuidTable(db),
-                                    referencedColumn:
-                                        $$AgentInvocationsTableReferences
-                                            ._callerPersonaUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
-                        if (calleePersonaUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.calleePersonaUuid,
-                                    referencedTable:
-                                        $$AgentInvocationsTableReferences
-                                            ._calleePersonaUuidTable(db),
-                                    referencedColumn:
-                                        $$AgentInvocationsTableReferences
-                                            ._calleePersonaUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
-                        if (sessionUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.sessionUuid,
-                                    referencedTable:
-                                        $$AgentInvocationsTableReferences
-                                            ._sessionUuidTable(db),
-                                    referencedColumn:
-                                        $$AgentInvocationsTableReferences
-                                            ._sessionUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
+          prefetchHooksCallback: (
+              {callerPersonaUuid = false,
+              calleePersonaUuid = false,
+              sessionUuid = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (callerPersonaUuid) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.callerPersonaUuid,
+                    referencedTable: $$AgentInvocationsTableReferences
+                        ._callerPersonaUuidTable(db),
+                    referencedColumn: $$AgentInvocationsTableReferences
+                        ._callerPersonaUuidTable(db)
+                        .uuid,
+                  ) as T;
+                }
+                if (calleePersonaUuid) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.calleePersonaUuid,
+                    referencedTable: $$AgentInvocationsTableReferences
+                        ._calleePersonaUuidTable(db),
+                    referencedColumn: $$AgentInvocationsTableReferences
+                        ._calleePersonaUuidTable(db)
+                        .uuid,
+                  ) as T;
+                }
+                if (sessionUuid) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.sessionUuid,
+                    referencedTable:
+                        $$AgentInvocationsTableReferences._sessionUuidTable(db),
+                    referencedColumn: $$AgentInvocationsTableReferences
+                        ._sessionUuidTable(db)
+                        .uuid,
+                  ) as T;
+                }
 
-                        return state;
-                      },
-                  getPrefetchedDataCallback: (items) async {
-                    return [];
-                  },
-                );
+                return state;
               },
-        ),
-      );
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
 }
 
-typedef $$AgentInvocationsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AiDatabase,
-      $AgentInvocationsTable,
-      AgentInvocation,
-      $$AgentInvocationsTableFilterComposer,
-      $$AgentInvocationsTableOrderingComposer,
-      $$AgentInvocationsTableAnnotationComposer,
-      $$AgentInvocationsTableCreateCompanionBuilder,
-      $$AgentInvocationsTableUpdateCompanionBuilder,
-      (AgentInvocation, $$AgentInvocationsTableReferences),
-      AgentInvocation,
-      PrefetchHooks Function({
-        bool callerPersonaUuid,
-        bool calleePersonaUuid,
-        bool sessionUuid,
-      })
-    >;
-typedef $$AiUsageAuditsTableCreateCompanionBuilder =
-    AiUsageAuditsCompanion Function({
-      Value<int> id,
-      required DateTime auditedAt,
-      required String auditType,
-      Value<String?> entityUuid,
-      Value<String?> entityType,
-      Value<String?> userIdentifier,
-      required String action,
-      Value<String?> detailsJson,
-      Value<int?> tokensUsed,
-      Value<double?> estimatedCost,
-      Value<String?> ipAddress,
-      Value<String?> deviceInfo,
-    });
-typedef $$AiUsageAuditsTableUpdateCompanionBuilder =
-    AiUsageAuditsCompanion Function({
-      Value<int> id,
-      Value<DateTime> auditedAt,
-      Value<String> auditType,
-      Value<String?> entityUuid,
-      Value<String?> entityType,
-      Value<String?> userIdentifier,
-      Value<String> action,
-      Value<String?> detailsJson,
-      Value<int?> tokensUsed,
-      Value<double?> estimatedCost,
-      Value<String?> ipAddress,
-      Value<String?> deviceInfo,
-    });
+typedef $$AgentInvocationsTableProcessedTableManager = ProcessedTableManager<
+    _$AiDatabase,
+    $AgentInvocationsTable,
+    AgentInvocation,
+    $$AgentInvocationsTableFilterComposer,
+    $$AgentInvocationsTableOrderingComposer,
+    $$AgentInvocationsTableAnnotationComposer,
+    $$AgentInvocationsTableCreateCompanionBuilder,
+    $$AgentInvocationsTableUpdateCompanionBuilder,
+    (AgentInvocation, $$AgentInvocationsTableReferences),
+    AgentInvocation,
+    PrefetchHooks Function(
+        {bool callerPersonaUuid, bool calleePersonaUuid, bool sessionUuid})>;
+typedef $$AiUsageAuditsTableCreateCompanionBuilder = AiUsageAuditsCompanion
+    Function({
+  Value<int> id,
+  required DateTime auditedAt,
+  required String auditType,
+  Value<String?> entityUuid,
+  Value<String?> entityType,
+  Value<String?> userIdentifier,
+  required String action,
+  Value<String?> detailsJson,
+  Value<int?> tokensUsed,
+  Value<double?> estimatedCost,
+  Value<String?> ipAddress,
+  Value<String?> deviceInfo,
+});
+typedef $$AiUsageAuditsTableUpdateCompanionBuilder = AiUsageAuditsCompanion
+    Function({
+  Value<int> id,
+  Value<DateTime> auditedAt,
+  Value<String> auditType,
+  Value<String?> entityUuid,
+  Value<String?> entityType,
+  Value<String?> userIdentifier,
+  Value<String> action,
+  Value<String?> detailsJson,
+  Value<int?> tokensUsed,
+  Value<double?> estimatedCost,
+  Value<String?> ipAddress,
+  Value<String?> deviceInfo,
+});
 
 class $$AiUsageAuditsTableFilterComposer
     extends Composer<_$AiDatabase, $AiUsageAuditsTable> {
@@ -18791,64 +15548,41 @@ class $$AiUsageAuditsTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.id, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get auditedAt => $composableBuilder(
-    column: $table.auditedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.auditedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get auditType => $composableBuilder(
-    column: $table.auditType,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.auditType, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get entityUuid => $composableBuilder(
-    column: $table.entityUuid,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.entityUuid, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get entityType => $composableBuilder(
-    column: $table.entityType,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.entityType, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get userIdentifier => $composableBuilder(
-    column: $table.userIdentifier,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.userIdentifier,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get action => $composableBuilder(
-    column: $table.action,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.action, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get detailsJson => $composableBuilder(
-    column: $table.detailsJson,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.detailsJson, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get tokensUsed => $composableBuilder(
-    column: $table.tokensUsed,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.tokensUsed, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<double> get estimatedCost => $composableBuilder(
-    column: $table.estimatedCost,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.estimatedCost, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get ipAddress => $composableBuilder(
-    column: $table.ipAddress,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.ipAddress, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get deviceInfo => $composableBuilder(
-    column: $table.deviceInfo,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.deviceInfo, builder: (column) => ColumnFilters(column));
 }
 
 class $$AiUsageAuditsTableOrderingComposer
@@ -18861,64 +15595,42 @@ class $$AiUsageAuditsTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.id, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get auditedAt => $composableBuilder(
-    column: $table.auditedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.auditedAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get auditType => $composableBuilder(
-    column: $table.auditType,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.auditType, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get entityUuid => $composableBuilder(
-    column: $table.entityUuid,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.entityUuid, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get entityType => $composableBuilder(
-    column: $table.entityType,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.entityType, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get userIdentifier => $composableBuilder(
-    column: $table.userIdentifier,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.userIdentifier,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get action => $composableBuilder(
-    column: $table.action,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.action, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get detailsJson => $composableBuilder(
-    column: $table.detailsJson,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.detailsJson, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get tokensUsed => $composableBuilder(
-    column: $table.tokensUsed,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.tokensUsed, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<double> get estimatedCost => $composableBuilder(
-    column: $table.estimatedCost,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.estimatedCost,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get ipAddress => $composableBuilder(
-    column: $table.ipAddress,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.ipAddress, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get deviceInfo => $composableBuilder(
-    column: $table.deviceInfo,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.deviceInfo, builder: (column) => ColumnOrderings(column));
 }
 
 class $$AiUsageAuditsTableAnnotationComposer
@@ -18940,68 +15652,50 @@ class $$AiUsageAuditsTableAnnotationComposer
       $composableBuilder(column: $table.auditType, builder: (column) => column);
 
   GeneratedColumn<String> get entityUuid => $composableBuilder(
-    column: $table.entityUuid,
-    builder: (column) => column,
-  );
+      column: $table.entityUuid, builder: (column) => column);
 
   GeneratedColumn<String> get entityType => $composableBuilder(
-    column: $table.entityType,
-    builder: (column) => column,
-  );
+      column: $table.entityType, builder: (column) => column);
 
   GeneratedColumn<String> get userIdentifier => $composableBuilder(
-    column: $table.userIdentifier,
-    builder: (column) => column,
-  );
+      column: $table.userIdentifier, builder: (column) => column);
 
   GeneratedColumn<String> get action =>
       $composableBuilder(column: $table.action, builder: (column) => column);
 
   GeneratedColumn<String> get detailsJson => $composableBuilder(
-    column: $table.detailsJson,
-    builder: (column) => column,
-  );
+      column: $table.detailsJson, builder: (column) => column);
 
   GeneratedColumn<int> get tokensUsed => $composableBuilder(
-    column: $table.tokensUsed,
-    builder: (column) => column,
-  );
+      column: $table.tokensUsed, builder: (column) => column);
 
   GeneratedColumn<double> get estimatedCost => $composableBuilder(
-    column: $table.estimatedCost,
-    builder: (column) => column,
-  );
+      column: $table.estimatedCost, builder: (column) => column);
 
   GeneratedColumn<String> get ipAddress =>
       $composableBuilder(column: $table.ipAddress, builder: (column) => column);
 
   GeneratedColumn<String> get deviceInfo => $composableBuilder(
-    column: $table.deviceInfo,
-    builder: (column) => column,
-  );
+      column: $table.deviceInfo, builder: (column) => column);
 }
 
-class $$AiUsageAuditsTableTableManager
-    extends
-        RootTableManager<
-          _$AiDatabase,
-          $AiUsageAuditsTable,
-          AiUsageAudit,
-          $$AiUsageAuditsTableFilterComposer,
-          $$AiUsageAuditsTableOrderingComposer,
-          $$AiUsageAuditsTableAnnotationComposer,
-          $$AiUsageAuditsTableCreateCompanionBuilder,
-          $$AiUsageAuditsTableUpdateCompanionBuilder,
-          (
-            AiUsageAudit,
-            BaseReferences<_$AiDatabase, $AiUsageAuditsTable, AiUsageAudit>,
-          ),
-          AiUsageAudit,
-          PrefetchHooks Function()
-        > {
+class $$AiUsageAuditsTableTableManager extends RootTableManager<
+    _$AiDatabase,
+    $AiUsageAuditsTable,
+    AiUsageAudit,
+    $$AiUsageAuditsTableFilterComposer,
+    $$AiUsageAuditsTableOrderingComposer,
+    $$AiUsageAuditsTableAnnotationComposer,
+    $$AiUsageAuditsTableCreateCompanionBuilder,
+    $$AiUsageAuditsTableUpdateCompanionBuilder,
+    (
+      AiUsageAudit,
+      BaseReferences<_$AiDatabase, $AiUsageAuditsTable, AiUsageAudit>
+    ),
+    AiUsageAudit,
+    PrefetchHooks Function()> {
   $$AiUsageAuditsTableTableManager(_$AiDatabase db, $AiUsageAuditsTable table)
-    : super(
-        TableManagerState(
+      : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -19010,123 +15704,118 @@ class $$AiUsageAuditsTableTableManager
               $$AiUsageAuditsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$AiUsageAuditsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                Value<DateTime> auditedAt = const Value.absent(),
-                Value<String> auditType = const Value.absent(),
-                Value<String?> entityUuid = const Value.absent(),
-                Value<String?> entityType = const Value.absent(),
-                Value<String?> userIdentifier = const Value.absent(),
-                Value<String> action = const Value.absent(),
-                Value<String?> detailsJson = const Value.absent(),
-                Value<int?> tokensUsed = const Value.absent(),
-                Value<double?> estimatedCost = const Value.absent(),
-                Value<String?> ipAddress = const Value.absent(),
-                Value<String?> deviceInfo = const Value.absent(),
-              }) => AiUsageAuditsCompanion(
-                id: id,
-                auditedAt: auditedAt,
-                auditType: auditType,
-                entityUuid: entityUuid,
-                entityType: entityType,
-                userIdentifier: userIdentifier,
-                action: action,
-                detailsJson: detailsJson,
-                tokensUsed: tokensUsed,
-                estimatedCost: estimatedCost,
-                ipAddress: ipAddress,
-                deviceInfo: deviceInfo,
-              ),
-          createCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                required DateTime auditedAt,
-                required String auditType,
-                Value<String?> entityUuid = const Value.absent(),
-                Value<String?> entityType = const Value.absent(),
-                Value<String?> userIdentifier = const Value.absent(),
-                required String action,
-                Value<String?> detailsJson = const Value.absent(),
-                Value<int?> tokensUsed = const Value.absent(),
-                Value<double?> estimatedCost = const Value.absent(),
-                Value<String?> ipAddress = const Value.absent(),
-                Value<String?> deviceInfo = const Value.absent(),
-              }) => AiUsageAuditsCompanion.insert(
-                id: id,
-                auditedAt: auditedAt,
-                auditType: auditType,
-                entityUuid: entityUuid,
-                entityType: entityType,
-                userIdentifier: userIdentifier,
-                action: action,
-                detailsJson: detailsJson,
-                tokensUsed: tokensUsed,
-                estimatedCost: estimatedCost,
-                ipAddress: ipAddress,
-                deviceInfo: deviceInfo,
-              ),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<DateTime> auditedAt = const Value.absent(),
+            Value<String> auditType = const Value.absent(),
+            Value<String?> entityUuid = const Value.absent(),
+            Value<String?> entityType = const Value.absent(),
+            Value<String?> userIdentifier = const Value.absent(),
+            Value<String> action = const Value.absent(),
+            Value<String?> detailsJson = const Value.absent(),
+            Value<int?> tokensUsed = const Value.absent(),
+            Value<double?> estimatedCost = const Value.absent(),
+            Value<String?> ipAddress = const Value.absent(),
+            Value<String?> deviceInfo = const Value.absent(),
+          }) =>
+              AiUsageAuditsCompanion(
+            id: id,
+            auditedAt: auditedAt,
+            auditType: auditType,
+            entityUuid: entityUuid,
+            entityType: entityType,
+            userIdentifier: userIdentifier,
+            action: action,
+            detailsJson: detailsJson,
+            tokensUsed: tokensUsed,
+            estimatedCost: estimatedCost,
+            ipAddress: ipAddress,
+            deviceInfo: deviceInfo,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required DateTime auditedAt,
+            required String auditType,
+            Value<String?> entityUuid = const Value.absent(),
+            Value<String?> entityType = const Value.absent(),
+            Value<String?> userIdentifier = const Value.absent(),
+            required String action,
+            Value<String?> detailsJson = const Value.absent(),
+            Value<int?> tokensUsed = const Value.absent(),
+            Value<double?> estimatedCost = const Value.absent(),
+            Value<String?> ipAddress = const Value.absent(),
+            Value<String?> deviceInfo = const Value.absent(),
+          }) =>
+              AiUsageAuditsCompanion.insert(
+            id: id,
+            auditedAt: auditedAt,
+            auditType: auditType,
+            entityUuid: entityUuid,
+            entityType: entityType,
+            userIdentifier: userIdentifier,
+            action: action,
+            detailsJson: detailsJson,
+            tokensUsed: tokensUsed,
+            estimatedCost: estimatedCost,
+            ipAddress: ipAddress,
+            deviceInfo: deviceInfo,
+          ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ),
-      );
+        ));
 }
 
-typedef $$AiUsageAuditsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AiDatabase,
-      $AiUsageAuditsTable,
+typedef $$AiUsageAuditsTableProcessedTableManager = ProcessedTableManager<
+    _$AiDatabase,
+    $AiUsageAuditsTable,
+    AiUsageAudit,
+    $$AiUsageAuditsTableFilterComposer,
+    $$AiUsageAuditsTableOrderingComposer,
+    $$AiUsageAuditsTableAnnotationComposer,
+    $$AiUsageAuditsTableCreateCompanionBuilder,
+    $$AiUsageAuditsTableUpdateCompanionBuilder,
+    (
       AiUsageAudit,
-      $$AiUsageAuditsTableFilterComposer,
-      $$AiUsageAuditsTableOrderingComposer,
-      $$AiUsageAuditsTableAnnotationComposer,
-      $$AiUsageAuditsTableCreateCompanionBuilder,
-      $$AiUsageAuditsTableUpdateCompanionBuilder,
-      (
-        AiUsageAudit,
-        BaseReferences<_$AiDatabase, $AiUsageAuditsTable, AiUsageAudit>,
-      ),
-      AiUsageAudit,
-      PrefetchHooks Function()
-    >;
-typedef $$AiToolsTableCreateCompanionBuilder =
-    AiToolsCompanion Function({
-      required String uuid,
-      required DateTime createdAt,
-      Value<DateTime?> lastUpdatedAt,
-      Value<DateTime?> deletedAt,
-      required String name,
-      required String description,
-      required String toolType,
-      Value<int?> skillId,
-      required String parametersSchemaJson,
-      Value<String?> returnSchemaJson,
-      Value<bool> requiresConfirmation,
-      Value<bool> isEnabled,
-      Value<String> executorType,
-      Value<String?> executorConfigJson,
-      Value<int> rowid,
-    });
-typedef $$AiToolsTableUpdateCompanionBuilder =
-    AiToolsCompanion Function({
-      Value<String> uuid,
-      Value<DateTime> createdAt,
-      Value<DateTime?> lastUpdatedAt,
-      Value<DateTime?> deletedAt,
-      Value<String> name,
-      Value<String> description,
-      Value<String> toolType,
-      Value<int?> skillId,
-      Value<String> parametersSchemaJson,
-      Value<String?> returnSchemaJson,
-      Value<bool> requiresConfirmation,
-      Value<bool> isEnabled,
-      Value<String> executorType,
-      Value<String?> executorConfigJson,
-      Value<int> rowid,
-    });
+      BaseReferences<_$AiDatabase, $AiUsageAuditsTable, AiUsageAudit>
+    ),
+    AiUsageAudit,
+    PrefetchHooks Function()>;
+typedef $$AiToolsTableCreateCompanionBuilder = AiToolsCompanion Function({
+  required String uuid,
+  required DateTime createdAt,
+  Value<DateTime?> lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  required String name,
+  required String description,
+  required String toolType,
+  Value<int?> skillId,
+  required String parametersSchemaJson,
+  Value<String?> returnSchemaJson,
+  Value<bool> requiresConfirmation,
+  Value<bool> isEnabled,
+  Value<String> executorType,
+  Value<String?> executorConfigJson,
+  Value<int> rowid,
+});
+typedef $$AiToolsTableUpdateCompanionBuilder = AiToolsCompanion Function({
+  Value<String> uuid,
+  Value<DateTime> createdAt,
+  Value<DateTime?> lastUpdatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String> name,
+  Value<String> description,
+  Value<String> toolType,
+  Value<int?> skillId,
+  Value<String> parametersSchemaJson,
+  Value<String?> returnSchemaJson,
+  Value<bool> requiresConfirmation,
+  Value<bool> isEnabled,
+  Value<String> executorType,
+  Value<String?> executorConfigJson,
+  Value<int> rowid,
+});
 
 class $$AiToolsTableFilterComposer
     extends Composer<_$AiDatabase, $AiToolsTable> {
@@ -19138,74 +15827,50 @@ class $$AiToolsTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.lastUpdatedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
-    column: $table.deletedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.name, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get description => $composableBuilder(
-    column: $table.description,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.description, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get toolType => $composableBuilder(
-    column: $table.toolType,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.toolType, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get skillId => $composableBuilder(
-    column: $table.skillId,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.skillId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get parametersSchemaJson => $composableBuilder(
-    column: $table.parametersSchemaJson,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.parametersSchemaJson,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get returnSchemaJson => $composableBuilder(
-    column: $table.returnSchemaJson,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.returnSchemaJson,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get requiresConfirmation => $composableBuilder(
-    column: $table.requiresConfirmation,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.requiresConfirmation,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get isEnabled => $composableBuilder(
-    column: $table.isEnabled,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.isEnabled, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get executorType => $composableBuilder(
-    column: $table.executorType,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.executorType, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get executorConfigJson => $composableBuilder(
-    column: $table.executorConfigJson,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.executorConfigJson,
+      builder: (column) => ColumnFilters(column));
 }
 
 class $$AiToolsTableOrderingComposer
@@ -19218,74 +15883,52 @@ class $$AiToolsTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.lastUpdatedAt,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
-    column: $table.deletedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.name, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get description => $composableBuilder(
-    column: $table.description,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.description, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get toolType => $composableBuilder(
-    column: $table.toolType,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.toolType, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get skillId => $composableBuilder(
-    column: $table.skillId,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.skillId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get parametersSchemaJson => $composableBuilder(
-    column: $table.parametersSchemaJson,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.parametersSchemaJson,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get returnSchemaJson => $composableBuilder(
-    column: $table.returnSchemaJson,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.returnSchemaJson,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<bool> get requiresConfirmation => $composableBuilder(
-    column: $table.requiresConfirmation,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.requiresConfirmation,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<bool> get isEnabled => $composableBuilder(
-    column: $table.isEnabled,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.isEnabled, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get executorType => $composableBuilder(
-    column: $table.executorType,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.executorType,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get executorConfigJson => $composableBuilder(
-    column: $table.executorConfigJson,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.executorConfigJson,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$AiToolsTableAnnotationComposer
@@ -19304,9 +15947,7 @@ class $$AiToolsTableAnnotationComposer
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get lastUpdatedAt => $composableBuilder(
-    column: $table.lastUpdatedAt,
-    builder: (column) => column,
-  );
+      column: $table.lastUpdatedAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
@@ -19315,9 +15956,7 @@ class $$AiToolsTableAnnotationComposer
       $composableBuilder(column: $table.name, builder: (column) => column);
 
   GeneratedColumn<String> get description => $composableBuilder(
-    column: $table.description,
-    builder: (column) => column,
-  );
+      column: $table.description, builder: (column) => column);
 
   GeneratedColumn<String> get toolType =>
       $composableBuilder(column: $table.toolType, builder: (column) => column);
@@ -19326,52 +15965,38 @@ class $$AiToolsTableAnnotationComposer
       $composableBuilder(column: $table.skillId, builder: (column) => column);
 
   GeneratedColumn<String> get parametersSchemaJson => $composableBuilder(
-    column: $table.parametersSchemaJson,
-    builder: (column) => column,
-  );
+      column: $table.parametersSchemaJson, builder: (column) => column);
 
   GeneratedColumn<String> get returnSchemaJson => $composableBuilder(
-    column: $table.returnSchemaJson,
-    builder: (column) => column,
-  );
+      column: $table.returnSchemaJson, builder: (column) => column);
 
   GeneratedColumn<bool> get requiresConfirmation => $composableBuilder(
-    column: $table.requiresConfirmation,
-    builder: (column) => column,
-  );
+      column: $table.requiresConfirmation, builder: (column) => column);
 
   GeneratedColumn<bool> get isEnabled =>
       $composableBuilder(column: $table.isEnabled, builder: (column) => column);
 
   GeneratedColumn<String> get executorType => $composableBuilder(
-    column: $table.executorType,
-    builder: (column) => column,
-  );
+      column: $table.executorType, builder: (column) => column);
 
   GeneratedColumn<String> get executorConfigJson => $composableBuilder(
-    column: $table.executorConfigJson,
-    builder: (column) => column,
-  );
+      column: $table.executorConfigJson, builder: (column) => column);
 }
 
-class $$AiToolsTableTableManager
-    extends
-        RootTableManager<
-          _$AiDatabase,
-          $AiToolsTable,
-          AiTool,
-          $$AiToolsTableFilterComposer,
-          $$AiToolsTableOrderingComposer,
-          $$AiToolsTableAnnotationComposer,
-          $$AiToolsTableCreateCompanionBuilder,
-          $$AiToolsTableUpdateCompanionBuilder,
-          (AiTool, BaseReferences<_$AiDatabase, $AiToolsTable, AiTool>),
-          AiTool,
-          PrefetchHooks Function()
-        > {
+class $$AiToolsTableTableManager extends RootTableManager<
+    _$AiDatabase,
+    $AiToolsTable,
+    AiTool,
+    $$AiToolsTableFilterComposer,
+    $$AiToolsTableOrderingComposer,
+    $$AiToolsTableAnnotationComposer,
+    $$AiToolsTableCreateCompanionBuilder,
+    $$AiToolsTableUpdateCompanionBuilder,
+    (AiTool, BaseReferences<_$AiDatabase, $AiToolsTable, AiTool>),
+    AiTool,
+    PrefetchHooks Function()> {
   $$AiToolsTableTableManager(_$AiDatabase db, $AiToolsTable table)
-    : super(
-        TableManagerState(
+      : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -19380,96 +16005,93 @@ class $$AiToolsTableTableManager
               $$AiToolsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$AiToolsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> uuid = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime?> lastUpdatedAt = const Value.absent(),
-                Value<DateTime?> deletedAt = const Value.absent(),
-                Value<String> name = const Value.absent(),
-                Value<String> description = const Value.absent(),
-                Value<String> toolType = const Value.absent(),
-                Value<int?> skillId = const Value.absent(),
-                Value<String> parametersSchemaJson = const Value.absent(),
-                Value<String?> returnSchemaJson = const Value.absent(),
-                Value<bool> requiresConfirmation = const Value.absent(),
-                Value<bool> isEnabled = const Value.absent(),
-                Value<String> executorType = const Value.absent(),
-                Value<String?> executorConfigJson = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => AiToolsCompanion(
-                uuid: uuid,
-                createdAt: createdAt,
-                lastUpdatedAt: lastUpdatedAt,
-                deletedAt: deletedAt,
-                name: name,
-                description: description,
-                toolType: toolType,
-                skillId: skillId,
-                parametersSchemaJson: parametersSchemaJson,
-                returnSchemaJson: returnSchemaJson,
-                requiresConfirmation: requiresConfirmation,
-                isEnabled: isEnabled,
-                executorType: executorType,
-                executorConfigJson: executorConfigJson,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String uuid,
-                required DateTime createdAt,
-                Value<DateTime?> lastUpdatedAt = const Value.absent(),
-                Value<DateTime?> deletedAt = const Value.absent(),
-                required String name,
-                required String description,
-                required String toolType,
-                Value<int?> skillId = const Value.absent(),
-                required String parametersSchemaJson,
-                Value<String?> returnSchemaJson = const Value.absent(),
-                Value<bool> requiresConfirmation = const Value.absent(),
-                Value<bool> isEnabled = const Value.absent(),
-                Value<String> executorType = const Value.absent(),
-                Value<String?> executorConfigJson = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => AiToolsCompanion.insert(
-                uuid: uuid,
-                createdAt: createdAt,
-                lastUpdatedAt: lastUpdatedAt,
-                deletedAt: deletedAt,
-                name: name,
-                description: description,
-                toolType: toolType,
-                skillId: skillId,
-                parametersSchemaJson: parametersSchemaJson,
-                returnSchemaJson: returnSchemaJson,
-                requiresConfirmation: requiresConfirmation,
-                isEnabled: isEnabled,
-                executorType: executorType,
-                executorConfigJson: executorConfigJson,
-                rowid: rowid,
-              ),
+          updateCompanionCallback: ({
+            Value<String> uuid = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime?> lastUpdatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<String> description = const Value.absent(),
+            Value<String> toolType = const Value.absent(),
+            Value<int?> skillId = const Value.absent(),
+            Value<String> parametersSchemaJson = const Value.absent(),
+            Value<String?> returnSchemaJson = const Value.absent(),
+            Value<bool> requiresConfirmation = const Value.absent(),
+            Value<bool> isEnabled = const Value.absent(),
+            Value<String> executorType = const Value.absent(),
+            Value<String?> executorConfigJson = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AiToolsCompanion(
+            uuid: uuid,
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            name: name,
+            description: description,
+            toolType: toolType,
+            skillId: skillId,
+            parametersSchemaJson: parametersSchemaJson,
+            returnSchemaJson: returnSchemaJson,
+            requiresConfirmation: requiresConfirmation,
+            isEnabled: isEnabled,
+            executorType: executorType,
+            executorConfigJson: executorConfigJson,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String uuid,
+            required DateTime createdAt,
+            Value<DateTime?> lastUpdatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            required String name,
+            required String description,
+            required String toolType,
+            Value<int?> skillId = const Value.absent(),
+            required String parametersSchemaJson,
+            Value<String?> returnSchemaJson = const Value.absent(),
+            Value<bool> requiresConfirmation = const Value.absent(),
+            Value<bool> isEnabled = const Value.absent(),
+            Value<String> executorType = const Value.absent(),
+            Value<String?> executorConfigJson = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              AiToolsCompanion.insert(
+            uuid: uuid,
+            createdAt: createdAt,
+            lastUpdatedAt: lastUpdatedAt,
+            deletedAt: deletedAt,
+            name: name,
+            description: description,
+            toolType: toolType,
+            skillId: skillId,
+            parametersSchemaJson: parametersSchemaJson,
+            returnSchemaJson: returnSchemaJson,
+            requiresConfirmation: requiresConfirmation,
+            isEnabled: isEnabled,
+            executorType: executorType,
+            executorConfigJson: executorConfigJson,
+            rowid: rowid,
+          ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ),
-      );
+        ));
 }
 
-typedef $$AiToolsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AiDatabase,
-      $AiToolsTable,
-      AiTool,
-      $$AiToolsTableFilterComposer,
-      $$AiToolsTableOrderingComposer,
-      $$AiToolsTableAnnotationComposer,
-      $$AiToolsTableCreateCompanionBuilder,
-      $$AiToolsTableUpdateCompanionBuilder,
-      (AiTool, BaseReferences<_$AiDatabase, $AiToolsTable, AiTool>),
-      AiTool,
-      PrefetchHooks Function()
-    >;
+typedef $$AiToolsTableProcessedTableManager = ProcessedTableManager<
+    _$AiDatabase,
+    $AiToolsTable,
+    AiTool,
+    $$AiToolsTableFilterComposer,
+    $$AiToolsTableOrderingComposer,
+    $$AiToolsTableAnnotationComposer,
+    $$AiToolsTableCreateCompanionBuilder,
+    $$AiToolsTableUpdateCompanionBuilder,
+    (AiTool, BaseReferences<_$AiDatabase, $AiToolsTable, AiTool>),
+    AiTool,
+    PrefetchHooks Function()>;
 
 class $AiDatabaseManager {
   final _$AiDatabase _db;

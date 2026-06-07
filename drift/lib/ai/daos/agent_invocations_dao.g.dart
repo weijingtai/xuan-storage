@@ -23,19 +23,13 @@ class AgentInvocationsDaoManager {
       $$LlmModelsTableTableManager(_db.attachedDatabase, _db.llmModels);
   $$PromptTemplatesTableTableManager get promptTemplates =>
       $$PromptTemplatesTableTableManager(
-        _db.attachedDatabase,
-        _db.promptTemplates,
-      );
+          _db.attachedDatabase, _db.promptTemplates);
   $$AiPersonasTableTableManager get aiPersonas =>
       $$AiPersonasTableTableManager(_db.attachedDatabase, _db.aiPersonas);
   $$AiChatSessionsTableTableManager get aiChatSessions =>
       $$AiChatSessionsTableTableManager(
-        _db.attachedDatabase,
-        _db.aiChatSessions,
-      );
+          _db.attachedDatabase, _db.aiChatSessions);
   $$AgentInvocationsTableTableManager get agentInvocations =>
       $$AgentInvocationsTableTableManager(
-        _db.attachedDatabase,
-        _db.agentInvocations,
-      );
+          _db.attachedDatabase, _db.agentInvocations);
 }

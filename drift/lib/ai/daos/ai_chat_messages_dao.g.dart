@@ -23,21 +23,15 @@ class AiChatMessagesDaoManager {
       $$LlmModelsTableTableManager(_db.attachedDatabase, _db.llmModels);
   $$PromptTemplatesTableTableManager get promptTemplates =>
       $$PromptTemplatesTableTableManager(
-        _db.attachedDatabase,
-        _db.promptTemplates,
-      );
+          _db.attachedDatabase, _db.promptTemplates);
   $$AiPersonasTableTableManager get aiPersonas =>
       $$AiPersonasTableTableManager(_db.attachedDatabase, _db.aiPersonas);
   $$AiChatSessionsTableTableManager get aiChatSessions =>
       $$AiChatSessionsTableTableManager(
-        _db.attachedDatabase,
-        _db.aiChatSessions,
-      );
+          _db.attachedDatabase, _db.aiChatSessions);
   $$AiApiCallsTableTableManager get aiApiCalls =>
       $$AiApiCallsTableTableManager(_db.attachedDatabase, _db.aiApiCalls);
   $$AiChatMessagesTableTableManager get aiChatMessages =>
       $$AiChatMessagesTableTableManager(
-        _db.attachedDatabase,
-        _db.aiChatMessages,
-      );
+          _db.attachedDatabase, _db.aiChatMessages);
 }
