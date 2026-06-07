@@ -6,7 +6,7 @@ import 'package:persistence_domain/config/datetime_details/input_info_params.dar
 /// 运行期子时策略存储（开发阶段全局状态）
 class ZiStrategyStore {
   static ZiShiStrategy current =
-      CalculationStrategyConfig.defaultConfig.ziStrategy;
+      CalculationStrategyConfigLogicModel.defaultConfig.ziStrategy;
 
   static void set(ZiShiStrategy s) {
     current = s;

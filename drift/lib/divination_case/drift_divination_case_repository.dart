@@ -49,9 +49,9 @@ class DriftDivinationCaseRepository
       title: row.title,
       mainQuestion: row.mainQuestion,
       status: DivinationCaseStatus.values.byName(row.status),
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
-      deletedAt: row.deletedAt,
+      createdAt: row.createdAt.toUtc(),
+      updatedAt: row.updatedAt.toUtc(),
+      deletedAt: row.deletedAt?.toUtc(),
       finalSummary: row.finalSummary,
     );
   }
