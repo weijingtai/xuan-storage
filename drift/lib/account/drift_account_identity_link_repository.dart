@@ -44,6 +44,19 @@ final class DriftAccountIdentityLinkRepository
 
   @override
   Future<void> saveLink(AccountIdentityLink link) async {
+    // Conflict detection: if a link already exists for this anonymous user
+    // with a DIFFERENT registered user, throw instead of silently overwriting.
+    final existing = await getByAnonymousUserId(link.anonymousAppUserId);
+    if (existing != null &&
+        existing.registeredAppUserId != link.registeredAppUserId) {
+      throw AccountRepositoryError(
+        code: AccountErrorCode.identityMappingConflict,
+        message: 'Identity link conflict: anonymous ${link.anonymousAppUserId.value} '
+            'already linked to ${existing.registeredAppUserId.value}, '
+            'cannot overwrite with ${link.registeredAppUserId.value}',
+      );
+    }
+
     await _db.into(_db.accountIdentityLinks).insertOnConflictUpdate(
           AccountIdentityLinksCompanion.insert(
             anonymousAppUserId: link.anonymousAppUserId.value,
