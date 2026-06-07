@@ -35,6 +35,10 @@ dependencies:
     path: ../../repository-interface-four-zhu-card
   repository_interface_meihuayishu:
     path: ../../repository-interface-meihuayishu
+  repository_interface_account:
+    path: ../../repository-interface-account
+  repository_interface_ai:
+    path: ../../repository-interface-ai
 
 dev_dependencies:
   flutter_test:
