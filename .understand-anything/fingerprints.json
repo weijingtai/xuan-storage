@@ -1,17 +1,67 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "d3709fb63e9c2cb655a7a3f18ce1ecd00d51afd9",
-  "generatedAt": "2026-05-21T10:26:58.207Z",
+  "gitCommitHash": "3be59a23c0844f59347d26db57ee027f6466149e",
+  "generatedAt": "2026-06-07T23:58:56.313Z",
   "files": {
-    "core/.metadata": {
-      "filePath": "core/.metadata",
-      "contentHash": "4ba1417eb821d2c02b86126df21c3d3f1a21050609d2501421b5ae88556ce8b6",
+    ".understand-anything/fingerprints.json": {
+      "filePath": ".understand-anything/fingerprints.json",
+      "contentHash": "df84a502382a38eeaef849cd708bc4a272161d9d4cd5ad3b28482820013d612b",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 11,
-      "hasStructuralAnalysis": false
+      "totalLines": 337,
+      "hasStructuralAnalysis": true
+    },
+    ".understand-anything/knowledge-graph.json": {
+      "filePath": ".understand-anything/knowledge-graph.json",
+      "contentHash": "b113339dda9326b5168915f00d3f76bf6f01cf0c375dab78df6891efc8dcd4ec",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17395,
+      "hasStructuralAnalysis": true
+    },
+    ".understand-anything/meta.json": {
+      "filePath": ".understand-anything/meta.json",
+      "contentHash": "494260513bf6e6dce143b7ad774a3d1a6a2f1795bf766bbd6df7f321ecad700f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 6,
+      "hasStructuralAnalysis": true
+    },
+    ".understand-anything/tmp/ua-import-map-input.json": {
+      "filePath": ".understand-anything/tmp/ua-import-map-input.json",
+      "contentHash": "9bf2596f0326ad279f5dd7b3e68ef2deeff607192aae51b20f5bfafc01a2e4ea",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1925,
+      "hasStructuralAnalysis": true
+    },
+    ".understand-anything/tmp/ua-import-map-output.json": {
+      "filePath": ".understand-anything/tmp/ua-import-map-output.json",
+      "contentHash": "aaa232b55d2efad3e923a9d971cd9396880dcdb9ed7503dc494ece425739d0ad",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 330,
+      "hasStructuralAnalysis": true
+    },
+    ".understand-anything/tmp/ua-scan-files.json": {
+      "filePath": ".understand-anything/tmp/ua-scan-files.json",
+      "contentHash": "6dde72c0015af58d37ddf173f65c0df564e9ea9e67b90d555c50c81aa97ea4eb",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1946,
+      "hasStructuralAnalysis": true
     },
     "core/CHANGELOG.md": {
       "filePath": "core/CHANGELOG.md",
@@ -21,7 +71,7 @@
       "imports": [],
       "exports": [],
       "totalLines": 4,
-      "hasStructuralAnalysis": false
+      "hasStructuralAnalysis": true
     },
     "core/README.md": {
       "filePath": "core/README.md",
@@ -31,7 +81,7 @@
       "imports": [],
       "exports": [],
       "totalLines": 40,
-      "hasStructuralAnalysis": false
+      "hasStructuralAnalysis": true
     },
     "core/analysis_options.yaml": {
       "filePath": "core/analysis_options.yaml",
@@ -41,17 +91,67 @@
       "imports": [],
       "exports": [],
       "totalLines": 2,
-      "hasStructuralAnalysis": false
+      "hasStructuralAnalysis": true
     },
-    "core/config/sync_configuration.defaults.yaml": {
-      "filePath": "core/config/sync_configuration.defaults.yaml",
-      "contentHash": "d09aa1ddbf3ae1af32b80900b500d07a8c0e85759fe83c14d3be8715d28df8ed",
+    "drift/CHANGELOG.md": {
+      "filePath": "drift/CHANGELOG.md",
+      "contentHash": "3790c391cc0632af71ae53941e38940072042e23a8649eee2898e939804a918a",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 15,
-      "hasStructuralAnalysis": false
+      "totalLines": 4,
+      "hasStructuralAnalysis": true
+    },
+    "drift/README.md": {
+      "filePath": "drift/README.md",
+      "contentHash": "eeda72d5440a872d24c7f4e6017b7b5b91a382c6393edf6850ec63c4a89a2baa",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 40,
+      "hasStructuralAnalysis": true
+    },
+    "drift/analysis_options.yaml": {
+      "filePath": "drift/analysis_options.yaml",
+      "contentHash": "df692318073ecc5f3b8a759a1f9338eb21995900d3c2bc1fbcd2c7780a1c7c6e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": true
+    },
+    "firebase/CHANGELOG.md": {
+      "filePath": "firebase/CHANGELOG.md",
+      "contentHash": "3790c391cc0632af71ae53941e38940072042e23a8649eee2898e939804a918a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4,
+      "hasStructuralAnalysis": true
+    },
+    "firebase/README.md": {
+      "filePath": "firebase/README.md",
+      "contentHash": "eeda72d5440a872d24c7f4e6017b7b5b91a382c6393edf6850ec63c4a89a2baa",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 40,
+      "hasStructuralAnalysis": true
+    },
+    "firebase/analysis_options.yaml": {
+      "filePath": "firebase/analysis_options.yaml",
+      "contentHash": "df692318073ecc5f3b8a759a1f9338eb21995900d3c2bc1fbcd2c7780a1c7c6e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": true
     },
     "core/lib/configuration/sync_configuration_manager.dart": {
       "filePath": "core/lib/configuration/sync_configuration_manager.dart",
@@ -61,16 +161,6 @@
       "imports": [],
       "exports": [],
       "totalLines": 654,
-      "hasStructuralAnalysis": false
-    },
-    "core/lib/configuration/yaml_file_loader.dart": {
-      "filePath": "core/lib/configuration/yaml_file_loader.dart",
-      "contentHash": "c5523cbbff8c1f11d61a5bdc89bd81dcd55e7ee186668436c9ba2ffc59c4cded",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 56,
       "hasStructuralAnalysis": false
     },
     "core/lib/core/sync_coordinator.dart": {
@@ -93,34 +183,24 @@
       "totalLines": 225,
       "hasStructuralAnalysis": false
     },
-    "core/lib/model/ports.dart": {
-      "filePath": "core/lib/model/ports.dart",
-      "contentHash": "890037edc19cd279c18f207392a6a7a45e562984114ac966db37a699fd2791c5",
+    "core/config/sync_configuration.defaults.yaml": {
+      "filePath": "core/config/sync_configuration.defaults.yaml",
+      "contentHash": "d09aa1ddbf3ae1af32b80900b500d07a8c0e85759fe83c14d3be8715d28df8ed",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 279,
-      "hasStructuralAnalysis": false
+      "totalLines": 15,
+      "hasStructuralAnalysis": true
     },
-    "core/lib/model/types.dart": {
-      "filePath": "core/lib/model/types.dart",
-      "contentHash": "3fa6ec1718e475e619745c6cd7d756d781f037352c7bfcd58e989d0371dd4cf1",
+    "core/lib/configuration/yaml_file_loader.dart": {
+      "filePath": "core/lib/configuration/yaml_file_loader.dart",
+      "contentHash": "c5523cbbff8c1f11d61a5bdc89bd81dcd55e7ee186668436c9ba2ffc59c4cded",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 484,
-      "hasStructuralAnalysis": false
-    },
-    "core/lib/persistence_core.dart": {
-      "filePath": "core/lib/persistence_core.dart",
-      "contentHash": "aa0078c6d4c9adbff1cc00777a56bc30d44df3659a7964e47f0b59dd2e65d512",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 9,
+      "totalLines": 56,
       "hasStructuralAnalysis": false
     },
     "core/lib/sync/sync_runtime.dart": {
@@ -131,146 +211,6 @@
       "imports": [],
       "exports": [],
       "totalLines": 770,
-      "hasStructuralAnalysis": false
-    },
-    "core/pubspec.yaml": {
-      "filePath": "core/pubspec.yaml",
-      "contentHash": "d74cd6cdeea1aa358d6fd81d4fe1305e68ecf7e994b1e11b2eb7ea6847db191a",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 15,
-      "hasStructuralAnalysis": false
-    },
-    "core/test/persistence_core_test.dart": {
-      "filePath": "core/test/persistence_core_test.dart",
-      "contentHash": "f63245bec608fef933351d65dd9956b8b98fb797b0a645bdaefe8a9128afb9ab",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 585,
-      "hasStructuralAnalysis": false
-    },
-    "drift/.metadata": {
-      "filePath": "drift/.metadata",
-      "contentHash": "4ba1417eb821d2c02b86126df21c3d3f1a21050609d2501421b5ae88556ce8b6",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 11,
-      "hasStructuralAnalysis": false
-    },
-    "drift/CHANGELOG.md": {
-      "filePath": "drift/CHANGELOG.md",
-      "contentHash": "3790c391cc0632af71ae53941e38940072042e23a8649eee2898e939804a918a",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 4,
-      "hasStructuralAnalysis": false
-    },
-    "drift/README.md": {
-      "filePath": "drift/README.md",
-      "contentHash": "eeda72d5440a872d24c7f4e6017b7b5b91a382c6393edf6850ec63c4a89a2baa",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 40,
-      "hasStructuralAnalysis": false
-    },
-    "drift/analysis_options.yaml": {
-      "filePath": "drift/analysis_options.yaml",
-      "contentHash": "df692318073ecc5f3b8a759a1f9338eb21995900d3c2bc1fbcd2c7780a1c7c6e",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 5,
-      "hasStructuralAnalysis": false
-    },
-    "drift/lib/persistence_drift.dart": {
-      "filePath": "drift/lib/persistence_drift.dart",
-      "contentHash": "ce262f566bcca867227e5739008097a2ad5ea270ca52b15703a48dc363fb7a59",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 878,
-      "hasStructuralAnalysis": false
-    },
-    "drift/lib/persistence_drift.g.dart": {
-      "filePath": "drift/lib/persistence_drift.g.dart",
-      "contentHash": "80fd081fd041e3eb870380f6d02671a3a1e5a334cec5959172aa0e58b68e45f1",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 1894,
-      "hasStructuralAnalysis": false
-    },
-    "drift/pubspec.yaml": {
-      "filePath": "drift/pubspec.yaml",
-      "contentHash": "c96d1d55b12a2b86d1d1996a57c32796c5beb8be04df909a211778ec2c49ef6b",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 63,
-      "hasStructuralAnalysis": false
-    },
-    "drift/test/persistence_drift_test.dart": {
-      "filePath": "drift/test/persistence_drift_test.dart",
-      "contentHash": "cdcb2573d9c33a9b8e090d886c9d50f5e3bf38e15544642322f6b74293276589",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 183,
-      "hasStructuralAnalysis": false
-    },
-    "firebase/.metadata": {
-      "filePath": "firebase/.metadata",
-      "contentHash": "4ba1417eb821d2c02b86126df21c3d3f1a21050609d2501421b5ae88556ce8b6",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 11,
-      "hasStructuralAnalysis": false
-    },
-    "firebase/CHANGELOG.md": {
-      "filePath": "firebase/CHANGELOG.md",
-      "contentHash": "3790c391cc0632af71ae53941e38940072042e23a8649eee2898e939804a918a",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 4,
-      "hasStructuralAnalysis": false
-    },
-    "firebase/README.md": {
-      "filePath": "firebase/README.md",
-      "contentHash": "eeda72d5440a872d24c7f4e6017b7b5b91a382c6393edf6850ec63c4a89a2baa",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 40,
-      "hasStructuralAnalysis": false
-    },
-    "firebase/analysis_options.yaml": {
-      "filePath": "firebase/analysis_options.yaml",
-      "contentHash": "df692318073ecc5f3b8a759a1f9338eb21995900d3c2bc1fbcd2c7780a1c7c6e",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 5,
       "hasStructuralAnalysis": false
     },
     "firebase/lib/firebase_realtime_remote_gateway.dart": {
@@ -293,14 +233,2487 @@
       "totalLines": 943,
       "hasStructuralAnalysis": false
     },
+    "drift/test/persistence_drift_test.dart": {
+      "filePath": "drift/test/persistence_drift_test.dart",
+      "contentHash": "cdcb2573d9c33a9b8e090d886c9d50f5e3bf38e15544642322f6b74293276589",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 183,
+      "hasStructuralAnalysis": false
+    },
+    "AGENTS.md": {
+      "filePath": "AGENTS.md",
+      "contentHash": "15ce33e940d4a7d1b7438746e614a3bee6d41449080dda6d3c2bb94ae233549e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 73,
+      "hasStructuralAnalysis": true
+    },
+    "CLAUDE.md": {
+      "filePath": "CLAUDE.md",
+      "contentHash": "a65f6cc19e62a7fadc26d5b576ff98763aa89e8d6998ce9251fc526557ff53b7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 43,
+      "hasStructuralAnalysis": true
+    },
+    "pubspec.yaml": {
+      "filePath": "pubspec.yaml",
+      "contentHash": "33708b04bb7088270a6eb588f20adeb788cf22aa3217c7be6053ce282b092742",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 8,
+      "hasStructuralAnalysis": true
+    },
+    "core/pubspec.yaml": {
+      "filePath": "core/pubspec.yaml",
+      "contentHash": "a8675573336c523af7749c0df93e0050cf014d12473afca5bbdaccc5e8035283",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 26,
+      "hasStructuralAnalysis": true
+    },
+    "drift/pubspec.yaml": {
+      "filePath": "drift/pubspec.yaml",
+      "contentHash": "a11cf505d9ea2acbe871459f6bf571e218ae2c89bae436dced2eeff365289f79",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 91,
+      "hasStructuralAnalysis": true
+    },
     "firebase/pubspec.yaml": {
       "filePath": "firebase/pubspec.yaml",
-      "contentHash": "a696a64b184b62053bc996c00a0d64f57101305bf31f2d9157842fd9fe84cd21",
+      "contentHash": "a0730deb50ba5c679a7d8784c69b67044787f8f57f3a067992449b83b865fe7f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 71,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/skills/gitnexus/gitnexus-cli/SKILL.md": {
+      "filePath": ".claude/skills/gitnexus/gitnexus-cli/SKILL.md",
+      "contentHash": "a699a9dd168a68e7357b1704be0ff5ceee30b2a348042789355cca171c060e02",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 84,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/skills/gitnexus/gitnexus-debugging/SKILL.md": {
+      "filePath": ".claude/skills/gitnexus/gitnexus-debugging/SKILL.md",
+      "contentHash": "4a1e82aa835c52e38227d853c20ef05ea33be1dfb6aa6511474d15357f1d3f2e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 90,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/skills/gitnexus/gitnexus-exploring/SKILL.md": {
+      "filePath": ".claude/skills/gitnexus/gitnexus-exploring/SKILL.md",
+      "contentHash": "ffafeaa0ce52be079e4d4b3a48c0a166728c009380a243c394c4e08f728527bb",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 79,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/skills/gitnexus/gitnexus-guide/SKILL.md": {
+      "filePath": ".claude/skills/gitnexus/gitnexus-guide/SKILL.md",
+      "contentHash": "40b047beeb9a7c5d47f17426b4061d2c2562c85c11288fa7f8da376d910e4f91",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 65,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md": {
+      "filePath": ".claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md",
+      "contentHash": "a4d6e8003c4a822c380b0e81b2fa0d642612236c734a9d51834e362c4be52f33",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 98,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/skills/gitnexus/gitnexus-refactoring/SKILL.md": {
+      "filePath": ".claude/skills/gitnexus/gitnexus-refactoring/SKILL.md",
+      "contentHash": "6aab994ee0266063245245483ee3280645aca66c0c5e56730ffad3f32ecbbc5c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 122,
+      "hasStructuralAnalysis": true
+    },
+    ".dart_tool/package_config.json": {
+      "filePath": ".dart_tool/package_config.json",
+      "contentHash": "9fd61d2bdb1ebc206c39d707c9225bd2fed1389a6db0310b502445a4454e9f90",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": true
+    },
+    ".dart_tool/package_graph.json": {
+      "filePath": ".dart_tool/package_graph.json",
+      "contentHash": "ea713185cdcdf05db3811a984c8b6e82d71bce9d8afdf2af922db354e539528f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 14,
+      "hasStructuralAnalysis": true
+    },
+    ".dart_tool/version": {
+      "filePath": ".dart_tool/version",
+      "contentHash": "b71220b1a95983445588103c080f1d43644393dd49a4cee543926b0a6e10ea12",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": false
+    },
+    ".understand-anything/.understandignore": {
+      "filePath": ".understand-anything/.understandignore",
+      "contentHash": "06eaf13a3f5dd91cb627ab6e574515f0c5a3acbeac61c818e592c527fd142573",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 13,
+      "hasStructuralAnalysis": false
+    },
+    ".understand-anything/tmp/prepare_inputs.py": {
+      "filePath": ".understand-anything/tmp/prepare_inputs.py",
+      "contentHash": "caa44bec29dae00d293c407193e419b46d0777f9fdbb028238496cf7d786ab4e",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": true
+    },
+    "assets/.flutter-plugins-dependencies": {
+      "filePath": "assets/.flutter-plugins-dependencies",
+      "contentHash": "24e36ecb6a27d1e89bacb26921b487413b8da77c0c0074ee560a6b5c46cf8d11",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": false
+    },
+    "assets/analysis_options.yaml": {
+      "filePath": "assets/analysis_options.yaml",
+      "contentHash": "c1e9534c05acb3643e72a82ad3d92d56d2ba9b0df2add014c18f7e1d462f24e4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "assets/lib/persistence_assets.dart": {
+      "filePath": "assets/lib/persistence_assets.dart",
+      "contentHash": "5e0246e532972a6ca222a12539dabf62329434aaa06d6578c70e84b8d06126a5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 9,
+      "hasStructuralAnalysis": false
+    },
+    "assets/lib/qimendunjia/assets_qimendunjia_official_rule_repository.dart": {
+      "filePath": "assets/lib/qimendunjia/assets_qimendunjia_official_rule_repository.dart",
+      "contentHash": "db1dacec1538f801c5b059bceba211da7d16ec51ae6692a7f66a59cdf2c3bfbc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 61,
+      "hasStructuralAnalysis": false
+    },
+    "assets/lib/taiyishenshu/official_json_mapper.dart": {
+      "filePath": "assets/lib/taiyishenshu/official_json_mapper.dart",
+      "contentHash": "4d6ee4094937559945987c7fd6e900d5417dc6ef6b819ac7174d50fb91169b1e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 86,
+      "hasStructuralAnalysis": false
+    },
+    "assets/lib/taiyishenshu/official_json_repository.dart": {
+      "filePath": "assets/lib/taiyishenshu/official_json_repository.dart",
+      "contentHash": "0115c2da737365704d91d9e5b327edb179f3d45d9a1145e018f60360338d537a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 103,
+      "hasStructuralAnalysis": false
+    },
+    "assets/lib/taiyishenshu/taiyishenshu_assets.dart": {
+      "filePath": "assets/lib/taiyishenshu/taiyishenshu_assets.dart",
+      "contentHash": "117b42ee8172fdddcb6625ebf285d31a571f25b775678fedf1859028f7a93283",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4,
+      "hasStructuralAnalysis": false
+    },
+    "assets/lib/tiebanshenshu/assets_tiao_wen_repository.dart": {
+      "filePath": "assets/lib/tiebanshenshu/assets_tiao_wen_repository.dart",
+      "contentHash": "ac181399326418bba5a109d1f9426c7f217b71a769650bc5913dde33bda86f6a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 568,
+      "hasStructuralAnalysis": false
+    },
+    "assets/pubspec.yaml": {
+      "filePath": "assets/pubspec.yaml",
+      "contentHash": "c9b5a28f09a1a36d989743622c81c9ce6b8a4e532f89f34436f9d0c89ae45c93",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 36,
+      "hasStructuralAnalysis": true
+    },
+    "assets/test/qimendunjia_official_rule_repository_test.dart": {
+      "filePath": "assets/test/qimendunjia_official_rule_repository_test.dart",
+      "contentHash": "e0cc04f0dc7be9af2e906994d75a0bef9999cea08556a6c187555eeeea561af9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 75,
+      "hasStructuralAnalysis": false
+    },
+    "core/.metadata": {
+      "filePath": "core/.metadata",
+      "contentHash": "4ba1417eb821d2c02b86126df21c3d3f1a21050609d2501421b5ae88556ce8b6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 11,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/core/connection_factory.dart": {
+      "filePath": "core/lib/core/connection_factory.dart",
+      "contentHash": "b5f7cd40e564264b09a8508b9263735aaa1229151fb44e06419d5122f5ab00c1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 69,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/core/omni_coordinator.dart": {
+      "filePath": "core/lib/core/omni_coordinator.dart",
+      "contentHash": "94237509621c5fd3bf01bdb48c7ef66a9a5b5c7e914d04230ec6189f59f968b6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 83,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/core/schema_registry.dart": {
+      "filePath": "core/lib/core/schema_registry.dart",
+      "contentHash": "ca6e623bc88c17f7ba117cd7b70c908e1a7a87d2d37a067aa7a201cf34d4c840",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 49,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/core/version_guard.dart": {
+      "filePath": "core/lib/core/version_guard.dart",
+      "contentHash": "4f5cd478a9ad4731d264a771442ab61d37b960ce0fa6f379ac78be3c5bb10dab",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 52,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/datasource/loca_binary/color.pb.dart": {
+      "filePath": "core/lib/datasource/loca_binary/color.pb.dart",
+      "contentHash": "c04e42b89126b381b3b6bce2d8b78bcfc4e3529dd221f3e14e438b1cfa8f50f4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 185,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/datasource/loca_binary/country.pb.dart": {
+      "filePath": "core/lib/datasource/loca_binary/country.pb.dart",
+      "contentHash": "fd0a2238109456d8a3cf85d2fc238640affb284bfbb8f649774ddc58c2573003",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 705,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/datasource/loca_binary/world_country_repository.dart": {
+      "filePath": "core/lib/datasource/loca_binary/world_country_repository.dart",
+      "contentHash": "0081a99a980977f651570042cd726b40d6d0d7e2621a343bf3d53a35285e90a5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 94,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/datasource/local/regions.dart": {
+      "filePath": "core/lib/datasource/local/regions.dart",
+      "contentHash": "69e452557157da2f8572404926fcdaa14454afb8e52821e63c3cb9d5d4963ed9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 50,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/divination_case/synced_divination_case_repository.dart": {
+      "filePath": "core/lib/divination_case/synced_divination_case_repository.dart",
+      "contentHash": "f663d0b99ffe09bec56d1b2ed0f089463a0b1d6b1377fbd5e16c0f20c558a909",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 104,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/four_zhu_card_templates/layout_template_local_data_source.dart": {
+      "filePath": "core/lib/four_zhu_card_templates/layout_template_local_data_source.dart",
+      "contentHash": "64574e7e5b950a3f46108b467ac9cc1a7c28e454823d8aee3b3be7f5265fed29",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 551,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/four_zhu_card_templates/layout_template_repository_impl.dart": {
+      "filePath": "core/lib/four_zhu_card_templates/layout_template_repository_impl.dart",
+      "contentHash": "b18b64e1c5e90654cd10fe3835a641b05ff70d48db8e8c93e5611154052b64ba",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 71,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/ipc/anon_identity_local.dart": {
+      "filePath": "core/lib/ipc/anon_identity_local.dart",
+      "contentHash": "b87e89cdbe40cc68201d800e35129e5a44097e4d844c7d4ece6af4a99065f911",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 43,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/ipc/anon_identity_provider.dart": {
+      "filePath": "core/lib/ipc/anon_identity_provider.dart",
+      "contentHash": "71877fe1607cd76d84a886ddd6e898abb65926dba076aa1f80d3be67fecdcf57",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/model/calculation_strategy_config_data_model.dart": {
+      "filePath": "core/lib/model/calculation_strategy_config_data_model.dart",
+      "contentHash": "ac43a6eac43b0d8d021ce5c6a6169be67bbb6e9a9700f497a7d65fd62baba43f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 55,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/model/datetime_details_bundle_data_model.dart": {
+      "filePath": "core/lib/model/datetime_details_bundle_data_model.dart",
+      "contentHash": "ff25761e5dbe2fcfccf4a418a93a8b8f4d367c113903dce7f3ce2102c6f234b6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 94,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/model/decision_link.dart": {
+      "filePath": "core/lib/model/decision_link.dart",
+      "contentHash": "179bd28f4038da3ca2a34e9a072d18cae1b76ebc5e577584d80b8fb426bdd203",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 42,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/model/lunar_date_info_v2_data_model.dart": {
+      "filePath": "core/lib/model/lunar_date_info_v2_data_model.dart",
+      "contentHash": "5f468fe5f7a5031d0d0355e9d9483d91900b9c577ce4988d7ab84079a712e03c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 39,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/model/omni_entity.dart": {
+      "filePath": "core/lib/model/omni_entity.dart",
+      "contentHash": "30fc40bbd6e511dcbdac331ee3af8c45ad6885d309d4a064048c9a1c557308b2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 24,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/model/omni_op.dart": {
+      "filePath": "core/lib/model/omni_op.dart",
+      "contentHash": "03931839ea51b088007766d8415f6949949034d355044c0fb1cb87ffc22ea945",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 18,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/model/ports.dart": {
+      "filePath": "core/lib/model/ports.dart",
+      "contentHash": "8d179ff6bf3801fcbf8b94db234b83b4c1730e47d33d6064be2e3afc045cddfa",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 314,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/model/repository.dart": {
+      "filePath": "core/lib/model/repository.dart",
+      "contentHash": "c05abae45083c12ed35bfd38f48db53c0829461f3ff4e8054294c1faffc2aa64",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 46,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/model/storage_error.dart": {
+      "filePath": "core/lib/model/storage_error.dart",
+      "contentHash": "ebd0f62d1dac5e10eeb502be4d7a1014dd8c6be93df1153793f6f8250046a02b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 83,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/model/types.dart": {
+      "filePath": "core/lib/model/types.dart",
+      "contentHash": "76f1ac860e889a9319ea5e1f9ece7039ec82a2e5429447d233d3d0e60a5a415e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 512,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/persistence_core.dart": {
+      "filePath": "core/lib/persistence_core.dart",
+      "contentHash": "d9c1825b42d47d4fd72b65a4d6694eef47701b53d15a5b3bf66919121c8671a4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 26,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/routing/region.dart": {
+      "filePath": "core/lib/routing/region.dart",
+      "contentHash": "ab8e2f9380ff9b128c4d5d35b2d9b5830be616b879df263dcd4efc3ed6165360",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 10,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/routing/remote_gateway_router.dart": {
+      "filePath": "core/lib/routing/remote_gateway_router.dart",
+      "contentHash": "f28be1656b072217e045608956804dad463fb4e10d8bb927e1b3130fdb35313a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 52,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/store/datetime_details/jieqi_entry_strategy_store.dart": {
+      "filePath": "core/lib/store/datetime_details/jieqi_entry_strategy_store.dart",
+      "contentHash": "1c98d3166ec35ea4104e74b331164a723b488078d15691e11fe9f890f5aeff42",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 45,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/store/datetime_details/jieqi_phenology_store.dart": {
+      "filePath": "core/lib/store/datetime_details/jieqi_phenology_store.dart",
+      "contentHash": "15d85c84ad05401a33fdc87427f805e4c15ccfc6dffa6e85b15f662bb839d4c2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 62,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/store/datetime_details/zi_strategy_store.dart": {
+      "filePath": "core/lib/store/datetime_details/zi_strategy_store.dart",
+      "contentHash": "8e076c8821f1decf5de37771dbc824d199da7b3a620f81fc3c5c6a6ca07da4ef",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 56,
+      "hasStructuralAnalysis": false
+    },
+    "core/lib/tag/tag_extractor_registry.dart": {
+      "filePath": "core/lib/tag/tag_extractor_registry.dart",
+      "contentHash": "9f0f9cd4e76202d50bd322db7f33a554bbda5d79d957eb7963ba22a39c0b86ce",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 28,
+      "hasStructuralAnalysis": false
+    },
+    "core/test/anon_identity_local_test.dart": {
+      "filePath": "core/test/anon_identity_local_test.dart",
+      "contentHash": "bb89f3fc6c547ff0e9dd1cd0ae81cb82aca5fef0e5f8203db707a7364d1d191f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": false
+    },
+    "core/test/connection_factory_test.dart": {
+      "filePath": "core/test/connection_factory_test.dart",
+      "contentHash": "76e90c4806e688c301806e55c631adcdb54827783a3197122cee63880bbcf72e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 58,
+      "hasStructuralAnalysis": false
+    },
+    "core/test/connection_factory_wal_test.dart": {
+      "filePath": "core/test/connection_factory_wal_test.dart",
+      "contentHash": "911307aad8f92f05ba72b4009308a808cdb9e40f5c489b545b2d807599cea316",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 18,
+      "hasStructuralAnalysis": false
+    },
+    "core/test/decision_chain_test.dart": {
+      "filePath": "core/test/decision_chain_test.dart",
+      "contentHash": "9ce600132c69215059b7db793ca10b39abef5f62146ac143039cbc1f5d0f95d1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 61,
+      "hasStructuralAnalysis": false
+    },
+    "core/test/federated_registration_test.dart": {
+      "filePath": "core/test/federated_registration_test.dart",
+      "contentHash": "d943a43d14a18ad1d91a58a091f26035430697b1264e2cde7d2adc95aad72d70",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 43,
+      "hasStructuralAnalysis": false
+    },
+    "core/test/omni_coordinator_test.dart": {
+      "filePath": "core/test/omni_coordinator_test.dart",
+      "contentHash": "fcfc8a31213b106987bdd9693c8100337a7008b1c96c9f5efc40452f8d726956",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 113,
+      "hasStructuralAnalysis": false
+    },
+    "core/test/persistence_core_test.dart": {
+      "filePath": "core/test/persistence_core_test.dart",
+      "contentHash": "65ce420b39f2b77cd9baf7bf1f05c97be1c5823c9ed030825f96156a9348ae2d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 592,
+      "hasStructuralAnalysis": false
+    },
+    "core/test/remote_gateway_router_test.dart": {
+      "filePath": "core/test/remote_gateway_router_test.dart",
+      "contentHash": "79e2352efcb734c7d5ecacba583e50019afdfb4b3573d019b0f33a9e6aaf4537",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 49,
+      "hasStructuralAnalysis": false
+    },
+    "core/test/repository_contracts_test.dart": {
+      "filePath": "core/test/repository_contracts_test.dart",
+      "contentHash": "581a4852b12536cc61a94d7d695368abf7cd38b8143387f66a683352a2b201ea",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 65,
+      "hasStructuralAnalysis": false
+    },
+    "core/test/shared_path_provider_test.dart": {
+      "filePath": "core/test/shared_path_provider_test.dart",
+      "contentHash": "f7a5958fb2727925ce5632adfaab30c19b831ba3db54830afaa8585fda3b3b17",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 54,
+      "hasStructuralAnalysis": false
+    },
+    "core/test/storage_error_test.dart": {
+      "filePath": "core/test/storage_error_test.dart",
+      "contentHash": "654e7ff58c76a924650c4d4f39f9eb2ddbfc838ee7588fb4250087a5a25b6cea",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 122,
+      "hasStructuralAnalysis": false
+    },
+    "core/test/synced_divination_case_repository_test.dart": {
+      "filePath": "core/test/synced_divination_case_repository_test.dart",
+      "contentHash": "dff92b1eaac5bf05d22449d01159f1108b7730026f91ec1dc823cd89aa6b6813",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 64,
+      "hasStructuralAnalysis": false
+    },
+    "core/test/tag_extractor_registry_test.dart": {
+      "filePath": "core/test/tag_extractor_registry_test.dart",
+      "contentHash": "97ff791a22a9f1ea66a086acbb0e0a0486b42bd4d87890bb6be04c4ef40b7df4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 61,
+      "hasStructuralAnalysis": false
+    },
+    "core/test/version_guard_test.dart": {
+      "filePath": "core/test/version_guard_test.dart",
+      "contentHash": "dd4fc4c512c58b49d3f35d68289e400369c2ac75b8df59d57872de9d906de97d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 45,
+      "hasStructuralAnalysis": false
+    },
+    "drift/.metadata": {
+      "filePath": "drift/.metadata",
+      "contentHash": "4ba1417eb821d2c02b86126df21c3d3f1a21050609d2501421b5ae88556ce8b6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 11,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/account/account_database.dart": {
+      "filePath": "drift/lib/account/account_database.dart",
+      "contentHash": "2b8c8e7ed16e089b9320e47a526ee7eda1dc933ca38c08bdc89e96b2f1cf8761",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 14,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/account/account_database.g.dart": {
+      "filePath": "drift/lib/account/account_database.g.dart",
+      "contentHash": "5f3fcc647289321af1a32513cc20dc82c188f4b28ed2989af6ea8bd525bb4c51",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 551,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/account/account_identity_links_table.dart": {
+      "filePath": "drift/lib/account/account_identity_links_table.dart",
+      "contentHash": "fc0c15fe58582b7ff990030d124a49b8c7e283eca73cc16fff191ac81051c315",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 25,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/account/account.dart": {
+      "filePath": "drift/lib/account/account.dart",
+      "contentHash": "7776cb17350bdd4479d92f4c5ebdd60ff77087be88942a95ec31a8d2f0a5dad8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 7,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/account/drift_account_identity_link_repository.dart": {
+      "filePath": "drift/lib/account/drift_account_identity_link_repository.dart",
+      "contentHash": "e257ede94659450d07e3cf8ef5a3d40ff5280e5fafa44240585c4ff63849c2e8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 84,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/adapters/drift_ai_chat_history_repository.dart": {
+      "filePath": "drift/lib/ai/adapters/drift_ai_chat_history_repository.dart",
+      "contentHash": "658441b0de1579e2d6e5bf519055cca018a6974367d66f3bb4d662ae7d38f0b3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 157,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/adapters/drift_ai_config_repository.dart": {
+      "filePath": "drift/lib/ai/adapters/drift_ai_config_repository.dart",
+      "contentHash": "59b699dcca017abb6090c48ae3e36fadf6145c6da509db26a5e701ea748d054f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 182,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/adapters/drift_ai_prompt_store.dart": {
+      "filePath": "drift/lib/ai/adapters/drift_ai_prompt_store.dart",
+      "contentHash": "c5bdef019a4c21e273ab2321de74bd212a4f74fd0f01b7f758cf696e065b212c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 60,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/ai_database.dart": {
+      "filePath": "drift/lib/ai/ai_database.dart",
+      "contentHash": "2cff6f443e8eaaa6ddb8b0e41955049e36bb2358b2dc82e13d7f390dfef82ccd",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 302,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/ai_database.g.dart": {
+      "filePath": "drift/lib/ai/ai_database.g.dart",
+      "contentHash": "92b67aac44e3b9525448a0f8355da7f6b59e3d560a3a265452f36d7dd1525bfa",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 16128,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/ai_schema.dart": {
+      "filePath": "drift/lib/ai/ai_schema.dart",
+      "contentHash": "d7d3c3827e200f0fd0d19d000585a4f9246a15a7ae53ef1b839c015d00648e4a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 30,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/connection.dart": {
+      "filePath": "drift/lib/ai/connection.dart",
+      "contentHash": "1ab1af2ef724bbe16a61b4dba6ef74a1230ae6a1e95abe06f4a7bb730a7fc6b4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/agent_invocations_dao.dart": {
+      "filePath": "drift/lib/ai/daos/agent_invocations_dao.dart",
+      "contentHash": "5e52beb2e5cb1f71200455b90b0c2a6e91f5d415be7c9175c7c39c07da6f0336",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 122,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/agent_invocations_dao.g.dart": {
+      "filePath": "drift/lib/ai/daos/agent_invocations_dao.g.dart",
+      "contentHash": "dc0d9ca715f2b8c4c04ae064a54e8e9ed92fe3968dcf24a6e87dd3106d5a3dde",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 36,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/ai_api_calls_dao.dart": {
+      "filePath": "drift/lib/ai/daos/ai_api_calls_dao.dart",
+      "contentHash": "c0ef39f2479d50f91e74e14535cf510edfcc6c3b2a4d7039f9d9fb674a51d39d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 111,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/ai_api_calls_dao.g.dart": {
+      "filePath": "drift/lib/ai/daos/ai_api_calls_dao.g.dart",
+      "contentHash": "5056025f597aab86425d99576ae308ca3708424b50578e848d0fb21448b43202",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 34,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/ai_chat_messages_dao.dart": {
+      "filePath": "drift/lib/ai/daos/ai_chat_messages_dao.dart",
+      "contentHash": "ff07674abe90ac86c6ee08cba5d2cab68df2f4daa39f2d20153b46b251699c41",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 114,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/ai_chat_messages_dao.g.dart": {
+      "filePath": "drift/lib/ai/daos/ai_chat_messages_dao.g.dart",
+      "contentHash": "f9f4d860e70c5268cf57473041425d4d48794d0bb3840f2d80d9819cca3c06a3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 38,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/ai_chat_sessions_dao.dart": {
+      "filePath": "drift/lib/ai/daos/ai_chat_sessions_dao.dart",
+      "contentHash": "a153141cdfbc264f1ddd06c651774b0a1a1aa09496acdcc4691b98cc8056bb51",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 127,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/ai_chat_sessions_dao.g.dart": {
+      "filePath": "drift/lib/ai/daos/ai_chat_sessions_dao.g.dart",
+      "contentHash": "e65589afbc1683a741aa1bab1c45e1cad111a8b11e2f5d3ff468df3bdcad9526",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 31,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/ai_divinations_dao.dart": {
+      "filePath": "drift/lib/ai/daos/ai_divinations_dao.dart",
+      "contentHash": "fcefb4bda1de67bc71aaed62217161cb46509141524d2550ccd68e0924b3f7e8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 106,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/ai_divinations_dao.g.dart": {
+      "filePath": "drift/lib/ai/daos/ai_divinations_dao.g.dart",
+      "contentHash": "fd1855028db9aeda9853f01f0305b8a3f34990112345ff2006ef1932e921803e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 37,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/ai_personas_dao.dart": {
+      "filePath": "drift/lib/ai/daos/ai_personas_dao.dart",
+      "contentHash": "0041240a22479dbb9eb767e26d3c459913f1c48d5161d78610ffb8799ea0b7e6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 85,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/ai_personas_dao.g.dart": {
+      "filePath": "drift/lib/ai/daos/ai_personas_dao.g.dart",
+      "contentHash": "d3c7af3ba10265309c04482e95f14e9b0bc93476c19370bffb451dd9748befb0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 27,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/ai_provenances_dao.dart": {
+      "filePath": "drift/lib/ai/daos/ai_provenances_dao.dart",
+      "contentHash": "02b25f1dcffb2ee02f04b4e02f2a1f3ce614988f6ac61c272ec5792aa19b43f1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 129,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/ai_provenances_dao.g.dart": {
+      "filePath": "drift/lib/ai/daos/ai_provenances_dao.g.dart",
+      "contentHash": "6c127c1392274cae3cb4abeebf5c073f2e3a27008c59adc0a91fc2b472b0526c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/ai_tools_dao.dart": {
+      "filePath": "drift/lib/ai/daos/ai_tools_dao.dart",
+      "contentHash": "e0c49dc9a730e76b64e670535165109724bc44736a20af1e9b891178fe29bb3c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 90,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/ai_tools_dao.g.dart": {
+      "filePath": "drift/lib/ai/daos/ai_tools_dao.g.dart",
+      "contentHash": "b2808a6508e0511de1898f43d86408fa34b8b813285ac79f641b49c803001341",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/ai_usage_audits_dao.dart": {
+      "filePath": "drift/lib/ai/daos/ai_usage_audits_dao.dart",
+      "contentHash": "3b852b17f74afa40565dcf20bcd05f24132f54dcfa0c919473d2a38a11f29b8a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 136,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/ai_usage_audits_dao.g.dart": {
+      "filePath": "drift/lib/ai/daos/ai_usage_audits_dao.g.dart",
+      "contentHash": "cb78423a03619b04734738ac441d2c5dae580e5edd1dbbb752001e5c455d9f66",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/llm_models_dao.dart": {
+      "filePath": "drift/lib/ai/daos/llm_models_dao.dart",
+      "contentHash": "b322fd1823b5cc9608fa35c9766e9aa4db61104aa04e858cba05bf57a848d130",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 88,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/llm_models_dao.g.dart": {
+      "filePath": "drift/lib/ai/daos/llm_models_dao.g.dart",
+      "contentHash": "8537356bc943ef5944f5ad7f9090aebbece9db7999700840c25839ab7c1e3c3f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/llm_providers_dao.dart": {
+      "filePath": "drift/lib/ai/daos/llm_providers_dao.dart",
+      "contentHash": "c93a0eb2a7921c6e84e7afa2bb94496fae96b626fb7f213eb4be00f1a8215534",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 70,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/llm_providers_dao.g.dart": {
+      "filePath": "drift/lib/ai/daos/llm_providers_dao.g.dart",
+      "contentHash": "6af257c2f4f74614589adcb94eccf4203ab93375d0b4c7b30f2f7ed97a5dee83",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/prompt_skill_bindings_dao.dart": {
+      "filePath": "drift/lib/ai/daos/prompt_skill_bindings_dao.dart",
+      "contentHash": "2d7cc2884e7a9476a994a75609cd9435168bcd925e7d80145b925fc9ac204953",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 73,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/prompt_skill_bindings_dao.g.dart": {
+      "filePath": "drift/lib/ai/daos/prompt_skill_bindings_dao.g.dart",
+      "contentHash": "07b0083a1a95f53ce28ceda401baa8ac9538b0d5edb1f351105d5fa7e4c27b60",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 24,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/prompt_templates_dao.dart": {
+      "filePath": "drift/lib/ai/daos/prompt_templates_dao.dart",
+      "contentHash": "9ad3707f3e4afbf1e5e03e765779df6cbf82d9b37e222c50a16907e1f94d0b00",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 76,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/prompt_templates_dao.g.dart": {
+      "filePath": "drift/lib/ai/daos/prompt_templates_dao.g.dart",
+      "contentHash": "86197d1694fca1db92ef3ecc61a17465e65e2f6b8cfbdd517fca5f33e2759c22",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 18,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/prompt_versions_dao.dart": {
+      "filePath": "drift/lib/ai/daos/prompt_versions_dao.dart",
+      "contentHash": "577413d20970af43ca6f264ba673a7454d2edee10a8eb232f5a77b70d1f7a3c3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 88,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/daos/prompt_versions_dao.g.dart": {
+      "filePath": "drift/lib/ai/daos/prompt_versions_dao.g.dart",
+      "contentHash": "275683ff7b130b73095d5a5ec3e9a64485666a4c9e59dc1d1c83c0b36de9d7fe",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 22,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/native.dart": {
+      "filePath": "drift/lib/ai/native.dart",
+      "contentHash": "053582cf6ebf55d859adff830afae62473a4fbe613d2ce0b646136c14b001ff8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 7,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/persistence_drift_ai.dart": {
+      "filePath": "drift/lib/ai/persistence_drift_ai.dart",
+      "contentHash": "0ec6efd26d3542175266e872608b75d77e97b90cc842be7e38c68357d5126239",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 12,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/tables/tables.dart": {
+      "filePath": "drift/lib/ai/tables/tables.dart",
+      "contentHash": "82921cf5e9a778fe356932daf3f3dcc66104a02fe846b1bc9de333524424a5ee",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 666,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/unsupported.dart": {
+      "filePath": "drift/lib/ai/unsupported.dart",
+      "contentHash": "db420a180d7f5e928bb934dd3ea4ab59071631e4e04de3559854ac6ae02594e1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 11,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/ai/web.dart": {
+      "filePath": "drift/lib/ai/web.dart",
+      "contentHash": "b97488c7be2601c9d6f35bd091bfed4ec2e05cdd6dbabff8f13f0af6b4678462",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 7,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/converters/.gitkeep": {
+      "filePath": "drift/lib/converters/.gitkeep",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/converters/coordinates_converter.dart": {
+      "filePath": "drift/lib/converters/coordinates_converter.dart",
+      "contentHash": "90518643c0aea26c4b3c4243d20551d2838c657f367ed29126419f0d97eb1e25",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 16,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/converters/divination_datetime_model_converter.dart": {
+      "filePath": "drift/lib/converters/divination_datetime_model_converter.dart",
+      "contentHash": "9870e2aba7d107b9387ebcd4bea6b72546b353085faa8c54c95c9af1c06fdcce",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 23,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/converters/gan_zhi_converter.dart": {
+      "filePath": "drift/lib/converters/gan_zhi_converter.dart",
+      "contentHash": "da55971e7d003ca89cd6c00cddfe01a3804d9a0afbbf13d76469a543f38d3849",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 14,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/converters/jie_qi_info_converter.dart": {
+      "filePath": "drift/lib/converters/jie_qi_info_converter.dart",
+      "contentHash": "c9b3891d4d9c0be4d99bdc060fd963673ae0bfd65f6e9f366e5cf38322936742",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 27,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/converters/location_converter.dart": {
+      "filePath": "drift/lib/converters/location_converter.dart",
+      "contentHash": "ba42c71cbab9fb02b9addcfa8314119c0b62cfe5c53d80e47ea10b9ed434535f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/converters/nullable_location_converter.dart": {
+      "filePath": "drift/lib/converters/nullable_location_converter.dart",
+      "contentHash": "33d8b14b5d99d7da71b0798dc43603d1aded19ecab5e96f9e8cc61e5ae9d1c65",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 33,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/.gitkeep": {
+      "filePath": "drift/lib/daos/.gitkeep",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/combined_divinations_dao.dart": {
+      "filePath": "drift/lib/daos/combined_divinations_dao.dart",
+      "contentHash": "f6e2d92e27b3a24729190d16e806f9afe816ce9d68fdf34fd30af1862315a719",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 39,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/combined_divinations_dao.g.dart": {
+      "filePath": "drift/lib/daos/combined_divinations_dao.g.dart",
+      "contentHash": "55ee71db78ccdd4b8c9f867ba44823b35072b2b95bc6d2a65ee63ae0a9ad05fc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 27,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/da_yun_records_dao.dart": {
+      "filePath": "drift/lib/daos/da_yun_records_dao.dart",
+      "contentHash": "e366c4f0567cf88e3e3095722b7411057e6d28f9cb08d31580d20068900abe40",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 22,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/da_yun_records_dao.g.dart": {
+      "filePath": "drift/lib/daos/da_yun_records_dao.g.dart",
+      "contentHash": "19735a2c7f060a078509ed8eade8cbc76ccabdb163df79d4738100b2fcd6d5f7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/decision_links_dao.dart": {
+      "filePath": "drift/lib/daos/decision_links_dao.dart",
+      "contentHash": "d91c66ad91b79cd0dea293e7a05a0d31adc5131ed7cbbed51c61789fac232a3d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 26,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/decision_links_dao.g.dart": {
+      "filePath": "drift/lib/daos/decision_links_dao.g.dart",
+      "contentHash": "96dea037c2099d1aa74978a8a1201ad8a3978149e5730115c26f3f6d4b36ef3f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/divination_calendars_dao.dart": {
+      "filePath": "drift/lib/daos/divination_calendars_dao.dart",
+      "contentHash": "50ef25ba8ba74ea072708327ae659e4b189fce6f91d59ab3f363052a9b073455",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 18,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/divination_panel_mappers_dao.dart": {
+      "filePath": "drift/lib/daos/divination_panel_mappers_dao.dart",
+      "contentHash": "60fa6cf894c5333e48ef2230535cee9b5fc12dfd8eeb3f0dd4a7d4232bcf6acb",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 58,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/divination_panel_mappers_dao.g.dart": {
+      "filePath": "drift/lib/daos/divination_panel_mappers_dao.g.dart",
+      "contentHash": "5e3844eec20402315f6eb8b0e5f80f8870a4da9752b3e5cdf968245cb3381256",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/divination_sub_divination_type_mappers_dao.dart": {
+      "filePath": "drift/lib/daos/divination_sub_divination_type_mappers_dao.dart",
+      "contentHash": "bf2e3755688cff64d3c51354b48003fdce0dc335443a157add4ef0ee1575f677",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 61,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/divination_sub_divination_type_mappers_dao.g.dart": {
+      "filePath": "drift/lib/daos/divination_sub_divination_type_mappers_dao.g.dart",
+      "contentHash": "d3dcff720e2b8f284e2a294b0fdba983ff9cabb1d167e3da0eaa75cb5ad70810",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 32,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/divination_tags_dao.dart": {
+      "filePath": "drift/lib/daos/divination_tags_dao.dart",
+      "contentHash": "07460cd384f44cfbcadc6f7f9029dc2859a4434afc5c63e9ce75dcdacbd67526",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 36,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/divination_tags_dao.g.dart": {
+      "filePath": "drift/lib/daos/divination_tags_dao.g.dart",
+      "contentHash": "6e889e6c55d8accc3be375a859033a1e774100451575bc387a286e431649e42e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 18,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/divination_types_dao.dart": {
+      "filePath": "drift/lib/daos/divination_types_dao.dart",
+      "contentHash": "8f6161643bc121dc22390eea196461b2bfc1388a9e4e8cd4cfa5afab3adb1b32",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 47,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/divination_types_dao.g.dart": {
+      "filePath": "drift/lib/daos/divination_types_dao.g.dart",
+      "contentHash": "45914aa142e79df2b6a2b2b11767c5b2a5ebe30e0d3eaae9129fa4eb59080320",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 18,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/divinations_dao.dart": {
+      "filePath": "drift/lib/daos/divinations_dao.dart",
+      "contentHash": "1b27b7eb93e948d81551d3af4854643306d6e555547dbba6df9aaa053cba25e1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 39,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/divinations_dao.g.dart": {
+      "filePath": "drift/lib/daos/divinations_dao.g.dart",
+      "contentHash": "1ce2af6f04876ea8620b8d7d768736538f25f167ef9719529316436a5bdb7cf1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/panel_skill_class_mappers_dao.dart": {
+      "filePath": "drift/lib/daos/panel_skill_class_mappers_dao.dart",
+      "contentHash": "13eaa635db9910a543501ed5698ac899782168acd54ae8d2c2bb99835e199907",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 58,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/panel_skill_class_mappers_dao.g.dart": {
+      "filePath": "drift/lib/daos/panel_skill_class_mappers_dao.g.dart",
+      "contentHash": "b24642e0759d9fb447a280e4d85bf346fc01f90b9b88c5326d7a504fe926a2ef",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/panels_dao.dart": {
+      "filePath": "drift/lib/daos/panels_dao.dart",
+      "contentHash": "ba681004d6191322840fd84fbc6e3dbc3479c6cfd4245d4e9a082ce17f264176",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 38,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/panels_dao.g.dart": {
+      "filePath": "drift/lib/daos/panels_dao.g.dart",
+      "contentHash": "049c1171e2330b7bc3728dc472257ea0b90368006989ec6d751fbbf73d4c75a9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/seeker_divination_mappers_dao.dart": {
+      "filePath": "drift/lib/daos/seeker_divination_mappers_dao.dart",
+      "contentHash": "7a7b8a2684f53b232a385d6f378033041a8d9d6a9daca185cd53938a6134e7c2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 50,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/seeker_divination_mappers_dao.g.dart": {
+      "filePath": "drift/lib/daos/seeker_divination_mappers_dao.g.dart",
+      "contentHash": "3c753ffde5231a9b02be42e3187b40b9395c29b13c709bc77dfc407729faf90c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 27,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/seekers_dao.dart": {
+      "filePath": "drift/lib/daos/seekers_dao.dart",
+      "contentHash": "e69bc2093ac42a2320b25b9d769fcc5c9e5f3ead12157960804c6b1182c47571",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 45,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/seekers_dao.g.dart": {
+      "filePath": "drift/lib/daos/seekers_dao.g.dart",
+      "contentHash": "688ab30b7faf551ba406bf1a7dcb3c19486811dc170e07ddacf371635eb683f5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/skill_classes_dao.dart": {
+      "filePath": "drift/lib/daos/skill_classes_dao.dart",
+      "contentHash": "569d57842dd5a77ea61b0430be8f8f8014e0a6bb8b32d90b44dbc96da78c4c78",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 16,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/skills_dao.dart": {
+      "filePath": "drift/lib/daos/skills_dao.dart",
+      "contentHash": "bf67ecfda38424b3952feabe7997d67ed1ccaea22cea7e4c22d2dc4210e96681",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 16,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/tai_yuan_records_dao.dart": {
+      "filePath": "drift/lib/daos/tai_yuan_records_dao.dart",
+      "contentHash": "e99389e144e0f90a4ee62a14bfc9f98de9e2568a05f4927a7a2107320a653807",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 23,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/tai_yuan_records_dao.g.dart": {
+      "filePath": "drift/lib/daos/tai_yuan_records_dao.g.dart",
+      "contentHash": "8ee7f7bdad494f4f3987281efb70241feabe62bc5d956a4d3f1040559280f6a9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 18,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/timing_divinations_dao.dart": {
+      "filePath": "drift/lib/daos/timing_divinations_dao.dart",
+      "contentHash": "e31c6037d3b7e65626f3b5b960161eec11c8247a535b32ddc697f0c041e8fcef",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 40,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/daos/timing_divinations_dao.g.dart": {
+      "filePath": "drift/lib/daos/timing_divinations_dao.g.dart",
+      "contentHash": "2e61d8554050eff38908b6bb124fe225e726d5836a2227633b8201cf64597a36",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/divination_case/case_participants_table.dart": {
+      "filePath": "drift/lib/divination_case/case_participants_table.dart",
+      "contentHash": "0e4e2c6a80cb11c2d09c55a92896cf99af8f1799377b8041c0409b27de64b23f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/divination_case/divination_cases_table.dart": {
+      "filePath": "drift/lib/divination_case/divination_cases_table.dart",
+      "contentHash": "e7cd14f489f97cc65af6a74fe9b465918548f0b565a1f955f64bc9774de9a7a2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 19,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/divination_case/divination_work_items_table.dart": {
+      "filePath": "drift/lib/divination_case/divination_work_items_table.dart",
+      "contentHash": "c97fb910189db4b560dd525636887c2f10af1ab07e645624b7eb4c58fe31f256",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/divination_case/drift_divination_case_repository.dart": {
+      "filePath": "drift/lib/divination_case/drift_divination_case_repository.dart",
+      "contentHash": "836291c6b4e3ee1abc478cd1557c9dd781553d778e648e1d7a6a953d74604869",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 250,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/divination_case/panel_refs_table.dart": {
+      "filePath": "drift/lib/divination_case/panel_refs_table.dart",
+      "contentHash": "f016889bf592a770ecf2a47613bb8f6f84e20d2062de79845f9c8be628d60638",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/divination_case/work_item_panel_refs_table.dart": {
+      "filePath": "drift/lib/divination_case/work_item_panel_refs_table.dart",
+      "contentHash": "73e1ccc4f1d15bf8eee47fcccce6a1c383f23d8be763713f78a256323eb808c6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 16,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/four_zhu_card_templates/app_database.dart": {
+      "filePath": "drift/lib/four_zhu_card_templates/app_database.dart",
+      "contentHash": "416546178259eccbd244623ebc4d20109c3f8513cfe99fb410ba2b4289202c61",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 199,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/four_zhu_card_templates/app_database.g.dart": {
+      "filePath": "drift/lib/four_zhu_card_templates/app_database.g.dart",
+      "contentHash": "ec7d5e06a64ab216889f47283053e862e1acf79f2e99214de6ef3529d61c8ec0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4213,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/four_zhu_card_templates/connection.dart": {
+      "filePath": "drift/lib/four_zhu_card_templates/connection.dart",
+      "contentHash": "1ab1af2ef724bbe16a61b4dba6ef74a1230ae6a1e95abe06f4a7bb730a7fc6b4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/four_zhu_card_templates/daos/card_template_meta_dao.dart": {
+      "filePath": "drift/lib/four_zhu_card_templates/daos/card_template_meta_dao.dart",
+      "contentHash": "5511ee6beb2c57a4fcae30aa5d2e666a255e90c1f9498b01f2fbf894e526c4ad",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 51,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/four_zhu_card_templates/daos/card_template_meta_dao.g.dart": {
+      "filePath": "drift/lib/four_zhu_card_templates/daos/card_template_meta_dao.g.dart",
+      "contentHash": "1569020e7490e1589a40f0a3640055277b03727102ff2db3e4b22c814cad788a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 19,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/four_zhu_card_templates/daos/card_template_setting_dao.dart": {
+      "filePath": "drift/lib/four_zhu_card_templates/daos/card_template_setting_dao.dart",
+      "contentHash": "1275a141448e7c88dde008552517dbb27752b605b4f135da2acf4a9be1b42143",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 73,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/four_zhu_card_templates/daos/card_template_setting_dao.g.dart": {
+      "filePath": "drift/lib/four_zhu_card_templates/daos/card_template_setting_dao.g.dart",
+      "contentHash": "2e87eaa49a528f5e4f273aed2ed20ab3e3aa1387496017cdaca560107c2922b9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/four_zhu_card_templates/daos/card_template_skill_usage_dao.dart": {
+      "filePath": "drift/lib/four_zhu_card_templates/daos/card_template_skill_usage_dao.dart",
+      "contentHash": "3b35ab5140025e0fc243440d7a17ef084dfa1109eb30b653928b902897d5293a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 81,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/four_zhu_card_templates/daos/card_template_skill_usage_dao.g.dart": {
+      "filePath": "drift/lib/four_zhu_card_templates/daos/card_template_skill_usage_dao.g.dart",
+      "contentHash": "6677729269d80a4cc56c86043eb12d355463fd62a8c2744170975d98d32c75af",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/four_zhu_card_templates/daos/layout_templates_dao.dart": {
+      "filePath": "drift/lib/four_zhu_card_templates/daos/layout_templates_dao.dart",
+      "contentHash": "4d62b128803883267dcb7e82ce33cfb722c2d5c9f7f828781d78f73685318590",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 116,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/four_zhu_card_templates/daos/layout_templates_dao.g.dart": {
+      "filePath": "drift/lib/four_zhu_card_templates/daos/layout_templates_dao.g.dart",
+      "contentHash": "37b8f0aafa23dfa8f619e43ddb67c2cbebeb4dc82a69c5bca825e42992caf137",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 18,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/four_zhu_card_templates/daos/market_template_installs_dao.dart": {
+      "filePath": "drift/lib/four_zhu_card_templates/daos/market_template_installs_dao.dart",
+      "contentHash": "6231536f61a23c5f476a2858b3165f469d03dbbb657bd6648735d404dffd9a55",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 78,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/four_zhu_card_templates/daos/market_template_installs_dao.g.dart": {
+      "filePath": "drift/lib/four_zhu_card_templates/daos/market_template_installs_dao.g.dart",
+      "contentHash": "0f1562919a8f90cb8274d26b5a82dacb365c16b87f94a397710b06f176d87ad1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/four_zhu_card_templates/four_zhu_tables.dart": {
+      "filePath": "drift/lib/four_zhu_card_templates/four_zhu_tables.dart",
+      "contentHash": "26484629c3cee1f571c2e36f0625c43eea28491724b15a0b6756a2414bb9d800",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 170,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/four_zhu_card_templates/layout_template_local_data_source.dart": {
+      "filePath": "drift/lib/four_zhu_card_templates/layout_template_local_data_source.dart",
+      "contentHash": "4324632325fd661009f2fd890de5d593d34f557affbb92307a9269894969e157",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 551,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/four_zhu_card_templates/layout_template_repository_impl.dart": {
+      "filePath": "drift/lib/four_zhu_card_templates/layout_template_repository_impl.dart",
+      "contentHash": "019e82e226290e9b21c720c1cd72d070e2e9c2b849e1eef242093001011b2006",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 71,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/four_zhu_card_templates/models/card_template_setting_dto.dart": {
+      "filePath": "drift/lib/four_zhu_card_templates/models/card_template_setting_dto.dart",
+      "contentHash": "6f71704f750d7c6b5e319129b63cfc6db0c84ea8f7e807b73dca6c1ad90a99c6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 66,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/four_zhu_card_templates/models/layout_template_dto.dart": {
+      "filePath": "drift/lib/four_zhu_card_templates/models/layout_template_dto.dart",
+      "contentHash": "f70ff7cc6cd842a0093c52d8ec1e0e3585814630f9ed0afa242007fee8908a18",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 37,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/four_zhu_card_templates/models/layout_template.dart": {
+      "filePath": "drift/lib/four_zhu_card_templates/models/layout_template.dart",
+      "contentHash": "7d8ca98febd8366165b814ff95c76811ecd557c86ece59db441b6438f007df1c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 573,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/four_zhu_card_templates/templates/internal/four_zhu_const_resources_mapper.dart": {
+      "filePath": "drift/lib/four_zhu_card_templates/templates/internal/four_zhu_const_resources_mapper.dart",
+      "contentHash": "ef4c769888f4ff6710a56b85c0ea25f0cff5f1e11699c9922535b029e9da6d96",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 33,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/four_zhu_card_templates/unsupported.dart": {
+      "filePath": "drift/lib/four_zhu_card_templates/unsupported.dart",
+      "contentHash": "c41b8659b499f93cc18f932c3a9dcec866bbf5f2f5210703e6cfbc7ad2cc0049",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 14,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/meihuayishu/assets/sql/dictionary.db": {
+      "filePath": "drift/lib/meihuayishu/assets/sql/dictionary.db",
+      "contentHash": "2969a1cad5275d67445eedfb50933b1f92781ed12fe03dd71dffd0d57a8c0e5c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 15953,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/meihuayishu/dictionary_database.dart": {
+      "filePath": "drift/lib/meihuayishu/dictionary_database.dart",
+      "contentHash": "4c570197de09959c65780ca6d68a47e3f4ce6b18ed41465a1b62fba66e813c9a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 142,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/meihuayishu/dictionary_database.g.dart": {
+      "filePath": "drift/lib/meihuayishu/dictionary_database.g.dart",
+      "contentHash": "7f70b9608ff690c09d2ee9d7a07bd61a487f24ba14a5ff0b690e0283ab73751a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1411,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/meihuayishu/dictionary_tables.dart": {
+      "filePath": "drift/lib/meihuayishu/dictionary_tables.dart",
+      "contentHash": "b18e145b857908a767aea584982a0af7aaafa01c3cc1e8dfa24094dd464ade3f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 40,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/meihuayishu/drift_meihua_dictionary_repository.dart": {
+      "filePath": "drift/lib/meihuayishu/drift_meihua_dictionary_repository.dart",
+      "contentHash": "c5bb6084c94708aea5dfd996c0d8682a975c105df68c862038bc838be258c6f0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 81,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/meihuayishu/drift_meihua_divination_record_repository.dart": {
+      "filePath": "drift/lib/meihuayishu/drift_meihua_divination_record_repository.dart",
+      "contentHash": "75d1446a616d7c660b4118b7c53c2ca790e6c4d0e3a125bb0376890d1dfebad5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 103,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/meihuayishu/meihua_database.dart": {
+      "filePath": "drift/lib/meihuayishu/meihua_database.dart",
+      "contentHash": "01fcf6069a44339db4efc74874fdae3b0f18a7ac2a5478a6434884e909e8ba69",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 43,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/meihuayishu/meihua_database.g.dart": {
+      "filePath": "drift/lib/meihuayishu/meihua_database.g.dart",
+      "contentHash": "7fe1b866ee665854f8b5b5ec4a18818c5ea223e93d66e2c644bfe4676893f832",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1122,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/meihuayishu/meihua_divinations_dao.dart": {
+      "filePath": "drift/lib/meihuayishu/meihua_divinations_dao.dart",
+      "contentHash": "29589e5dbe830779a9b629cce8ddb3d568d60e98908d3d71ae5cdd2509d5d1f7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 70,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/meihuayishu/meihua_divinations_dao.g.dart": {
+      "filePath": "drift/lib/meihuayishu/meihua_divinations_dao.g.dart",
+      "contentHash": "f5b4ac9243cd2de215cc9155a9647d88f508b1169ee8642fe76c104d34568b32",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 18,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/meihuayishu/meihua_gua_infos.dart": {
+      "filePath": "drift/lib/meihuayishu/meihua_gua_infos.dart",
+      "contentHash": "fad6d055a0578cd56b88a658de3148a7b1a97e371f678b883de9bf152d224b1c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 47,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/persistence_drift.dart": {
+      "filePath": "drift/lib/persistence_drift.dart",
+      "contentHash": "c5dfa644ef116b0942b91401c19096ab2ea0524ae837fe2808db27363ee251ee",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1024,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/persistence_drift.g.dart": {
+      "filePath": "drift/lib/persistence_drift.g.dart",
+      "contentHash": "76e0e4c3f8314a5b9e4f5be626147c3ab4fcc883d5eadc09790e9830e6e1bb1b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17463,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/repositories/.gitkeep": {
+      "filePath": "drift/lib/repositories/.gitkeep",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/repositories/da_yun_record_repository.dart": {
+      "filePath": "drift/lib/repositories/da_yun_record_repository.dart",
+      "contentHash": "59d580fea2801593e236b3eff2d63f167dd759cadd56f0368ae97c853f5286f9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 18,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/repositories/divination_calendar_repository.dart": {
+      "filePath": "drift/lib/repositories/divination_calendar_repository.dart",
+      "contentHash": "10203f226e120908f8a103676c664ec09a21c4c6727655e26ed2d8f79ca741e1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 18,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/repositories/tai_yuan_record_repository.dart": {
+      "filePath": "drift/lib/repositories/tai_yuan_record_repository.dart",
+      "contentHash": "ce1079560d3454770b46df8009a996c19e3ce603ecddfb2923e7f55b1f1cdfc9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/seed/divination_types_seed.dart": {
+      "filePath": "drift/lib/seed/divination_types_seed.dart",
+      "contentHash": "4cbf4940a9d7cdc29815c462c45d387f05a4c5d35e2636f57c0a0b5f6894545c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 22,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/sync/.gitkeep": {
+      "filePath": "drift/lib/sync/.gitkeep",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/sync/drift_sync_state_store.dart": {
+      "filePath": "drift/lib/sync/drift_sync_state_store.dart",
+      "contentHash": "e6694cb9fe789b9c3615489332aa06b1c6d29465b4e6ce872e59ae7aa3223013",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 9,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/tables/.gitkeep": {
+      "filePath": "drift/lib/tables/.gitkeep",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/tables/auto_incrementing_primary_key.dart": {
+      "filePath": "drift/lib/tables/auto_incrementing_primary_key.dart",
+      "contentHash": "9fc26850ee01688ba1de19eba547d3c8c2f0a5a451fcbab0757ba04efe6090d9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/tables/combined_divinations_table.dart": {
+      "filePath": "drift/lib/tables/combined_divinations_table.dart",
+      "contentHash": "c2f7428fc8e09e6c86ffa11e92f71bab4e209067dc2a2dae759cb7a5f8cc77f7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 22,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/tables/da_yun_records_table.dart": {
+      "filePath": "drift/lib/tables/da_yun_records_table.dart",
+      "contentHash": "960ecf71b20c3a4bc327dd89bf436c8e16085f0c87d3a26fd0a45ba9526a703d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 19,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/tables/decision_links_table.dart": {
+      "filePath": "drift/lib/tables/decision_links_table.dart",
+      "contentHash": "8806394687e26a618705149d3d0548fea591e2a0c8780bee49d54ac20ad1f453",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 24,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/tables/divination_calendars_table.dart": {
+      "filePath": "drift/lib/tables/divination_calendars_table.dart",
+      "contentHash": "2a1571e1fc1284305894629c45652a3be44dcdda6bbb12052f58be8622ba78b9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/tables/divination_panel_mappers_table.dart": {
+      "filePath": "drift/lib/tables/divination_panel_mappers_table.dart",
+      "contentHash": "afae9f530e7ef2b93c0783440ecd34f3d42fc961a9cd0646f69829a4ee68d2e6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/tables/divination_sub_divination_type_mappers_table.dart": {
+      "filePath": "drift/lib/tables/divination_sub_divination_type_mappers_table.dart",
+      "contentHash": "d35b962394eb6891e8e2913451205ece1d92662dfe7e14791e508f34a7a3a318",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/tables/divination_tags_table.dart": {
+      "filePath": "drift/lib/tables/divination_tags_table.dart",
+      "contentHash": "b5f736eb544841cb4fad8d345a28bbf640339d9f784392d6f3f9c19d8dc722d0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 28,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/tables/divination_types_table.dart": {
+      "filePath": "drift/lib/tables/divination_types_table.dart",
+      "contentHash": "5dee8df51a1321e1001e79d6720207b40de363bbcfa29311035b41cc82c7d9a3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/tables/divinations_table.dart": {
+      "filePath": "drift/lib/tables/divinations_table.dart",
+      "contentHash": "1c0475d7647fd52a4bf7239bc38c33c5b7534df1adbd60e25bb83d8ed99d743c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 39,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/tables/panel_skill_class_mappers_table.dart": {
+      "filePath": "drift/lib/tables/panel_skill_class_mappers_table.dart",
+      "contentHash": "27d46575b3a1a7506847a2a298079c13001e2b5afabb014a847cbc05684678bb",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 14,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/tables/panels_table.dart": {
+      "filePath": "drift/lib/tables/panels_table.dart",
+      "contentHash": "ca5d702f8a695418b1c0072a0ee0a9f2cde82490b5df8c765099d5eac5913187",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 25,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/tables/seeker_divination_mappers_table.dart": {
+      "filePath": "drift/lib/tables/seeker_divination_mappers_table.dart",
+      "contentHash": "ac9966f0c01f2b9d7fc7da2f4e03e63f6d05e83e50c1309c2e48f9fecdccc782",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 22,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/tables/seekers_table.dart": {
+      "filePath": "drift/lib/tables/seekers_table.dart",
+      "contentHash": "139c570e16f1baae71a260fd2c64e012e974de2bf3aba115939acd77de635b24",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 65,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/tables/skill_classes_table.dart": {
+      "filePath": "drift/lib/tables/skill_classes_table.dart",
+      "contentHash": "fd9eb1875d1615cc204500c520d5b9a30cf102a5889a3dde3d61e0f7cd72ca14",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/tables/skills_table.dart": {
+      "filePath": "drift/lib/tables/skills_table.dart",
+      "contentHash": "a84db659a5096d9770cb93076e7c0fcaeb30ecee028fb109fa6b2fd7363e2417",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 15,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/tables/sub_divination_types_table.dart": {
+      "filePath": "drift/lib/tables/sub_divination_types_table.dart",
+      "contentHash": "2e6775601bc53acd8a9ed4ba187f575beee18caf20590f249f10de04feabbaba",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/tables/tables.dart": {
+      "filePath": "drift/lib/tables/tables.dart",
+      "contentHash": "0b21d2a433f873363e3691c97951c3b8c6a6b5dd9fb6b8238e9fa4405433c55e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 8,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/tables/tai_yuan_records_table.dart": {
+      "filePath": "drift/lib/tables/tai_yuan_records_table.dart",
+      "contentHash": "3077b6a812b45cd6c4bb624366dc85527cf33c2ade8e901e00144687a33c6e29",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/tables/timing_divinations_table.dart": {
+      "filePath": "drift/lib/tables/timing_divinations_table.dart",
+      "contentHash": "974ffa5c2e50208ecb9073ffdd3f0a061a1ead7226adc7560df870e9e5ab3949",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
       "totalLines": 63,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/taiyishenshu/drift_user_mapper.dart": {
+      "filePath": "drift/lib/taiyishenshu/drift_user_mapper.dart",
+      "contentHash": "2cbebe7278c0534b9c35a83d70571d380d3f645467f8acaca1126a6da3c6fbfb",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 178,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/taiyishenshu/drift_user_repository.dart": {
+      "filePath": "drift/lib/taiyishenshu/drift_user_repository.dart",
+      "contentHash": "87212694d987f98f01257582d01bd90e3ee8f122a29bd71d19c2e65e798938c7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 91,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/taiyishenshu/taiyi_database_memory_native.dart": {
+      "filePath": "drift/lib/taiyishenshu/taiyi_database_memory_native.dart",
+      "contentHash": "64af6197e50998ccac3ae1881c46c3e7240023cbc191868754f47a38e90416c2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 8,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/taiyishenshu/taiyi_database_memory_stub.dart": {
+      "filePath": "drift/lib/taiyishenshu/taiyi_database_memory_stub.dart",
+      "contentHash": "8f29ea64b1f69d6e9f9d01277d79ccf6210dee8f9809a3b416c2629a1ee888b0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 13,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/taiyishenshu/taiyi_database.dart": {
+      "filePath": "drift/lib/taiyishenshu/taiyi_database.dart",
+      "contentHash": "7cfa3cb60e9eda5039fc8faf60f05dfe426df08514f3ddac6dfd81af6622f7e2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 65,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/taiyishenshu/taiyi_database.g.dart": {
+      "filePath": "drift/lib/taiyishenshu/taiyi_database.g.dart",
+      "contentHash": "33908cad8ff637b738844520958fde067744e29a8ffce9e6fab024d25b71d260",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 874,
+      "hasStructuralAnalysis": false
+    },
+    "drift/lib/taiyishenshu/taiyishenshu_drift.dart": {
+      "filePath": "drift/lib/taiyishenshu/taiyishenshu_drift.dart",
+      "contentHash": "12a549aae801fe3bc5f839894342fbb8625c972b1ecf059bb3a62d660b01f375",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "drift/test/account/drift_account_identity_link_repository_test.dart": {
+      "filePath": "drift/test/account/drift_account_identity_link_repository_test.dart",
+      "contentHash": "3ab2860ed9412c1b86088dc9a7f520504c993d489cad3c65b0025774c8fb8352",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 118,
+      "hasStructuralAnalysis": false
+    },
+    "drift/test/account/identity_map_coexistence_test.dart": {
+      "filePath": "drift/test/account/identity_map_coexistence_test.dart",
+      "contentHash": "b1d6fd75af25bbd5fcb60d3b77d2fda6ac230f489eca65b0ee8288e98b42b123",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 75,
+      "hasStructuralAnalysis": false
+    },
+    "drift/test/ai/drift_ai_chat_history_test.dart": {
+      "filePath": "drift/test/ai/drift_ai_chat_history_test.dart",
+      "contentHash": "bbb099a056cf2fc1a16115a3607d9ca237540c0856c7bacffdc3a5f6295b40a9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 47,
+      "hasStructuralAnalysis": false
+    },
+    "drift/test/decision_links_dao_test.dart": {
+      "filePath": "drift/test/decision_links_dao_test.dart",
+      "contentHash": "1a3ee956991ce86a9028641c22f0e433d10d2e73fd0254ed95fd4715ac020900",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 51,
+      "hasStructuralAnalysis": false
+    },
+    "drift/test/divination_tags_dao_test.dart": {
+      "filePath": "drift/test/divination_tags_dao_test.dart",
+      "contentHash": "e476ba74915e36225294bd8560fafb77140e2177a64842c65fa46b2fcf1a8eef",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 51,
+      "hasStructuralAnalysis": false
+    },
+    "drift/test/drift_sync_state_store_test.dart": {
+      "filePath": "drift/test/drift_sync_state_store_test.dart",
+      "contentHash": "c28aabcdd95b7959a0de105a4d56fa41188c28afd6e2cde00684c973e03d41a3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 216,
+      "hasStructuralAnalysis": false
+    },
+    "firebase/.metadata": {
+      "filePath": "firebase/.metadata",
+      "contentHash": "4ba1417eb821d2c02b86126df21c3d3f1a21050609d2501421b5ae88556ce8b6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 11,
+      "hasStructuralAnalysis": false
+    },
+    "firebase/lib/account/account.dart": {
+      "filePath": "firebase/lib/account/account.dart",
+      "contentHash": "d0e70b3f932f45500d80f725c5829d8063fa26b0c72780ff38fc7a09061b8f5e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": false
+    },
+    "firebase/lib/account/firebase_account_auth_gateway.dart": {
+      "filePath": "firebase/lib/account/firebase_account_auth_gateway.dart",
+      "contentHash": "52342dcb1d9211eaa91ed9080eb52b3db9453570ec91fa5279db7088a5a51800",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 214,
+      "hasStructuralAnalysis": false
+    },
+    "firebase/lib/account/firestore_app_user_id_resolver.dart": {
+      "filePath": "firebase/lib/account/firestore_app_user_id_resolver.dart",
+      "contentHash": "cba9ffa597e5c97a017316f45b1ea4906179c8d37e0a8c4e089c134b6d957ad8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 70,
+      "hasStructuralAnalysis": false
+    },
+    "firebase/lib/divination_case/firebase_divination_case_repository.dart": {
+      "filePath": "firebase/lib/divination_case/firebase_divination_case_repository.dart",
+      "contentHash": "fb20a925747492876f8fe33ae07d9ffc1ac2c56c8daaa7424d04ee69a1438de0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 130,
+      "hasStructuralAnalysis": false
+    },
+    "firebase/test/account/firebase_account_auth_gateway_emulator_test.dart": {
+      "filePath": "firebase/test/account/firebase_account_auth_gateway_emulator_test.dart",
+      "contentHash": "34b8ec163fd96c2fa21477d9f2fbd33626cbdb9520f584fdbfe8ea0cff346248",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 174,
+      "hasStructuralAnalysis": false
+    },
+    "firebase/test/account/firebase_account_boundary_test.dart": {
+      "filePath": "firebase/test/account/firebase_account_boundary_test.dart",
+      "contentHash": "0beda1ce2213ca9f26ea0be7afdc99f082a98a35175996cf4356e83de738c66d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 98,
+      "hasStructuralAnalysis": false
+    },
+    "firebase/test/account/identity_map_coexistence_test.dart": {
+      "filePath": "firebase/test/account/identity_map_coexistence_test.dart",
+      "contentHash": "c7f4c15bb1ca1754c735b368031e4598024e315e1f4c2220c4b3056313130503",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 133,
       "hasStructuralAnalysis": false
     },
     "firebase/test/fake_persistence_test.dart": {
@@ -323,15 +2736,155 @@
       "totalLines": 10,
       "hasStructuralAnalysis": false
     },
-    "pubspec.yaml": {
-      "filePath": "pubspec.yaml",
-      "contentHash": "a331dc732b31277715bede3cb00e8de8743d5597f207eb2c5b57898acb747a11",
+    "preferences/analysis_options.yaml": {
+      "filePath": "preferences/analysis_options.yaml",
+      "contentHash": "c1e9534c05acb3643e72a82ad3d92d56d2ba9b0df2add014c18f7e1d462f24e4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "preferences/lib/meihuayishu/shared_preferences_meihua_preference_repository.dart": {
+      "filePath": "preferences/lib/meihuayishu/shared_preferences_meihua_preference_repository.dart",
+      "contentHash": "e7b2a74d159f09d04c290a87d77df2d4c1c46dabcbcc8523f34f98d3ff593045",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 38,
+      "hasStructuralAnalysis": false
+    },
+    "preferences/lib/persistence_preferences.dart": {
+      "filePath": "preferences/lib/persistence_preferences.dart",
+      "contentHash": "02b53178de36220bb8a77b560b7981498ff5e7df674825cd080e91203da6dfe0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 7,
+      "hasStructuralAnalysis": false
+    },
+    "preferences/lib/src/account/preferences_account_preference_repository.dart": {
+      "filePath": "preferences/lib/src/account/preferences_account_preference_repository.dart",
+      "contentHash": "1da727351dd219ea07709061273d2c254ca4a5f6f0041a54f116fd68fe59e8d4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 38,
+      "hasStructuralAnalysis": false
+    },
+    "preferences/lib/src/account/preferences_account_session_repository.dart": {
+      "filePath": "preferences/lib/src/account/preferences_account_session_repository.dart",
+      "contentHash": "c7671745738505e7ba0ba1151c417f6cf0bdfd8f1bf88863042fc52f23a485cd",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 77,
+      "hasStructuralAnalysis": false
+    },
+    "preferences/lib/taiyishenshu/shared_preferences_deity_preference_repository.dart": {
+      "filePath": "preferences/lib/taiyishenshu/shared_preferences_deity_preference_repository.dart",
+      "contentHash": "24ad8c0a9c41c1833f4a72d594575c8afd59d19e325b1f1a3484306d9199b0d6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 36,
+      "hasStructuralAnalysis": false
+    },
+    "preferences/lib/taiyishenshu/taiyishenshu_preferences.dart": {
+      "filePath": "preferences/lib/taiyishenshu/taiyishenshu_preferences.dart",
+      "contentHash": "0c73bd348b16b80d4953bd9a42f2038f8c4f6eae092a8e98ff6b4e1a670d7bb8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4,
+      "hasStructuralAnalysis": false
+    },
+    "preferences/pubspec.yaml": {
+      "filePath": "preferences/pubspec.yaml",
+      "contentHash": "14cd9d9d3cee547f4e0d0a8bb9da271d9794dba73d9dc546b820412098298c9d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 24,
+      "hasStructuralAnalysis": true
+    },
+    "preferences/test/import_boundary_test.dart": {
+      "filePath": "preferences/test/import_boundary_test.dart",
+      "contentHash": "2333de9b8e71a64e97d669a3d1baae192724908222d2e3fdf3626a411446413e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 80,
+      "hasStructuralAnalysis": false
+    },
+    "preferences/test/preferences_account_preference_repository_test.dart": {
+      "filePath": "preferences/test/preferences_account_preference_repository_test.dart",
+      "contentHash": "5e7b61aafcffbe31670d73ac10d0323dab4172cb177c62ddfa27e3d6688b2cf7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 91,
+      "hasStructuralAnalysis": false
+    },
+    "preferences/test/preferences_account_session_repository_test.dart": {
+      "filePath": "preferences/test/preferences_account_session_repository_test.dart",
+      "contentHash": "e6df161596294529c64960e0fffb33719945f8348f02032fba5a7f2ea6915daa",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 128,
+      "hasStructuralAnalysis": false
+    },
+    "preferences/test/support/account_repository_contracts.dart": {
+      "filePath": "preferences/test/support/account_repository_contracts.dart",
+      "contentHash": "76e5c93aebf5d0ec955073d4d7a03a5dc8dcea61b4001591d897891196a6406e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 83,
+      "hasStructuralAnalysis": false
+    },
+    "supabase/lib/persistence_supabase.dart": {
+      "filePath": "supabase/lib/persistence_supabase.dart",
+      "contentHash": "9bfcc4bc1c95984ff6ac699a0d86ba7d64b2297089bc93ecb46c4f9f9f7c8155",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
       "totalLines": 8,
       "hasStructuralAnalysis": false
+    },
+    "supabase/pubspec.yaml": {
+      "filePath": "supabase/pubspec.yaml",
+      "contentHash": "783fed53ab23445e81f488f0cf8671f97c84d0f87d5169cb8ca72e8db1c838d3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 23,
+      "hasStructuralAnalysis": true
+    },
+    "supabase/README.md": {
+      "filePath": "supabase/README.md",
+      "contentHash": "4ca295be676fb256ab6d964627b2302b86c205a6d8ed9a974f2ef361b30d493f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 12,
+      "hasStructuralAnalysis": true
     }
   }
 }
