@@ -97,6 +97,8 @@ export 'tables/divination_sub_divination_type_mappers_table.dart';
 export 'tables/auto_incrementing_primary_key.dart';
 export 'record/record_cursor.dart';
 export 'record/drift_record_data_source.dart';
+export 'record/record_adapter_registry.dart';
+export 'record/local_record_repository.dart';
 export 'meihuayishu/meihua_database.dart';
 export 'meihuayishu/meihua_gua_infos.dart';
 export 'meihuayishu/meihua_divinations_dao.dart';
