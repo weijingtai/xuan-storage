@@ -1,5 +1,4 @@
 import 'package:repository_interface_account/repository_interface_account.dart';
-import 'scope_bootstrap_store.dart';
 import 'scope_ledger.dart';
 import 'scope_alias_entry.dart';
 
@@ -32,16 +31,13 @@ class ScopeResolver {
     required AccountSessionRepository sessionRepository,
     required AccountIdentityLinkRepository identityLinkRepository,
     required ScopeLedger ledger,
-    required ScopeBootstrapStore bootstrapStore,
   }) : _sessionRepository = sessionRepository,
        _identityLinkRepository = identityLinkRepository,
-       _ledger = ledger,
-       _bootstrapStore = bootstrapStore;
+       _ledger = ledger;
 
   final AccountSessionRepository _sessionRepository;
   final AccountIdentityLinkRepository _identityLinkRepository;
   final ScopeLedger _ledger;
-  final ScopeBootstrapStore _bootstrapStore;
 
   /// 解析当前 session 对应的 scope_uid。
   ///

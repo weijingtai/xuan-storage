@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:uuid/uuid.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
+import 'record_cursor.dart';
 
 /// Type-safe reusable record-storage base.
 /// Depends only on [ScopedRecordStore] and [RecordModuleCodec<TContract>].
@@ -45,7 +46,7 @@ abstract class BaseRecordBackedRepository<TContract> {
       if (page.isEmpty) break;
       results.addAll(page.map((m) => _codec.decode(m, null)));
       if (page.length < pageSize) break;
-      cursor = page.last.uuid;
+      cursor = RecordCursor(page.last.createdAt, page.last.uuid).encode();
     }
     return results;
   }

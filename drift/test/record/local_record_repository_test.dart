@@ -24,7 +24,7 @@ void main() {
     await repo.saveRecord(RecordMeta(
       uuid: 'a', scopeUid: 's1', module: 'meihua', category: 'divination',
       divinationType: 'mei_hua', createdAt: DateTime.utc(2026)));
-    expect((await repo.listRecords()).single.uuid, 'a');
+    expect((await repo.listRecords(module: 'meihua', limit: 100)).single.uuid, 'a');
     final tags = await db.customSelect(
         "SELECT index_key FROM t_record_search_index WHERE record_uuid='a'").get();
     expect(tags.single.read<String>('index_key'), 'upper_gua');

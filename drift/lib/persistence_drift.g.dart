@@ -10407,6 +10407,1624 @@ class WorkItemPanelRefsCompanion extends UpdateCompanion<WorkItemPanelRef> {
   }
 }
 
+class $TRecordMetaTable extends TRecordMeta
+    with TableInfo<$TRecordMetaTable, TRecordMetaData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TRecordMetaTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+      'uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _scopeUidMeta =
+      const VerificationMeta('scopeUid');
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+      'scope_uid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _moduleMeta = const VerificationMeta('module');
+  @override
+  late final GeneratedColumn<String> module = GeneratedColumn<String>(
+      'module', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _categoryMeta =
+      const VerificationMeta('category');
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+      'category', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _divinationTypeMeta =
+      const VerificationMeta('divinationType');
+  @override
+  late final GeneratedColumn<String> divinationType = GeneratedColumn<String>(
+      'divination_type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _caseUuidMeta =
+      const VerificationMeta('caseUuid');
+  @override
+  late final GeneratedColumn<String> caseUuid = GeneratedColumn<String>(
+      'case_uuid', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _workItemUuidMeta =
+      const VerificationMeta('workItemUuid');
+  @override
+  late final GeneratedColumn<String> workItemUuid = GeneratedColumn<String>(
+      'work_item_uuid', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _seekerUuidMeta =
+      const VerificationMeta('seekerUuid');
+  @override
+  late final GeneratedColumn<String> seekerUuid = GeneratedColumn<String>(
+      'seeker_uuid', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _questionMeta =
+      const VerificationMeta('question');
+  @override
+  late final GeneratedColumn<String> question = GeneratedColumn<String>(
+      'question', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _detailMeta = const VerificationMeta('detail');
+  @override
+  late final GeneratedColumn<String> detail = GeneratedColumn<String>(
+      'detail', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _tagMeta = const VerificationMeta('tag');
+  @override
+  late final GeneratedColumn<String> tag = GeneratedColumn<String>(
+      'tag', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _directPredictMeta =
+      const VerificationMeta('directPredict');
+  @override
+  late final GeneratedColumn<String> directPredict = GeneratedColumn<String>(
+      'direct_predict', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _verificationStatusMeta =
+      const VerificationMeta('verificationStatus');
+  @override
+  late final GeneratedColumn<String> verificationStatus =
+      GeneratedColumn<String>('verification_status', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _seekerNameMeta =
+      const VerificationMeta('seekerName');
+  @override
+  late final GeneratedColumn<String> seekerName = GeneratedColumn<String>(
+      'seeker_name', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _genderMeta = const VerificationMeta('gender');
+  @override
+  late final GeneratedColumn<String> gender = GeneratedColumn<String>(
+      'gender', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _fateYearMeta =
+      const VerificationMeta('fateYear');
+  @override
+  late final GeneratedColumn<String> fateYear = GeneratedColumn<String>(
+      'fate_year', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _moduleDataJsonMeta =
+      const VerificationMeta('moduleDataJson');
+  @override
+  late final GeneratedColumn<String> moduleDataJson = GeneratedColumn<String>(
+      'module_data_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _navParamsJsonMeta =
+      const VerificationMeta('navParamsJson');
+  @override
+  late final GeneratedColumn<String> navParamsJson = GeneratedColumn<String>(
+      'nav_params_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _revMeta = const VerificationMeta('rev');
+  @override
+  late final GeneratedColumn<int> rev = GeneratedColumn<int>(
+      'rev', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(1));
+  @override
+  List<GeneratedColumn> get $columns => [
+        uuid,
+        scopeUid,
+        module,
+        category,
+        divinationType,
+        caseUuid,
+        workItemUuid,
+        seekerUuid,
+        question,
+        detail,
+        tag,
+        directPredict,
+        verificationStatus,
+        seekerName,
+        gender,
+        fateYear,
+        moduleDataJson,
+        navParamsJson,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        rev
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_record_meta';
+  @override
+  VerificationContext validateIntegrity(Insertable<TRecordMetaData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('scope_uid')) {
+      context.handle(_scopeUidMeta,
+          scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta));
+    } else if (isInserting) {
+      context.missing(_scopeUidMeta);
+    }
+    if (data.containsKey('module')) {
+      context.handle(_moduleMeta,
+          module.isAcceptableOrUnknown(data['module']!, _moduleMeta));
+    } else if (isInserting) {
+      context.missing(_moduleMeta);
+    }
+    if (data.containsKey('category')) {
+      context.handle(_categoryMeta,
+          category.isAcceptableOrUnknown(data['category']!, _categoryMeta));
+    } else if (isInserting) {
+      context.missing(_categoryMeta);
+    }
+    if (data.containsKey('divination_type')) {
+      context.handle(
+          _divinationTypeMeta,
+          divinationType.isAcceptableOrUnknown(
+              data['divination_type']!, _divinationTypeMeta));
+    } else if (isInserting) {
+      context.missing(_divinationTypeMeta);
+    }
+    if (data.containsKey('case_uuid')) {
+      context.handle(_caseUuidMeta,
+          caseUuid.isAcceptableOrUnknown(data['case_uuid']!, _caseUuidMeta));
+    }
+    if (data.containsKey('work_item_uuid')) {
+      context.handle(
+          _workItemUuidMeta,
+          workItemUuid.isAcceptableOrUnknown(
+              data['work_item_uuid']!, _workItemUuidMeta));
+    }
+    if (data.containsKey('seeker_uuid')) {
+      context.handle(
+          _seekerUuidMeta,
+          seekerUuid.isAcceptableOrUnknown(
+              data['seeker_uuid']!, _seekerUuidMeta));
+    }
+    if (data.containsKey('question')) {
+      context.handle(_questionMeta,
+          question.isAcceptableOrUnknown(data['question']!, _questionMeta));
+    }
+    if (data.containsKey('detail')) {
+      context.handle(_detailMeta,
+          detail.isAcceptableOrUnknown(data['detail']!, _detailMeta));
+    }
+    if (data.containsKey('tag')) {
+      context.handle(
+          _tagMeta, tag.isAcceptableOrUnknown(data['tag']!, _tagMeta));
+    }
+    if (data.containsKey('direct_predict')) {
+      context.handle(
+          _directPredictMeta,
+          directPredict.isAcceptableOrUnknown(
+              data['direct_predict']!, _directPredictMeta));
+    }
+    if (data.containsKey('verification_status')) {
+      context.handle(
+          _verificationStatusMeta,
+          verificationStatus.isAcceptableOrUnknown(
+              data['verification_status']!, _verificationStatusMeta));
+    }
+    if (data.containsKey('seeker_name')) {
+      context.handle(
+          _seekerNameMeta,
+          seekerName.isAcceptableOrUnknown(
+              data['seeker_name']!, _seekerNameMeta));
+    }
+    if (data.containsKey('gender')) {
+      context.handle(_genderMeta,
+          gender.isAcceptableOrUnknown(data['gender']!, _genderMeta));
+    }
+    if (data.containsKey('fate_year')) {
+      context.handle(_fateYearMeta,
+          fateYear.isAcceptableOrUnknown(data['fate_year']!, _fateYearMeta));
+    }
+    if (data.containsKey('module_data_json')) {
+      context.handle(
+          _moduleDataJsonMeta,
+          moduleDataJson.isAcceptableOrUnknown(
+              data['module_data_json']!, _moduleDataJsonMeta));
+    }
+    if (data.containsKey('nav_params_json')) {
+      context.handle(
+          _navParamsJsonMeta,
+          navParamsJson.isAcceptableOrUnknown(
+              data['nav_params_json']!, _navParamsJsonMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    if (data.containsKey('rev')) {
+      context.handle(
+          _revMeta, rev.isAcceptableOrUnknown(data['rev']!, _revMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  TRecordMetaData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TRecordMetaData(
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      scopeUid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}scope_uid'])!,
+      module: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}module'])!,
+      category: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}category'])!,
+      divinationType: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}divination_type'])!,
+      caseUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}case_uuid']),
+      workItemUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}work_item_uuid']),
+      seekerUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}seeker_uuid']),
+      question: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}question']),
+      detail: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}detail']),
+      tag: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tag']),
+      directPredict: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}direct_predict']),
+      verificationStatus: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}verification_status']),
+      seekerName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}seeker_name']),
+      gender: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}gender']),
+      fateYear: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}fate_year']),
+      moduleDataJson: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}module_data_json']),
+      navParamsJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}nav_params_json']),
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at']),
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      rev: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}rev'])!,
+    );
+  }
+
+  @override
+  $TRecordMetaTable createAlias(String alias) {
+    return $TRecordMetaTable(attachedDatabase, alias);
+  }
+}
+
+class TRecordMetaData extends DataClass implements Insertable<TRecordMetaData> {
+  final String uuid;
+  final String scopeUid;
+  final String module;
+  final String category;
+  final String divinationType;
+  final String? caseUuid;
+  final String? workItemUuid;
+  final String? seekerUuid;
+  final String? question;
+  final String? detail;
+  final String? tag;
+  final String? directPredict;
+  final String? verificationStatus;
+  final String? seekerName;
+  final String? gender;
+  final String? fateYear;
+  final String? moduleDataJson;
+  final String? navParamsJson;
+  final DateTime createdAt;
+  final DateTime? updatedAt;
+  final DateTime? deletedAt;
+  final int rev;
+  const TRecordMetaData(
+      {required this.uuid,
+      required this.scopeUid,
+      required this.module,
+      required this.category,
+      required this.divinationType,
+      this.caseUuid,
+      this.workItemUuid,
+      this.seekerUuid,
+      this.question,
+      this.detail,
+      this.tag,
+      this.directPredict,
+      this.verificationStatus,
+      this.seekerName,
+      this.gender,
+      this.fateYear,
+      this.moduleDataJson,
+      this.navParamsJson,
+      required this.createdAt,
+      this.updatedAt,
+      this.deletedAt,
+      required this.rev});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['scope_uid'] = Variable<String>(scopeUid);
+    map['module'] = Variable<String>(module);
+    map['category'] = Variable<String>(category);
+    map['divination_type'] = Variable<String>(divinationType);
+    if (!nullToAbsent || caseUuid != null) {
+      map['case_uuid'] = Variable<String>(caseUuid);
+    }
+    if (!nullToAbsent || workItemUuid != null) {
+      map['work_item_uuid'] = Variable<String>(workItemUuid);
+    }
+    if (!nullToAbsent || seekerUuid != null) {
+      map['seeker_uuid'] = Variable<String>(seekerUuid);
+    }
+    if (!nullToAbsent || question != null) {
+      map['question'] = Variable<String>(question);
+    }
+    if (!nullToAbsent || detail != null) {
+      map['detail'] = Variable<String>(detail);
+    }
+    if (!nullToAbsent || tag != null) {
+      map['tag'] = Variable<String>(tag);
+    }
+    if (!nullToAbsent || directPredict != null) {
+      map['direct_predict'] = Variable<String>(directPredict);
+    }
+    if (!nullToAbsent || verificationStatus != null) {
+      map['verification_status'] = Variable<String>(verificationStatus);
+    }
+    if (!nullToAbsent || seekerName != null) {
+      map['seeker_name'] = Variable<String>(seekerName);
+    }
+    if (!nullToAbsent || gender != null) {
+      map['gender'] = Variable<String>(gender);
+    }
+    if (!nullToAbsent || fateYear != null) {
+      map['fate_year'] = Variable<String>(fateYear);
+    }
+    if (!nullToAbsent || moduleDataJson != null) {
+      map['module_data_json'] = Variable<String>(moduleDataJson);
+    }
+    if (!nullToAbsent || navParamsJson != null) {
+      map['nav_params_json'] = Variable<String>(navParamsJson);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['rev'] = Variable<int>(rev);
+    return map;
+  }
+
+  TRecordMetaCompanion toCompanion(bool nullToAbsent) {
+    return TRecordMetaCompanion(
+      uuid: Value(uuid),
+      scopeUid: Value(scopeUid),
+      module: Value(module),
+      category: Value(category),
+      divinationType: Value(divinationType),
+      caseUuid: caseUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(caseUuid),
+      workItemUuid: workItemUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(workItemUuid),
+      seekerUuid: seekerUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(seekerUuid),
+      question: question == null && nullToAbsent
+          ? const Value.absent()
+          : Value(question),
+      detail:
+          detail == null && nullToAbsent ? const Value.absent() : Value(detail),
+      tag: tag == null && nullToAbsent ? const Value.absent() : Value(tag),
+      directPredict: directPredict == null && nullToAbsent
+          ? const Value.absent()
+          : Value(directPredict),
+      verificationStatus: verificationStatus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(verificationStatus),
+      seekerName: seekerName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(seekerName),
+      gender:
+          gender == null && nullToAbsent ? const Value.absent() : Value(gender),
+      fateYear: fateYear == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fateYear),
+      moduleDataJson: moduleDataJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(moduleDataJson),
+      navParamsJson: navParamsJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(navParamsJson),
+      createdAt: Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      rev: Value(rev),
+    );
+  }
+
+  factory TRecordMetaData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TRecordMetaData(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      scopeUid: serializer.fromJson<String>(json['scopeUid']),
+      module: serializer.fromJson<String>(json['module']),
+      category: serializer.fromJson<String>(json['category']),
+      divinationType: serializer.fromJson<String>(json['divinationType']),
+      caseUuid: serializer.fromJson<String?>(json['caseUuid']),
+      workItemUuid: serializer.fromJson<String?>(json['workItemUuid']),
+      seekerUuid: serializer.fromJson<String?>(json['seekerUuid']),
+      question: serializer.fromJson<String?>(json['question']),
+      detail: serializer.fromJson<String?>(json['detail']),
+      tag: serializer.fromJson<String?>(json['tag']),
+      directPredict: serializer.fromJson<String?>(json['directPredict']),
+      verificationStatus:
+          serializer.fromJson<String?>(json['verificationStatus']),
+      seekerName: serializer.fromJson<String?>(json['seekerName']),
+      gender: serializer.fromJson<String?>(json['gender']),
+      fateYear: serializer.fromJson<String?>(json['fateYear']),
+      moduleDataJson: serializer.fromJson<String?>(json['moduleDataJson']),
+      navParamsJson: serializer.fromJson<String?>(json['navParamsJson']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      rev: serializer.fromJson<int>(json['rev']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'scopeUid': serializer.toJson<String>(scopeUid),
+      'module': serializer.toJson<String>(module),
+      'category': serializer.toJson<String>(category),
+      'divinationType': serializer.toJson<String>(divinationType),
+      'caseUuid': serializer.toJson<String?>(caseUuid),
+      'workItemUuid': serializer.toJson<String?>(workItemUuid),
+      'seekerUuid': serializer.toJson<String?>(seekerUuid),
+      'question': serializer.toJson<String?>(question),
+      'detail': serializer.toJson<String?>(detail),
+      'tag': serializer.toJson<String?>(tag),
+      'directPredict': serializer.toJson<String?>(directPredict),
+      'verificationStatus': serializer.toJson<String?>(verificationStatus),
+      'seekerName': serializer.toJson<String?>(seekerName),
+      'gender': serializer.toJson<String?>(gender),
+      'fateYear': serializer.toJson<String?>(fateYear),
+      'moduleDataJson': serializer.toJson<String?>(moduleDataJson),
+      'navParamsJson': serializer.toJson<String?>(navParamsJson),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime?>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'rev': serializer.toJson<int>(rev),
+    };
+  }
+
+  TRecordMetaData copyWith(
+          {String? uuid,
+          String? scopeUid,
+          String? module,
+          String? category,
+          String? divinationType,
+          Value<String?> caseUuid = const Value.absent(),
+          Value<String?> workItemUuid = const Value.absent(),
+          Value<String?> seekerUuid = const Value.absent(),
+          Value<String?> question = const Value.absent(),
+          Value<String?> detail = const Value.absent(),
+          Value<String?> tag = const Value.absent(),
+          Value<String?> directPredict = const Value.absent(),
+          Value<String?> verificationStatus = const Value.absent(),
+          Value<String?> seekerName = const Value.absent(),
+          Value<String?> gender = const Value.absent(),
+          Value<String?> fateYear = const Value.absent(),
+          Value<String?> moduleDataJson = const Value.absent(),
+          Value<String?> navParamsJson = const Value.absent(),
+          DateTime? createdAt,
+          Value<DateTime?> updatedAt = const Value.absent(),
+          Value<DateTime?> deletedAt = const Value.absent(),
+          int? rev}) =>
+      TRecordMetaData(
+        uuid: uuid ?? this.uuid,
+        scopeUid: scopeUid ?? this.scopeUid,
+        module: module ?? this.module,
+        category: category ?? this.category,
+        divinationType: divinationType ?? this.divinationType,
+        caseUuid: caseUuid.present ? caseUuid.value : this.caseUuid,
+        workItemUuid:
+            workItemUuid.present ? workItemUuid.value : this.workItemUuid,
+        seekerUuid: seekerUuid.present ? seekerUuid.value : this.seekerUuid,
+        question: question.present ? question.value : this.question,
+        detail: detail.present ? detail.value : this.detail,
+        tag: tag.present ? tag.value : this.tag,
+        directPredict:
+            directPredict.present ? directPredict.value : this.directPredict,
+        verificationStatus: verificationStatus.present
+            ? verificationStatus.value
+            : this.verificationStatus,
+        seekerName: seekerName.present ? seekerName.value : this.seekerName,
+        gender: gender.present ? gender.value : this.gender,
+        fateYear: fateYear.present ? fateYear.value : this.fateYear,
+        moduleDataJson:
+            moduleDataJson.present ? moduleDataJson.value : this.moduleDataJson,
+        navParamsJson:
+            navParamsJson.present ? navParamsJson.value : this.navParamsJson,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        rev: rev ?? this.rev,
+      );
+  TRecordMetaData copyWithCompanion(TRecordMetaCompanion data) {
+    return TRecordMetaData(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
+      module: data.module.present ? data.module.value : this.module,
+      category: data.category.present ? data.category.value : this.category,
+      divinationType: data.divinationType.present
+          ? data.divinationType.value
+          : this.divinationType,
+      caseUuid: data.caseUuid.present ? data.caseUuid.value : this.caseUuid,
+      workItemUuid: data.workItemUuid.present
+          ? data.workItemUuid.value
+          : this.workItemUuid,
+      seekerUuid:
+          data.seekerUuid.present ? data.seekerUuid.value : this.seekerUuid,
+      question: data.question.present ? data.question.value : this.question,
+      detail: data.detail.present ? data.detail.value : this.detail,
+      tag: data.tag.present ? data.tag.value : this.tag,
+      directPredict: data.directPredict.present
+          ? data.directPredict.value
+          : this.directPredict,
+      verificationStatus: data.verificationStatus.present
+          ? data.verificationStatus.value
+          : this.verificationStatus,
+      seekerName:
+          data.seekerName.present ? data.seekerName.value : this.seekerName,
+      gender: data.gender.present ? data.gender.value : this.gender,
+      fateYear: data.fateYear.present ? data.fateYear.value : this.fateYear,
+      moduleDataJson: data.moduleDataJson.present
+          ? data.moduleDataJson.value
+          : this.moduleDataJson,
+      navParamsJson: data.navParamsJson.present
+          ? data.navParamsJson.value
+          : this.navParamsJson,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      rev: data.rev.present ? data.rev.value : this.rev,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TRecordMetaData(')
+          ..write('uuid: $uuid, ')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('module: $module, ')
+          ..write('category: $category, ')
+          ..write('divinationType: $divinationType, ')
+          ..write('caseUuid: $caseUuid, ')
+          ..write('workItemUuid: $workItemUuid, ')
+          ..write('seekerUuid: $seekerUuid, ')
+          ..write('question: $question, ')
+          ..write('detail: $detail, ')
+          ..write('tag: $tag, ')
+          ..write('directPredict: $directPredict, ')
+          ..write('verificationStatus: $verificationStatus, ')
+          ..write('seekerName: $seekerName, ')
+          ..write('gender: $gender, ')
+          ..write('fateYear: $fateYear, ')
+          ..write('moduleDataJson: $moduleDataJson, ')
+          ..write('navParamsJson: $navParamsJson, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rev: $rev')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+        uuid,
+        scopeUid,
+        module,
+        category,
+        divinationType,
+        caseUuid,
+        workItemUuid,
+        seekerUuid,
+        question,
+        detail,
+        tag,
+        directPredict,
+        verificationStatus,
+        seekerName,
+        gender,
+        fateYear,
+        moduleDataJson,
+        navParamsJson,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        rev
+      ]);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TRecordMetaData &&
+          other.uuid == this.uuid &&
+          other.scopeUid == this.scopeUid &&
+          other.module == this.module &&
+          other.category == this.category &&
+          other.divinationType == this.divinationType &&
+          other.caseUuid == this.caseUuid &&
+          other.workItemUuid == this.workItemUuid &&
+          other.seekerUuid == this.seekerUuid &&
+          other.question == this.question &&
+          other.detail == this.detail &&
+          other.tag == this.tag &&
+          other.directPredict == this.directPredict &&
+          other.verificationStatus == this.verificationStatus &&
+          other.seekerName == this.seekerName &&
+          other.gender == this.gender &&
+          other.fateYear == this.fateYear &&
+          other.moduleDataJson == this.moduleDataJson &&
+          other.navParamsJson == this.navParamsJson &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.rev == this.rev);
+}
+
+class TRecordMetaCompanion extends UpdateCompanion<TRecordMetaData> {
+  final Value<String> uuid;
+  final Value<String> scopeUid;
+  final Value<String> module;
+  final Value<String> category;
+  final Value<String> divinationType;
+  final Value<String?> caseUuid;
+  final Value<String?> workItemUuid;
+  final Value<String?> seekerUuid;
+  final Value<String?> question;
+  final Value<String?> detail;
+  final Value<String?> tag;
+  final Value<String?> directPredict;
+  final Value<String?> verificationStatus;
+  final Value<String?> seekerName;
+  final Value<String?> gender;
+  final Value<String?> fateYear;
+  final Value<String?> moduleDataJson;
+  final Value<String?> navParamsJson;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rev;
+  final Value<int> rowid;
+  const TRecordMetaCompanion({
+    this.uuid = const Value.absent(),
+    this.scopeUid = const Value.absent(),
+    this.module = const Value.absent(),
+    this.category = const Value.absent(),
+    this.divinationType = const Value.absent(),
+    this.caseUuid = const Value.absent(),
+    this.workItemUuid = const Value.absent(),
+    this.seekerUuid = const Value.absent(),
+    this.question = const Value.absent(),
+    this.detail = const Value.absent(),
+    this.tag = const Value.absent(),
+    this.directPredict = const Value.absent(),
+    this.verificationStatus = const Value.absent(),
+    this.seekerName = const Value.absent(),
+    this.gender = const Value.absent(),
+    this.fateYear = const Value.absent(),
+    this.moduleDataJson = const Value.absent(),
+    this.navParamsJson = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rev = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TRecordMetaCompanion.insert({
+    required String uuid,
+    required String scopeUid,
+    required String module,
+    required String category,
+    required String divinationType,
+    this.caseUuid = const Value.absent(),
+    this.workItemUuid = const Value.absent(),
+    this.seekerUuid = const Value.absent(),
+    this.question = const Value.absent(),
+    this.detail = const Value.absent(),
+    this.tag = const Value.absent(),
+    this.directPredict = const Value.absent(),
+    this.verificationStatus = const Value.absent(),
+    this.seekerName = const Value.absent(),
+    this.gender = const Value.absent(),
+    this.fateYear = const Value.absent(),
+    this.moduleDataJson = const Value.absent(),
+    this.navParamsJson = const Value.absent(),
+    required DateTime createdAt,
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rev = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : uuid = Value(uuid),
+        scopeUid = Value(scopeUid),
+        module = Value(module),
+        category = Value(category),
+        divinationType = Value(divinationType),
+        createdAt = Value(createdAt);
+  static Insertable<TRecordMetaData> custom({
+    Expression<String>? uuid,
+    Expression<String>? scopeUid,
+    Expression<String>? module,
+    Expression<String>? category,
+    Expression<String>? divinationType,
+    Expression<String>? caseUuid,
+    Expression<String>? workItemUuid,
+    Expression<String>? seekerUuid,
+    Expression<String>? question,
+    Expression<String>? detail,
+    Expression<String>? tag,
+    Expression<String>? directPredict,
+    Expression<String>? verificationStatus,
+    Expression<String>? seekerName,
+    Expression<String>? gender,
+    Expression<String>? fateYear,
+    Expression<String>? moduleDataJson,
+    Expression<String>? navParamsJson,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rev,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (scopeUid != null) 'scope_uid': scopeUid,
+      if (module != null) 'module': module,
+      if (category != null) 'category': category,
+      if (divinationType != null) 'divination_type': divinationType,
+      if (caseUuid != null) 'case_uuid': caseUuid,
+      if (workItemUuid != null) 'work_item_uuid': workItemUuid,
+      if (seekerUuid != null) 'seeker_uuid': seekerUuid,
+      if (question != null) 'question': question,
+      if (detail != null) 'detail': detail,
+      if (tag != null) 'tag': tag,
+      if (directPredict != null) 'direct_predict': directPredict,
+      if (verificationStatus != null) 'verification_status': verificationStatus,
+      if (seekerName != null) 'seeker_name': seekerName,
+      if (gender != null) 'gender': gender,
+      if (fateYear != null) 'fate_year': fateYear,
+      if (moduleDataJson != null) 'module_data_json': moduleDataJson,
+      if (navParamsJson != null) 'nav_params_json': navParamsJson,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rev != null) 'rev': rev,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TRecordMetaCompanion copyWith(
+      {Value<String>? uuid,
+      Value<String>? scopeUid,
+      Value<String>? module,
+      Value<String>? category,
+      Value<String>? divinationType,
+      Value<String?>? caseUuid,
+      Value<String?>? workItemUuid,
+      Value<String?>? seekerUuid,
+      Value<String?>? question,
+      Value<String?>? detail,
+      Value<String?>? tag,
+      Value<String?>? directPredict,
+      Value<String?>? verificationStatus,
+      Value<String?>? seekerName,
+      Value<String?>? gender,
+      Value<String?>? fateYear,
+      Value<String?>? moduleDataJson,
+      Value<String?>? navParamsJson,
+      Value<DateTime>? createdAt,
+      Value<DateTime?>? updatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<int>? rev,
+      Value<int>? rowid}) {
+    return TRecordMetaCompanion(
+      uuid: uuid ?? this.uuid,
+      scopeUid: scopeUid ?? this.scopeUid,
+      module: module ?? this.module,
+      category: category ?? this.category,
+      divinationType: divinationType ?? this.divinationType,
+      caseUuid: caseUuid ?? this.caseUuid,
+      workItemUuid: workItemUuid ?? this.workItemUuid,
+      seekerUuid: seekerUuid ?? this.seekerUuid,
+      question: question ?? this.question,
+      detail: detail ?? this.detail,
+      tag: tag ?? this.tag,
+      directPredict: directPredict ?? this.directPredict,
+      verificationStatus: verificationStatus ?? this.verificationStatus,
+      seekerName: seekerName ?? this.seekerName,
+      gender: gender ?? this.gender,
+      fateYear: fateYear ?? this.fateYear,
+      moduleDataJson: moduleDataJson ?? this.moduleDataJson,
+      navParamsJson: navParamsJson ?? this.navParamsJson,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rev: rev ?? this.rev,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
+    }
+    if (module.present) {
+      map['module'] = Variable<String>(module.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (divinationType.present) {
+      map['divination_type'] = Variable<String>(divinationType.value);
+    }
+    if (caseUuid.present) {
+      map['case_uuid'] = Variable<String>(caseUuid.value);
+    }
+    if (workItemUuid.present) {
+      map['work_item_uuid'] = Variable<String>(workItemUuid.value);
+    }
+    if (seekerUuid.present) {
+      map['seeker_uuid'] = Variable<String>(seekerUuid.value);
+    }
+    if (question.present) {
+      map['question'] = Variable<String>(question.value);
+    }
+    if (detail.present) {
+      map['detail'] = Variable<String>(detail.value);
+    }
+    if (tag.present) {
+      map['tag'] = Variable<String>(tag.value);
+    }
+    if (directPredict.present) {
+      map['direct_predict'] = Variable<String>(directPredict.value);
+    }
+    if (verificationStatus.present) {
+      map['verification_status'] = Variable<String>(verificationStatus.value);
+    }
+    if (seekerName.present) {
+      map['seeker_name'] = Variable<String>(seekerName.value);
+    }
+    if (gender.present) {
+      map['gender'] = Variable<String>(gender.value);
+    }
+    if (fateYear.present) {
+      map['fate_year'] = Variable<String>(fateYear.value);
+    }
+    if (moduleDataJson.present) {
+      map['module_data_json'] = Variable<String>(moduleDataJson.value);
+    }
+    if (navParamsJson.present) {
+      map['nav_params_json'] = Variable<String>(navParamsJson.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rev.present) {
+      map['rev'] = Variable<int>(rev.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TRecordMetaCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('module: $module, ')
+          ..write('category: $category, ')
+          ..write('divinationType: $divinationType, ')
+          ..write('caseUuid: $caseUuid, ')
+          ..write('workItemUuid: $workItemUuid, ')
+          ..write('seekerUuid: $seekerUuid, ')
+          ..write('question: $question, ')
+          ..write('detail: $detail, ')
+          ..write('tag: $tag, ')
+          ..write('directPredict: $directPredict, ')
+          ..write('verificationStatus: $verificationStatus, ')
+          ..write('seekerName: $seekerName, ')
+          ..write('gender: $gender, ')
+          ..write('fateYear: $fateYear, ')
+          ..write('moduleDataJson: $moduleDataJson, ')
+          ..write('navParamsJson: $navParamsJson, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rev: $rev, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TRecordSearchIndexTable extends TRecordSearchIndex
+    with TableInfo<$TRecordSearchIndexTable, TRecordSearchIndexData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TRecordSearchIndexTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _recordUuidMeta =
+      const VerificationMeta('recordUuid');
+  @override
+  late final GeneratedColumn<String> recordUuid = GeneratedColumn<String>(
+      'record_uuid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _scopeUidMeta =
+      const VerificationMeta('scopeUid');
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+      'scope_uid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _moduleMeta = const VerificationMeta('module');
+  @override
+  late final GeneratedColumn<String> module = GeneratedColumn<String>(
+      'module', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _indexKeyMeta =
+      const VerificationMeta('indexKey');
+  @override
+  late final GeneratedColumn<String> indexKey = GeneratedColumn<String>(
+      'index_key', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _indexValueMeta =
+      const VerificationMeta('indexValue');
+  @override
+  late final GeneratedColumn<String> indexValue = GeneratedColumn<String>(
+      'index_value', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [recordUuid, scopeUid, module, indexKey, indexValue];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_record_search_index';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<TRecordSearchIndexData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('record_uuid')) {
+      context.handle(
+          _recordUuidMeta,
+          recordUuid.isAcceptableOrUnknown(
+              data['record_uuid']!, _recordUuidMeta));
+    } else if (isInserting) {
+      context.missing(_recordUuidMeta);
+    }
+    if (data.containsKey('scope_uid')) {
+      context.handle(_scopeUidMeta,
+          scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta));
+    } else if (isInserting) {
+      context.missing(_scopeUidMeta);
+    }
+    if (data.containsKey('module')) {
+      context.handle(_moduleMeta,
+          module.isAcceptableOrUnknown(data['module']!, _moduleMeta));
+    } else if (isInserting) {
+      context.missing(_moduleMeta);
+    }
+    if (data.containsKey('index_key')) {
+      context.handle(_indexKeyMeta,
+          indexKey.isAcceptableOrUnknown(data['index_key']!, _indexKeyMeta));
+    } else if (isInserting) {
+      context.missing(_indexKeyMeta);
+    }
+    if (data.containsKey('index_value')) {
+      context.handle(
+          _indexValueMeta,
+          indexValue.isAcceptableOrUnknown(
+              data['index_value']!, _indexValueMeta));
+    } else if (isInserting) {
+      context.missing(_indexValueMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => const {};
+  @override
+  TRecordSearchIndexData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TRecordSearchIndexData(
+      recordUuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}record_uuid'])!,
+      scopeUid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}scope_uid'])!,
+      module: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}module'])!,
+      indexKey: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}index_key'])!,
+      indexValue: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}index_value'])!,
+    );
+  }
+
+  @override
+  $TRecordSearchIndexTable createAlias(String alias) {
+    return $TRecordSearchIndexTable(attachedDatabase, alias);
+  }
+}
+
+class TRecordSearchIndexData extends DataClass
+    implements Insertable<TRecordSearchIndexData> {
+  final String recordUuid;
+  final String scopeUid;
+  final String module;
+  final String indexKey;
+  final String indexValue;
+  const TRecordSearchIndexData(
+      {required this.recordUuid,
+      required this.scopeUid,
+      required this.module,
+      required this.indexKey,
+      required this.indexValue});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['record_uuid'] = Variable<String>(recordUuid);
+    map['scope_uid'] = Variable<String>(scopeUid);
+    map['module'] = Variable<String>(module);
+    map['index_key'] = Variable<String>(indexKey);
+    map['index_value'] = Variable<String>(indexValue);
+    return map;
+  }
+
+  TRecordSearchIndexCompanion toCompanion(bool nullToAbsent) {
+    return TRecordSearchIndexCompanion(
+      recordUuid: Value(recordUuid),
+      scopeUid: Value(scopeUid),
+      module: Value(module),
+      indexKey: Value(indexKey),
+      indexValue: Value(indexValue),
+    );
+  }
+
+  factory TRecordSearchIndexData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TRecordSearchIndexData(
+      recordUuid: serializer.fromJson<String>(json['recordUuid']),
+      scopeUid: serializer.fromJson<String>(json['scopeUid']),
+      module: serializer.fromJson<String>(json['module']),
+      indexKey: serializer.fromJson<String>(json['indexKey']),
+      indexValue: serializer.fromJson<String>(json['indexValue']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'recordUuid': serializer.toJson<String>(recordUuid),
+      'scopeUid': serializer.toJson<String>(scopeUid),
+      'module': serializer.toJson<String>(module),
+      'indexKey': serializer.toJson<String>(indexKey),
+      'indexValue': serializer.toJson<String>(indexValue),
+    };
+  }
+
+  TRecordSearchIndexData copyWith(
+          {String? recordUuid,
+          String? scopeUid,
+          String? module,
+          String? indexKey,
+          String? indexValue}) =>
+      TRecordSearchIndexData(
+        recordUuid: recordUuid ?? this.recordUuid,
+        scopeUid: scopeUid ?? this.scopeUid,
+        module: module ?? this.module,
+        indexKey: indexKey ?? this.indexKey,
+        indexValue: indexValue ?? this.indexValue,
+      );
+  TRecordSearchIndexData copyWithCompanion(TRecordSearchIndexCompanion data) {
+    return TRecordSearchIndexData(
+      recordUuid:
+          data.recordUuid.present ? data.recordUuid.value : this.recordUuid,
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
+      module: data.module.present ? data.module.value : this.module,
+      indexKey: data.indexKey.present ? data.indexKey.value : this.indexKey,
+      indexValue:
+          data.indexValue.present ? data.indexValue.value : this.indexValue,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TRecordSearchIndexData(')
+          ..write('recordUuid: $recordUuid, ')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('module: $module, ')
+          ..write('indexKey: $indexKey, ')
+          ..write('indexValue: $indexValue')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(recordUuid, scopeUid, module, indexKey, indexValue);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TRecordSearchIndexData &&
+          other.recordUuid == this.recordUuid &&
+          other.scopeUid == this.scopeUid &&
+          other.module == this.module &&
+          other.indexKey == this.indexKey &&
+          other.indexValue == this.indexValue);
+}
+
+class TRecordSearchIndexCompanion
+    extends UpdateCompanion<TRecordSearchIndexData> {
+  final Value<String> recordUuid;
+  final Value<String> scopeUid;
+  final Value<String> module;
+  final Value<String> indexKey;
+  final Value<String> indexValue;
+  final Value<int> rowid;
+  const TRecordSearchIndexCompanion({
+    this.recordUuid = const Value.absent(),
+    this.scopeUid = const Value.absent(),
+    this.module = const Value.absent(),
+    this.indexKey = const Value.absent(),
+    this.indexValue = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TRecordSearchIndexCompanion.insert({
+    required String recordUuid,
+    required String scopeUid,
+    required String module,
+    required String indexKey,
+    required String indexValue,
+    this.rowid = const Value.absent(),
+  })  : recordUuid = Value(recordUuid),
+        scopeUid = Value(scopeUid),
+        module = Value(module),
+        indexKey = Value(indexKey),
+        indexValue = Value(indexValue);
+  static Insertable<TRecordSearchIndexData> custom({
+    Expression<String>? recordUuid,
+    Expression<String>? scopeUid,
+    Expression<String>? module,
+    Expression<String>? indexKey,
+    Expression<String>? indexValue,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (recordUuid != null) 'record_uuid': recordUuid,
+      if (scopeUid != null) 'scope_uid': scopeUid,
+      if (module != null) 'module': module,
+      if (indexKey != null) 'index_key': indexKey,
+      if (indexValue != null) 'index_value': indexValue,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TRecordSearchIndexCompanion copyWith(
+      {Value<String>? recordUuid,
+      Value<String>? scopeUid,
+      Value<String>? module,
+      Value<String>? indexKey,
+      Value<String>? indexValue,
+      Value<int>? rowid}) {
+    return TRecordSearchIndexCompanion(
+      recordUuid: recordUuid ?? this.recordUuid,
+      scopeUid: scopeUid ?? this.scopeUid,
+      module: module ?? this.module,
+      indexKey: indexKey ?? this.indexKey,
+      indexValue: indexValue ?? this.indexValue,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (recordUuid.present) {
+      map['record_uuid'] = Variable<String>(recordUuid.value);
+    }
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
+    }
+    if (module.present) {
+      map['module'] = Variable<String>(module.value);
+    }
+    if (indexKey.present) {
+      map['index_key'] = Variable<String>(indexKey.value);
+    }
+    if (indexValue.present) {
+      map['index_value'] = Variable<String>(indexValue.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TRecordSearchIndexCompanion(')
+          ..write('recordUuid: $recordUuid, ')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('module: $module, ')
+          ..write('indexKey: $indexKey, ')
+          ..write('indexValue: $indexValue, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TScopeAliasTable extends TScopeAlias
+    with TableInfo<$TScopeAliasTable, TScopeAlia> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TScopeAliasTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _authKindMeta =
+      const VerificationMeta('authKind');
+  @override
+  late final GeneratedColumn<String> authKind = GeneratedColumn<String>(
+      'auth_kind', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _authIdMeta = const VerificationMeta('authId');
+  @override
+  late final GeneratedColumn<String> authId = GeneratedColumn<String>(
+      'auth_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _scopeUidMeta =
+      const VerificationMeta('scopeUid');
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+      'scope_uid', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _linkedAtMeta =
+      const VerificationMeta('linkedAt');
+  @override
+  late final GeneratedColumn<DateTime> linkedAt = GeneratedColumn<DateTime>(
+      'linked_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [authKind, authId, scopeUid, linkedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_scope_alias';
+  @override
+  VerificationContext validateIntegrity(Insertable<TScopeAlia> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('auth_kind')) {
+      context.handle(_authKindMeta,
+          authKind.isAcceptableOrUnknown(data['auth_kind']!, _authKindMeta));
+    } else if (isInserting) {
+      context.missing(_authKindMeta);
+    }
+    if (data.containsKey('auth_id')) {
+      context.handle(_authIdMeta,
+          authId.isAcceptableOrUnknown(data['auth_id']!, _authIdMeta));
+    } else if (isInserting) {
+      context.missing(_authIdMeta);
+    }
+    if (data.containsKey('scope_uid')) {
+      context.handle(_scopeUidMeta,
+          scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta));
+    } else if (isInserting) {
+      context.missing(_scopeUidMeta);
+    }
+    if (data.containsKey('linked_at')) {
+      context.handle(_linkedAtMeta,
+          linkedAt.isAcceptableOrUnknown(data['linked_at']!, _linkedAtMeta));
+    } else if (isInserting) {
+      context.missing(_linkedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {authKind, authId};
+  @override
+  TScopeAlia map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TScopeAlia(
+      authKind: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}auth_kind'])!,
+      authId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}auth_id'])!,
+      scopeUid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}scope_uid'])!,
+      linkedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}linked_at'])!,
+    );
+  }
+
+  @override
+  $TScopeAliasTable createAlias(String alias) {
+    return $TScopeAliasTable(attachedDatabase, alias);
+  }
+}
+
+class TScopeAlia extends DataClass implements Insertable<TScopeAlia> {
+  final String authKind;
+  final String authId;
+  final String scopeUid;
+  final DateTime linkedAt;
+  const TScopeAlia(
+      {required this.authKind,
+      required this.authId,
+      required this.scopeUid,
+      required this.linkedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['auth_kind'] = Variable<String>(authKind);
+    map['auth_id'] = Variable<String>(authId);
+    map['scope_uid'] = Variable<String>(scopeUid);
+    map['linked_at'] = Variable<DateTime>(linkedAt);
+    return map;
+  }
+
+  TScopeAliasCompanion toCompanion(bool nullToAbsent) {
+    return TScopeAliasCompanion(
+      authKind: Value(authKind),
+      authId: Value(authId),
+      scopeUid: Value(scopeUid),
+      linkedAt: Value(linkedAt),
+    );
+  }
+
+  factory TScopeAlia.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TScopeAlia(
+      authKind: serializer.fromJson<String>(json['authKind']),
+      authId: serializer.fromJson<String>(json['authId']),
+      scopeUid: serializer.fromJson<String>(json['scopeUid']),
+      linkedAt: serializer.fromJson<DateTime>(json['linkedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'authKind': serializer.toJson<String>(authKind),
+      'authId': serializer.toJson<String>(authId),
+      'scopeUid': serializer.toJson<String>(scopeUid),
+      'linkedAt': serializer.toJson<DateTime>(linkedAt),
+    };
+  }
+
+  TScopeAlia copyWith(
+          {String? authKind,
+          String? authId,
+          String? scopeUid,
+          DateTime? linkedAt}) =>
+      TScopeAlia(
+        authKind: authKind ?? this.authKind,
+        authId: authId ?? this.authId,
+        scopeUid: scopeUid ?? this.scopeUid,
+        linkedAt: linkedAt ?? this.linkedAt,
+      );
+  TScopeAlia copyWithCompanion(TScopeAliasCompanion data) {
+    return TScopeAlia(
+      authKind: data.authKind.present ? data.authKind.value : this.authKind,
+      authId: data.authId.present ? data.authId.value : this.authId,
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
+      linkedAt: data.linkedAt.present ? data.linkedAt.value : this.linkedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TScopeAlia(')
+          ..write('authKind: $authKind, ')
+          ..write('authId: $authId, ')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('linkedAt: $linkedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(authKind, authId, scopeUid, linkedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TScopeAlia &&
+          other.authKind == this.authKind &&
+          other.authId == this.authId &&
+          other.scopeUid == this.scopeUid &&
+          other.linkedAt == this.linkedAt);
+}
+
+class TScopeAliasCompanion extends UpdateCompanion<TScopeAlia> {
+  final Value<String> authKind;
+  final Value<String> authId;
+  final Value<String> scopeUid;
+  final Value<DateTime> linkedAt;
+  final Value<int> rowid;
+  const TScopeAliasCompanion({
+    this.authKind = const Value.absent(),
+    this.authId = const Value.absent(),
+    this.scopeUid = const Value.absent(),
+    this.linkedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TScopeAliasCompanion.insert({
+    required String authKind,
+    required String authId,
+    required String scopeUid,
+    required DateTime linkedAt,
+    this.rowid = const Value.absent(),
+  })  : authKind = Value(authKind),
+        authId = Value(authId),
+        scopeUid = Value(scopeUid),
+        linkedAt = Value(linkedAt);
+  static Insertable<TScopeAlia> custom({
+    Expression<String>? authKind,
+    Expression<String>? authId,
+    Expression<String>? scopeUid,
+    Expression<DateTime>? linkedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (authKind != null) 'auth_kind': authKind,
+      if (authId != null) 'auth_id': authId,
+      if (scopeUid != null) 'scope_uid': scopeUid,
+      if (linkedAt != null) 'linked_at': linkedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TScopeAliasCompanion copyWith(
+      {Value<String>? authKind,
+      Value<String>? authId,
+      Value<String>? scopeUid,
+      Value<DateTime>? linkedAt,
+      Value<int>? rowid}) {
+    return TScopeAliasCompanion(
+      authKind: authKind ?? this.authKind,
+      authId: authId ?? this.authId,
+      scopeUid: scopeUid ?? this.scopeUid,
+      linkedAt: linkedAt ?? this.linkedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (authKind.present) {
+      map['auth_kind'] = Variable<String>(authKind.value);
+    }
+    if (authId.present) {
+      map['auth_id'] = Variable<String>(authId.value);
+    }
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
+    }
+    if (linkedAt.present) {
+      map['linked_at'] = Variable<DateTime>(linkedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TScopeAliasCompanion(')
+          ..write('authKind: $authKind, ')
+          ..write('authId: $authId, ')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('linkedAt: $linkedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
   _$PersistenceDriftDatabase(QueryExecutor e) : super(e);
   $PersistenceDriftDatabaseManager get managers =>
@@ -10450,6 +12068,10 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
   late final $PanelRefsTable panelRefs = $PanelRefsTable(this);
   late final $WorkItemPanelRefsTable workItemPanelRefs =
       $WorkItemPanelRefsTable(this);
+  late final $TRecordMetaTable tRecordMeta = $TRecordMetaTable(this);
+  late final $TRecordSearchIndexTable tRecordSearchIndex =
+      $TRecordSearchIndexTable(this);
+  late final $TScopeAliasTable tScopeAlias = $TScopeAliasTable(this);
   late final OutboxRecordsDao outboxRecordsDao =
       OutboxRecordsDao(this as PersistenceDriftDatabase);
   late final SyncStatesDao syncStatesDao =
@@ -10511,7 +12133,10 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
         divinationWorkItems,
         caseParticipants,
         panelRefs,
-        workItemPanelRefs
+        workItemPanelRefs,
+        tRecordMeta,
+        tRecordSearchIndex,
+        tScopeAlias
       ];
 }
 
@@ -17400,6 +19025,782 @@ typedef $$WorkItemPanelRefsTableProcessedTableManager = ProcessedTableManager<
     ),
     WorkItemPanelRef,
     PrefetchHooks Function()>;
+typedef $$TRecordMetaTableCreateCompanionBuilder = TRecordMetaCompanion
+    Function({
+  required String uuid,
+  required String scopeUid,
+  required String module,
+  required String category,
+  required String divinationType,
+  Value<String?> caseUuid,
+  Value<String?> workItemUuid,
+  Value<String?> seekerUuid,
+  Value<String?> question,
+  Value<String?> detail,
+  Value<String?> tag,
+  Value<String?> directPredict,
+  Value<String?> verificationStatus,
+  Value<String?> seekerName,
+  Value<String?> gender,
+  Value<String?> fateYear,
+  Value<String?> moduleDataJson,
+  Value<String?> navParamsJson,
+  required DateTime createdAt,
+  Value<DateTime?> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<int> rev,
+  Value<int> rowid,
+});
+typedef $$TRecordMetaTableUpdateCompanionBuilder = TRecordMetaCompanion
+    Function({
+  Value<String> uuid,
+  Value<String> scopeUid,
+  Value<String> module,
+  Value<String> category,
+  Value<String> divinationType,
+  Value<String?> caseUuid,
+  Value<String?> workItemUuid,
+  Value<String?> seekerUuid,
+  Value<String?> question,
+  Value<String?> detail,
+  Value<String?> tag,
+  Value<String?> directPredict,
+  Value<String?> verificationStatus,
+  Value<String?> seekerName,
+  Value<String?> gender,
+  Value<String?> fateYear,
+  Value<String?> moduleDataJson,
+  Value<String?> navParamsJson,
+  Value<DateTime> createdAt,
+  Value<DateTime?> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<int> rev,
+  Value<int> rowid,
+});
+
+class $$TRecordMetaTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $TRecordMetaTable> {
+  $$TRecordMetaTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+      column: $table.scopeUid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get module => $composableBuilder(
+      column: $table.module, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get category => $composableBuilder(
+      column: $table.category, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get divinationType => $composableBuilder(
+      column: $table.divinationType,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get caseUuid => $composableBuilder(
+      column: $table.caseUuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get workItemUuid => $composableBuilder(
+      column: $table.workItemUuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get seekerUuid => $composableBuilder(
+      column: $table.seekerUuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get question => $composableBuilder(
+      column: $table.question, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get detail => $composableBuilder(
+      column: $table.detail, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tag => $composableBuilder(
+      column: $table.tag, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get directPredict => $composableBuilder(
+      column: $table.directPredict, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get verificationStatus => $composableBuilder(
+      column: $table.verificationStatus,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get seekerName => $composableBuilder(
+      column: $table.seekerName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get gender => $composableBuilder(
+      column: $table.gender, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get fateYear => $composableBuilder(
+      column: $table.fateYear, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get moduleDataJson => $composableBuilder(
+      column: $table.moduleDataJson,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get navParamsJson => $composableBuilder(
+      column: $table.navParamsJson, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get rev => $composableBuilder(
+      column: $table.rev, builder: (column) => ColumnFilters(column));
+}
+
+class $$TRecordMetaTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $TRecordMetaTable> {
+  $$TRecordMetaTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+      column: $table.uuid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+      column: $table.scopeUid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get module => $composableBuilder(
+      column: $table.module, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get category => $composableBuilder(
+      column: $table.category, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get divinationType => $composableBuilder(
+      column: $table.divinationType,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get caseUuid => $composableBuilder(
+      column: $table.caseUuid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get workItemUuid => $composableBuilder(
+      column: $table.workItemUuid,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get seekerUuid => $composableBuilder(
+      column: $table.seekerUuid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get question => $composableBuilder(
+      column: $table.question, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get detail => $composableBuilder(
+      column: $table.detail, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tag => $composableBuilder(
+      column: $table.tag, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get directPredict => $composableBuilder(
+      column: $table.directPredict,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get verificationStatus => $composableBuilder(
+      column: $table.verificationStatus,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get seekerName => $composableBuilder(
+      column: $table.seekerName, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get gender => $composableBuilder(
+      column: $table.gender, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get fateYear => $composableBuilder(
+      column: $table.fateYear, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get moduleDataJson => $composableBuilder(
+      column: $table.moduleDataJson,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get navParamsJson => $composableBuilder(
+      column: $table.navParamsJson,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get rev => $composableBuilder(
+      column: $table.rev, builder: (column) => ColumnOrderings(column));
+}
+
+class $$TRecordMetaTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $TRecordMetaTable> {
+  $$TRecordMetaTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
+
+  GeneratedColumn<String> get module =>
+      $composableBuilder(column: $table.module, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<String> get divinationType => $composableBuilder(
+      column: $table.divinationType, builder: (column) => column);
+
+  GeneratedColumn<String> get caseUuid =>
+      $composableBuilder(column: $table.caseUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get workItemUuid => $composableBuilder(
+      column: $table.workItemUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get seekerUuid => $composableBuilder(
+      column: $table.seekerUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get question =>
+      $composableBuilder(column: $table.question, builder: (column) => column);
+
+  GeneratedColumn<String> get detail =>
+      $composableBuilder(column: $table.detail, builder: (column) => column);
+
+  GeneratedColumn<String> get tag =>
+      $composableBuilder(column: $table.tag, builder: (column) => column);
+
+  GeneratedColumn<String> get directPredict => $composableBuilder(
+      column: $table.directPredict, builder: (column) => column);
+
+  GeneratedColumn<String> get verificationStatus => $composableBuilder(
+      column: $table.verificationStatus, builder: (column) => column);
+
+  GeneratedColumn<String> get seekerName => $composableBuilder(
+      column: $table.seekerName, builder: (column) => column);
+
+  GeneratedColumn<String> get gender =>
+      $composableBuilder(column: $table.gender, builder: (column) => column);
+
+  GeneratedColumn<String> get fateYear =>
+      $composableBuilder(column: $table.fateYear, builder: (column) => column);
+
+  GeneratedColumn<String> get moduleDataJson => $composableBuilder(
+      column: $table.moduleDataJson, builder: (column) => column);
+
+  GeneratedColumn<String> get navParamsJson => $composableBuilder(
+      column: $table.navParamsJson, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get rev =>
+      $composableBuilder(column: $table.rev, builder: (column) => column);
+}
+
+class $$TRecordMetaTableTableManager extends RootTableManager<
+    _$PersistenceDriftDatabase,
+    $TRecordMetaTable,
+    TRecordMetaData,
+    $$TRecordMetaTableFilterComposer,
+    $$TRecordMetaTableOrderingComposer,
+    $$TRecordMetaTableAnnotationComposer,
+    $$TRecordMetaTableCreateCompanionBuilder,
+    $$TRecordMetaTableUpdateCompanionBuilder,
+    (
+      TRecordMetaData,
+      BaseReferences<_$PersistenceDriftDatabase, $TRecordMetaTable,
+          TRecordMetaData>
+    ),
+    TRecordMetaData,
+    PrefetchHooks Function()> {
+  $$TRecordMetaTableTableManager(
+      _$PersistenceDriftDatabase db, $TRecordMetaTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TRecordMetaTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TRecordMetaTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TRecordMetaTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> uuid = const Value.absent(),
+            Value<String> scopeUid = const Value.absent(),
+            Value<String> module = const Value.absent(),
+            Value<String> category = const Value.absent(),
+            Value<String> divinationType = const Value.absent(),
+            Value<String?> caseUuid = const Value.absent(),
+            Value<String?> workItemUuid = const Value.absent(),
+            Value<String?> seekerUuid = const Value.absent(),
+            Value<String?> question = const Value.absent(),
+            Value<String?> detail = const Value.absent(),
+            Value<String?> tag = const Value.absent(),
+            Value<String?> directPredict = const Value.absent(),
+            Value<String?> verificationStatus = const Value.absent(),
+            Value<String?> seekerName = const Value.absent(),
+            Value<String?> gender = const Value.absent(),
+            Value<String?> fateYear = const Value.absent(),
+            Value<String?> moduleDataJson = const Value.absent(),
+            Value<String?> navParamsJson = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime?> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<int> rev = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TRecordMetaCompanion(
+            uuid: uuid,
+            scopeUid: scopeUid,
+            module: module,
+            category: category,
+            divinationType: divinationType,
+            caseUuid: caseUuid,
+            workItemUuid: workItemUuid,
+            seekerUuid: seekerUuid,
+            question: question,
+            detail: detail,
+            tag: tag,
+            directPredict: directPredict,
+            verificationStatus: verificationStatus,
+            seekerName: seekerName,
+            gender: gender,
+            fateYear: fateYear,
+            moduleDataJson: moduleDataJson,
+            navParamsJson: navParamsJson,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            rev: rev,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String uuid,
+            required String scopeUid,
+            required String module,
+            required String category,
+            required String divinationType,
+            Value<String?> caseUuid = const Value.absent(),
+            Value<String?> workItemUuid = const Value.absent(),
+            Value<String?> seekerUuid = const Value.absent(),
+            Value<String?> question = const Value.absent(),
+            Value<String?> detail = const Value.absent(),
+            Value<String?> tag = const Value.absent(),
+            Value<String?> directPredict = const Value.absent(),
+            Value<String?> verificationStatus = const Value.absent(),
+            Value<String?> seekerName = const Value.absent(),
+            Value<String?> gender = const Value.absent(),
+            Value<String?> fateYear = const Value.absent(),
+            Value<String?> moduleDataJson = const Value.absent(),
+            Value<String?> navParamsJson = const Value.absent(),
+            required DateTime createdAt,
+            Value<DateTime?> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<int> rev = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TRecordMetaCompanion.insert(
+            uuid: uuid,
+            scopeUid: scopeUid,
+            module: module,
+            category: category,
+            divinationType: divinationType,
+            caseUuid: caseUuid,
+            workItemUuid: workItemUuid,
+            seekerUuid: seekerUuid,
+            question: question,
+            detail: detail,
+            tag: tag,
+            directPredict: directPredict,
+            verificationStatus: verificationStatus,
+            seekerName: seekerName,
+            gender: gender,
+            fateYear: fateYear,
+            moduleDataJson: moduleDataJson,
+            navParamsJson: navParamsJson,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            rev: rev,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$TRecordMetaTableProcessedTableManager = ProcessedTableManager<
+    _$PersistenceDriftDatabase,
+    $TRecordMetaTable,
+    TRecordMetaData,
+    $$TRecordMetaTableFilterComposer,
+    $$TRecordMetaTableOrderingComposer,
+    $$TRecordMetaTableAnnotationComposer,
+    $$TRecordMetaTableCreateCompanionBuilder,
+    $$TRecordMetaTableUpdateCompanionBuilder,
+    (
+      TRecordMetaData,
+      BaseReferences<_$PersistenceDriftDatabase, $TRecordMetaTable,
+          TRecordMetaData>
+    ),
+    TRecordMetaData,
+    PrefetchHooks Function()>;
+typedef $$TRecordSearchIndexTableCreateCompanionBuilder
+    = TRecordSearchIndexCompanion Function({
+  required String recordUuid,
+  required String scopeUid,
+  required String module,
+  required String indexKey,
+  required String indexValue,
+  Value<int> rowid,
+});
+typedef $$TRecordSearchIndexTableUpdateCompanionBuilder
+    = TRecordSearchIndexCompanion Function({
+  Value<String> recordUuid,
+  Value<String> scopeUid,
+  Value<String> module,
+  Value<String> indexKey,
+  Value<String> indexValue,
+  Value<int> rowid,
+});
+
+class $$TRecordSearchIndexTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $TRecordSearchIndexTable> {
+  $$TRecordSearchIndexTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get recordUuid => $composableBuilder(
+      column: $table.recordUuid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+      column: $table.scopeUid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get module => $composableBuilder(
+      column: $table.module, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get indexKey => $composableBuilder(
+      column: $table.indexKey, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get indexValue => $composableBuilder(
+      column: $table.indexValue, builder: (column) => ColumnFilters(column));
+}
+
+class $$TRecordSearchIndexTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $TRecordSearchIndexTable> {
+  $$TRecordSearchIndexTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get recordUuid => $composableBuilder(
+      column: $table.recordUuid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+      column: $table.scopeUid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get module => $composableBuilder(
+      column: $table.module, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get indexKey => $composableBuilder(
+      column: $table.indexKey, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get indexValue => $composableBuilder(
+      column: $table.indexValue, builder: (column) => ColumnOrderings(column));
+}
+
+class $$TRecordSearchIndexTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $TRecordSearchIndexTable> {
+  $$TRecordSearchIndexTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get recordUuid => $composableBuilder(
+      column: $table.recordUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
+
+  GeneratedColumn<String> get module =>
+      $composableBuilder(column: $table.module, builder: (column) => column);
+
+  GeneratedColumn<String> get indexKey =>
+      $composableBuilder(column: $table.indexKey, builder: (column) => column);
+
+  GeneratedColumn<String> get indexValue => $composableBuilder(
+      column: $table.indexValue, builder: (column) => column);
+}
+
+class $$TRecordSearchIndexTableTableManager extends RootTableManager<
+    _$PersistenceDriftDatabase,
+    $TRecordSearchIndexTable,
+    TRecordSearchIndexData,
+    $$TRecordSearchIndexTableFilterComposer,
+    $$TRecordSearchIndexTableOrderingComposer,
+    $$TRecordSearchIndexTableAnnotationComposer,
+    $$TRecordSearchIndexTableCreateCompanionBuilder,
+    $$TRecordSearchIndexTableUpdateCompanionBuilder,
+    (
+      TRecordSearchIndexData,
+      BaseReferences<_$PersistenceDriftDatabase, $TRecordSearchIndexTable,
+          TRecordSearchIndexData>
+    ),
+    TRecordSearchIndexData,
+    PrefetchHooks Function()> {
+  $$TRecordSearchIndexTableTableManager(
+      _$PersistenceDriftDatabase db, $TRecordSearchIndexTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TRecordSearchIndexTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TRecordSearchIndexTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TRecordSearchIndexTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> recordUuid = const Value.absent(),
+            Value<String> scopeUid = const Value.absent(),
+            Value<String> module = const Value.absent(),
+            Value<String> indexKey = const Value.absent(),
+            Value<String> indexValue = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TRecordSearchIndexCompanion(
+            recordUuid: recordUuid,
+            scopeUid: scopeUid,
+            module: module,
+            indexKey: indexKey,
+            indexValue: indexValue,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String recordUuid,
+            required String scopeUid,
+            required String module,
+            required String indexKey,
+            required String indexValue,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TRecordSearchIndexCompanion.insert(
+            recordUuid: recordUuid,
+            scopeUid: scopeUid,
+            module: module,
+            indexKey: indexKey,
+            indexValue: indexValue,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$TRecordSearchIndexTableProcessedTableManager = ProcessedTableManager<
+    _$PersistenceDriftDatabase,
+    $TRecordSearchIndexTable,
+    TRecordSearchIndexData,
+    $$TRecordSearchIndexTableFilterComposer,
+    $$TRecordSearchIndexTableOrderingComposer,
+    $$TRecordSearchIndexTableAnnotationComposer,
+    $$TRecordSearchIndexTableCreateCompanionBuilder,
+    $$TRecordSearchIndexTableUpdateCompanionBuilder,
+    (
+      TRecordSearchIndexData,
+      BaseReferences<_$PersistenceDriftDatabase, $TRecordSearchIndexTable,
+          TRecordSearchIndexData>
+    ),
+    TRecordSearchIndexData,
+    PrefetchHooks Function()>;
+typedef $$TScopeAliasTableCreateCompanionBuilder = TScopeAliasCompanion
+    Function({
+  required String authKind,
+  required String authId,
+  required String scopeUid,
+  required DateTime linkedAt,
+  Value<int> rowid,
+});
+typedef $$TScopeAliasTableUpdateCompanionBuilder = TScopeAliasCompanion
+    Function({
+  Value<String> authKind,
+  Value<String> authId,
+  Value<String> scopeUid,
+  Value<DateTime> linkedAt,
+  Value<int> rowid,
+});
+
+class $$TScopeAliasTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $TScopeAliasTable> {
+  $$TScopeAliasTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get authKind => $composableBuilder(
+      column: $table.authKind, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get authId => $composableBuilder(
+      column: $table.authId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+      column: $table.scopeUid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get linkedAt => $composableBuilder(
+      column: $table.linkedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$TScopeAliasTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $TScopeAliasTable> {
+  $$TScopeAliasTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get authKind => $composableBuilder(
+      column: $table.authKind, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get authId => $composableBuilder(
+      column: $table.authId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+      column: $table.scopeUid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get linkedAt => $composableBuilder(
+      column: $table.linkedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$TScopeAliasTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $TScopeAliasTable> {
+  $$TScopeAliasTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get authKind =>
+      $composableBuilder(column: $table.authKind, builder: (column) => column);
+
+  GeneratedColumn<String> get authId =>
+      $composableBuilder(column: $table.authId, builder: (column) => column);
+
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get linkedAt =>
+      $composableBuilder(column: $table.linkedAt, builder: (column) => column);
+}
+
+class $$TScopeAliasTableTableManager extends RootTableManager<
+    _$PersistenceDriftDatabase,
+    $TScopeAliasTable,
+    TScopeAlia,
+    $$TScopeAliasTableFilterComposer,
+    $$TScopeAliasTableOrderingComposer,
+    $$TScopeAliasTableAnnotationComposer,
+    $$TScopeAliasTableCreateCompanionBuilder,
+    $$TScopeAliasTableUpdateCompanionBuilder,
+    (
+      TScopeAlia,
+      BaseReferences<_$PersistenceDriftDatabase, $TScopeAliasTable, TScopeAlia>
+    ),
+    TScopeAlia,
+    PrefetchHooks Function()> {
+  $$TScopeAliasTableTableManager(
+      _$PersistenceDriftDatabase db, $TScopeAliasTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TScopeAliasTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TScopeAliasTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TScopeAliasTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> authKind = const Value.absent(),
+            Value<String> authId = const Value.absent(),
+            Value<String> scopeUid = const Value.absent(),
+            Value<DateTime> linkedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TScopeAliasCompanion(
+            authKind: authKind,
+            authId: authId,
+            scopeUid: scopeUid,
+            linkedAt: linkedAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String authKind,
+            required String authId,
+            required String scopeUid,
+            required DateTime linkedAt,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TScopeAliasCompanion.insert(
+            authKind: authKind,
+            authId: authId,
+            scopeUid: scopeUid,
+            linkedAt: linkedAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$TScopeAliasTableProcessedTableManager = ProcessedTableManager<
+    _$PersistenceDriftDatabase,
+    $TScopeAliasTable,
+    TScopeAlia,
+    $$TScopeAliasTableFilterComposer,
+    $$TScopeAliasTableOrderingComposer,
+    $$TScopeAliasTableAnnotationComposer,
+    $$TScopeAliasTableCreateCompanionBuilder,
+    $$TScopeAliasTableUpdateCompanionBuilder,
+    (
+      TScopeAlia,
+      BaseReferences<_$PersistenceDriftDatabase, $TScopeAliasTable, TScopeAlia>
+    ),
+    TScopeAlia,
+    PrefetchHooks Function()>;
 
 class $PersistenceDriftDatabaseManager {
   final _$PersistenceDriftDatabase _db;
@@ -17459,4 +19860,10 @@ class $PersistenceDriftDatabaseManager {
       $$PanelRefsTableTableManager(_db, _db.panelRefs);
   $$WorkItemPanelRefsTableTableManager get workItemPanelRefs =>
       $$WorkItemPanelRefsTableTableManager(_db, _db.workItemPanelRefs);
+  $$TRecordMetaTableTableManager get tRecordMeta =>
+      $$TRecordMetaTableTableManager(_db, _db.tRecordMeta);
+  $$TRecordSearchIndexTableTableManager get tRecordSearchIndex =>
+      $$TRecordSearchIndexTableTableManager(_db, _db.tRecordSearchIndex);
+  $$TScopeAliasTableTableManager get tScopeAlias =>
+      $$TScopeAliasTableTableManager(_db, _db.tScopeAlias);
 }

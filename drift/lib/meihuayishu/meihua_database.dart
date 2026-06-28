@@ -15,7 +15,7 @@ part 'meihua_database.g.dart';
   MeiHuaGuaInfos,
 ])
 class MeiHuaDatabase extends _$MeiHuaDatabase {
-  MeiHuaDatabase() : super(_openConnection());
+  MeiHuaDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
   int get schemaVersion => 1;

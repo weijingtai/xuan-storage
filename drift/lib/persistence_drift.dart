@@ -95,6 +95,12 @@ export 'tables/divination_types_table.dart';
 export 'tables/sub_divination_types_table.dart';
 export 'tables/divination_sub_divination_type_mappers_table.dart';
 export 'tables/auto_incrementing_primary_key.dart';
+export 'tables/record_meta_table.dart';
+export 'tables/record_search_index_table.dart';
+export 'scope/scope_alias_entry.dart';
+export 'scope/scope_bootstrap_store.dart';
+export 'scope/scope_ledger.dart';
+export 'scope/scope_resolver.dart';
 export 'record/record_cursor.dart';
 export 'record/drift_record_data_source.dart';
 export 'record/record_adapter_registry.dart';
@@ -106,6 +112,13 @@ export 'meihuayishu/dictionary_database.dart';
 export 'meihuayishu/dictionary_tables.dart';
 export 'meihuayishu/drift_meihua_divination_record_repository.dart';
 export 'meihuayishu/drift_meihua_dictionary_repository.dart';
+export 'meihuayishu/meihua_record_codec.dart';
+export 'meihuayishu/meihua_record_adapter.dart';
+export 'meihuayishu/meihua_record_migration.dart';
+export 'meihuayishu/record_backed_meihua_repository.dart';
+import 'tables/record_meta_table.dart';
+import 'tables/record_search_index_table.dart';
+import 'scope/drift_scope_alias_table.dart';
 
 part 'persistence_drift.g.dart';
 
@@ -466,13 +479,16 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
     Skills,
     SkillClasses,
     DaYunRecords,
-        TaiYuanRecords,
-        DivinationCases,
-        DivinationWorkItems,
-        CaseParticipants,
-        PanelRefs,
-        WorkItemPanelRefs,
-      ],
+    TaiYuanRecords,
+    DivinationCases,
+    DivinationWorkItems,
+    CaseParticipants,
+    PanelRefs,
+    WorkItemPanelRefs,
+    TRecordMeta,
+    TRecordSearchIndex,
+    TScopeAlias,
+  ],
   daos: [
     OutboxRecordsDao,
     SyncStatesDao,
@@ -496,7 +512,41 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
   PersistenceDriftDatabase(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) async {
+      await m.createAll();
+      await _createRecordIndices();
+    },
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.createTable(tRecordMeta);
+        await m.createTable(tRecordSearchIndex);
+        await m.createTable(tScopeAlias);
+        await _createRecordIndices();
+      }
+    },
+  );
+
+  Future<void> _createRecordIndices() async {
+    await customStatement(
+      'CREATE INDEX idx_record_meta_scope_created '
+      'ON t_record_meta(scope_uid, deleted_at, created_at DESC)');
+    await customStatement(
+      'CREATE INDEX idx_record_meta_scope_cat_mod '
+      'ON t_record_meta(scope_uid, category, module)');
+    await customStatement(
+      'CREATE INDEX idx_record_meta_scope_type '
+      'ON t_record_meta(scope_uid, divination_type)');
+    await customStatement(
+      'CREATE INDEX idx_record_search '
+      'ON t_record_search_index(scope_uid, module, index_key, index_value)');
+    await customStatement(
+      'CREATE INDEX idx_record_search_by_record '
+      'ON t_record_search_index(record_uuid)');
+  }
 }
 
 /// Drift/SQLite implementation of [OutboxStore].
