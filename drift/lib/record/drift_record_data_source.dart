@@ -89,7 +89,7 @@ class DriftRecordDataSource {
             ..where((t) => t.uuid.equals(uuid) & t.scopeUid.equals(scopeUid)))
           .write(TRecordMetaCompanion(deletedAt: Value(DateTime.now())));
       await (db.delete(db.tRecordSearchIndex)
-            ..where((t) => t.recordUuid.equals(uuid)))
+            ..where((t) => t.recordUuid.equals(uuid) & t.scopeUid.equals(scopeUid)))
           .go();
       return n > 0;
     });
@@ -103,4 +103,52 @@ class DriftRecordDataSource {
     q.orderBy([(t) => OrderingTerm.desc(t.createdAt)]);
     return q.watch().map((rows) => rows.map(_toMeta).toList());
   }
+
+  /// Returns [RecordMeta] rows matching index query via JOIN.
+  /// Scope-isolated; no N+1 UUID lookups.
+  Future<List<RecordMeta>> findByIndex({
+    required String module,
+    required String indexKey,
+    required String indexValue,
+    int limit = 50,
+  }) async {
+    final metaAlias = db.tRecordMeta;
+    final idxAlias = db.tRecordSearchIndex;
+    final q = db.select(metaAlias).join([
+      innerJoin(idxAlias, idxAlias.recordUuid.equalsExp(metaAlias.uuid))
+    ]);
+    q.where(metaAlias.scopeUid.equals(scopeUid) &
+        metaAlias.deletedAt.isNull() &
+        idxAlias.module.equals(module) &
+        idxAlias.scopeUid.equals(scopeUid) &
+        idxAlias.indexKey.equals(indexKey) &
+        idxAlias.indexValue.equals(indexValue));
+    q.orderBy([OrderingTerm.desc(metaAlias.createdAt), OrderingTerm.asc(metaAlias.uuid)]);
+    q.limit(limit);
+    final rows = await q.map((row) => row.readTable(metaAlias)).get();
+    return rows.map(_toMeta).toList();
+  }
+
+  /// Streams [RecordMeta] rows matching index query.
+  /// Uses Drift .watch() — does NOT simulate via full-table scan.
+  Stream<List<RecordMeta>> watchByIndex({
+    required String module,
+    required String indexKey,
+    required String indexValue,
+  }) {
+    final metaAlias = db.tRecordMeta;
+    final idxAlias = db.tRecordSearchIndex;
+    final q = db.select(metaAlias).join([
+      innerJoin(idxAlias, idxAlias.recordUuid.equalsExp(metaAlias.uuid))
+    ]);
+    q.where(metaAlias.scopeUid.equals(scopeUid) &
+        metaAlias.deletedAt.isNull() &
+        idxAlias.module.equals(module) &
+        idxAlias.scopeUid.equals(scopeUid) &
+        idxAlias.indexKey.equals(indexKey) &
+        idxAlias.indexValue.equals(indexValue));
+    q.orderBy([OrderingTerm.desc(metaAlias.createdAt)]);
+    return q.map((row) => row.readTable(metaAlias)).watch().map((rows) => rows.map(_toMeta).toList());
+  }
 }
+
