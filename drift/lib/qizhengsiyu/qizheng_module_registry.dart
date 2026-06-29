@@ -1,5 +1,6 @@
 import 'package:repository_interface_qizhengsiyu/repository_interface_qizhengsiyu.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
+import 'package:uuid/uuid.dart';
 import 'qizheng_record_codec.dart';
 import 'record_backed_qizheng_repository.dart';
 
@@ -10,7 +11,7 @@ class QiZhengModuleRegistry {
 
   static QiZhengRecordRepository repository({
     required ScopedRecordStore store,
-    String? uuid,
+    Uuid? uuid,
   }) =>
       RecordBackedQiZhengRepository(store: store, codec: codec(), uuid: uuid);
 }
