@@ -53,7 +53,6 @@ class TemplateRecordCodec implements RecordModuleCodec<DummyRecord> {
   @override
   DummyRecord decode(RecordMeta meta, Map<String, dynamic>? moduleData) {
     if (meta.module != module) throw RecordCodecMismatch(message: 'module mismatch');
-    final d = moduleData ?? (meta.moduleDataJson != null ? jsonDecode(meta.moduleDataJson!) : const {});
     return DummyRecord(
       uuid: meta.uuid,
       question: meta.question ?? '',
