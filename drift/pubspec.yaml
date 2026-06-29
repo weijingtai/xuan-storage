@@ -42,6 +42,8 @@ dependencies:
     path: ../../repository-interface-ai
   repository_interface_qizhengsiyu:
     path: ../../repository-interface-qizhengsiyu
+  repository_interface_daliuren:
+    path: ../../repository-interface-daliuren
   repository_interface_taiyishenshu:
     path: ../../repository-interface-taiyishenshu
   taiyishenshu:
