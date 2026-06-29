@@ -59,7 +59,7 @@ class DriftScopeLedger implements ScopeLedger {
   @override
   Future<List<ScopeAliasEntry>> entriesForScope(String scopeUid) async {
     final rows = await (_db.select(_db.tScopeAlias)
-          ..where((t) => t.scopeUid.equals(scopeUid)))
+          ..where((t) => t.scopeUid.equals(scopeUid) & t.authKind.equals('device').not()))
         .get();
     return rows
         .map((r) => ScopeAliasEntry(

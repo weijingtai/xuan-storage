@@ -1,3 +1,7 @@
+import 'package:drift/drift.dart';
+import 'package:uuid/uuid.dart';
+import '../persistence_drift.dart';
+
 /// Ghost scope_uid 的持久化端口。
 ///
 /// 首次调用 [getOrCreate] 时铸造 UUIDv7 并持久化，
@@ -30,3 +34,40 @@ class InMemoryScopeBootstrapStore implements ScopeBootstrapStore {
 
   int get generatedCount => _generatedCount;
 }
+
+/// Drift/SQLite 实现，持久化到主库的 t_scope_alias 表中。
+class DriftScopeBootstrapStore implements ScopeBootstrapStore {
+  DriftScopeBootstrapStore(this._db);
+
+  final PersistenceDriftDatabase _db;
+  static const _uuid = Uuid();
+
+  @override
+  Future<String> getOrCreate() async {
+    final row = await (_db.select(_db.tScopeAlias)
+          ..where((t) => t.authKind.equals('device') & t.authId.equals('ghost_scope')))
+        .getSingleOrNull();
+    if (row != null && row.scopeUid.isNotEmpty) {
+      return row.scopeUid;
+    }
+
+    final newScope = _uuid.v7();
+    await _db.into(_db.tScopeAlias).insertOnConflictUpdate(
+          TScopeAliasCompanion.insert(
+            authKind: 'device',
+            authId: 'ghost_scope',
+            scopeUid: newScope,
+            linkedAt: DateTime.now(),
+          ),
+        );
+    return newScope;
+  }
+
+  @override
+  Future<void> resetForTest() async {
+    await (_db.delete(_db.tScopeAlias)
+          ..where((t) => t.authKind.equals('device') & t.authId.equals('ghost_scope')))
+        .go();
+  }
+}
+
