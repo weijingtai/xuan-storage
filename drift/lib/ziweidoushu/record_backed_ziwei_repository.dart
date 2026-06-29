@@ -1,6 +1,5 @@
 import 'package:repository_interface_ziweidoushu/repository_interface_ziwei.dart';
 import '../record/base_record_backed_repository.dart';
-import 'ziwei_record_codec.dart';
 
 class RecordBackedZiweiRepository
     extends BaseRecordBackedRepository<ZiweiDivinationRecordContract>

@@ -1,6 +1,5 @@
 import 'package:repository_interface_tiebanshenshu/repository_interface_tiebanshenshu.dart';
 import '../record/base_record_backed_repository.dart';
-import 'tieban_record_codec.dart';
 
 class RecordBackedTiebanRepository
     extends BaseRecordBackedRepository<TiebanDivinationRecordContract>

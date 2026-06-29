@@ -1,6 +1,5 @@
 import 'package:repository_interface_daliuren/repository_interface_daliuren.dart';
 import '../record/base_record_backed_repository.dart';
-import 'daliuren_record_codec.dart';
 
 class RecordBackedDaliurenRepository
     extends BaseRecordBackedRepository<DaliurenDivinationRecordContract>

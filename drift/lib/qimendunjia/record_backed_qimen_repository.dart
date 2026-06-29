@@ -1,6 +1,5 @@
 import 'package:repository_interface_qimendunjia/repository_interface_qimendunjia.dart';
 import '../record/base_record_backed_repository.dart';
-import 'qimen_record_codec.dart';
 
 class RecordBackedQimenRepository
     extends BaseRecordBackedRepository<QimenDivinationRecordContract>

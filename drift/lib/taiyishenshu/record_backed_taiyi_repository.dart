@@ -1,6 +1,5 @@
 import 'package:repository_interface_taiyishenshu/repository_interface_taiyishenshu.dart';
 import '../record/base_record_backed_repository.dart';
-import 'taiyi_record_codec.dart';
 
 class RecordBackedTaiyiRepository
     extends BaseRecordBackedRepository<TaiyiDivinationRecordContract>

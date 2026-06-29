@@ -1,6 +1,5 @@
 import 'package:repository_interface_qizhengsiyu/repository_interface_qizhengsiyu.dart';
 import '../record/base_record_backed_repository.dart';
-import 'qizheng_record_codec.dart';
 
 class RecordBackedQiZhengRepository
     extends BaseRecordBackedRepository<QiZhengSiYuPanContract>
