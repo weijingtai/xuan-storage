@@ -1,12 +1,12 @@
 import 'package:repository_interface_record/repository_interface_record.dart';
 
 class RecordAdapterRegistry {
-  final Map<String, ModuleRecordAdapter> _byModule;
-  RecordAdapterRegistry(List<ModuleRecordAdapter> adapters)
-      : _byModule = {for (final a in adapters) a.module: a} {
-    if (_byModule.length != adapters.length) {
+  final Map<String, RecordSearchTagExtractor> _byModule;
+  RecordAdapterRegistry(List<RecordSearchTagExtractor> extractors)
+      : _byModule = {for (final e in extractors) e.module: e} {
+    if (_byModule.length != extractors.length) {
       throw StateError('Duplicate module in RecordAdapterRegistry');
     }
   }
-  ModuleRecordAdapter? forModule(String module) => _byModule[module];
+  RecordSearchTagExtractor? forModule(String module) => _byModule[module];
 }
