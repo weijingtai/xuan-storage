@@ -1,0 +1,15 @@
+name: spike_typed_record_base
+description: Compilation spike for typed RecordModuleCodec + ScopedRecordStore + Base.
+publish_to: none
+environment:
+  sdk: ^3.5.0
+dependencies:
+  repository_interface_record:
+    path: ../../../../xuan-migration/repository-interface-record
+  repository_interface_meihuayishu:
+    path: ../../../../xuan-migration/repository-interface-meihuayishu
+  repository_interface_liuyao:
+    path: ../../../../xuan-migration/repository-interface-liuyao
+  uuid: ^4.5.1
+dev_dependencies:
+  test: ^1.25.0

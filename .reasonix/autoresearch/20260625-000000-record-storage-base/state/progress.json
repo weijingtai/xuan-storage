@@ -1,0 +1,36 @@
+{
+  "task_id": "20260625-000000-record-storage-base",
+  "status": "completed",
+  "iterations": 2,
+  "evidence": [
+    {
+      "kind": "files",
+      "summary": "Read all 5 reference groups: converged design, meihua vertical slice, base implementation (RecordRepository/DriftRecordDataSource/LocalRecordRepository/RecordAdapterRegistry), meihua adapter/repository/migration, liuyao port/contract, and surveyed 5 other module ports",
+      "paths": [
+        "docs/superpowers/specs/2026-06-24-unified-record-system-CONVERGED-design.md",
+        "docs/superpowers/plans/2026-06-25-meihua-record-vertical-slice.md",
+        "xuan-storage/drift/lib/record/*.dart",
+        "xuan-storage/drift/lib/meihuayishu/*.dart",
+        "repository-interface-record/lib/**/*.dart",
+        "repository-interface-meihuayishu/lib/src/**/*.dart",
+        "repository-interface-liuyao/lib/src/**/*.dart"
+      ]
+    },
+    {
+      "kind": "diff",
+      "summary": "Created and enhanced design document at docs/superpowers/specs/2026-06-25-record-storage-base-class-design.md with all 9 sections + Quick Start README + Code Review guide + DemoDivination end-to-end example",
+      "paths": [
+        "docs/superpowers/specs/2026-06-25-record-storage-base-class-design.md"
+      ]
+    }
+  ],
+  "completion_summary": "Design document complete (1198 lines). Contains: §0.5 Quick Start/README (3-step access, architecture diagram, checklist, FAQ), §1 duplication analysis, §2 Base design with Dart signatures + inheritance vs composition, §3 search_index generalization, §4 reusable migration, §5 new module onboarding with MeiHua/Liuyao/DemoDivination code examples, §6 risks/trade-offs including §6.8 Code Review perspective (blocker/suggestion checklists, test suggestions), §7 file organization, §8 NEEDS_CONTEXT (4 items), §9 appendix.",
+  "verification": {
+    "doc_exists": true,
+    "all_sections_present": true,
+    "needs_context_listed": true,
+    "quick_start_added": true,
+    "code_review_added": true,
+    "end_to_end_example_added": true
+  }
+}
