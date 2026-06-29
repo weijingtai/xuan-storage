@@ -22,6 +22,8 @@ dependencies:
     path: ../../repository-interface-taiyishenshu
   taiyishenshu:
     path: ../../xuan-taiyishenshu
+  repository_interface_qizhengsiyu:
+    path: ../../repository-interface-qizhengsiyu
 
 dev_dependencies:
   flutter_test:
@@ -31,5 +33,9 @@ dev_dependencies:
 dependency_overrides:
   persistence_core:
     path: ../core
+  metaphysics_core:
+    path: ../../xuan-metaphysics-core
+  xuan_gua_core:
+    path: ../../xuan-gua-core
 
 flutter:
