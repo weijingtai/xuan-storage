@@ -3,6 +3,7 @@ import 'package:persistence_drift/persistence_drift.dart';
 
 part 'seeker_divination_mappers_dao.g.dart';
 
+@Deprecated('已迁移至 t_record_meta (module=\'seeker\')，请使用 RecordBackedSeekerRepository')
 @DriftAccessor(tables: [SeekerDivinationMappers])
 class SeekerDivinationMappersDao extends DatabaseAccessor<PersistenceDriftDatabase>
     with _$SeekerDivinationMappersDaoMixin {

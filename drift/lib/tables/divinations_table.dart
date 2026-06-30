@@ -21,12 +21,14 @@ class Divinations extends Table {
   TextColumn get question => text().nullable().named('question')();
   TextColumn get detail => text().nullable().named('detail')();
 
+  // @Deprecated: 使用 t_record_meta (module='seeker') 进行求测人解析
   // 卜问求测人的uuid, 当本字段为空时说明求测人以前未进行过卜问 （可以为空，表示为卦师自己的客源）
   TextColumn get ownerSeekerUuid =>
       text().nullable().named('seeker_uuid').references(Seekers, #uuid)();
   // 部分卜问需要求测人性别，如果求测人不提供如八字等详细生辰信息时用此字段
   // 当求测人提供自己全部的生辰信息时应尽量避免使用本字段。
   TextColumn get gender => textEnum<Gender>().nullable()();
+  // @Deprecated: seekerName 已迁移至 t_record_meta.seekerName
   TextColumn get seekerName => text().nullable().named('seeker_name')();
   // 吉凶、中平/ 夭寿、穷通、贤愚
   TextColumn get tinyPredict => text().nullable().named('tiny_predict')();

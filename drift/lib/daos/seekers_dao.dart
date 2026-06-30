@@ -4,6 +4,7 @@ import 'package:persistence_drift/persistence_drift.dart';
 
 part 'seekers_dao.g.dart';
 
+@Deprecated('已迁移至 t_record_meta (module=\'seeker\')，请使用 RecordBackedSeekerRepository')
 @DriftAccessor(tables: [Seekers])
 class SeekersDao extends DatabaseAccessor<PersistenceDriftDatabase> with _$SeekersDaoMixin {
   final PersistenceDriftDatabase db;
@@ -22,6 +23,7 @@ class SeekersDao extends DatabaseAccessor<PersistenceDriftDatabase> with _$Seeke
         .getSingleOrNull();
   }
 
+  @Deprecated('使用 RecordModuleRegistry.repositoryFor(module: \'seeker\') 替代')
   Future<List<SeekerModel>> getSeekersByDivinationUuid(String divinationUuid) {
     return (_baseSelect()
           ..where((t) =>
