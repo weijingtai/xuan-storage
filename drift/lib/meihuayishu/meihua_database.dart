@@ -1,9 +1,7 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
+
+import 'meihua_database_connection_stub.dart'
+    if (dart.library.ffi) 'meihua_database_connection_native.dart';
 
 import 'meihua_gua_infos.dart';
 
@@ -15,7 +13,7 @@ part 'meihua_database.g.dart';
   MeiHuaGuaInfos,
 ])
 class MeiHuaDatabase extends _$MeiHuaDatabase {
-  MeiHuaDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
+  MeiHuaDatabase([QueryExecutor? executor]) : super(executor ?? createMeihuaConnection());
 
   @override
   int get schemaVersion => 1;
@@ -31,12 +29,4 @@ class MeiHuaDatabase extends _$MeiHuaDatabase {
       },
     );
   }
-}
-
-LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'meihua_divination.sqlite'));
-    return NativeDatabase.createInBackground(file);
-  });
 }
