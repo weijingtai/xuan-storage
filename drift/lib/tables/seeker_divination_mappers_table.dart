@@ -4,6 +4,8 @@ import 'package:persistence_drift/tables/seekers_table.dart';
 import 'package:persistence_drift/tables/divinations_table.dart';
 
 
+/// @Deprecated: 多对多映射已由 t_record_meta (module='seeker') 替代。
+/// 旧数据通过 seeker_uuid + 迁移脚本保留。
 @DataClassName('SeekerDivinationMapper')
 class SeekerDivinationMappers extends Table with AutoIncrementingPrimaryKey {
   @override

@@ -15,6 +15,12 @@ class DecisionLinks extends Table {
   TextColumn get scopeUid => text().named('scope_uid')();
   TextColumn get unknownFields => text().named('unknown_fields').nullable()();
 
+  // --- Fork/Link/Merge fields (added 2026-06-29) ---
+  TextColumn get linkType => text().withDefault(const Constant('sequential')).named('link_type')();
+  TextColumn get sessionId => text().named('session_id').nullable()();
+  TextColumn get mergeTargetUuid => text().named('merge_target_uuid').nullable()();
+  TextColumn get inferenceMetaJson => text().named('inference_meta_json').nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 

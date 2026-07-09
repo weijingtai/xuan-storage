@@ -1,7 +1,9 @@
 import 'package:divination_case/divination_case.dart';
 import 'package:drift/drift.dart';
 import 'package:persistence_drift/persistence_drift.dart';
+import 'package:repository_interface_record/repository_interface_record.dart';
 
+import '../seeker/seeker_module_registry.dart';
 import 'divination_cases_table.dart';
 import 'divination_work_items_table.dart';
 import 'case_participants_table.dart';
@@ -177,6 +179,14 @@ class DriftDivinationCaseRepository
     );
   }
 
+  /// 通过 t_record_meta (module='seeker') 解析 seeker 名称。
+  /// 返回 nickname ?? username, 如果不存在则返回 null。
+  Future<String?> resolveSeekerName(String seekerUuid, ScopedRecordStore store) async {
+    final repo = SeekerModuleRegistry.repository(store: store);
+    final seeker = await repo.getSeekerByUuid(seekerUuid);
+    return seeker?.nickname ?? seeker?.username;
+  }
+
   // --- PanelRefRepository ---
 
   @override
@@ -245,5 +255,23 @@ class DriftDivinationCaseRepository
       role: model.role.name,
       order: model.order,
     );
+  }
+
+  /// 通过 work_item_uuid 找到关联的 t_record_meta，再查询其 decision_links。
+  Future<List<DecisionLinkRow>> getDecisionLinksForWorkItem(
+      String workItemUuid, String scopeUid) async {
+    final records = await (db.select(db.tRecordMeta)
+          ..where((t) => t.workItemUuid.equals(workItemUuid) & t.scopeUid.equals(scopeUid)))
+        .get();
+    if (records.isEmpty) return [];
+    final recordUuids = records.map((r) => r.uuid).toSet();
+    final results = <DecisionLinkRow>[];
+    for (final uuid in recordUuids) {
+      final asSource = await db.decisionLinksDao.listBySource(uuid, scopeUid);
+      final asTarget = await db.decisionLinksDao.listByTarget(uuid, scopeUid);
+      results.addAll(asSource);
+      results.addAll(asTarget);
+    }
+    return results;
   }
 }

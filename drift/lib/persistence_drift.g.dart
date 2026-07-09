@@ -3138,6 +3138,32 @@ class $DecisionLinksTable extends DecisionLinks
   late final GeneratedColumn<String> unknownFields = GeneratedColumn<String>(
       'unknown_fields', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _linkTypeMeta =
+      const VerificationMeta('linkType');
+  @override
+  late final GeneratedColumn<String> linkType = GeneratedColumn<String>(
+      'link_type', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('sequential'));
+  static const VerificationMeta _sessionIdMeta =
+      const VerificationMeta('sessionId');
+  @override
+  late final GeneratedColumn<String> sessionId = GeneratedColumn<String>(
+      'session_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _mergeTargetUuidMeta =
+      const VerificationMeta('mergeTargetUuid');
+  @override
+  late final GeneratedColumn<String> mergeTargetUuid = GeneratedColumn<String>(
+      'merge_target_uuid', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _inferenceMetaJsonMeta =
+      const VerificationMeta('inferenceMetaJson');
+  @override
+  late final GeneratedColumn<String> inferenceMetaJson =
+      GeneratedColumn<String>('inference_meta_json', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -3149,7 +3175,11 @@ class $DecisionLinksTable extends DecisionLinks
         updatedAtMs,
         deletedAtMs,
         scopeUid,
-        unknownFields
+        unknownFields,
+        linkType,
+        sessionId,
+        mergeTargetUuid,
+        inferenceMetaJson
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3228,6 +3258,26 @@ class $DecisionLinksTable extends DecisionLinks
           unknownFields.isAcceptableOrUnknown(
               data['unknown_fields']!, _unknownFieldsMeta));
     }
+    if (data.containsKey('link_type')) {
+      context.handle(_linkTypeMeta,
+          linkType.isAcceptableOrUnknown(data['link_type']!, _linkTypeMeta));
+    }
+    if (data.containsKey('session_id')) {
+      context.handle(_sessionIdMeta,
+          sessionId.isAcceptableOrUnknown(data['session_id']!, _sessionIdMeta));
+    }
+    if (data.containsKey('merge_target_uuid')) {
+      context.handle(
+          _mergeTargetUuidMeta,
+          mergeTargetUuid.isAcceptableOrUnknown(
+              data['merge_target_uuid']!, _mergeTargetUuidMeta));
+    }
+    if (data.containsKey('inference_meta_json')) {
+      context.handle(
+          _inferenceMetaJsonMeta,
+          inferenceMetaJson.isAcceptableOrUnknown(
+              data['inference_meta_json']!, _inferenceMetaJsonMeta));
+    }
     return context;
   }
 
@@ -3257,6 +3307,14 @@ class $DecisionLinksTable extends DecisionLinks
           .read(DriftSqlType.string, data['${effectivePrefix}scope_uid'])!,
       unknownFields: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}unknown_fields']),
+      linkType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}link_type'])!,
+      sessionId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}session_id']),
+      mergeTargetUuid: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}merge_target_uuid']),
+      inferenceMetaJson: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}inference_meta_json']),
     );
   }
 
@@ -3277,6 +3335,10 @@ class DecisionLinkRow extends DataClass implements Insertable<DecisionLinkRow> {
   final int? deletedAtMs;
   final String scopeUid;
   final String? unknownFields;
+  final String linkType;
+  final String? sessionId;
+  final String? mergeTargetUuid;
+  final String? inferenceMetaJson;
   const DecisionLinkRow(
       {required this.id,
       required this.sourceUuid,
@@ -3287,7 +3349,11 @@ class DecisionLinkRow extends DataClass implements Insertable<DecisionLinkRow> {
       required this.updatedAtMs,
       this.deletedAtMs,
       required this.scopeUid,
-      this.unknownFields});
+      this.unknownFields,
+      required this.linkType,
+      this.sessionId,
+      this.mergeTargetUuid,
+      this.inferenceMetaJson});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -3306,6 +3372,16 @@ class DecisionLinkRow extends DataClass implements Insertable<DecisionLinkRow> {
     map['scope_uid'] = Variable<String>(scopeUid);
     if (!nullToAbsent || unknownFields != null) {
       map['unknown_fields'] = Variable<String>(unknownFields);
+    }
+    map['link_type'] = Variable<String>(linkType);
+    if (!nullToAbsent || sessionId != null) {
+      map['session_id'] = Variable<String>(sessionId);
+    }
+    if (!nullToAbsent || mergeTargetUuid != null) {
+      map['merge_target_uuid'] = Variable<String>(mergeTargetUuid);
+    }
+    if (!nullToAbsent || inferenceMetaJson != null) {
+      map['inference_meta_json'] = Variable<String>(inferenceMetaJson);
     }
     return map;
   }
@@ -3328,6 +3404,16 @@ class DecisionLinkRow extends DataClass implements Insertable<DecisionLinkRow> {
       unknownFields: unknownFields == null && nullToAbsent
           ? const Value.absent()
           : Value(unknownFields),
+      linkType: Value(linkType),
+      sessionId: sessionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sessionId),
+      mergeTargetUuid: mergeTargetUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mergeTargetUuid),
+      inferenceMetaJson: inferenceMetaJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(inferenceMetaJson),
     );
   }
 
@@ -3346,6 +3432,11 @@ class DecisionLinkRow extends DataClass implements Insertable<DecisionLinkRow> {
       deletedAtMs: serializer.fromJson<int?>(json['deletedAtMs']),
       scopeUid: serializer.fromJson<String>(json['scopeUid']),
       unknownFields: serializer.fromJson<String?>(json['unknownFields']),
+      linkType: serializer.fromJson<String>(json['linkType']),
+      sessionId: serializer.fromJson<String?>(json['sessionId']),
+      mergeTargetUuid: serializer.fromJson<String?>(json['mergeTargetUuid']),
+      inferenceMetaJson:
+          serializer.fromJson<String?>(json['inferenceMetaJson']),
     );
   }
   @override
@@ -3362,6 +3453,10 @@ class DecisionLinkRow extends DataClass implements Insertable<DecisionLinkRow> {
       'deletedAtMs': serializer.toJson<int?>(deletedAtMs),
       'scopeUid': serializer.toJson<String>(scopeUid),
       'unknownFields': serializer.toJson<String?>(unknownFields),
+      'linkType': serializer.toJson<String>(linkType),
+      'sessionId': serializer.toJson<String?>(sessionId),
+      'mergeTargetUuid': serializer.toJson<String?>(mergeTargetUuid),
+      'inferenceMetaJson': serializer.toJson<String?>(inferenceMetaJson),
     };
   }
 
@@ -3375,7 +3470,11 @@ class DecisionLinkRow extends DataClass implements Insertable<DecisionLinkRow> {
           int? updatedAtMs,
           Value<int?> deletedAtMs = const Value.absent(),
           String? scopeUid,
-          Value<String?> unknownFields = const Value.absent()}) =>
+          Value<String?> unknownFields = const Value.absent(),
+          String? linkType,
+          Value<String?> sessionId = const Value.absent(),
+          Value<String?> mergeTargetUuid = const Value.absent(),
+          Value<String?> inferenceMetaJson = const Value.absent()}) =>
       DecisionLinkRow(
         id: id ?? this.id,
         sourceUuid: sourceUuid ?? this.sourceUuid,
@@ -3390,6 +3489,14 @@ class DecisionLinkRow extends DataClass implements Insertable<DecisionLinkRow> {
         scopeUid: scopeUid ?? this.scopeUid,
         unknownFields:
             unknownFields.present ? unknownFields.value : this.unknownFields,
+        linkType: linkType ?? this.linkType,
+        sessionId: sessionId.present ? sessionId.value : this.sessionId,
+        mergeTargetUuid: mergeTargetUuid.present
+            ? mergeTargetUuid.value
+            : this.mergeTargetUuid,
+        inferenceMetaJson: inferenceMetaJson.present
+            ? inferenceMetaJson.value
+            : this.inferenceMetaJson,
       );
   DecisionLinkRow copyWithCompanion(DecisionLinksCompanion data) {
     return DecisionLinkRow(
@@ -3412,6 +3519,14 @@ class DecisionLinkRow extends DataClass implements Insertable<DecisionLinkRow> {
       unknownFields: data.unknownFields.present
           ? data.unknownFields.value
           : this.unknownFields,
+      linkType: data.linkType.present ? data.linkType.value : this.linkType,
+      sessionId: data.sessionId.present ? data.sessionId.value : this.sessionId,
+      mergeTargetUuid: data.mergeTargetUuid.present
+          ? data.mergeTargetUuid.value
+          : this.mergeTargetUuid,
+      inferenceMetaJson: data.inferenceMetaJson.present
+          ? data.inferenceMetaJson.value
+          : this.inferenceMetaJson,
     );
   }
 
@@ -3427,7 +3542,11 @@ class DecisionLinkRow extends DataClass implements Insertable<DecisionLinkRow> {
           ..write('updatedAtMs: $updatedAtMs, ')
           ..write('deletedAtMs: $deletedAtMs, ')
           ..write('scopeUid: $scopeUid, ')
-          ..write('unknownFields: $unknownFields')
+          ..write('unknownFields: $unknownFields, ')
+          ..write('linkType: $linkType, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('mergeTargetUuid: $mergeTargetUuid, ')
+          ..write('inferenceMetaJson: $inferenceMetaJson')
           ..write(')'))
         .toString();
   }
@@ -3443,7 +3562,11 @@ class DecisionLinkRow extends DataClass implements Insertable<DecisionLinkRow> {
       updatedAtMs,
       deletedAtMs,
       scopeUid,
-      unknownFields);
+      unknownFields,
+      linkType,
+      sessionId,
+      mergeTargetUuid,
+      inferenceMetaJson);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3457,7 +3580,11 @@ class DecisionLinkRow extends DataClass implements Insertable<DecisionLinkRow> {
           other.updatedAtMs == this.updatedAtMs &&
           other.deletedAtMs == this.deletedAtMs &&
           other.scopeUid == this.scopeUid &&
-          other.unknownFields == this.unknownFields);
+          other.unknownFields == this.unknownFields &&
+          other.linkType == this.linkType &&
+          other.sessionId == this.sessionId &&
+          other.mergeTargetUuid == this.mergeTargetUuid &&
+          other.inferenceMetaJson == this.inferenceMetaJson);
 }
 
 class DecisionLinksCompanion extends UpdateCompanion<DecisionLinkRow> {
@@ -3471,6 +3598,10 @@ class DecisionLinksCompanion extends UpdateCompanion<DecisionLinkRow> {
   final Value<int?> deletedAtMs;
   final Value<String> scopeUid;
   final Value<String?> unknownFields;
+  final Value<String> linkType;
+  final Value<String?> sessionId;
+  final Value<String?> mergeTargetUuid;
+  final Value<String?> inferenceMetaJson;
   final Value<int> rowid;
   const DecisionLinksCompanion({
     this.id = const Value.absent(),
@@ -3483,6 +3614,10 @@ class DecisionLinksCompanion extends UpdateCompanion<DecisionLinkRow> {
     this.deletedAtMs = const Value.absent(),
     this.scopeUid = const Value.absent(),
     this.unknownFields = const Value.absent(),
+    this.linkType = const Value.absent(),
+    this.sessionId = const Value.absent(),
+    this.mergeTargetUuid = const Value.absent(),
+    this.inferenceMetaJson = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   DecisionLinksCompanion.insert({
@@ -3496,6 +3631,10 @@ class DecisionLinksCompanion extends UpdateCompanion<DecisionLinkRow> {
     this.deletedAtMs = const Value.absent(),
     required String scopeUid,
     this.unknownFields = const Value.absent(),
+    this.linkType = const Value.absent(),
+    this.sessionId = const Value.absent(),
+    this.mergeTargetUuid = const Value.absent(),
+    this.inferenceMetaJson = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         sourceUuid = Value(sourceUuid),
@@ -3515,6 +3654,10 @@ class DecisionLinksCompanion extends UpdateCompanion<DecisionLinkRow> {
     Expression<int>? deletedAtMs,
     Expression<String>? scopeUid,
     Expression<String>? unknownFields,
+    Expression<String>? linkType,
+    Expression<String>? sessionId,
+    Expression<String>? mergeTargetUuid,
+    Expression<String>? inferenceMetaJson,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -3529,6 +3672,10 @@ class DecisionLinksCompanion extends UpdateCompanion<DecisionLinkRow> {
       if (deletedAtMs != null) 'deleted_at_ms': deletedAtMs,
       if (scopeUid != null) 'scope_uid': scopeUid,
       if (unknownFields != null) 'unknown_fields': unknownFields,
+      if (linkType != null) 'link_type': linkType,
+      if (sessionId != null) 'session_id': sessionId,
+      if (mergeTargetUuid != null) 'merge_target_uuid': mergeTargetUuid,
+      if (inferenceMetaJson != null) 'inference_meta_json': inferenceMetaJson,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -3544,6 +3691,10 @@ class DecisionLinksCompanion extends UpdateCompanion<DecisionLinkRow> {
       Value<int?>? deletedAtMs,
       Value<String>? scopeUid,
       Value<String?>? unknownFields,
+      Value<String>? linkType,
+      Value<String?>? sessionId,
+      Value<String?>? mergeTargetUuid,
+      Value<String?>? inferenceMetaJson,
       Value<int>? rowid}) {
     return DecisionLinksCompanion(
       id: id ?? this.id,
@@ -3556,6 +3707,10 @@ class DecisionLinksCompanion extends UpdateCompanion<DecisionLinkRow> {
       deletedAtMs: deletedAtMs ?? this.deletedAtMs,
       scopeUid: scopeUid ?? this.scopeUid,
       unknownFields: unknownFields ?? this.unknownFields,
+      linkType: linkType ?? this.linkType,
+      sessionId: sessionId ?? this.sessionId,
+      mergeTargetUuid: mergeTargetUuid ?? this.mergeTargetUuid,
+      inferenceMetaJson: inferenceMetaJson ?? this.inferenceMetaJson,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -3594,6 +3749,18 @@ class DecisionLinksCompanion extends UpdateCompanion<DecisionLinkRow> {
     if (unknownFields.present) {
       map['unknown_fields'] = Variable<String>(unknownFields.value);
     }
+    if (linkType.present) {
+      map['link_type'] = Variable<String>(linkType.value);
+    }
+    if (sessionId.present) {
+      map['session_id'] = Variable<String>(sessionId.value);
+    }
+    if (mergeTargetUuid.present) {
+      map['merge_target_uuid'] = Variable<String>(mergeTargetUuid.value);
+    }
+    if (inferenceMetaJson.present) {
+      map['inference_meta_json'] = Variable<String>(inferenceMetaJson.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -3613,6 +3780,10 @@ class DecisionLinksCompanion extends UpdateCompanion<DecisionLinkRow> {
           ..write('deletedAtMs: $deletedAtMs, ')
           ..write('scopeUid: $scopeUid, ')
           ..write('unknownFields: $unknownFields, ')
+          ..write('linkType: $linkType, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('mergeTargetUuid: $mergeTargetUuid, ')
+          ..write('inferenceMetaJson: $inferenceMetaJson, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -14582,6 +14753,10 @@ typedef $$DecisionLinksTableCreateCompanionBuilder = DecisionLinksCompanion
   Value<int?> deletedAtMs,
   required String scopeUid,
   Value<String?> unknownFields,
+  Value<String> linkType,
+  Value<String?> sessionId,
+  Value<String?> mergeTargetUuid,
+  Value<String?> inferenceMetaJson,
   Value<int> rowid,
 });
 typedef $$DecisionLinksTableUpdateCompanionBuilder = DecisionLinksCompanion
@@ -14596,6 +14771,10 @@ typedef $$DecisionLinksTableUpdateCompanionBuilder = DecisionLinksCompanion
   Value<int?> deletedAtMs,
   Value<String> scopeUid,
   Value<String?> unknownFields,
+  Value<String> linkType,
+  Value<String?> sessionId,
+  Value<String?> mergeTargetUuid,
+  Value<String?> inferenceMetaJson,
   Value<int> rowid,
 });
 
@@ -14638,6 +14817,20 @@ class $$DecisionLinksTableFilterComposer
 
   ColumnFilters<String> get unknownFields => $composableBuilder(
       column: $table.unknownFields, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get linkType => $composableBuilder(
+      column: $table.linkType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get sessionId => $composableBuilder(
+      column: $table.sessionId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get mergeTargetUuid => $composableBuilder(
+      column: $table.mergeTargetUuid,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get inferenceMetaJson => $composableBuilder(
+      column: $table.inferenceMetaJson,
+      builder: (column) => ColumnFilters(column));
 }
 
 class $$DecisionLinksTableOrderingComposer
@@ -14680,6 +14873,20 @@ class $$DecisionLinksTableOrderingComposer
   ColumnOrderings<String> get unknownFields => $composableBuilder(
       column: $table.unknownFields,
       builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get linkType => $composableBuilder(
+      column: $table.linkType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get sessionId => $composableBuilder(
+      column: $table.sessionId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get mergeTargetUuid => $composableBuilder(
+      column: $table.mergeTargetUuid,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get inferenceMetaJson => $composableBuilder(
+      column: $table.inferenceMetaJson,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$DecisionLinksTableAnnotationComposer
@@ -14720,6 +14927,18 @@ class $$DecisionLinksTableAnnotationComposer
 
   GeneratedColumn<String> get unknownFields => $composableBuilder(
       column: $table.unknownFields, builder: (column) => column);
+
+  GeneratedColumn<String> get linkType =>
+      $composableBuilder(column: $table.linkType, builder: (column) => column);
+
+  GeneratedColumn<String> get sessionId =>
+      $composableBuilder(column: $table.sessionId, builder: (column) => column);
+
+  GeneratedColumn<String> get mergeTargetUuid => $composableBuilder(
+      column: $table.mergeTargetUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get inferenceMetaJson => $composableBuilder(
+      column: $table.inferenceMetaJson, builder: (column) => column);
 }
 
 class $$DecisionLinksTableTableManager extends RootTableManager<
@@ -14760,6 +14979,10 @@ class $$DecisionLinksTableTableManager extends RootTableManager<
             Value<int?> deletedAtMs = const Value.absent(),
             Value<String> scopeUid = const Value.absent(),
             Value<String?> unknownFields = const Value.absent(),
+            Value<String> linkType = const Value.absent(),
+            Value<String?> sessionId = const Value.absent(),
+            Value<String?> mergeTargetUuid = const Value.absent(),
+            Value<String?> inferenceMetaJson = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               DecisionLinksCompanion(
@@ -14773,6 +14996,10 @@ class $$DecisionLinksTableTableManager extends RootTableManager<
             deletedAtMs: deletedAtMs,
             scopeUid: scopeUid,
             unknownFields: unknownFields,
+            linkType: linkType,
+            sessionId: sessionId,
+            mergeTargetUuid: mergeTargetUuid,
+            inferenceMetaJson: inferenceMetaJson,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -14786,6 +15013,10 @@ class $$DecisionLinksTableTableManager extends RootTableManager<
             Value<int?> deletedAtMs = const Value.absent(),
             required String scopeUid,
             Value<String?> unknownFields = const Value.absent(),
+            Value<String> linkType = const Value.absent(),
+            Value<String?> sessionId = const Value.absent(),
+            Value<String?> mergeTargetUuid = const Value.absent(),
+            Value<String?> inferenceMetaJson = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               DecisionLinksCompanion.insert(
@@ -14799,6 +15030,10 @@ class $$DecisionLinksTableTableManager extends RootTableManager<
             deletedAtMs: deletedAtMs,
             scopeUid: scopeUid,
             unknownFields: unknownFields,
+            linkType: linkType,
+            sessionId: sessionId,
+            mergeTargetUuid: mergeTargetUuid,
+            inferenceMetaJson: inferenceMetaJson,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

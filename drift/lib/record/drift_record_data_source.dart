@@ -51,6 +51,23 @@ class DriftRecordDataSource {
     });
   }
 
+  /// 供 RecordLocalApplier 使用：直接写入本地，不触发 outbox。
+  Future<void> applyRemoteRecord(RecordMeta record, List<SearchTag> tags) {
+    return db.transaction(() async {
+      await db.into(db.tRecordMeta).insertOnConflictUpdate(_companion(record));
+      await (db.delete(db.tRecordSearchIndex)
+            ..where((t) => t.recordUuid.equals(record.uuid)))
+          .go();
+      for (final t in tags) {
+        await db.into(db.tRecordSearchIndex).insert(TRecordSearchIndexCompanion(
+              recordUuid: Value(record.uuid), scopeUid: Value(scopeUid),
+              module: Value(record.module), indexKey: Value(t.key),
+              indexValue: Value(t.value),
+            ));
+      }
+    });
+  }
+
   Future<RecordMeta?> getRecord(String uuid) async {
     final row = await (db.select(db.tRecordMeta)
           ..where((t) => t.uuid.equals(uuid) & t.scopeUid.equals(scopeUid)))

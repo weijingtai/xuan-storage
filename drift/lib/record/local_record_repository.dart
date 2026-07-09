@@ -1,21 +1,36 @@
+import 'package:persistence_core/persistence_core.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
+import '../sync/record_outbox_mapper.dart';
 import 'drift_record_data_source.dart';
 import 'record_adapter_registry.dart';
 
 class LocalRecordRepository implements ScopedRecordStore {
   final DriftRecordDataSource _ds;
   final RecordAdapterRegistry _registry;
-  LocalRecordRepository(this._ds, this._registry);
+  final OutboxStore? _outboxStore;
+
+  LocalRecordRepository(this._ds, this._registry, {OutboxStore? outboxStore})
+      : _outboxStore = outboxStore;
 
   @override
   String get scopeUid => _ds.scopeUid;
 
   @override
-  Future<void> saveRecord(RecordMeta record, {Map<String, dynamic>? moduleData}) {
+  Future<void> saveRecord(RecordMeta record, {Map<String, dynamic>? moduleData}) async {
     final tags =
         _registry.forModule(record.module)?.extractSearchTags(record, moduleData) ??
             const <SearchTag>[];
-    return _ds.saveRecord(record, tags);
+    await _ds.saveRecord(record, tags);
+
+    if (_outboxStore != null) {
+      try {
+        final outboxRecord = RecordOutboxMapper.toOutboxRecord(
+          meta: record, moduleData: moduleData, tags: tags, opType: RecordOutboxMapper.opUpsert,
+        );
+        await _outboxStore!.enqueue(outboxRecord);
+      } catch (_) {
+      }
+    }
   }
 
   @override
@@ -34,7 +49,22 @@ class LocalRecordRepository implements ScopedRecordStore {
           limit: limit, cursor: cursor);
 
   @override
-  Future<bool> softDeleteRecord(String uuid, {required String module}) => _ds.softDeleteRecord(uuid);
+  Future<bool> softDeleteRecord(String uuid, {required String module}) async {
+    final deleted = await _ds.softDeleteRecord(uuid);
+    if (deleted && _outboxStore != null) {
+      try {
+        final meta = await _ds.getRecord(uuid);
+        if (meta != null) {
+          final outboxRecord = RecordOutboxMapper.toOutboxRecord(
+            meta: meta, opType: RecordOutboxMapper.opDelete,
+          );
+          await _outboxStore!.enqueue(outboxRecord);
+        }
+      } catch (_) {
+      }
+    }
+    return deleted;
+  }
 
   @override
   Stream<List<RecordMeta>> watchRecords({required String module}) =>

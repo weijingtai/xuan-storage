@@ -7,6 +7,9 @@ import 'package:persistence_drift/converters/nullable_location_converter.dart';
 import 'package:metaphysics_core/datamodel/seeker_model.dart';
 
 
+/// @Deprecated: 已迁移至 t_record_meta (module='seeker')。
+/// 新代码请使用 RecordBackedSeekerRepository。
+/// 迁移工具: seeker/seeker_migration.dart
 @UseRowClass(SeekerModel)
 class Seekers extends Table {
   @override

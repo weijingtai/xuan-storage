@@ -97,6 +97,11 @@ export 'tables/divination_sub_divination_type_mappers_table.dart';
 export 'tables/auto_incrementing_primary_key.dart';
 export 'tables/record_meta_table.dart';
 export 'tables/record_search_index_table.dart';
+export 'decision_links/inference_engine.dart';
+export 'decision_links/fork_engine.dart';
+export 'decision_links/merge_engine.dart';
+export 'decision_links/decision_chain_traverser.dart';
+export 'divination_case/drift_divination_case_repository.dart';
 export 'scope/scope_alias_entry.dart';
 export 'scope/scope_bootstrap_store.dart';
 export 'scope/scope_ledger.dart';
@@ -516,7 +521,7 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
   PersistenceDriftDatabase(super.executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -530,6 +535,12 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
         await m.createTable(tRecordSearchIndex);
         await m.createTable(tScopeAlias);
         await _createRecordIndices();
+      }
+      if (from < 3) {
+        await m.addColumn(decisionLinks, decisionLinks.linkType);
+        await m.addColumn(decisionLinks, decisionLinks.sessionId);
+        await m.addColumn(decisionLinks, decisionLinks.mergeTargetUuid);
+        await m.addColumn(decisionLinks, decisionLinks.inferenceMetaJson);
       }
     },
   );

@@ -102,3 +102,31 @@ dependency_overrides:
     path: ../core
   metaphysics_core:
     path: ../../xuan-metaphysics-core
+  theme:
+    path: ../../theme
+  persistence_domain:
+    path: ../../xuan-domain
+  repository_interface_four_zhu_card:
+    path: ../../repository-interface-four-zhu-card
+  repository_interface_meihuayishu:
+    path: ../../repository-interface-meihuayishu
+  repository_interface_liuyao:
+    path: ../../repository-interface-liuyao
+  repository_interface_record:
+    path: ../../repository-interface-record
+  repository_interface_account:
+    path: ../../repository-interface-account
+  repository_interface_ai:
+    path: ../../repository-interface-ai
+  repository_interface_qizhengsiyu:
+    path: ../../repository-interface-qizhengsiyu
+  repository_interface_daliuren:
+    path: ../../repository-interface-daliuren
+  repository_interface_qimendunjia:
+    path: ../../repository-interface-qimendunjia
+  repository_interface_tiebanshenshu:
+    path: ../../repository-interface-tiebanshenshu
+  repository_interface_ziweidoushu:
+    path: ../../repository-interface-ziweidoushu
+  repository_interface_taiyishenshu:
+    path: ../../repository-interface-taiyishenshu
