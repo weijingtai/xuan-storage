@@ -4,7 +4,7 @@ version: 0.0.1
 publish_to: none
 
 environment:
-  sdk: '>=3.0.2 <4.0.0'
+  sdk: '>=3.11.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -14,12 +14,14 @@ dependencies:
   protobuf: ^6.0.0
   json_annotation: ^4.10.0
   metaphysics_core:
-    path: ../../xuan-metaphysics-core
+    git:
+      url: http://192.168.0.165:3000/xuan/metaphysics-core.git
   persistence_domain:
-    path: ../../xuan-domain
+    git:
+      url: http://192.168.0.165:3000/xuan/xuan-domain.git
   divination_case:
-    path: ../../xuan-divination-case
-
+    git:
+      url: http://192.168.0.165:3000/xuan/xuan-divination-case.git
 dev_dependencies:
   lints: ^5.0.0
   test: ^1.25.0

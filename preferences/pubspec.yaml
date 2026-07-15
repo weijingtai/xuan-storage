@@ -3,20 +3,22 @@ description: Account session and preference persistence via SharedPreferences.
 publish_to: none
 
 environment:
-  sdk: ">=3.8.0 <4.0.0"
+  sdk: ">=3.11.0 <4.0.0"
   flutter: ">=1.17.0"
 
 dependencies:
   flutter:
     sdk: flutter
   repository_interface_account:
-    path: ../../repository-interface-account
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-account.git
   shared_preferences: ^2.3.2
   repository_interface_meihuayishu:
-    path: ../../repository-interface-meihuayishu
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-meihuayishu.git
   repository_interface_taiyishenshu:
-    path: ../../repository-interface-taiyishenshu
-
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-taiyishenshu.git
 dev_dependencies:
   flutter_test:
     sdk: flutter

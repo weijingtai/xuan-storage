@@ -4,7 +4,7 @@ version: 0.0.1
 publish_to: none
 
 environment:
-  sdk: '>=3.0.2 <4.0.0'
+  sdk: '>=3.11.0 <4.0.0'
   flutter: ">=1.17.0"
 
 dependencies:
@@ -20,10 +20,11 @@ dependencies:
       ref: main
       path: core
   divination_case:
-    path: ../../xuan-divination-case
+    git:
+      url: http://192.168.0.165:3000/xuan/xuan-divination-case.git
   repository_interface_account:
-    path: ../../repository-interface-account
-
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-account.git
 dev_dependencies:
   flutter_test:
     sdk: flutter

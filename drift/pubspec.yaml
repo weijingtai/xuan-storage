@@ -4,7 +4,7 @@ version: 0.0.1
 publish_to: none
 
 environment:
-  sdk: '>=3.0.2 <4.0.0'
+  sdk: '>=3.11.0 <4.0.0'
   flutter: ">=1.17.0"
 
 dependencies:
@@ -17,49 +17,68 @@ dependencies:
   collection: ^1.19.1
   json_annotation: ^4.10.0
   persistence_core:
-    path: ../core
+    git:
+      url: http://192.168.0.165:3000/xuan/xuan-storage.git
+      path: core
   persistence_domain:
-    path: ../../xuan-domain
+    git:
+      url: http://192.168.0.165:3000/xuan/xuan-domain.git
   metaphysics_core:
-    path: ../../xuan-metaphysics-core
+    git:
+      url: http://192.168.0.165:3000/xuan/metaphysics-core.git
   theme:
-    path: ../../theme
+    git:
+      url: http://192.168.0.165:3000/xuan/theme.git
   xuan_four_zhu_card:
-    path: ../../xuan-four-zhu-card
+    git:
+      url: http://192.168.0.165:3000/xuan/xuan-four-zhu-card.git
   divination_case:
-    path: ../../xuan-divination-case
+    git:
+      url: http://192.168.0.165:3000/xuan/xuan-divination-case.git
   repository_interface_four_zhu_card:
-    path: ../../repository-interface-four-zhu-card
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-four-zhu-card.git
   repository_interface_meihuayishu:
-    path: ../../repository-interface-meihuayishu
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-meihuayishu.git
   repository_interface_liuyao:
-    path: ../../repository-interface-liuyao
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-liuyao.git
   repository_interface_record:
-    path: ../../repository-interface-record
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-record.git
   repository_interface_account:
-    path: ../../repository-interface-account
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-account.git
   repository_interface_ai:
-    path: ../../repository-interface-ai
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-ai.git
   repository_interface_qizhengsiyu:
-    path: ../../repository-interface-qizhengsiyu
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-qizhengsiyu.git
   repository_interface_daliuren:
-    path: ../../repository-interface-daliuren
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-daliuren.git
   repository_interface_qimendunjia:
-    path: ../../repository-interface-qimendunjia
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-qimendunjia.git
   repository_interface_tiebanshenshu:
-    path: ../../repository-interface-tiebanshenshu
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-tiebanshenshu.git
   repository_interface_ziweidoushu:
-    path: ../../repository-interface-ziweidoushu
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-ziweidoushu.git
   repository_interface_taiyishenshu:
-    path: ../../repository-interface-taiyishenshu
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-taiyishenshu.git
   taiyishenshu:
-    path: ../../xuan-taiyishenshu
-
+    git:
+      url: http://192.168.0.165:3000/xuan/xuan-taiyishenshu.git
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  build_runner: ^2.10.5
+  build_runner: ^2.17.0
   drift_dev: ^2.30.1
   test: ^1.26.3
 
@@ -99,34 +118,51 @@ flutter:
 
 dependency_overrides:
   persistence_core:
-    path: ../core
+    git:
+      url: http://192.168.0.165:3000/xuan/xuan-storage.git
+      path: core
   metaphysics_core:
-    path: ../../xuan-metaphysics-core
+    git:
+      url: http://192.168.0.165:3000/xuan/metaphysics-core.git
   theme:
-    path: ../../theme
+    git:
+      url: http://192.168.0.165:3000/xuan/theme.git
   persistence_domain:
-    path: ../../xuan-domain
+    git:
+      url: http://192.168.0.165:3000/xuan/xuan-domain.git
   repository_interface_four_zhu_card:
-    path: ../../repository-interface-four-zhu-card
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-four-zhu-card.git
   repository_interface_meihuayishu:
-    path: ../../repository-interface-meihuayishu
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-meihuayishu.git
   repository_interface_liuyao:
-    path: ../../repository-interface-liuyao
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-liuyao.git
   repository_interface_record:
-    path: ../../repository-interface-record
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-record.git
   repository_interface_account:
-    path: ../../repository-interface-account
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-account.git
   repository_interface_ai:
-    path: ../../repository-interface-ai
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-ai.git
   repository_interface_qizhengsiyu:
-    path: ../../repository-interface-qizhengsiyu
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-qizhengsiyu.git
   repository_interface_daliuren:
-    path: ../../repository-interface-daliuren
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-daliuren.git
   repository_interface_qimendunjia:
-    path: ../../repository-interface-qimendunjia
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-qimendunjia.git
   repository_interface_tiebanshenshu:
-    path: ../../repository-interface-tiebanshenshu
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-tiebanshenshu.git
   repository_interface_ziweidoushu:
-    path: ../../repository-interface-ziweidoushu
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-ziweidoushu.git
   repository_interface_taiyishenshu:
-    path: ../../repository-interface-taiyishenshu
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-taiyishenshu.git
