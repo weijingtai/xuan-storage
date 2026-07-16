@@ -40,11 +40,13 @@ class JieQiPhenologyStore {
   static String _jieQiToString(JieQiType t) => switch (t) {
         JieQiType.leveling => 'leveling',
         JieQiType.stabilizing => 'stabilizing',
+        JieQiType.trueSolar => 'trueSolar',
       };
 
   static JieQiType? _parseJieQi(String? s) => switch (s) {
         'leveling' => JieQiType.leveling,
         'stabilizing' => JieQiType.stabilizing,
+        'trueSolar' => JieQiType.trueSolar,
         _ => null,
       };
 
