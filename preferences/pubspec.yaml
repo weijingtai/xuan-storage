@@ -19,6 +19,8 @@ dependencies:
   repository_interface_taiyishenshu:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-taiyishenshu.git
+  repository_interface_bazi:
+    path: ../../../../repository-interface-bazi/.worktrees/antigravity-bazi-phase-3-contracts
 dev_dependencies:
   flutter_test:
     sdk: flutter
