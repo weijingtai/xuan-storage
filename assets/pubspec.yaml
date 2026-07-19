@@ -54,3 +54,8 @@ dependency_overrides:
     git:
       url: http://192.168.0.165:3000/xuan/xuan-gua-core.git
 flutter:
+  assets:
+    - lib/tiebanshenshu/assets/shaozishu/
+    - lib/tiebanshenshu/assets/kao_ke/
+    - lib/tiebanshenshu/assets/formulas/
+    - lib/tiebanshenshu/assets/all_tiao_wen_v1.csv

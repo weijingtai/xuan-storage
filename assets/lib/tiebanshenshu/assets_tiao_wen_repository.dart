@@ -564,4 +564,4 @@ class AssetsTiaoWenRepository implements TiaoWenRepository {
   }
 }
 
-const String kDefaultTiaoWenAssetPath = 'assets/all_tiao_wen_v1.csv';
+const String kDefaultTiaoWenAssetPath = 'packages/persistence_assets/lib/tiebanshenshu/assets/all_tiao_wen_v1.csv';
