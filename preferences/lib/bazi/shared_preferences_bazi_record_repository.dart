@@ -33,7 +33,9 @@ class SharedPreferencesBaziRecordRepository implements BaziRecordRepository {
       recordDate: DateTime.parse(json['recordDate'] as String),
       chartSnapshotJson: json['chartSnapshotJson'] as String?,
       snapshotSchemaVersion: json['snapshotSchemaVersion'] as int? ?? 1,
-      legacyEightCharsJson: json['legacyEightCharsJson'] as String?,
+      // V1 存量兜底：旧记录以 'eightCharsJson' 为 key 落盘，回退读取避免既有排盘记录丢失
+      legacyEightCharsJson:
+          (json['legacyEightCharsJson'] ?? json['eightCharsJson']) as String?,
       daYunJson: json['daYunJson'] as String?,
       note: json['note'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
