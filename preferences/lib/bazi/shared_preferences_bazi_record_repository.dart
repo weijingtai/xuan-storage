@@ -3,10 +3,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:repository_interface_bazi/repository_interface_bazi.dart';
 
 class SharedPreferencesBaziRecordRepository implements BaziRecordRepository {
-  static const String _key = 'bazi_records';
   final SharedPreferences prefs;
+  final String scopeUid;
 
-  SharedPreferencesBaziRecordRepository(this.prefs);
+  SharedPreferencesBaziRecordRepository(this.prefs, this.scopeUid);
+
+  String get _key => 'bazi.$scopeUid.records';
 
   Future<Map<String, dynamic>> _loadMap() async {
     final String? jsonStr = prefs.getString(_key);

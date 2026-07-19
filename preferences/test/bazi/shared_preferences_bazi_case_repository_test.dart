@@ -11,7 +11,7 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
-    repo = SharedPreferencesBaziCaseRepository(prefs);
+    repo = SharedPreferencesBaziCaseRepository(prefs, 'test-scope');
   });
 
   test('save and get case', () async {
@@ -83,12 +83,56 @@ void main() {
   });
 
   test('legacy "{}" restore', () async {
-    await prefs.setString('bazi_cases', '{}');
+    await prefs.setString('bazi.test-scope.cases', '{}');
     final cases = await repo.listCases();
     expect(cases.isEmpty, true);
     
-    await prefs.setString('bazi_cases', 'invalid json');
+    await prefs.setString('bazi.test-scope.cases', 'invalid json');
     final cases2 = await repo.listCases();
     expect(cases2.isEmpty, true);
+  });
+
+  test('scope isolation', () async {
+    final repoA = SharedPreferencesBaziCaseRepository(prefs, 'scope-a');
+    final repoB = SharedPreferencesBaziCaseRepository(prefs, 'scope-b');
+
+    final case1 = BaziCaseContract(
+      uuid: 'case-1',
+      title: 'Test Case 1',
+      birthDate: DateTime(1990, 1, 1),
+      gender: 'male',
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+
+    await repoA.saveCase(case1);
+
+    final casesB = await repoB.listCases();
+    expect(casesB.isEmpty, true);
+
+    final casesA = await repoA.listCases();
+    expect(casesA.length, 1);
+    expect(casesA[0].uuid, 'case-1');
+  });
+
+  test('does not auto migrate anonymous data when scopeUid changes', () async {
+    final anonRepo = SharedPreferencesBaziCaseRepository(prefs, 'local-anonymous');
+    final case1 = BaziCaseContract(
+      uuid: 'case-1',
+      title: 'Test Case 1',
+      birthDate: DateTime(1990, 1, 1),
+      gender: 'male',
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+    await anonRepo.saveCase(case1);
+
+    final userRepo = SharedPreferencesBaziCaseRepository(prefs, 'user-a');
+    final userCases = await userRepo.listCases();
+    expect(userCases.isEmpty, true);
+
+    final anonCases = await anonRepo.listCases();
+    expect(anonCases.length, 1);
+    expect(anonCases[0].uuid, 'case-1');
   });
 }
