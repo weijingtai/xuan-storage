@@ -32,12 +32,17 @@ dependencies:
   repository_interface_qizhengsiyu:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-qizhengsiyu.git
+  repository_interface_daliuren:
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-daliuren.git
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
 
 dependency_overrides:
+  repository_interface_daliuren:
+    path: ../../repository-interface-daliuren
   persistence_core:
     git:
       url: http://192.168.0.165:3000/xuan/xuan-storage.git
