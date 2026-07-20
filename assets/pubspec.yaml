@@ -35,6 +35,7 @@ dependencies:
   repository_interface_daliuren:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-daliuren.git
+      ref: main
 dev_dependencies:
   flutter_test:
     sdk: flutter

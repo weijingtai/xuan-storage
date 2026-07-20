@@ -34,7 +34,7 @@ class OfficialJsonSchoolRepository implements SchoolRepository {
 
     for (final id in schoolIds) {
       final filename = _toKebabCase(id);
-      final path = 'assets/schools/$filename.json';
+      final path = 'packages/taiyishenshu/assets/schools/$filename.json';
       try {
         final jsonStr = await bundle.loadString(path);
         final json = jsonDecode(jsonStr);
@@ -46,7 +46,7 @@ class OfficialJsonSchoolRepository implements SchoolRepository {
 
     for (final id in deityIds) {
       final filename = _toKebabCase(id);
-      final path = 'assets/deities/$filename.json';
+      final path = 'packages/taiyishenshu/assets/deities/$filename.json';
       try {
         final jsonStr = await bundle.loadString(path);
         final json = jsonDecode(jsonStr);
