@@ -216,5 +216,61 @@ void main() {
       expect(records1, hasLength(1));
       expect(records1.first.uuid, 'r-user1');
     });
+
+    test('E2E Conflict -> mints new scope, old data unreachable under new scope but not deleted', () async {
+      // 1. Anonymous user A creates data on device scope
+      await sessionRepo.saveCurrentSession(AccountSession(
+        appUserId: const AccountUserId('guest-A'),
+        providerUserId: const ProviderUserId('p-guest'),
+        kind: AccountKind.anonymous,
+        providerId: 'guest',
+        issuedAt: DateTime.utc(2026),
+      ));
+
+      final guestResolved = await resolver.resolve();
+      final guestScope = guestResolved.scopeUid;
+      expect(guestScope, isNotEmpty);
+
+      final dsGuest = DriftRecordDataSource(db, scopeUid: guestScope);
+      await dsGuest.saveRecord(RecordMeta(
+        uuid: 'r-guest',
+        scopeUid: guestScope,
+        module: 'meihua',
+        category: 'divination',
+        divinationType: 'mei_hua',
+        createdAt: DateTime.utc(2026),
+      ), const []);
+
+      // Verify guest can see their data
+      expect((await dsGuest.getRecord('r-guest'))?.uuid, 'r-guest');
+
+      // 2. Different registered user logs in (no identity link for guest-A → user-X)
+      await sessionRepo.saveCurrentSession(AccountSession(
+        appUserId: const AccountUserId('user-X'),
+        providerUserId: const ProviderUserId('p-userX'),
+        kind: AccountKind.registered,
+        providerId: 'email',
+        issuedAt: DateTime.utc(2026),
+      ));
+
+      // 3. Resolve — should mint new scope (conflict: device scope busy, no link)
+      final conflictResolved = await resolver.resolve();
+      expect(conflictResolved.isConflict, isTrue);
+      expect(conflictResolved.isUpgrade, isFalse);
+      expect(conflictResolved.scopeUid, isNot(equals(guestScope)));
+
+      final conflictScope = conflictResolved.scopeUid;
+
+      // 4. New scope cannot see old guest data
+      final dsConflict = DriftRecordDataSource(db, scopeUid: conflictScope);
+      expect(await dsConflict.getRecord('r-guest'), isNull);
+
+      // 5. Old scope data is preserved (re-query via original scope)
+      final dsOld = DriftRecordDataSource(db, scopeUid: guestScope);
+      final oldRecord = await dsOld.getRecord('r-guest');
+      expect(oldRecord, isNotNull);
+      expect(oldRecord!.uuid, 'r-guest');
+      expect(oldRecord.deletedAt, isNull);
+    });
   });
 }
