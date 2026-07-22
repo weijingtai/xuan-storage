@@ -40,15 +40,17 @@ class DriftRecordDataSource {
         verificationStatus: row.verificationStatus, seekerName: row.seekerName,
         gender: row.gender, fateYear: row.fateYear,
         moduleDataJson: row.moduleDataJson, navParamsJson: row.navParamsJson,
-        occurredAtUtc: row.occurredAtUtc,
+        occurredAtUtc: row.occurredAtUtc?.toUtc(),
         reckoningType: row.reckoningType,
         timezoneStr: row.timezoneStr,
         latitude: row.latitude,
         longitude: row.longitude,
         locationName: row.locationName,
         spacetimeJson: row.spacetimeJson,
-        createdAt: row.createdAt, updatedAt: row.updatedAt,
-        deletedAt: row.deletedAt, rev: row.rev,
+        createdAt: row.createdAt.toUtc(),
+        updatedAt: row.updatedAt?.toUtc(),
+        deletedAt: row.deletedAt?.toUtc(),
+        rev: row.rev,
       );
 
   Future<void> saveRecord(RecordMeta record, List<SearchTag> tags) {

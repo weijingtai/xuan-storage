@@ -63,6 +63,8 @@ class SeekerRecordCodec implements RecordModuleCodec<SeekerModel> {
       uuid: c.uuid, scopeUid: scopeUid, module: module, category: category,
       divinationType: divinationType, seekerName: c.nickname ?? c.username,
       gender: c.gender.name, fateYear: null,
+      occurredAtUtc: null, reckoningType: null, timezoneStr: null,
+      latitude: null, longitude: null, locationName: null, spacetimeJson: null,
       moduleDataJson: jsonEncode(data),
       navParamsJson: jsonEncode({'recordUuid': c.uuid}),
       createdAt: c.createdAt, updatedAt: c.lastUpdatedAt,

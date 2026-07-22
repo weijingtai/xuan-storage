@@ -100,6 +100,51 @@ void main() {
       expect(found, isNotNull);
     });
 
+    test('local applier restores record public columns', () async {
+      final applier = RecordLocalApplier(
+        applyRecord: ds.applyRemoteRecord,
+        deleteRecord: ds.softDeleteRecord,
+      );
+
+      final metaMap = RecordOutboxMapper.metaToJson(_meta('r-public'));
+      metaMap['occurredAtUtc'] = '2025-01-01T12:00:00.000Z';
+      metaMap['reckoningType'] = 'true_solar';
+      metaMap['timezoneStr'] = 'Asia/Shanghai';
+      metaMap['latitude'] = 31.2;
+      metaMap['longitude'] = 121.5;
+      metaMap['locationName'] = 'Shanghai';
+      metaMap['spacetimeJson'] = '{"key":"space"}';
+      metaMap['gender'] = 'F';
+
+      final payload = {
+        'meta': metaMap,
+        'searchTags': <Map<String, String>>[],
+      };
+      final change = RemoteChange(
+        operationId: 'op-public', entityType: 'record_meta',
+        entityId: 'r-public', opType: 'UPSERT',
+        payloadJson: jsonEncode(payload),
+        cursor: TimestampCursor(serverUpdatedAtUtc: DateTime.utc(2026), tieBreaker: 'op-public'),
+        serverTimeUtc: DateTime.utc(2026),
+      );
+
+      await applier.applyRemoteChanges(
+        scopeUid: 's1', entityType: 'record_meta',
+        changes: [change],
+      );
+
+      final found = await ds.getRecord('r-public');
+      expect(found, isNotNull);
+      expect(found!.occurredAtUtc, DateTime.utc(2025, 1, 1, 12, 0));
+      expect(found.reckoningType, 'true_solar');
+      expect(found.timezoneStr, 'Asia/Shanghai');
+      expect(found.latitude, 31.2);
+      expect(found.longitude, 121.5);
+      expect(found.locationName, 'Shanghai');
+      expect(found.spacetimeJson, '{"key":"space"}');
+      expect(found.gender, 'F');
+    });
+
     test('applyRemoteChanges does not trigger outbox (anti-loop)', () async {
       final applier = RecordLocalApplier(
         applyRecord: ds.applyRemoteRecord,

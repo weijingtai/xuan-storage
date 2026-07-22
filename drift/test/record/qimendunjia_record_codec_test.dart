@@ -4,10 +4,10 @@ import 'package:persistence_drift/persistence_drift.dart';
 import 'package:persistence_drift/qimendunjia/qimen_record_codec.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-QimenDivinationRecordContract _rec({String uuid = 'qm1', String juType = 't1', int juNumber = 1}) => QimenDivinationRecordContract(
+QimenDivinationRecordContract _rec({String uuid = 'qm1', String juType = 't1', int juNumber = 1, String datetimeJson = '{}'}) => QimenDivinationRecordContract(
       uuid: uuid,
       question: 'q',
-      datetimeJson: '{}',
+      datetimeJson: datetimeJson,
       juType: juType,
       juNumber: juNumber,
       paiPanJson: '{}',
@@ -51,6 +51,17 @@ void main() {
     final tags = codec.extractSearchTags(encoded.meta, encoded.moduleData);
     expect(tags, contains(const SearchTag('ju_type', 'yang')));
     expect(tags, contains(const SearchTag('ju_number', '5')));
+  });
+
+  test('qimen codec fills occurredAtUtc', () {
+    // Assuming qimen datetimeJson is just the single ISO string or a JSON object.
+    // Let's use an ISO string.
+    final rWithDate = _rec(datetimeJson: '2025-01-01T12:00:00.000Z');
+    final encoded = codec.encode(rWithDate, scopeUid: 's1');
+    expect(encoded.meta.occurredAtUtc, DateTime.utc(2025, 1, 1, 12, 0));
+
+    final decoded = codec.decode(encoded.meta, encoded.moduleData);
+    expect(decoded.datetimeJson, '2025-01-01T12:00:00.000Z');
   });
 
   test('uuidOf and withUuid operations', () {
