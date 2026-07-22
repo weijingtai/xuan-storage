@@ -1,14 +1,13 @@
 import 'dart:convert';
-
-import 'package:collection/collection.dart';
 import 'package:persistence_core/persistence_core.dart';
 import 'package:repository_interface_four_zhu_card/repository_interface_four_zhu_card.dart';
 
-import 'models/layout_template.dart';
 import 'layout_template_local_data_source.dart';
+import 'models/layout_template.dart';
 
-class LayoutTemplateRepositoryImpl implements LayoutTemplateRepository {
-  LayoutTemplateRepositoryImpl(
+class FourZhuCardTemplateRepositoryAdapter
+    implements FourZhuCardTemplateRepository {
+  FourZhuCardTemplateRepositoryAdapter(
     this._localDataSource, {
     required AuthScopeProvider authScopeProvider,
   }) : _authScopeProvider = authScopeProvider;
@@ -17,6 +16,7 @@ class LayoutTemplateRepositoryImpl implements LayoutTemplateRepository {
   final AuthScopeProvider _authScopeProvider;
 
   static const _defaultModuleType = 'four_zhu';
+  static const _defaultCollectionId = 'four_zhu_templates';
 
   LayoutTemplateContract _toContract(LayoutTemplate t) {
     return LayoutTemplateContract(
@@ -46,27 +46,28 @@ class LayoutTemplateRepositoryImpl implements LayoutTemplateRepository {
   }
 
   @override
-  Future<List<LayoutTemplateContract>> getAllTemplates(String collectionId) async {
-    final dtos = await _localDataSource.loadTemplates(collectionId);
-    return dtos.map((dto) => _toContract(dto.toDomain())).toList(growable: false);
+  Future<LayoutTemplateContract?> getTemplate(String uuid) async {
+    final dtos = await _localDataSource.loadTemplates(_defaultCollectionId);
+    for (final dto in dtos) {
+      final domain = dto.toDomain();
+      if (domain.id == uuid) {
+        return _toContract(domain);
+      }
+    }
+    return null;
   }
 
   @override
-  Future<LayoutTemplateContract?> getTemplateById(
-    String collectionId,
-    String templateId,
-  ) async {
-    final dtos = await _localDataSource.loadTemplates(collectionId);
-    final target = dtos
-        .map((dto) => dto.toDomain())
-        .firstWhereOrNull((template) => template.id == templateId);
-    return target == null ? null : _toContract(target);
+  Future<List<LayoutTemplateContract>> listTemplates() async {
+    final dtos = await _localDataSource.loadTemplates(_defaultCollectionId);
+    return dtos.map((dto) => _toContract(dto.toDomain())).toList(growable: false);
   }
 
   @override
   Future<void> saveTemplate(LayoutTemplateContract template) async {
     final domain = _toDomain(template);
-    final collectionId = domain.collectionId;
+    final collectionId =
+        domain.collectionId.isEmpty ? _defaultCollectionId : domain.collectionId;
     final existingDtos = await _localDataSource.loadTemplates(collectionId);
     final index = existingDtos.indexWhere(
       (dto) => dto.template.id == domain.id,
@@ -89,11 +90,11 @@ class LayoutTemplateRepositoryImpl implements LayoutTemplateRepository {
   }
 
   @override
-  Future<void> deleteTemplate(String collectionId, String templateId) async {
+  Future<void> deleteTemplate(String uuid) async {
     final scopeUid = await _authScopeProvider.getScopeUid();
     await _localDataSource.softDeleteTemplate(
-      collectionId,
-      templateId,
+      _defaultCollectionId,
+      uuid,
       enqueueOutbox: true,
       scopeUid: scopeUid,
     );

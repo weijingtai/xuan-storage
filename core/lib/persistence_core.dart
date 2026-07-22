@@ -23,3 +23,4 @@ export 'ipc/anon_identity_local.dart';
 export 'store/datetime_details/jieqi_entry_strategy_store.dart';
 export 'store/datetime_details/zi_strategy_store.dart';
 export 'store/datetime_details/jieqi_phenology_store.dart';
+export 'time_location/daos/location_preference_dao.dart';
