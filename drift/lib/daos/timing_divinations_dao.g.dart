@@ -15,5 +15,7 @@ class TimingDivinationsDaoManager {
   TimingDivinationsDaoManager(this._db);
   $$TimingDivinationsTableTableManager get timingDivinations =>
       $$TimingDivinationsTableTableManager(
-          _db.attachedDatabase, _db.timingDivinations);
+        _db.attachedDatabase,
+        _db.timingDivinations,
+      );
 }

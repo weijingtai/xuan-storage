@@ -43,6 +43,7 @@ class LocalRecordRepository implements ScopedRecordStore {
     String? divinationType,
     required int limit,
     String? cursor,
+    RecordSortBy sortBy = RecordSortBy.auto,
   }) =>
       _ds.listRecords(
           module: module, category: category, divinationType: divinationType,
@@ -67,7 +68,10 @@ class LocalRecordRepository implements ScopedRecordStore {
   }
 
   @override
-  Stream<List<RecordMeta>> watchRecords({required String module}) =>
+  Stream<List<RecordMeta>> watchRecords({
+    required String module,
+    RecordSortBy sortBy = RecordSortBy.auto,
+  }) =>
       _ds.watchRecords(module: module);
 
   @override

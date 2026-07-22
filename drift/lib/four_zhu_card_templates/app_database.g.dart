@@ -11,81 +11,115 @@ class $DaYunRecordsTable extends DaYunRecords
   $DaYunRecordsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
   @override
-  late final GeneratedColumn<String> uuid =
-      GeneratedColumn<String>('uuid', aliasedName, false,
-          additionalChecks: GeneratedColumn.checkTextLength(
-            minTextLength: 1,
-          ),
-          type: DriftSqlType.string,
-          requiredDuringInsert: true);
-  static const VerificationMeta _sourceUuidMeta =
-      const VerificationMeta('sourceUuid');
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(minTextLength: 1),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceUuidMeta = const VerificationMeta(
+    'sourceUuid',
+  );
   @override
   late final GeneratedColumn<String> sourceUuid = GeneratedColumn<String>(
-      'source_uuid', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _jieQiTypeMeta =
-      const VerificationMeta('jieQiType');
+    'source_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _jieQiTypeMeta = const VerificationMeta(
+    'jieQiType',
+  );
   @override
   late final GeneratedColumn<String> jieQiType = GeneratedColumn<String>(
-      'jie_qi_type', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _precisionMeta =
-      const VerificationMeta('precision');
+    'jie_qi_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _precisionMeta = const VerificationMeta(
+    'precision',
+  );
   @override
   late final GeneratedColumn<String> precision = GeneratedColumn<String>(
-      'precision', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _createdAtMeta =
-      const VerificationMeta('createdAt');
+    'precision',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
   @override
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-      'created_at', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
   @override
-  List<GeneratedColumn> get $columns =>
-      [uuid, sourceUuid, jieQiType, precision, createdAt];
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    sourceUuid,
+    jieQiType,
+    precision,
+    createdAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 't_da_yun_records';
   @override
-  VerificationContext validateIntegrity(Insertable<DaYunRecord> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(
+    Insertable<DaYunRecord> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('uuid')) {
       context.handle(
-          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
     } else if (isInserting) {
       context.missing(_uuidMeta);
     }
     if (data.containsKey('source_uuid')) {
       context.handle(
-          _sourceUuidMeta,
-          sourceUuid.isAcceptableOrUnknown(
-              data['source_uuid']!, _sourceUuidMeta));
+        _sourceUuidMeta,
+        sourceUuid.isAcceptableOrUnknown(data['source_uuid']!, _sourceUuidMeta),
+      );
     } else if (isInserting) {
       context.missing(_sourceUuidMeta);
     }
     if (data.containsKey('jie_qi_type')) {
       context.handle(
-          _jieQiTypeMeta,
-          jieQiType.isAcceptableOrUnknown(
-              data['jie_qi_type']!, _jieQiTypeMeta));
+        _jieQiTypeMeta,
+        jieQiType.isAcceptableOrUnknown(data['jie_qi_type']!, _jieQiTypeMeta),
+      );
     } else if (isInserting) {
       context.missing(_jieQiTypeMeta);
     }
     if (data.containsKey('precision')) {
-      context.handle(_precisionMeta,
-          precision.isAcceptableOrUnknown(data['precision']!, _precisionMeta));
+      context.handle(
+        _precisionMeta,
+        precision.isAcceptableOrUnknown(data['precision']!, _precisionMeta),
+      );
     } else if (isInserting) {
       context.missing(_precisionMeta);
     }
     if (data.containsKey('created_at')) {
-      context.handle(_createdAtMeta,
-          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
@@ -98,16 +132,26 @@ class $DaYunRecordsTable extends DaYunRecords
   DaYunRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return DaYunRecord(
-      uuid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
-      sourceUuid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}source_uuid'])!,
-      jieQiType: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}jie_qi_type'])!,
-      precision: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}precision'])!,
-      createdAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      sourceUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_uuid'],
+      )!,
+      jieQiType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}jie_qi_type'],
+      )!,
+      precision: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}precision'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
     );
   }
 
@@ -123,12 +167,13 @@ class DaYunRecord extends DataClass implements Insertable<DaYunRecord> {
   final String jieQiType;
   final String precision;
   final DateTime createdAt;
-  const DaYunRecord(
-      {required this.uuid,
-      required this.sourceUuid,
-      required this.jieQiType,
-      required this.precision,
-      required this.createdAt});
+  const DaYunRecord({
+    required this.uuid,
+    required this.sourceUuid,
+    required this.jieQiType,
+    required this.precision,
+    required this.createdAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -150,8 +195,10 @@ class DaYunRecord extends DataClass implements Insertable<DaYunRecord> {
     );
   }
 
-  factory DaYunRecord.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory DaYunRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return DaYunRecord(
       uuid: serializer.fromJson<String>(json['uuid']),
@@ -173,24 +220,25 @@ class DaYunRecord extends DataClass implements Insertable<DaYunRecord> {
     };
   }
 
-  DaYunRecord copyWith(
-          {String? uuid,
-          String? sourceUuid,
-          String? jieQiType,
-          String? precision,
-          DateTime? createdAt}) =>
-      DaYunRecord(
-        uuid: uuid ?? this.uuid,
-        sourceUuid: sourceUuid ?? this.sourceUuid,
-        jieQiType: jieQiType ?? this.jieQiType,
-        precision: precision ?? this.precision,
-        createdAt: createdAt ?? this.createdAt,
-      );
+  DaYunRecord copyWith({
+    String? uuid,
+    String? sourceUuid,
+    String? jieQiType,
+    String? precision,
+    DateTime? createdAt,
+  }) => DaYunRecord(
+    uuid: uuid ?? this.uuid,
+    sourceUuid: sourceUuid ?? this.sourceUuid,
+    jieQiType: jieQiType ?? this.jieQiType,
+    precision: precision ?? this.precision,
+    createdAt: createdAt ?? this.createdAt,
+  );
   DaYunRecord copyWithCompanion(DaYunRecordsCompanion data) {
     return DaYunRecord(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
-      sourceUuid:
-          data.sourceUuid.present ? data.sourceUuid.value : this.sourceUuid,
+      sourceUuid: data.sourceUuid.present
+          ? data.sourceUuid.value
+          : this.sourceUuid,
       jieQiType: data.jieQiType.present ? data.jieQiType.value : this.jieQiType,
       precision: data.precision.present ? data.precision.value : this.precision,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -245,11 +293,11 @@ class DaYunRecordsCompanion extends UpdateCompanion<DaYunRecord> {
     required String precision,
     required DateTime createdAt,
     this.rowid = const Value.absent(),
-  })  : uuid = Value(uuid),
-        sourceUuid = Value(sourceUuid),
-        jieQiType = Value(jieQiType),
-        precision = Value(precision),
-        createdAt = Value(createdAt);
+  }) : uuid = Value(uuid),
+       sourceUuid = Value(sourceUuid),
+       jieQiType = Value(jieQiType),
+       precision = Value(precision),
+       createdAt = Value(createdAt);
   static Insertable<DaYunRecord> custom({
     Expression<String>? uuid,
     Expression<String>? sourceUuid,
@@ -268,13 +316,14 @@ class DaYunRecordsCompanion extends UpdateCompanion<DaYunRecord> {
     });
   }
 
-  DaYunRecordsCompanion copyWith(
-      {Value<String>? uuid,
-      Value<String>? sourceUuid,
-      Value<String>? jieQiType,
-      Value<String>? precision,
-      Value<DateTime>? createdAt,
-      Value<int>? rowid}) {
+  DaYunRecordsCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? sourceUuid,
+    Value<String>? jieQiType,
+    Value<String>? precision,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
     return DaYunRecordsCompanion(
       uuid: uuid ?? this.uuid,
       sourceUuid: sourceUuid ?? this.sourceUuid,
@@ -331,90 +380,137 @@ class $TaiYuanRecordsTable extends TaiYuanRecords
   $TaiYuanRecordsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
   @override
-  late final GeneratedColumn<String> uuid =
-      GeneratedColumn<String>('uuid', aliasedName, false,
-          additionalChecks: GeneratedColumn.checkTextLength(
-            minTextLength: 1,
-          ),
-          type: DriftSqlType.string,
-          requiredDuringInsert: true);
-  static const VerificationMeta _calendarUuidMeta =
-      const VerificationMeta('calendarUuid');
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(minTextLength: 1),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _calendarUuidMeta = const VerificationMeta(
+    'calendarUuid',
+  );
   @override
   late final GeneratedColumn<String> calendarUuid = GeneratedColumn<String>(
-      'calendar_uuid', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _strategyMeta =
-      const VerificationMeta('strategy');
+    'calendar_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _strategyMeta = const VerificationMeta(
+    'strategy',
+  );
   @override
   late final GeneratedColumn<String> strategy = GeneratedColumn<String>(
-      'strategy', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+    'strategy',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _pillarMeta = const VerificationMeta('pillar');
   @override
   late final GeneratedColumn<String> pillar = GeneratedColumn<String>(
-      'pillar', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _descriptionMeta =
-      const VerificationMeta('description');
+    'pillar',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
   @override
   late final GeneratedColumn<String> description = GeneratedColumn<String>(
-      'description', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _createdAtMeta =
-      const VerificationMeta('createdAt');
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
   @override
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-      'created_at', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
   @override
-  List<GeneratedColumn> get $columns =>
-      [uuid, calendarUuid, strategy, pillar, description, createdAt];
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    calendarUuid,
+    strategy,
+    pillar,
+    description,
+    createdAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 't_tai_yuan_records';
   @override
-  VerificationContext validateIntegrity(Insertable<TaiYuanRecord> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(
+    Insertable<TaiYuanRecord> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('uuid')) {
       context.handle(
-          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
     } else if (isInserting) {
       context.missing(_uuidMeta);
     }
     if (data.containsKey('calendar_uuid')) {
       context.handle(
+        _calendarUuidMeta,
+        calendarUuid.isAcceptableOrUnknown(
+          data['calendar_uuid']!,
           _calendarUuidMeta,
-          calendarUuid.isAcceptableOrUnknown(
-              data['calendar_uuid']!, _calendarUuidMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_calendarUuidMeta);
     }
     if (data.containsKey('strategy')) {
-      context.handle(_strategyMeta,
-          strategy.isAcceptableOrUnknown(data['strategy']!, _strategyMeta));
+      context.handle(
+        _strategyMeta,
+        strategy.isAcceptableOrUnknown(data['strategy']!, _strategyMeta),
+      );
     } else if (isInserting) {
       context.missing(_strategyMeta);
     }
     if (data.containsKey('pillar')) {
-      context.handle(_pillarMeta,
-          pillar.isAcceptableOrUnknown(data['pillar']!, _pillarMeta));
+      context.handle(
+        _pillarMeta,
+        pillar.isAcceptableOrUnknown(data['pillar']!, _pillarMeta),
+      );
     } else if (isInserting) {
       context.missing(_pillarMeta);
     }
     if (data.containsKey('description')) {
       context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
           _descriptionMeta,
-          description.isAcceptableOrUnknown(
-              data['description']!, _descriptionMeta));
+        ),
+      );
     }
     if (data.containsKey('created_at')) {
-      context.handle(_createdAtMeta,
-          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
@@ -427,18 +523,30 @@ class $TaiYuanRecordsTable extends TaiYuanRecords
   TaiYuanRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return TaiYuanRecord(
-      uuid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
-      calendarUuid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}calendar_uuid'])!,
-      strategy: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}strategy'])!,
-      pillar: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}pillar'])!,
-      description: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}description']),
-      createdAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      calendarUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}calendar_uuid'],
+      )!,
+      strategy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}strategy'],
+      )!,
+      pillar: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}pillar'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
     );
   }
 
@@ -455,13 +563,14 @@ class TaiYuanRecord extends DataClass implements Insertable<TaiYuanRecord> {
   final String pillar;
   final String? description;
   final DateTime createdAt;
-  const TaiYuanRecord(
-      {required this.uuid,
-      required this.calendarUuid,
-      required this.strategy,
-      required this.pillar,
-      this.description,
-      required this.createdAt});
+  const TaiYuanRecord({
+    required this.uuid,
+    required this.calendarUuid,
+    required this.strategy,
+    required this.pillar,
+    this.description,
+    required this.createdAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -489,8 +598,10 @@ class TaiYuanRecord extends DataClass implements Insertable<TaiYuanRecord> {
     );
   }
 
-  factory TaiYuanRecord.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory TaiYuanRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return TaiYuanRecord(
       uuid: serializer.fromJson<String>(json['uuid']),
@@ -514,21 +625,21 @@ class TaiYuanRecord extends DataClass implements Insertable<TaiYuanRecord> {
     };
   }
 
-  TaiYuanRecord copyWith(
-          {String? uuid,
-          String? calendarUuid,
-          String? strategy,
-          String? pillar,
-          Value<String?> description = const Value.absent(),
-          DateTime? createdAt}) =>
-      TaiYuanRecord(
-        uuid: uuid ?? this.uuid,
-        calendarUuid: calendarUuid ?? this.calendarUuid,
-        strategy: strategy ?? this.strategy,
-        pillar: pillar ?? this.pillar,
-        description: description.present ? description.value : this.description,
-        createdAt: createdAt ?? this.createdAt,
-      );
+  TaiYuanRecord copyWith({
+    String? uuid,
+    String? calendarUuid,
+    String? strategy,
+    String? pillar,
+    Value<String?> description = const Value.absent(),
+    DateTime? createdAt,
+  }) => TaiYuanRecord(
+    uuid: uuid ?? this.uuid,
+    calendarUuid: calendarUuid ?? this.calendarUuid,
+    strategy: strategy ?? this.strategy,
+    pillar: pillar ?? this.pillar,
+    description: description.present ? description.value : this.description,
+    createdAt: createdAt ?? this.createdAt,
+  );
   TaiYuanRecord copyWithCompanion(TaiYuanRecordsCompanion data) {
     return TaiYuanRecord(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
@@ -537,8 +648,9 @@ class TaiYuanRecord extends DataClass implements Insertable<TaiYuanRecord> {
           : this.calendarUuid,
       strategy: data.strategy.present ? data.strategy.value : this.strategy,
       pillar: data.pillar.present ? data.pillar.value : this.pillar,
-      description:
-          data.description.present ? data.description.value : this.description,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -596,11 +708,11 @@ class TaiYuanRecordsCompanion extends UpdateCompanion<TaiYuanRecord> {
     this.description = const Value.absent(),
     required DateTime createdAt,
     this.rowid = const Value.absent(),
-  })  : uuid = Value(uuid),
-        calendarUuid = Value(calendarUuid),
-        strategy = Value(strategy),
-        pillar = Value(pillar),
-        createdAt = Value(createdAt);
+  }) : uuid = Value(uuid),
+       calendarUuid = Value(calendarUuid),
+       strategy = Value(strategy),
+       pillar = Value(pillar),
+       createdAt = Value(createdAt);
   static Insertable<TaiYuanRecord> custom({
     Expression<String>? uuid,
     Expression<String>? calendarUuid,
@@ -621,14 +733,15 @@ class TaiYuanRecordsCompanion extends UpdateCompanion<TaiYuanRecord> {
     });
   }
 
-  TaiYuanRecordsCompanion copyWith(
-      {Value<String>? uuid,
-      Value<String>? calendarUuid,
-      Value<String>? strategy,
-      Value<String>? pillar,
-      Value<String?>? description,
-      Value<DateTime>? createdAt,
-      Value<int>? rowid}) {
+  TaiYuanRecordsCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? calendarUuid,
+    Value<String>? strategy,
+    Value<String>? pillar,
+    Value<String?>? description,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
     return TaiYuanRecordsCompanion(
       uuid: uuid ?? this.uuid,
       calendarUuid: calendarUuid ?? this.calendarUuid,
@@ -690,132 +803,182 @@ class $LayoutTemplatesTable extends LayoutTemplates
   $LayoutTemplatesTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
   @override
-  late final GeneratedColumn<String> uuid =
-      GeneratedColumn<String>('uuid', aliasedName, false,
-          additionalChecks: GeneratedColumn.checkTextLength(
-            minTextLength: 1,
-          ),
-          type: DriftSqlType.string,
-          requiredDuringInsert: true);
-  static const VerificationMeta _collectionIdMeta =
-      const VerificationMeta('collectionId');
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(minTextLength: 1),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _collectionIdMeta = const VerificationMeta(
+    'collectionId',
+  );
   @override
-  late final GeneratedColumn<String> collectionId =
-      GeneratedColumn<String>('collection_id', aliasedName, false,
-          additionalChecks: GeneratedColumn.checkTextLength(
-            minTextLength: 1,
-          ),
-          type: DriftSqlType.string,
-          requiredDuringInsert: true);
+  late final GeneratedColumn<String> collectionId = GeneratedColumn<String>(
+    'collection_id',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(minTextLength: 1),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
-  late final GeneratedColumn<String> name =
-      GeneratedColumn<String>('name', aliasedName, false,
-          additionalChecks: GeneratedColumn.checkTextLength(
-            minTextLength: 1,
-          ),
-          type: DriftSqlType.string,
-          requiredDuringInsert: true);
-  static const VerificationMeta _descriptionMeta =
-      const VerificationMeta('description');
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(minTextLength: 1),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
   @override
   late final GeneratedColumn<String> description = GeneratedColumn<String>(
-      'description', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _templateJsonMeta =
-      const VerificationMeta('templateJson');
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _templateJsonMeta = const VerificationMeta(
+    'templateJson',
+  );
   @override
   late final GeneratedColumn<String> templateJson = GeneratedColumn<String>(
-      'template_json', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _versionMeta =
-      const VerificationMeta('version');
+    'template_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
   @override
   late final GeneratedColumn<int> version = GeneratedColumn<int>(
-      'version', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _updatedAtMeta =
-      const VerificationMeta('updatedAt');
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
   @override
   late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-      'updated_at', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
-  static const VerificationMeta _deletedAtMeta =
-      const VerificationMeta('deletedAt');
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
   @override
   late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
-      'deleted_at', aliasedName, true,
-      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
-        uuid,
-        collectionId,
-        name,
-        description,
-        templateJson,
-        version,
-        updatedAt,
-        deletedAt
-      ];
+    uuid,
+    collectionId,
+    name,
+    description,
+    templateJson,
+    version,
+    updatedAt,
+    deletedAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 't_layout_templates';
   @override
-  VerificationContext validateIntegrity(Insertable<LayoutTemplateRow> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(
+    Insertable<LayoutTemplateRow> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('uuid')) {
       context.handle(
-          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
     } else if (isInserting) {
       context.missing(_uuidMeta);
     }
     if (data.containsKey('collection_id')) {
       context.handle(
+        _collectionIdMeta,
+        collectionId.isAcceptableOrUnknown(
+          data['collection_id']!,
           _collectionIdMeta,
-          collectionId.isAcceptableOrUnknown(
-              data['collection_id']!, _collectionIdMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_collectionIdMeta);
     }
     if (data.containsKey('name')) {
       context.handle(
-          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
     if (data.containsKey('description')) {
       context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
           _descriptionMeta,
-          description.isAcceptableOrUnknown(
-              data['description']!, _descriptionMeta));
+        ),
+      );
     }
     if (data.containsKey('template_json')) {
       context.handle(
+        _templateJsonMeta,
+        templateJson.isAcceptableOrUnknown(
+          data['template_json']!,
           _templateJsonMeta,
-          templateJson.isAcceptableOrUnknown(
-              data['template_json']!, _templateJsonMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_templateJsonMeta);
     }
     if (data.containsKey('version')) {
-      context.handle(_versionMeta,
-          version.isAcceptableOrUnknown(data['version']!, _versionMeta));
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
     } else if (isInserting) {
       context.missing(_versionMeta);
     }
     if (data.containsKey('updated_at')) {
-      context.handle(_updatedAtMeta,
-          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
     } else if (isInserting) {
       context.missing(_updatedAtMeta);
     }
     if (data.containsKey('deleted_at')) {
-      context.handle(_deletedAtMeta,
-          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
     }
     return context;
   }
@@ -826,22 +989,38 @@ class $LayoutTemplatesTable extends LayoutTemplates
   LayoutTemplateRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return LayoutTemplateRow(
-      uuid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
-      collectionId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}collection_id'])!,
-      name: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-      description: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}description']),
-      templateJson: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}template_json'])!,
-      version: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}version'])!,
-      updatedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
-      deletedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      collectionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}collection_id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      templateJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}template_json'],
+      )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
     );
   }
 
@@ -861,15 +1040,16 @@ class LayoutTemplateRow extends DataClass
   final int version;
   final DateTime updatedAt;
   final DateTime? deletedAt;
-  const LayoutTemplateRow(
-      {required this.uuid,
-      required this.collectionId,
-      required this.name,
-      this.description,
-      required this.templateJson,
-      required this.version,
-      required this.updatedAt,
-      this.deletedAt});
+  const LayoutTemplateRow({
+    required this.uuid,
+    required this.collectionId,
+    required this.name,
+    this.description,
+    required this.templateJson,
+    required this.version,
+    required this.updatedAt,
+    this.deletedAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -905,8 +1085,10 @@ class LayoutTemplateRow extends DataClass
     );
   }
 
-  factory LayoutTemplateRow.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory LayoutTemplateRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return LayoutTemplateRow(
       uuid: serializer.fromJson<String>(json['uuid']),
@@ -934,25 +1116,25 @@ class LayoutTemplateRow extends DataClass
     };
   }
 
-  LayoutTemplateRow copyWith(
-          {String? uuid,
-          String? collectionId,
-          String? name,
-          Value<String?> description = const Value.absent(),
-          String? templateJson,
-          int? version,
-          DateTime? updatedAt,
-          Value<DateTime?> deletedAt = const Value.absent()}) =>
-      LayoutTemplateRow(
-        uuid: uuid ?? this.uuid,
-        collectionId: collectionId ?? this.collectionId,
-        name: name ?? this.name,
-        description: description.present ? description.value : this.description,
-        templateJson: templateJson ?? this.templateJson,
-        version: version ?? this.version,
-        updatedAt: updatedAt ?? this.updatedAt,
-        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
-      );
+  LayoutTemplateRow copyWith({
+    String? uuid,
+    String? collectionId,
+    String? name,
+    Value<String?> description = const Value.absent(),
+    String? templateJson,
+    int? version,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => LayoutTemplateRow(
+    uuid: uuid ?? this.uuid,
+    collectionId: collectionId ?? this.collectionId,
+    name: name ?? this.name,
+    description: description.present ? description.value : this.description,
+    templateJson: templateJson ?? this.templateJson,
+    version: version ?? this.version,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
   LayoutTemplateRow copyWithCompanion(LayoutTemplatesCompanion data) {
     return LayoutTemplateRow(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
@@ -960,8 +1142,9 @@ class LayoutTemplateRow extends DataClass
           ? data.collectionId.value
           : this.collectionId,
       name: data.name.present ? data.name.value : this.name,
-      description:
-          data.description.present ? data.description.value : this.description,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
       templateJson: data.templateJson.present
           ? data.templateJson.value
           : this.templateJson,
@@ -987,8 +1170,16 @@ class LayoutTemplateRow extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(uuid, collectionId, name, description,
-      templateJson, version, updatedAt, deletedAt);
+  int get hashCode => Object.hash(
+    uuid,
+    collectionId,
+    name,
+    description,
+    templateJson,
+    version,
+    updatedAt,
+    deletedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1034,12 +1225,12 @@ class LayoutTemplatesCompanion extends UpdateCompanion<LayoutTemplateRow> {
     required DateTime updatedAt,
     this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
-  })  : uuid = Value(uuid),
-        collectionId = Value(collectionId),
-        name = Value(name),
-        templateJson = Value(templateJson),
-        version = Value(version),
-        updatedAt = Value(updatedAt);
+  }) : uuid = Value(uuid),
+       collectionId = Value(collectionId),
+       name = Value(name),
+       templateJson = Value(templateJson),
+       version = Value(version),
+       updatedAt = Value(updatedAt);
   static Insertable<LayoutTemplateRow> custom({
     Expression<String>? uuid,
     Expression<String>? collectionId,
@@ -1064,16 +1255,17 @@ class LayoutTemplatesCompanion extends UpdateCompanion<LayoutTemplateRow> {
     });
   }
 
-  LayoutTemplatesCompanion copyWith(
-      {Value<String>? uuid,
-      Value<String>? collectionId,
-      Value<String>? name,
-      Value<String?>? description,
-      Value<String>? templateJson,
-      Value<int>? version,
-      Value<DateTime>? updatedAt,
-      Value<DateTime?>? deletedAt,
-      Value<int>? rowid}) {
+  LayoutTemplatesCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? collectionId,
+    Value<String>? name,
+    Value<String?>? description,
+    Value<String>? templateJson,
+    Value<int>? version,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
     return LayoutTemplatesCompanion(
       uuid: uuid ?? this.uuid,
       collectionId: collectionId ?? this.collectionId,
@@ -1143,114 +1335,164 @@ class $CardTemplateMetasTable extends CardTemplateMetas
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $CardTemplateMetasTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _templateUuidMeta =
-      const VerificationMeta('templateUuid');
+  static const VerificationMeta _templateUuidMeta = const VerificationMeta(
+    'templateUuid',
+  );
   @override
   late final GeneratedColumn<String> templateUuid = GeneratedColumn<String>(
-      'template_uuid', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _createdAtMeta =
-      const VerificationMeta('createdAt');
+    'template_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
   @override
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-      'created_at', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
-  static const VerificationMeta _modifiedAtMeta =
-      const VerificationMeta('modifiedAt');
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _modifiedAtMeta = const VerificationMeta(
+    'modifiedAt',
+  );
   @override
   late final GeneratedColumn<DateTime> modifiedAt = GeneratedColumn<DateTime>(
-      'modified_at', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
-  static const VerificationMeta _deletedAtMeta =
-      const VerificationMeta('deletedAt');
+    'modified_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
   @override
   late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
-      'deleted_at', aliasedName, true,
-      type: DriftSqlType.dateTime, requiredDuringInsert: false);
-  static const VerificationMeta _authorUuidMeta =
-      const VerificationMeta('authorUuid');
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _authorUuidMeta = const VerificationMeta(
+    'authorUuid',
+  );
   @override
   late final GeneratedColumn<String> authorUuid = GeneratedColumn<String>(
-      'author_uuid', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+    'author_uuid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createFromCardUuidMeta =
       const VerificationMeta('createFromCardUuid');
   @override
   late final GeneratedColumn<String> createFromCardUuid =
-      GeneratedColumn<String>('create_from_card_uuid', aliasedName, true,
-          type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _isCustomizedMeta =
-      const VerificationMeta('isCustomized');
+      GeneratedColumn<String>(
+        'create_from_card_uuid',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _isCustomizedMeta = const VerificationMeta(
+    'isCustomized',
+  );
   @override
   late final GeneratedColumn<bool> isCustomized = GeneratedColumn<bool>(
-      'is_customized', aliasedName, true,
-      type: DriftSqlType.bool,
-      requiredDuringInsert: false,
-      defaultConstraints: GeneratedColumn.constraintIsAlways(
-          'CHECK ("is_customized" IN (0, 1))'));
+    'is_customized',
+    aliasedName,
+    true,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_customized" IN (0, 1))',
+    ),
+  );
   @override
   List<GeneratedColumn> get $columns => [
-        templateUuid,
-        createdAt,
-        modifiedAt,
-        deletedAt,
-        authorUuid,
-        createFromCardUuid,
-        isCustomized
-      ];
+    templateUuid,
+    createdAt,
+    modifiedAt,
+    deletedAt,
+    authorUuid,
+    createFromCardUuid,
+    isCustomized,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 't_card_template_meta';
   @override
-  VerificationContext validateIntegrity(Insertable<CardTemplateMeta> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(
+    Insertable<CardTemplateMeta> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('template_uuid')) {
       context.handle(
+        _templateUuidMeta,
+        templateUuid.isAcceptableOrUnknown(
+          data['template_uuid']!,
           _templateUuidMeta,
-          templateUuid.isAcceptableOrUnknown(
-              data['template_uuid']!, _templateUuidMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_templateUuidMeta);
     }
     if (data.containsKey('created_at')) {
-      context.handle(_createdAtMeta,
-          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
     if (data.containsKey('modified_at')) {
       context.handle(
-          _modifiedAtMeta,
-          modifiedAt.isAcceptableOrUnknown(
-              data['modified_at']!, _modifiedAtMeta));
+        _modifiedAtMeta,
+        modifiedAt.isAcceptableOrUnknown(data['modified_at']!, _modifiedAtMeta),
+      );
     } else if (isInserting) {
       context.missing(_modifiedAtMeta);
     }
     if (data.containsKey('deleted_at')) {
-      context.handle(_deletedAtMeta,
-          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
     }
     if (data.containsKey('author_uuid')) {
       context.handle(
-          _authorUuidMeta,
-          authorUuid.isAcceptableOrUnknown(
-              data['author_uuid']!, _authorUuidMeta));
+        _authorUuidMeta,
+        authorUuid.isAcceptableOrUnknown(data['author_uuid']!, _authorUuidMeta),
+      );
     }
     if (data.containsKey('create_from_card_uuid')) {
       context.handle(
+        _createFromCardUuidMeta,
+        createFromCardUuid.isAcceptableOrUnknown(
+          data['create_from_card_uuid']!,
           _createFromCardUuidMeta,
-          createFromCardUuid.isAcceptableOrUnknown(
-              data['create_from_card_uuid']!, _createFromCardUuidMeta));
+        ),
+      );
     }
     if (data.containsKey('is_customized')) {
       context.handle(
+        _isCustomizedMeta,
+        isCustomized.isAcceptableOrUnknown(
+          data['is_customized']!,
           _isCustomizedMeta,
-          isCustomized.isAcceptableOrUnknown(
-              data['is_customized']!, _isCustomizedMeta));
+        ),
+      );
     }
     return context;
   }
@@ -1261,20 +1503,34 @@ class $CardTemplateMetasTable extends CardTemplateMetas
   CardTemplateMeta map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return CardTemplateMeta(
-      templateUuid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}template_uuid'])!,
-      createdAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
-      modifiedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}modified_at'])!,
-      deletedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
-      authorUuid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}author_uuid']),
+      templateUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}template_uuid'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      modifiedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}modified_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      authorUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}author_uuid'],
+      ),
       createFromCardUuid: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}create_from_card_uuid']),
-      isCustomized: attachedDatabase.typeMapping
-          .read(DriftSqlType.bool, data['${effectivePrefix}is_customized']),
+        DriftSqlType.string,
+        data['${effectivePrefix}create_from_card_uuid'],
+      ),
+      isCustomized: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_customized'],
+      ),
     );
   }
 
@@ -1293,14 +1549,15 @@ class CardTemplateMeta extends DataClass
   final String? authorUuid;
   final String? createFromCardUuid;
   final bool? isCustomized;
-  const CardTemplateMeta(
-      {required this.templateUuid,
-      required this.createdAt,
-      required this.modifiedAt,
-      this.deletedAt,
-      this.authorUuid,
-      this.createFromCardUuid,
-      this.isCustomized});
+  const CardTemplateMeta({
+    required this.templateUuid,
+    required this.createdAt,
+    required this.modifiedAt,
+    this.deletedAt,
+    this.authorUuid,
+    this.createFromCardUuid,
+    this.isCustomized,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1342,8 +1599,10 @@ class CardTemplateMeta extends DataClass
     );
   }
 
-  factory CardTemplateMeta.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory CardTemplateMeta.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return CardTemplateMeta(
       templateUuid: serializer.fromJson<String>(json['templateUuid']),
@@ -1351,8 +1610,9 @@ class CardTemplateMeta extends DataClass
       modifiedAt: serializer.fromJson<DateTime>(json['modifiedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
       authorUuid: serializer.fromJson<String?>(json['authorUuid']),
-      createFromCardUuid:
-          serializer.fromJson<String?>(json['createFromCardUuid']),
+      createFromCardUuid: serializer.fromJson<String?>(
+        json['createFromCardUuid'],
+      ),
       isCustomized: serializer.fromJson<bool?>(json['isCustomized']),
     );
   }
@@ -1370,37 +1630,38 @@ class CardTemplateMeta extends DataClass
     };
   }
 
-  CardTemplateMeta copyWith(
-          {String? templateUuid,
-          DateTime? createdAt,
-          DateTime? modifiedAt,
-          Value<DateTime?> deletedAt = const Value.absent(),
-          Value<String?> authorUuid = const Value.absent(),
-          Value<String?> createFromCardUuid = const Value.absent(),
-          Value<bool?> isCustomized = const Value.absent()}) =>
-      CardTemplateMeta(
-        templateUuid: templateUuid ?? this.templateUuid,
-        createdAt: createdAt ?? this.createdAt,
-        modifiedAt: modifiedAt ?? this.modifiedAt,
-        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
-        authorUuid: authorUuid.present ? authorUuid.value : this.authorUuid,
-        createFromCardUuid: createFromCardUuid.present
-            ? createFromCardUuid.value
-            : this.createFromCardUuid,
-        isCustomized:
-            isCustomized.present ? isCustomized.value : this.isCustomized,
-      );
+  CardTemplateMeta copyWith({
+    String? templateUuid,
+    DateTime? createdAt,
+    DateTime? modifiedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    Value<String?> authorUuid = const Value.absent(),
+    Value<String?> createFromCardUuid = const Value.absent(),
+    Value<bool?> isCustomized = const Value.absent(),
+  }) => CardTemplateMeta(
+    templateUuid: templateUuid ?? this.templateUuid,
+    createdAt: createdAt ?? this.createdAt,
+    modifiedAt: modifiedAt ?? this.modifiedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    authorUuid: authorUuid.present ? authorUuid.value : this.authorUuid,
+    createFromCardUuid: createFromCardUuid.present
+        ? createFromCardUuid.value
+        : this.createFromCardUuid,
+    isCustomized: isCustomized.present ? isCustomized.value : this.isCustomized,
+  );
   CardTemplateMeta copyWithCompanion(CardTemplateMetasCompanion data) {
     return CardTemplateMeta(
       templateUuid: data.templateUuid.present
           ? data.templateUuid.value
           : this.templateUuid,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      modifiedAt:
-          data.modifiedAt.present ? data.modifiedAt.value : this.modifiedAt,
+      modifiedAt: data.modifiedAt.present
+          ? data.modifiedAt.value
+          : this.modifiedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
-      authorUuid:
-          data.authorUuid.present ? data.authorUuid.value : this.authorUuid,
+      authorUuid: data.authorUuid.present
+          ? data.authorUuid.value
+          : this.authorUuid,
       createFromCardUuid: data.createFromCardUuid.present
           ? data.createFromCardUuid.value
           : this.createFromCardUuid,
@@ -1425,8 +1686,15 @@ class CardTemplateMeta extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(templateUuid, createdAt, modifiedAt,
-      deletedAt, authorUuid, createFromCardUuid, isCustomized);
+  int get hashCode => Object.hash(
+    templateUuid,
+    createdAt,
+    modifiedAt,
+    deletedAt,
+    authorUuid,
+    createFromCardUuid,
+    isCustomized,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1468,9 +1736,9 @@ class CardTemplateMetasCompanion extends UpdateCompanion<CardTemplateMeta> {
     this.createFromCardUuid = const Value.absent(),
     this.isCustomized = const Value.absent(),
     this.rowid = const Value.absent(),
-  })  : templateUuid = Value(templateUuid),
-        createdAt = Value(createdAt),
-        modifiedAt = Value(modifiedAt);
+  }) : templateUuid = Value(templateUuid),
+       createdAt = Value(createdAt),
+       modifiedAt = Value(modifiedAt);
   static Insertable<CardTemplateMeta> custom({
     Expression<String>? templateUuid,
     Expression<DateTime>? createdAt,
@@ -1494,15 +1762,16 @@ class CardTemplateMetasCompanion extends UpdateCompanion<CardTemplateMeta> {
     });
   }
 
-  CardTemplateMetasCompanion copyWith(
-      {Value<String>? templateUuid,
-      Value<DateTime>? createdAt,
-      Value<DateTime>? modifiedAt,
-      Value<DateTime?>? deletedAt,
-      Value<String?>? authorUuid,
-      Value<String?>? createFromCardUuid,
-      Value<bool?>? isCustomized,
-      Value<int>? rowid}) {
+  CardTemplateMetasCompanion copyWith({
+    Value<String>? templateUuid,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? modifiedAt,
+    Value<DateTime?>? deletedAt,
+    Value<String?>? authorUuid,
+    Value<String?>? createFromCardUuid,
+    Value<bool?>? isCustomized,
+    Value<int>? rowid,
+  }) {
     return CardTemplateMetasCompanion(
       templateUuid: templateUuid ?? this.templateUuid,
       createdAt: createdAt ?? this.createdAt,
@@ -1567,39 +1836,69 @@ class $CardTemplateSettingsTable extends CardTemplateSettings
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $CardTemplateSettingsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _templateUuidMeta =
-      const VerificationMeta('templateUuid');
+  static const VerificationMeta _templateUuidMeta = const VerificationMeta(
+    'templateUuid',
+  );
   @override
   late final GeneratedColumn<String> templateUuid = GeneratedColumn<String>(
-      'template_uuid', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _createdAtMeta =
-      const VerificationMeta('createdAt');
+    'template_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
   @override
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-      'created_at', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
-  static const VerificationMeta _modifiedAtMeta =
-      const VerificationMeta('modifiedAt');
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _modifiedAtMeta = const VerificationMeta(
+    'modifiedAt',
+  );
   @override
   late final GeneratedColumn<DateTime> modifiedAt = GeneratedColumn<DateTime>(
-      'modified_at', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
-  static const VerificationMeta _deletedAtMeta =
-      const VerificationMeta('deletedAt');
+    'modified_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
   @override
   late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
-      'deleted_at', aliasedName, true,
-      type: DriftSqlType.dateTime, requiredDuringInsert: false);
-  static const VerificationMeta _settingJsonMeta =
-      const VerificationMeta('settingJson');
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _settingJsonMeta = const VerificationMeta(
+    'settingJson',
+  );
   @override
   late final GeneratedColumn<String> settingJson = GeneratedColumn<String>(
-      'setting_json', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+    'setting_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   @override
-  List<GeneratedColumn> get $columns =>
-      [templateUuid, createdAt, modifiedAt, deletedAt, settingJson];
+  List<GeneratedColumn> get $columns => [
+    templateUuid,
+    createdAt,
+    modifiedAt,
+    deletedAt,
+    settingJson,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1607,41 +1906,52 @@ class $CardTemplateSettingsTable extends CardTemplateSettings
   static const String $name = 't_card_template_setting';
   @override
   VerificationContext validateIntegrity(
-      Insertable<CardTemplateSettingRecord> instance,
-      {bool isInserting = false}) {
+    Insertable<CardTemplateSettingRecord> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('template_uuid')) {
       context.handle(
+        _templateUuidMeta,
+        templateUuid.isAcceptableOrUnknown(
+          data['template_uuid']!,
           _templateUuidMeta,
-          templateUuid.isAcceptableOrUnknown(
-              data['template_uuid']!, _templateUuidMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_templateUuidMeta);
     }
     if (data.containsKey('created_at')) {
-      context.handle(_createdAtMeta,
-          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
     if (data.containsKey('modified_at')) {
       context.handle(
-          _modifiedAtMeta,
-          modifiedAt.isAcceptableOrUnknown(
-              data['modified_at']!, _modifiedAtMeta));
+        _modifiedAtMeta,
+        modifiedAt.isAcceptableOrUnknown(data['modified_at']!, _modifiedAtMeta),
+      );
     } else if (isInserting) {
       context.missing(_modifiedAtMeta);
     }
     if (data.containsKey('deleted_at')) {
-      context.handle(_deletedAtMeta,
-          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
     }
     if (data.containsKey('setting_json')) {
       context.handle(
+        _settingJsonMeta,
+        settingJson.isAcceptableOrUnknown(
+          data['setting_json']!,
           _settingJsonMeta,
-          settingJson.isAcceptableOrUnknown(
-              data['setting_json']!, _settingJsonMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_settingJsonMeta);
     }
@@ -1651,20 +1961,32 @@ class $CardTemplateSettingsTable extends CardTemplateSettings
   @override
   Set<GeneratedColumn> get $primaryKey => {templateUuid};
   @override
-  CardTemplateSettingRecord map(Map<String, dynamic> data,
-      {String? tablePrefix}) {
+  CardTemplateSettingRecord map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return CardTemplateSettingRecord(
-      templateUuid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}template_uuid'])!,
-      createdAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
-      modifiedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}modified_at'])!,
-      deletedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
-      settingJson: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}setting_json'])!,
+      templateUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}template_uuid'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      modifiedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}modified_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      settingJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}setting_json'],
+      )!,
     );
   }
 
@@ -1681,12 +2003,13 @@ class CardTemplateSettingRecord extends DataClass
   final DateTime modifiedAt;
   final DateTime? deletedAt;
   final String settingJson;
-  const CardTemplateSettingRecord(
-      {required this.templateUuid,
-      required this.createdAt,
-      required this.modifiedAt,
-      this.deletedAt,
-      required this.settingJson});
+  const CardTemplateSettingRecord({
+    required this.templateUuid,
+    required this.createdAt,
+    required this.modifiedAt,
+    this.deletedAt,
+    required this.settingJson,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1712,8 +2035,10 @@ class CardTemplateSettingRecord extends DataClass
     );
   }
 
-  factory CardTemplateSettingRecord.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory CardTemplateSettingRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return CardTemplateSettingRecord(
       templateUuid: serializer.fromJson<String>(json['templateUuid']),
@@ -1735,31 +2060,34 @@ class CardTemplateSettingRecord extends DataClass
     };
   }
 
-  CardTemplateSettingRecord copyWith(
-          {String? templateUuid,
-          DateTime? createdAt,
-          DateTime? modifiedAt,
-          Value<DateTime?> deletedAt = const Value.absent(),
-          String? settingJson}) =>
-      CardTemplateSettingRecord(
-        templateUuid: templateUuid ?? this.templateUuid,
-        createdAt: createdAt ?? this.createdAt,
-        modifiedAt: modifiedAt ?? this.modifiedAt,
-        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
-        settingJson: settingJson ?? this.settingJson,
-      );
+  CardTemplateSettingRecord copyWith({
+    String? templateUuid,
+    DateTime? createdAt,
+    DateTime? modifiedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    String? settingJson,
+  }) => CardTemplateSettingRecord(
+    templateUuid: templateUuid ?? this.templateUuid,
+    createdAt: createdAt ?? this.createdAt,
+    modifiedAt: modifiedAt ?? this.modifiedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    settingJson: settingJson ?? this.settingJson,
+  );
   CardTemplateSettingRecord copyWithCompanion(
-      CardTemplateSettingsCompanion data) {
+    CardTemplateSettingsCompanion data,
+  ) {
     return CardTemplateSettingRecord(
       templateUuid: data.templateUuid.present
           ? data.templateUuid.value
           : this.templateUuid,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      modifiedAt:
-          data.modifiedAt.present ? data.modifiedAt.value : this.modifiedAt,
+      modifiedAt: data.modifiedAt.present
+          ? data.modifiedAt.value
+          : this.modifiedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
-      settingJson:
-          data.settingJson.present ? data.settingJson.value : this.settingJson,
+      settingJson: data.settingJson.present
+          ? data.settingJson.value
+          : this.settingJson,
     );
   }
 
@@ -1812,10 +2140,10 @@ class CardTemplateSettingsCompanion
     this.deletedAt = const Value.absent(),
     required String settingJson,
     this.rowid = const Value.absent(),
-  })  : templateUuid = Value(templateUuid),
-        createdAt = Value(createdAt),
-        modifiedAt = Value(modifiedAt),
-        settingJson = Value(settingJson);
+  }) : templateUuid = Value(templateUuid),
+       createdAt = Value(createdAt),
+       modifiedAt = Value(modifiedAt),
+       settingJson = Value(settingJson);
   static Insertable<CardTemplateSettingRecord> custom({
     Expression<String>? templateUuid,
     Expression<DateTime>? createdAt,
@@ -1834,13 +2162,14 @@ class CardTemplateSettingsCompanion
     });
   }
 
-  CardTemplateSettingsCompanion copyWith(
-      {Value<String>? templateUuid,
-      Value<DateTime>? createdAt,
-      Value<DateTime>? modifiedAt,
-      Value<DateTime?>? deletedAt,
-      Value<String>? settingJson,
-      Value<int>? rowid}) {
+  CardTemplateSettingsCompanion copyWith({
+    Value<String>? templateUuid,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? modifiedAt,
+    Value<DateTime?>? deletedAt,
+    Value<String>? settingJson,
+    Value<int>? rowid,
+  }) {
     return CardTemplateSettingsCompanion(
       templateUuid: templateUuid ?? this.templateUuid,
       createdAt: createdAt ?? this.createdAt,
@@ -1898,64 +2227,103 @@ class $CardTemplateSkillUsagesTable extends CardTemplateSkillUsages
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
-      'id', aliasedName, false,
-      hasAutoIncrement: true,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
-  static const VerificationMeta _createdAtMeta =
-      const VerificationMeta('createdAt');
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
   @override
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-      'created_at', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
-  static const VerificationMeta _lastUpdatedAtMeta =
-      const VerificationMeta('lastUpdatedAt');
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _lastUpdatedAtMeta = const VerificationMeta(
+    'lastUpdatedAt',
+  );
   @override
   late final GeneratedColumn<DateTime> lastUpdatedAt =
-      GeneratedColumn<DateTime>('last_updated_at', aliasedName, false,
-          type: DriftSqlType.dateTime, requiredDuringInsert: true);
-  static const VerificationMeta _deletedAtMeta =
-      const VerificationMeta('deletedAt');
+      GeneratedColumn<DateTime>(
+        'last_updated_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
   @override
   late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
-      'deleted_at', aliasedName, true,
-      type: DriftSqlType.dateTime, requiredDuringInsert: false);
-  static const VerificationMeta _queryUuidMeta =
-      const VerificationMeta('queryUuid');
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _queryUuidMeta = const VerificationMeta(
+    'queryUuid',
+  );
   @override
   late final GeneratedColumn<String> queryUuid = GeneratedColumn<String>(
-      'query_uuid', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _templateUuidMeta =
-      const VerificationMeta('templateUuid');
+    'query_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _templateUuidMeta = const VerificationMeta(
+    'templateUuid',
+  );
   @override
   late final GeneratedColumn<String> templateUuid = GeneratedColumn<String>(
-      'template_uuid', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _skillIdMeta =
-      const VerificationMeta('skillId');
+    'template_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _skillIdMeta = const VerificationMeta(
+    'skillId',
+  );
   @override
   late final GeneratedColumn<int> skillId = GeneratedColumn<int>(
-      'skill_id', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
+    'skill_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _usedAtMeta = const VerificationMeta('usedAt');
   @override
   late final GeneratedColumn<String> usedAt = GeneratedColumn<String>(
-      'used_at', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+    'used_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   @override
   List<GeneratedColumn> get $columns => [
-        id,
-        createdAt,
-        lastUpdatedAt,
-        deletedAt,
-        queryUuid,
-        templateUuid,
-        skillId,
-        usedAt
-      ];
+    id,
+    createdAt,
+    lastUpdatedAt,
+    deletedAt,
+    queryUuid,
+    templateUuid,
+    skillId,
+    usedAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1963,54 +2331,71 @@ class $CardTemplateSkillUsagesTable extends CardTemplateSkillUsages
   static const String $name = 't_card_template_skill_usage';
   @override
   VerificationContext validateIntegrity(
-      Insertable<CardTemplateSkillUsage> instance,
-      {bool isInserting = false}) {
+    Insertable<CardTemplateSkillUsage> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
     if (data.containsKey('created_at')) {
-      context.handle(_createdAtMeta,
-          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
     if (data.containsKey('last_updated_at')) {
       context.handle(
+        _lastUpdatedAtMeta,
+        lastUpdatedAt.isAcceptableOrUnknown(
+          data['last_updated_at']!,
           _lastUpdatedAtMeta,
-          lastUpdatedAt.isAcceptableOrUnknown(
-              data['last_updated_at']!, _lastUpdatedAtMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_lastUpdatedAtMeta);
     }
     if (data.containsKey('deleted_at')) {
-      context.handle(_deletedAtMeta,
-          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
     }
     if (data.containsKey('query_uuid')) {
-      context.handle(_queryUuidMeta,
-          queryUuid.isAcceptableOrUnknown(data['query_uuid']!, _queryUuidMeta));
+      context.handle(
+        _queryUuidMeta,
+        queryUuid.isAcceptableOrUnknown(data['query_uuid']!, _queryUuidMeta),
+      );
     } else if (isInserting) {
       context.missing(_queryUuidMeta);
     }
     if (data.containsKey('template_uuid')) {
       context.handle(
+        _templateUuidMeta,
+        templateUuid.isAcceptableOrUnknown(
+          data['template_uuid']!,
           _templateUuidMeta,
-          templateUuid.isAcceptableOrUnknown(
-              data['template_uuid']!, _templateUuidMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_templateUuidMeta);
     }
     if (data.containsKey('skill_id')) {
-      context.handle(_skillIdMeta,
-          skillId.isAcceptableOrUnknown(data['skill_id']!, _skillIdMeta));
+      context.handle(
+        _skillIdMeta,
+        skillId.isAcceptableOrUnknown(data['skill_id']!, _skillIdMeta),
+      );
     } else if (isInserting) {
       context.missing(_skillIdMeta);
     }
     if (data.containsKey('used_at')) {
-      context.handle(_usedAtMeta,
-          usedAt.isAcceptableOrUnknown(data['used_at']!, _usedAtMeta));
+      context.handle(
+        _usedAtMeta,
+        usedAt.isAcceptableOrUnknown(data['used_at']!, _usedAtMeta),
+      );
     } else if (isInserting) {
       context.missing(_usedAtMeta);
     }
@@ -2023,22 +2408,38 @@ class $CardTemplateSkillUsagesTable extends CardTemplateSkillUsages
   CardTemplateSkillUsage map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return CardTemplateSkillUsage(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      createdAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
       lastUpdatedAt: attachedDatabase.typeMapping.read(
-          DriftSqlType.dateTime, data['${effectivePrefix}last_updated_at'])!,
-      deletedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
-      queryUuid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}query_uuid'])!,
-      templateUuid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}template_uuid'])!,
-      skillId: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}skill_id'])!,
-      usedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}used_at'])!,
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      queryUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}query_uuid'],
+      )!,
+      templateUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}template_uuid'],
+      )!,
+      skillId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}skill_id'],
+      )!,
+      usedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}used_at'],
+      )!,
     );
   }
 
@@ -2058,15 +2459,16 @@ class CardTemplateSkillUsage extends DataClass
   final String templateUuid;
   final int skillId;
   final String usedAt;
-  const CardTemplateSkillUsage(
-      {required this.id,
-      required this.createdAt,
-      required this.lastUpdatedAt,
-      this.deletedAt,
-      required this.queryUuid,
-      required this.templateUuid,
-      required this.skillId,
-      required this.usedAt});
+  const CardTemplateSkillUsage({
+    required this.id,
+    required this.createdAt,
+    required this.lastUpdatedAt,
+    this.deletedAt,
+    required this.queryUuid,
+    required this.templateUuid,
+    required this.skillId,
+    required this.usedAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -2098,8 +2500,10 @@ class CardTemplateSkillUsage extends DataClass
     );
   }
 
-  factory CardTemplateSkillUsage.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory CardTemplateSkillUsage.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return CardTemplateSkillUsage(
       id: serializer.fromJson<int>(json['id']),
@@ -2127,27 +2531,28 @@ class CardTemplateSkillUsage extends DataClass
     };
   }
 
-  CardTemplateSkillUsage copyWith(
-          {int? id,
-          DateTime? createdAt,
-          DateTime? lastUpdatedAt,
-          Value<DateTime?> deletedAt = const Value.absent(),
-          String? queryUuid,
-          String? templateUuid,
-          int? skillId,
-          String? usedAt}) =>
-      CardTemplateSkillUsage(
-        id: id ?? this.id,
-        createdAt: createdAt ?? this.createdAt,
-        lastUpdatedAt: lastUpdatedAt ?? this.lastUpdatedAt,
-        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
-        queryUuid: queryUuid ?? this.queryUuid,
-        templateUuid: templateUuid ?? this.templateUuid,
-        skillId: skillId ?? this.skillId,
-        usedAt: usedAt ?? this.usedAt,
-      );
+  CardTemplateSkillUsage copyWith({
+    int? id,
+    DateTime? createdAt,
+    DateTime? lastUpdatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    String? queryUuid,
+    String? templateUuid,
+    int? skillId,
+    String? usedAt,
+  }) => CardTemplateSkillUsage(
+    id: id ?? this.id,
+    createdAt: createdAt ?? this.createdAt,
+    lastUpdatedAt: lastUpdatedAt ?? this.lastUpdatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    queryUuid: queryUuid ?? this.queryUuid,
+    templateUuid: templateUuid ?? this.templateUuid,
+    skillId: skillId ?? this.skillId,
+    usedAt: usedAt ?? this.usedAt,
+  );
   CardTemplateSkillUsage copyWithCompanion(
-      CardTemplateSkillUsagesCompanion data) {
+    CardTemplateSkillUsagesCompanion data,
+  ) {
     return CardTemplateSkillUsage(
       id: data.id.present ? data.id.value : this.id,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -2180,8 +2585,16 @@ class CardTemplateSkillUsage extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(id, createdAt, lastUpdatedAt, deletedAt,
-      queryUuid, templateUuid, skillId, usedAt);
+  int get hashCode => Object.hash(
+    id,
+    createdAt,
+    lastUpdatedAt,
+    deletedAt,
+    queryUuid,
+    templateUuid,
+    skillId,
+    usedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2225,12 +2638,12 @@ class CardTemplateSkillUsagesCompanion
     required String templateUuid,
     required int skillId,
     required String usedAt,
-  })  : createdAt = Value(createdAt),
-        lastUpdatedAt = Value(lastUpdatedAt),
-        queryUuid = Value(queryUuid),
-        templateUuid = Value(templateUuid),
-        skillId = Value(skillId),
-        usedAt = Value(usedAt);
+  }) : createdAt = Value(createdAt),
+       lastUpdatedAt = Value(lastUpdatedAt),
+       queryUuid = Value(queryUuid),
+       templateUuid = Value(templateUuid),
+       skillId = Value(skillId),
+       usedAt = Value(usedAt);
   static Insertable<CardTemplateSkillUsage> custom({
     Expression<int>? id,
     Expression<DateTime>? createdAt,
@@ -2253,15 +2666,16 @@ class CardTemplateSkillUsagesCompanion
     });
   }
 
-  CardTemplateSkillUsagesCompanion copyWith(
-      {Value<int>? id,
-      Value<DateTime>? createdAt,
-      Value<DateTime>? lastUpdatedAt,
-      Value<DateTime?>? deletedAt,
-      Value<String>? queryUuid,
-      Value<String>? templateUuid,
-      Value<int>? skillId,
-      Value<String>? usedAt}) {
+  CardTemplateSkillUsagesCompanion copyWith({
+    Value<int>? id,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? lastUpdatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<String>? queryUuid,
+    Value<String>? templateUuid,
+    Value<int>? skillId,
+    Value<String>? usedAt,
+  }) {
     return CardTemplateSkillUsagesCompanion(
       id: id ?? this.id,
       createdAt: createdAt ?? this.createdAt,
@@ -2326,58 +2740,95 @@ class $MarketTemplateInstallsTable extends MarketTemplateInstalls
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $MarketTemplateInstallsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _localTemplateUuidMeta =
-      const VerificationMeta('localTemplateUuid');
+  static const VerificationMeta _localTemplateUuidMeta = const VerificationMeta(
+    'localTemplateUuid',
+  );
   @override
   late final GeneratedColumn<String> localTemplateUuid =
-      GeneratedColumn<String>('local_template_uuid', aliasedName, false,
-          type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _marketTemplateIdMeta =
-      const VerificationMeta('marketTemplateId');
+      GeneratedColumn<String>(
+        'local_template_uuid',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _marketTemplateIdMeta = const VerificationMeta(
+    'marketTemplateId',
+  );
   @override
   late final GeneratedColumn<String> marketTemplateId = GeneratedColumn<String>(
-      'market_template_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _marketVersionIdMeta =
-      const VerificationMeta('marketVersionId');
+    'market_template_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _marketVersionIdMeta = const VerificationMeta(
+    'marketVersionId',
+  );
   @override
   late final GeneratedColumn<String> marketVersionId = GeneratedColumn<String>(
-      'market_version_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _installedAtMeta =
-      const VerificationMeta('installedAt');
+    'market_version_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _installedAtMeta = const VerificationMeta(
+    'installedAt',
+  );
   @override
   late final GeneratedColumn<DateTime> installedAt = GeneratedColumn<DateTime>(
-      'installed_at', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
-  static const VerificationMeta _pinnedAtMeta =
-      const VerificationMeta('pinnedAt');
+    'installed_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _pinnedAtMeta = const VerificationMeta(
+    'pinnedAt',
+  );
   @override
   late final GeneratedColumn<DateTime> pinnedAt = GeneratedColumn<DateTime>(
-      'pinned_at', aliasedName, true,
-      type: DriftSqlType.dateTime, requiredDuringInsert: false);
-  static const VerificationMeta _lastCheckedAtMeta =
-      const VerificationMeta('lastCheckedAt');
+    'pinned_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastCheckedAtMeta = const VerificationMeta(
+    'lastCheckedAt',
+  );
   @override
   late final GeneratedColumn<DateTime> lastCheckedAt =
-      GeneratedColumn<DateTime>('last_checked_at', aliasedName, true,
-          type: DriftSqlType.dateTime, requiredDuringInsert: false);
-  static const VerificationMeta _deletedAtMeta =
-      const VerificationMeta('deletedAt');
+      GeneratedColumn<DateTime>(
+        'last_checked_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
   @override
   late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
-      'deleted_at', aliasedName, true,
-      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
-        localTemplateUuid,
-        marketTemplateId,
-        marketVersionId,
-        installedAt,
-        pinnedAt,
-        lastCheckedAt,
-        deletedAt
-      ];
+    localTemplateUuid,
+    marketTemplateId,
+    marketVersionId,
+    installedAt,
+    pinnedAt,
+    lastCheckedAt,
+    deletedAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -2385,55 +2836,75 @@ class $MarketTemplateInstallsTable extends MarketTemplateInstalls
   static const String $name = 't_market_template_installs';
   @override
   VerificationContext validateIntegrity(
-      Insertable<MarketTemplateInstall> instance,
-      {bool isInserting = false}) {
+    Insertable<MarketTemplateInstall> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('local_template_uuid')) {
       context.handle(
+        _localTemplateUuidMeta,
+        localTemplateUuid.isAcceptableOrUnknown(
+          data['local_template_uuid']!,
           _localTemplateUuidMeta,
-          localTemplateUuid.isAcceptableOrUnknown(
-              data['local_template_uuid']!, _localTemplateUuidMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_localTemplateUuidMeta);
     }
     if (data.containsKey('market_template_id')) {
       context.handle(
+        _marketTemplateIdMeta,
+        marketTemplateId.isAcceptableOrUnknown(
+          data['market_template_id']!,
           _marketTemplateIdMeta,
-          marketTemplateId.isAcceptableOrUnknown(
-              data['market_template_id']!, _marketTemplateIdMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_marketTemplateIdMeta);
     }
     if (data.containsKey('market_version_id')) {
       context.handle(
+        _marketVersionIdMeta,
+        marketVersionId.isAcceptableOrUnknown(
+          data['market_version_id']!,
           _marketVersionIdMeta,
-          marketVersionId.isAcceptableOrUnknown(
-              data['market_version_id']!, _marketVersionIdMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_marketVersionIdMeta);
     }
     if (data.containsKey('installed_at')) {
       context.handle(
+        _installedAtMeta,
+        installedAt.isAcceptableOrUnknown(
+          data['installed_at']!,
           _installedAtMeta,
-          installedAt.isAcceptableOrUnknown(
-              data['installed_at']!, _installedAtMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_installedAtMeta);
     }
     if (data.containsKey('pinned_at')) {
-      context.handle(_pinnedAtMeta,
-          pinnedAt.isAcceptableOrUnknown(data['pinned_at']!, _pinnedAtMeta));
+      context.handle(
+        _pinnedAtMeta,
+        pinnedAt.isAcceptableOrUnknown(data['pinned_at']!, _pinnedAtMeta),
+      );
     }
     if (data.containsKey('last_checked_at')) {
       context.handle(
+        _lastCheckedAtMeta,
+        lastCheckedAt.isAcceptableOrUnknown(
+          data['last_checked_at']!,
           _lastCheckedAtMeta,
-          lastCheckedAt.isAcceptableOrUnknown(
-              data['last_checked_at']!, _lastCheckedAtMeta));
+        ),
+      );
     }
     if (data.containsKey('deleted_at')) {
-      context.handle(_deletedAtMeta,
-          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
     }
     return context;
   }
@@ -2445,19 +2916,33 @@ class $MarketTemplateInstallsTable extends MarketTemplateInstalls
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return MarketTemplateInstall(
       localTemplateUuid: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}local_template_uuid'])!,
+        DriftSqlType.string,
+        data['${effectivePrefix}local_template_uuid'],
+      )!,
       marketTemplateId: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}market_template_id'])!,
+        DriftSqlType.string,
+        data['${effectivePrefix}market_template_id'],
+      )!,
       marketVersionId: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}market_version_id'])!,
-      installedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}installed_at'])!,
-      pinnedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}pinned_at']),
+        DriftSqlType.string,
+        data['${effectivePrefix}market_version_id'],
+      )!,
+      installedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}installed_at'],
+      )!,
+      pinnedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}pinned_at'],
+      ),
       lastCheckedAt: attachedDatabase.typeMapping.read(
-          DriftSqlType.dateTime, data['${effectivePrefix}last_checked_at']),
-      deletedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_checked_at'],
+      ),
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
     );
   }
 
@@ -2476,14 +2961,15 @@ class MarketTemplateInstall extends DataClass
   final DateTime? pinnedAt;
   final DateTime? lastCheckedAt;
   final DateTime? deletedAt;
-  const MarketTemplateInstall(
-      {required this.localTemplateUuid,
-      required this.marketTemplateId,
-      required this.marketVersionId,
-      required this.installedAt,
-      this.pinnedAt,
-      this.lastCheckedAt,
-      this.deletedAt});
+  const MarketTemplateInstall({
+    required this.localTemplateUuid,
+    required this.marketTemplateId,
+    required this.marketVersionId,
+    required this.installedAt,
+    this.pinnedAt,
+    this.lastCheckedAt,
+    this.deletedAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -2521,8 +3007,10 @@ class MarketTemplateInstall extends DataClass
     );
   }
 
-  factory MarketTemplateInstall.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory MarketTemplateInstall.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return MarketTemplateInstall(
       localTemplateUuid: serializer.fromJson<String>(json['localTemplateUuid']),
@@ -2548,26 +3036,28 @@ class MarketTemplateInstall extends DataClass
     };
   }
 
-  MarketTemplateInstall copyWith(
-          {String? localTemplateUuid,
-          String? marketTemplateId,
-          String? marketVersionId,
-          DateTime? installedAt,
-          Value<DateTime?> pinnedAt = const Value.absent(),
-          Value<DateTime?> lastCheckedAt = const Value.absent(),
-          Value<DateTime?> deletedAt = const Value.absent()}) =>
-      MarketTemplateInstall(
-        localTemplateUuid: localTemplateUuid ?? this.localTemplateUuid,
-        marketTemplateId: marketTemplateId ?? this.marketTemplateId,
-        marketVersionId: marketVersionId ?? this.marketVersionId,
-        installedAt: installedAt ?? this.installedAt,
-        pinnedAt: pinnedAt.present ? pinnedAt.value : this.pinnedAt,
-        lastCheckedAt:
-            lastCheckedAt.present ? lastCheckedAt.value : this.lastCheckedAt,
-        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
-      );
+  MarketTemplateInstall copyWith({
+    String? localTemplateUuid,
+    String? marketTemplateId,
+    String? marketVersionId,
+    DateTime? installedAt,
+    Value<DateTime?> pinnedAt = const Value.absent(),
+    Value<DateTime?> lastCheckedAt = const Value.absent(),
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => MarketTemplateInstall(
+    localTemplateUuid: localTemplateUuid ?? this.localTemplateUuid,
+    marketTemplateId: marketTemplateId ?? this.marketTemplateId,
+    marketVersionId: marketVersionId ?? this.marketVersionId,
+    installedAt: installedAt ?? this.installedAt,
+    pinnedAt: pinnedAt.present ? pinnedAt.value : this.pinnedAt,
+    lastCheckedAt: lastCheckedAt.present
+        ? lastCheckedAt.value
+        : this.lastCheckedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
   MarketTemplateInstall copyWithCompanion(
-      MarketTemplateInstallsCompanion data) {
+    MarketTemplateInstallsCompanion data,
+  ) {
     return MarketTemplateInstall(
       localTemplateUuid: data.localTemplateUuid.present
           ? data.localTemplateUuid.value
@@ -2578,8 +3068,9 @@ class MarketTemplateInstall extends DataClass
       marketVersionId: data.marketVersionId.present
           ? data.marketVersionId.value
           : this.marketVersionId,
-      installedAt:
-          data.installedAt.present ? data.installedAt.value : this.installedAt,
+      installedAt: data.installedAt.present
+          ? data.installedAt.value
+          : this.installedAt,
       pinnedAt: data.pinnedAt.present ? data.pinnedAt.value : this.pinnedAt,
       lastCheckedAt: data.lastCheckedAt.present
           ? data.lastCheckedAt.value
@@ -2603,8 +3094,15 @@ class MarketTemplateInstall extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(localTemplateUuid, marketTemplateId,
-      marketVersionId, installedAt, pinnedAt, lastCheckedAt, deletedAt);
+  int get hashCode => Object.hash(
+    localTemplateUuid,
+    marketTemplateId,
+    marketVersionId,
+    installedAt,
+    pinnedAt,
+    lastCheckedAt,
+    deletedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2647,10 +3145,10 @@ class MarketTemplateInstallsCompanion
     this.lastCheckedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
-  })  : localTemplateUuid = Value(localTemplateUuid),
-        marketTemplateId = Value(marketTemplateId),
-        marketVersionId = Value(marketVersionId),
-        installedAt = Value(installedAt);
+  }) : localTemplateUuid = Value(localTemplateUuid),
+       marketTemplateId = Value(marketTemplateId),
+       marketVersionId = Value(marketVersionId),
+       installedAt = Value(installedAt);
   static Insertable<MarketTemplateInstall> custom({
     Expression<String>? localTemplateUuid,
     Expression<String>? marketTemplateId,
@@ -2673,15 +3171,16 @@ class MarketTemplateInstallsCompanion
     });
   }
 
-  MarketTemplateInstallsCompanion copyWith(
-      {Value<String>? localTemplateUuid,
-      Value<String>? marketTemplateId,
-      Value<String>? marketVersionId,
-      Value<DateTime>? installedAt,
-      Value<DateTime?>? pinnedAt,
-      Value<DateTime?>? lastCheckedAt,
-      Value<DateTime?>? deletedAt,
-      Value<int>? rowid}) {
+  MarketTemplateInstallsCompanion copyWith({
+    Value<String>? localTemplateUuid,
+    Value<String>? marketTemplateId,
+    Value<String>? marketVersionId,
+    Value<DateTime>? installedAt,
+    Value<DateTime?>? pinnedAt,
+    Value<DateTime?>? lastCheckedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
     return MarketTemplateInstallsCompanion(
       localTemplateUuid: localTemplateUuid ?? this.localTemplateUuid,
       marketTemplateId: marketTemplateId ?? this.marketTemplateId,
@@ -2745,8 +3244,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $DaYunRecordsTable daYunRecords = $DaYunRecordsTable(this);
   late final $TaiYuanRecordsTable taiYuanRecords = $TaiYuanRecordsTable(this);
-  late final $LayoutTemplatesTable layoutTemplates =
-      $LayoutTemplatesTable(this);
+  late final $LayoutTemplatesTable layoutTemplates = $LayoutTemplatesTable(
+    this,
+  );
   late final $CardTemplateMetasTable cardTemplateMetas =
       $CardTemplateMetasTable(this);
   late final $CardTemplateSettingsTable cardTemplateSettings =
@@ -2755,47 +3255,49 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $CardTemplateSkillUsagesTable(this);
   late final $MarketTemplateInstallsTable marketTemplateInstalls =
       $MarketTemplateInstallsTable(this);
-  late final CardTemplateMetaDao cardTemplateMetaDao =
-      CardTemplateMetaDao(this as AppDatabase);
+  late final CardTemplateMetaDao cardTemplateMetaDao = CardTemplateMetaDao(
+    this as AppDatabase,
+  );
   late final CardTemplateSettingDao cardTemplateSettingDao =
       CardTemplateSettingDao(this as AppDatabase);
   late final CardTemplateSkillUsageDao cardTemplateSkillUsageDao =
       CardTemplateSkillUsageDao(this as AppDatabase);
-  late final LayoutTemplatesDao layoutTemplatesDao =
-      LayoutTemplatesDao(this as AppDatabase);
+  late final LayoutTemplatesDao layoutTemplatesDao = LayoutTemplatesDao(
+    this as AppDatabase,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
-        daYunRecords,
-        taiYuanRecords,
-        layoutTemplates,
-        cardTemplateMetas,
-        cardTemplateSettings,
-        cardTemplateSkillUsages,
-        marketTemplateInstalls
-      ];
+    daYunRecords,
+    taiYuanRecords,
+    layoutTemplates,
+    cardTemplateMetas,
+    cardTemplateSettings,
+    cardTemplateSkillUsages,
+    marketTemplateInstalls,
+  ];
 }
 
-typedef $$DaYunRecordsTableCreateCompanionBuilder = DaYunRecordsCompanion
-    Function({
-  required String uuid,
-  required String sourceUuid,
-  required String jieQiType,
-  required String precision,
-  required DateTime createdAt,
-  Value<int> rowid,
-});
-typedef $$DaYunRecordsTableUpdateCompanionBuilder = DaYunRecordsCompanion
-    Function({
-  Value<String> uuid,
-  Value<String> sourceUuid,
-  Value<String> jieQiType,
-  Value<String> precision,
-  Value<DateTime> createdAt,
-  Value<int> rowid,
-});
+typedef $$DaYunRecordsTableCreateCompanionBuilder =
+    DaYunRecordsCompanion Function({
+      required String uuid,
+      required String sourceUuid,
+      required String jieQiType,
+      required String precision,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$DaYunRecordsTableUpdateCompanionBuilder =
+    DaYunRecordsCompanion Function({
+      Value<String> uuid,
+      Value<String> sourceUuid,
+      Value<String> jieQiType,
+      Value<String> precision,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
 
 class $$DaYunRecordsTableFilterComposer
     extends Composer<_$AppDatabase, $DaYunRecordsTable> {
@@ -2807,19 +3309,29 @@ class $$DaYunRecordsTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get uuid => $composableBuilder(
-      column: $table.uuid, builder: (column) => ColumnFilters(column));
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get sourceUuid => $composableBuilder(
-      column: $table.sourceUuid, builder: (column) => ColumnFilters(column));
+    column: $table.sourceUuid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get jieQiType => $composableBuilder(
-      column: $table.jieQiType, builder: (column) => ColumnFilters(column));
+    column: $table.jieQiType,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get precision => $composableBuilder(
-      column: $table.precision, builder: (column) => ColumnFilters(column));
+    column: $table.precision,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$DaYunRecordsTableOrderingComposer
@@ -2832,19 +3344,29 @@ class $$DaYunRecordsTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get uuid => $composableBuilder(
-      column: $table.uuid, builder: (column) => ColumnOrderings(column));
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get sourceUuid => $composableBuilder(
-      column: $table.sourceUuid, builder: (column) => ColumnOrderings(column));
+    column: $table.sourceUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get jieQiType => $composableBuilder(
-      column: $table.jieQiType, builder: (column) => ColumnOrderings(column));
+    column: $table.jieQiType,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get precision => $composableBuilder(
-      column: $table.precision, builder: (column) => ColumnOrderings(column));
+    column: $table.precision,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$DaYunRecordsTableAnnotationComposer
@@ -2860,7 +3382,9 @@ class $$DaYunRecordsTableAnnotationComposer
       $composableBuilder(column: $table.uuid, builder: (column) => column);
 
   GeneratedColumn<String> get sourceUuid => $composableBuilder(
-      column: $table.sourceUuid, builder: (column) => column);
+    column: $table.sourceUuid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get jieQiType =>
       $composableBuilder(column: $table.jieQiType, builder: (column) => column);
@@ -2872,23 +3396,27 @@ class $$DaYunRecordsTableAnnotationComposer
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 }
 
-class $$DaYunRecordsTableTableManager extends RootTableManager<
-    _$AppDatabase,
-    $DaYunRecordsTable,
-    DaYunRecord,
-    $$DaYunRecordsTableFilterComposer,
-    $$DaYunRecordsTableOrderingComposer,
-    $$DaYunRecordsTableAnnotationComposer,
-    $$DaYunRecordsTableCreateCompanionBuilder,
-    $$DaYunRecordsTableUpdateCompanionBuilder,
-    (
-      DaYunRecord,
-      BaseReferences<_$AppDatabase, $DaYunRecordsTable, DaYunRecord>
-    ),
-    DaYunRecord,
-    PrefetchHooks Function()> {
+class $$DaYunRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DaYunRecordsTable,
+          DaYunRecord,
+          $$DaYunRecordsTableFilterComposer,
+          $$DaYunRecordsTableOrderingComposer,
+          $$DaYunRecordsTableAnnotationComposer,
+          $$DaYunRecordsTableCreateCompanionBuilder,
+          $$DaYunRecordsTableUpdateCompanionBuilder,
+          (
+            DaYunRecord,
+            BaseReferences<_$AppDatabase, $DaYunRecordsTable, DaYunRecord>,
+          ),
+          DaYunRecord,
+          PrefetchHooks Function()
+        > {
   $$DaYunRecordsTableTableManager(_$AppDatabase db, $DaYunRecordsTable table)
-      : super(TableManagerState(
+    : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -2897,80 +3425,83 @@ class $$DaYunRecordsTableTableManager extends RootTableManager<
               $$DaYunRecordsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$DaYunRecordsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> uuid = const Value.absent(),
-            Value<String> sourceUuid = const Value.absent(),
-            Value<String> jieQiType = const Value.absent(),
-            Value<String> precision = const Value.absent(),
-            Value<DateTime> createdAt = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              DaYunRecordsCompanion(
-            uuid: uuid,
-            sourceUuid: sourceUuid,
-            jieQiType: jieQiType,
-            precision: precision,
-            createdAt: createdAt,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String uuid,
-            required String sourceUuid,
-            required String jieQiType,
-            required String precision,
-            required DateTime createdAt,
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              DaYunRecordsCompanion.insert(
-            uuid: uuid,
-            sourceUuid: sourceUuid,
-            jieQiType: jieQiType,
-            precision: precision,
-            createdAt: createdAt,
-            rowid: rowid,
-          ),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> sourceUuid = const Value.absent(),
+                Value<String> jieQiType = const Value.absent(),
+                Value<String> precision = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DaYunRecordsCompanion(
+                uuid: uuid,
+                sourceUuid: sourceUuid,
+                jieQiType: jieQiType,
+                precision: precision,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String sourceUuid,
+                required String jieQiType,
+                required String precision,
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => DaYunRecordsCompanion.insert(
+                uuid: uuid,
+                sourceUuid: sourceUuid,
+                jieQiType: jieQiType,
+                precision: precision,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ));
+        ),
+      );
 }
 
-typedef $$DaYunRecordsTableProcessedTableManager = ProcessedTableManager<
-    _$AppDatabase,
-    $DaYunRecordsTable,
-    DaYunRecord,
-    $$DaYunRecordsTableFilterComposer,
-    $$DaYunRecordsTableOrderingComposer,
-    $$DaYunRecordsTableAnnotationComposer,
-    $$DaYunRecordsTableCreateCompanionBuilder,
-    $$DaYunRecordsTableUpdateCompanionBuilder,
-    (
+typedef $$DaYunRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DaYunRecordsTable,
       DaYunRecord,
-      BaseReferences<_$AppDatabase, $DaYunRecordsTable, DaYunRecord>
-    ),
-    DaYunRecord,
-    PrefetchHooks Function()>;
-typedef $$TaiYuanRecordsTableCreateCompanionBuilder = TaiYuanRecordsCompanion
-    Function({
-  required String uuid,
-  required String calendarUuid,
-  required String strategy,
-  required String pillar,
-  Value<String?> description,
-  required DateTime createdAt,
-  Value<int> rowid,
-});
-typedef $$TaiYuanRecordsTableUpdateCompanionBuilder = TaiYuanRecordsCompanion
-    Function({
-  Value<String> uuid,
-  Value<String> calendarUuid,
-  Value<String> strategy,
-  Value<String> pillar,
-  Value<String?> description,
-  Value<DateTime> createdAt,
-  Value<int> rowid,
-});
+      $$DaYunRecordsTableFilterComposer,
+      $$DaYunRecordsTableOrderingComposer,
+      $$DaYunRecordsTableAnnotationComposer,
+      $$DaYunRecordsTableCreateCompanionBuilder,
+      $$DaYunRecordsTableUpdateCompanionBuilder,
+      (
+        DaYunRecord,
+        BaseReferences<_$AppDatabase, $DaYunRecordsTable, DaYunRecord>,
+      ),
+      DaYunRecord,
+      PrefetchHooks Function()
+    >;
+typedef $$TaiYuanRecordsTableCreateCompanionBuilder =
+    TaiYuanRecordsCompanion Function({
+      required String uuid,
+      required String calendarUuid,
+      required String strategy,
+      required String pillar,
+      Value<String?> description,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$TaiYuanRecordsTableUpdateCompanionBuilder =
+    TaiYuanRecordsCompanion Function({
+      Value<String> uuid,
+      Value<String> calendarUuid,
+      Value<String> strategy,
+      Value<String> pillar,
+      Value<String?> description,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
 
 class $$TaiYuanRecordsTableFilterComposer
     extends Composer<_$AppDatabase, $TaiYuanRecordsTable> {
@@ -2982,22 +3513,34 @@ class $$TaiYuanRecordsTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get uuid => $composableBuilder(
-      column: $table.uuid, builder: (column) => ColumnFilters(column));
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get calendarUuid => $composableBuilder(
-      column: $table.calendarUuid, builder: (column) => ColumnFilters(column));
+    column: $table.calendarUuid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get strategy => $composableBuilder(
-      column: $table.strategy, builder: (column) => ColumnFilters(column));
+    column: $table.strategy,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get pillar => $composableBuilder(
-      column: $table.pillar, builder: (column) => ColumnFilters(column));
+    column: $table.pillar,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get description => $composableBuilder(
-      column: $table.description, builder: (column) => ColumnFilters(column));
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$TaiYuanRecordsTableOrderingComposer
@@ -3010,23 +3553,34 @@ class $$TaiYuanRecordsTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get uuid => $composableBuilder(
-      column: $table.uuid, builder: (column) => ColumnOrderings(column));
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get calendarUuid => $composableBuilder(
-      column: $table.calendarUuid,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.calendarUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get strategy => $composableBuilder(
-      column: $table.strategy, builder: (column) => ColumnOrderings(column));
+    column: $table.strategy,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get pillar => $composableBuilder(
-      column: $table.pillar, builder: (column) => ColumnOrderings(column));
+    column: $table.pillar,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get description => $composableBuilder(
-      column: $table.description, builder: (column) => ColumnOrderings(column));
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$TaiYuanRecordsTableAnnotationComposer
@@ -3042,7 +3596,9 @@ class $$TaiYuanRecordsTableAnnotationComposer
       $composableBuilder(column: $table.uuid, builder: (column) => column);
 
   GeneratedColumn<String> get calendarUuid => $composableBuilder(
-      column: $table.calendarUuid, builder: (column) => column);
+    column: $table.calendarUuid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get strategy =>
       $composableBuilder(column: $table.strategy, builder: (column) => column);
@@ -3051,30 +3607,37 @@ class $$TaiYuanRecordsTableAnnotationComposer
       $composableBuilder(column: $table.pillar, builder: (column) => column);
 
   GeneratedColumn<String> get description => $composableBuilder(
-      column: $table.description, builder: (column) => column);
+    column: $table.description,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 }
 
-class $$TaiYuanRecordsTableTableManager extends RootTableManager<
-    _$AppDatabase,
-    $TaiYuanRecordsTable,
-    TaiYuanRecord,
-    $$TaiYuanRecordsTableFilterComposer,
-    $$TaiYuanRecordsTableOrderingComposer,
-    $$TaiYuanRecordsTableAnnotationComposer,
-    $$TaiYuanRecordsTableCreateCompanionBuilder,
-    $$TaiYuanRecordsTableUpdateCompanionBuilder,
-    (
-      TaiYuanRecord,
-      BaseReferences<_$AppDatabase, $TaiYuanRecordsTable, TaiYuanRecord>
-    ),
-    TaiYuanRecord,
-    PrefetchHooks Function()> {
+class $$TaiYuanRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TaiYuanRecordsTable,
+          TaiYuanRecord,
+          $$TaiYuanRecordsTableFilterComposer,
+          $$TaiYuanRecordsTableOrderingComposer,
+          $$TaiYuanRecordsTableAnnotationComposer,
+          $$TaiYuanRecordsTableCreateCompanionBuilder,
+          $$TaiYuanRecordsTableUpdateCompanionBuilder,
+          (
+            TaiYuanRecord,
+            BaseReferences<_$AppDatabase, $TaiYuanRecordsTable, TaiYuanRecord>,
+          ),
+          TaiYuanRecord,
+          PrefetchHooks Function()
+        > {
   $$TaiYuanRecordsTableTableManager(
-      _$AppDatabase db, $TaiYuanRecordsTable table)
-      : super(TableManagerState(
+    _$AppDatabase db,
+    $TaiYuanRecordsTable table,
+  ) : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -3083,88 +3646,91 @@ class $$TaiYuanRecordsTableTableManager extends RootTableManager<
               $$TaiYuanRecordsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$TaiYuanRecordsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> uuid = const Value.absent(),
-            Value<String> calendarUuid = const Value.absent(),
-            Value<String> strategy = const Value.absent(),
-            Value<String> pillar = const Value.absent(),
-            Value<String?> description = const Value.absent(),
-            Value<DateTime> createdAt = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              TaiYuanRecordsCompanion(
-            uuid: uuid,
-            calendarUuid: calendarUuid,
-            strategy: strategy,
-            pillar: pillar,
-            description: description,
-            createdAt: createdAt,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String uuid,
-            required String calendarUuid,
-            required String strategy,
-            required String pillar,
-            Value<String?> description = const Value.absent(),
-            required DateTime createdAt,
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              TaiYuanRecordsCompanion.insert(
-            uuid: uuid,
-            calendarUuid: calendarUuid,
-            strategy: strategy,
-            pillar: pillar,
-            description: description,
-            createdAt: createdAt,
-            rowid: rowid,
-          ),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> calendarUuid = const Value.absent(),
+                Value<String> strategy = const Value.absent(),
+                Value<String> pillar = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TaiYuanRecordsCompanion(
+                uuid: uuid,
+                calendarUuid: calendarUuid,
+                strategy: strategy,
+                pillar: pillar,
+                description: description,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String calendarUuid,
+                required String strategy,
+                required String pillar,
+                Value<String?> description = const Value.absent(),
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => TaiYuanRecordsCompanion.insert(
+                uuid: uuid,
+                calendarUuid: calendarUuid,
+                strategy: strategy,
+                pillar: pillar,
+                description: description,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ));
+        ),
+      );
 }
 
-typedef $$TaiYuanRecordsTableProcessedTableManager = ProcessedTableManager<
-    _$AppDatabase,
-    $TaiYuanRecordsTable,
-    TaiYuanRecord,
-    $$TaiYuanRecordsTableFilterComposer,
-    $$TaiYuanRecordsTableOrderingComposer,
-    $$TaiYuanRecordsTableAnnotationComposer,
-    $$TaiYuanRecordsTableCreateCompanionBuilder,
-    $$TaiYuanRecordsTableUpdateCompanionBuilder,
-    (
+typedef $$TaiYuanRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TaiYuanRecordsTable,
       TaiYuanRecord,
-      BaseReferences<_$AppDatabase, $TaiYuanRecordsTable, TaiYuanRecord>
-    ),
-    TaiYuanRecord,
-    PrefetchHooks Function()>;
-typedef $$LayoutTemplatesTableCreateCompanionBuilder = LayoutTemplatesCompanion
-    Function({
-  required String uuid,
-  required String collectionId,
-  required String name,
-  Value<String?> description,
-  required String templateJson,
-  required int version,
-  required DateTime updatedAt,
-  Value<DateTime?> deletedAt,
-  Value<int> rowid,
-});
-typedef $$LayoutTemplatesTableUpdateCompanionBuilder = LayoutTemplatesCompanion
-    Function({
-  Value<String> uuid,
-  Value<String> collectionId,
-  Value<String> name,
-  Value<String?> description,
-  Value<String> templateJson,
-  Value<int> version,
-  Value<DateTime> updatedAt,
-  Value<DateTime?> deletedAt,
-  Value<int> rowid,
-});
+      $$TaiYuanRecordsTableFilterComposer,
+      $$TaiYuanRecordsTableOrderingComposer,
+      $$TaiYuanRecordsTableAnnotationComposer,
+      $$TaiYuanRecordsTableCreateCompanionBuilder,
+      $$TaiYuanRecordsTableUpdateCompanionBuilder,
+      (
+        TaiYuanRecord,
+        BaseReferences<_$AppDatabase, $TaiYuanRecordsTable, TaiYuanRecord>,
+      ),
+      TaiYuanRecord,
+      PrefetchHooks Function()
+    >;
+typedef $$LayoutTemplatesTableCreateCompanionBuilder =
+    LayoutTemplatesCompanion Function({
+      required String uuid,
+      required String collectionId,
+      required String name,
+      Value<String?> description,
+      required String templateJson,
+      required int version,
+      required DateTime updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$LayoutTemplatesTableUpdateCompanionBuilder =
+    LayoutTemplatesCompanion Function({
+      Value<String> uuid,
+      Value<String> collectionId,
+      Value<String> name,
+      Value<String?> description,
+      Value<String> templateJson,
+      Value<int> version,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
 
 class $$LayoutTemplatesTableFilterComposer
     extends Composer<_$AppDatabase, $LayoutTemplatesTable> {
@@ -3176,28 +3742,44 @@ class $$LayoutTemplatesTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get uuid => $composableBuilder(
-      column: $table.uuid, builder: (column) => ColumnFilters(column));
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get collectionId => $composableBuilder(
-      column: $table.collectionId, builder: (column) => ColumnFilters(column));
+    column: $table.collectionId,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnFilters(column));
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get description => $composableBuilder(
-      column: $table.description, builder: (column) => ColumnFilters(column));
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get templateJson => $composableBuilder(
-      column: $table.templateJson, builder: (column) => ColumnFilters(column));
+    column: $table.templateJson,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<int> get version => $composableBuilder(
-      column: $table.version, builder: (column) => ColumnFilters(column));
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
-      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
-      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$LayoutTemplatesTableOrderingComposer
@@ -3210,30 +3792,44 @@ class $$LayoutTemplatesTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get uuid => $composableBuilder(
-      column: $table.uuid, builder: (column) => ColumnOrderings(column));
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get collectionId => $composableBuilder(
-      column: $table.collectionId,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.collectionId,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnOrderings(column));
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get description => $composableBuilder(
-      column: $table.description, builder: (column) => ColumnOrderings(column));
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get templateJson => $composableBuilder(
-      column: $table.templateJson,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.templateJson,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get version => $composableBuilder(
-      column: $table.version, builder: (column) => ColumnOrderings(column));
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
-      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
-      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$LayoutTemplatesTableAnnotationComposer
@@ -3249,16 +3845,22 @@ class $$LayoutTemplatesTableAnnotationComposer
       $composableBuilder(column: $table.uuid, builder: (column) => column);
 
   GeneratedColumn<String> get collectionId => $composableBuilder(
-      column: $table.collectionId, builder: (column) => column);
+    column: $table.collectionId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
   GeneratedColumn<String> get description => $composableBuilder(
-      column: $table.description, builder: (column) => column);
+    column: $table.description,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get templateJson => $composableBuilder(
-      column: $table.templateJson, builder: (column) => column);
+    column: $table.templateJson,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get version =>
       $composableBuilder(column: $table.version, builder: (column) => column);
@@ -3270,24 +3872,33 @@ class $$LayoutTemplatesTableAnnotationComposer
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 }
 
-class $$LayoutTemplatesTableTableManager extends RootTableManager<
-    _$AppDatabase,
-    $LayoutTemplatesTable,
-    LayoutTemplateRow,
-    $$LayoutTemplatesTableFilterComposer,
-    $$LayoutTemplatesTableOrderingComposer,
-    $$LayoutTemplatesTableAnnotationComposer,
-    $$LayoutTemplatesTableCreateCompanionBuilder,
-    $$LayoutTemplatesTableUpdateCompanionBuilder,
-    (
-      LayoutTemplateRow,
-      BaseReferences<_$AppDatabase, $LayoutTemplatesTable, LayoutTemplateRow>
-    ),
-    LayoutTemplateRow,
-    PrefetchHooks Function()> {
+class $$LayoutTemplatesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LayoutTemplatesTable,
+          LayoutTemplateRow,
+          $$LayoutTemplatesTableFilterComposer,
+          $$LayoutTemplatesTableOrderingComposer,
+          $$LayoutTemplatesTableAnnotationComposer,
+          $$LayoutTemplatesTableCreateCompanionBuilder,
+          $$LayoutTemplatesTableUpdateCompanionBuilder,
+          (
+            LayoutTemplateRow,
+            BaseReferences<
+              _$AppDatabase,
+              $LayoutTemplatesTable,
+              LayoutTemplateRow
+            >,
+          ),
+          LayoutTemplateRow,
+          PrefetchHooks Function()
+        > {
   $$LayoutTemplatesTableTableManager(
-      _$AppDatabase db, $LayoutTemplatesTable table)
-      : super(TableManagerState(
+    _$AppDatabase db,
+    $LayoutTemplatesTable table,
+  ) : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -3296,94 +3907,97 @@ class $$LayoutTemplatesTableTableManager extends RootTableManager<
               $$LayoutTemplatesTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$LayoutTemplatesTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> uuid = const Value.absent(),
-            Value<String> collectionId = const Value.absent(),
-            Value<String> name = const Value.absent(),
-            Value<String?> description = const Value.absent(),
-            Value<String> templateJson = const Value.absent(),
-            Value<int> version = const Value.absent(),
-            Value<DateTime> updatedAt = const Value.absent(),
-            Value<DateTime?> deletedAt = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              LayoutTemplatesCompanion(
-            uuid: uuid,
-            collectionId: collectionId,
-            name: name,
-            description: description,
-            templateJson: templateJson,
-            version: version,
-            updatedAt: updatedAt,
-            deletedAt: deletedAt,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String uuid,
-            required String collectionId,
-            required String name,
-            Value<String?> description = const Value.absent(),
-            required String templateJson,
-            required int version,
-            required DateTime updatedAt,
-            Value<DateTime?> deletedAt = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              LayoutTemplatesCompanion.insert(
-            uuid: uuid,
-            collectionId: collectionId,
-            name: name,
-            description: description,
-            templateJson: templateJson,
-            version: version,
-            updatedAt: updatedAt,
-            deletedAt: deletedAt,
-            rowid: rowid,
-          ),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> collectionId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<String> templateJson = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LayoutTemplatesCompanion(
+                uuid: uuid,
+                collectionId: collectionId,
+                name: name,
+                description: description,
+                templateJson: templateJson,
+                version: version,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String collectionId,
+                required String name,
+                Value<String?> description = const Value.absent(),
+                required String templateJson,
+                required int version,
+                required DateTime updatedAt,
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LayoutTemplatesCompanion.insert(
+                uuid: uuid,
+                collectionId: collectionId,
+                name: name,
+                description: description,
+                templateJson: templateJson,
+                version: version,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ));
+        ),
+      );
 }
 
-typedef $$LayoutTemplatesTableProcessedTableManager = ProcessedTableManager<
-    _$AppDatabase,
-    $LayoutTemplatesTable,
-    LayoutTemplateRow,
-    $$LayoutTemplatesTableFilterComposer,
-    $$LayoutTemplatesTableOrderingComposer,
-    $$LayoutTemplatesTableAnnotationComposer,
-    $$LayoutTemplatesTableCreateCompanionBuilder,
-    $$LayoutTemplatesTableUpdateCompanionBuilder,
-    (
+typedef $$LayoutTemplatesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LayoutTemplatesTable,
       LayoutTemplateRow,
-      BaseReferences<_$AppDatabase, $LayoutTemplatesTable, LayoutTemplateRow>
-    ),
-    LayoutTemplateRow,
-    PrefetchHooks Function()>;
-typedef $$CardTemplateMetasTableCreateCompanionBuilder
-    = CardTemplateMetasCompanion Function({
-  required String templateUuid,
-  required DateTime createdAt,
-  required DateTime modifiedAt,
-  Value<DateTime?> deletedAt,
-  Value<String?> authorUuid,
-  Value<String?> createFromCardUuid,
-  Value<bool?> isCustomized,
-  Value<int> rowid,
-});
-typedef $$CardTemplateMetasTableUpdateCompanionBuilder
-    = CardTemplateMetasCompanion Function({
-  Value<String> templateUuid,
-  Value<DateTime> createdAt,
-  Value<DateTime> modifiedAt,
-  Value<DateTime?> deletedAt,
-  Value<String?> authorUuid,
-  Value<String?> createFromCardUuid,
-  Value<bool?> isCustomized,
-  Value<int> rowid,
-});
+      $$LayoutTemplatesTableFilterComposer,
+      $$LayoutTemplatesTableOrderingComposer,
+      $$LayoutTemplatesTableAnnotationComposer,
+      $$LayoutTemplatesTableCreateCompanionBuilder,
+      $$LayoutTemplatesTableUpdateCompanionBuilder,
+      (
+        LayoutTemplateRow,
+        BaseReferences<_$AppDatabase, $LayoutTemplatesTable, LayoutTemplateRow>,
+      ),
+      LayoutTemplateRow,
+      PrefetchHooks Function()
+    >;
+typedef $$CardTemplateMetasTableCreateCompanionBuilder =
+    CardTemplateMetasCompanion Function({
+      required String templateUuid,
+      required DateTime createdAt,
+      required DateTime modifiedAt,
+      Value<DateTime?> deletedAt,
+      Value<String?> authorUuid,
+      Value<String?> createFromCardUuid,
+      Value<bool?> isCustomized,
+      Value<int> rowid,
+    });
+typedef $$CardTemplateMetasTableUpdateCompanionBuilder =
+    CardTemplateMetasCompanion Function({
+      Value<String> templateUuid,
+      Value<DateTime> createdAt,
+      Value<DateTime> modifiedAt,
+      Value<DateTime?> deletedAt,
+      Value<String?> authorUuid,
+      Value<String?> createFromCardUuid,
+      Value<bool?> isCustomized,
+      Value<int> rowid,
+    });
 
 class $$CardTemplateMetasTableFilterComposer
     extends Composer<_$AppDatabase, $CardTemplateMetasTable> {
@@ -3395,26 +4009,39 @@ class $$CardTemplateMetasTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get templateUuid => $composableBuilder(
-      column: $table.templateUuid, builder: (column) => ColumnFilters(column));
+    column: $table.templateUuid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get modifiedAt => $composableBuilder(
-      column: $table.modifiedAt, builder: (column) => ColumnFilters(column));
+    column: $table.modifiedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
-      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get authorUuid => $composableBuilder(
-      column: $table.authorUuid, builder: (column) => ColumnFilters(column));
+    column: $table.authorUuid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get createFromCardUuid => $composableBuilder(
-      column: $table.createFromCardUuid,
-      builder: (column) => ColumnFilters(column));
+    column: $table.createFromCardUuid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<bool> get isCustomized => $composableBuilder(
-      column: $table.isCustomized, builder: (column) => ColumnFilters(column));
+    column: $table.isCustomized,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$CardTemplateMetasTableOrderingComposer
@@ -3427,28 +4054,39 @@ class $$CardTemplateMetasTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get templateUuid => $composableBuilder(
-      column: $table.templateUuid,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.templateUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get modifiedAt => $composableBuilder(
-      column: $table.modifiedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.modifiedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
-      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get authorUuid => $composableBuilder(
-      column: $table.authorUuid, builder: (column) => ColumnOrderings(column));
+    column: $table.authorUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get createFromCardUuid => $composableBuilder(
-      column: $table.createFromCardUuid,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.createFromCardUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<bool> get isCustomized => $composableBuilder(
-      column: $table.isCustomized,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.isCustomized,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$CardTemplateMetasTableAnnotationComposer
@@ -3461,45 +4099,64 @@ class $$CardTemplateMetasTableAnnotationComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   GeneratedColumn<String> get templateUuid => $composableBuilder(
-      column: $table.templateUuid, builder: (column) => column);
+    column: $table.templateUuid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get modifiedAt => $composableBuilder(
-      column: $table.modifiedAt, builder: (column) => column);
+    column: $table.modifiedAt,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 
   GeneratedColumn<String> get authorUuid => $composableBuilder(
-      column: $table.authorUuid, builder: (column) => column);
+    column: $table.authorUuid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get createFromCardUuid => $composableBuilder(
-      column: $table.createFromCardUuid, builder: (column) => column);
+    column: $table.createFromCardUuid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<bool> get isCustomized => $composableBuilder(
-      column: $table.isCustomized, builder: (column) => column);
+    column: $table.isCustomized,
+    builder: (column) => column,
+  );
 }
 
-class $$CardTemplateMetasTableTableManager extends RootTableManager<
-    _$AppDatabase,
-    $CardTemplateMetasTable,
-    CardTemplateMeta,
-    $$CardTemplateMetasTableFilterComposer,
-    $$CardTemplateMetasTableOrderingComposer,
-    $$CardTemplateMetasTableAnnotationComposer,
-    $$CardTemplateMetasTableCreateCompanionBuilder,
-    $$CardTemplateMetasTableUpdateCompanionBuilder,
-    (
-      CardTemplateMeta,
-      BaseReferences<_$AppDatabase, $CardTemplateMetasTable, CardTemplateMeta>
-    ),
-    CardTemplateMeta,
-    PrefetchHooks Function()> {
+class $$CardTemplateMetasTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CardTemplateMetasTable,
+          CardTemplateMeta,
+          $$CardTemplateMetasTableFilterComposer,
+          $$CardTemplateMetasTableOrderingComposer,
+          $$CardTemplateMetasTableAnnotationComposer,
+          $$CardTemplateMetasTableCreateCompanionBuilder,
+          $$CardTemplateMetasTableUpdateCompanionBuilder,
+          (
+            CardTemplateMeta,
+            BaseReferences<
+              _$AppDatabase,
+              $CardTemplateMetasTable,
+              CardTemplateMeta
+            >,
+          ),
+          CardTemplateMeta,
+          PrefetchHooks Function()
+        > {
   $$CardTemplateMetasTableTableManager(
-      _$AppDatabase db, $CardTemplateMetasTable table)
-      : super(TableManagerState(
+    _$AppDatabase db,
+    $CardTemplateMetasTable table,
+  ) : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -3508,87 +4165,96 @@ class $$CardTemplateMetasTableTableManager extends RootTableManager<
               $$CardTemplateMetasTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$CardTemplateMetasTableAnnotationComposer(
-                  $db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> templateUuid = const Value.absent(),
-            Value<DateTime> createdAt = const Value.absent(),
-            Value<DateTime> modifiedAt = const Value.absent(),
-            Value<DateTime?> deletedAt = const Value.absent(),
-            Value<String?> authorUuid = const Value.absent(),
-            Value<String?> createFromCardUuid = const Value.absent(),
-            Value<bool?> isCustomized = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              CardTemplateMetasCompanion(
-            templateUuid: templateUuid,
-            createdAt: createdAt,
-            modifiedAt: modifiedAt,
-            deletedAt: deletedAt,
-            authorUuid: authorUuid,
-            createFromCardUuid: createFromCardUuid,
-            isCustomized: isCustomized,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String templateUuid,
-            required DateTime createdAt,
-            required DateTime modifiedAt,
-            Value<DateTime?> deletedAt = const Value.absent(),
-            Value<String?> authorUuid = const Value.absent(),
-            Value<String?> createFromCardUuid = const Value.absent(),
-            Value<bool?> isCustomized = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              CardTemplateMetasCompanion.insert(
-            templateUuid: templateUuid,
-            createdAt: createdAt,
-            modifiedAt: modifiedAt,
-            deletedAt: deletedAt,
-            authorUuid: authorUuid,
-            createFromCardUuid: createFromCardUuid,
-            isCustomized: isCustomized,
-            rowid: rowid,
-          ),
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> templateUuid = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> modifiedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String?> authorUuid = const Value.absent(),
+                Value<String?> createFromCardUuid = const Value.absent(),
+                Value<bool?> isCustomized = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CardTemplateMetasCompanion(
+                templateUuid: templateUuid,
+                createdAt: createdAt,
+                modifiedAt: modifiedAt,
+                deletedAt: deletedAt,
+                authorUuid: authorUuid,
+                createFromCardUuid: createFromCardUuid,
+                isCustomized: isCustomized,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String templateUuid,
+                required DateTime createdAt,
+                required DateTime modifiedAt,
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String?> authorUuid = const Value.absent(),
+                Value<String?> createFromCardUuid = const Value.absent(),
+                Value<bool?> isCustomized = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CardTemplateMetasCompanion.insert(
+                templateUuid: templateUuid,
+                createdAt: createdAt,
+                modifiedAt: modifiedAt,
+                deletedAt: deletedAt,
+                authorUuid: authorUuid,
+                createFromCardUuid: createFromCardUuid,
+                isCustomized: isCustomized,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ));
+        ),
+      );
 }
 
-typedef $$CardTemplateMetasTableProcessedTableManager = ProcessedTableManager<
-    _$AppDatabase,
-    $CardTemplateMetasTable,
-    CardTemplateMeta,
-    $$CardTemplateMetasTableFilterComposer,
-    $$CardTemplateMetasTableOrderingComposer,
-    $$CardTemplateMetasTableAnnotationComposer,
-    $$CardTemplateMetasTableCreateCompanionBuilder,
-    $$CardTemplateMetasTableUpdateCompanionBuilder,
-    (
+typedef $$CardTemplateMetasTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CardTemplateMetasTable,
       CardTemplateMeta,
-      BaseReferences<_$AppDatabase, $CardTemplateMetasTable, CardTemplateMeta>
-    ),
-    CardTemplateMeta,
-    PrefetchHooks Function()>;
-typedef $$CardTemplateSettingsTableCreateCompanionBuilder
-    = CardTemplateSettingsCompanion Function({
-  required String templateUuid,
-  required DateTime createdAt,
-  required DateTime modifiedAt,
-  Value<DateTime?> deletedAt,
-  required String settingJson,
-  Value<int> rowid,
-});
-typedef $$CardTemplateSettingsTableUpdateCompanionBuilder
-    = CardTemplateSettingsCompanion Function({
-  Value<String> templateUuid,
-  Value<DateTime> createdAt,
-  Value<DateTime> modifiedAt,
-  Value<DateTime?> deletedAt,
-  Value<String> settingJson,
-  Value<int> rowid,
-});
+      $$CardTemplateMetasTableFilterComposer,
+      $$CardTemplateMetasTableOrderingComposer,
+      $$CardTemplateMetasTableAnnotationComposer,
+      $$CardTemplateMetasTableCreateCompanionBuilder,
+      $$CardTemplateMetasTableUpdateCompanionBuilder,
+      (
+        CardTemplateMeta,
+        BaseReferences<
+          _$AppDatabase,
+          $CardTemplateMetasTable,
+          CardTemplateMeta
+        >,
+      ),
+      CardTemplateMeta,
+      PrefetchHooks Function()
+    >;
+typedef $$CardTemplateSettingsTableCreateCompanionBuilder =
+    CardTemplateSettingsCompanion Function({
+      required String templateUuid,
+      required DateTime createdAt,
+      required DateTime modifiedAt,
+      Value<DateTime?> deletedAt,
+      required String settingJson,
+      Value<int> rowid,
+    });
+typedef $$CardTemplateSettingsTableUpdateCompanionBuilder =
+    CardTemplateSettingsCompanion Function({
+      Value<String> templateUuid,
+      Value<DateTime> createdAt,
+      Value<DateTime> modifiedAt,
+      Value<DateTime?> deletedAt,
+      Value<String> settingJson,
+      Value<int> rowid,
+    });
 
 class $$CardTemplateSettingsTableFilterComposer
     extends Composer<_$AppDatabase, $CardTemplateSettingsTable> {
@@ -3600,19 +4266,29 @@ class $$CardTemplateSettingsTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get templateUuid => $composableBuilder(
-      column: $table.templateUuid, builder: (column) => ColumnFilters(column));
+    column: $table.templateUuid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get modifiedAt => $composableBuilder(
-      column: $table.modifiedAt, builder: (column) => ColumnFilters(column));
+    column: $table.modifiedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
-      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get settingJson => $composableBuilder(
-      column: $table.settingJson, builder: (column) => ColumnFilters(column));
+    column: $table.settingJson,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$CardTemplateSettingsTableOrderingComposer
@@ -3625,20 +4301,29 @@ class $$CardTemplateSettingsTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get templateUuid => $composableBuilder(
-      column: $table.templateUuid,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.templateUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get modifiedAt => $composableBuilder(
-      column: $table.modifiedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.modifiedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
-      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get settingJson => $composableBuilder(
-      column: $table.settingJson, builder: (column) => ColumnOrderings(column));
+    column: $table.settingJson,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$CardTemplateSettingsTableAnnotationComposer
@@ -3651,128 +4336,151 @@ class $$CardTemplateSettingsTableAnnotationComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   GeneratedColumn<String> get templateUuid => $composableBuilder(
-      column: $table.templateUuid, builder: (column) => column);
+    column: $table.templateUuid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get modifiedAt => $composableBuilder(
-      column: $table.modifiedAt, builder: (column) => column);
+    column: $table.modifiedAt,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 
   GeneratedColumn<String> get settingJson => $composableBuilder(
-      column: $table.settingJson, builder: (column) => column);
+    column: $table.settingJson,
+    builder: (column) => column,
+  );
 }
 
-class $$CardTemplateSettingsTableTableManager extends RootTableManager<
-    _$AppDatabase,
-    $CardTemplateSettingsTable,
-    CardTemplateSettingRecord,
-    $$CardTemplateSettingsTableFilterComposer,
-    $$CardTemplateSettingsTableOrderingComposer,
-    $$CardTemplateSettingsTableAnnotationComposer,
-    $$CardTemplateSettingsTableCreateCompanionBuilder,
-    $$CardTemplateSettingsTableUpdateCompanionBuilder,
-    (
-      CardTemplateSettingRecord,
-      BaseReferences<_$AppDatabase, $CardTemplateSettingsTable,
-          CardTemplateSettingRecord>
-    ),
-    CardTemplateSettingRecord,
-    PrefetchHooks Function()> {
+class $$CardTemplateSettingsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CardTemplateSettingsTable,
+          CardTemplateSettingRecord,
+          $$CardTemplateSettingsTableFilterComposer,
+          $$CardTemplateSettingsTableOrderingComposer,
+          $$CardTemplateSettingsTableAnnotationComposer,
+          $$CardTemplateSettingsTableCreateCompanionBuilder,
+          $$CardTemplateSettingsTableUpdateCompanionBuilder,
+          (
+            CardTemplateSettingRecord,
+            BaseReferences<
+              _$AppDatabase,
+              $CardTemplateSettingsTable,
+              CardTemplateSettingRecord
+            >,
+          ),
+          CardTemplateSettingRecord,
+          PrefetchHooks Function()
+        > {
   $$CardTemplateSettingsTableTableManager(
-      _$AppDatabase db, $CardTemplateSettingsTable table)
-      : super(TableManagerState(
+    _$AppDatabase db,
+    $CardTemplateSettingsTable table,
+  ) : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
               $$CardTemplateSettingsTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
               $$CardTemplateSettingsTableOrderingComposer(
-                  $db: db, $table: table),
+                $db: db,
+                $table: table,
+              ),
           createComputedFieldComposer: () =>
               $$CardTemplateSettingsTableAnnotationComposer(
-                  $db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> templateUuid = const Value.absent(),
-            Value<DateTime> createdAt = const Value.absent(),
-            Value<DateTime> modifiedAt = const Value.absent(),
-            Value<DateTime?> deletedAt = const Value.absent(),
-            Value<String> settingJson = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              CardTemplateSettingsCompanion(
-            templateUuid: templateUuid,
-            createdAt: createdAt,
-            modifiedAt: modifiedAt,
-            deletedAt: deletedAt,
-            settingJson: settingJson,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String templateUuid,
-            required DateTime createdAt,
-            required DateTime modifiedAt,
-            Value<DateTime?> deletedAt = const Value.absent(),
-            required String settingJson,
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              CardTemplateSettingsCompanion.insert(
-            templateUuid: templateUuid,
-            createdAt: createdAt,
-            modifiedAt: modifiedAt,
-            deletedAt: deletedAt,
-            settingJson: settingJson,
-            rowid: rowid,
-          ),
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> templateUuid = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> modifiedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> settingJson = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CardTemplateSettingsCompanion(
+                templateUuid: templateUuid,
+                createdAt: createdAt,
+                modifiedAt: modifiedAt,
+                deletedAt: deletedAt,
+                settingJson: settingJson,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String templateUuid,
+                required DateTime createdAt,
+                required DateTime modifiedAt,
+                Value<DateTime?> deletedAt = const Value.absent(),
+                required String settingJson,
+                Value<int> rowid = const Value.absent(),
+              }) => CardTemplateSettingsCompanion.insert(
+                templateUuid: templateUuid,
+                createdAt: createdAt,
+                modifiedAt: modifiedAt,
+                deletedAt: deletedAt,
+                settingJson: settingJson,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ));
+        ),
+      );
 }
 
-typedef $$CardTemplateSettingsTableProcessedTableManager
-    = ProcessedTableManager<
-        _$AppDatabase,
-        $CardTemplateSettingsTable,
+typedef $$CardTemplateSettingsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CardTemplateSettingsTable,
+      CardTemplateSettingRecord,
+      $$CardTemplateSettingsTableFilterComposer,
+      $$CardTemplateSettingsTableOrderingComposer,
+      $$CardTemplateSettingsTableAnnotationComposer,
+      $$CardTemplateSettingsTableCreateCompanionBuilder,
+      $$CardTemplateSettingsTableUpdateCompanionBuilder,
+      (
         CardTemplateSettingRecord,
-        $$CardTemplateSettingsTableFilterComposer,
-        $$CardTemplateSettingsTableOrderingComposer,
-        $$CardTemplateSettingsTableAnnotationComposer,
-        $$CardTemplateSettingsTableCreateCompanionBuilder,
-        $$CardTemplateSettingsTableUpdateCompanionBuilder,
-        (
-          CardTemplateSettingRecord,
-          BaseReferences<_$AppDatabase, $CardTemplateSettingsTable,
-              CardTemplateSettingRecord>
-        ),
-        CardTemplateSettingRecord,
-        PrefetchHooks Function()>;
-typedef $$CardTemplateSkillUsagesTableCreateCompanionBuilder
-    = CardTemplateSkillUsagesCompanion Function({
-  Value<int> id,
-  required DateTime createdAt,
-  required DateTime lastUpdatedAt,
-  Value<DateTime?> deletedAt,
-  required String queryUuid,
-  required String templateUuid,
-  required int skillId,
-  required String usedAt,
-});
-typedef $$CardTemplateSkillUsagesTableUpdateCompanionBuilder
-    = CardTemplateSkillUsagesCompanion Function({
-  Value<int> id,
-  Value<DateTime> createdAt,
-  Value<DateTime> lastUpdatedAt,
-  Value<DateTime?> deletedAt,
-  Value<String> queryUuid,
-  Value<String> templateUuid,
-  Value<int> skillId,
-  Value<String> usedAt,
-});
+        BaseReferences<
+          _$AppDatabase,
+          $CardTemplateSettingsTable,
+          CardTemplateSettingRecord
+        >,
+      ),
+      CardTemplateSettingRecord,
+      PrefetchHooks Function()
+    >;
+typedef $$CardTemplateSkillUsagesTableCreateCompanionBuilder =
+    CardTemplateSkillUsagesCompanion Function({
+      Value<int> id,
+      required DateTime createdAt,
+      required DateTime lastUpdatedAt,
+      Value<DateTime?> deletedAt,
+      required String queryUuid,
+      required String templateUuid,
+      required int skillId,
+      required String usedAt,
+    });
+typedef $$CardTemplateSkillUsagesTableUpdateCompanionBuilder =
+    CardTemplateSkillUsagesCompanion Function({
+      Value<int> id,
+      Value<DateTime> createdAt,
+      Value<DateTime> lastUpdatedAt,
+      Value<DateTime?> deletedAt,
+      Value<String> queryUuid,
+      Value<String> templateUuid,
+      Value<int> skillId,
+      Value<String> usedAt,
+    });
 
 class $$CardTemplateSkillUsagesTableFilterComposer
     extends Composer<_$AppDatabase, $CardTemplateSkillUsagesTable> {
@@ -3784,28 +4492,44 @@ class $$CardTemplateSkillUsagesTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get lastUpdatedAt => $composableBuilder(
-      column: $table.lastUpdatedAt, builder: (column) => ColumnFilters(column));
+    column: $table.lastUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
-      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get queryUuid => $composableBuilder(
-      column: $table.queryUuid, builder: (column) => ColumnFilters(column));
+    column: $table.queryUuid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get templateUuid => $composableBuilder(
-      column: $table.templateUuid, builder: (column) => ColumnFilters(column));
+    column: $table.templateUuid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<int> get skillId => $composableBuilder(
-      column: $table.skillId, builder: (column) => ColumnFilters(column));
+    column: $table.skillId,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get usedAt => $composableBuilder(
-      column: $table.usedAt, builder: (column) => ColumnFilters(column));
+    column: $table.usedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$CardTemplateSkillUsagesTableOrderingComposer
@@ -3818,30 +4542,44 @@ class $$CardTemplateSkillUsagesTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get lastUpdatedAt => $composableBuilder(
-      column: $table.lastUpdatedAt,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.lastUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
-      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get queryUuid => $composableBuilder(
-      column: $table.queryUuid, builder: (column) => ColumnOrderings(column));
+    column: $table.queryUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get templateUuid => $composableBuilder(
-      column: $table.templateUuid,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.templateUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get skillId => $composableBuilder(
-      column: $table.skillId, builder: (column) => ColumnOrderings(column));
+    column: $table.skillId,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get usedAt => $composableBuilder(
-      column: $table.usedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.usedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$CardTemplateSkillUsagesTableAnnotationComposer
@@ -3860,7 +4598,9 @@ class $$CardTemplateSkillUsagesTableAnnotationComposer
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get lastUpdatedAt => $composableBuilder(
-      column: $table.lastUpdatedAt, builder: (column) => column);
+    column: $table.lastUpdatedAt,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
@@ -3869,7 +4609,9 @@ class $$CardTemplateSkillUsagesTableAnnotationComposer
       $composableBuilder(column: $table.queryUuid, builder: (column) => column);
 
   GeneratedColumn<String> get templateUuid => $composableBuilder(
-      column: $table.templateUuid, builder: (column) => column);
+    column: $table.templateUuid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get skillId =>
       $composableBuilder(column: $table.skillId, builder: (column) => column);
@@ -3878,122 +4620,141 @@ class $$CardTemplateSkillUsagesTableAnnotationComposer
       $composableBuilder(column: $table.usedAt, builder: (column) => column);
 }
 
-class $$CardTemplateSkillUsagesTableTableManager extends RootTableManager<
-    _$AppDatabase,
-    $CardTemplateSkillUsagesTable,
-    CardTemplateSkillUsage,
-    $$CardTemplateSkillUsagesTableFilterComposer,
-    $$CardTemplateSkillUsagesTableOrderingComposer,
-    $$CardTemplateSkillUsagesTableAnnotationComposer,
-    $$CardTemplateSkillUsagesTableCreateCompanionBuilder,
-    $$CardTemplateSkillUsagesTableUpdateCompanionBuilder,
-    (
-      CardTemplateSkillUsage,
-      BaseReferences<_$AppDatabase, $CardTemplateSkillUsagesTable,
-          CardTemplateSkillUsage>
-    ),
-    CardTemplateSkillUsage,
-    PrefetchHooks Function()> {
+class $$CardTemplateSkillUsagesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CardTemplateSkillUsagesTable,
+          CardTemplateSkillUsage,
+          $$CardTemplateSkillUsagesTableFilterComposer,
+          $$CardTemplateSkillUsagesTableOrderingComposer,
+          $$CardTemplateSkillUsagesTableAnnotationComposer,
+          $$CardTemplateSkillUsagesTableCreateCompanionBuilder,
+          $$CardTemplateSkillUsagesTableUpdateCompanionBuilder,
+          (
+            CardTemplateSkillUsage,
+            BaseReferences<
+              _$AppDatabase,
+              $CardTemplateSkillUsagesTable,
+              CardTemplateSkillUsage
+            >,
+          ),
+          CardTemplateSkillUsage,
+          PrefetchHooks Function()
+        > {
   $$CardTemplateSkillUsagesTableTableManager(
-      _$AppDatabase db, $CardTemplateSkillUsagesTable table)
-      : super(TableManagerState(
+    _$AppDatabase db,
+    $CardTemplateSkillUsagesTable table,
+  ) : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
               $$CardTemplateSkillUsagesTableFilterComposer(
-                  $db: db, $table: table),
+                $db: db,
+                $table: table,
+              ),
           createOrderingComposer: () =>
               $$CardTemplateSkillUsagesTableOrderingComposer(
-                  $db: db, $table: table),
+                $db: db,
+                $table: table,
+              ),
           createComputedFieldComposer: () =>
               $$CardTemplateSkillUsagesTableAnnotationComposer(
-                  $db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            Value<DateTime> createdAt = const Value.absent(),
-            Value<DateTime> lastUpdatedAt = const Value.absent(),
-            Value<DateTime?> deletedAt = const Value.absent(),
-            Value<String> queryUuid = const Value.absent(),
-            Value<String> templateUuid = const Value.absent(),
-            Value<int> skillId = const Value.absent(),
-            Value<String> usedAt = const Value.absent(),
-          }) =>
-              CardTemplateSkillUsagesCompanion(
-            id: id,
-            createdAt: createdAt,
-            lastUpdatedAt: lastUpdatedAt,
-            deletedAt: deletedAt,
-            queryUuid: queryUuid,
-            templateUuid: templateUuid,
-            skillId: skillId,
-            usedAt: usedAt,
-          ),
-          createCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            required DateTime createdAt,
-            required DateTime lastUpdatedAt,
-            Value<DateTime?> deletedAt = const Value.absent(),
-            required String queryUuid,
-            required String templateUuid,
-            required int skillId,
-            required String usedAt,
-          }) =>
-              CardTemplateSkillUsagesCompanion.insert(
-            id: id,
-            createdAt: createdAt,
-            lastUpdatedAt: lastUpdatedAt,
-            deletedAt: deletedAt,
-            queryUuid: queryUuid,
-            templateUuid: templateUuid,
-            skillId: skillId,
-            usedAt: usedAt,
-          ),
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> lastUpdatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> queryUuid = const Value.absent(),
+                Value<String> templateUuid = const Value.absent(),
+                Value<int> skillId = const Value.absent(),
+                Value<String> usedAt = const Value.absent(),
+              }) => CardTemplateSkillUsagesCompanion(
+                id: id,
+                createdAt: createdAt,
+                lastUpdatedAt: lastUpdatedAt,
+                deletedAt: deletedAt,
+                queryUuid: queryUuid,
+                templateUuid: templateUuid,
+                skillId: skillId,
+                usedAt: usedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime lastUpdatedAt,
+                Value<DateTime?> deletedAt = const Value.absent(),
+                required String queryUuid,
+                required String templateUuid,
+                required int skillId,
+                required String usedAt,
+              }) => CardTemplateSkillUsagesCompanion.insert(
+                id: id,
+                createdAt: createdAt,
+                lastUpdatedAt: lastUpdatedAt,
+                deletedAt: deletedAt,
+                queryUuid: queryUuid,
+                templateUuid: templateUuid,
+                skillId: skillId,
+                usedAt: usedAt,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ));
+        ),
+      );
 }
 
-typedef $$CardTemplateSkillUsagesTableProcessedTableManager
-    = ProcessedTableManager<
-        _$AppDatabase,
-        $CardTemplateSkillUsagesTable,
+typedef $$CardTemplateSkillUsagesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CardTemplateSkillUsagesTable,
+      CardTemplateSkillUsage,
+      $$CardTemplateSkillUsagesTableFilterComposer,
+      $$CardTemplateSkillUsagesTableOrderingComposer,
+      $$CardTemplateSkillUsagesTableAnnotationComposer,
+      $$CardTemplateSkillUsagesTableCreateCompanionBuilder,
+      $$CardTemplateSkillUsagesTableUpdateCompanionBuilder,
+      (
         CardTemplateSkillUsage,
-        $$CardTemplateSkillUsagesTableFilterComposer,
-        $$CardTemplateSkillUsagesTableOrderingComposer,
-        $$CardTemplateSkillUsagesTableAnnotationComposer,
-        $$CardTemplateSkillUsagesTableCreateCompanionBuilder,
-        $$CardTemplateSkillUsagesTableUpdateCompanionBuilder,
-        (
-          CardTemplateSkillUsage,
-          BaseReferences<_$AppDatabase, $CardTemplateSkillUsagesTable,
-              CardTemplateSkillUsage>
-        ),
-        CardTemplateSkillUsage,
-        PrefetchHooks Function()>;
-typedef $$MarketTemplateInstallsTableCreateCompanionBuilder
-    = MarketTemplateInstallsCompanion Function({
-  required String localTemplateUuid,
-  required String marketTemplateId,
-  required String marketVersionId,
-  required DateTime installedAt,
-  Value<DateTime?> pinnedAt,
-  Value<DateTime?> lastCheckedAt,
-  Value<DateTime?> deletedAt,
-  Value<int> rowid,
-});
-typedef $$MarketTemplateInstallsTableUpdateCompanionBuilder
-    = MarketTemplateInstallsCompanion Function({
-  Value<String> localTemplateUuid,
-  Value<String> marketTemplateId,
-  Value<String> marketVersionId,
-  Value<DateTime> installedAt,
-  Value<DateTime?> pinnedAt,
-  Value<DateTime?> lastCheckedAt,
-  Value<DateTime?> deletedAt,
-  Value<int> rowid,
-});
+        BaseReferences<
+          _$AppDatabase,
+          $CardTemplateSkillUsagesTable,
+          CardTemplateSkillUsage
+        >,
+      ),
+      CardTemplateSkillUsage,
+      PrefetchHooks Function()
+    >;
+typedef $$MarketTemplateInstallsTableCreateCompanionBuilder =
+    MarketTemplateInstallsCompanion Function({
+      required String localTemplateUuid,
+      required String marketTemplateId,
+      required String marketVersionId,
+      required DateTime installedAt,
+      Value<DateTime?> pinnedAt,
+      Value<DateTime?> lastCheckedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$MarketTemplateInstallsTableUpdateCompanionBuilder =
+    MarketTemplateInstallsCompanion Function({
+      Value<String> localTemplateUuid,
+      Value<String> marketTemplateId,
+      Value<String> marketVersionId,
+      Value<DateTime> installedAt,
+      Value<DateTime?> pinnedAt,
+      Value<DateTime?> lastCheckedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
 
 class $$MarketTemplateInstallsTableFilterComposer
     extends Composer<_$AppDatabase, $MarketTemplateInstallsTable> {
@@ -4005,28 +4766,39 @@ class $$MarketTemplateInstallsTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get localTemplateUuid => $composableBuilder(
-      column: $table.localTemplateUuid,
-      builder: (column) => ColumnFilters(column));
+    column: $table.localTemplateUuid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get marketTemplateId => $composableBuilder(
-      column: $table.marketTemplateId,
-      builder: (column) => ColumnFilters(column));
+    column: $table.marketTemplateId,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get marketVersionId => $composableBuilder(
-      column: $table.marketVersionId,
-      builder: (column) => ColumnFilters(column));
+    column: $table.marketVersionId,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get installedAt => $composableBuilder(
-      column: $table.installedAt, builder: (column) => ColumnFilters(column));
+    column: $table.installedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get pinnedAt => $composableBuilder(
-      column: $table.pinnedAt, builder: (column) => ColumnFilters(column));
+    column: $table.pinnedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get lastCheckedAt => $composableBuilder(
-      column: $table.lastCheckedAt, builder: (column) => ColumnFilters(column));
+    column: $table.lastCheckedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
-      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$MarketTemplateInstallsTableOrderingComposer
@@ -4039,29 +4811,39 @@ class $$MarketTemplateInstallsTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get localTemplateUuid => $composableBuilder(
-      column: $table.localTemplateUuid,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.localTemplateUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get marketTemplateId => $composableBuilder(
-      column: $table.marketTemplateId,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.marketTemplateId,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get marketVersionId => $composableBuilder(
-      column: $table.marketVersionId,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.marketVersionId,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get installedAt => $composableBuilder(
-      column: $table.installedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.installedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get pinnedAt => $composableBuilder(
-      column: $table.pinnedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.pinnedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get lastCheckedAt => $composableBuilder(
-      column: $table.lastCheckedAt,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.lastCheckedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
-      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$MarketTemplateInstallsTableAnnotationComposer
@@ -4074,121 +4856,150 @@ class $$MarketTemplateInstallsTableAnnotationComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   GeneratedColumn<String> get localTemplateUuid => $composableBuilder(
-      column: $table.localTemplateUuid, builder: (column) => column);
+    column: $table.localTemplateUuid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get marketTemplateId => $composableBuilder(
-      column: $table.marketTemplateId, builder: (column) => column);
+    column: $table.marketTemplateId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get marketVersionId => $composableBuilder(
-      column: $table.marketVersionId, builder: (column) => column);
+    column: $table.marketVersionId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get installedAt => $composableBuilder(
-      column: $table.installedAt, builder: (column) => column);
+    column: $table.installedAt,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get pinnedAt =>
       $composableBuilder(column: $table.pinnedAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get lastCheckedAt => $composableBuilder(
-      column: $table.lastCheckedAt, builder: (column) => column);
+    column: $table.lastCheckedAt,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 }
 
-class $$MarketTemplateInstallsTableTableManager extends RootTableManager<
-    _$AppDatabase,
-    $MarketTemplateInstallsTable,
-    MarketTemplateInstall,
-    $$MarketTemplateInstallsTableFilterComposer,
-    $$MarketTemplateInstallsTableOrderingComposer,
-    $$MarketTemplateInstallsTableAnnotationComposer,
-    $$MarketTemplateInstallsTableCreateCompanionBuilder,
-    $$MarketTemplateInstallsTableUpdateCompanionBuilder,
-    (
-      MarketTemplateInstall,
-      BaseReferences<_$AppDatabase, $MarketTemplateInstallsTable,
-          MarketTemplateInstall>
-    ),
-    MarketTemplateInstall,
-    PrefetchHooks Function()> {
+class $$MarketTemplateInstallsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MarketTemplateInstallsTable,
+          MarketTemplateInstall,
+          $$MarketTemplateInstallsTableFilterComposer,
+          $$MarketTemplateInstallsTableOrderingComposer,
+          $$MarketTemplateInstallsTableAnnotationComposer,
+          $$MarketTemplateInstallsTableCreateCompanionBuilder,
+          $$MarketTemplateInstallsTableUpdateCompanionBuilder,
+          (
+            MarketTemplateInstall,
+            BaseReferences<
+              _$AppDatabase,
+              $MarketTemplateInstallsTable,
+              MarketTemplateInstall
+            >,
+          ),
+          MarketTemplateInstall,
+          PrefetchHooks Function()
+        > {
   $$MarketTemplateInstallsTableTableManager(
-      _$AppDatabase db, $MarketTemplateInstallsTable table)
-      : super(TableManagerState(
+    _$AppDatabase db,
+    $MarketTemplateInstallsTable table,
+  ) : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
               $$MarketTemplateInstallsTableFilterComposer(
-                  $db: db, $table: table),
+                $db: db,
+                $table: table,
+              ),
           createOrderingComposer: () =>
               $$MarketTemplateInstallsTableOrderingComposer(
-                  $db: db, $table: table),
+                $db: db,
+                $table: table,
+              ),
           createComputedFieldComposer: () =>
               $$MarketTemplateInstallsTableAnnotationComposer(
-                  $db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> localTemplateUuid = const Value.absent(),
-            Value<String> marketTemplateId = const Value.absent(),
-            Value<String> marketVersionId = const Value.absent(),
-            Value<DateTime> installedAt = const Value.absent(),
-            Value<DateTime?> pinnedAt = const Value.absent(),
-            Value<DateTime?> lastCheckedAt = const Value.absent(),
-            Value<DateTime?> deletedAt = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              MarketTemplateInstallsCompanion(
-            localTemplateUuid: localTemplateUuid,
-            marketTemplateId: marketTemplateId,
-            marketVersionId: marketVersionId,
-            installedAt: installedAt,
-            pinnedAt: pinnedAt,
-            lastCheckedAt: lastCheckedAt,
-            deletedAt: deletedAt,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String localTemplateUuid,
-            required String marketTemplateId,
-            required String marketVersionId,
-            required DateTime installedAt,
-            Value<DateTime?> pinnedAt = const Value.absent(),
-            Value<DateTime?> lastCheckedAt = const Value.absent(),
-            Value<DateTime?> deletedAt = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              MarketTemplateInstallsCompanion.insert(
-            localTemplateUuid: localTemplateUuid,
-            marketTemplateId: marketTemplateId,
-            marketVersionId: marketVersionId,
-            installedAt: installedAt,
-            pinnedAt: pinnedAt,
-            lastCheckedAt: lastCheckedAt,
-            deletedAt: deletedAt,
-            rowid: rowid,
-          ),
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> localTemplateUuid = const Value.absent(),
+                Value<String> marketTemplateId = const Value.absent(),
+                Value<String> marketVersionId = const Value.absent(),
+                Value<DateTime> installedAt = const Value.absent(),
+                Value<DateTime?> pinnedAt = const Value.absent(),
+                Value<DateTime?> lastCheckedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MarketTemplateInstallsCompanion(
+                localTemplateUuid: localTemplateUuid,
+                marketTemplateId: marketTemplateId,
+                marketVersionId: marketVersionId,
+                installedAt: installedAt,
+                pinnedAt: pinnedAt,
+                lastCheckedAt: lastCheckedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String localTemplateUuid,
+                required String marketTemplateId,
+                required String marketVersionId,
+                required DateTime installedAt,
+                Value<DateTime?> pinnedAt = const Value.absent(),
+                Value<DateTime?> lastCheckedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MarketTemplateInstallsCompanion.insert(
+                localTemplateUuid: localTemplateUuid,
+                marketTemplateId: marketTemplateId,
+                marketVersionId: marketVersionId,
+                installedAt: installedAt,
+                pinnedAt: pinnedAt,
+                lastCheckedAt: lastCheckedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ));
+        ),
+      );
 }
 
-typedef $$MarketTemplateInstallsTableProcessedTableManager
-    = ProcessedTableManager<
-        _$AppDatabase,
-        $MarketTemplateInstallsTable,
+typedef $$MarketTemplateInstallsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MarketTemplateInstallsTable,
+      MarketTemplateInstall,
+      $$MarketTemplateInstallsTableFilterComposer,
+      $$MarketTemplateInstallsTableOrderingComposer,
+      $$MarketTemplateInstallsTableAnnotationComposer,
+      $$MarketTemplateInstallsTableCreateCompanionBuilder,
+      $$MarketTemplateInstallsTableUpdateCompanionBuilder,
+      (
         MarketTemplateInstall,
-        $$MarketTemplateInstallsTableFilterComposer,
-        $$MarketTemplateInstallsTableOrderingComposer,
-        $$MarketTemplateInstallsTableAnnotationComposer,
-        $$MarketTemplateInstallsTableCreateCompanionBuilder,
-        $$MarketTemplateInstallsTableUpdateCompanionBuilder,
-        (
-          MarketTemplateInstall,
-          BaseReferences<_$AppDatabase, $MarketTemplateInstallsTable,
-              MarketTemplateInstall>
-        ),
-        MarketTemplateInstall,
-        PrefetchHooks Function()>;
+        BaseReferences<
+          _$AppDatabase,
+          $MarketTemplateInstallsTable,
+          MarketTemplateInstall
+        >,
+      ),
+      MarketTemplateInstall,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4205,8 +5016,12 @@ class $AppDatabaseManager {
       $$CardTemplateSettingsTableTableManager(_db, _db.cardTemplateSettings);
   $$CardTemplateSkillUsagesTableTableManager get cardTemplateSkillUsages =>
       $$CardTemplateSkillUsagesTableTableManager(
-          _db, _db.cardTemplateSkillUsages);
+        _db,
+        _db.cardTemplateSkillUsages,
+      );
   $$MarketTemplateInstallsTableTableManager get marketTemplateInstalls =>
       $$MarketTemplateInstallsTableTableManager(
-          _db, _db.marketTemplateInstalls);
+        _db,
+        _db.marketTemplateInstalls,
+      );
 }

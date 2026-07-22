@@ -13,5 +13,7 @@ class PromptTemplatesDaoManager {
   PromptTemplatesDaoManager(this._db);
   $$PromptTemplatesTableTableManager get promptTemplates =>
       $$PromptTemplatesTableTableManager(
-          _db.attachedDatabase, _db.promptTemplates);
+        _db.attachedDatabase,
+        _db.promptTemplates,
+      );
 }
