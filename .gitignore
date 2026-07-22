@@ -6,3 +6,4 @@ fail_evidence*.txt
 .dart_tool/
 assets/.flutter-plugins-dependencies
 pubspec.lock
+build/
