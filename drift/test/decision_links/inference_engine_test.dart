@@ -32,6 +32,7 @@ class TestScopedRecordStore implements ScopedRecordStore {
     String? divinationType,
     required int limit,
     String? cursor,
+    RecordSortBy sortBy = RecordSortBy.auto,
   }) async {
     return _records.values
         .where((r) => r.deletedAt == null)
@@ -49,7 +50,7 @@ class TestScopedRecordStore implements ScopedRecordStore {
   }
 
   @override
-  Stream<List<RecordMeta>> watchRecords({required String module}) =>
+  Stream<List<RecordMeta>> watchRecords({required String module, String? category, RecordSortBy sortBy = RecordSortBy.auto}) =>
       _ctrl.stream;
 
   @override

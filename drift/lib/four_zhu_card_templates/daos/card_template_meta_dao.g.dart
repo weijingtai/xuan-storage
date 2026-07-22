@@ -14,5 +14,7 @@ class CardTemplateMetaDaoManager {
   CardTemplateMetaDaoManager(this._db);
   $$CardTemplateMetasTableTableManager get cardTemplateMetas =>
       $$CardTemplateMetasTableTableManager(
-          _db.attachedDatabase, _db.cardTemplateMetas);
+        _db.attachedDatabase,
+        _db.cardTemplateMetas,
+      );
 }

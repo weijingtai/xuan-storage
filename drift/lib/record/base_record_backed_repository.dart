@@ -52,7 +52,7 @@ abstract class BaseRecordBackedRepository<TContract> {
   }
 
   Stream<List<TContract>> watchAll() =>
-      _store.watchRecords(module: module).map((metas) => metas.map((m) => _codec.decode(m, null)).toList());
+      _store.watchRecords(module: module, category: _codec.category).map((metas) => metas.map((m) => _codec.decode(m, null)).toList());
 
   Future<List<TContract>> getLatest({int limit = 10}) async {
     final metas = await _store.listRecords(module: module, limit: limit);

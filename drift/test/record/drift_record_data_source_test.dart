@@ -48,7 +48,7 @@ void main() {
 
   test('watch emits on save', () async {
     final ds = DriftRecordDataSource(db, scopeUid: 's1');
-    final f = ds.watchRecords().firstWhere((l) => l.isNotEmpty);
+    final f = ds.watchRecords(module: "meihua").firstWhere((l) => l.isNotEmpty);
     await ds.saveRecord(_m('a', 's1'), const []);
     expect((await f).single.uuid, 'a');
   });

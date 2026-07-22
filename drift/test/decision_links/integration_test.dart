@@ -20,7 +20,7 @@ class TestScopedRecordStore implements ScopedRecordStore {
   Future<RecordMeta?> getRecord(String uuid, {required String module}) async => _records[uuid];
 
   @override
-  Future<List<RecordMeta>> listRecords({required String module, String? category, String? divinationType, required int limit, String? cursor}) async => [];
+  Future<List<RecordMeta>> listRecords({required String module, String? category, String? divinationType, required int limit, String? cursor, RecordSortBy sortBy = RecordSortBy.auto}) async => [];
 
   @override
   Future<bool> softDeleteRecord(String uuid, {required String module}) async {
@@ -31,7 +31,7 @@ class TestScopedRecordStore implements ScopedRecordStore {
   }
 
   @override
-  Stream<List<RecordMeta>> watchRecords({required String module}) => const Stream.empty();
+  Stream<List<RecordMeta>> watchRecords({required String module, String? category, RecordSortBy sortBy = RecordSortBy.auto}) => const Stream.empty();
 
   @override
   Future<List<RecordMeta>> findByIndex({required String module, required String indexKey, required String indexValue, required int limit}) async => [];

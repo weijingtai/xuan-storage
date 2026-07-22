@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
 import '../persistence_drift.dart';
@@ -17,7 +18,15 @@ class DriftRecordDataSource {
         verificationStatus: Value(r.verificationStatus),
         seekerName: Value(r.seekerName), gender: Value(r.gender),
         fateYear: Value(r.fateYear), moduleDataJson: Value(r.moduleDataJson),
-        navParamsJson: Value(r.navParamsJson), createdAt: Value(r.createdAt),
+        navParamsJson: Value(r.navParamsJson),
+        occurredAtUtc: Value(r.occurredAtUtc),
+        reckoningType: Value(r.reckoningType),
+        timezoneStr: Value(r.timezoneStr),
+        latitude: Value(r.latitude),
+        longitude: Value(r.longitude),
+        locationName: Value(r.locationName),
+        spacetimeJson: Value(r.spacetimeJson),
+        createdAt: Value(r.createdAt),
         updatedAt: Value(r.updatedAt), deletedAt: Value(r.deletedAt),
         rev: Value(r.rev),
       );
@@ -31,8 +40,17 @@ class DriftRecordDataSource {
         verificationStatus: row.verificationStatus, seekerName: row.seekerName,
         gender: row.gender, fateYear: row.fateYear,
         moduleDataJson: row.moduleDataJson, navParamsJson: row.navParamsJson,
-        createdAt: row.createdAt, updatedAt: row.updatedAt,
-        deletedAt: row.deletedAt, rev: row.rev,
+        occurredAtUtc: row.occurredAtUtc?.toUtc(),
+        reckoningType: row.reckoningType,
+        timezoneStr: row.timezoneStr,
+        latitude: row.latitude,
+        longitude: row.longitude,
+        locationName: row.locationName,
+        spacetimeJson: row.spacetimeJson,
+        createdAt: row.createdAt.toUtc(),
+        updatedAt: row.updatedAt?.toUtc(),
+        deletedAt: row.deletedAt?.toUtc(),
+        rev: row.rev,
       );
 
   Future<void> saveRecord(RecordMeta record, List<SearchTag> tags) {
@@ -75,9 +93,16 @@ class DriftRecordDataSource {
     return row == null ? null : _toMeta(row);
   }
 
+  RecordSortBy _effectiveSortBy(String? category, RecordSortBy sortBy) {
+    if (sortBy != RecordSortBy.auto) return sortBy;
+    if (category == 'divination') return RecordSortBy.occurredAtDesc;
+    return RecordSortBy.createdAtDesc;
+  }
+
   Future<List<RecordMeta>> listRecords({
     String? module, String? category, String? divinationType,
     int limit = 50, String? cursor,
+    RecordSortBy sortBy = RecordSortBy.auto,
   }) async {
     final q = db.select(db.tRecordMeta)
       ..where((t) => t.scopeUid.equals(scopeUid) & t.deletedAt.isNull());
@@ -86,16 +111,54 @@ class DriftRecordDataSource {
     if (divinationType != null) {
       q.where((t) => t.divinationType.equals(divinationType));
     }
+
+    final effectiveSort = _effectiveSortBy(category, sortBy);
+
     if (cursor != null) {
-      final c = RecordCursor.decode(cursor);
-      q.where((t) =>
-          t.createdAt.isSmallerThanValue(c.createdAt) |
-          (t.createdAt.equals(c.createdAt) & t.uuid.isBiggerThanValue(c.uuid)));
+      final parts = utf8.decode(base64Url.decode(cursor)).split('|');
+      final cCreatedAt = DateTime.fromMicrosecondsSinceEpoch(int.parse(parts[0]), isUtc: true);
+      final cUuid = parts[1];
+
+      if (effectiveSort == RecordSortBy.occurredAtDesc) {
+        final cOccurredAt = parts.length > 2 && parts[2].isNotEmpty
+            ? DateTime.fromMicrosecondsSinceEpoch(int.parse(parts[2]), isUtc: true)
+            : null;
+
+        q.where((t) {
+          if (cOccurredAt == null) {
+            return t.occurredAtUtc.isNull() & (
+              t.createdAt.isSmallerThanValue(cCreatedAt) |
+              (t.createdAt.equals(cCreatedAt) & t.uuid.isBiggerThanValue(cUuid))
+            );
+          } else {
+            return t.occurredAtUtc.isNull() |
+              t.occurredAtUtc.isSmallerThanValue(cOccurredAt) |
+              (t.occurredAtUtc.equals(cOccurredAt) & (
+                t.createdAt.isSmallerThanValue(cCreatedAt) |
+                (t.createdAt.equals(cCreatedAt) & t.uuid.isBiggerThanValue(cUuid))
+              ));
+          }
+        });
+      } else {
+        q.where((t) =>
+            t.createdAt.isSmallerThanValue(cCreatedAt) |
+            (t.createdAt.equals(cCreatedAt) & t.uuid.isBiggerThanValue(cUuid)));
+      }
     }
-    q.orderBy([
-      (t) => OrderingTerm.desc(t.createdAt),
-      (t) => OrderingTerm.asc(t.uuid),
-    ]);
+
+    if (effectiveSort == RecordSortBy.occurredAtDesc) {
+      q.orderBy([
+        (t) => OrderingTerm.desc(t.occurredAtUtc, nulls: NullsOrder.last),
+        (t) => OrderingTerm.desc(t.createdAt),
+        (t) => OrderingTerm.asc(t.uuid),
+      ]);
+    } else {
+      q.orderBy([
+        (t) => OrderingTerm.desc(t.createdAt),
+        (t) => OrderingTerm.asc(t.uuid),
+      ]);
+    }
+
     q.limit(limit);
     return (await q.get()).map(_toMeta).toList();
   }
@@ -112,12 +175,28 @@ class DriftRecordDataSource {
     });
   }
 
-  Stream<List<RecordMeta>> watchRecords({String? module, String? category}) {
+  Stream<List<RecordMeta>> watchRecords({
+    String? module, String? category,
+    RecordSortBy sortBy = RecordSortBy.auto,
+  }) {
     final q = db.select(db.tRecordMeta)
       ..where((t) => t.scopeUid.equals(scopeUid) & t.deletedAt.isNull());
     if (module != null) q.where((t) => t.module.equals(module));
     if (category != null) q.where((t) => t.category.equals(category));
-    q.orderBy([(t) => OrderingTerm.desc(t.createdAt)]);
+
+    final effectiveSort = _effectiveSortBy(category, sortBy);
+    if (effectiveSort == RecordSortBy.occurredAtDesc) {
+      q.orderBy([
+        (t) => OrderingTerm.desc(t.occurredAtUtc, nulls: NullsOrder.last),
+        (t) => OrderingTerm.desc(t.createdAt),
+        (t) => OrderingTerm.asc(t.uuid),
+      ]);
+    } else {
+      q.orderBy([
+        (t) => OrderingTerm.desc(t.createdAt),
+        (t) => OrderingTerm.asc(t.uuid),
+      ]);
+    }
     return q.watch().map((rows) => rows.map(_toMeta).toList());
   }
 
@@ -128,6 +207,7 @@ class DriftRecordDataSource {
     required String indexKey,
     required String indexValue,
     int limit = 50,
+    RecordSortBy sortBy = RecordSortBy.auto,
   }) async {
     final metaAlias = db.tRecordMeta;
     final idxAlias = db.tRecordSearchIndex;
@@ -140,18 +220,28 @@ class DriftRecordDataSource {
         idxAlias.scopeUid.equals(scopeUid) &
         idxAlias.indexKey.equals(indexKey) &
         idxAlias.indexValue.equals(indexValue));
-    q.orderBy([OrderingTerm.desc(metaAlias.createdAt), OrderingTerm.asc(metaAlias.uuid)]);
+
+    final effectiveSort = _effectiveSortBy(null, sortBy);
+    if (effectiveSort == RecordSortBy.occurredAtDesc) {
+      q.orderBy([
+        OrderingTerm.desc(metaAlias.occurredAtUtc, nulls: NullsOrder.last),
+        OrderingTerm.desc(metaAlias.createdAt),
+        OrderingTerm.asc(metaAlias.uuid)
+      ]);
+    } else {
+      q.orderBy([OrderingTerm.desc(metaAlias.createdAt), OrderingTerm.asc(metaAlias.uuid)]);
+    }
+
     q.limit(limit);
     final rows = await q.map((row) => row.readTable(metaAlias)).get();
     return rows.map(_toMeta).toList();
   }
 
-  /// Streams [RecordMeta] rows matching index query.
-  /// Uses Drift .watch() — does NOT simulate via full-table scan.
   Stream<List<RecordMeta>> watchByIndex({
     required String module,
     required String indexKey,
     required String indexValue,
+    RecordSortBy sortBy = RecordSortBy.auto,
   }) {
     final metaAlias = db.tRecordMeta;
     final idxAlias = db.tRecordSearchIndex;
@@ -164,8 +254,27 @@ class DriftRecordDataSource {
         idxAlias.scopeUid.equals(scopeUid) &
         idxAlias.indexKey.equals(indexKey) &
         idxAlias.indexValue.equals(indexValue));
-    q.orderBy([OrderingTerm.desc(metaAlias.createdAt)]);
+
+    final effectiveSort = _effectiveSortBy(null, sortBy);
+    if (effectiveSort == RecordSortBy.occurredAtDesc) {
+      q.orderBy([
+        OrderingTerm.desc(metaAlias.occurredAtUtc, nulls: NullsOrder.last),
+        OrderingTerm.desc(metaAlias.createdAt),
+        OrderingTerm.asc(metaAlias.uuid)
+      ]);
+    } else {
+      q.orderBy([OrderingTerm.desc(metaAlias.createdAt)]);
+    }
+
     return q.map((row) => row.readTable(metaAlias)).watch().map((rows) => rows.map(_toMeta).toList());
+  }
+
+  static String encodeCursor(RecordMeta meta, RecordSortBy sortBy) {
+    if (sortBy == RecordSortBy.occurredAtDesc) {
+      final o = meta.occurredAtUtc?.microsecondsSinceEpoch.toString() ?? '';
+      return base64Url.encode(utf8.encode('${meta.createdAt.microsecondsSinceEpoch}|${meta.uuid}|$o'));
+    }
+    return base64Url.encode(utf8.encode('${meta.createdAt.microsecondsSinceEpoch}|${meta.uuid}'));
   }
 }
 

@@ -16,5 +16,7 @@ class DivinationPanelMappersDaoManager {
   DivinationPanelMappersDaoManager(this._db);
   $$DivinationPanelMappersTableTableManager get divinationPanelMappers =>
       $$DivinationPanelMappersTableTableManager(
-          _db.attachedDatabase, _db.divinationPanelMappers);
+        _db.attachedDatabase,
+        _db.divinationPanelMappers,
+      );
 }

@@ -20,7 +20,7 @@ class RecordBackedSeekerRepository
   Future<List<SeekerModel>> findByUsername(String name) =>
       getAllByIndex('seeker_name', name);
   Future<List<SeekerModel>> findByGender(Gender gender) =>
-      getAllByIndex('gender', gender.name);
+      getAllByIndex('gender', gender.name == 'female' ? 'F' : 'M');
   Future<List<SeekerModel>> findByLunarMonth(int month) =>
       getAllByIndex('lunar_month', '$month');
 }

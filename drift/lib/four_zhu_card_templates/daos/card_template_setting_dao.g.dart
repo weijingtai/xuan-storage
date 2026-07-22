@@ -15,5 +15,7 @@ class CardTemplateSettingDaoManager {
   CardTemplateSettingDaoManager(this._db);
   $$CardTemplateSettingsTableTableManager get cardTemplateSettings =>
       $$CardTemplateSettingsTableTableManager(
-          _db.attachedDatabase, _db.cardTemplateSettings);
+        _db.attachedDatabase,
+        _db.cardTemplateSettings,
+      );
 }

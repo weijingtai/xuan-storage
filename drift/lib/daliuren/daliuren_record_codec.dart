@@ -37,6 +37,8 @@ class DaliurenRecordCodec implements RecordModuleCodec<DaliurenDivinationRecordC
       divinationType: divinationType, question: c.question,
       moduleDataJson: jsonEncode(data),
       navParamsJson: jsonEncode({'recordUuid': c.uuid}),
+      occurredAtUtc: null, reckoningType: null, timezoneStr: null,
+      latitude: null, longitude: null, locationName: null, spacetimeJson: null, gender: null,
       createdAt: c.createdAt, updatedAt: c.updatedAt,
       deletedAt: c.deletedAt, rev: 1,
     );

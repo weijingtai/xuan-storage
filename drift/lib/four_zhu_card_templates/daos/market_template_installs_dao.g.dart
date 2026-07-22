@@ -15,5 +15,7 @@ class MarketTemplateInstallsDaoManager {
   MarketTemplateInstallsDaoManager(this._db);
   $$MarketTemplateInstallsTableTableManager get marketTemplateInstalls =>
       $$MarketTemplateInstallsTableTableManager(
-          _db.attachedDatabase, _db.marketTemplateInstalls);
+        _db.attachedDatabase,
+        _db.marketTemplateInstalls,
+      );
 }

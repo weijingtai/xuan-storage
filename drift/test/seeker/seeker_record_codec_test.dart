@@ -56,7 +56,7 @@ void main() {
       expect(meta.category, 'person');
       expect(meta.uuid, 'test-uuid-1');
       expect(meta.seekerName, '阿三');
-      expect(meta.gender, 'male');
+      expect(meta.gender, 'M');
     });
 
     test('encode → decode roundtrip preserves fields', () {
@@ -84,11 +84,44 @@ void main() {
       );
     });
 
+    test('encode handles gender correctly (male -> M, female -> F, unknown -> null)', () {
+      SeekerModel makeSeeker(Gender gender) => SeekerModel(
+        uuid: 'test-uuid-1', username: '张三', nickname: '阿三', gender: gender,
+        timingType: DateTimeType.solar, datetime: DateTime(2026, 6, 29, 10, 30),
+        yearGanZhi: JiaZi.JIA_CHEN, monthGanZhi: JiaZi.GENG_WU,
+        dayGanZhi: JiaZi.JIA_CHEN, timeGanZhi: JiaZi.JI_SI,
+        lunarMonth: 5, isLeapMonth: false, lunarDay: 15,
+        createdAt: DateTime(2026, 6, 29, 8, 0),
+      );
+      expect(codec.encode(makeSeeker(Gender.male), scopeUid: 's').meta.gender, 'M');
+      expect(codec.encode(makeSeeker(Gender.female), scopeUid: 's').meta.gender, 'F');
+      expect(codec.encode(makeSeeker(Gender.unknown), scopeUid: 's').meta.gender, null);
+    });
+
+    test('decode handles gender correctly across meta.gender and fallback moduleData', () {
+      SeekerModel makeSeeker(Gender gender) => SeekerModel(
+        uuid: 'test-uuid-1', username: '张三', nickname: '阿三', gender: gender,
+        timingType: DateTimeType.solar, datetime: DateTime(2026, 6, 29, 10, 30),
+        yearGanZhi: JiaZi.JIA_CHEN, monthGanZhi: JiaZi.GENG_WU,
+        dayGanZhi: JiaZi.JIA_CHEN, timeGanZhi: JiaZi.JI_SI,
+        lunarMonth: 5, isLeapMonth: false, lunarDay: 15,
+        createdAt: DateTime(2026, 6, 29, 8, 0),
+      );
+      final encodedMale = codec.encode(makeSeeker(Gender.male), scopeUid: 's');
+      expect(codec.decode(encodedMale.meta, encodedMale.moduleData).gender, Gender.male);
+
+      final encodedFemale = codec.encode(makeSeeker(Gender.female), scopeUid: 's');
+      expect(codec.decode(encodedFemale.meta, encodedFemale.moduleData).gender, Gender.female);
+
+      final encodedUnknown = codec.encode(makeSeeker(Gender.unknown), scopeUid: 's');
+      expect(codec.decode(encodedUnknown.meta, encodedUnknown.moduleData).gender, Gender.unknown);
+    });
+
     test('extractSearchTags returns expected tags', () {
       final encoded = codec.encode(sampleSeeker, scopeUid: 'scope-1');
       final tags = codec.extractSearchTags(encoded.meta, encoded.moduleData);
       expect(tags.any((t) => t.key == 'seeker_name'), true);
-      expect(tags.firstWhere((t) => t.key == 'gender').value, 'male');
+      expect(tags.firstWhere((t) => t.key == 'gender').value, 'M');
       expect(tags.firstWhere((t) => t.key == 'lunar_month').value, '5');
     });
   });

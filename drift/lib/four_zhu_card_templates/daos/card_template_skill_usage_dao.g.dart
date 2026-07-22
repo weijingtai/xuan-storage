@@ -15,5 +15,7 @@ class CardTemplateSkillUsageDaoManager {
   CardTemplateSkillUsageDaoManager(this._db);
   $$CardTemplateSkillUsagesTableTableManager get cardTemplateSkillUsages =>
       $$CardTemplateSkillUsagesTableTableManager(
-          _db.attachedDatabase, _db.cardTemplateSkillUsages);
+        _db.attachedDatabase,
+        _db.cardTemplateSkillUsages,
+      );
 }

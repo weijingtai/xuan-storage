@@ -4,10 +4,10 @@ import 'package:persistence_drift/persistence_drift.dart';
 import 'package:persistence_drift/taiyishenshu/taiyi_record_codec.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-TaiyiDivinationRecordContract _rec({String uuid = 'ty1', String schoolId = 'sch1'}) => TaiyiDivinationRecordContract(
+TaiyiDivinationRecordContract _rec({String uuid = 'ty1', String schoolId = 'sch1', String datetimeJson = '{}'}) => TaiyiDivinationRecordContract(
       uuid: uuid,
       question: 'q',
-      datetimeJson: '{}',
+      datetimeJson: datetimeJson,
       schoolId: schoolId,
       juNumber: 1,
       taiYiPalaceJson: '{}',
@@ -46,17 +46,26 @@ void main() {
     expect(() => codec.decode(badMeta, encoded.moduleData), throwsA(isA<RecordCodecMismatch>()));
   });
 
-  test('extractSearchTags emits schoolId', () {
-    final encoded = codec.encode(_rec(schoolId: 'taiyi-sch'), scopeUid: 's1');
-    final tags = codec.extractSearchTags(encoded.meta, encoded.moduleData);
-    expect(tags, contains(const SearchTag('school_id', 'taiyi-sch')));
-  });
+    test('extractSearchTags emits schoolId', () {
+      final encoded = codec.encode(_rec(schoolId: 'taiyi-sch'), scopeUid: 's1');
+      final tags = codec.extractSearchTags(encoded.meta, encoded.moduleData);
+      expect(tags, contains(const SearchTag('school_id', 'taiyi-sch')));
+    });
 
-  test('uuidOf and withUuid operations', () {
-    final r = _rec();
-    expect(codec.uuidOf(r), 'ty1');
-    final r2 = codec.withUuid(r, 'ty2');
-    expect(codec.uuidOf(r2), 'ty2');
-    expect(r2.schoolId, 'sch1');
-  });
+    test('taiyi codec fills occurredAtUtc', () {
+      final rWithDate = _rec(datetimeJson: '2025-01-01T12:00:00.000Z'); // single encoding, no quotes
+      final encoded = codec.encode(rWithDate, scopeUid: 's1');
+      expect(encoded.meta.occurredAtUtc, DateTime.utc(2025, 1, 1, 12, 0));
+
+      final decoded = codec.decode(encoded.meta, encoded.moduleData);
+      expect(decoded.datetimeJson, '2025-01-01T12:00:00.000Z');
+    });
+
+    test('uuidOf and withUuid operations', () {
+      final r = _rec();
+      expect(codec.uuidOf(r), 'ty1');
+      final r2 = codec.withUuid(r, 'ty2');
+      expect(codec.uuidOf(r2), 'ty2');
+      expect(r2.schoolId, 'sch1');
+    });
 }

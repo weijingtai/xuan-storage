@@ -11,227 +11,335 @@ class $MeiHuaGuaInfosTable extends MeiHuaGuaInfos
   $MeiHuaGuaInfosTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
   @override
-  late final GeneratedColumn<String> uuid =
-      GeneratedColumn<String>('uuid', aliasedName, false,
-          additionalChecks: GeneratedColumn.checkTextLength(
-            minTextLength: 1,
-          ),
-          type: DriftSqlType.string,
-          requiredDuringInsert: true);
-  static const VerificationMeta _divinationUuidMeta =
-      const VerificationMeta('divinationUuid');
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(minTextLength: 1),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _divinationUuidMeta = const VerificationMeta(
+    'divinationUuid',
+  );
   @override
   late final GeneratedColumn<String> divinationUuid = GeneratedColumn<String>(
-      'divination_uuid', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _questionMeta =
-      const VerificationMeta('question');
+    'divination_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _questionMeta = const VerificationMeta(
+    'question',
+  );
   @override
   late final GeneratedColumn<String> question = GeneratedColumn<String>(
-      'question', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _originalUpperGuaMeta =
-      const VerificationMeta('originalUpperGua');
+    'question',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _originalUpperGuaMeta = const VerificationMeta(
+    'originalUpperGua',
+  );
   @override
   late final GeneratedColumn<int> originalUpperGua = GeneratedColumn<int>(
-      'original_upper_gua', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _originalLowerGuaMeta =
-      const VerificationMeta('originalLowerGua');
+    'original_upper_gua',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _originalLowerGuaMeta = const VerificationMeta(
+    'originalLowerGua',
+  );
   @override
   late final GeneratedColumn<int> originalLowerGua = GeneratedColumn<int>(
-      'original_lower_gua', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _changingYaoMeta =
-      const VerificationMeta('changingYao');
+    'original_lower_gua',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _changingYaoMeta = const VerificationMeta(
+    'changingYao',
+  );
   @override
   late final GeneratedColumn<int> changingYao = GeneratedColumn<int>(
-      'changing_yao', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _changedUpperGuaMeta =
-      const VerificationMeta('changedUpperGua');
+    'changing_yao',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _changedUpperGuaMeta = const VerificationMeta(
+    'changedUpperGua',
+  );
   @override
   late final GeneratedColumn<int> changedUpperGua = GeneratedColumn<int>(
-      'changed_upper_gua', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _changedLowerGuaMeta =
-      const VerificationMeta('changedLowerGua');
+    'changed_upper_gua',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _changedLowerGuaMeta = const VerificationMeta(
+    'changedLowerGua',
+  );
   @override
   late final GeneratedColumn<int> changedLowerGua = GeneratedColumn<int>(
-      'changed_lower_gua', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _huUpperGuaMeta =
-      const VerificationMeta('huUpperGua');
+    'changed_lower_gua',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _huUpperGuaMeta = const VerificationMeta(
+    'huUpperGua',
+  );
   @override
   late final GeneratedColumn<int> huUpperGua = GeneratedColumn<int>(
-      'hu_upper_gua', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _huLowerGuaMeta =
-      const VerificationMeta('huLowerGua');
+    'hu_upper_gua',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _huLowerGuaMeta = const VerificationMeta(
+    'huLowerGua',
+  );
   @override
   late final GeneratedColumn<int> huLowerGua = GeneratedColumn<int>(
-      'hu_lower_gua', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
+    'hu_lower_gua',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _methodMeta = const VerificationMeta('method');
   @override
   late final GeneratedColumn<String> method = GeneratedColumn<String>(
-      'method', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _paramsJsonMeta =
-      const VerificationMeta('paramsJson');
+    'method',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _paramsJsonMeta = const VerificationMeta(
+    'paramsJson',
+  );
   @override
   late final GeneratedColumn<String> paramsJson = GeneratedColumn<String>(
-      'params_json', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _createdAtMeta =
-      const VerificationMeta('createdAt');
+    'params_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
   @override
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-      'created_at', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
-  static const VerificationMeta _updatedAtMeta =
-      const VerificationMeta('updatedAt');
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
   @override
   late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-      'updated_at', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
-  static const VerificationMeta _deletedAtMeta =
-      const VerificationMeta('deletedAt');
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
   @override
   late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
-      'deleted_at', aliasedName, true,
-      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
-        uuid,
-        divinationUuid,
-        question,
-        originalUpperGua,
-        originalLowerGua,
-        changingYao,
-        changedUpperGua,
-        changedLowerGua,
-        huUpperGua,
-        huLowerGua,
-        method,
-        paramsJson,
-        createdAt,
-        updatedAt,
-        deletedAt
-      ];
+    uuid,
+    divinationUuid,
+    question,
+    originalUpperGua,
+    originalLowerGua,
+    changingYao,
+    changedUpperGua,
+    changedLowerGua,
+    huUpperGua,
+    huLowerGua,
+    method,
+    paramsJson,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 't_meihua_gua_info';
   @override
-  VerificationContext validateIntegrity(Insertable<MeiHuaGuaInfo> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(
+    Insertable<MeiHuaGuaInfo> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('uuid')) {
       context.handle(
-          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
     } else if (isInserting) {
       context.missing(_uuidMeta);
     }
     if (data.containsKey('divination_uuid')) {
       context.handle(
+        _divinationUuidMeta,
+        divinationUuid.isAcceptableOrUnknown(
+          data['divination_uuid']!,
           _divinationUuidMeta,
-          divinationUuid.isAcceptableOrUnknown(
-              data['divination_uuid']!, _divinationUuidMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_divinationUuidMeta);
     }
     if (data.containsKey('question')) {
-      context.handle(_questionMeta,
-          question.isAcceptableOrUnknown(data['question']!, _questionMeta));
+      context.handle(
+        _questionMeta,
+        question.isAcceptableOrUnknown(data['question']!, _questionMeta),
+      );
     }
     if (data.containsKey('original_upper_gua')) {
       context.handle(
+        _originalUpperGuaMeta,
+        originalUpperGua.isAcceptableOrUnknown(
+          data['original_upper_gua']!,
           _originalUpperGuaMeta,
-          originalUpperGua.isAcceptableOrUnknown(
-              data['original_upper_gua']!, _originalUpperGuaMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_originalUpperGuaMeta);
     }
     if (data.containsKey('original_lower_gua')) {
       context.handle(
+        _originalLowerGuaMeta,
+        originalLowerGua.isAcceptableOrUnknown(
+          data['original_lower_gua']!,
           _originalLowerGuaMeta,
-          originalLowerGua.isAcceptableOrUnknown(
-              data['original_lower_gua']!, _originalLowerGuaMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_originalLowerGuaMeta);
     }
     if (data.containsKey('changing_yao')) {
       context.handle(
+        _changingYaoMeta,
+        changingYao.isAcceptableOrUnknown(
+          data['changing_yao']!,
           _changingYaoMeta,
-          changingYao.isAcceptableOrUnknown(
-              data['changing_yao']!, _changingYaoMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_changingYaoMeta);
     }
     if (data.containsKey('changed_upper_gua')) {
       context.handle(
+        _changedUpperGuaMeta,
+        changedUpperGua.isAcceptableOrUnknown(
+          data['changed_upper_gua']!,
           _changedUpperGuaMeta,
-          changedUpperGua.isAcceptableOrUnknown(
-              data['changed_upper_gua']!, _changedUpperGuaMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_changedUpperGuaMeta);
     }
     if (data.containsKey('changed_lower_gua')) {
       context.handle(
+        _changedLowerGuaMeta,
+        changedLowerGua.isAcceptableOrUnknown(
+          data['changed_lower_gua']!,
           _changedLowerGuaMeta,
-          changedLowerGua.isAcceptableOrUnknown(
-              data['changed_lower_gua']!, _changedLowerGuaMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_changedLowerGuaMeta);
     }
     if (data.containsKey('hu_upper_gua')) {
       context.handle(
+        _huUpperGuaMeta,
+        huUpperGua.isAcceptableOrUnknown(
+          data['hu_upper_gua']!,
           _huUpperGuaMeta,
-          huUpperGua.isAcceptableOrUnknown(
-              data['hu_upper_gua']!, _huUpperGuaMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_huUpperGuaMeta);
     }
     if (data.containsKey('hu_lower_gua')) {
       context.handle(
+        _huLowerGuaMeta,
+        huLowerGua.isAcceptableOrUnknown(
+          data['hu_lower_gua']!,
           _huLowerGuaMeta,
-          huLowerGua.isAcceptableOrUnknown(
-              data['hu_lower_gua']!, _huLowerGuaMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_huLowerGuaMeta);
     }
     if (data.containsKey('method')) {
-      context.handle(_methodMeta,
-          method.isAcceptableOrUnknown(data['method']!, _methodMeta));
+      context.handle(
+        _methodMeta,
+        method.isAcceptableOrUnknown(data['method']!, _methodMeta),
+      );
     } else if (isInserting) {
       context.missing(_methodMeta);
     }
     if (data.containsKey('params_json')) {
       context.handle(
-          _paramsJsonMeta,
-          paramsJson.isAcceptableOrUnknown(
-              data['params_json']!, _paramsJsonMeta));
+        _paramsJsonMeta,
+        paramsJson.isAcceptableOrUnknown(data['params_json']!, _paramsJsonMeta),
+      );
     } else if (isInserting) {
       context.missing(_paramsJsonMeta);
     }
     if (data.containsKey('created_at')) {
-      context.handle(_createdAtMeta,
-          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
     if (data.containsKey('updated_at')) {
-      context.handle(_updatedAtMeta,
-          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
     } else if (isInserting) {
       context.missing(_updatedAtMeta);
     }
     if (data.containsKey('deleted_at')) {
-      context.handle(_deletedAtMeta,
-          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
     }
     return context;
   }
@@ -242,36 +350,66 @@ class $MeiHuaGuaInfosTable extends MeiHuaGuaInfos
   MeiHuaGuaInfo map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return MeiHuaGuaInfo(
-      uuid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
       divinationUuid: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}divination_uuid'])!,
-      question: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}question']),
+        DriftSqlType.string,
+        data['${effectivePrefix}divination_uuid'],
+      )!,
+      question: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}question'],
+      ),
       originalUpperGua: attachedDatabase.typeMapping.read(
-          DriftSqlType.int, data['${effectivePrefix}original_upper_gua'])!,
+        DriftSqlType.int,
+        data['${effectivePrefix}original_upper_gua'],
+      )!,
       originalLowerGua: attachedDatabase.typeMapping.read(
-          DriftSqlType.int, data['${effectivePrefix}original_lower_gua'])!,
-      changingYao: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}changing_yao'])!,
-      changedUpperGua: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}changed_upper_gua'])!,
-      changedLowerGua: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}changed_lower_gua'])!,
-      huUpperGua: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}hu_upper_gua'])!,
-      huLowerGua: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}hu_lower_gua'])!,
-      method: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}method'])!,
-      paramsJson: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}params_json'])!,
-      createdAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
-      updatedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
-      deletedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+        DriftSqlType.int,
+        data['${effectivePrefix}original_lower_gua'],
+      )!,
+      changingYao: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}changing_yao'],
+      )!,
+      changedUpperGua: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}changed_upper_gua'],
+      )!,
+      changedLowerGua: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}changed_lower_gua'],
+      )!,
+      huUpperGua: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}hu_upper_gua'],
+      )!,
+      huLowerGua: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}hu_lower_gua'],
+      )!,
+      method: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}method'],
+      )!,
+      paramsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}params_json'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
     );
   }
 
@@ -314,22 +452,23 @@ class MeiHuaGuaInfo extends DataClass implements Insertable<MeiHuaGuaInfo> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
-  const MeiHuaGuaInfo(
-      {required this.uuid,
-      required this.divinationUuid,
-      this.question,
-      required this.originalUpperGua,
-      required this.originalLowerGua,
-      required this.changingYao,
-      required this.changedUpperGua,
-      required this.changedLowerGua,
-      required this.huUpperGua,
-      required this.huLowerGua,
-      required this.method,
-      required this.paramsJson,
-      required this.createdAt,
-      required this.updatedAt,
-      this.deletedAt});
+  const MeiHuaGuaInfo({
+    required this.uuid,
+    required this.divinationUuid,
+    this.question,
+    required this.originalUpperGua,
+    required this.originalLowerGua,
+    required this.changingYao,
+    required this.changedUpperGua,
+    required this.changedLowerGua,
+    required this.huUpperGua,
+    required this.huLowerGua,
+    required this.method,
+    required this.paramsJson,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -379,8 +518,10 @@ class MeiHuaGuaInfo extends DataClass implements Insertable<MeiHuaGuaInfo> {
     );
   }
 
-  factory MeiHuaGuaInfo.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory MeiHuaGuaInfo.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return MeiHuaGuaInfo(
       uuid: serializer.fromJson<String>(json['uuid']),
@@ -422,39 +563,39 @@ class MeiHuaGuaInfo extends DataClass implements Insertable<MeiHuaGuaInfo> {
     };
   }
 
-  MeiHuaGuaInfo copyWith(
-          {String? uuid,
-          String? divinationUuid,
-          Value<String?> question = const Value.absent(),
-          int? originalUpperGua,
-          int? originalLowerGua,
-          int? changingYao,
-          int? changedUpperGua,
-          int? changedLowerGua,
-          int? huUpperGua,
-          int? huLowerGua,
-          String? method,
-          String? paramsJson,
-          DateTime? createdAt,
-          DateTime? updatedAt,
-          Value<DateTime?> deletedAt = const Value.absent()}) =>
-      MeiHuaGuaInfo(
-        uuid: uuid ?? this.uuid,
-        divinationUuid: divinationUuid ?? this.divinationUuid,
-        question: question.present ? question.value : this.question,
-        originalUpperGua: originalUpperGua ?? this.originalUpperGua,
-        originalLowerGua: originalLowerGua ?? this.originalLowerGua,
-        changingYao: changingYao ?? this.changingYao,
-        changedUpperGua: changedUpperGua ?? this.changedUpperGua,
-        changedLowerGua: changedLowerGua ?? this.changedLowerGua,
-        huUpperGua: huUpperGua ?? this.huUpperGua,
-        huLowerGua: huLowerGua ?? this.huLowerGua,
-        method: method ?? this.method,
-        paramsJson: paramsJson ?? this.paramsJson,
-        createdAt: createdAt ?? this.createdAt,
-        updatedAt: updatedAt ?? this.updatedAt,
-        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
-      );
+  MeiHuaGuaInfo copyWith({
+    String? uuid,
+    String? divinationUuid,
+    Value<String?> question = const Value.absent(),
+    int? originalUpperGua,
+    int? originalLowerGua,
+    int? changingYao,
+    int? changedUpperGua,
+    int? changedLowerGua,
+    int? huUpperGua,
+    int? huLowerGua,
+    String? method,
+    String? paramsJson,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => MeiHuaGuaInfo(
+    uuid: uuid ?? this.uuid,
+    divinationUuid: divinationUuid ?? this.divinationUuid,
+    question: question.present ? question.value : this.question,
+    originalUpperGua: originalUpperGua ?? this.originalUpperGua,
+    originalLowerGua: originalLowerGua ?? this.originalLowerGua,
+    changingYao: changingYao ?? this.changingYao,
+    changedUpperGua: changedUpperGua ?? this.changedUpperGua,
+    changedLowerGua: changedLowerGua ?? this.changedLowerGua,
+    huUpperGua: huUpperGua ?? this.huUpperGua,
+    huLowerGua: huLowerGua ?? this.huLowerGua,
+    method: method ?? this.method,
+    paramsJson: paramsJson ?? this.paramsJson,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
   MeiHuaGuaInfo copyWithCompanion(MeiHuaGuaInfosCompanion data) {
     return MeiHuaGuaInfo(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
@@ -468,21 +609,25 @@ class MeiHuaGuaInfo extends DataClass implements Insertable<MeiHuaGuaInfo> {
       originalLowerGua: data.originalLowerGua.present
           ? data.originalLowerGua.value
           : this.originalLowerGua,
-      changingYao:
-          data.changingYao.present ? data.changingYao.value : this.changingYao,
+      changingYao: data.changingYao.present
+          ? data.changingYao.value
+          : this.changingYao,
       changedUpperGua: data.changedUpperGua.present
           ? data.changedUpperGua.value
           : this.changedUpperGua,
       changedLowerGua: data.changedLowerGua.present
           ? data.changedLowerGua.value
           : this.changedLowerGua,
-      huUpperGua:
-          data.huUpperGua.present ? data.huUpperGua.value : this.huUpperGua,
-      huLowerGua:
-          data.huLowerGua.present ? data.huLowerGua.value : this.huLowerGua,
+      huUpperGua: data.huUpperGua.present
+          ? data.huUpperGua.value
+          : this.huUpperGua,
+      huLowerGua: data.huLowerGua.present
+          ? data.huLowerGua.value
+          : this.huLowerGua,
       method: data.method.present ? data.method.value : this.method,
-      paramsJson:
-          data.paramsJson.present ? data.paramsJson.value : this.paramsJson,
+      paramsJson: data.paramsJson.present
+          ? data.paramsJson.value
+          : this.paramsJson,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
@@ -513,21 +658,22 @@ class MeiHuaGuaInfo extends DataClass implements Insertable<MeiHuaGuaInfo> {
 
   @override
   int get hashCode => Object.hash(
-      uuid,
-      divinationUuid,
-      question,
-      originalUpperGua,
-      originalLowerGua,
-      changingYao,
-      changedUpperGua,
-      changedLowerGua,
-      huUpperGua,
-      huLowerGua,
-      method,
-      paramsJson,
-      createdAt,
-      updatedAt,
-      deletedAt);
+    uuid,
+    divinationUuid,
+    question,
+    originalUpperGua,
+    originalLowerGua,
+    changingYao,
+    changedUpperGua,
+    changedLowerGua,
+    huUpperGua,
+    huLowerGua,
+    method,
+    paramsJson,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -601,19 +747,19 @@ class MeiHuaGuaInfosCompanion extends UpdateCompanion<MeiHuaGuaInfo> {
     required DateTime updatedAt,
     this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
-  })  : uuid = Value(uuid),
-        divinationUuid = Value(divinationUuid),
-        originalUpperGua = Value(originalUpperGua),
-        originalLowerGua = Value(originalLowerGua),
-        changingYao = Value(changingYao),
-        changedUpperGua = Value(changedUpperGua),
-        changedLowerGua = Value(changedLowerGua),
-        huUpperGua = Value(huUpperGua),
-        huLowerGua = Value(huLowerGua),
-        method = Value(method),
-        paramsJson = Value(paramsJson),
-        createdAt = Value(createdAt),
-        updatedAt = Value(updatedAt);
+  }) : uuid = Value(uuid),
+       divinationUuid = Value(divinationUuid),
+       originalUpperGua = Value(originalUpperGua),
+       originalLowerGua = Value(originalLowerGua),
+       changingYao = Value(changingYao),
+       changedUpperGua = Value(changedUpperGua),
+       changedLowerGua = Value(changedLowerGua),
+       huUpperGua = Value(huUpperGua),
+       huLowerGua = Value(huLowerGua),
+       method = Value(method),
+       paramsJson = Value(paramsJson),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
   static Insertable<MeiHuaGuaInfo> custom({
     Expression<String>? uuid,
     Expression<String>? divinationUuid,
@@ -652,23 +798,24 @@ class MeiHuaGuaInfosCompanion extends UpdateCompanion<MeiHuaGuaInfo> {
     });
   }
 
-  MeiHuaGuaInfosCompanion copyWith(
-      {Value<String>? uuid,
-      Value<String>? divinationUuid,
-      Value<String?>? question,
-      Value<int>? originalUpperGua,
-      Value<int>? originalLowerGua,
-      Value<int>? changingYao,
-      Value<int>? changedUpperGua,
-      Value<int>? changedLowerGua,
-      Value<int>? huUpperGua,
-      Value<int>? huLowerGua,
-      Value<String>? method,
-      Value<String>? paramsJson,
-      Value<DateTime>? createdAt,
-      Value<DateTime>? updatedAt,
-      Value<DateTime?>? deletedAt,
-      Value<int>? rowid}) {
+  MeiHuaGuaInfosCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? divinationUuid,
+    Value<String?>? question,
+    Value<int>? originalUpperGua,
+    Value<int>? originalLowerGua,
+    Value<int>? changingYao,
+    Value<int>? changedUpperGua,
+    Value<int>? changedLowerGua,
+    Value<int>? huUpperGua,
+    Value<int>? huLowerGua,
+    Value<String>? method,
+    Value<String>? paramsJson,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
     return MeiHuaGuaInfosCompanion(
       uuid: uuid ?? this.uuid,
       divinationUuid: divinationUuid ?? this.divinationUuid,
@@ -778,44 +925,44 @@ abstract class _$MeiHuaDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [meiHuaGuaInfos];
 }
 
-typedef $$MeiHuaGuaInfosTableCreateCompanionBuilder = MeiHuaGuaInfosCompanion
-    Function({
-  required String uuid,
-  required String divinationUuid,
-  Value<String?> question,
-  required int originalUpperGua,
-  required int originalLowerGua,
-  required int changingYao,
-  required int changedUpperGua,
-  required int changedLowerGua,
-  required int huUpperGua,
-  required int huLowerGua,
-  required String method,
-  required String paramsJson,
-  required DateTime createdAt,
-  required DateTime updatedAt,
-  Value<DateTime?> deletedAt,
-  Value<int> rowid,
-});
-typedef $$MeiHuaGuaInfosTableUpdateCompanionBuilder = MeiHuaGuaInfosCompanion
-    Function({
-  Value<String> uuid,
-  Value<String> divinationUuid,
-  Value<String?> question,
-  Value<int> originalUpperGua,
-  Value<int> originalLowerGua,
-  Value<int> changingYao,
-  Value<int> changedUpperGua,
-  Value<int> changedLowerGua,
-  Value<int> huUpperGua,
-  Value<int> huLowerGua,
-  Value<String> method,
-  Value<String> paramsJson,
-  Value<DateTime> createdAt,
-  Value<DateTime> updatedAt,
-  Value<DateTime?> deletedAt,
-  Value<int> rowid,
-});
+typedef $$MeiHuaGuaInfosTableCreateCompanionBuilder =
+    MeiHuaGuaInfosCompanion Function({
+      required String uuid,
+      required String divinationUuid,
+      Value<String?> question,
+      required int originalUpperGua,
+      required int originalLowerGua,
+      required int changingYao,
+      required int changedUpperGua,
+      required int changedLowerGua,
+      required int huUpperGua,
+      required int huLowerGua,
+      required String method,
+      required String paramsJson,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$MeiHuaGuaInfosTableUpdateCompanionBuilder =
+    MeiHuaGuaInfosCompanion Function({
+      Value<String> uuid,
+      Value<String> divinationUuid,
+      Value<String?> question,
+      Value<int> originalUpperGua,
+      Value<int> originalLowerGua,
+      Value<int> changingYao,
+      Value<int> changedUpperGua,
+      Value<int> changedLowerGua,
+      Value<int> huUpperGua,
+      Value<int> huLowerGua,
+      Value<String> method,
+      Value<String> paramsJson,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
 
 class $$MeiHuaGuaInfosTableFilterComposer
     extends Composer<_$MeiHuaDatabase, $MeiHuaGuaInfosTable> {
@@ -827,54 +974,79 @@ class $$MeiHuaGuaInfosTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get uuid => $composableBuilder(
-      column: $table.uuid, builder: (column) => ColumnFilters(column));
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get divinationUuid => $composableBuilder(
-      column: $table.divinationUuid,
-      builder: (column) => ColumnFilters(column));
+    column: $table.divinationUuid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get question => $composableBuilder(
-      column: $table.question, builder: (column) => ColumnFilters(column));
+    column: $table.question,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<int> get originalUpperGua => $composableBuilder(
-      column: $table.originalUpperGua,
-      builder: (column) => ColumnFilters(column));
+    column: $table.originalUpperGua,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<int> get originalLowerGua => $composableBuilder(
-      column: $table.originalLowerGua,
-      builder: (column) => ColumnFilters(column));
+    column: $table.originalLowerGua,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<int> get changingYao => $composableBuilder(
-      column: $table.changingYao, builder: (column) => ColumnFilters(column));
+    column: $table.changingYao,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<int> get changedUpperGua => $composableBuilder(
-      column: $table.changedUpperGua,
-      builder: (column) => ColumnFilters(column));
+    column: $table.changedUpperGua,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<int> get changedLowerGua => $composableBuilder(
-      column: $table.changedLowerGua,
-      builder: (column) => ColumnFilters(column));
+    column: $table.changedLowerGua,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<int> get huUpperGua => $composableBuilder(
-      column: $table.huUpperGua, builder: (column) => ColumnFilters(column));
+    column: $table.huUpperGua,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<int> get huLowerGua => $composableBuilder(
-      column: $table.huLowerGua, builder: (column) => ColumnFilters(column));
+    column: $table.huLowerGua,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get method => $composableBuilder(
-      column: $table.method, builder: (column) => ColumnFilters(column));
+    column: $table.method,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get paramsJson => $composableBuilder(
-      column: $table.paramsJson, builder: (column) => ColumnFilters(column));
+    column: $table.paramsJson,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
-      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
-      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$MeiHuaGuaInfosTableOrderingComposer
@@ -887,54 +1059,79 @@ class $$MeiHuaGuaInfosTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get uuid => $composableBuilder(
-      column: $table.uuid, builder: (column) => ColumnOrderings(column));
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get divinationUuid => $composableBuilder(
-      column: $table.divinationUuid,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.divinationUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get question => $composableBuilder(
-      column: $table.question, builder: (column) => ColumnOrderings(column));
+    column: $table.question,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get originalUpperGua => $composableBuilder(
-      column: $table.originalUpperGua,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.originalUpperGua,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get originalLowerGua => $composableBuilder(
-      column: $table.originalLowerGua,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.originalLowerGua,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get changingYao => $composableBuilder(
-      column: $table.changingYao, builder: (column) => ColumnOrderings(column));
+    column: $table.changingYao,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get changedUpperGua => $composableBuilder(
-      column: $table.changedUpperGua,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.changedUpperGua,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get changedLowerGua => $composableBuilder(
-      column: $table.changedLowerGua,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.changedLowerGua,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get huUpperGua => $composableBuilder(
-      column: $table.huUpperGua, builder: (column) => ColumnOrderings(column));
+    column: $table.huUpperGua,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get huLowerGua => $composableBuilder(
-      column: $table.huLowerGua, builder: (column) => ColumnOrderings(column));
+    column: $table.huLowerGua,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get method => $composableBuilder(
-      column: $table.method, builder: (column) => ColumnOrderings(column));
+    column: $table.method,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get paramsJson => $composableBuilder(
-      column: $table.paramsJson, builder: (column) => ColumnOrderings(column));
+    column: $table.paramsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
-      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
-      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$MeiHuaGuaInfosTableAnnotationComposer
@@ -950,37 +1147,55 @@ class $$MeiHuaGuaInfosTableAnnotationComposer
       $composableBuilder(column: $table.uuid, builder: (column) => column);
 
   GeneratedColumn<String> get divinationUuid => $composableBuilder(
-      column: $table.divinationUuid, builder: (column) => column);
+    column: $table.divinationUuid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get question =>
       $composableBuilder(column: $table.question, builder: (column) => column);
 
   GeneratedColumn<int> get originalUpperGua => $composableBuilder(
-      column: $table.originalUpperGua, builder: (column) => column);
+    column: $table.originalUpperGua,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get originalLowerGua => $composableBuilder(
-      column: $table.originalLowerGua, builder: (column) => column);
+    column: $table.originalLowerGua,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get changingYao => $composableBuilder(
-      column: $table.changingYao, builder: (column) => column);
+    column: $table.changingYao,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get changedUpperGua => $composableBuilder(
-      column: $table.changedUpperGua, builder: (column) => column);
+    column: $table.changedUpperGua,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get changedLowerGua => $composableBuilder(
-      column: $table.changedLowerGua, builder: (column) => column);
+    column: $table.changedLowerGua,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get huUpperGua => $composableBuilder(
-      column: $table.huUpperGua, builder: (column) => column);
+    column: $table.huUpperGua,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get huLowerGua => $composableBuilder(
-      column: $table.huLowerGua, builder: (column) => column);
+    column: $table.huLowerGua,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get method =>
       $composableBuilder(column: $table.method, builder: (column) => column);
 
   GeneratedColumn<String> get paramsJson => $composableBuilder(
-      column: $table.paramsJson, builder: (column) => column);
+    column: $table.paramsJson,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -992,24 +1207,33 @@ class $$MeiHuaGuaInfosTableAnnotationComposer
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 }
 
-class $$MeiHuaGuaInfosTableTableManager extends RootTableManager<
-    _$MeiHuaDatabase,
-    $MeiHuaGuaInfosTable,
-    MeiHuaGuaInfo,
-    $$MeiHuaGuaInfosTableFilterComposer,
-    $$MeiHuaGuaInfosTableOrderingComposer,
-    $$MeiHuaGuaInfosTableAnnotationComposer,
-    $$MeiHuaGuaInfosTableCreateCompanionBuilder,
-    $$MeiHuaGuaInfosTableUpdateCompanionBuilder,
-    (
-      MeiHuaGuaInfo,
-      BaseReferences<_$MeiHuaDatabase, $MeiHuaGuaInfosTable, MeiHuaGuaInfo>
-    ),
-    MeiHuaGuaInfo,
-    PrefetchHooks Function()> {
+class $$MeiHuaGuaInfosTableTableManager
+    extends
+        RootTableManager<
+          _$MeiHuaDatabase,
+          $MeiHuaGuaInfosTable,
+          MeiHuaGuaInfo,
+          $$MeiHuaGuaInfosTableFilterComposer,
+          $$MeiHuaGuaInfosTableOrderingComposer,
+          $$MeiHuaGuaInfosTableAnnotationComposer,
+          $$MeiHuaGuaInfosTableCreateCompanionBuilder,
+          $$MeiHuaGuaInfosTableUpdateCompanionBuilder,
+          (
+            MeiHuaGuaInfo,
+            BaseReferences<
+              _$MeiHuaDatabase,
+              $MeiHuaGuaInfosTable,
+              MeiHuaGuaInfo
+            >,
+          ),
+          MeiHuaGuaInfo,
+          PrefetchHooks Function()
+        > {
   $$MeiHuaGuaInfosTableTableManager(
-      _$MeiHuaDatabase db, $MeiHuaGuaInfosTable table)
-      : super(TableManagerState(
+    _$MeiHuaDatabase db,
+    $MeiHuaGuaInfosTable table,
+  ) : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -1018,100 +1242,103 @@ class $$MeiHuaGuaInfosTableTableManager extends RootTableManager<
               $$MeiHuaGuaInfosTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$MeiHuaGuaInfosTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> uuid = const Value.absent(),
-            Value<String> divinationUuid = const Value.absent(),
-            Value<String?> question = const Value.absent(),
-            Value<int> originalUpperGua = const Value.absent(),
-            Value<int> originalLowerGua = const Value.absent(),
-            Value<int> changingYao = const Value.absent(),
-            Value<int> changedUpperGua = const Value.absent(),
-            Value<int> changedLowerGua = const Value.absent(),
-            Value<int> huUpperGua = const Value.absent(),
-            Value<int> huLowerGua = const Value.absent(),
-            Value<String> method = const Value.absent(),
-            Value<String> paramsJson = const Value.absent(),
-            Value<DateTime> createdAt = const Value.absent(),
-            Value<DateTime> updatedAt = const Value.absent(),
-            Value<DateTime?> deletedAt = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              MeiHuaGuaInfosCompanion(
-            uuid: uuid,
-            divinationUuid: divinationUuid,
-            question: question,
-            originalUpperGua: originalUpperGua,
-            originalLowerGua: originalLowerGua,
-            changingYao: changingYao,
-            changedUpperGua: changedUpperGua,
-            changedLowerGua: changedLowerGua,
-            huUpperGua: huUpperGua,
-            huLowerGua: huLowerGua,
-            method: method,
-            paramsJson: paramsJson,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-            deletedAt: deletedAt,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String uuid,
-            required String divinationUuid,
-            Value<String?> question = const Value.absent(),
-            required int originalUpperGua,
-            required int originalLowerGua,
-            required int changingYao,
-            required int changedUpperGua,
-            required int changedLowerGua,
-            required int huUpperGua,
-            required int huLowerGua,
-            required String method,
-            required String paramsJson,
-            required DateTime createdAt,
-            required DateTime updatedAt,
-            Value<DateTime?> deletedAt = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              MeiHuaGuaInfosCompanion.insert(
-            uuid: uuid,
-            divinationUuid: divinationUuid,
-            question: question,
-            originalUpperGua: originalUpperGua,
-            originalLowerGua: originalLowerGua,
-            changingYao: changingYao,
-            changedUpperGua: changedUpperGua,
-            changedLowerGua: changedLowerGua,
-            huUpperGua: huUpperGua,
-            huLowerGua: huLowerGua,
-            method: method,
-            paramsJson: paramsJson,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-            deletedAt: deletedAt,
-            rowid: rowid,
-          ),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> divinationUuid = const Value.absent(),
+                Value<String?> question = const Value.absent(),
+                Value<int> originalUpperGua = const Value.absent(),
+                Value<int> originalLowerGua = const Value.absent(),
+                Value<int> changingYao = const Value.absent(),
+                Value<int> changedUpperGua = const Value.absent(),
+                Value<int> changedLowerGua = const Value.absent(),
+                Value<int> huUpperGua = const Value.absent(),
+                Value<int> huLowerGua = const Value.absent(),
+                Value<String> method = const Value.absent(),
+                Value<String> paramsJson = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MeiHuaGuaInfosCompanion(
+                uuid: uuid,
+                divinationUuid: divinationUuid,
+                question: question,
+                originalUpperGua: originalUpperGua,
+                originalLowerGua: originalLowerGua,
+                changingYao: changingYao,
+                changedUpperGua: changedUpperGua,
+                changedLowerGua: changedLowerGua,
+                huUpperGua: huUpperGua,
+                huLowerGua: huLowerGua,
+                method: method,
+                paramsJson: paramsJson,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String divinationUuid,
+                Value<String?> question = const Value.absent(),
+                required int originalUpperGua,
+                required int originalLowerGua,
+                required int changingYao,
+                required int changedUpperGua,
+                required int changedLowerGua,
+                required int huUpperGua,
+                required int huLowerGua,
+                required String method,
+                required String paramsJson,
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MeiHuaGuaInfosCompanion.insert(
+                uuid: uuid,
+                divinationUuid: divinationUuid,
+                question: question,
+                originalUpperGua: originalUpperGua,
+                originalLowerGua: originalLowerGua,
+                changingYao: changingYao,
+                changedUpperGua: changedUpperGua,
+                changedLowerGua: changedLowerGua,
+                huUpperGua: huUpperGua,
+                huLowerGua: huLowerGua,
+                method: method,
+                paramsJson: paramsJson,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ));
+        ),
+      );
 }
 
-typedef $$MeiHuaGuaInfosTableProcessedTableManager = ProcessedTableManager<
-    _$MeiHuaDatabase,
-    $MeiHuaGuaInfosTable,
-    MeiHuaGuaInfo,
-    $$MeiHuaGuaInfosTableFilterComposer,
-    $$MeiHuaGuaInfosTableOrderingComposer,
-    $$MeiHuaGuaInfosTableAnnotationComposer,
-    $$MeiHuaGuaInfosTableCreateCompanionBuilder,
-    $$MeiHuaGuaInfosTableUpdateCompanionBuilder,
-    (
+typedef $$MeiHuaGuaInfosTableProcessedTableManager =
+    ProcessedTableManager<
+      _$MeiHuaDatabase,
+      $MeiHuaGuaInfosTable,
       MeiHuaGuaInfo,
-      BaseReferences<_$MeiHuaDatabase, $MeiHuaGuaInfosTable, MeiHuaGuaInfo>
-    ),
-    MeiHuaGuaInfo,
-    PrefetchHooks Function()>;
+      $$MeiHuaGuaInfosTableFilterComposer,
+      $$MeiHuaGuaInfosTableOrderingComposer,
+      $$MeiHuaGuaInfosTableAnnotationComposer,
+      $$MeiHuaGuaInfosTableCreateCompanionBuilder,
+      $$MeiHuaGuaInfosTableUpdateCompanionBuilder,
+      (
+        MeiHuaGuaInfo,
+        BaseReferences<_$MeiHuaDatabase, $MeiHuaGuaInfosTable, MeiHuaGuaInfo>,
+      ),
+      MeiHuaGuaInfo,
+      PrefetchHooks Function()
+    >;
 
 class $MeiHuaDatabaseManager {
   final _$MeiHuaDatabase _db;

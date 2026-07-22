@@ -33,6 +33,9 @@ class TaiyiRecordCodec implements RecordModuleCodec<TaiyiDivinationRecordContrac
       divinationType: divinationType, question: c.question,
       moduleDataJson: jsonEncode(data),
       navParamsJson: jsonEncode({'recordUuid': c.uuid}),
+      occurredAtUtc: c.datetimeJson != null ? DateTime.tryParse(c.datetimeJson!) : null,
+      reckoningType: null, timezoneStr: null, latitude: null,
+      longitude: null, locationName: null, spacetimeJson: null, gender: null,
       createdAt: c.createdAt, updatedAt: c.updatedAt,
       deletedAt: c.deletedAt, rev: 1,
     );

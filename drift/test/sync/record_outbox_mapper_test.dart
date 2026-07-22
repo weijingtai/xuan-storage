@@ -61,6 +61,46 @@ void main() {
       expect(payload['moduleData']['score'], 98);
     });
 
+    test('outbox payload contains record public columns', () {
+      final fullMeta = baseMeta.copyWith(
+        occurredAtUtc: DateTime.utc(2025, 1, 1, 12, 0),
+        reckoningType: 'true_solar',
+        timezoneStr: 'Asia/Shanghai',
+        latitude: 31.2,
+        longitude: 121.5,
+        locationName: 'Shanghai',
+        spacetimeJson: '{"key":"space"}',
+      );
+      // We manually add gender because copyWith doesn't seem to support gender in baseMeta (wait, let's check copyWith, it doesn't have gender? Wait, it does not. I will create a new RecordMeta).
+      final newMeta = RecordMeta(
+        uuid: baseMeta.uuid, scopeUid: baseMeta.scopeUid,
+        module: baseMeta.module, category: baseMeta.category,
+        divinationType: baseMeta.divinationType, createdAt: baseMeta.createdAt,
+        occurredAtUtc: DateTime.utc(2025, 1, 1, 12, 0),
+        reckoningType: 'true_solar',
+        timezoneStr: 'Asia/Shanghai',
+        latitude: 31.2,
+        longitude: 121.5,
+        locationName: 'Shanghai',
+        spacetimeJson: '{"key":"space"}',
+        gender: 'F',
+      );
+      final outbox = RecordOutboxMapper.toOutboxRecord(
+        meta: newMeta, tags: const [], opType: RecordOutboxMapper.opUpsert,
+      );
+      final payload = jsonDecode(outbox.payloadJson) as Map<String, dynamic>;
+      final metaPayload = payload['meta'] as Map<String, dynamic>;
+
+      expect(metaPayload['occurredAtUtc'], '2025-01-01T12:00:00.000Z');
+      expect(metaPayload['reckoningType'], 'true_solar');
+      expect(metaPayload['timezoneStr'], 'Asia/Shanghai');
+      expect(metaPayload['latitude'], 31.2);
+      expect(metaPayload['longitude'], 121.5);
+      expect(metaPayload['locationName'], 'Shanghai');
+      expect(metaPayload['spacetimeJson'], '{"key":"space"}');
+      expect(metaPayload['gender'], 'F');
+    });
+
     test('scopeUid matches record.scopeUid', () {
       final outbox = RecordOutboxMapper.toOutboxRecord(
         meta: baseMeta, tags: const [], opType: RecordOutboxMapper.opUpsert,

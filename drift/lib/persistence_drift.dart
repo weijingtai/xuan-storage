@@ -521,7 +521,7 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
   PersistenceDriftDatabase(super.executor);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -541,6 +541,12 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
         await m.addColumn(decisionLinks, decisionLinks.sessionId);
         await m.addColumn(decisionLinks, decisionLinks.mergeTargetUuid);
         await m.addColumn(decisionLinks, decisionLinks.inferenceMetaJson);
+      }
+      if (from < 4) {
+        await m.alterTable(TableMigration(tRecordMeta));
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_record_meta_occurred '
+          'ON t_record_meta(scope_uid, occurred_at_utc DESC)');
       }
     },
   );
