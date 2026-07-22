@@ -16,12 +16,8 @@ class PromptSkillBindingsDaoManager {
   PromptSkillBindingsDaoManager(this._db);
   $$PromptTemplatesTableTableManager get promptTemplates =>
       $$PromptTemplatesTableTableManager(
-        _db.attachedDatabase,
-        _db.promptTemplates,
-      );
+          _db.attachedDatabase, _db.promptTemplates);
   $$PromptSkillBindingsTableTableManager get promptSkillBindings =>
       $$PromptSkillBindingsTableTableManager(
-        _db.attachedDatabase,
-        _db.promptSkillBindings,
-      );
+          _db.attachedDatabase, _db.promptSkillBindings);
 }

@@ -13,7 +13,5 @@ class LayoutTemplatesDaoManager {
   LayoutTemplatesDaoManager(this._db);
   $$LayoutTemplatesTableTableManager get layoutTemplates =>
       $$LayoutTemplatesTableTableManager(
-        _db.attachedDatabase,
-        _db.layoutTemplates,
-      );
+          _db.attachedDatabase, _db.layoutTemplates);
 }

@@ -12,80 +12,45 @@ class $CharactersTable extends Characters
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
-  static const VerificationMeta _characterMeta = const VerificationMeta(
-    'character',
-  );
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _characterMeta =
+      const VerificationMeta('character');
   @override
   late final GeneratedColumn<String> character = GeneratedColumn<String>(
-    'character',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _definitionMeta = const VerificationMeta(
-    'definition',
-  );
+      'character', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _definitionMeta =
+      const VerificationMeta('definition');
   @override
   late final GeneratedColumn<String> definition = GeneratedColumn<String>(
-    'definition',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _radicalMeta = const VerificationMeta(
-    'radical',
-  );
+      'definition', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _radicalMeta =
+      const VerificationMeta('radical');
   @override
   late final GeneratedColumn<String> radical = GeneratedColumn<String>(
-    'radical',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _decompositionMeta = const VerificationMeta(
-    'decomposition',
-  );
+      'radical', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _decompositionMeta =
+      const VerificationMeta('decomposition');
   @override
   late final GeneratedColumn<String> decomposition = GeneratedColumn<String>(
-    'decomposition',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _matchesJsonMeta = const VerificationMeta(
-    'matchesJson',
-  );
+      'decomposition', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _matchesJsonMeta =
+      const VerificationMeta('matchesJson');
   @override
   late final GeneratedColumn<String> matchesJson = GeneratedColumn<String>(
-    'matches_json',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
+      'matches_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    character,
-    definition,
-    radical,
-    decomposition,
-    matchesJson,
-  ];
+  List<GeneratedColumn> get $columns =>
+      [id, character, definition, radical, decomposition, matchesJson];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -93,51 +58,40 @@ class $CharactersTable extends Characters
   static const String $name = 'characters';
   @override
   VerificationContext validateIntegrity(
-    Insertable<DictionaryCharacter> instance, {
-    bool isInserting = false,
-  }) {
+      Insertable<DictionaryCharacter> instance,
+      {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
     if (data.containsKey('character')) {
-      context.handle(
-        _characterMeta,
-        character.isAcceptableOrUnknown(data['character']!, _characterMeta),
-      );
+      context.handle(_characterMeta,
+          character.isAcceptableOrUnknown(data['character']!, _characterMeta));
     } else if (isInserting) {
       context.missing(_characterMeta);
     }
     if (data.containsKey('definition')) {
       context.handle(
-        _definitionMeta,
-        definition.isAcceptableOrUnknown(data['definition']!, _definitionMeta),
-      );
+          _definitionMeta,
+          definition.isAcceptableOrUnknown(
+              data['definition']!, _definitionMeta));
     }
     if (data.containsKey('radical')) {
-      context.handle(
-        _radicalMeta,
-        radical.isAcceptableOrUnknown(data['radical']!, _radicalMeta),
-      );
+      context.handle(_radicalMeta,
+          radical.isAcceptableOrUnknown(data['radical']!, _radicalMeta));
     }
     if (data.containsKey('decomposition')) {
       context.handle(
-        _decompositionMeta,
-        decomposition.isAcceptableOrUnknown(
-          data['decomposition']!,
           _decompositionMeta,
-        ),
-      );
+          decomposition.isAcceptableOrUnknown(
+              data['decomposition']!, _decompositionMeta));
     }
     if (data.containsKey('matches_json')) {
       context.handle(
-        _matchesJsonMeta,
-        matchesJson.isAcceptableOrUnknown(
-          data['matches_json']!,
           _matchesJsonMeta,
-        ),
-      );
+          matchesJson.isAcceptableOrUnknown(
+              data['matches_json']!, _matchesJsonMeta));
     }
     return context;
   }
@@ -148,30 +102,18 @@ class $CharactersTable extends Characters
   DictionaryCharacter map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return DictionaryCharacter(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
-      character: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}character'],
-      )!,
-      definition: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}definition'],
-      ),
-      radical: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}radical'],
-      ),
-      decomposition: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}decomposition'],
-      ),
-      matchesJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}matches_json'],
-      ),
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      character: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}character'])!,
+      definition: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}definition']),
+      radical: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}radical']),
+      decomposition: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}decomposition']),
+      matchesJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}matches_json']),
     );
   }
 
@@ -189,14 +131,13 @@ class DictionaryCharacter extends DataClass
   final String? radical;
   final String? decomposition;
   final String? matchesJson;
-  const DictionaryCharacter({
-    required this.id,
-    required this.character,
-    this.definition,
-    this.radical,
-    this.decomposition,
-    this.matchesJson,
-  });
+  const DictionaryCharacter(
+      {required this.id,
+      required this.character,
+      this.definition,
+      this.radical,
+      this.decomposition,
+      this.matchesJson});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -236,10 +177,8 @@ class DictionaryCharacter extends DataClass
     );
   }
 
-  factory DictionaryCharacter.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory DictionaryCharacter.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return DictionaryCharacter(
       id: serializer.fromJson<int>(json['id']),
@@ -263,37 +202,34 @@ class DictionaryCharacter extends DataClass
     };
   }
 
-  DictionaryCharacter copyWith({
-    int? id,
-    String? character,
-    Value<String?> definition = const Value.absent(),
-    Value<String?> radical = const Value.absent(),
-    Value<String?> decomposition = const Value.absent(),
-    Value<String?> matchesJson = const Value.absent(),
-  }) => DictionaryCharacter(
-    id: id ?? this.id,
-    character: character ?? this.character,
-    definition: definition.present ? definition.value : this.definition,
-    radical: radical.present ? radical.value : this.radical,
-    decomposition: decomposition.present
-        ? decomposition.value
-        : this.decomposition,
-    matchesJson: matchesJson.present ? matchesJson.value : this.matchesJson,
-  );
+  DictionaryCharacter copyWith(
+          {int? id,
+          String? character,
+          Value<String?> definition = const Value.absent(),
+          Value<String?> radical = const Value.absent(),
+          Value<String?> decomposition = const Value.absent(),
+          Value<String?> matchesJson = const Value.absent()}) =>
+      DictionaryCharacter(
+        id: id ?? this.id,
+        character: character ?? this.character,
+        definition: definition.present ? definition.value : this.definition,
+        radical: radical.present ? radical.value : this.radical,
+        decomposition:
+            decomposition.present ? decomposition.value : this.decomposition,
+        matchesJson: matchesJson.present ? matchesJson.value : this.matchesJson,
+      );
   DictionaryCharacter copyWithCompanion(CharactersCompanion data) {
     return DictionaryCharacter(
       id: data.id.present ? data.id.value : this.id,
       character: data.character.present ? data.character.value : this.character,
-      definition: data.definition.present
-          ? data.definition.value
-          : this.definition,
+      definition:
+          data.definition.present ? data.definition.value : this.definition,
       radical: data.radical.present ? data.radical.value : this.radical,
       decomposition: data.decomposition.present
           ? data.decomposition.value
           : this.decomposition,
-      matchesJson: data.matchesJson.present
-          ? data.matchesJson.value
-          : this.matchesJson,
+      matchesJson:
+          data.matchesJson.present ? data.matchesJson.value : this.matchesJson,
     );
   }
 
@@ -312,13 +248,7 @@ class DictionaryCharacter extends DataClass
 
   @override
   int get hashCode => Object.hash(
-    id,
-    character,
-    definition,
-    radical,
-    decomposition,
-    matchesJson,
-  );
+      id, character, definition, radical, decomposition, matchesJson);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -372,14 +302,13 @@ class CharactersCompanion extends UpdateCompanion<DictionaryCharacter> {
     });
   }
 
-  CharactersCompanion copyWith({
-    Value<int>? id,
-    Value<String>? character,
-    Value<String?>? definition,
-    Value<String?>? radical,
-    Value<String?>? decomposition,
-    Value<String?>? matchesJson,
-  }) {
+  CharactersCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? character,
+      Value<String?>? definition,
+      Value<String?>? radical,
+      Value<String?>? decomposition,
+      Value<String?>? matchesJson}) {
     return CharactersCompanion(
       id: id ?? this.id,
       character: character ?? this.character,
@@ -437,64 +366,40 @@ class $PinyinsTable extends Pinyins
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
-  static const VerificationMeta _characterIdMeta = const VerificationMeta(
-    'characterId',
-  );
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _characterIdMeta =
+      const VerificationMeta('characterId');
   @override
   late final GeneratedColumn<int> characterId = GeneratedColumn<int>(
-    'character_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
+      'character_id', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
   static const VerificationMeta _pinyinMeta = const VerificationMeta('pinyin');
   @override
   late final GeneratedColumn<String> pinyin = GeneratedColumn<String>(
-    'pinyin',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
+      'pinyin', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _pinyinWithToneNumberMeta =
       const VerificationMeta('pinyinWithToneNumber');
   @override
   late final GeneratedColumn<String> pinyinWithToneNumber =
-      GeneratedColumn<String>(
-        'pinyin_with_tone_number',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-      );
+      GeneratedColumn<String>('pinyin_with_tone_number', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
   @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    characterId,
-    pinyin,
-    pinyinWithToneNumber,
-  ];
+  List<GeneratedColumn> get $columns =>
+      [id, characterId, pinyin, pinyinWithToneNumber];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 'pinyin';
   @override
-  VerificationContext validateIntegrity(
-    Insertable<DictionaryPinyin> instance, {
-    bool isInserting = false,
-  }) {
+  VerificationContext validateIntegrity(Insertable<DictionaryPinyin> instance,
+      {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
@@ -502,31 +407,23 @@ class $PinyinsTable extends Pinyins
     }
     if (data.containsKey('character_id')) {
       context.handle(
-        _characterIdMeta,
-        characterId.isAcceptableOrUnknown(
-          data['character_id']!,
           _characterIdMeta,
-        ),
-      );
+          characterId.isAcceptableOrUnknown(
+              data['character_id']!, _characterIdMeta));
     } else if (isInserting) {
       context.missing(_characterIdMeta);
     }
     if (data.containsKey('pinyin')) {
-      context.handle(
-        _pinyinMeta,
-        pinyin.isAcceptableOrUnknown(data['pinyin']!, _pinyinMeta),
-      );
+      context.handle(_pinyinMeta,
+          pinyin.isAcceptableOrUnknown(data['pinyin']!, _pinyinMeta));
     } else if (isInserting) {
       context.missing(_pinyinMeta);
     }
     if (data.containsKey('pinyin_with_tone_number')) {
       context.handle(
-        _pinyinWithToneNumberMeta,
-        pinyinWithToneNumber.isAcceptableOrUnknown(
-          data['pinyin_with_tone_number']!,
           _pinyinWithToneNumberMeta,
-        ),
-      );
+          pinyinWithToneNumber.isAcceptableOrUnknown(
+              data['pinyin_with_tone_number']!, _pinyinWithToneNumberMeta));
     }
     return context;
   }
@@ -537,22 +434,15 @@ class $PinyinsTable extends Pinyins
   DictionaryPinyin map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return DictionaryPinyin(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
-      characterId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}character_id'],
-      )!,
-      pinyin: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}pinyin'],
-      )!,
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      characterId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}character_id'])!,
+      pinyin: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}pinyin'])!,
       pinyinWithToneNumber: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}pinyin_with_tone_number'],
-      ),
+          DriftSqlType.string,
+          data['${effectivePrefix}pinyin_with_tone_number']),
     );
   }
 
@@ -568,12 +458,11 @@ class DictionaryPinyin extends DataClass
   final int characterId;
   final String pinyin;
   final String? pinyinWithToneNumber;
-  const DictionaryPinyin({
-    required this.id,
-    required this.characterId,
-    required this.pinyin,
-    this.pinyinWithToneNumber,
-  });
+  const DictionaryPinyin(
+      {required this.id,
+      required this.characterId,
+      required this.pinyin,
+      this.pinyinWithToneNumber});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -597,18 +486,15 @@ class DictionaryPinyin extends DataClass
     );
   }
 
-  factory DictionaryPinyin.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory DictionaryPinyin.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return DictionaryPinyin(
       id: serializer.fromJson<int>(json['id']),
       characterId: serializer.fromJson<int>(json['characterId']),
       pinyin: serializer.fromJson<String>(json['pinyin']),
-      pinyinWithToneNumber: serializer.fromJson<String?>(
-        json['pinyinWithToneNumber'],
-      ),
+      pinyinWithToneNumber:
+          serializer.fromJson<String?>(json['pinyinWithToneNumber']),
     );
   }
   @override
@@ -622,25 +508,24 @@ class DictionaryPinyin extends DataClass
     };
   }
 
-  DictionaryPinyin copyWith({
-    int? id,
-    int? characterId,
-    String? pinyin,
-    Value<String?> pinyinWithToneNumber = const Value.absent(),
-  }) => DictionaryPinyin(
-    id: id ?? this.id,
-    characterId: characterId ?? this.characterId,
-    pinyin: pinyin ?? this.pinyin,
-    pinyinWithToneNumber: pinyinWithToneNumber.present
-        ? pinyinWithToneNumber.value
-        : this.pinyinWithToneNumber,
-  );
+  DictionaryPinyin copyWith(
+          {int? id,
+          int? characterId,
+          String? pinyin,
+          Value<String?> pinyinWithToneNumber = const Value.absent()}) =>
+      DictionaryPinyin(
+        id: id ?? this.id,
+        characterId: characterId ?? this.characterId,
+        pinyin: pinyin ?? this.pinyin,
+        pinyinWithToneNumber: pinyinWithToneNumber.present
+            ? pinyinWithToneNumber.value
+            : this.pinyinWithToneNumber,
+      );
   DictionaryPinyin copyWithCompanion(PinyinsCompanion data) {
     return DictionaryPinyin(
       id: data.id.present ? data.id.value : this.id,
-      characterId: data.characterId.present
-          ? data.characterId.value
-          : this.characterId,
+      characterId:
+          data.characterId.present ? data.characterId.value : this.characterId,
       pinyin: data.pinyin.present ? data.pinyin.value : this.pinyin,
       pinyinWithToneNumber: data.pinyinWithToneNumber.present
           ? data.pinyinWithToneNumber.value
@@ -688,8 +573,8 @@ class PinyinsCompanion extends UpdateCompanion<DictionaryPinyin> {
     required int characterId,
     required String pinyin,
     this.pinyinWithToneNumber = const Value.absent(),
-  }) : characterId = Value(characterId),
-       pinyin = Value(pinyin);
+  })  : characterId = Value(characterId),
+        pinyin = Value(pinyin);
   static Insertable<DictionaryPinyin> custom({
     Expression<int>? id,
     Expression<int>? characterId,
@@ -705,12 +590,11 @@ class PinyinsCompanion extends UpdateCompanion<DictionaryPinyin> {
     });
   }
 
-  PinyinsCompanion copyWith({
-    Value<int>? id,
-    Value<int>? characterId,
-    Value<String>? pinyin,
-    Value<String?>? pinyinWithToneNumber,
-  }) {
+  PinyinsCompanion copyWith(
+      {Value<int>? id,
+      Value<int>? characterId,
+      Value<String>? pinyin,
+      Value<String?>? pinyinWithToneNumber}) {
     return PinyinsCompanion(
       id: id ?? this.id,
       characterId: characterId ?? this.characterId,
@@ -732,9 +616,8 @@ class PinyinsCompanion extends UpdateCompanion<DictionaryPinyin> {
       map['pinyin'] = Variable<String>(pinyin.value);
     }
     if (pinyinWithToneNumber.present) {
-      map['pinyin_with_tone_number'] = Variable<String>(
-        pinyinWithToneNumber.value,
-      );
+      map['pinyin_with_tone_number'] =
+          Variable<String>(pinyinWithToneNumber.value);
     }
     return map;
   }
@@ -760,45 +643,28 @@ class $EtymologiesTable extends Etymologies
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
-  static const VerificationMeta _characterIdMeta = const VerificationMeta(
-    'characterId',
-  );
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _characterIdMeta =
+      const VerificationMeta('characterId');
   @override
   late final GeneratedColumn<int> characterId = GeneratedColumn<int>(
-    'character_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
+      'character_id', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
   @override
   late final GeneratedColumn<String> type = GeneratedColumn<String>(
-    'type',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
+      'type', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _hintMeta = const VerificationMeta('hint');
   @override
   late final GeneratedColumn<String> hint = GeneratedColumn<String>(
-    'hint',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
+      'hint', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [id, characterId, type, hint];
   @override
@@ -808,9 +674,8 @@ class $EtymologiesTable extends Etymologies
   static const String $name = 'etymology';
   @override
   VerificationContext validateIntegrity(
-    Insertable<DictionaryEtymology> instance, {
-    bool isInserting = false,
-  }) {
+      Insertable<DictionaryEtymology> instance,
+      {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
@@ -818,26 +683,19 @@ class $EtymologiesTable extends Etymologies
     }
     if (data.containsKey('character_id')) {
       context.handle(
-        _characterIdMeta,
-        characterId.isAcceptableOrUnknown(
-          data['character_id']!,
           _characterIdMeta,
-        ),
-      );
+          characterId.isAcceptableOrUnknown(
+              data['character_id']!, _characterIdMeta));
     } else if (isInserting) {
       context.missing(_characterIdMeta);
     }
     if (data.containsKey('type')) {
       context.handle(
-        _typeMeta,
-        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
-      );
+          _typeMeta, type.isAcceptableOrUnknown(data['type']!, _typeMeta));
     }
     if (data.containsKey('hint')) {
       context.handle(
-        _hintMeta,
-        hint.isAcceptableOrUnknown(data['hint']!, _hintMeta),
-      );
+          _hintMeta, hint.isAcceptableOrUnknown(data['hint']!, _hintMeta));
     }
     return context;
   }
@@ -848,22 +706,14 @@ class $EtymologiesTable extends Etymologies
   DictionaryEtymology map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return DictionaryEtymology(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
-      characterId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}character_id'],
-      )!,
-      type: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}type'],
-      ),
-      hint: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}hint'],
-      ),
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      characterId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}character_id'])!,
+      type: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}type']),
+      hint: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}hint']),
     );
   }
 
@@ -879,12 +729,8 @@ class DictionaryEtymology extends DataClass
   final int characterId;
   final String? type;
   final String? hint;
-  const DictionaryEtymology({
-    required this.id,
-    required this.characterId,
-    this.type,
-    this.hint,
-  });
+  const DictionaryEtymology(
+      {required this.id, required this.characterId, this.type, this.hint});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -908,10 +754,8 @@ class DictionaryEtymology extends DataClass
     );
   }
 
-  factory DictionaryEtymology.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory DictionaryEtymology.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return DictionaryEtymology(
       id: serializer.fromJson<int>(json['id']),
@@ -931,23 +775,22 @@ class DictionaryEtymology extends DataClass
     };
   }
 
-  DictionaryEtymology copyWith({
-    int? id,
-    int? characterId,
-    Value<String?> type = const Value.absent(),
-    Value<String?> hint = const Value.absent(),
-  }) => DictionaryEtymology(
-    id: id ?? this.id,
-    characterId: characterId ?? this.characterId,
-    type: type.present ? type.value : this.type,
-    hint: hint.present ? hint.value : this.hint,
-  );
+  DictionaryEtymology copyWith(
+          {int? id,
+          int? characterId,
+          Value<String?> type = const Value.absent(),
+          Value<String?> hint = const Value.absent()}) =>
+      DictionaryEtymology(
+        id: id ?? this.id,
+        characterId: characterId ?? this.characterId,
+        type: type.present ? type.value : this.type,
+        hint: hint.present ? hint.value : this.hint,
+      );
   DictionaryEtymology copyWithCompanion(EtymologiesCompanion data) {
     return DictionaryEtymology(
       id: data.id.present ? data.id.value : this.id,
-      characterId: data.characterId.present
-          ? data.characterId.value
-          : this.characterId,
+      characterId:
+          data.characterId.present ? data.characterId.value : this.characterId,
       type: data.type.present ? data.type.value : this.type,
       hint: data.hint.present ? data.hint.value : this.hint,
     );
@@ -1007,12 +850,11 @@ class EtymologiesCompanion extends UpdateCompanion<DictionaryEtymology> {
     });
   }
 
-  EtymologiesCompanion copyWith({
-    Value<int>? id,
-    Value<int>? characterId,
-    Value<String?>? type,
-    Value<String?>? hint,
-  }) {
+  EtymologiesCompanion copyWith(
+      {Value<int>? id,
+      Value<int>? characterId,
+      Value<String?>? type,
+      Value<String?>? hint}) {
     return EtymologiesCompanion(
       id: id ?? this.id,
       characterId: characterId ?? this.characterId,
@@ -1061,31 +903,26 @@ abstract class _$DictionaryDatabase extends GeneratedDatabase {
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [
-    characters,
-    pinyins,
-    etymologies,
-  ];
+  List<DatabaseSchemaEntity> get allSchemaEntities =>
+      [characters, pinyins, etymologies];
 }
 
-typedef $$CharactersTableCreateCompanionBuilder =
-    CharactersCompanion Function({
-      Value<int> id,
-      required String character,
-      Value<String?> definition,
-      Value<String?> radical,
-      Value<String?> decomposition,
-      Value<String?> matchesJson,
-    });
-typedef $$CharactersTableUpdateCompanionBuilder =
-    CharactersCompanion Function({
-      Value<int> id,
-      Value<String> character,
-      Value<String?> definition,
-      Value<String?> radical,
-      Value<String?> decomposition,
-      Value<String?> matchesJson,
-    });
+typedef $$CharactersTableCreateCompanionBuilder = CharactersCompanion Function({
+  Value<int> id,
+  required String character,
+  Value<String?> definition,
+  Value<String?> radical,
+  Value<String?> decomposition,
+  Value<String?> matchesJson,
+});
+typedef $$CharactersTableUpdateCompanionBuilder = CharactersCompanion Function({
+  Value<int> id,
+  Value<String> character,
+  Value<String?> definition,
+  Value<String?> radical,
+  Value<String?> decomposition,
+  Value<String?> matchesJson,
+});
 
 class $$CharactersTableFilterComposer
     extends Composer<_$DictionaryDatabase, $CharactersTable> {
@@ -1097,34 +934,22 @@ class $$CharactersTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.id, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get character => $composableBuilder(
-    column: $table.character,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.character, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get definition => $composableBuilder(
-    column: $table.definition,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.definition, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get radical => $composableBuilder(
-    column: $table.radical,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.radical, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get decomposition => $composableBuilder(
-    column: $table.decomposition,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.decomposition, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get matchesJson => $composableBuilder(
-    column: $table.matchesJson,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.matchesJson, builder: (column) => ColumnFilters(column));
 }
 
 class $$CharactersTableOrderingComposer
@@ -1137,34 +962,23 @@ class $$CharactersTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.id, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get character => $composableBuilder(
-    column: $table.character,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.character, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get definition => $composableBuilder(
-    column: $table.definition,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.definition, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get radical => $composableBuilder(
-    column: $table.radical,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.radical, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get decomposition => $composableBuilder(
-    column: $table.decomposition,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.decomposition,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get matchesJson => $composableBuilder(
-    column: $table.matchesJson,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.matchesJson, builder: (column) => ColumnOrderings(column));
 }
 
 class $$CharactersTableAnnotationComposer
@@ -1183,49 +997,36 @@ class $$CharactersTableAnnotationComposer
       $composableBuilder(column: $table.character, builder: (column) => column);
 
   GeneratedColumn<String> get definition => $composableBuilder(
-    column: $table.definition,
-    builder: (column) => column,
-  );
+      column: $table.definition, builder: (column) => column);
 
   GeneratedColumn<String> get radical =>
       $composableBuilder(column: $table.radical, builder: (column) => column);
 
   GeneratedColumn<String> get decomposition => $composableBuilder(
-    column: $table.decomposition,
-    builder: (column) => column,
-  );
+      column: $table.decomposition, builder: (column) => column);
 
   GeneratedColumn<String> get matchesJson => $composableBuilder(
-    column: $table.matchesJson,
-    builder: (column) => column,
-  );
+      column: $table.matchesJson, builder: (column) => column);
 }
 
-class $$CharactersTableTableManager
-    extends
-        RootTableManager<
-          _$DictionaryDatabase,
-          $CharactersTable,
-          DictionaryCharacter,
-          $$CharactersTableFilterComposer,
-          $$CharactersTableOrderingComposer,
-          $$CharactersTableAnnotationComposer,
-          $$CharactersTableCreateCompanionBuilder,
-          $$CharactersTableUpdateCompanionBuilder,
-          (
-            DictionaryCharacter,
-            BaseReferences<
-              _$DictionaryDatabase,
-              $CharactersTable,
-              DictionaryCharacter
-            >,
-          ),
-          DictionaryCharacter,
-          PrefetchHooks Function()
-        > {
+class $$CharactersTableTableManager extends RootTableManager<
+    _$DictionaryDatabase,
+    $CharactersTable,
+    DictionaryCharacter,
+    $$CharactersTableFilterComposer,
+    $$CharactersTableOrderingComposer,
+    $$CharactersTableAnnotationComposer,
+    $$CharactersTableCreateCompanionBuilder,
+    $$CharactersTableUpdateCompanionBuilder,
+    (
+      DictionaryCharacter,
+      BaseReferences<_$DictionaryDatabase, $CharactersTable,
+          DictionaryCharacter>
+    ),
+    DictionaryCharacter,
+    PrefetchHooks Function()> {
   $$CharactersTableTableManager(_$DictionaryDatabase db, $CharactersTable table)
-    : super(
-        TableManagerState(
+      : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -1234,81 +1035,73 @@ class $$CharactersTableTableManager
               $$CharactersTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$CharactersTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                Value<String> character = const Value.absent(),
-                Value<String?> definition = const Value.absent(),
-                Value<String?> radical = const Value.absent(),
-                Value<String?> decomposition = const Value.absent(),
-                Value<String?> matchesJson = const Value.absent(),
-              }) => CharactersCompanion(
-                id: id,
-                character: character,
-                definition: definition,
-                radical: radical,
-                decomposition: decomposition,
-                matchesJson: matchesJson,
-              ),
-          createCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                required String character,
-                Value<String?> definition = const Value.absent(),
-                Value<String?> radical = const Value.absent(),
-                Value<String?> decomposition = const Value.absent(),
-                Value<String?> matchesJson = const Value.absent(),
-              }) => CharactersCompanion.insert(
-                id: id,
-                character: character,
-                definition: definition,
-                radical: radical,
-                decomposition: decomposition,
-                matchesJson: matchesJson,
-              ),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> character = const Value.absent(),
+            Value<String?> definition = const Value.absent(),
+            Value<String?> radical = const Value.absent(),
+            Value<String?> decomposition = const Value.absent(),
+            Value<String?> matchesJson = const Value.absent(),
+          }) =>
+              CharactersCompanion(
+            id: id,
+            character: character,
+            definition: definition,
+            radical: radical,
+            decomposition: decomposition,
+            matchesJson: matchesJson,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String character,
+            Value<String?> definition = const Value.absent(),
+            Value<String?> radical = const Value.absent(),
+            Value<String?> decomposition = const Value.absent(),
+            Value<String?> matchesJson = const Value.absent(),
+          }) =>
+              CharactersCompanion.insert(
+            id: id,
+            character: character,
+            definition: definition,
+            radical: radical,
+            decomposition: decomposition,
+            matchesJson: matchesJson,
+          ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ),
-      );
+        ));
 }
 
-typedef $$CharactersTableProcessedTableManager =
-    ProcessedTableManager<
-      _$DictionaryDatabase,
-      $CharactersTable,
+typedef $$CharactersTableProcessedTableManager = ProcessedTableManager<
+    _$DictionaryDatabase,
+    $CharactersTable,
+    DictionaryCharacter,
+    $$CharactersTableFilterComposer,
+    $$CharactersTableOrderingComposer,
+    $$CharactersTableAnnotationComposer,
+    $$CharactersTableCreateCompanionBuilder,
+    $$CharactersTableUpdateCompanionBuilder,
+    (
       DictionaryCharacter,
-      $$CharactersTableFilterComposer,
-      $$CharactersTableOrderingComposer,
-      $$CharactersTableAnnotationComposer,
-      $$CharactersTableCreateCompanionBuilder,
-      $$CharactersTableUpdateCompanionBuilder,
-      (
-        DictionaryCharacter,
-        BaseReferences<
-          _$DictionaryDatabase,
-          $CharactersTable,
-          DictionaryCharacter
-        >,
-      ),
-      DictionaryCharacter,
-      PrefetchHooks Function()
-    >;
-typedef $$PinyinsTableCreateCompanionBuilder =
-    PinyinsCompanion Function({
-      Value<int> id,
-      required int characterId,
-      required String pinyin,
-      Value<String?> pinyinWithToneNumber,
-    });
-typedef $$PinyinsTableUpdateCompanionBuilder =
-    PinyinsCompanion Function({
-      Value<int> id,
-      Value<int> characterId,
-      Value<String> pinyin,
-      Value<String?> pinyinWithToneNumber,
-    });
+      BaseReferences<_$DictionaryDatabase, $CharactersTable,
+          DictionaryCharacter>
+    ),
+    DictionaryCharacter,
+    PrefetchHooks Function()>;
+typedef $$PinyinsTableCreateCompanionBuilder = PinyinsCompanion Function({
+  Value<int> id,
+  required int characterId,
+  required String pinyin,
+  Value<String?> pinyinWithToneNumber,
+});
+typedef $$PinyinsTableUpdateCompanionBuilder = PinyinsCompanion Function({
+  Value<int> id,
+  Value<int> characterId,
+  Value<String> pinyin,
+  Value<String?> pinyinWithToneNumber,
+});
 
 class $$PinyinsTableFilterComposer
     extends Composer<_$DictionaryDatabase, $PinyinsTable> {
@@ -1320,24 +1113,17 @@ class $$PinyinsTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.id, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get characterId => $composableBuilder(
-    column: $table.characterId,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.characterId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get pinyin => $composableBuilder(
-    column: $table.pinyin,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.pinyin, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get pinyinWithToneNumber => $composableBuilder(
-    column: $table.pinyinWithToneNumber,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.pinyinWithToneNumber,
+      builder: (column) => ColumnFilters(column));
 }
 
 class $$PinyinsTableOrderingComposer
@@ -1350,24 +1136,17 @@ class $$PinyinsTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.id, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get characterId => $composableBuilder(
-    column: $table.characterId,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.characterId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get pinyin => $composableBuilder(
-    column: $table.pinyin,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.pinyin, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get pinyinWithToneNumber => $composableBuilder(
-    column: $table.pinyinWithToneNumber,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.pinyinWithToneNumber,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$PinyinsTableAnnotationComposer
@@ -1383,44 +1162,32 @@ class $$PinyinsTableAnnotationComposer
       $composableBuilder(column: $table.id, builder: (column) => column);
 
   GeneratedColumn<int> get characterId => $composableBuilder(
-    column: $table.characterId,
-    builder: (column) => column,
-  );
+      column: $table.characterId, builder: (column) => column);
 
   GeneratedColumn<String> get pinyin =>
       $composableBuilder(column: $table.pinyin, builder: (column) => column);
 
   GeneratedColumn<String> get pinyinWithToneNumber => $composableBuilder(
-    column: $table.pinyinWithToneNumber,
-    builder: (column) => column,
-  );
+      column: $table.pinyinWithToneNumber, builder: (column) => column);
 }
 
-class $$PinyinsTableTableManager
-    extends
-        RootTableManager<
-          _$DictionaryDatabase,
-          $PinyinsTable,
-          DictionaryPinyin,
-          $$PinyinsTableFilterComposer,
-          $$PinyinsTableOrderingComposer,
-          $$PinyinsTableAnnotationComposer,
-          $$PinyinsTableCreateCompanionBuilder,
-          $$PinyinsTableUpdateCompanionBuilder,
-          (
-            DictionaryPinyin,
-            BaseReferences<
-              _$DictionaryDatabase,
-              $PinyinsTable,
-              DictionaryPinyin
-            >,
-          ),
-          DictionaryPinyin,
-          PrefetchHooks Function()
-        > {
+class $$PinyinsTableTableManager extends RootTableManager<
+    _$DictionaryDatabase,
+    $PinyinsTable,
+    DictionaryPinyin,
+    $$PinyinsTableFilterComposer,
+    $$PinyinsTableOrderingComposer,
+    $$PinyinsTableAnnotationComposer,
+    $$PinyinsTableCreateCompanionBuilder,
+    $$PinyinsTableUpdateCompanionBuilder,
+    (
+      DictionaryPinyin,
+      BaseReferences<_$DictionaryDatabase, $PinyinsTable, DictionaryPinyin>
+    ),
+    DictionaryPinyin,
+    PrefetchHooks Function()> {
   $$PinyinsTableTableManager(_$DictionaryDatabase db, $PinyinsTable table)
-    : super(
-        TableManagerState(
+      : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -1429,69 +1196,66 @@ class $$PinyinsTableTableManager
               $$PinyinsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$PinyinsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                Value<int> characterId = const Value.absent(),
-                Value<String> pinyin = const Value.absent(),
-                Value<String?> pinyinWithToneNumber = const Value.absent(),
-              }) => PinyinsCompanion(
-                id: id,
-                characterId: characterId,
-                pinyin: pinyin,
-                pinyinWithToneNumber: pinyinWithToneNumber,
-              ),
-          createCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                required int characterId,
-                required String pinyin,
-                Value<String?> pinyinWithToneNumber = const Value.absent(),
-              }) => PinyinsCompanion.insert(
-                id: id,
-                characterId: characterId,
-                pinyin: pinyin,
-                pinyinWithToneNumber: pinyinWithToneNumber,
-              ),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> characterId = const Value.absent(),
+            Value<String> pinyin = const Value.absent(),
+            Value<String?> pinyinWithToneNumber = const Value.absent(),
+          }) =>
+              PinyinsCompanion(
+            id: id,
+            characterId: characterId,
+            pinyin: pinyin,
+            pinyinWithToneNumber: pinyinWithToneNumber,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int characterId,
+            required String pinyin,
+            Value<String?> pinyinWithToneNumber = const Value.absent(),
+          }) =>
+              PinyinsCompanion.insert(
+            id: id,
+            characterId: characterId,
+            pinyin: pinyin,
+            pinyinWithToneNumber: pinyinWithToneNumber,
+          ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ),
-      );
+        ));
 }
 
-typedef $$PinyinsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$DictionaryDatabase,
-      $PinyinsTable,
+typedef $$PinyinsTableProcessedTableManager = ProcessedTableManager<
+    _$DictionaryDatabase,
+    $PinyinsTable,
+    DictionaryPinyin,
+    $$PinyinsTableFilterComposer,
+    $$PinyinsTableOrderingComposer,
+    $$PinyinsTableAnnotationComposer,
+    $$PinyinsTableCreateCompanionBuilder,
+    $$PinyinsTableUpdateCompanionBuilder,
+    (
       DictionaryPinyin,
-      $$PinyinsTableFilterComposer,
-      $$PinyinsTableOrderingComposer,
-      $$PinyinsTableAnnotationComposer,
-      $$PinyinsTableCreateCompanionBuilder,
-      $$PinyinsTableUpdateCompanionBuilder,
-      (
-        DictionaryPinyin,
-        BaseReferences<_$DictionaryDatabase, $PinyinsTable, DictionaryPinyin>,
-      ),
-      DictionaryPinyin,
-      PrefetchHooks Function()
-    >;
-typedef $$EtymologiesTableCreateCompanionBuilder =
-    EtymologiesCompanion Function({
-      Value<int> id,
-      required int characterId,
-      Value<String?> type,
-      Value<String?> hint,
-    });
-typedef $$EtymologiesTableUpdateCompanionBuilder =
-    EtymologiesCompanion Function({
-      Value<int> id,
-      Value<int> characterId,
-      Value<String?> type,
-      Value<String?> hint,
-    });
+      BaseReferences<_$DictionaryDatabase, $PinyinsTable, DictionaryPinyin>
+    ),
+    DictionaryPinyin,
+    PrefetchHooks Function()>;
+typedef $$EtymologiesTableCreateCompanionBuilder = EtymologiesCompanion
+    Function({
+  Value<int> id,
+  required int characterId,
+  Value<String?> type,
+  Value<String?> hint,
+});
+typedef $$EtymologiesTableUpdateCompanionBuilder = EtymologiesCompanion
+    Function({
+  Value<int> id,
+  Value<int> characterId,
+  Value<String?> type,
+  Value<String?> hint,
+});
 
 class $$EtymologiesTableFilterComposer
     extends Composer<_$DictionaryDatabase, $EtymologiesTable> {
@@ -1503,24 +1267,16 @@ class $$EtymologiesTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.id, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get characterId => $composableBuilder(
-    column: $table.characterId,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.characterId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get type => $composableBuilder(
-    column: $table.type,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.type, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get hint => $composableBuilder(
-    column: $table.hint,
-    builder: (column) => ColumnFilters(column),
-  );
+      column: $table.hint, builder: (column) => ColumnFilters(column));
 }
 
 class $$EtymologiesTableOrderingComposer
@@ -1533,24 +1289,16 @@ class $$EtymologiesTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.id, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get characterId => $composableBuilder(
-    column: $table.characterId,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.characterId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get type => $composableBuilder(
-    column: $table.type,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.type, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get hint => $composableBuilder(
-    column: $table.hint,
-    builder: (column) => ColumnOrderings(column),
-  );
+      column: $table.hint, builder: (column) => ColumnOrderings(column));
 }
 
 class $$EtymologiesTableAnnotationComposer
@@ -1566,9 +1314,7 @@ class $$EtymologiesTableAnnotationComposer
       $composableBuilder(column: $table.id, builder: (column) => column);
 
   GeneratedColumn<int> get characterId => $composableBuilder(
-    column: $table.characterId,
-    builder: (column) => column,
-  );
+      column: $table.characterId, builder: (column) => column);
 
   GeneratedColumn<String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
@@ -1577,33 +1323,25 @@ class $$EtymologiesTableAnnotationComposer
       $composableBuilder(column: $table.hint, builder: (column) => column);
 }
 
-class $$EtymologiesTableTableManager
-    extends
-        RootTableManager<
-          _$DictionaryDatabase,
-          $EtymologiesTable,
-          DictionaryEtymology,
-          $$EtymologiesTableFilterComposer,
-          $$EtymologiesTableOrderingComposer,
-          $$EtymologiesTableAnnotationComposer,
-          $$EtymologiesTableCreateCompanionBuilder,
-          $$EtymologiesTableUpdateCompanionBuilder,
-          (
-            DictionaryEtymology,
-            BaseReferences<
-              _$DictionaryDatabase,
-              $EtymologiesTable,
-              DictionaryEtymology
-            >,
-          ),
-          DictionaryEtymology,
-          PrefetchHooks Function()
-        > {
+class $$EtymologiesTableTableManager extends RootTableManager<
+    _$DictionaryDatabase,
+    $EtymologiesTable,
+    DictionaryEtymology,
+    $$EtymologiesTableFilterComposer,
+    $$EtymologiesTableOrderingComposer,
+    $$EtymologiesTableAnnotationComposer,
+    $$EtymologiesTableCreateCompanionBuilder,
+    $$EtymologiesTableUpdateCompanionBuilder,
+    (
+      DictionaryEtymology,
+      BaseReferences<_$DictionaryDatabase, $EtymologiesTable,
+          DictionaryEtymology>
+    ),
+    DictionaryEtymology,
+    PrefetchHooks Function()> {
   $$EtymologiesTableTableManager(
-    _$DictionaryDatabase db,
-    $EtymologiesTable table,
-  ) : super(
-        TableManagerState(
+      _$DictionaryDatabase db, $EtymologiesTable table)
+      : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -1612,59 +1350,53 @@ class $$EtymologiesTableTableManager
               $$EtymologiesTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$EtymologiesTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                Value<int> characterId = const Value.absent(),
-                Value<String?> type = const Value.absent(),
-                Value<String?> hint = const Value.absent(),
-              }) => EtymologiesCompanion(
-                id: id,
-                characterId: characterId,
-                type: type,
-                hint: hint,
-              ),
-          createCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                required int characterId,
-                Value<String?> type = const Value.absent(),
-                Value<String?> hint = const Value.absent(),
-              }) => EtymologiesCompanion.insert(
-                id: id,
-                characterId: characterId,
-                type: type,
-                hint: hint,
-              ),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> characterId = const Value.absent(),
+            Value<String?> type = const Value.absent(),
+            Value<String?> hint = const Value.absent(),
+          }) =>
+              EtymologiesCompanion(
+            id: id,
+            characterId: characterId,
+            type: type,
+            hint: hint,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int characterId,
+            Value<String?> type = const Value.absent(),
+            Value<String?> hint = const Value.absent(),
+          }) =>
+              EtymologiesCompanion.insert(
+            id: id,
+            characterId: characterId,
+            type: type,
+            hint: hint,
+          ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ),
-      );
+        ));
 }
 
-typedef $$EtymologiesTableProcessedTableManager =
-    ProcessedTableManager<
-      _$DictionaryDatabase,
-      $EtymologiesTable,
+typedef $$EtymologiesTableProcessedTableManager = ProcessedTableManager<
+    _$DictionaryDatabase,
+    $EtymologiesTable,
+    DictionaryEtymology,
+    $$EtymologiesTableFilterComposer,
+    $$EtymologiesTableOrderingComposer,
+    $$EtymologiesTableAnnotationComposer,
+    $$EtymologiesTableCreateCompanionBuilder,
+    $$EtymologiesTableUpdateCompanionBuilder,
+    (
       DictionaryEtymology,
-      $$EtymologiesTableFilterComposer,
-      $$EtymologiesTableOrderingComposer,
-      $$EtymologiesTableAnnotationComposer,
-      $$EtymologiesTableCreateCompanionBuilder,
-      $$EtymologiesTableUpdateCompanionBuilder,
-      (
-        DictionaryEtymology,
-        BaseReferences<
-          _$DictionaryDatabase,
-          $EtymologiesTable,
-          DictionaryEtymology
-        >,
-      ),
-      DictionaryEtymology,
-      PrefetchHooks Function()
-    >;
+      BaseReferences<_$DictionaryDatabase, $EtymologiesTable,
+          DictionaryEtymology>
+    ),
+    DictionaryEtymology,
+    PrefetchHooks Function()>;
 
 class $DictionaryDatabaseManager {
   final _$DictionaryDatabase _db;

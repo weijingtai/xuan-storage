@@ -14,12 +14,8 @@ class PromptVersionsDaoManager {
   PromptVersionsDaoManager(this._db);
   $$PromptTemplatesTableTableManager get promptTemplates =>
       $$PromptTemplatesTableTableManager(
-        _db.attachedDatabase,
-        _db.promptTemplates,
-      );
+          _db.attachedDatabase, _db.promptTemplates);
   $$PromptVersionsTableTableManager get promptVersions =>
       $$PromptVersionsTableTableManager(
-        _db.attachedDatabase,
-        _db.promptVersions,
-      );
+          _db.attachedDatabase, _db.promptVersions);
 }

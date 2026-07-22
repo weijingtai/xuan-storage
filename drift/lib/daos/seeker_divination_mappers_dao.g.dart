@@ -22,7 +22,5 @@ class SeekerDivinationMappersDaoManager {
       $$DivinationsTableTableManager(_db.attachedDatabase, _db.divinations);
   $$SeekerDivinationMappersTableTableManager get seekerDivinationMappers =>
       $$SeekerDivinationMappersTableTableManager(
-        _db.attachedDatabase,
-        _db.seekerDivinationMappers,
-      );
+          _db.attachedDatabase, _db.seekerDivinationMappers);
 }

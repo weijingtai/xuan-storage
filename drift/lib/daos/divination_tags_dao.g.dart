@@ -13,7 +13,5 @@ class DivinationTagsDaoManager {
   DivinationTagsDaoManager(this._db);
   $$DivinationTagsTableTableManager get divinationTags =>
       $$DivinationTagsTableTableManager(
-        _db.attachedDatabase,
-        _db.divinationTags,
-      );
+          _db.attachedDatabase, _db.divinationTags);
 }

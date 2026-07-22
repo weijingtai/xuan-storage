@@ -13,7 +13,5 @@ class MeiHuaDivinationsDaoManager {
   MeiHuaDivinationsDaoManager(this._db);
   $$MeiHuaGuaInfosTableTableManager get meiHuaGuaInfos =>
       $$MeiHuaGuaInfosTableTableManager(
-        _db.attachedDatabase,
-        _db.meiHuaGuaInfos,
-      );
+          _db.attachedDatabase, _db.meiHuaGuaInfos);
 }

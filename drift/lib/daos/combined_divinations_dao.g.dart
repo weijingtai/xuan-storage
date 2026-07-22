@@ -22,7 +22,5 @@ class CombinedDivinationsDaoManager {
       $$DivinationsTableTableManager(_db.attachedDatabase, _db.divinations);
   $$CombinedDivinationsTableTableManager get combinedDivinations =>
       $$CombinedDivinationsTableTableManager(
-        _db.attachedDatabase,
-        _db.combinedDivinations,
-      );
+          _db.attachedDatabase, _db.combinedDivinations);
 }

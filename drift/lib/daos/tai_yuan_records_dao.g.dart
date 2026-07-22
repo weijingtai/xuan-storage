@@ -13,7 +13,5 @@ class TaiYuanRecordsDaoManager {
   TaiYuanRecordsDaoManager(this._db);
   $$TaiYuanRecordsTableTableManager get taiYuanRecords =>
       $$TaiYuanRecordsTableTableManager(
-        _db.attachedDatabase,
-        _db.taiYuanRecords,
-      );
+          _db.attachedDatabase, _db.taiYuanRecords);
 }
