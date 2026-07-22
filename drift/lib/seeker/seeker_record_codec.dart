@@ -62,7 +62,7 @@ class SeekerRecordCodec implements RecordModuleCodec<SeekerModel> {
     final meta = RecordMeta(
       uuid: c.uuid, scopeUid: scopeUid, module: module, category: category,
       divinationType: divinationType, seekerName: c.nickname ?? c.username,
-      gender: c.gender.name, fateYear: null,
+      gender: c.gender.name == 'female' ? 'F' : 'M', fateYear: null,
       occurredAtUtc: null, reckoningType: null, timezoneStr: null,
       latitude: null, longitude: null, locationName: null, spacetimeJson: null,
       moduleDataJson: jsonEncode(data),
@@ -89,7 +89,9 @@ class SeekerRecordCodec implements RecordModuleCodec<SeekerModel> {
       uuid: meta.uuid,
       username: d['username'] as String?,
       nickname: d['nickname'] as String? ?? meta.seekerName,
-      gender: Gender.values.firstWhere((g) => g.name == (d['gender'] ?? meta.gender)),
+      gender: d['gender'] != null
+          ? Gender.values.firstWhere((g) => g.name == d['gender'])
+          : (meta.gender == 'F' ? Gender.female : Gender.male),
       timingType: DateTimeType.values.firstWhere((t) => t.name == d['timingType']),
       datetime: DateTime.parse(d['datetime'] as String),
       yearGanZhi: JiaZi.values.firstWhere((j) => j.name == d['yearGanZhi']),

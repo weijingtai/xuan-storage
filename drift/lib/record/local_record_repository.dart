@@ -70,9 +70,10 @@ class LocalRecordRepository implements ScopedRecordStore {
   @override
   Stream<List<RecordMeta>> watchRecords({
     required String module,
+    String? category,
     RecordSortBy sortBy = RecordSortBy.auto,
   }) =>
-      _ds.watchRecords(module: module, sortBy: sortBy);
+      _ds.watchRecords(module: module, category: category, sortBy: sortBy);
 
   @override
   Future<List<RecordMeta>> findByIndex({

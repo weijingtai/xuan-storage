@@ -56,7 +56,7 @@ void main() {
       expect(meta.category, 'person');
       expect(meta.uuid, 'test-uuid-1');
       expect(meta.seekerName, '阿三');
-      expect(meta.gender, 'male');
+      expect(meta.gender, 'M');
     });
 
     test('encode → decode roundtrip preserves fields', () {
@@ -88,7 +88,7 @@ void main() {
       final encoded = codec.encode(sampleSeeker, scopeUid: 'scope-1');
       final tags = codec.extractSearchTags(encoded.meta, encoded.moduleData);
       expect(tags.any((t) => t.key == 'seeker_name'), true);
-      expect(tags.firstWhere((t) => t.key == 'gender').value, 'male');
+      expect(tags.firstWhere((t) => t.key == 'gender').value, 'M');
       expect(tags.firstWhere((t) => t.key == 'lunar_month').value, '5');
     });
   });
