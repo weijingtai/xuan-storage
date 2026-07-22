@@ -79,6 +79,18 @@ void main() {
         deleted_at INTEGER,
         rev INTEGER NOT NULL DEFAULT 1
       );
+      -- schema v5 起会 addColumn extras_json；真实 v3 库必有此表，
+      -- 补建以便 from<5 迁移分支不因缺表失败。
+      CREATE TABLE t_divination_cases (
+        uuid TEXT NOT NULL PRIMARY KEY,
+        title TEXT NOT NULL,
+        main_question TEXT NOT NULL,
+        status TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        deleted_at INTEGER,
+        final_summary TEXT
+      );
       PRAGMA user_version = 3;
     ''');
 
