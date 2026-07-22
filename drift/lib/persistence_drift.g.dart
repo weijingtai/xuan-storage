@@ -10520,6 +10520,17 @@ class $DivinationCasesTable extends DivinationCases
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _extrasJsonMeta = const VerificationMeta(
+    'extrasJson',
+  );
+  @override
+  late final GeneratedColumn<String> extrasJson = GeneratedColumn<String>(
+    'extras_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     uuid,
@@ -10530,6 +10541,7 @@ class $DivinationCasesTable extends DivinationCases
     updatedAt,
     deletedAt,
     finalSummary,
+    extrasJson,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -10609,6 +10621,12 @@ class $DivinationCasesTable extends DivinationCases
         ),
       );
     }
+    if (data.containsKey('extras_json')) {
+      context.handle(
+        _extrasJsonMeta,
+        extrasJson.isAcceptableOrUnknown(data['extras_json']!, _extrasJsonMeta),
+      );
+    }
     return context;
   }
 
@@ -10650,6 +10668,10 @@ class $DivinationCasesTable extends DivinationCases
         DriftSqlType.string,
         data['${effectivePrefix}final_summary'],
       ),
+      extrasJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}extras_json'],
+      ),
     );
   }
 
@@ -10668,6 +10690,7 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
   final DateTime updatedAt;
   final DateTime? deletedAt;
   final String? finalSummary;
+  final String? extrasJson;
   const DivinationCase({
     required this.uuid,
     required this.title,
@@ -10677,6 +10700,7 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
     required this.updatedAt,
     this.deletedAt,
     this.finalSummary,
+    this.extrasJson,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -10692,6 +10716,9 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
     }
     if (!nullToAbsent || finalSummary != null) {
       map['final_summary'] = Variable<String>(finalSummary);
+    }
+    if (!nullToAbsent || extrasJson != null) {
+      map['extras_json'] = Variable<String>(extrasJson);
     }
     return map;
   }
@@ -10710,6 +10737,9 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
       finalSummary: finalSummary == null && nullToAbsent
           ? const Value.absent()
           : Value(finalSummary),
+      extrasJson: extrasJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(extrasJson),
     );
   }
 
@@ -10727,6 +10757,7 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
       finalSummary: serializer.fromJson<String?>(json['finalSummary']),
+      extrasJson: serializer.fromJson<String?>(json['extrasJson']),
     );
   }
   @override
@@ -10741,6 +10772,7 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
       'finalSummary': serializer.toJson<String?>(finalSummary),
+      'extrasJson': serializer.toJson<String?>(extrasJson),
     };
   }
 
@@ -10753,6 +10785,7 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
     Value<String?> finalSummary = const Value.absent(),
+    Value<String?> extrasJson = const Value.absent(),
   }) => DivinationCase(
     uuid: uuid ?? this.uuid,
     title: title ?? this.title,
@@ -10762,6 +10795,7 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
     finalSummary: finalSummary.present ? finalSummary.value : this.finalSummary,
+    extrasJson: extrasJson.present ? extrasJson.value : this.extrasJson,
   );
   DivinationCase copyWithCompanion(DivinationCasesCompanion data) {
     return DivinationCase(
@@ -10777,6 +10811,9 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
       finalSummary: data.finalSummary.present
           ? data.finalSummary.value
           : this.finalSummary,
+      extrasJson: data.extrasJson.present
+          ? data.extrasJson.value
+          : this.extrasJson,
     );
   }
 
@@ -10790,7 +10827,8 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
-          ..write('finalSummary: $finalSummary')
+          ..write('finalSummary: $finalSummary, ')
+          ..write('extrasJson: $extrasJson')
           ..write(')'))
         .toString();
   }
@@ -10805,6 +10843,7 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
     updatedAt,
     deletedAt,
     finalSummary,
+    extrasJson,
   );
   @override
   bool operator ==(Object other) =>
@@ -10817,7 +10856,8 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt &&
-          other.finalSummary == this.finalSummary);
+          other.finalSummary == this.finalSummary &&
+          other.extrasJson == this.extrasJson);
 }
 
 class DivinationCasesCompanion extends UpdateCompanion<DivinationCase> {
@@ -10829,6 +10869,7 @@ class DivinationCasesCompanion extends UpdateCompanion<DivinationCase> {
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
   final Value<String?> finalSummary;
+  final Value<String?> extrasJson;
   final Value<int> rowid;
   const DivinationCasesCompanion({
     this.uuid = const Value.absent(),
@@ -10839,6 +10880,7 @@ class DivinationCasesCompanion extends UpdateCompanion<DivinationCase> {
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.finalSummary = const Value.absent(),
+    this.extrasJson = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   DivinationCasesCompanion.insert({
@@ -10850,6 +10892,7 @@ class DivinationCasesCompanion extends UpdateCompanion<DivinationCase> {
     required DateTime updatedAt,
     this.deletedAt = const Value.absent(),
     this.finalSummary = const Value.absent(),
+    this.extrasJson = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : uuid = Value(uuid),
        title = Value(title),
@@ -10866,6 +10909,7 @@ class DivinationCasesCompanion extends UpdateCompanion<DivinationCase> {
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
     Expression<String>? finalSummary,
+    Expression<String>? extrasJson,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -10877,6 +10921,7 @@ class DivinationCasesCompanion extends UpdateCompanion<DivinationCase> {
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (finalSummary != null) 'final_summary': finalSummary,
+      if (extrasJson != null) 'extras_json': extrasJson,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -10890,6 +10935,7 @@ class DivinationCasesCompanion extends UpdateCompanion<DivinationCase> {
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
     Value<String?>? finalSummary,
+    Value<String?>? extrasJson,
     Value<int>? rowid,
   }) {
     return DivinationCasesCompanion(
@@ -10901,6 +10947,7 @@ class DivinationCasesCompanion extends UpdateCompanion<DivinationCase> {
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
       finalSummary: finalSummary ?? this.finalSummary,
+      extrasJson: extrasJson ?? this.extrasJson,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -10932,6 +10979,9 @@ class DivinationCasesCompanion extends UpdateCompanion<DivinationCase> {
     if (finalSummary.present) {
       map['final_summary'] = Variable<String>(finalSummary.value);
     }
+    if (extrasJson.present) {
+      map['extras_json'] = Variable<String>(extrasJson.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -10949,6 +10999,7 @@ class DivinationCasesCompanion extends UpdateCompanion<DivinationCase> {
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('finalSummary: $finalSummary, ')
+          ..write('extrasJson: $extrasJson, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -22515,6 +22566,7 @@ typedef $$DivinationCasesTableCreateCompanionBuilder =
       required DateTime updatedAt,
       Value<DateTime?> deletedAt,
       Value<String?> finalSummary,
+      Value<String?> extrasJson,
       Value<int> rowid,
     });
 typedef $$DivinationCasesTableUpdateCompanionBuilder =
@@ -22527,6 +22579,7 @@ typedef $$DivinationCasesTableUpdateCompanionBuilder =
       Value<DateTime> updatedAt,
       Value<DateTime?> deletedAt,
       Value<String?> finalSummary,
+      Value<String?> extrasJson,
       Value<int> rowid,
     });
 
@@ -22576,6 +22629,11 @@ class $$DivinationCasesTableFilterComposer
 
   ColumnFilters<String> get finalSummary => $composableBuilder(
     column: $table.finalSummary,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get extrasJson => $composableBuilder(
+    column: $table.extrasJson,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -22628,6 +22686,11 @@ class $$DivinationCasesTableOrderingComposer
     column: $table.finalSummary,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get extrasJson => $composableBuilder(
+    column: $table.extrasJson,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$DivinationCasesTableAnnotationComposer
@@ -22664,6 +22727,11 @@ class $$DivinationCasesTableAnnotationComposer
 
   GeneratedColumn<String> get finalSummary => $composableBuilder(
     column: $table.finalSummary,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get extrasJson => $composableBuilder(
+    column: $table.extrasJson,
     builder: (column) => column,
   );
 }
@@ -22713,6 +22781,7 @@ class $$DivinationCasesTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<String?> finalSummary = const Value.absent(),
+                Value<String?> extrasJson = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => DivinationCasesCompanion(
                 uuid: uuid,
@@ -22723,6 +22792,7 @@ class $$DivinationCasesTableTableManager
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
                 finalSummary: finalSummary,
+                extrasJson: extrasJson,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -22735,6 +22805,7 @@ class $$DivinationCasesTableTableManager
                 required DateTime updatedAt,
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<String?> finalSummary = const Value.absent(),
+                Value<String?> extrasJson = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => DivinationCasesCompanion.insert(
                 uuid: uuid,
@@ -22745,6 +22816,7 @@ class $$DivinationCasesTableTableManager
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
                 finalSummary: finalSummary,
+                extrasJson: extrasJson,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

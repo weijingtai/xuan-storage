@@ -122,6 +122,11 @@ dependency_overrides:
     git:
       url: http://192.168.0.165:3000/xuan/xuan-storage.git
       path: core
+  # 临时（T1 迁移期）：extrasJson 扩展位分支；divination-case 合并 master 后移除本段
+  divination_case:
+    git:
+      url: http://192.168.0.165:3000/xuan/xuan-divination-case.git
+      ref: feat/case-extras-json
   metaphysics_core:
     git:
       url: http://192.168.0.165:3000/xuan/metaphysics-core.git

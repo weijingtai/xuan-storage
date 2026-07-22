@@ -521,7 +521,7 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
   PersistenceDriftDatabase(super.executor);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -547,6 +547,10 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
         await customStatement(
           'CREATE INDEX IF NOT EXISTS idx_record_meta_occurred '
           'ON t_record_meta(scope_uid, occurred_at_utc DESC)');
+      }
+      if (from < 5) {
+        // schema v5：案例表增 extras_json 列（T1 裁定扩展位）
+        await m.addColumn(divinationCases, divinationCases.extrasJson);
       }
     },
   );

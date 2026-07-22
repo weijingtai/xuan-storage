@@ -55,6 +55,7 @@ class DriftDivinationCaseRepository
       updatedAt: row.updatedAt.toUtc(),
       deletedAt: row.deletedAt?.toUtc(),
       finalSummary: row.finalSummary,
+      extrasJson: row.extrasJson,
     );
   }
 
@@ -68,6 +69,7 @@ class DriftDivinationCaseRepository
       updatedAt: model.updatedAt,
       deletedAt: Value(model.deletedAt),
       finalSummary: Value(model.finalSummary),
+      extrasJson: Value(model.extrasJson),
     );
   }
 
