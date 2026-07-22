@@ -22,6 +22,19 @@ dependencies:
   divination_case:
     git:
       url: http://192.168.0.165:3000/xuan/xuan-divination-case.git
+  repository_interface_divination_pipeline:
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-divination-pipeline.git
+  repository_interface_four_zhu_card:
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-four-zhu-card.git
+  xuan_time_location:
+    git:
+      url: http://192.168.0.165:3000/xuan/xuan-time-location.git
 dev_dependencies:
+  flutter_test:
+    sdk: flutter
   lints: ^5.0.0
   test: ^1.25.0
+  build_runner: ^2.4.0
+  json_serializable: ^6.8.0
