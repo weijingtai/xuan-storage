@@ -47,7 +47,7 @@ class LocalRecordRepository implements ScopedRecordStore {
   }) =>
       _ds.listRecords(
           module: module, category: category, divinationType: divinationType,
-          limit: limit, cursor: cursor);
+          limit: limit, cursor: cursor, sortBy: sortBy);
 
   @override
   Future<bool> softDeleteRecord(String uuid, {required String module}) async {
@@ -72,7 +72,7 @@ class LocalRecordRepository implements ScopedRecordStore {
     required String module,
     RecordSortBy sortBy = RecordSortBy.auto,
   }) =>
-      _ds.watchRecords(module: module);
+      _ds.watchRecords(module: module, sortBy: sortBy);
 
   @override
   Future<List<RecordMeta>> findByIndex({
