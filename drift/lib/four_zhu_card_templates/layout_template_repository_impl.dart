@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:collection/collection.dart';
 import 'package:persistence_core/persistence_core.dart';
 import 'package:repository_interface_four_zhu_card/repository_interface_four_zhu_card.dart';
@@ -15,14 +17,47 @@ class LayoutTemplateRepositoryImpl implements LayoutTemplateRepository {
   final LayoutTemplateLocalDataSource _localDataSource;
   final AuthScopeProvider _authScopeProvider;
 
-  @override
-  Future<List<LayoutTemplate>> getAllTemplates(String collectionId) async {
-    final dtos = await _localDataSource.loadTemplates(collectionId);
-    return dtos.map((dto) => dto.toDomain()).toList(growable: false);
+  static const _defaultModuleType = 'four_zhu';
+
+  LayoutTemplateContract _toContract(LayoutTemplate t) {
+    return LayoutTemplateContract(
+      uuid: t.id,
+      name: t.name,
+      description: t.description,
+      moduleType: _defaultModuleType,
+      collectionId: t.collectionId,
+      version: t.version,
+      templateJson: jsonEncode(t.toJson()),
+      format: 'json',
+      createdAt: t.updatedAt,
+      updatedAt: t.updatedAt,
+    );
+  }
+
+  LayoutTemplate _toDomain(LayoutTemplateContract c) {
+    final decoded = jsonDecode(c.templateJson) as Map<String, dynamic>;
+    return LayoutTemplate.fromJson(decoded).copyWith(
+      id: c.uuid,
+      name: c.name,
+      description: c.description ?? '',
+      collectionId: c.collectionId,
+      version: c.version,
+      updatedAt: c.updatedAt,
+    );
   }
 
   @override
-  Future<LayoutTemplate?> getTemplateById(
+  Future<List<LayoutTemplateContract>> getAllTemplates(
+    String collectionId,
+  ) async {
+    final dtos = await _localDataSource.loadTemplates(collectionId);
+    return dtos.map((dto) => _toContract(dto.toDomain())).toList(
+      growable: false,
+    );
+  }
+
+  @override
+  Future<LayoutTemplateContract?> getTemplateById(
     String collectionId,
     String templateId,
   ) async {
@@ -30,20 +65,21 @@ class LayoutTemplateRepositoryImpl implements LayoutTemplateRepository {
     final target = dtos
         .map((dto) => dto.toDomain())
         .firstWhereOrNull((template) => template.id == templateId);
-    return target;
+    return target == null ? null : _toContract(target);
   }
 
   @override
-  Future<void> saveTemplate(LayoutTemplate template) async {
-    final collectionId = template.collectionId;
+  Future<void> saveTemplate(LayoutTemplateContract template) async {
+    final domain = _toDomain(template);
+    final collectionId = domain.collectionId;
     final existingDtos = await _localDataSource.loadTemplates(collectionId);
     final index = existingDtos.indexWhere(
-      (dto) => dto.template.id == template.id,
+      (dto) => dto.template.id == domain.id,
     );
     final originalVersion = index >= 0
         ? existingDtos[index].template.version
         : 0;
-    final updatedTemplate = template.copyWith(
+    final updatedTemplate = domain.copyWith(
       version: originalVersion + 1,
       updatedAt: DateTime.now(),
     );
