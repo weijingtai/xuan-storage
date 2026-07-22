@@ -13,5 +13,7 @@ class DivinationTypesDaoManager {
   DivinationTypesDaoManager(this._db);
   $$DivinationTypesTableTableManager get divinationTypes =>
       $$DivinationTypesTableTableManager(
-          _db.attachedDatabase, _db.divinationTypes);
+        _db.attachedDatabase,
+        _db.divinationTypes,
+      );
 }

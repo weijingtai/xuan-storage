@@ -13,44 +13,70 @@ class $AccountIdentityLinksTable extends AccountIdentityLinks
       const VerificationMeta('anonymousAppUserId');
   @override
   late final GeneratedColumn<String> anonymousAppUserId =
-      GeneratedColumn<String>('anonymous_app_user_id', aliasedName, false,
-          type: DriftSqlType.string, requiredDuringInsert: true);
+      GeneratedColumn<String>(
+        'anonymous_app_user_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
   static const VerificationMeta _registeredAppUserIdMeta =
       const VerificationMeta('registeredAppUserId');
   @override
   late final GeneratedColumn<String> registeredAppUserId =
-      GeneratedColumn<String>('registered_app_user_id', aliasedName, false,
-          type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _providerIdMeta =
-      const VerificationMeta('providerId');
+      GeneratedColumn<String>(
+        'registered_app_user_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _providerIdMeta = const VerificationMeta(
+    'providerId',
+  );
   @override
   late final GeneratedColumn<String> providerId = GeneratedColumn<String>(
-      'provider_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _linkedAtMeta =
-      const VerificationMeta('linkedAt');
+    'provider_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _linkedAtMeta = const VerificationMeta(
+    'linkedAt',
+  );
   @override
   late final GeneratedColumn<DateTime> linkedAt = GeneratedColumn<DateTime>(
-      'linked_at', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
-  static const VerificationMeta _mergeStatusMeta =
-      const VerificationMeta('mergeStatus');
+    'linked_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _mergeStatusMeta = const VerificationMeta(
+    'mergeStatus',
+  );
   @override
   late final GeneratedColumn<String> mergeStatus = GeneratedColumn<String>(
-      'merge_status', aliasedName, false,
-      additionalChecks:
-          GeneratedColumn.checkTextLength(minTextLength: 4, maxTextLength: 20),
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      defaultValue: const Constant('linked'));
+    'merge_status',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 4,
+      maxTextLength: 20,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('linked'),
+  );
   @override
   List<GeneratedColumn> get $columns => [
-        anonymousAppUserId,
-        registeredAppUserId,
-        providerId,
-        linkedAt,
-        mergeStatus
-      ];
+    anonymousAppUserId,
+    registeredAppUserId,
+    providerId,
+    linkedAt,
+    mergeStatus,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -58,45 +84,57 @@ class $AccountIdentityLinksTable extends AccountIdentityLinks
   static const String $name = 'account_identity_links';
   @override
   VerificationContext validateIntegrity(
-      Insertable<AccountIdentityLinkEntry> instance,
-      {bool isInserting = false}) {
+    Insertable<AccountIdentityLinkEntry> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('anonymous_app_user_id')) {
       context.handle(
+        _anonymousAppUserIdMeta,
+        anonymousAppUserId.isAcceptableOrUnknown(
+          data['anonymous_app_user_id']!,
           _anonymousAppUserIdMeta,
-          anonymousAppUserId.isAcceptableOrUnknown(
-              data['anonymous_app_user_id']!, _anonymousAppUserIdMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_anonymousAppUserIdMeta);
     }
     if (data.containsKey('registered_app_user_id')) {
       context.handle(
+        _registeredAppUserIdMeta,
+        registeredAppUserId.isAcceptableOrUnknown(
+          data['registered_app_user_id']!,
           _registeredAppUserIdMeta,
-          registeredAppUserId.isAcceptableOrUnknown(
-              data['registered_app_user_id']!, _registeredAppUserIdMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_registeredAppUserIdMeta);
     }
     if (data.containsKey('provider_id')) {
       context.handle(
-          _providerIdMeta,
-          providerId.isAcceptableOrUnknown(
-              data['provider_id']!, _providerIdMeta));
+        _providerIdMeta,
+        providerId.isAcceptableOrUnknown(data['provider_id']!, _providerIdMeta),
+      );
     } else if (isInserting) {
       context.missing(_providerIdMeta);
     }
     if (data.containsKey('linked_at')) {
-      context.handle(_linkedAtMeta,
-          linkedAt.isAcceptableOrUnknown(data['linked_at']!, _linkedAtMeta));
+      context.handle(
+        _linkedAtMeta,
+        linkedAt.isAcceptableOrUnknown(data['linked_at']!, _linkedAtMeta),
+      );
     } else if (isInserting) {
       context.missing(_linkedAtMeta);
     }
     if (data.containsKey('merge_status')) {
       context.handle(
+        _mergeStatusMeta,
+        mergeStatus.isAcceptableOrUnknown(
+          data['merge_status']!,
           _mergeStatusMeta,
-          mergeStatus.isAcceptableOrUnknown(
-              data['merge_status']!, _mergeStatusMeta));
+        ),
+      );
     }
     return context;
   }
@@ -104,21 +142,32 @@ class $AccountIdentityLinksTable extends AccountIdentityLinks
   @override
   Set<GeneratedColumn> get $primaryKey => {anonymousAppUserId};
   @override
-  AccountIdentityLinkEntry map(Map<String, dynamic> data,
-      {String? tablePrefix}) {
+  AccountIdentityLinkEntry map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return AccountIdentityLinkEntry(
-      anonymousAppUserId: attachedDatabase.typeMapping.read(DriftSqlType.string,
-          data['${effectivePrefix}anonymous_app_user_id'])!,
+      anonymousAppUserId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}anonymous_app_user_id'],
+      )!,
       registeredAppUserId: attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}registered_app_user_id'])!,
-      providerId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}provider_id'])!,
-      linkedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}linked_at'])!,
-      mergeStatus: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}merge_status'])!,
+        DriftSqlType.string,
+        data['${effectivePrefix}registered_app_user_id'],
+      )!,
+      providerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}provider_id'],
+      )!,
+      linkedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}linked_at'],
+      )!,
+      mergeStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}merge_status'],
+      )!,
     );
   }
 
@@ -135,12 +184,13 @@ class AccountIdentityLinkEntry extends DataClass
   final String providerId;
   final DateTime linkedAt;
   final String mergeStatus;
-  const AccountIdentityLinkEntry(
-      {required this.anonymousAppUserId,
-      required this.registeredAppUserId,
-      required this.providerId,
-      required this.linkedAt,
-      required this.mergeStatus});
+  const AccountIdentityLinkEntry({
+    required this.anonymousAppUserId,
+    required this.registeredAppUserId,
+    required this.providerId,
+    required this.linkedAt,
+    required this.mergeStatus,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -162,14 +212,18 @@ class AccountIdentityLinkEntry extends DataClass
     );
   }
 
-  factory AccountIdentityLinkEntry.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory AccountIdentityLinkEntry.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return AccountIdentityLinkEntry(
-      anonymousAppUserId:
-          serializer.fromJson<String>(json['anonymousAppUserId']),
-      registeredAppUserId:
-          serializer.fromJson<String>(json['registeredAppUserId']),
+      anonymousAppUserId: serializer.fromJson<String>(
+        json['anonymousAppUserId'],
+      ),
+      registeredAppUserId: serializer.fromJson<String>(
+        json['registeredAppUserId'],
+      ),
       providerId: serializer.fromJson<String>(json['providerId']),
       linkedAt: serializer.fromJson<DateTime>(json['linkedAt']),
       mergeStatus: serializer.fromJson<String>(json['mergeStatus']),
@@ -187,21 +241,22 @@ class AccountIdentityLinkEntry extends DataClass
     };
   }
 
-  AccountIdentityLinkEntry copyWith(
-          {String? anonymousAppUserId,
-          String? registeredAppUserId,
-          String? providerId,
-          DateTime? linkedAt,
-          String? mergeStatus}) =>
-      AccountIdentityLinkEntry(
-        anonymousAppUserId: anonymousAppUserId ?? this.anonymousAppUserId,
-        registeredAppUserId: registeredAppUserId ?? this.registeredAppUserId,
-        providerId: providerId ?? this.providerId,
-        linkedAt: linkedAt ?? this.linkedAt,
-        mergeStatus: mergeStatus ?? this.mergeStatus,
-      );
+  AccountIdentityLinkEntry copyWith({
+    String? anonymousAppUserId,
+    String? registeredAppUserId,
+    String? providerId,
+    DateTime? linkedAt,
+    String? mergeStatus,
+  }) => AccountIdentityLinkEntry(
+    anonymousAppUserId: anonymousAppUserId ?? this.anonymousAppUserId,
+    registeredAppUserId: registeredAppUserId ?? this.registeredAppUserId,
+    providerId: providerId ?? this.providerId,
+    linkedAt: linkedAt ?? this.linkedAt,
+    mergeStatus: mergeStatus ?? this.mergeStatus,
+  );
   AccountIdentityLinkEntry copyWithCompanion(
-      AccountIdentityLinksCompanion data) {
+    AccountIdentityLinksCompanion data,
+  ) {
     return AccountIdentityLinkEntry(
       anonymousAppUserId: data.anonymousAppUserId.present
           ? data.anonymousAppUserId.value
@@ -209,11 +264,13 @@ class AccountIdentityLinkEntry extends DataClass
       registeredAppUserId: data.registeredAppUserId.present
           ? data.registeredAppUserId.value
           : this.registeredAppUserId,
-      providerId:
-          data.providerId.present ? data.providerId.value : this.providerId,
+      providerId: data.providerId.present
+          ? data.providerId.value
+          : this.providerId,
       linkedAt: data.linkedAt.present ? data.linkedAt.value : this.linkedAt,
-      mergeStatus:
-          data.mergeStatus.present ? data.mergeStatus.value : this.mergeStatus,
+      mergeStatus: data.mergeStatus.present
+          ? data.mergeStatus.value
+          : this.mergeStatus,
     );
   }
 
@@ -230,8 +287,13 @@ class AccountIdentityLinkEntry extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(anonymousAppUserId, registeredAppUserId,
-      providerId, linkedAt, mergeStatus);
+  int get hashCode => Object.hash(
+    anonymousAppUserId,
+    registeredAppUserId,
+    providerId,
+    linkedAt,
+    mergeStatus,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -266,10 +328,10 @@ class AccountIdentityLinksCompanion
     required DateTime linkedAt,
     this.mergeStatus = const Value.absent(),
     this.rowid = const Value.absent(),
-  })  : anonymousAppUserId = Value(anonymousAppUserId),
-        registeredAppUserId = Value(registeredAppUserId),
-        providerId = Value(providerId),
-        linkedAt = Value(linkedAt);
+  }) : anonymousAppUserId = Value(anonymousAppUserId),
+       registeredAppUserId = Value(registeredAppUserId),
+       providerId = Value(providerId),
+       linkedAt = Value(linkedAt);
   static Insertable<AccountIdentityLinkEntry> custom({
     Expression<String>? anonymousAppUserId,
     Expression<String>? registeredAppUserId,
@@ -290,13 +352,14 @@ class AccountIdentityLinksCompanion
     });
   }
 
-  AccountIdentityLinksCompanion copyWith(
-      {Value<String>? anonymousAppUserId,
-      Value<String>? registeredAppUserId,
-      Value<String>? providerId,
-      Value<DateTime>? linkedAt,
-      Value<String>? mergeStatus,
-      Value<int>? rowid}) {
+  AccountIdentityLinksCompanion copyWith({
+    Value<String>? anonymousAppUserId,
+    Value<String>? registeredAppUserId,
+    Value<String>? providerId,
+    Value<DateTime>? linkedAt,
+    Value<String>? mergeStatus,
+    Value<int>? rowid,
+  }) {
     return AccountIdentityLinksCompanion(
       anonymousAppUserId: anonymousAppUserId ?? this.anonymousAppUserId,
       registeredAppUserId: registeredAppUserId ?? this.registeredAppUserId,
@@ -314,8 +377,9 @@ class AccountIdentityLinksCompanion
       map['anonymous_app_user_id'] = Variable<String>(anonymousAppUserId.value);
     }
     if (registeredAppUserId.present) {
-      map['registered_app_user_id'] =
-          Variable<String>(registeredAppUserId.value);
+      map['registered_app_user_id'] = Variable<String>(
+        registeredAppUserId.value,
+      );
     }
     if (providerId.present) {
       map['provider_id'] = Variable<String>(providerId.value);
@@ -358,24 +422,24 @@ abstract class _$AccountDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [accountIdentityLinks];
 }
 
-typedef $$AccountIdentityLinksTableCreateCompanionBuilder
-    = AccountIdentityLinksCompanion Function({
-  required String anonymousAppUserId,
-  required String registeredAppUserId,
-  required String providerId,
-  required DateTime linkedAt,
-  Value<String> mergeStatus,
-  Value<int> rowid,
-});
-typedef $$AccountIdentityLinksTableUpdateCompanionBuilder
-    = AccountIdentityLinksCompanion Function({
-  Value<String> anonymousAppUserId,
-  Value<String> registeredAppUserId,
-  Value<String> providerId,
-  Value<DateTime> linkedAt,
-  Value<String> mergeStatus,
-  Value<int> rowid,
-});
+typedef $$AccountIdentityLinksTableCreateCompanionBuilder =
+    AccountIdentityLinksCompanion Function({
+      required String anonymousAppUserId,
+      required String registeredAppUserId,
+      required String providerId,
+      required DateTime linkedAt,
+      Value<String> mergeStatus,
+      Value<int> rowid,
+    });
+typedef $$AccountIdentityLinksTableUpdateCompanionBuilder =
+    AccountIdentityLinksCompanion Function({
+      Value<String> anonymousAppUserId,
+      Value<String> registeredAppUserId,
+      Value<String> providerId,
+      Value<DateTime> linkedAt,
+      Value<String> mergeStatus,
+      Value<int> rowid,
+    });
 
 class $$AccountIdentityLinksTableFilterComposer
     extends Composer<_$AccountDatabase, $AccountIdentityLinksTable> {
@@ -387,21 +451,29 @@ class $$AccountIdentityLinksTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get anonymousAppUserId => $composableBuilder(
-      column: $table.anonymousAppUserId,
-      builder: (column) => ColumnFilters(column));
+    column: $table.anonymousAppUserId,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get registeredAppUserId => $composableBuilder(
-      column: $table.registeredAppUserId,
-      builder: (column) => ColumnFilters(column));
+    column: $table.registeredAppUserId,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get providerId => $composableBuilder(
-      column: $table.providerId, builder: (column) => ColumnFilters(column));
+    column: $table.providerId,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get linkedAt => $composableBuilder(
-      column: $table.linkedAt, builder: (column) => ColumnFilters(column));
+    column: $table.linkedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get mergeStatus => $composableBuilder(
-      column: $table.mergeStatus, builder: (column) => ColumnFilters(column));
+    column: $table.mergeStatus,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$AccountIdentityLinksTableOrderingComposer
@@ -414,21 +486,29 @@ class $$AccountIdentityLinksTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get anonymousAppUserId => $composableBuilder(
-      column: $table.anonymousAppUserId,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.anonymousAppUserId,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get registeredAppUserId => $composableBuilder(
-      column: $table.registeredAppUserId,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.registeredAppUserId,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get providerId => $composableBuilder(
-      column: $table.providerId, builder: (column) => ColumnOrderings(column));
+    column: $table.providerId,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get linkedAt => $composableBuilder(
-      column: $table.linkedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.linkedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get mergeStatus => $composableBuilder(
-      column: $table.mergeStatus, builder: (column) => ColumnOrderings(column));
+    column: $table.mergeStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$AccountIdentityLinksTableAnnotationComposer
@@ -441,106 +521,131 @@ class $$AccountIdentityLinksTableAnnotationComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   GeneratedColumn<String> get anonymousAppUserId => $composableBuilder(
-      column: $table.anonymousAppUserId, builder: (column) => column);
+    column: $table.anonymousAppUserId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get registeredAppUserId => $composableBuilder(
-      column: $table.registeredAppUserId, builder: (column) => column);
+    column: $table.registeredAppUserId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get providerId => $composableBuilder(
-      column: $table.providerId, builder: (column) => column);
+    column: $table.providerId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get linkedAt =>
       $composableBuilder(column: $table.linkedAt, builder: (column) => column);
 
   GeneratedColumn<String> get mergeStatus => $composableBuilder(
-      column: $table.mergeStatus, builder: (column) => column);
+    column: $table.mergeStatus,
+    builder: (column) => column,
+  );
 }
 
-class $$AccountIdentityLinksTableTableManager extends RootTableManager<
-    _$AccountDatabase,
-    $AccountIdentityLinksTable,
-    AccountIdentityLinkEntry,
-    $$AccountIdentityLinksTableFilterComposer,
-    $$AccountIdentityLinksTableOrderingComposer,
-    $$AccountIdentityLinksTableAnnotationComposer,
-    $$AccountIdentityLinksTableCreateCompanionBuilder,
-    $$AccountIdentityLinksTableUpdateCompanionBuilder,
-    (
-      AccountIdentityLinkEntry,
-      BaseReferences<_$AccountDatabase, $AccountIdentityLinksTable,
-          AccountIdentityLinkEntry>
-    ),
-    AccountIdentityLinkEntry,
-    PrefetchHooks Function()> {
+class $$AccountIdentityLinksTableTableManager
+    extends
+        RootTableManager<
+          _$AccountDatabase,
+          $AccountIdentityLinksTable,
+          AccountIdentityLinkEntry,
+          $$AccountIdentityLinksTableFilterComposer,
+          $$AccountIdentityLinksTableOrderingComposer,
+          $$AccountIdentityLinksTableAnnotationComposer,
+          $$AccountIdentityLinksTableCreateCompanionBuilder,
+          $$AccountIdentityLinksTableUpdateCompanionBuilder,
+          (
+            AccountIdentityLinkEntry,
+            BaseReferences<
+              _$AccountDatabase,
+              $AccountIdentityLinksTable,
+              AccountIdentityLinkEntry
+            >,
+          ),
+          AccountIdentityLinkEntry,
+          PrefetchHooks Function()
+        > {
   $$AccountIdentityLinksTableTableManager(
-      _$AccountDatabase db, $AccountIdentityLinksTable table)
-      : super(TableManagerState(
+    _$AccountDatabase db,
+    $AccountIdentityLinksTable table,
+  ) : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
               $$AccountIdentityLinksTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
               $$AccountIdentityLinksTableOrderingComposer(
-                  $db: db, $table: table),
+                $db: db,
+                $table: table,
+              ),
           createComputedFieldComposer: () =>
               $$AccountIdentityLinksTableAnnotationComposer(
-                  $db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> anonymousAppUserId = const Value.absent(),
-            Value<String> registeredAppUserId = const Value.absent(),
-            Value<String> providerId = const Value.absent(),
-            Value<DateTime> linkedAt = const Value.absent(),
-            Value<String> mergeStatus = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              AccountIdentityLinksCompanion(
-            anonymousAppUserId: anonymousAppUserId,
-            registeredAppUserId: registeredAppUserId,
-            providerId: providerId,
-            linkedAt: linkedAt,
-            mergeStatus: mergeStatus,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String anonymousAppUserId,
-            required String registeredAppUserId,
-            required String providerId,
-            required DateTime linkedAt,
-            Value<String> mergeStatus = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              AccountIdentityLinksCompanion.insert(
-            anonymousAppUserId: anonymousAppUserId,
-            registeredAppUserId: registeredAppUserId,
-            providerId: providerId,
-            linkedAt: linkedAt,
-            mergeStatus: mergeStatus,
-            rowid: rowid,
-          ),
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> anonymousAppUserId = const Value.absent(),
+                Value<String> registeredAppUserId = const Value.absent(),
+                Value<String> providerId = const Value.absent(),
+                Value<DateTime> linkedAt = const Value.absent(),
+                Value<String> mergeStatus = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AccountIdentityLinksCompanion(
+                anonymousAppUserId: anonymousAppUserId,
+                registeredAppUserId: registeredAppUserId,
+                providerId: providerId,
+                linkedAt: linkedAt,
+                mergeStatus: mergeStatus,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String anonymousAppUserId,
+                required String registeredAppUserId,
+                required String providerId,
+                required DateTime linkedAt,
+                Value<String> mergeStatus = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AccountIdentityLinksCompanion.insert(
+                anonymousAppUserId: anonymousAppUserId,
+                registeredAppUserId: registeredAppUserId,
+                providerId: providerId,
+                linkedAt: linkedAt,
+                mergeStatus: mergeStatus,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ));
+        ),
+      );
 }
 
-typedef $$AccountIdentityLinksTableProcessedTableManager
-    = ProcessedTableManager<
-        _$AccountDatabase,
-        $AccountIdentityLinksTable,
+typedef $$AccountIdentityLinksTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AccountDatabase,
+      $AccountIdentityLinksTable,
+      AccountIdentityLinkEntry,
+      $$AccountIdentityLinksTableFilterComposer,
+      $$AccountIdentityLinksTableOrderingComposer,
+      $$AccountIdentityLinksTableAnnotationComposer,
+      $$AccountIdentityLinksTableCreateCompanionBuilder,
+      $$AccountIdentityLinksTableUpdateCompanionBuilder,
+      (
         AccountIdentityLinkEntry,
-        $$AccountIdentityLinksTableFilterComposer,
-        $$AccountIdentityLinksTableOrderingComposer,
-        $$AccountIdentityLinksTableAnnotationComposer,
-        $$AccountIdentityLinksTableCreateCompanionBuilder,
-        $$AccountIdentityLinksTableUpdateCompanionBuilder,
-        (
-          AccountIdentityLinkEntry,
-          BaseReferences<_$AccountDatabase, $AccountIdentityLinksTable,
-              AccountIdentityLinkEntry>
-        ),
-        AccountIdentityLinkEntry,
-        PrefetchHooks Function()>;
+        BaseReferences<
+          _$AccountDatabase,
+          $AccountIdentityLinksTable,
+          AccountIdentityLinkEntry
+        >,
+      ),
+      AccountIdentityLinkEntry,
+      PrefetchHooks Function()
+    >;
 
 class $AccountDatabaseManager {
   final _$AccountDatabase _db;

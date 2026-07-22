@@ -19,7 +19,7 @@ class TRecordMeta extends Table {
   TextColumn get verificationStatus =>
       text().named('verification_status').nullable()();
   TextColumn get seekerName => text().named('seeker_name').nullable()();
-  TextColumn get gender => text().nullable().check(gender.isIn(const ['M', 'F']))();
+  TextColumn get gender => text().nullable().check(const CustomExpression<String>('gender').isIn(const ['M', 'F']))();
   TextColumn get fateYear => text().named('fate_year').nullable()();
   TextColumn get moduleDataJson => text().named('module_data_json').nullable()();
   TextColumn get navParamsJson => text().named('nav_params_json').nullable()();

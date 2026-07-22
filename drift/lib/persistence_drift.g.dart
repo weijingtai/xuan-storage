@@ -12935,7 +12935,8 @@ class $TRecordMetaTable extends TRecordMeta
     'gender',
     aliasedName,
     true,
-    check: () => gender.isIn(const ['M', 'F']),
+    check: () =>
+        const CustomExpression<String>('gender').isIn(const ['M', 'F']),
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );

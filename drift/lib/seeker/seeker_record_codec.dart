@@ -62,7 +62,7 @@ class SeekerRecordCodec implements RecordModuleCodec<SeekerModel> {
     final meta = RecordMeta(
       uuid: c.uuid, scopeUid: scopeUid, module: module, category: category,
       divinationType: divinationType, seekerName: c.nickname ?? c.username,
-      gender: c.gender.name == 'female' ? 'F' : 'M', fateYear: null,
+      gender: c.gender == Gender.male ? 'M' : (c.gender == Gender.female ? 'F' : null), fateYear: null,
       occurredAtUtc: null, reckoningType: null, timezoneStr: null,
       latitude: null, longitude: null, locationName: null, spacetimeJson: null,
       moduleDataJson: jsonEncode(data),
@@ -85,13 +85,20 @@ class SeekerRecordCodec implements RecordModuleCodec<SeekerModel> {
           .map((e) => DivinationDatetimeModel.fromJson(e as Map<String, dynamic>))
           .toList();
     }
+    final decodedGender = meta.gender == 'M'
+        ? Gender.male
+        : (meta.gender == 'F'
+            ? Gender.female
+            : (d['gender'] == 'male' || d['gender'] == 'M'
+                ? Gender.male
+                : (d['gender'] == 'female' || d['gender'] == 'F'
+                    ? Gender.female
+                    : Gender.unknown)));
     return SeekerModel(
       uuid: meta.uuid,
       username: d['username'] as String?,
       nickname: d['nickname'] as String? ?? meta.seekerName,
-      gender: d['gender'] != null
-          ? Gender.values.firstWhere((g) => g.name == d['gender'])
-          : (meta.gender == 'F' ? Gender.female : Gender.male),
+      gender: decodedGender,
       timingType: DateTimeType.values.firstWhere((t) => t.name == d['timingType']),
       datetime: DateTime.parse(d['datetime'] as String),
       yearGanZhi: JiaZi.values.firstWhere((j) => j.name == d['yearGanZhi']),

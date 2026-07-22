@@ -12,26 +12,42 @@ class $UserSchoolsTable extends UserSchools
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
-      'id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
-      'name', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _sourceMeta = const VerificationMeta('source');
   @override
   late final GeneratedColumn<String> source = GeneratedColumn<String>(
-      'source', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      defaultValue: const Constant('user'));
-  static const VerificationMeta _contentJsonMeta =
-      const VerificationMeta('contentJson');
+    'source',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('user'),
+  );
+  static const VerificationMeta _contentJsonMeta = const VerificationMeta(
+    'contentJson',
+  );
   @override
   late final GeneratedColumn<String> contentJson = GeneratedColumn<String>(
-      'content_json', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+    'content_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   @override
   List<GeneratedColumn> get $columns => [id, name, source, contentJson];
   @override
@@ -40,8 +56,10 @@ class $UserSchoolsTable extends UserSchools
   String get actualTableName => $name;
   static const String $name = 'user_schools';
   @override
-  VerificationContext validateIntegrity(Insertable<UserSchool> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(
+    Insertable<UserSchool> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
@@ -51,19 +69,26 @@ class $UserSchoolsTable extends UserSchools
     }
     if (data.containsKey('name')) {
       context.handle(
-          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
     if (data.containsKey('source')) {
-      context.handle(_sourceMeta,
-          source.isAcceptableOrUnknown(data['source']!, _sourceMeta));
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
     }
     if (data.containsKey('content_json')) {
       context.handle(
+        _contentJsonMeta,
+        contentJson.isAcceptableOrUnknown(
+          data['content_json']!,
           _contentJsonMeta,
-          contentJson.isAcceptableOrUnknown(
-              data['content_json']!, _contentJsonMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_contentJsonMeta);
     }
@@ -76,14 +101,22 @@ class $UserSchoolsTable extends UserSchools
   UserSchool map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return UserSchool(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      name: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-      source: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}source'])!,
-      contentJson: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}content_json'])!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      )!,
+      contentJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content_json'],
+      )!,
     );
   }
 
@@ -98,11 +131,12 @@ class UserSchool extends DataClass implements Insertable<UserSchool> {
   final String name;
   final String source;
   final String contentJson;
-  const UserSchool(
-      {required this.id,
-      required this.name,
-      required this.source,
-      required this.contentJson});
+  const UserSchool({
+    required this.id,
+    required this.name,
+    required this.source,
+    required this.contentJson,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -122,8 +156,10 @@ class UserSchool extends DataClass implements Insertable<UserSchool> {
     );
   }
 
-  factory UserSchool.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory UserSchool.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return UserSchool(
       id: serializer.fromJson<String>(json['id']),
@@ -143,21 +179,25 @@ class UserSchool extends DataClass implements Insertable<UserSchool> {
     };
   }
 
-  UserSchool copyWith(
-          {String? id, String? name, String? source, String? contentJson}) =>
-      UserSchool(
-        id: id ?? this.id,
-        name: name ?? this.name,
-        source: source ?? this.source,
-        contentJson: contentJson ?? this.contentJson,
-      );
+  UserSchool copyWith({
+    String? id,
+    String? name,
+    String? source,
+    String? contentJson,
+  }) => UserSchool(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    source: source ?? this.source,
+    contentJson: contentJson ?? this.contentJson,
+  );
   UserSchool copyWithCompanion(UserSchoolsCompanion data) {
     return UserSchool(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       source: data.source.present ? data.source.value : this.source,
-      contentJson:
-          data.contentJson.present ? data.contentJson.value : this.contentJson,
+      contentJson: data.contentJson.present
+          ? data.contentJson.value
+          : this.contentJson,
     );
   }
 
@@ -203,9 +243,9 @@ class UserSchoolsCompanion extends UpdateCompanion<UserSchool> {
     this.source = const Value.absent(),
     required String contentJson,
     this.rowid = const Value.absent(),
-  })  : id = Value(id),
-        name = Value(name),
-        contentJson = Value(contentJson);
+  }) : id = Value(id),
+       name = Value(name),
+       contentJson = Value(contentJson);
   static Insertable<UserSchool> custom({
     Expression<String>? id,
     Expression<String>? name,
@@ -222,12 +262,13 @@ class UserSchoolsCompanion extends UpdateCompanion<UserSchool> {
     });
   }
 
-  UserSchoolsCompanion copyWith(
-      {Value<String>? id,
-      Value<String>? name,
-      Value<String>? source,
-      Value<String>? contentJson,
-      Value<int>? rowid}) {
+  UserSchoolsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String>? source,
+    Value<String>? contentJson,
+    Value<int>? rowid,
+  }) {
     return UserSchoolsCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -280,26 +321,42 @@ class $UserDeitiesTable extends UserDeities
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
-      'id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
-      'name', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _sourceMeta = const VerificationMeta('source');
   @override
   late final GeneratedColumn<String> source = GeneratedColumn<String>(
-      'source', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      defaultValue: const Constant('user'));
-  static const VerificationMeta _contentJsonMeta =
-      const VerificationMeta('contentJson');
+    'source',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('user'),
+  );
+  static const VerificationMeta _contentJsonMeta = const VerificationMeta(
+    'contentJson',
+  );
   @override
   late final GeneratedColumn<String> contentJson = GeneratedColumn<String>(
-      'content_json', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+    'content_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   @override
   List<GeneratedColumn> get $columns => [id, name, source, contentJson];
   @override
@@ -308,8 +365,10 @@ class $UserDeitiesTable extends UserDeities
   String get actualTableName => $name;
   static const String $name = 'user_deities';
   @override
-  VerificationContext validateIntegrity(Insertable<UserDeity> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(
+    Insertable<UserDeity> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
@@ -319,19 +378,26 @@ class $UserDeitiesTable extends UserDeities
     }
     if (data.containsKey('name')) {
       context.handle(
-          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
     if (data.containsKey('source')) {
-      context.handle(_sourceMeta,
-          source.isAcceptableOrUnknown(data['source']!, _sourceMeta));
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
     }
     if (data.containsKey('content_json')) {
       context.handle(
+        _contentJsonMeta,
+        contentJson.isAcceptableOrUnknown(
+          data['content_json']!,
           _contentJsonMeta,
-          contentJson.isAcceptableOrUnknown(
-              data['content_json']!, _contentJsonMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_contentJsonMeta);
     }
@@ -344,14 +410,22 @@ class $UserDeitiesTable extends UserDeities
   UserDeity map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return UserDeity(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      name: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-      source: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}source'])!,
-      contentJson: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}content_json'])!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      )!,
+      contentJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content_json'],
+      )!,
     );
   }
 
@@ -366,11 +440,12 @@ class UserDeity extends DataClass implements Insertable<UserDeity> {
   final String name;
   final String source;
   final String contentJson;
-  const UserDeity(
-      {required this.id,
-      required this.name,
-      required this.source,
-      required this.contentJson});
+  const UserDeity({
+    required this.id,
+    required this.name,
+    required this.source,
+    required this.contentJson,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -390,8 +465,10 @@ class UserDeity extends DataClass implements Insertable<UserDeity> {
     );
   }
 
-  factory UserDeity.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory UserDeity.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return UserDeity(
       id: serializer.fromJson<String>(json['id']),
@@ -411,21 +488,25 @@ class UserDeity extends DataClass implements Insertable<UserDeity> {
     };
   }
 
-  UserDeity copyWith(
-          {String? id, String? name, String? source, String? contentJson}) =>
-      UserDeity(
-        id: id ?? this.id,
-        name: name ?? this.name,
-        source: source ?? this.source,
-        contentJson: contentJson ?? this.contentJson,
-      );
+  UserDeity copyWith({
+    String? id,
+    String? name,
+    String? source,
+    String? contentJson,
+  }) => UserDeity(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    source: source ?? this.source,
+    contentJson: contentJson ?? this.contentJson,
+  );
   UserDeity copyWithCompanion(UserDeitiesCompanion data) {
     return UserDeity(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       source: data.source.present ? data.source.value : this.source,
-      contentJson:
-          data.contentJson.present ? data.contentJson.value : this.contentJson,
+      contentJson: data.contentJson.present
+          ? data.contentJson.value
+          : this.contentJson,
     );
   }
 
@@ -471,9 +552,9 @@ class UserDeitiesCompanion extends UpdateCompanion<UserDeity> {
     this.source = const Value.absent(),
     required String contentJson,
     this.rowid = const Value.absent(),
-  })  : id = Value(id),
-        name = Value(name),
-        contentJson = Value(contentJson);
+  }) : id = Value(id),
+       name = Value(name),
+       contentJson = Value(contentJson);
   static Insertable<UserDeity> custom({
     Expression<String>? id,
     Expression<String>? name,
@@ -490,12 +571,13 @@ class UserDeitiesCompanion extends UpdateCompanion<UserDeity> {
     });
   }
 
-  UserDeitiesCompanion copyWith(
-      {Value<String>? id,
-      Value<String>? name,
-      Value<String>? source,
-      Value<String>? contentJson,
-      Value<int>? rowid}) {
+  UserDeitiesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String>? source,
+    Value<String>? contentJson,
+    Value<int>? rowid,
+  }) {
     return UserDeitiesCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -548,26 +630,28 @@ abstract class _$TaiYiDatabase extends GeneratedDatabase {
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [userSchools, userDeities];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    userSchools,
+    userDeities,
+  ];
 }
 
-typedef $$UserSchoolsTableCreateCompanionBuilder = UserSchoolsCompanion
-    Function({
-  required String id,
-  required String name,
-  Value<String> source,
-  required String contentJson,
-  Value<int> rowid,
-});
-typedef $$UserSchoolsTableUpdateCompanionBuilder = UserSchoolsCompanion
-    Function({
-  Value<String> id,
-  Value<String> name,
-  Value<String> source,
-  Value<String> contentJson,
-  Value<int> rowid,
-});
+typedef $$UserSchoolsTableCreateCompanionBuilder =
+    UserSchoolsCompanion Function({
+      required String id,
+      required String name,
+      Value<String> source,
+      required String contentJson,
+      Value<int> rowid,
+    });
+typedef $$UserSchoolsTableUpdateCompanionBuilder =
+    UserSchoolsCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<String> source,
+      Value<String> contentJson,
+      Value<int> rowid,
+    });
 
 class $$UserSchoolsTableFilterComposer
     extends Composer<_$TaiYiDatabase, $UserSchoolsTable> {
@@ -579,16 +663,24 @@ class $$UserSchoolsTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnFilters(column));
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get source => $composableBuilder(
-      column: $table.source, builder: (column) => ColumnFilters(column));
+    column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get contentJson => $composableBuilder(
-      column: $table.contentJson, builder: (column) => ColumnFilters(column));
+    column: $table.contentJson,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$UserSchoolsTableOrderingComposer
@@ -601,16 +693,24 @@ class $$UserSchoolsTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnOrderings(column));
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get source => $composableBuilder(
-      column: $table.source, builder: (column) => ColumnOrderings(column));
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get contentJson => $composableBuilder(
-      column: $table.contentJson, builder: (column) => ColumnOrderings(column));
+    column: $table.contentJson,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$UserSchoolsTableAnnotationComposer
@@ -632,26 +732,32 @@ class $$UserSchoolsTableAnnotationComposer
       $composableBuilder(column: $table.source, builder: (column) => column);
 
   GeneratedColumn<String> get contentJson => $composableBuilder(
-      column: $table.contentJson, builder: (column) => column);
+    column: $table.contentJson,
+    builder: (column) => column,
+  );
 }
 
-class $$UserSchoolsTableTableManager extends RootTableManager<
-    _$TaiYiDatabase,
-    $UserSchoolsTable,
-    UserSchool,
-    $$UserSchoolsTableFilterComposer,
-    $$UserSchoolsTableOrderingComposer,
-    $$UserSchoolsTableAnnotationComposer,
-    $$UserSchoolsTableCreateCompanionBuilder,
-    $$UserSchoolsTableUpdateCompanionBuilder,
-    (
-      UserSchool,
-      BaseReferences<_$TaiYiDatabase, $UserSchoolsTable, UserSchool>
-    ),
-    UserSchool,
-    PrefetchHooks Function()> {
+class $$UserSchoolsTableTableManager
+    extends
+        RootTableManager<
+          _$TaiYiDatabase,
+          $UserSchoolsTable,
+          UserSchool,
+          $$UserSchoolsTableFilterComposer,
+          $$UserSchoolsTableOrderingComposer,
+          $$UserSchoolsTableAnnotationComposer,
+          $$UserSchoolsTableCreateCompanionBuilder,
+          $$UserSchoolsTableUpdateCompanionBuilder,
+          (
+            UserSchool,
+            BaseReferences<_$TaiYiDatabase, $UserSchoolsTable, UserSchool>,
+          ),
+          UserSchool,
+          PrefetchHooks Function()
+        > {
   $$UserSchoolsTableTableManager(_$TaiYiDatabase db, $UserSchoolsTable table)
-      : super(TableManagerState(
+    : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -660,72 +766,75 @@ class $$UserSchoolsTableTableManager extends RootTableManager<
               $$UserSchoolsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$UserSchoolsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> id = const Value.absent(),
-            Value<String> name = const Value.absent(),
-            Value<String> source = const Value.absent(),
-            Value<String> contentJson = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              UserSchoolsCompanion(
-            id: id,
-            name: name,
-            source: source,
-            contentJson: contentJson,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String id,
-            required String name,
-            Value<String> source = const Value.absent(),
-            required String contentJson,
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              UserSchoolsCompanion.insert(
-            id: id,
-            name: name,
-            source: source,
-            contentJson: contentJson,
-            rowid: rowid,
-          ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> source = const Value.absent(),
+                Value<String> contentJson = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => UserSchoolsCompanion(
+                id: id,
+                name: name,
+                source: source,
+                contentJson: contentJson,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String name,
+                Value<String> source = const Value.absent(),
+                required String contentJson,
+                Value<int> rowid = const Value.absent(),
+              }) => UserSchoolsCompanion.insert(
+                id: id,
+                name: name,
+                source: source,
+                contentJson: contentJson,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ));
+        ),
+      );
 }
 
-typedef $$UserSchoolsTableProcessedTableManager = ProcessedTableManager<
-    _$TaiYiDatabase,
-    $UserSchoolsTable,
-    UserSchool,
-    $$UserSchoolsTableFilterComposer,
-    $$UserSchoolsTableOrderingComposer,
-    $$UserSchoolsTableAnnotationComposer,
-    $$UserSchoolsTableCreateCompanionBuilder,
-    $$UserSchoolsTableUpdateCompanionBuilder,
-    (
+typedef $$UserSchoolsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$TaiYiDatabase,
+      $UserSchoolsTable,
       UserSchool,
-      BaseReferences<_$TaiYiDatabase, $UserSchoolsTable, UserSchool>
-    ),
-    UserSchool,
-    PrefetchHooks Function()>;
-typedef $$UserDeitiesTableCreateCompanionBuilder = UserDeitiesCompanion
-    Function({
-  required String id,
-  required String name,
-  Value<String> source,
-  required String contentJson,
-  Value<int> rowid,
-});
-typedef $$UserDeitiesTableUpdateCompanionBuilder = UserDeitiesCompanion
-    Function({
-  Value<String> id,
-  Value<String> name,
-  Value<String> source,
-  Value<String> contentJson,
-  Value<int> rowid,
-});
+      $$UserSchoolsTableFilterComposer,
+      $$UserSchoolsTableOrderingComposer,
+      $$UserSchoolsTableAnnotationComposer,
+      $$UserSchoolsTableCreateCompanionBuilder,
+      $$UserSchoolsTableUpdateCompanionBuilder,
+      (
+        UserSchool,
+        BaseReferences<_$TaiYiDatabase, $UserSchoolsTable, UserSchool>,
+      ),
+      UserSchool,
+      PrefetchHooks Function()
+    >;
+typedef $$UserDeitiesTableCreateCompanionBuilder =
+    UserDeitiesCompanion Function({
+      required String id,
+      required String name,
+      Value<String> source,
+      required String contentJson,
+      Value<int> rowid,
+    });
+typedef $$UserDeitiesTableUpdateCompanionBuilder =
+    UserDeitiesCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<String> source,
+      Value<String> contentJson,
+      Value<int> rowid,
+    });
 
 class $$UserDeitiesTableFilterComposer
     extends Composer<_$TaiYiDatabase, $UserDeitiesTable> {
@@ -737,16 +846,24 @@ class $$UserDeitiesTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnFilters(column));
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get source => $composableBuilder(
-      column: $table.source, builder: (column) => ColumnFilters(column));
+    column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get contentJson => $composableBuilder(
-      column: $table.contentJson, builder: (column) => ColumnFilters(column));
+    column: $table.contentJson,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$UserDeitiesTableOrderingComposer
@@ -759,16 +876,24 @@ class $$UserDeitiesTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnOrderings(column));
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get source => $composableBuilder(
-      column: $table.source, builder: (column) => ColumnOrderings(column));
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get contentJson => $composableBuilder(
-      column: $table.contentJson, builder: (column) => ColumnOrderings(column));
+    column: $table.contentJson,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$UserDeitiesTableAnnotationComposer
@@ -790,23 +915,32 @@ class $$UserDeitiesTableAnnotationComposer
       $composableBuilder(column: $table.source, builder: (column) => column);
 
   GeneratedColumn<String> get contentJson => $composableBuilder(
-      column: $table.contentJson, builder: (column) => column);
+    column: $table.contentJson,
+    builder: (column) => column,
+  );
 }
 
-class $$UserDeitiesTableTableManager extends RootTableManager<
-    _$TaiYiDatabase,
-    $UserDeitiesTable,
-    UserDeity,
-    $$UserDeitiesTableFilterComposer,
-    $$UserDeitiesTableOrderingComposer,
-    $$UserDeitiesTableAnnotationComposer,
-    $$UserDeitiesTableCreateCompanionBuilder,
-    $$UserDeitiesTableUpdateCompanionBuilder,
-    (UserDeity, BaseReferences<_$TaiYiDatabase, $UserDeitiesTable, UserDeity>),
-    UserDeity,
-    PrefetchHooks Function()> {
+class $$UserDeitiesTableTableManager
+    extends
+        RootTableManager<
+          _$TaiYiDatabase,
+          $UserDeitiesTable,
+          UserDeity,
+          $$UserDeitiesTableFilterComposer,
+          $$UserDeitiesTableOrderingComposer,
+          $$UserDeitiesTableAnnotationComposer,
+          $$UserDeitiesTableCreateCompanionBuilder,
+          $$UserDeitiesTableUpdateCompanionBuilder,
+          (
+            UserDeity,
+            BaseReferences<_$TaiYiDatabase, $UserDeitiesTable, UserDeity>,
+          ),
+          UserDeity,
+          PrefetchHooks Function()
+        > {
   $$UserDeitiesTableTableManager(_$TaiYiDatabase db, $UserDeitiesTable table)
-      : super(TableManagerState(
+    : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -815,53 +949,59 @@ class $$UserDeitiesTableTableManager extends RootTableManager<
               $$UserDeitiesTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$UserDeitiesTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> id = const Value.absent(),
-            Value<String> name = const Value.absent(),
-            Value<String> source = const Value.absent(),
-            Value<String> contentJson = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              UserDeitiesCompanion(
-            id: id,
-            name: name,
-            source: source,
-            contentJson: contentJson,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String id,
-            required String name,
-            Value<String> source = const Value.absent(),
-            required String contentJson,
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              UserDeitiesCompanion.insert(
-            id: id,
-            name: name,
-            source: source,
-            contentJson: contentJson,
-            rowid: rowid,
-          ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> source = const Value.absent(),
+                Value<String> contentJson = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => UserDeitiesCompanion(
+                id: id,
+                name: name,
+                source: source,
+                contentJson: contentJson,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String name,
+                Value<String> source = const Value.absent(),
+                required String contentJson,
+                Value<int> rowid = const Value.absent(),
+              }) => UserDeitiesCompanion.insert(
+                id: id,
+                name: name,
+                source: source,
+                contentJson: contentJson,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ));
+        ),
+      );
 }
 
-typedef $$UserDeitiesTableProcessedTableManager = ProcessedTableManager<
-    _$TaiYiDatabase,
-    $UserDeitiesTable,
-    UserDeity,
-    $$UserDeitiesTableFilterComposer,
-    $$UserDeitiesTableOrderingComposer,
-    $$UserDeitiesTableAnnotationComposer,
-    $$UserDeitiesTableCreateCompanionBuilder,
-    $$UserDeitiesTableUpdateCompanionBuilder,
-    (UserDeity, BaseReferences<_$TaiYiDatabase, $UserDeitiesTable, UserDeity>),
-    UserDeity,
-    PrefetchHooks Function()>;
+typedef $$UserDeitiesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$TaiYiDatabase,
+      $UserDeitiesTable,
+      UserDeity,
+      $$UserDeitiesTableFilterComposer,
+      $$UserDeitiesTableOrderingComposer,
+      $$UserDeitiesTableAnnotationComposer,
+      $$UserDeitiesTableCreateCompanionBuilder,
+      $$UserDeitiesTableUpdateCompanionBuilder,
+      (
+        UserDeity,
+        BaseReferences<_$TaiYiDatabase, $UserDeitiesTable, UserDeity>,
+      ),
+      UserDeity,
+      PrefetchHooks Function()
+    >;
 
 class $TaiYiDatabaseManager {
   final _$TaiYiDatabase _db;
