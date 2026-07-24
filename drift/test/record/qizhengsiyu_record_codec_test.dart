@@ -1,8 +1,50 @@
+import 'dart:convert';
 import 'package:repository_interface_qizhengsiyu/repository_interface_qizhengsiyu.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:persistence_drift/qizhengsiyu/qizheng_record_codec.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:timezone/data/latest_all.dart' as tz_data;
+
+String _fixtureDatetimeJson() {
+  return const JsonEncoder.withIndent('').convert({
+    'uuid': 'dt-1',
+    'isDst': false,
+    'isSeersLocation': false,
+    'observer': {
+      'type': '标准时间',
+      'timezoneStr': 'Asia/Shanghai',
+      'isManualCalibration': false,
+      'coordinate': {'latitude': 39.9042, 'longitude': 116.4074},
+      'location': {
+        'address': {
+          'countryName': '中国',
+          'countryId': 45,
+          'regionId': 9,
+          'province': {
+            'name': '北京市', 'latitude': 39.9042, 'longitude': 116.4074,
+            'level': 1, 'code': '110000', 'parentCode': '0',
+          },
+          'city': {
+            'name': '北京市', 'latitude': 39.9042, 'longitude': 116.4074,
+            'code': '110100', 'parentCode': '110000', 'level': 2,
+          },
+          'timezone': 'Asia/Shanghai',
+        },
+      },
+    },
+    'datetime': '1990-01-01T12:00:00.000',
+    'yearJiaZi': '己巳', 'monthJiaZi': '丙子',
+    'dayJiaZi': '甲子', 'timeJiaZi': '庚午',
+    'lunarMonth': 11, 'lunarDay': 5,
+    'jieQiInfo': {
+      'jieQi': '立春',
+      'startAt': '1990-01-01T00:00:00.000',
+      'endAt': '1990-01-15T00:00:00.000',
+    },
+    'isLeapMonth': false,
+  });
+}
 
 QiZhengSiYuPanContract _rec({String uuid = 'q1', String reqUuid = 'req-123'}) => QiZhengSiYuPanContract(
       uuid: uuid,
@@ -10,12 +52,13 @@ QiZhengSiYuPanContract _rec({String uuid = 'q1', String reqUuid = 'req-123'}) =>
       lastUpdatedAt: DateTime.utc(2026),
       deletedAt: null,
       divinationRequestInfoUuid: reqUuid,
-      divinationDatetimeJson: '{}',
+      divinationDatetimeJson: _fixtureDatetimeJson(),
       panelConfigJson: '{}',
       panelModelJson: '{}',
     );
 
 void main() {
+  setUpAll(() => tz_data.initializeTimeZones());
   final codec = QiZhengRecordCodec();
 
   test('encode then decode round-trips the contract', () {
