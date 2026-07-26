@@ -6,4 +6,6 @@ fail_evidence*.txt
 .dart_tool/
 assets/.flutter-plugins-dependencies
 pubspec.lock
+pubspec_overrides.yaml
+**/pubspec_overrides.yaml
 build/

@@ -60,6 +60,8 @@ import 'divination_case/divination_work_items_table.dart';
 import 'divination_case/case_participants_table.dart';
 import 'divination_case/panel_refs_table.dart';
 import 'divination_case/work_item_panel_refs_table.dart';
+import 'divination_case/creation_audit_logs_table.dart';
+import 'divination_case/creation_audit_logs_dao.dart';
 export 'daos/skills_dao.dart';
 export 'daos/skill_classes_dao.dart';
 export 'tables/skills_table.dart';
@@ -102,6 +104,8 @@ export 'decision_links/fork_engine.dart';
 export 'decision_links/merge_engine.dart';
 export 'decision_links/decision_chain_traverser.dart';
 export 'divination_case/drift_divination_case_repository.dart';
+export 'divination_case/creation_audit_logs_table.dart';
+export 'divination_case/creation_audit_logs_dao.dart';
 export 'scope/scope_alias_entry.dart';
 export 'scope/scope_bootstrap_store.dart';
 export 'scope/scope_ledger.dart';
@@ -507,6 +511,7 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
     CaseParticipants,
     PanelRefs,
     WorkItemPanelRefs,
+    CreationAuditLogs,
     TRecordMeta,
     TRecordSearchIndex,
     TScopeAlias,
@@ -528,13 +533,14 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
     PanelSkillClassMappersDao,
     DaYunRecordsDao,
     TaiYuanRecordsDao,
+    CreationAuditLogsDao,
   ],
 )
 class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
   PersistenceDriftDatabase(super.executor);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -564,6 +570,10 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
       if (from < 5) {
         // schema v5：案例表增 extras_json 列（T1 裁定扩展位）
         await m.addColumn(divinationCases, divinationCases.extrasJson);
+      }
+      if (from < 6) {
+        // schema v6：创建流审计日志表
+        await m.createTable(creationAuditLogs);
       }
     },
   );
