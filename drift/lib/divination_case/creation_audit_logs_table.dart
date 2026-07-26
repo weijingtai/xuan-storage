@@ -36,6 +36,7 @@ class CreationAuditLogs extends Table {
   /// 操作者标识（预留）
   TextColumn get operatorId => text().nullable().named('operator_id')();
 
+  // 本仓 drift 版本不会自动创建此处声明的索引，实际创建见 persistence_drift.dart 的 _createAuditLogIndices()。
   @override
   List<Index> get indexes => [
         Index(

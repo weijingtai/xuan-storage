@@ -547,6 +547,7 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
     onCreate: (m) async {
       await m.createAll();
       await _createRecordIndices();
+      await _createAuditLogIndices();
     },
     onUpgrade: (m, from, to) async {
       if (from < 2) {
@@ -574,6 +575,7 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
       if (from < 6) {
         // schema v6：创建流审计日志表
         await m.createTable(creationAuditLogs);
+        await _createAuditLogIndices();
       }
     },
   );
@@ -594,6 +596,15 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
     await customStatement(
       'CREATE INDEX idx_record_search_by_record '
       'ON t_record_search_index(record_uuid)');
+  }
+
+  Future<void> _createAuditLogIndices() async {
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_audit_case_uuid '
+      'ON t_creation_audit_logs(case_uuid)');
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_audit_audited_at '
+      'ON t_creation_audit_logs(audited_at DESC)');
   }
 }
 
