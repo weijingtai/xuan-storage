@@ -13,7 +13,7 @@ dependencies:
   cloud_firestore: ^6.1.2
   firebase_auth: ^6.1.4
   firebase_database: ^12.1.2
-  uuid: 4.5.2
+  uuid: ^4.6.0
   persistence_core:
     git:
       url: http://xuan:***@192.168.0.165:3000/xuan/xuan-storage.git
