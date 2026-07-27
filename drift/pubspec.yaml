@@ -41,6 +41,9 @@ dependencies:
   repository_interface_meihuayishu:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-meihuayishu.git
+  repository_interface_bazi:
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-bazi.git
   repository_interface_liuyao:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-liuyao.git
@@ -118,13 +121,18 @@ flutter:
   # https://flutter.dev/to/font-from-package
 
 dependency_overrides:
+  divination_case:
+    path: ../../xuan-divination-case
+  repository_interface_divination_pipeline:
+    path: ../../repository-interface-divination-pipeline
+  repository_interface_bazi:
+    path: ../../repository-interface-bazi
+  metaphysics_core:
+    path: ../../xuan-metaphysics-core
   persistence_core:
     git:
       url: http://192.168.0.165:3000/xuan/xuan-storage.git
       path: core
-  metaphysics_core:
-    git:
-      url: http://192.168.0.165:3000/xuan/metaphysics-core.git
   theme:
     git:
       url: http://192.168.0.165:3000/xuan/theme.git
