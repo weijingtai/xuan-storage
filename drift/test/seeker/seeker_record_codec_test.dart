@@ -3,8 +3,6 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:metaphysics_core/datamodel/seeker_model.dart';
 import 'package:enumeration/enums.dart';
-import 'package:metaphysics_core/enums/enum_datetime_type.dart';
-import 'package:metaphysics_core/enums/enum_jia_zi.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:persistence_drift/record/drift_record_data_source.dart';

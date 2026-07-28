@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:metaphysics_core/models/divination_datetime.dart';
+import 'package:enumeration/enums.dart';
 import 'package:repository_interface_qizhengsiyu/repository_interface_qizhengsiyu.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
 import 'package:timezone/timezone.dart' as tz;
