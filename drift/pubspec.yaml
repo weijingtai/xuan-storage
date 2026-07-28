@@ -62,7 +62,6 @@ dependencies:
   repository_interface_daliuren:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-daliuren.git
-      ref: main
   repository_interface_qimendunjia:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-qimendunjia.git
@@ -78,6 +77,9 @@ dependencies:
   taiyishenshu:
     git:
       url: http://192.168.0.165:3000/xuan/xuan-taiyishenshu.git
+  enumeration:
+    git:
+      url: http://192.168.0.165:3000/xuan/enumeration.git
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -158,7 +160,6 @@ dependency_overrides:
   repository_interface_daliuren:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-daliuren.git
-      ref: main
   repository_interface_qimendunjia:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-qimendunjia.git
