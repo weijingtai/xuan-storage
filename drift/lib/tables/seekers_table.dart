@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:metaphysics_core/enums/enum_gender.dart';
+import 'package:enumeration/enums.dart';
 import 'package:metaphysics_core/enums/enum_datetime_type.dart';
 import 'package:metaphysics_core/enums/enum_jia_zi.dart';
 import 'package:persistence_drift/converters/divination_datetime_model_converter.dart';

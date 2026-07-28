@@ -2,7 +2,7 @@ import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:metaphysics_core/datamodel/seeker_model.dart';
-import 'package:metaphysics_core/enums/enum_gender.dart';
+import 'package:enumeration/enums.dart';
 import 'package:metaphysics_core/enums/enum_datetime_type.dart';
 import 'package:metaphysics_core/enums/enum_jia_zi.dart';
 import 'package:persistence_drift/persistence_drift.dart';
