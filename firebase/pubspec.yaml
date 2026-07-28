@@ -16,8 +16,7 @@ dependencies:
   uuid: ^4.6.0
   persistence_core:
     git:
-      url: http://xuan:***@192.168.0.165:3000/xuan/xuan-storage.git
-      ref: main
+      url: http://192.168.0.165:3000/xuan/xuan-storage.git
       path: core
   divination_case:
     git:

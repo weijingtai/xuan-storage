@@ -35,7 +35,6 @@ dependencies:
   repository_interface_daliuren:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-daliuren.git
-      ref: main
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -43,7 +42,8 @@ dev_dependencies:
 
 dependency_overrides:
   repository_interface_daliuren:
-    path: ../../repository-interface-daliuren
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-daliuren.git
   persistence_core:
     git:
       url: http://192.168.0.165:3000/xuan/xuan-storage.git

@@ -62,7 +62,6 @@ dependencies:
   repository_interface_daliuren:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-daliuren.git
-      ref: main
   repository_interface_qimendunjia:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-qimendunjia.git
@@ -158,7 +157,6 @@ dependency_overrides:
   repository_interface_daliuren:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-daliuren.git
-      ref: main
   repository_interface_qimendunjia:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-qimendunjia.git
