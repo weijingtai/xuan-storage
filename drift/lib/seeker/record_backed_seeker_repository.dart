@@ -1,5 +1,5 @@
 import 'package:metaphysics_core/datamodel/seeker_model.dart';
-import 'package:metaphysics_core/enums/enum_gender.dart';
+import 'package:enumeration/enums.dart';
 import '../record/base_record_backed_repository.dart';
 
 class RecordBackedSeekerRepository

@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:persistence_core/persistence_core.dart';
 
-import 'package:metaphysics_core/enums/enum_gender.dart';
+import 'package:enumeration/enums.dart';
 import 'package:metaphysics_core/enums/enum_datetime_type.dart';
 import 'package:metaphysics_core/enums/enum_jia_zi.dart';
 import 'package:metaphysics_core/enums/enum_panel_type.dart';
