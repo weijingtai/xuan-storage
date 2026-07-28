@@ -35,6 +35,9 @@ dependencies:
   repository_interface_daliuren:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-daliuren.git
+  enumeration:
+    git:
+      url: http://192.168.0.165:3000/xuan/enumeration.git
 dev_dependencies:
   flutter_test:
     sdk: flutter

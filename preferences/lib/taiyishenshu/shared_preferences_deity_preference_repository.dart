@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:repository_interface_taiyishenshu/repository_interface_taiyishenshu.dart';
 
-class SharedPreferencesDeityPreferenceRepository implements DeityPreferenceRepository {
+class SharedPreferencesDeityPreferenceRepository
+    implements DeityPreferenceRepository {
   static const String _key = 'taiyi_deity_preferences';
   final SharedPreferences prefs;
 

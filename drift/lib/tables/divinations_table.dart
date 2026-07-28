@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:metaphysics_core/enums/enum_gender.dart';
+import 'package:enumeration/enums.dart';
 import 'package:persistence_drift/tables/seekers_table.dart';
 import 'package:metaphysics_core/datamodel/divination_request_info_datamodel.dart';
 

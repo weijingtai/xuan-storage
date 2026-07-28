@@ -1,9 +1,7 @@
 import 'dart:convert';
 import 'package:metaphysics_core/datamodel/seeker_model.dart';
 import 'package:metaphysics_core/datamodel/location.dart';
-import 'package:metaphysics_core/enums/enum_gender.dart';
-import 'package:metaphysics_core/enums/enum_datetime_type.dart';
-import 'package:metaphysics_core/enums/enum_jia_zi.dart';
+import 'package:enumeration/enums.dart';
 import 'package:metaphysics_core/models/divination_datetime.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
 

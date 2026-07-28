@@ -31,6 +31,9 @@ dependencies:
   xuan_time_location:
     git:
       url: http://192.168.0.165:3000/xuan/xuan-time-location.git
+  enumeration:
+    git:
+      url: http://192.168.0.165:3000/xuan/enumeration.git
 dev_dependencies:
   flutter_test:
     sdk: flutter
