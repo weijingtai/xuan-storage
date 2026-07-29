@@ -8,11 +8,13 @@ class BaziRecordRepositoryMigrator {
   final SharedPreferences prefs;
   final BaziRecordRepository target;
   final String scopeUid;
+  final Future<bool> Function()? writeMarker;
 
   BaziRecordRepositoryMigrator({
     required this.prefs,
     required this.target,
     required this.scopeUid,
+    this.writeMarker,
   });
 
   String get markerKey => 'bazi.$scopeUid.records.migrated_to_drift.v1';
@@ -31,7 +33,9 @@ class BaziRecordRepositoryMigrator {
       if (legacyRecords.isEmpty) {
         // 3. Write success marker for empty source.
         final wrote = await _writeMarker();
-        return wrote ? BaziMigrationResult.success : BaziMigrationResult.failure;
+        return wrote
+            ? BaziMigrationResult.success
+            : BaziMigrationResult.failure;
       }
 
       // 4. Save each record through the target repository.
@@ -57,13 +61,13 @@ class BaziRecordRepositoryMigrator {
   List<BaziRecordContract> _readLegacyRecords() {
     final String? jsonStr = prefs.getString(_recordsKey);
     if (jsonStr == null || jsonStr.isEmpty) return [];
-    try {
-      final decoded = jsonDecode(jsonStr);
-      if (decoded is! Map<String, dynamic>) return [];
-      return decoded.values.map((e) => _fromLegacyJson(e as Map<String, dynamic>)).toList();
-    } catch (_) {
-      return [];
+    final decoded = jsonDecode(jsonStr);
+    if (decoded is! Map<String, dynamic>) {
+      throw FormatException('legacy records: top-level must be a JSON object');
     }
+    return decoded.values
+        .map((e) => _fromLegacyJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   BaziRecordContract _fromLegacyJson(Map<String, dynamic> json) {
@@ -94,6 +98,9 @@ class BaziRecordRepositoryMigrator {
   }
 
   Future<bool> _writeMarker() async {
+    if (writeMarker != null) {
+      return writeMarker!();
+    }
     try {
       return await prefs.setBool(markerKey, true);
     } catch (_) {
