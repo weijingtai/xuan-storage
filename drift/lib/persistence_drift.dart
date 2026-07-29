@@ -124,6 +124,7 @@ export 'meihuayishu/drift_meihua_divination_record_repository.dart';
 export 'meihuayishu/drift_meihua_dictionary_repository.dart';
 export 'meihuayishu/meihua_record_codec.dart';
 export 'meihuayishu/meihua_record_adapter.dart';
+export 'meihuayishu/meihua_module_registry.dart';
 export 'meihuayishu/meihua_record_migration.dart';
 export 'meihuayishu/record_backed_meihua_repository.dart';
 export 'four_zhu_card_templates/app_database.dart';
