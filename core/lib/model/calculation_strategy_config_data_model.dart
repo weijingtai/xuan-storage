@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:metaphysics_core/models/calculation_strategy_config_logic_model.dart';
-import 'package:metaphysics_core/enums/datetime_strategy_enums.dart';
+import 'package:enumeration/enums.dart';
 
 part 'calculation_strategy_config_data_model.g.dart';
 

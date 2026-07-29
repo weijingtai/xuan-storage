@@ -1,5 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:metaphysics_core/enums/datetime_strategy_enums.dart';
+import 'package:enumeration/enums.dart';
 
 /// 数据层：交节方案精度运行时存储
 ///

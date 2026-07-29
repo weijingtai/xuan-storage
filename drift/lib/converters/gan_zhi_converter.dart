@@ -1,7 +1,7 @@
 // 天干地支组合存储适配器
 import 'package:drift/drift.dart';
 
-import 'package:metaphysics_core/enums/enum_jia_zi.dart';
+import 'package:enumeration/enums.dart';
 
 class GanZhiConverter extends TypeConverter<JiaZi, String> {
   const GanZhiConverter();
