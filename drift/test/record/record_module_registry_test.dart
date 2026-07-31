@@ -3,9 +3,9 @@ import 'package:repository_interface_record/repository_interface_record.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test('RecordModuleRegistry contains all 9 unique modules (8 divination + 1 seeker)', () {
+  test('RecordModuleRegistry contains all 10 unique modules (9 divination + 1 seeker)', () {
     final extractors = RecordModuleRegistry.allExtractors();
-    expect(extractors, hasLength(9));
+    expect(extractors, hasLength(10));
 
     final modules = extractors.map((e) => e.module).toList();
     expect(modules, containsAll([
@@ -17,6 +17,7 @@ void main() {
       'taiyishenshu',
       'tiebanshenshu',
       'ziweidoushu',
+      'xiang',
       'seeker',
     ]));
 
