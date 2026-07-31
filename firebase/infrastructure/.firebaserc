@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "demo-playground",
+    "staging": "xuan-staging",
+    "production": "xuan-production"
+  }
+}
