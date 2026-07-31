@@ -24,6 +24,8 @@ migrate_working_dir/
 # Flutter/Dart/Pub related
 # Libraries should not include pubspec.lock, per https://dart.dev/guides/libraries/private-files#pubspeclock.
 /pubspec.lock
+# 开发期本地 path override 不入库；gitea 建仓后删除本文件
+pubspec_overrides.yaml
 **/doc/api/
 .dart_tool/
 .flutter-plugins-dependencies

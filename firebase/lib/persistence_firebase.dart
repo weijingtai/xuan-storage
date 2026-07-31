@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:persistence_core/persistence_core.dart';
 
 export 'firebase_realtime_remote_gateway.dart';
+export 'playground/playground.dart';
 
 /// Firestore implementation of [RemoteGateway].
 ///

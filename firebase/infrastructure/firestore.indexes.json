@@ -1,0 +1,87 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "playground_posts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "status", "order": "ASCENDING"},
+        {"fieldPath": "created_at", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "playground_replies",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "post_id", "order": "ASCENDING"},
+        {"fieldPath": "depth", "order": "ASCENDING"},
+        {"fieldPath": "created_at", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "playground_replies",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "post_id", "order": "ASCENDING"},
+        {"fieldPath": "root_reply_id", "order": "ASCENDING"},
+        {"fieldPath": "created_at", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "playground_likes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "post_id", "order": "ASCENDING"},
+        {"fieldPath": "user_provider_uid", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "playground_bookmarks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "user_provider_uid", "order": "ASCENDING"},
+        {"fieldPath": "created_at", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "playground_notifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "recipient_provider_uid", "order": "ASCENDING"},
+        {"fieldPath": "created_at", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "playground_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "participant_a_uid", "order": "ASCENDING"},
+        {"fieldPath": "updated_at", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "playground_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "participant_b_uid", "order": "ASCENDING"},
+        {"fieldPath": "updated_at", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "playground_messages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "conversation_id", "order": "ASCENDING"},
+        {"fieldPath": "sent_at", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "playground_verifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "post_id", "order": "ASCENDING"},
+        {"fieldPath": "root_reply_id", "order": "ASCENDING"}
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

@@ -1,0 +1,63 @@
+alerts:
+  - name: functions-error-rate
+    metric: cloudfunctions.googleapis.com/function/execution_count
+    filter: status!='ok'
+    threshold: ">5 per 5min"
+    severity: critical
+  - name: functions-latency-p95
+    metric: cloudfunctions.googleapis.com/function/execution_times
+    threshold: ">2000ms"
+    severity: warning
+  - name: firestore-read-surge
+    metric: firestore.googleapis.com/document/read_count
+    threshold: ">10000 per 5min"
+    severity: warning
+  - name: rules-denied-rate
+    metric: firestore.googleapis.com/rules/denied_count
+    threshold: ">50 per 5min"
+    severity: warning
+  - name: storage-usage
+    metric: storage.googleapis.com/storage/total_bytes
+    threshold: ">5GB"
+    severity: warning
+  - name: storage-quarantine
+    metric: custom/storage/quarantine_count
+    threshold: ">10 per hour"
+    severity: warning
+  - name: fcm-failure-rate
+    metric: fcm.googleapis.com/send/error_count
+    threshold: ">10 per 5min"
+    severity: warning
+  - name: idempotency-conflict-rate
+    metric: custom/idempotency/conflict_count
+    threshold: ">20 per 5min"
+    severity: warning
+  - name: functions-retry-exhaustion
+    metric: custom/functions/retry_exhaustion
+    threshold: ">0"
+    severity: critical
+  - name: feed-read-baseline
+    metric: firestore.googleapis.com/document/read_count
+    filter: resource.collection_id='playground_posts'
+    threshold: ">5000 per 5min"
+    severity: warning
+
+budget_alerts:
+  - name: daily-firestore-reads
+    quota: firestore.googleapis.com/document/read_count
+    threshold: "80% of daily quota"
+  - name: daily-firestore-writes
+    quota: firestore.googleapis.com/document/write_count
+    threshold: "80% of daily quota"
+  - name: storage-egress
+    quota: storage.googleapis.com/network/sent_bytes_count
+    threshold: "80% of monthly quota"
+  - name: function-invocations
+    quota: cloudfunctions.googleapis.com/function/invocation_count
+    threshold: "80% of daily quota"
+  - name: fcm-token-count
+    metric: custom/fcm/token_count
+    threshold: ">100000"
+  - name: realtime-listener-count
+    metric: custom/realtime/listener_count
+    threshold: ">1000 concurrent"

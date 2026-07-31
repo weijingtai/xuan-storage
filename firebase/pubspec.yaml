@@ -27,6 +27,9 @@ dependencies:
   enumeration:
     git:
       url: http://192.168.0.165:3000/xuan/enumeration.git
+  repository_interface_playground:
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-playground.git
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,0 +1,233 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 默认拒绝所有操作
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ============================
+    // identity_map（复用现有，只读开放给认证用户）
+    // ============================
+    match /identity_map/{providerUserId} {
+      allow read: if request.auth != null;
+      allow write: if false; // 仅 Admin SDK / Functions 可写
+    }
+
+    // ============================
+    // playground_posts — 字段 allowlist
+    // ============================
+    match /playground_posts/{postId} {
+      // 任何认证用户可读 active 帖子
+      allow read: if request.auth != null
+                  && resource.data.status == 'active';
+      // tombstone 帖子仅作者可读，且不返回 body
+      allow read: if request.auth != null
+                  && resource.data.status == 'tombstoned'
+                  && request.auth.uid == resource.data.author_provider_uid;
+
+      // 字段 allowlist — 客户端只能写这些字段
+      function postCreateFieldsOk() {
+        let allowed = ['text', 'allowed_chart_technique_ids', 'attachments',
+                       'author_provider_uid', 'status', 'idempotency_key'];
+        return request.resource.data.keys().hasOnly(allowed);
+      }
+      function postUpdateFieldsOk() {
+        let allowed = ['text', 'allowed_chart_technique_ids', 'attachments',
+                       'revisions', 'status'];
+        return request.resource.data.keys().hasOnly(allowed);
+      }
+
+      allow create: if request.auth != null
+                    && request.resource.data.author_provider_uid == request.auth.uid
+                    && request.resource.data.status == 'active'
+                    && postCreateFieldsOk();
+
+      // update：仅作者可改允许字段；只检查变更的字段
+      allow update: if request.auth != null
+                    && request.auth.uid == resource.data.author_provider_uid
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['text', 'allowed_chart_technique_ids', 'attachments',
+                                 'revisions', 'status', 'updated_at']);
+
+      allow delete: if false;
+    }
+
+    // ============================
+    // playground_replies — 字段 allowlist + 跨文档保护
+    // ============================
+    match /playground_replies/{replyId} {
+      allow read: if request.auth != null
+                  && (resource.data.is_tombstoned != true
+                      || request.auth.uid == resource.data.author_provider_uid);
+
+      // 字段 allowlist
+      function replyCreateFieldsOk() {
+        let allowed = ['body', 'post_id', 'root_reply_id', 'reply_to_reply_id',
+                       'depth', 'technique_tags', 'chart_attachment',
+                       'media_attachments', 'author_provider_uid',
+                       'is_tombstoned', 'idempotency_key'];
+        return request.resource.data.keys().hasOnly(allowed);
+      }
+      function replyUpdateFieldsOk() {
+        let allowed = ['body', 'technique_tags', 'chart_attachment',
+                       'media_attachments', 'revisions', 'is_tombstoned'];
+        return request.resource.data.keys().hasOnly(allowed);
+      }
+
+      allow create: if request.auth != null
+                    && request.resource.data.author_provider_uid == request.auth.uid
+                    && request.resource.data.depth <= 1
+                    && replyCreateFieldsOk();
+
+      // update：仅作者可改允许字段，只检查变更的字段
+      allow update: if request.auth != null
+                    && request.auth.uid == resource.data.author_provider_uid
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['body', 'technique_tags', 'chart_attachment',
+                                 'media_attachments', 'revisions', 'is_tombstoned',
+                                 'updated_at']);
+
+      allow delete: if false;
+    }
+
+    // ============================
+    // playground_verifications（应验）— Functions only（需跨文档校验 Poster 所有权）
+    // ============================
+    match /playground_verifications/{verificationId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    // ============================
+    // playground_outcome_feedback（最终反馈）— Functions only
+    // ============================
+    match /playground_outcome_feedback/{feedbackId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    // ============================
+    // playground_likes — Functions only（需跨文档 fan-out + 去重）
+    // ============================
+    match /playground_likes/{likeId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    // ============================
+    // playground_bookmarks（私有收藏）
+    // ============================
+    match /playground_bookmarks/{bookmarkId} {
+      allow read: if request.auth != null
+                  && resource.data.user_provider_uid == request.auth.uid;
+      allow create: if request.auth != null
+                    && request.resource.data.user_provider_uid == request.auth.uid;
+      allow delete: if request.auth != null
+                    && resource.data.user_provider_uid == request.auth.uid;
+    }
+
+    // ============================
+    // playground_profiles — 字段 allowlist
+    // ============================
+    match /playground_profiles/{userId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+                    && request.resource.data.user_provider_uid == request.auth.uid;
+      allow update: if request.auth != null
+                    && request.auth.uid == resource.data.user_provider_uid
+                    && request.resource.data.keys().hasOnly(
+                        ['display_name', 'avatar_url', 'bio', 'common_techniques']);
+    }
+
+    // ============================
+    // playground_notifications — Functions/outbox only
+    // ============================
+    match /playground_notifications/{notificationId} {
+      allow read: if request.auth != null
+                  && resource.data.recipient_provider_uid == request.auth.uid;
+      allow update: if request.auth != null
+                    && resource.data.recipient_provider_uid == request.auth.uid
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['is_read']);
+      allow create: if false;
+      allow delete: if false;
+    }
+
+    // ============================
+    // playground_conversations — Functions only
+    // ============================
+    match /playground_conversations/{conversationId} {
+      allow read: if request.auth != null
+                  && (resource.data.participant_a_uid == request.auth.uid
+                      || resource.data.participant_b_uid == request.auth.uid);
+      allow write: if false;
+    }
+
+    // ============================
+    // playground_messages（私聊消息）
+    // ============================
+    match /playground_messages/{messageId} {
+      allow read: if request.auth != null
+                  && (resource.data.sender_provider_uid == request.auth.uid
+                      || resource.data.recipient_provider_uid == request.auth.uid);
+      allow create: if request.auth != null
+                    && request.resource.data.sender_provider_uid == request.auth.uid;
+    }
+
+    // ============================
+    // playground_media — 字段 allowlist
+    // ============================
+    match /playground_media/{mediaId} {
+      allow read: if request.auth != null
+                  && (resource.data.owner_provider_uid == request.auth.uid
+                      || resource.data.status == 'ready');
+      allow create: if request.auth != null
+                    && request.resource.data.owner_provider_uid == request.auth.uid;
+      allow update: if request.auth != null
+                    && request.auth.uid == resource.data.owner_provider_uid
+                    && request.resource.data.keys().hasOnly(
+                        ['status', 'mime_type', 'size_bytes', 'width', 'height',
+                         'duration_seconds']);
+    }
+
+    // ============================
+    // playground_reports（举报）
+    // ============================
+    match /playground_reports/{reportId} {
+      allow read: if request.auth != null
+                  && resource.data.reporter_provider_uid == request.auth.uid;
+      allow create: if request.auth != null
+                    && request.resource.data.reporter_provider_uid == request.auth.uid;
+    }
+
+    // ============================
+    // playground_blocks
+    // ============================
+    match /playground_blocks/{blockId} {
+      allow read: if request.auth != null
+                  && resource.data.blocker_provider_uid == request.auth.uid;
+      allow create: if request.auth != null
+                    && request.resource.data.blocker_provider_uid == request.auth.uid;
+      allow delete: if request.auth != null
+                    && resource.data.blocker_provider_uid == request.auth.uid;
+    }
+
+    // ============================
+    // playground_idempotency / playground_outbox / fcm_tokens
+    // ============================
+    match /playground_idempotency/{key} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+    match /playground_outbox/{eventId} {
+      allow read, write: if false;
+    }
+    match /fcm_tokens/{tokenHash} {
+      allow read: if request.auth != null
+                  && resource.data.user_provider_uid == request.auth.uid;
+      allow write: if false;
+    }
+  }
+}

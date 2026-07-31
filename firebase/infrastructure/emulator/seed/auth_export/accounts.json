@@ -1,0 +1,27 @@
+{
+  "kind": "identitytoolkit#DownloadAccountResponse",
+  "users": [
+    {
+      "localId": "test-anonymous-01",
+      "createdAt": "1700000000000",
+      "lastLoginAt": "1700000000000",
+      "providerUserInfo": []
+    },
+    {
+      "localId": "test-registered-01",
+      "createdAt": "1700000000000",
+      "lastLoginAt": "1700000000000",
+      "email": "testuser@example.com",
+      "emailVerified": true,
+      "passwordHash": "fakehash-skip",
+      "salt": "fakesalt-skip",
+      "providerUserInfo": [
+        {
+          "providerId": "password",
+          "email": "testuser@example.com",
+          "federatedId": "testuser@example.com"
+        }
+      ]
+    }
+  ]
+}

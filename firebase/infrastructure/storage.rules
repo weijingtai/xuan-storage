@@ -1,0 +1,15 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /playground_media/{userId}/{uploadSessionId}/{file} {
+      allow read: if request.auth != null
+                  && (resource.metadata.owner_uid == request.auth.uid
+                      || resource.metadata.status == 'ready');
+      allow create: if request.auth != null
+                    && request.auth.uid == userId
+                    && request.resource.size < 50 * 1024 * 1024;
+      allow update: if request.auth != null
+                    && request.auth.uid == resource.metadata.owner_uid;
+    }
+  }
+}
