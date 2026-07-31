@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -21,6 +22,7 @@ import 'package:persistence_firebase/playground/firebase_playground_schema.dart'
 ///
 /// 运行：启动 emulator 后 `flutter test test/playground/firebase_playground_emulator_integration_test.dart`
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   group('Firebase Emulator Playground Contract', () {
     late FirebaseFirestore firestore;
     late FirebaseAuth auth;
@@ -56,7 +58,7 @@ void main() {
           markTestSkipped(
             'Firebase Emulator not detected.\n'
             'Start: firebase emulators:start --import=./seed\n'
-            'Then: FIRESTORE_EMULATOR_HOST=localhost:8081 FIREBASE_AUTH_EMULATOR_HOST=localhost:9099 flutter test ...',
+            'Then: FIRESTORE_EMULATOR_HOST=localhost:8082 FIREBASE_AUTH_EMULATOR_HOST=localhost:9099 flutter test ...',
           );
           return;
         }
@@ -68,8 +70,8 @@ void main() {
           ? emulatorHost!.split(':').first
           : 'localhost';
       final port = isEmulatorSet
-          ? int.tryParse(emulatorHost!.split(':').last) ?? 8081
-          : 8081;
+          ? int.tryParse(emulatorHost!.split(':').last) ?? 8082
+          : 8082;
       firestore.settings = Settings(
         host: '$host:$port',
         sslEnabled: false,

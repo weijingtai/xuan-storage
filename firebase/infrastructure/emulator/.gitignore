@@ -1,2 +1,7 @@
 seed/drill-export-*/
 seed/drill-restore-*/
+
+# emulator 运行时导出产物（非 seed 基线）
+seed/firebase-export-metadata.json
+seed/firestore_export/
+seed/storage_export/
