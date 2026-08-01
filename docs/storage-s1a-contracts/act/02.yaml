@@ -72,9 +72,10 @@ CONSTRAINTS:
     cloud 不是参数，调用方拿不掉。
   - 【不要】试图用 const 构造器的 assert 表达集合成员判定。已实测失败：
     Set.contains 是方法调用，const 表达式禁止，报 const_eval_method_invocation。
-  - register 必须校验设计稿 §2.3.2 的不变式 4 与 5 并抛 StateError：
-    #4 resource 策略当前阶段 publisher 必须为 official
-    #5 sources 非空 当且仅当 visibility ∈ {resource, control}
+  - >
+    register 必须校验设计稿 §2.3.2 的不变式 4 与 5 并抛 StateError：
+    不变式4 —— resource 策略当前阶段 publisher 必须为 official；
+    不变式5 —— sources 非空 当且仅当 visibility 属于 resource 或 control。
     不变式 1/2/3 是结构性的，register 不需要重复校验（测试里断言即可）。
 
 TESTS_FIRST:
