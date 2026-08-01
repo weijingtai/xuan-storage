@@ -214,6 +214,27 @@ void main() {
     expect(await r.repo.load('x-3'), isNull);
   });
 
+  test('softDelete cascades media cleanup and records audit event (FA12)',
+      () async {
+    final r = _build();
+    // _fullReading 携带 2 个媒体证据（image + video）与 1 个文本证据。
+    await r.repo.save(_fullReading('x-fa12'));
+    expect(await r.repo.load('x-fa12'), isNotNull);
+
+    await r.repo.softDelete('x-fa12');
+
+    // 级联：删除后不可再加载。
+    expect(await r.repo.load('x-fa12'), isNull);
+    // 审计：必须记录删除事件，含媒体引用计数（>0），且不记录敏感内容本身。
+    expect(r.repo.auditLogs, isNotEmpty);
+    final event = r.repo.auditLogs.last;
+    expect(event.operation, 'reading.delete');
+    expect(event.recordedAt, isNotNull);
+    expect(event.operatorUid, 'scope-1');
+    expect(event.mediaRefCount, 2,
+        reason: '_fullReading 引用 2 个媒体（image+video），删除须级联清除');
+  });
+
   test('listRecords with module=xiang shows all saved readings', () async {
     final r = _build();
     await r.repo.save(_reading('x-4a', methodId: 'face-reading'));

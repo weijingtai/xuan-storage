@@ -1,0 +1,1659 @@
+# Storage 分层隔离存储架构 · 设计总纲
+
+- 日期：2026-07-31
+- 状态：已通过讨论评审，待拆分为各子系统详细设计
+- 范围：xuan-storage 全仓库（core / drift / firebase / supabase / preferences / assets）；并划定与 `xuan_config` 包的控制平面边界
+- 前置文档：
+  - [2026-05-27 xuan-common 存储迁移设计](../../../../docs/superpowers/specs/2026-05-27-xuan-common-storage-migration-design.md)
+  - `xuan_config/docs/deferred-source-requirements.md`（远端配置源的既有约束）
+
+---
+
+## 0. 本文档的定位
+
+本文档是**总纲**，不是可直接实施的详细设计。它确定的是：
+
+1. 数据如何分类（四个正交维度），以及分类如何强制约束存储与传输行为；
+2. 端口分层与可替换边界（换本地库、换云厂商、加通道各自要动哪里）；
+3. 同步模型的形态；
+4. 控制平面（`xuan_config`）与数据平面（`xuan-storage`）的分工；
+5. 各子系统的划分、依赖与建议排期。
+
+每个子系统（S1a/S1b、S2–S6，其中 S3 分 a/b/c、S5 分 a/b/c）需各自产出独立的详细设计与实施计划。本文档定的是它们共同遵守的地基。
+
+> ⚠️ **本文档不可直接投喂执行体。** 它是设计总纲，不是 ACT 文档。下游流程是
+> `wjt-plan` 立项 → `wjt-act` 转译为机械执行文档 → `wjt-react` 转译闸门 → 编码。
+> §9 的工期估算是给人看的排期参考，不是「可以直接开工」的信号。
+
+### 0.1 仓库布局与包名对照（写代码前必读）
+
+**文档正文用目录名指代子包，但 import 必须用 pubspec 里的真实包名。** 二者不同：
+
+| 文档里的写法 | 真实 pubspec name | 物理位置 |
+|---|---|---|
+| `core` | `persistence_core` | `xuan-storage/core/` |
+| `drift` | `persistence_drift` | `xuan-storage/drift/` |
+| `firebase` | `persistence_firebase` | `xuan-storage/firebase/` |
+| `supabase` | `persistence_supabase` | `xuan-storage/supabase/`（**7 行占位，未实现**） |
+| `preferences` | `persistence_preferences` | `xuan-storage/preferences/` |
+| `assets` | `persistence_assets` | `xuan-storage/assets/` |
+
+**以下包不在 xuan-storage 仓库内**，位于 monorepo 的兄弟目录 `/xuan-migration/` 下。只被授予 xuan-storage 目录权限的执行体在本仓库 grep 这些符号会得到 0 结果 —— 那不是文档说谎：
+
+| 包名 | 位置 | 本文档引用它的地方 |
+|---|---|---|
+| `repository_interface_record` | `/xuan-migration/repository-interface-record/` | `ScopedRecordStore`（§3.1、§4.2） |
+| `repository_interface_media` | `/xuan-migration/repository-interface-media/` | `MediaReference`（§2.1） |
+| `repository_interface_playground` | `/xuan-migration/repository-interface-playground/` | `PlaygroundMediaRepository`（§7.5） |
+| `repository_interface_xiang` | `/xuan-migration/repository-interface-xiang/` | `XiangReadingRepository`（§4.2） |
+| `xuan_config` | `/xuan-migration/xuan_config/` | 控制平面全节（§8） |
+
+**依赖方向约束**：`StoragePolicy` 与本文档新增的全部端口落在 `persistence_core`。`repository_interface_*` 各包**不得**依赖 `persistence_core`（会造成接口包依赖实现基础设施）；策略注册发生在 `persistence_drift` 等适配层的装配期，不在接口包内。
+
+**分支铁律**：`xuan-storage/AGENTS.md` 规定 AI agent 禁止在 main/master 上直接改代码。开工前先 `git checkout -b feat/xxx`。
+
+**`xuan_` 前缀豁免**：`AGENTS.md` 铁律 #6 禁止依赖 key 使用 `xuan_` 前缀，但 `xuan_config` 的 pubspec name 确实是 `xuan_config`（既成事实，属该铁律的例外）。§8 依赖它不违规。
+
+---
+
+## 1. 背景：现状盘点
+
+### 1.1 已有资产
+
+| 子包 | 已有能力 | 在本设计中的角色 |
+|---|---|---|
+| `core` | 端口契约（`OutboxStore` / `SyncStateStore` / `RemoteGateway` / `LocalApplier` / `AuthScopeProvider` / `ISharedPathProvider`）；`SyncCoordinator`(471行)；`SyncRuntime`(769行)；`Region` 双线路由 | 本地优先同步引擎，**保留并泛化** |
+| `drift` | 本地 SQLite；各业务模块 record repository；`scopeUid` 隔离 | LocalDataSource 的 row 面实现 |
+| `firebase` | `FirestoreRemoteGateway`；Rules / Indexes / Functions / Storage；部署脚本；`playground/` 社交模块 repository | RemoteDataSource 实现之一 |
+| `supabase` | 占位包（大陆区 slot） | RemoteDataSource 实现之二 |
+| `preferences` | SharedPreferences；账号会话 + 模块偏好，已按 scopeUid 隔离 | 配置类数据的本地面 |
+| `assets` | 只读官方静态资源（编译进 bundle） | 样式与数据资源的 `bundled` 形态，S5a / S5b 将改造 |
+
+关键既有事实：业务 Repository 依赖的是 `ScopedRecordStore` 端口（定义在 `repository-interface-record`），**不直接依赖 Drift**。例如 `drift/lib/xiang/xiang_reading_repository_impl.dart` 全文没有一行 Drift 代码。因此「换掉 Drift」的成本是换一个 `ScopedRecordStore` 实现，20+ 个业务 Repository 不受影响。
+
+### 1.2 能力缺口
+
+需求要求的能力，只有一项现成：
+
+| 能力 | 状态 |
+|---|---|
+| 私有数据「本地 + 云端同步」 | ✅ 现有 outbox / cursor 引擎覆盖 |
+| 数据分类的强制隔离 | ❌ 无 classification 概念，所有实体走同一条 `RemoteGateway` |
+| 去中心化传输 | ❌ `core/lib/ipc/` 下仅有匿名身份，零传输能力 |
+| 公开分享读路径 | ❌ 现有 Firestore 全按 `scopeUid` 隔离，无「其他用户可读」模型 |
+| 样式资源分发（官方主题） | ❌ 现为内置 bundle，无下载安装机制 |
+| 数据资源按需下载（拆书内容） | ❌ 现为内置 CSV，全量编译进包 |
+| 官方控制下发（开关 / 服务器地址） | ❌ 完全不存在；`xuan_config` 已预留槽位但未实现（见 §8） |
+| UGC 资源上架 | ⏸ **当前阶段不做**（见 §9.1） |
+
+此外，需求文档未点名但工作量可能最大的一块：**blob 层完全空白**。现有 `SyncCoordinator` + `SyncRuntime` 只解决了 row 的同步。
+
+---
+
+## 2. 数据分类模型
+
+### 2.1 四个正交维度
+
+需求文档给出的四类只是**可见性**一个维度。讨论中陆续浮现出另外三个：
+
+```dart
+// 包：persistence_core   文件：core/lib/model/storage_classification.dart
+
+/// 可见性。命名为 DataVisibility 而非 Visibility —— persistence_core 依赖
+/// flutter（core/pubspec.yaml:10），裸 Visibility 会与 Flutter 的
+/// Visibility widget 冲突，迫使每个调用点写 import 前缀。
+enum DataVisibility { private, shared, resource, control }
+
+/// 发布者身份。与可见性正交，决定信任级别与是否需要审核。
+enum Publisher { official, user }
+
+/// 载体形态。row 与 blob 的同步机制无共用面。
+enum Carrier { row, blob }
+
+/// 资源来源。会随时间演进，Repository 必须对来源无感。
+enum Source { bundled, officialRemote }
+
+/// 传输通道。与 Transport 端口的关系见 §3.5：
+/// Channel 是策略层的声明单位，Transport 是实现层的连接抽象，
+/// 一个 Channel 值对应恰好一个 Transport 实现（cloud 除外，它走 SyncPeer 直连）。
+enum Channel { cloud, lan, webrtc, manualExport }
+
+/// 加密形态。三个取值对应 §2.2 派生表的三行。
+enum Encryption {
+  /// 客户端 E2EE 后再存入桶级 SSE 的桶。仅 private 使用。
+  e2eeOverSse,
+
+  /// 仅桶级 SSE，服务端可读。shared / resource 使用。
+  sseOnly,
+
+  /// 仅桶级 SSE + 强制传输层 TLS + 签名校验。control 使用。
+  sseOverTls,
+}
+```
+
+> **Marketplace 不在当前范围。** 讨论中曾把 `marketplace` 列为第三个 `Source`，现按 YAGNI 移除。将来若要做，改动是「`Source` 加一个枚举值 + 一个源实现 + 策略声明的 `sources` 集合加一项」，不触及本设计的其余部分。
+
+**`official` 不是可见性，是发布者身份。** 官方主题（中国红、天青色）与用户自制主题的可见性完全相同 —— 都是公开只读的资源，都只走云端。区别只在于谁发布，而发布者决定的是信任级别与是否需要审核，不是存储策略。
+
+**`Carrier` 的依据**：`repository-interface-media` 已定义 `MediaReference{refId, version, role, mimeType, durationMs}` —— 记录里存的是引用，真正的字节在别处。row 与 blob 的同步机制没有共用面：row 靠 operation log + LWW 仲裁 + 游标增量；blob 靠内容寻址、分块、断点续传、引用计数 GC。二者必须是两套端口，不可塞进同一个 `RemoteGateway`。
+
+**`Source` 会随时间演进**，而 Repository 必须对来源无感 —— 同一个 `ThemeRepository.get(id)`，今天从 bundled assets 读、明天从官方远端下载，业务层一行不改。
+
+### 2.1.1 全量对照表
+
+| 东西 | Visibility | Publisher | Carrier | Source |
+|---|---|---|---|---|
+| 占卦记录 | private | user | row | 本地 |
+| 相的图片 / 视频 | private | user | blob | 本地 |
+| 帖子草稿 | shared | user | row + blob | 云端 |
+| 已发布帖子 | shared | user | row + blob | 云端 |
+| 用户自制主题 | resource | user | row + blob | *（当前阶段不开放，见 §9.1）* |
+| **官方主题**（中国红 / 天青色） | resource | **official** | row + blob | `bundled` → `officialRemote` |
+| **数据资源**（拆书：格局原文与讲解） | resource | **official** | **row** | `bundled` → `officialRemote` |
+| **控制下发**（功能开关 / 服务器地址 / 默认主题 id） | **control** | **official** | row | **只能 `officialRemote`** |
+
+### 2.1.2 三类官方资源的差异
+
+原总纲把它们笼统归为「官方 Assets」是错的 —— 三者在体量、检索需求、更新要求、失败后果上完全不同：
+
+| | 样式资源 | 数据资源 | 控制下发 |
+|---|---|---|---|
+| **本质** | 可选项集合，用户选一 | 只读知识库 | **控制平面，不是数据** |
+| **体量** | 每个数 MB（图 / 字体） | 大，需分批 | KB 级 |
+| **落地载体** | blob 为主 + row 元数据 | **row 为主**（要能查） | row，极小 |
+| **检索需求** | 无，按 id 取 | **有**，按格局查讲解 | 无，按 key 取 |
+| **获取时机** | 用户选了才下 | 用到哪本下哪本 | 启动时拉 |
+| **更新要求** | 随版本，低频 | 增补，低频 | **必须能快速生效** |
+| **拿不到时** | 回退默认主题 | 该功能不可用 | **用内置默认值，不得阻塞启动** |
+| **来源演进** | `bundled` → `officialRemote` | `bundled` → `officialRemote` | **只能 `officialRemote`** |
+
+一条容易漏掉的关键点：**数据资源虽然从远端下载，但落地后是 row 不是 blob**。拆书内容要支持「按格局查讲解」，因此下载后必须进本地可查询存储（drift），不能当成一个文件扔进文件系统。这与主题包（下载后就是一坨字节）完全不同。
+
+现状印证：`assets/lib/tiebanshenshu/assets_tiao_wen_repository.dart` 现在从打包的 CSV 读条文，靠静态缓存 + `Completer` 控并发 —— 这就是数据资源的 `bundled` 形态。
+
+### 2.2 派生规则
+
+以下属性由 `visibility` 推导，**不可手写覆盖**：
+
+| Visibility | 加密 | 允许通道 | 允许 Source | 允许 Publisher |
+|---|---|---|---|---|
+| `private` | 客户端 E2EE + 桶级 SSE | cloud / lan / webrtc / manualExport | — | user |
+| `shared` | 仅 SSE | 仅 cloud | — | user |
+| `resource` | 仅 SSE | 仅 cloud | bundled / officialRemote | official（当前）/ user（后续开放） |
+| `control` | 仅 SSE + 传输层 TLS | 仅 cloud | **仅 officialRemote** | **仅 official** |
+
+**「真相源在哪」不由 `visibility` 决定**，而由「本人能不能改这份数据」决定 —— 见 §4.1。二者正交：本人的帖子草稿属于 `shared`（因此仅云端通道），但它可写，因此真相源在本地。
+
+**加密形态即可见性的技术强制。** 私有数据 E2EE 后，云端只是一条看不懂内容的哑管道 —— 这正是「私密数据可以存在云端」在隐私上成立的前提。分享数据必然不能 E2EE：别人要能读，服务端就得能读（审核、缩略图、检索）。
+
+E2EE 与 SSE 是**纵深防御叠加**，不是二选一：私有数据在客户端加密后，存入本身已开启 SSE 的桶。SSE 是 Firebase / Supabase Storage 的桶级配置，默认开启、零成本；工程量全在 E2EE 层。
+
+### 2.3 「防混用」的实现机制
+
+Dart 没有编译期约束求解，因此不依赖检查或断言，而是**让非法状态无法表达** —— 靠限制构造器：
+
+**机制的准确表述**：不可表达性放在**工厂构造器的参数表**上，不放在 getter 上。基类声明全部事实 getter（这样契约测试能统一遍历 `StoragePolicy` 类型），但某个事实能否由调用方**传入**，由各工厂的参数表决定。写不出来的是「传一个非法值」，不是「读一个字段」。
+
+```dart
+// 包：persistence_core   文件：core/lib/model/storage_policy.dart
+
+sealed class StoragePolicy {
+  const StoragePolicy._();
+
+  // ── 事实 getter：全部在基类声明，契约测试可统一遍历 ──
+  DataVisibility get visibility;
+  Set<Carrier> get carriers;
+  Set<Channel> get channels;
+  Set<Source> get sources;      // private/shared 恒为 const {}（不适用）
+  Publisher get publisher;
+  Encryption get encryption;
+
+  /// 私有：E2EE + SSE。**cloud 不是参数** —— 结构上无法关闭（见 2.3.0）。
+  /// 可选的只是要不要开三条 P2P 通道。
+  const factory StoragePolicy.private({
+    required Set<Carrier> carriers,
+    bool lan,
+    bool webrtc,
+    bool manualExport,
+  }) = PrivatePolicy._;
+
+  /// 可分享：不接受 channels，也不接受 publisher / sources。
+  const factory StoragePolicy.shared({
+    required Set<Carrier> carriers,
+  }) = SharedPolicy._;
+
+  /// 资源：可跨 Source 演进；publisher 默认 official，开放 UGC 时才传 user。
+  const factory StoragePolicy.resource({
+    required Set<Carrier> carriers,
+    required Set<Source> sources,
+    Publisher publisher,
+  }) = ResourcePolicy._;
+
+  /// 控制下发：无参数可传，六个事实全部写死。
+  const factory StoragePolicy.control() = ControlPolicy._;
+}
+
+final class PrivatePolicy extends StoragePolicy {
+  // 构造器私有：调用方只能走命名工厂，不能绕过参数表约束。
+  const PrivatePolicy._({
+    required this.carriers,
+    bool lan = true,
+    bool webrtc = true,
+    bool manualExport = true,
+  })  : _lan = lan, _webrtc = webrtc, _manualExport = manualExport,
+        super._();
+
+  @override final Set<Carrier> carriers;
+  final bool _lan, _webrtc, _manualExport;
+
+  /// cloud 恒在集合里，无法被调用方移除。
+  @override
+  Set<Channel> get channels => {
+        Channel.cloud,
+        if (_lan) Channel.lan,
+        if (_webrtc) Channel.webrtc,
+        if (_manualExport) Channel.manualExport,
+      };
+
+  @override DataVisibility get visibility => DataVisibility.private;
+  @override Set<Source> get sources => const {};        // 不适用：用户本地产出
+  @override Publisher get publisher => Publisher.user;
+  @override Encryption get encryption => Encryption.e2eeOverSse;
+}
+
+final class SharedPolicy extends StoragePolicy {
+  const SharedPolicy._({required this.carriers}) : super._();
+
+  @override final Set<Carrier> carriers;
+
+  @override DataVisibility get visibility => DataVisibility.shared;
+  @override Set<Channel> get channels => const {Channel.cloud};
+  @override Set<Source> get sources => const {};        // 不适用
+  @override Publisher get publisher => Publisher.user;
+  @override Encryption get encryption => Encryption.sseOnly;
+}
+
+final class ResourcePolicy extends StoragePolicy {
+  const ResourcePolicy._({
+    required this.carriers,
+    required this.sources,
+    this.publisher = Publisher.official,
+  }) : super._();
+
+  @override final Set<Carrier> carriers;
+  @override final Set<Source> sources;
+  @override final Publisher publisher;
+
+  @override DataVisibility get visibility => DataVisibility.resource;
+  @override Set<Channel> get channels => const {Channel.cloud};
+  @override Encryption get encryption => Encryption.sseOnly;
+}
+
+final class ControlPolicy extends StoragePolicy {
+  const ControlPolicy._() : super._();
+
+  @override DataVisibility get visibility => DataVisibility.control;
+  @override Set<Carrier> get carriers => const {Carrier.row};
+  @override Set<Channel> get channels => const {Channel.cloud};
+  @override Set<Source> get sources => const {Source.officialRemote};
+  @override Publisher get publisher => Publisher.official;
+  @override Encryption get encryption => Encryption.sseOverTls;
+}
+```
+
+**已实测**：上述形态在 `dart analyze` 下零 issue，`PrivatePolicy._(lan: false)` 正确产出 `{cloud, webrtc, manualExport}`。重定向工厂的可选非空参数把默认值写在目标构造器上是合法的（跨模型评审中曾有相反主张，实测证伪）。
+
+### 2.3.0 哪些不变式是结构性的，哪些不是（不要再overclaim）
+
+上一版本把 `channels` 作为自由集合传入，于是 `StoragePolicy.private(channels: {Channel.lan})` 可以构造出来，**违反「private 必含 cloud」这条不变式**。现在把 `cloud` 从参数表移除，该不变式变成结构性的。
+
+但不是所有不变式都能做到这一步。诚实分类：
+
+| 不变式 | 强制级别 | 机制 |
+|---|---|---|
+| private 必含 cloud | **结构性** | 不是参数，拿不掉 |
+| shared 只有 cloud | **结构性** | 无 `channels` 参数 |
+| control 全部写死 | **结构性** | 无任何参数 |
+| 子类不可绕过工厂 | **结构性** | 子类构造器私有（`._`） |
+| resource 当前必须 official | 注册期检查 | `StoragePolicyRegistry.register` 抛异常 |
+| resource 的 sources 非空 | 注册期检查 | 同上 |
+
+**Dart 的 const 构造器不能用 assert 表达集合成员判定**（`Set.contains` 是方法调用，const 表达式禁止；已实测：`const_eval_method_invocation`）。所以后两条只能在注册期强制，不能装作是编译期的。
+
+两处传不进去的值：
+
+- 「给分享数据配置 P2P 通道」—— `StoragePolicy.shared` 没有 `channels` 参数
+- 「让用户发布功能开关 / 服务器地址」—— `StoragePolicy.control` 没有 `publisher` 参数
+- 「关掉私有数据的云端通道」—— `StoragePolicy.private` 没有 `cloud` 参数
+
+### 2.3.1 这层约束到不了运行时，必须另设强制点
+
+上一版本文档声称「禁止去中心化分享是拓扑上无法到达」。**这个说法不成立。** 核实结果：
+
+```
+core/lib/model/ports.dart:44   peekBatch({required String scopeUid, required int limit})
+```
+
+推送路径按 `scopeUid` 一把捞出全部 outbox 记录（`SyncCoordinator.OutboxPusher` 逐条 `push`），**既无 entityType 过滤，也无 policy 查询**。一旦 peer 集合里同时存在云端 peer 与 LAN peer，`shared` 类的草稿 oplog 会和 private 记录一起被 fan-out 到 LAN peer —— 正是 §7.3 声称硬性禁止的事。
+
+`StoragePolicy` 若只是业务侧的 `const` 声明，它在同步引擎里**没有任何消费者**。因此 S1a 必须同时交付强制点：
+
+```dart
+// 包：persistence_core   文件：core/lib/model/storage_policy_registry.dart
+
+/// 全局策略注册表。§2.4 的顶层 const 无法被运行时遍历，
+/// 因此策略必须显式注册，契约测试与推送过滤都消费这张表。
+abstract final class StoragePolicyRegistry {
+  static final Map<String, StoragePolicy> _byEntityType = {};
+
+  /// 由各模块的 registry 在装配期调用。重复注册同一 entityType 抛 StateError。
+  static void register(String entityType, StoragePolicy policy);
+
+  /// 未注册的 entityType 返回 null —— 调用方必须 fail closed（拒绝推送），
+  /// 不得默认放行。
+  static StoragePolicy? lookup(String entityType);
+
+  /// 契约测试遍历用。
+  static Map<String, StoragePolicy> get all;
+}
+```
+
+推送侧的过滤（S1b 交付，需改 `OutboxStore` 端口）：
+
+```dart
+/// peekBatch 增加 channel 过滤：只返回该 peer 的 channel 被 policy 允许的记录。
+Future<List<OutboxRecord>> peekBatch({
+  required String scopeUid,
+  required int limit,
+  required Channel channel,     // ← 新增。实现须 join entityType→policy 判定
+});
+```
+
+### 2.3.2 契约测试的验证方式（分两类，不要混）
+
+| 要验的东西 | 手段 | 为什么不能用运行时断言 |
+|---|---|---|
+| **非法值传不进去**（`shared` 无 `channels` 参数） | **analyzer 负测试**：独立 fixture 工程放故意写错的代码，CI 跑 `dart analyze` 并**期望非零退出** | 语法上不存在的调用，运行时测试写不出来，写出来的都是恒真断言 |
+| **注册表不变式**（任何 `shared` 策略 channels 恰为 `{cloud}`） | 运行时契约测试，遍历 `StoragePolicyRegistry.all` | — |
+| **推送过滤真的生效**（shared 记录不进 LAN peer） | 单测：两个 fake `SyncPeer`（channel 分别为 cloud / lan），断言 lan peer 收到的记录集合中无 shared entityType | 这才是「防混用」的真正验收项 |
+
+不变式清单（S1a 验收标准）。**强制级别见 §2.3.0** —— 结构性的那几条测试只是回归保险，注册期那两条测试才是真正的防线：
+
+| # | 不变式 | 强制级别 |
+|---|---|---|
+| 1 | `shared` 策略：`channels == {Channel.cloud}` | 结构性 |
+| 2 | `private` 策略：`encryption == e2eeOverSse` 且 `Channel.cloud in channels` | 结构性 |
+| 3 | `control` 策略：`publisher == official` 且 `sources == {officialRemote}` | 结构性 |
+| 4 | `resource` 策略：当前阶段 `publisher == official`（开放 UGC 时改，见 §9.1） | **注册期抛异常** |
+| 5 | `sources` 非空 ⟺ `visibility ∈ {resource, control}` | **注册期抛异常** |
+
+`StoragePolicyRegistry.register` 必须在注册时校验 4 与 5 并抛 `StateError`，不能只靠测试断言 —— 测试只覆盖已注册的策略，新模块注册错了要在装配期立刻炸，不是等到跑测试。
+
+### 2.4 使用形态
+
+```dart
+const xiangReadingPolicy = StoragePolicy.private(
+  carriers: {Carrier.row, Carrier.blob},
+);   // 通道与加密无需书写，由 private 推导
+
+const playgroundPostPolicy = StoragePolicy.shared(
+  carriers: {Carrier.row, Carrier.blob},
+);
+
+const officialThemePolicy = StoragePolicy.resource(
+  carriers: {Carrier.row, Carrier.blob},
+  sources: {Source.bundled, Source.officialRemote},
+);
+
+const tiaoWenPolicy = StoragePolicy.resource(
+  carriers: {Carrier.row},               // 数据资源落地为 row，可检索
+  sources: {Source.bundled, Source.officialRemote},
+);
+
+const remoteControlPolicy = StoragePolicy.control();   // 无参数可传
+```
+
+**声明之后必须注册**，否则 §2.3.1 的过滤查不到它，推送侧会 fail closed：
+
+```dart
+// 各模块 registry 的装配期调用，例如 drift/lib/xiang/xiang_module_registry.dart
+StoragePolicyRegistry.register('xiang_reading', xiangReadingPolicy);
+```
+
+某模块从私有改为可分享，改动量是一行策略声明；Repository 代码不动。资源从 `bundled` 演进到 `officialRemote`，改动是 `sources` 集合加一个值。
+
+---
+
+## 3. 端口分层与可替换性
+
+### 3.1 三组端口
+
+```
+LocalDataSource
+  ├─ ScopedRecordStore   （已有，repository-interface-record）  row 面
+  └─ LocalBlobStore      （新增）                                blob 面
+       实现：drift / 文件系统 → 未来任意本地库
+
+RemoteDataSource
+  ├─ SyncPeer            （由现有 RemoteGateway 泛化）           row 面
+  └─ BlobGateway         （新增）                                blob 面
+       实现：firebase / supabase / 国产 SaaS / 自建 REST / 自建 gRPC
+
+Transport
+  └─ 实现：LAN / WebRTC / manualExport
+```
+
+装配在 DI 层完成，业务 Repository 只认端口，不认实现。
+
+**`ConfigSource` 不在此列** —— 它属于 `xuan_config` 包的控制平面端口，不是 xuan-storage 的数据平面端口。xuan-storage 从 `xuan_config` 消费下发的指针（endpoint、`defaultThemeId`、功能开关），据此驱动上述三组端口。边界详见 §8。
+
+### 3.2 `LocalBlobStore` 端口草案
+
+```dart
+#### 加密边界（S1a 必须先定死，否则端口签名是假的）
+
+**`LocalBlobStore` 存的是密文，且它自己不是密码学组件。** 加密由一个独立的 `BlobCipher` 端口承担，`LocalBlobStore` 只负责搬字节：
+
+```
+明文字节 ──▶ BlobCipher.encrypt ──▶ 密文 chunk ──▶ LocalBlobStore.putChunk
+                    │                                        │
+              每 chunk 独立 nonce                    按密文 chunk hash 落盘
+              nonce 随 chunk 内联存储                        │
+                    │                                        ▼
+              plaintextSha256 单独算，              远端对象名 = 随机 UUID
+              只进本地索引，永不出设备                （§7.4.3）
+```
+
+三条由此确定的规则：
+
+1. **本地磁盘上没有明文。** 设备丢失不等于数据泄露。这兑现了 §2.2 的「客户端 E2EE」。
+2. **chunk 边界即加密边界。** 每 chunk 独立 nonce 并内联在 chunk 头部，因此断点续传可以在**不解密**的前提下校验已传 chunk（比对密文 hash）。
+3. **`BlobHandle` 同时携带两个 hash**：`plaintextSha256` 用于本地去重与业务引用，`cipherManifestId` 用于定位密文 chunk 集合。公开 blob 的 cipher 是 `BlobCipher.identity`（不加密），两个 hash 相同。
+
+```dart
+// 包：persistence_core   文件：core/lib/model/blob_types.dart
+
+final class BlobHandle {
+  /// 明文 sha256（hex）。本地索引与去重用，**永不作为远端对象名**（§7.4.3）。
+  final String plaintextSha256;
+  /// 密文清单 id。私有 blob 为随机 UUID；公开 blob 等于 plaintextSha256。
+  final String cipherManifestId;
+  final int totalBytes;
+  final int chunkCount;
+  final String mimeType;
+  const BlobHandle({...});
+}
+
+/// blob 的本地就绪状态。取代原先的 bool isPresent —— 见 §3.2.1。
+enum BlobStatus { absent, partial, complete, corrupt, undecryptable }
+
+/// 读取结果。用 sealed 类区分五种后果，因为它们的补救动作完全不同。
+sealed class BlobReadResult {
+  const factory BlobReadResult.ok(Stream<List<int>> plaintext) = BlobOk;
+  const factory BlobReadResult.absent() = BlobAbsent;
+  const factory BlobReadResult.partial(Set<int> presentChunks) = BlobPartial;
+  const factory BlobReadResult.corrupt(Set<int> badChunks) = BlobCorrupt;
+  /// 密钥不可用。**重新下载没有用**，UI 必须提示密钥问题。
+  const factory BlobReadResult.undecryptable() = BlobUndecryptable;
+}
+```
+
+#### 端口签名
+
+```dart
+/// 本地二进制对象数据源（LocalDataSource 的 blob 面）。
+///
+/// 与 [ScopedRecordStore] 并列：前者管结构化记录，后者管字节。
+/// 实现可以是 文件系统 / drift BLOB / 未来任意存储，业务侧只认此端口。
+///
+/// 通用约定（适用于本端口全部方法，见 §3.6）：
+/// - 哈希与加解密**必须在独立 isolate 内完成**。500MB 视频在 UI isolate 上
+///   分块哈希会冻结界面数秒。
+/// - 所有长耗时方法接受 [CancellationToken]，取消后已写入的 chunk 保留
+///   （供续传），不回滚。
+/// - 失败一律抛 [BlobError] 子类，不返回 null 表达失败。
+abstract interface class LocalBlobStore {
+  String get scopeUid;
+
+  /// 从文件写入。**优先用这个而非 put(Stream)** —— 文件可重放、可 seek，
+  /// 中途失败能续传；Stream 一旦消费就无法重试。
+  Future<BlobHandle> putFile(
+    String path, {
+    required String mimeType,
+    required BlobTier tier,
+    CancellationToken? cancel,
+    void Function(int sent, int total)? onProgress,
+  });
+
+  /// 流式写入。仅用于源头本就是流（如摄像头直录）的场景。
+  Future<BlobHandle> put(
+    Stream<List<int>> bytes, {
+    required String mimeType,
+    required BlobTier tier,
+    required int expectedBytes,
+    CancellationToken? cancel,
+  });
+
+  /// 写入单个密文 chunk。断点续传与三级降级（§6.2）依赖它。
+  Future<void> putChunk(BlobHandle handle, int index, List<int> cipherBytes);
+
+  /// 读取。五种后果由 [BlobReadResult] 区分，调用方据此决定补救动作。
+  Future<BlobReadResult> openRead(BlobHandle handle, {CancellationToken? cancel});
+
+  /// 就绪状态。取代 bool —— UI 要区分「未下载」与「已损坏」。
+  Future<BlobStatus> statusOf(BlobHandle handle);
+
+  /// 已持有的 chunk 序号集合。切换通道续传时，新通道据此只取缺失部分。
+  Future<Set<int>> presentChunks(BlobHandle handle);
+
+  Future<int?> sizeOf(BlobHandle handle);
+  Stream<BlobEntry> list({required BlobTier tier});
+
+  /// 引用集对账。取代裸 retain/release —— 见 §3.2.2。
+  /// 必须与 [ScopedRecordStore] 的记录写入**同事务**提交。
+  Future<void> reconcileRefs({
+    required String ownerRecordUuid,
+    required Set<BlobHandle> handles,
+  });
+
+  /// 按业务外部 id 逐出缓存。紧急下架（§7.5.1 第 3 层）依赖它，
+  /// 因为下发的黑名单是 PlaygroundAttachmentId，不是 BlobHandle。
+  Future<void> evictByExternalId(String externalId);
+
+  /// 清理缓存区。**只清 [BlobTier.cache]，绝不触碰 [BlobTier.sourceOfTruth]。**
+  /// 返回 (已释放字节, 因被 pin 而无法回收的字节)。
+  Future<({int freed, int unreclaimable})> evictCache({
+    required int targetFreeBytes,
+  });
+}
+
+/// 本地 blob 的两个区，语义完全不同 —— 见 §7.4.6。
+enum BlobTier {
+  /// 真相源：私有 blob。清了就没了，不可自动回收。
+  sourceOfTruth,
+
+  /// 缓存：公开 blob（本人及他人帖子配图）。可 LRU 清理，清了重新下载。
+  cache,
+}
+```
+
+`putFile`/`put` 必须携带 `tier`，因为「清理缓存」这个再普通不过的操作，一旦分区错误就会删掉用户的私人照片。
+
+#### 3.2.1 `statusOf` 取代 `bool isPresent` 的原因
+
+上一版本用 `Future<bool> isPresent`。但 §6.2 要求「局域网传了 60%，切云端接着传剩余 40%」——**「部分持有」在 bool 上无法表达**，三级降级只能退化成整块重传，「省钱与速度」的立论就没了。`statusOf` + `presentChunks` 把 chunk 粒度暴露出来。
+
+#### 3.2.2 `reconcileRefs` 取代 `retain`/`release` 的原因
+
+裸 retain/release 有两个无解的坑：
+
+- **崩溃窗口**：`put` 返回 handle 时计数为 0，调用方随后 `retain`。两步之间进程被杀 → 孤儿 blob 计数 0 → 下次 GC 删掉字节，而记录里的 `MediaReference` 仍指向它 → **用户的照片在下次启动后凭空消失**。
+- **diff 无归属**：`ScopedRecordStore.saveRecord` 是全量覆盖语义。「旧版本引用了图 X、新版本删掉了它」这个差集谁来算？文档原先没写。
+
+`reconcileRefs(ownerRecordUuid, handles)` 把「这条记录当前引用哪些 blob」作为**幂等的全量声明**提交，由实现内部算差集，并与记录写入同事务。附带两条规则：
+
+1. `putFile`/`put` 返回的 handle 处于 `staged` 状态并带 TTL（建议 24h）。GC 只回收「staged 且超时」或「已对账且引用数为 0」的 blob。
+2. `reconcileRefs` 是该 handle 从 staged 转正的唯一途径。
+
+**这意味着 `LocalBlobStore` 与 `ScopedRecordStore` 必须共享事务边界**，二者不是互不相干的两个端口。§3.1 的树状图需按此理解。
+
+#### 3.2.3 「必须同事务」需要一个端口，光写要求实现不了
+
+`ScopedRecordStore` 与 `LocalBlobStore` 都没有事务令牌、回调或工作单元，调用方**无法**把「保存 record + 对账 blob 引用」包进同一次事务。写「必须同事务」而不给机制，等于没写。
+
+包边界本身不是障碍（两个适配器可以共用同一个 `PersistenceDriftDatabase` 实例），缺的是契约：
+
+```dart
+// 包：persistence_core   文件：core/lib/model/record_blob_unit_of_work.dart
+
+/// 记录与其 blob 引用的原子提交单元。
+/// drift 适配层用 db.transaction() 实现；内存 fake 用简单锁实现。
+abstract interface class RecordBlobUnitOfWork {
+  /// 在单个事务内先写记录、再对账引用。任一步失败则整体回滚。
+  Future<void> saveWithBlobs({
+    required RecordMeta record,
+    required Set<BlobHandle> referencedBlobs,
+  });
+
+  /// 软删记录并释放其全部引用，同事务。
+  Future<void> deleteWithBlobs(String recordUuid);
+}
+```
+
+业务 Repository 拿到的是这个端口，不再各自调 `saveRecord` + `reconcileRefs` 两次。**S1a 必须交付它的签名，S1b 交付 drift 实现。**
+
+#### 3.2.4 密钥上下文：`BlobCipher` 端口与密钥来源
+
+上一版本只用散文说了「加密由独立 `BlobCipher` 端口承担」，却**没给签名，也没有任何方法携带密钥**。于是四个问题无法回答：私有与 identity cipher 如何选择、密钥轮换后用哪个旧密钥解密、同 scope 多密钥如何定位、谁把 S6 的密钥交给 cipher。
+
+密钥**派生**属于 S6，但密钥**上下文的端口形状**必须在 S1a 定死，否则 `LocalBlobStore` 的签名是假的：
+
+```dart
+// 包：persistence_core   文件：core/lib/model/blob_cipher.dart
+
+/// blob 加解密。实现由 S6 提供；S1a 只定契约。
+abstract interface class BlobCipher {
+  /// 本 cipher 的标识与当前密钥版本。写入 BlobHandle，解密时据此定位密钥。
+  CipherId get id;
+  int get currentKeyVersion;
+
+  /// 加密单个 chunk。nonce 由实现生成并内联在返回字节头部。
+  Future<List<int>> encryptChunk(List<int> plain, {required int chunkIndex});
+
+  /// 解密单个 chunk。keyVersion 来自 BlobHandle，支持轮换后解旧数据。
+  /// 密钥不可用时抛 UndecryptableError（**重新下载无用**，见 BlobReadResult）。
+  Future<List<int>> decryptChunk(
+    List<int> cipherBytes, {
+    required int chunkIndex,
+    required int keyVersion,
+  });
+}
+
+/// 按 scope 与可见性选择 cipher。private → 真加密；public → identity。
+abstract interface class BlobCipherResolver {
+  BlobCipher resolve({required String scopeUid, required BlobVisibility v});
+}
+```
+
+`BlobHandle` 相应增加两个字段：
+
+```dart
+final String cipherId;      // 解密时定位实现
+final int    keyVersion;    // 支持密钥轮换后解旧数据
+```
+
+`LocalBlobStore` 的实现持有 `BlobCipherResolver`，调用方**不传密钥**——这既让业务侧无需感知密码学，也让密钥永不出现在跨包签名里。
+
+#### 3.2.5 密文读取路径（上传链原本是断的）
+
+`LocalBlobStore` 原先只有 `putChunk`（写密文）和 `openRead`（读**明文**），而 `BlobGateway.putChunk` 要的是**密文**。也就是说本地已加密的字节没有任何方法能取出来上传——上传链断裂。补一个方法：
+
+```dart
+  /// 读取指定 chunk 的**密文**，不解密。上传与 P2P 中继走这条路径，
+  /// 因此中继过程中密钥完全不参与，也不需要在内存里出现明文。
+  Future<List<int>> readCipherChunk(BlobHandle handle, int index);
+```
+
+### 3.3 可替换点矩阵
+
+| 换什么 | 动哪里 | 不动哪里 |
+|---|---|---|
+| Drift → 其他本地库 | `ScopedRecordStore` / `LocalBlobStore` 的实现 | 20+ 业务 Repository、同步引擎 |
+| Firebase → Supabase / 国产 SaaS | `SyncPeer` / `BlobGateway` / `*RemoteDataSource` 实现 + `Region` 加枚举值 | `RemoteGatewayRouter`、组合者、业务层 |
+| 加自建 REST / gRPC 后端 | 同上，多一个实现类 | 同上 |
+| 加一条去中心化通道 | `Transport` 加一个实现 | `StoragePolicy` 声明、Repository |
+| 某模块改变可见性 | 一行 `StoragePolicy` 声明 | Repository 代码 |
+
+### 3.4 `BlobGateway` 端口
+
+远端 blob 数据源。线索原先散在 §6.1（分块续传）、§7.4.1（两阶段上传）、§7.5.2（签名 URL）三节，此处汇总为接口。
+
+```dart
+// 包：persistence_core   文件：core/lib/model/blob_gateway.dart
+
+/// 远端二进制对象网关（RemoteDataSource 的 blob 面）。
+/// 实现：firebase / supabase / 自建 REST / 自建 gRPC。
+abstract interface class BlobGateway {
+  /// 两阶段上传的第一阶段：登记对象、拿到直传凭证。
+  /// 与既有 PlaygroundMediaRepository.beginUpload 形状一致。
+  Future<BlobUploadTicket> beginUpload({
+    required String scopeUid,
+    required BlobHandle handle,
+    required BlobVisibility visibility,   // private → 随机 UUID 对象名
+  });
+
+  /// 上传单个密文 chunk。支持乱序与重传，服务端按 index 归位。
+  Future<void> putChunk({
+    required BlobUploadTicket ticket,
+    required int index,
+    required List<int> cipherBytes,
+    CancellationToken? cancel,
+  });
+
+  /// 第二阶段：声明全部 chunk 已传完，服务端校验完整性后转 ready。
+  Future<void> completeUpload(BlobUploadTicket ticket);
+
+  /// 远端已持有的 chunk。断线重连后据此续传，不重传已成功的部分。
+  Future<Set<int>> remoteChunks(BlobUploadTicket ticket);
+
+  /// 取下载凭证。**每次调用都要新取，不缓存** —— 紧急下架（§7.5）依赖
+  /// 服务端在此处按 status 拒发。视频返回短期签名 URL（1–2 分钟）。
+  Future<BlobDownloadTicket> getDownloadTicket(BlobHandle handle);
+
+  Future<void> deleteObject(BlobHandle handle);
+  Future<BlobGatewayCapabilities> getCapabilities();
+}
+
+enum BlobVisibility { private, public }
+```
+
+### 3.5 `Transport` 端口
+
+**层级更正**：上一版本 §3.1 把 `Transport` 与 `SyncPeer`/`BlobGateway` 并列画成「三组端口」。这是错的。`LanPeerGateway`(SyncPeer) 与 blob 的三级降级会**共用同一条物理连接**，若画成并列，连接建立、握手、心跳、断线重连、并发流控归谁就没有归属。
+
+正确层级：`Transport` 在下，`SyncPeer` 与 `BlobGateway` 是它之上的两个协议消费者，由一个 `PeerSession` 持有连接并做多路复用。
+
+```
+        SyncPeer(oplog 流)      BlobGateway(chunk 流)
+                │                        │
+                └────────┬───────────────┘
+                         ▼
+                   PeerSession          ← 持有连接、握手、心跳、重连
+                         │
+                         ▼
+                    Transport           ← 端口
+                         │
+        ┌────────────────┴────────────────┐
+        ▼                                 ▼
+   LanTransport                    WebRtcTransport
+```
+
+**`ExportFileTransport` 不存在，且不应存在。** 文件不是持续连接：没有 peer 发现后的交互式握手、没有心跳与重连、没有双向并发逻辑流、没有实时多路复用 —— 而这四样正是 `PeerSession` 的契约。把导出文件称作「离线 peer」在 **oplog 合并语义**上成立（它确实产出一批需要 LWW 仲裁的变更），但不能因此复用**物理连接抽象**。
+
+导出导入走独立的编解码端口，不经 `Transport`：
+
+```dart
+// 包：persistence_core   文件：core/lib/model/export_bundle.dart
+
+/// 加密导出包的读写。S3a 的全部内容。
+abstract interface class ExportBundleWriter {
+  /// 把指定 scope 的 oplog（可选含 blob 密文）打包并封口签名。
+  Future<void> write({
+    required String scopeUid,
+    required String outputPath,
+    required bool includeBlobs,
+    CancellationToken? cancel,
+  });
+}
+
+abstract interface class ExportBundleReader {
+  /// 校验签名与完整性，不解密内容。失败即拒绝导入。
+  Future<BundleManifest> inspect(String path);
+
+  /// 产出与 SyncPeer.listChanges 同形状的变更页，从而复用同一套 LWW 仲裁。
+  Stream<RemoteChangesPage> readChanges(String path, {required String scopeUid});
+}
+```
+
+`ExportBundleReader.readChanges` 返回 `RemoteChangesPage`，是「复用同一套合并逻辑」这句话的落地形式 —— 复用的是**数据形状**，不是连接抽象。
+
+```dart
+// 包：persistence_core   文件：core/lib/model/transport.dart
+
+/// 物理连接抽象。一个 Channel 值对应恰好一个 Transport 实现
+/// （Channel.cloud 除外 —— 云端走 SyncPeer 直连，不经 Transport）。
+abstract interface class Transport {
+  Channel get channel;
+
+  /// 发现可达对端。LAN 走 mDNS；WebRTC 走信令；导出文件走文件选择器。
+  /// 广播内容只含随机化的临时 service id，**不含 scopeUid 或设备名**
+  /// （否则同一咖啡厅 WiFi 下任何人都能枚举出设备归属，见 §6.3）。
+  Stream<DiscoveredPeer> discover({Duration? timeout});
+
+  /// 建立会话。握手必须完成认证密钥交换并绑定指纹到会话
+  /// （channel binding），否则带外指纹比对对主动 MITM 无效。规格见 S6。
+  Future<PeerSession> connect(
+    DiscoveredPeer peer, {
+    required DeviceKeyPair localKeys,
+    CancellationToken? cancel,
+  });
+
+  Future<void> dispose();
+}
+
+/// 一条已认证连接上的多路复用会话。
+abstract interface class PeerSession {
+  PeerIdentity get remote;
+  Stream<PeerSessionState> get state;
+
+  /// 开一条逻辑流。oplog 与 blob chunk 各占一条，互不阻塞。
+  Future<PeerStream> openStream(StreamKind kind);
+
+  Future<void> close();
+}
+
+enum StreamKind { oplog, blobChunk }
+```
+
+### 3.6 端口通用约定（适用于本节全部新端口）
+
+上一版本完全没有这一节，导致每个端口的错误、取消、并发语义都要实现者自行发明。
+
+| 约定 | 规则 |
+|---|---|
+| **错误类型** | 一律抛 `StorageError` 子类（复用 `core/lib/model/storage_error.dart`），不用 `null` 表达失败。§4.3 示例里的 `NetworkUnavailable` 应为 `StorageError.networkUnavailable` |
+| **取消** | 所有可能超过 1 秒的方法接受 `CancellationToken?`。取消后已完成的 chunk 保留供续传，不回滚 |
+| **超时** | 每个 `SyncPeer` / `BlobGateway` 方法必须在 `capabilities.requestTimeout` 内返回或抛超时。`SyncCoordinator` 侧加 `.timeout()` 兜底 —— 否则 LAN 对端拔网线会让 `SyncRuntime._serial` 永久挂起，`stop()`/`dispose()` 也回不来 |
+| **isolate** | 哈希、加解密、压缩必须在独立 isolate 内完成。契约测试需断言主 isolate 不被阻塞超过 16ms |
+| **并发** | 同一 `BlobHandle` 的并发 `putChunk` 必须安全（按 index 分片写）；同一 `ownerRecordUuid` 的并发 `reconcileRefs` 由实现串行化 |
+| **诊断** | 每个错误必须携带 `code + context + fix` 三段（照 `xuan_config` 的 `ConfigException` 形状），不得只有一条 message |
+
+---
+
+## 4. Repository 双模式（按数据类分派）
+
+### 4.1 判据
+
+**这份数据我能不能改？** 能改 → 本地是真相源，走旁路同步；只能读 → 远端是真相源，走组合缓存。
+
+| 数据类 | 真相源 | 模式 |
+|---|---|---|
+| private（占卦记录、相的图片视频） | 本地 | 旁路同步 |
+| shared · 本人草稿（未发布） | **本地** | 旁路同步（peer 集合仅含云端） |
+| shared · 本人已发布原件 | **云端** | 组合缓存（发布即交出真相源，见 §7.3） |
+| shared · 他人内容（帖子流） | 远端 | 组合缓存 |
+| resource（下载他人主题） | 远端 | 组合缓存 |
+| official（Assets） | 远端 / 内置 | 组合缓存 |
+
+注意：**Repository 模式**（由「能不能改」决定）与 **允许通道**（由 `visibility` 决定）是两个正交维度。草稿是可写的，因此走旁路同步模式；但它属于 `shared` 类，因此它的 peer 集合只有云端 peer，没有设备 peer。
+
+### 4.2 模式一 · 旁路同步
+
+Repository 只依赖本地端口，**远端不出现在它的构造器里**：
+
+```dart
+final class XiangReadingRepositoryImpl implements XiangReadingRepository {
+  XiangReadingRepositoryImpl({
+    required ScopedRecordStore store,   // LocalDataSource · row
+    required LocalBlobStore blobs,      // LocalDataSource · blob
+    required RecordModuleCodec<XiangReading> codec,
+  });
+  // 无 RemoteDataSource。save() 写完本地即返回，离线可用。
+}
+```
+
+远端由同步引擎旁路消费 outbox，Repository 不感知。
+
+代价（已知并接受）：「这条记录同步到别的设备了吗」这类状态，Repository 答不出来，UI 需另行询问同步引擎。
+
+### 4.3 模式二 · 组合缓存
+
+现有 `FirebasePlaygroundFeedRepository` 只改一行 —— `implements PlaygroundFeedRepository` 改为 `implements PlaygroundFeedRemoteDataSource`，内部 Firestore 查询逻辑不动。
+
+```dart
+abstract interface class PlaygroundFeedRemoteDataSource {
+  Future<PlaygroundPage<PlaygroundPost>> fetchFeed(GetFeedQuery query);
+}
+
+abstract interface class PlaygroundFeedLocalDataSource {
+  Future<PlaygroundPage<PlaygroundPost>?> readCached(GetFeedQuery query);
+  Future<void> writeCache(GetFeedQuery q, PlaygroundPage<PlaygroundPost> page);
+}
+
+/// 组合者：唯一实现，与后端无关。
+final class CachedPlaygroundFeedRepository implements PlaygroundFeedRepository {
+  CachedPlaygroundFeedRepository({
+    required PlaygroundFeedRemoteDataSource remote,
+    required PlaygroundFeedLocalDataSource local,
+  })  : _remote = remote,
+        _local = local;
+
+  final PlaygroundFeedRemoteDataSource _remote;
+  final PlaygroundFeedLocalDataSource _local;
+
+  @override
+  Future<PlaygroundPage<PlaygroundPost>> getFeed(GetFeedQuery query) async {
+    try {
+      final page = await _remote.fetchFeed(query);
+      await _local.writeCache(query, page);
+      return page;
+    } on NetworkUnavailable {
+      final cached = await _local.readCached(query);
+      if (cached != null) return cached;
+      rethrow;
+    }
+  }
+}
+```
+
+换云厂商只换 `_remote` 的实现类，组合者与上层业务不动。
+
+**缓存分级**（S2 详细设计中落实）：帖子正文与媒体缓存（值钱、变化慢）；点赞数 / 收藏态不缓存（变化快，缓存反而产生错误显示）。
+
+---
+
+## 5. 同步模型
+
+### 5.1 触发方式：用户主动发起的配对会话
+
+不做后台自动持续同步。依据：**用户在线即表示同步意愿** —— 用户之所以打开 app，正是因为他想同步。
+
+此决定砍掉的设计负担：
+
+- 加密中继信箱（云端暂存密文、取走即删）—— 不需要
+- 静默推送唤醒对端（FCM / APNs）—— 不需要
+- iOS 后台执行时长限制的规避 —— 绕开，前台传输不受限
+- 「设备不在线时数据去哪」的整套设计 —— 问题消失
+
+### 5.2 `RemoteGateway` 泛化为 `SyncPeer`
+
+现有签名本身即是传输无关的：
+
+```dart
+Future<SyncError?> push(OutboxRecord record);
+Future<RemoteChangesPage> listChanges({scopeUid, entityType, sinceCursor, limit});
+```
+
+「把我的操作日志推给对端 / 从对端游标拉取变更」—— 对端是 Firestore 还是同一局域网里的另一台平板，语义完全一致。
+
+```dart
+/// 同步对端。云端是一个 peer，本人的另一台设备也是一个 peer。
+abstract interface class SyncPeer {
+  Future<SyncError?> push(OutboxRecord record);
+  Future<RemoteChangesPage> listChanges({
+    required String scopeUid,
+    required String entityType,
+    required PullCursor? sinceCursor,
+    required int limit,
+  });
+  Future<PeerCapabilities> getCapabilities();
+}
+
+final class FirestoreRemoteGateway implements SyncPeer { /* 见下方改动清单 */ }
+final class LanPeerGateway       implements SyncPeer { /* mDNS + socket */ }
+final class WebRtcPeerGateway    implements SyncPeer { /* 信令 + DataChannel */ }
+// 注：导出导入不实现 SyncPeer，走 ExportBundleWriter/Reader（§3.5）。
+// 文件没有连接生命周期，套 SyncPeer 会得到一堆抛 UnsupportedError 的方法。
+```
+
+命名说明：接口叫 `SyncPeer`，实现仍叫 `*Gateway` 是为了不改既有类名。新增实现沿用同一后缀保持一致。
+
+### 5.2.1 更正：「引擎零改动」是错的
+
+**上一版本称「`SyncCoordinator`(471行) 与 `SyncRuntime`(769行) 不动」。该论断经核实为假。** 多 peer 需要以下改动，全部是硬阻断：
+
+| # | 阻断点 | 证据 |
+|---|---|---|
+| 1 | `t_outbox` 主键 `{operationId}`，无 peerId | `drift/lib/persistence_drift.dart:179` |
+| 2 | `t_sync_state` 主键 `{scopeUid, entityType}`，无 peerId | `drift/lib/persistence_drift.dart:215` |
+| 3 | `markSuccess({operationId, atUtc})` 无 peerId | `core/lib/model/ports.dart:57` |
+| 4 | `push` 返回单个 `SyncError?`，N 个结果压不成一个 | `core/lib/model/ports.dart:183` |
+| 5 | `RemoteGatewayRouter` 是 1-of-N 选择器，不是 fan-out | `core/lib/routing/remote_gateway_router.dart:23-30` |
+| 6 | `getCapabilities()` 既有返回 `RegionCapabilities`，非 `PeerCapabilities` | `core/lib/model/ports.dart:206` |
+
+不改的后果（二选一，都不可接受）：
+
+- **标 success** → outbox 行退出 `peekBatch`，离线的 LAN peer **永远收不到这条操作**。会话式同步下，这条记录在另一台设备上永不存在。
+- **标 failed** → `attempt+1`，`isDead = nextAttempt >= 10`。**一个长期离线的 LAN peer 会在 10 次重试内把整个 outbox 推成 dead**，连带云端同步一起死。
+
+### 5.2.2 S1b 的必需改动
+
+```dart
+// 1) 新表：per-peer ack 水位。同时是 §5.3 oplog compaction 的水位表。
+//    因此 compaction 的数据模型不能列为「待决」——它决定 schema。
+class OutboxPeerAcks extends Table {
+  TextColumn get operationId => text()();
+  TextColumn get peerId => text()();
+  TextColumn get status => text()();          // pending/success/failed/dead
+  IntColumn  get attempt => integer()();
+  DateTimeColumn get ackedAtUtc => dateTime().nullable()();
+  @override Set<Column> get primaryKey => {operationId, peerId};
+}
+
+// 2) t_sync_state 主键加 peerId（schema migration）
+@override Set<Column> get primaryKey => {scopeUid, peerId, entityType};
+
+// 3) 端口签名：OutboxStore / SyncStateStore 全部方法加 peerId
+Future<void> markSuccess({required String operationId,
+                          required String peerId,
+                          required DateTime atUtc});
+
+// 4) 新增 fan-out 推送器，取代 OutboxPusher
+abstract interface class PeerFanoutPusher {
+  Future<Map<PeerId, SyncError?>> pushToAll(OutboxRecord record);
+}
+```
+
+连带的 `SyncRuntime` 改动：退避计数 `_pushFailureCount` 与 `_nextPullNotBeforeUtcByEntityType` 都必须 per-peer，否则一个不可达的 LAN peer 会把云端 push 一起拖进 2 分钟退避。
+
+**结论：`SyncPeer` 泛化不是「换个名字」，是两次 schema 迁移 + 三个端口签名变更 + `SyncCoordinator`/`SyncRuntime` 的 per-peer 改造。** 这部分单独编号为 S1b（见 §9）。
+
+### 5.2.3 冲突仲裁：现状比文档假设的更弱
+
+`drift/lib/sync/record_local_applier.dart:60-61` 的成功路径 `canAdvanceCursor: true` **恒为真**，且全文件对 `updatedAt`/`rev` 只有 2 处匹配、无任何比较逻辑。也就是说：
+
+- record 主线**没有 LWW**，是 RWW（远端无条件覆盖本地）
+- 某条 change 应用失败被记为 failed 时，`SyncCoordinator:382` 的守卫不触发，**游标照常推进，那条变更永久丢失**
+
+这在单 gateway 下已是缺陷，多 peer 下丢失概率线性放大。且纯墙上时钟 LWW 在多 peer 下不可用——云端时间戳来自服务器，LAN peer 时间戳来自对端设备本地时钟，两台设备差 30 秒就能让两周的编辑量归属随机。
+
+**S1b 必须交付**：`ConflictArbiter` 端口 + Lamport 序（`(rev, deviceId)`，`DeviceIdentity` 已存在于 `ports.dart:240`）；`ChangeApplyOutcome` 增加承载被覆盖 payload 的字段（§5.3 的「冲突可见化」在现有端口上无处安放）；修 `canAdvanceCursor` 恒真。
+
+**手动导出导入复用同一套合并逻辑，但不复用连接抽象** —— `ExportBundleReader.readChanges` 产出与 `listChanges` 同形状的 `RemoteChangesPage`，因此走同一套 LWW 仲裁；但它不实现 `SyncPeer`，理由见 §3.5。
+
+### 5.3 会话式同步的两个必然附带（必须做）
+
+**冲突可见化。** 后台自动同步时两台设备差异极小；会话式可能两周才同步一次，期间双方各改了一批。LWW 在这种场景下会**静默丢数据** —— 用户在平板上改的内容被手机上更晚的版本覆盖，且他不知情。要求：冲突时保留被覆盖的版本，并使其对用户可见可回溯。
+
+**oplog compaction。** 长期不同步会导致本地 oplog 持续增长。需要压缩策略（例如「所有已知 peer 均已确认收到的操作可合并压缩」），否则首次同步一台久未使用的设备需重放数万条操作。
+
+### 5.4 传输边界的双重保障
+
+**第一道 · 推送侧策略过滤。** `peekBatch` 按 `channel` 过滤，`shared` 类记录不会被派发给非 cloud 的 peer（§2.3.1）。
+
+> ⚠️ 上一版本此处写的是「拓扑上无法到达」。**该说法为假，已删除。** 去中心化通道的对端确实只有本人授信设备，但这只保证「不会分发给其他用户」，不保证「shared 数据不会离开云端」—— 没有策略过滤时，草稿 oplog 照样会被 fan-out 到本人的 LAN peer。过滤是主动的，不是被动的。
+
+**第二道 · 密码学。** E2EE 密钥只在本人设备。手动导出的文件即使被转发给他人，对方也无法解密。
+
+两道锁方向不同：第一道防「自动分发到他人」，第二道防「人工转发」。
+
+---
+
+## 6. Blob 层
+
+### 6.1 内容寻址 + 分块
+
+`blob = 一组 chunk`，每个 chunk 独立 sha256。
+
+这让三级降级的断点续传天然成立：局域网传了 60%，切换到云端接着传剩余 40% —— 因为每块可独立校验、独立获取，通道之间无状态耦合。
+
+### 6.2 传输优先级：三级降级
+
+**局域网直连 > WebRTC > 云端 E2EE**
+
+| 级别 | 成本 | 适用 |
+|---|---|---|
+| 局域网直连 | 零 | 同网段，最快，大文件首选 |
+| WebRTC | TURN 带宽费（仅 10–20% 连接会走中继） | 跨网段，两端同时在线 |
+| 云端 E2EE | 存储费 + 双向带宽费 | 兜底，同时充当备份（设备全丢可恢复） |
+
+**P2P 的价值定位是省钱与速度，不是隐私** —— 隐私已由 E2EE 在加密层解决完毕，云端反正看不懂内容。局域网直传 500MB 视频库零流量费、跑满网卡；走云端要付存储费加双向带宽费。
+
+### 6.3 WebRTC 的成本与安全事实
+
+- **NAT 穿透成功率不低**：STUN 直连约 80–90%（对称型 NAT 打不通），TURN 兜底后接近 99%。
+- **信令零新增基础设施**：复用现有 Firestore，一个 collection 交换 SDP / ICE candidate。
+- **STUN 免费**：公共服务即可。
+- **TURN 用托管服务**（Cloudflare / Twilio / Xirsys）：DTLS 握手在两个 peer 之间完成，TURN 只转发已加密的 UDP 包，**连密钥交换都参与不了**。因此托管 TURN 在隐私上不是降级，与自建 coturn 安全性相同。唯一成本是带宽账单。
+
+两条诚实的限制：
+
+1. **TURN 可见元数据** —— IP 地址、包大小、传输时序。看不到内容，但知道「这两个 IP 在某时刻传了 200MB」。
+2. **信令通道完整性是前提** —— 被攻破的信令通道理论上可替换 DTLS 指纹实施中间人。防护手段是设备配对时的**带外验证**：两台设备各自显示公钥指纹，用户肉眼比对或扫二维码。此项归入 S6，本就必须做。
+
+**WebRTC 只为 blob 而建。** row（oplog，KB 级）数据量小到不值得为它做 P2P，走云端更省事更可靠。
+
+### 6.4 生命周期
+
+引用计数 GC，但**业务侧调用的是 `reconcileRefs` 的幂等全量声明，不是裸的 `retain`/`release`** —— 完整理由见 §3.2.2。
+
+选择内容寻址 + 引用计数而非「blob 生命周期跟随 record」的理由：同一张图可能被多条记录引用，跟随 record 会导致误删。
+
+代价与缓解：
+- `put` 返回的 handle 处于 `staged` 状态并带 TTL（建议 24h），GC 只回收「staged 且超时」或「已对账且引用数为 0」的 blob，堵住 put 与对账之间的崩溃窗口
+- `reconcileRefs` 必须与记录写入同事务，因此需要 §3.2.3 的聚合事务端口
+- **跨设备引用计数不收敛**是已知未解问题：设备 A 上引用归零删字节，设备 B 仍在引用。见 §10 待决
+
+---
+
+## 7. 发布与分享
+
+### 7.1 发布是单向快照
+
+```
+草稿实体（shared，仅云端通道，跨设备续写靠云端同步）
+   │
+   │  发布 = 单向快照：脱敏 → 生成独立明文实体
+   ▼
+帖子实体（shared，仅云端，独立 id，云端为真相源）
+
+本地 published_from 映射表（仅本人可见，绝不上云）
+```
+
+草稿虽未公开，但它属于 `shared` 类，因此**不走去中心化传输**（需求硬性约束：可分享数据不支持去中心化信息传输）。跨设备续写草稿依托云端同步实现。
+
+草稿与已发布帖子同为 `shared` 类，仅 SSE 加密，不做 E2EE —— 因此「解密」一步不存在，发布只需脱敏与快照。
+
+### 7.2 关键约束
+
+**`published_from` 不上云。** 若云端帖子文档携带私有记录 id，他人虽读不到内容，却能看出「这些帖子出自同一批私有档案」—— 关联关系本身即隐私泄露。因此它是本地 drift 的一张映射表，不是帖子实体上的字段。
+
+**已发布内容不可密码学回收。** 别人已经看到了。UI 上的「删除」只能是撤下展示，不能承诺回收。
+
+### 7.3 帖子全生命周期均不走去中心化同步
+
+| 阶段 | 分类 | 真相源 | 去中心化同步 |
+|---|---|---|---|
+| 草稿（未发布） | shared | 本地 | ❌ **禁止**。需求硬性约束。跨设备续写走云端同步 |
+| 已发布 · 本人的 | shared | **云端** | ❌ 禁止，且无收益。云端已有权威副本，任何设备直接拉取即可；走 P2P 更慢且产生「两个权威副本谁新」的仲裁问题 |
+| 已发布 · 他人的 | shared | 云端 | ❌ 禁止。缓存而已，丢失重新拉取 |
+
+两层理由叠加：
+
+1. **约束层** —— 需求规定可分享数据不支持去中心化信息传输。草稿虽未公开，但它是可分享数据的未发布态，归属同一类别，不开例外口子。
+2. **技术层** —— 发布这个动作的本质是把真相源从本地交给云端。交出后再去 P2P 同步它，等于同一份数据存在两个权威来源。
+
+「Drift 存储的数据都应该可以被去中心化同步」这条原则因此需要精确表述为：**Drift 中属于 `private` 类的数据均可去中心化同步**。Drift 里的帖子相关数据（草稿、本地缓存、已发布原件镜像）全部属于 `shared` 类，一律不参与去中心化同步。
+
+### 7.4 帖子媒体：同一张照片存两份物理副本
+
+场景：用户在占卦广场发布带照片或视频的帖子。
+
+**结论：私有副本与公开副本是两个独立的物理对象。** 这不是浪费，是加密体制不同导致的必然 —— 私有副本用你的密钥 E2EE 加密，别人拿到密文读不了；要让别人读就得交出密钥，那 E2EE 即失去意义。因此**发布必然是「解密 → 剥离元数据 → 转码 → 以明文重新上传为新对象」**。
+
+| | 私有副本 | 公开副本 |
+|---|---|---|
+| 加密 | 客户端 E2EE + 桶级 SSE | 仅桶级 SSE |
+| 谁能读 | 只有本人设备 | 所有人 |
+| 对象 id | 本地 `BlobHandle` | `PlaygroundAttachmentId` |
+| 本地角色 | **真相源** | **缓存** |
+| 传输通道 | 局域网 / WebRTC / 云端（三级降级） | **只有云端** |
+| 引用计数 | 本地（drift） | 云端 |
+
+**公开 blob 不走三级降级**：对端是「其他所有用户」，不在本人授信设备拓扑内。三级降级只对本人设备之间有意义。
+
+#### 7.4.1 两条入口，主路径不依赖 S6
+
+```
+入口 B · 发帖时直接从系统相册选（主路径）
+  系统相册 → 剥离 EXIF → 客户端转码 → beginUpload → 公开明文对象
+  ⚠️ 完全不经过私有 blob 层，不需要 E2EE 密钥
+
+入口 A · 从「我的档案」挑一张发布（增强功能）
+  私有 blob（密文）→ 本地解密 → 剥离 EXIF → 客户端转码 → beginUpload → 公开对象
+```
+
+**入口 B 是主路径，且不依赖 S6** —— 因此 S2 的媒体部分可以不等 E2EE 密钥管理就开工。入口 A 跨越加密边界，依赖 S6，排在后面。
+
+#### 7.4.2 EXIF 剥离是硬要求
+
+照片 EXIF 含 GPS 坐标、设备型号、拍摄时间。占卦记录本身常带时间地点，配图再带 GPS 等于**公开发布用户住址**。「脱敏」在图片上的具体含义即此，**必须在客户端上传前完成**，不得依赖服务端。
+
+#### 7.4.3 内容寻址的 hash 算什么
+
+| | 本地索引 | 远端对象名 |
+|---|---|---|
+| **私有 blob** | 明文 hash（做本地去重，永不出设备） | **随机 UUID** |
+| **公开 blob** | 明文 hash | 明文 hash（天然跨用户去重） |
+
+私有 blob 的远端对象名若用明文 hash，会引入已知明文攻击：攻击者拿一张已知图片算 hash 即可探测你是否存过它。随机 UUID 零信息泄露，代价仅是远端不去重 —— 而私有数据本就只有本人使用，去重在本地完成即已足够。
+
+#### 7.4.4 转码：客户端完成
+
+客户端在上传前完成压缩/转码与缩略图生成，服务端不做转码。零服务器计算成本，上传字节最少。
+
+代价：iOS / Android 两套原生转码 API 各实现一遍，长视频转码耗时耗电。既有地基：`repository-interface-media` 的 `MediaAcquisitionPort` 与 `KeyframeExtractionPort`（后者正是视频缩略图）可承接这条管线。
+
+#### 7.4.5 删除语义的四个组合
+
+| 操作 | 私有副本 | 公开副本 |
+|---|---|---|
+| 删除私有原图 | 删 | **不受影响**（已发布不可回收） |
+| 删除帖子 | **不受影响** | 可删 |
+| 撤下帖子（审核） | 不受影响 | 转 `quarantined`，不删 |
+| 注销账号 | 全删 | 按合规策略 |
+
+#### 7.4.6 对 `LocalBlobStore` 的补充：本地要分两个区
+
+| 区 | 内容 | 可否自动清理 |
+|---|---|---|
+| **真相源区** | 私有 blob | ❌ 清了就没了（除非云端有备份） |
+| **缓存区** | 公开 blob（本人及他人帖子配图） | ✅ 可 LRU 清理，清了重新下载 |
+
+`LocalBlobStore` 端口已按此补入 `BlobTier` 与 `evictCache`（见 §3.2）—— 否则一个「清理缓存」按钮会删掉用户的私人照片。
+
+### 7.5 内容审核与紧急下架
+
+**当前阶段方案：举报 + 人工下架，保留接入自动审核 API 的能力。**
+
+既有端口已预留：`PlaygroundMediaUploadStatus{pending, ready, failed, quarantined}`。自动审核接入时，在 `ready` 之前插入机审步骤即可，端口不变。
+
+#### 7.5.1 紧急下架的三层防线
+
+仅删除对象不足够 —— CDN 边缘节点仍有缓存，客户端本地也可能已存。
+
+| 层 | 机制 | 生效时间 |
+|---|---|---|
+| **1 · 服务端拒发** | `getDownloadUrl()` 检查 status，`quarantined` 直接拒绝 | 立即（对新请求） |
+| **2 · CDN 清除** | purge 边缘缓存 | 分钟级 |
+| **3 · 客户端缓存清除** | 经 **control 平面**下发 `quarantinedMediaIds` 列表，客户端拉到即删本地缓存并停播 | 下次配置拉取 |
+
+第 3 层复用 §8 的控制下发通道 —— 这是控制平面在 S2 场景下的直接价值。
+
+#### 7.5.2 图片与视频分级
+
+既有端口 `getDownloadUrl(mediaObjectId) → Future<String>` 是「每次去要一个」而非「返回永久公开 URL」，**该形状已天然支持紧急下架**。
+
+| | 下载方式 | 紧急下架路径 | 理由 |
+|---|---|---|---|
+| **图片** | 公开 URL + CDN | CDN purge + 客户端 status 校验 | 便宜快，违规影响相对小 |
+| **视频** | **短期签名 URL**（5–15 分钟） | 签名过期自动失效，无需 CDN purge | 违规风险高、影响大，值得付这点延迟 |
+
+#### 7.5.3 客户端硬要求
+
+**播放/展示前必须校验 status，不得只信本地缓存。** 否则第 3 层防线形同虚设。
+
+---
+
+## 8. 控制平面：`xuan_config` 与 `xuan-storage` 的边界
+
+### 8.1 核心分工：一个管指针，一个管字节
+
+```
+xuan_config（控制平面）              xuan-storage（数据平面）
+──────────────────────              ──────────────────────
+defaultThemeId: "cny-2027"    ──→   ThemeRepository.get("cny-2027")
+featureFlags: {...}                   → 本地有？用本地
+serverEndpoints: [...]                → 没有？按 endpoint 下载
+themeEndpoint: "..."                  → 落 blob + 元数据 row
+```
+
+**`xuan_config` 下发的永远是「指针和开关」，不是内容本身。** 内容的获取、缓存、校验、GC 全部归 `xuan-storage`。
+
+驱动需求：**不重新打包上架，就能改变客户端行为。**
+
+- 场景 A（春节主题）：Console 改 `defaultThemeId` → 客户端拉到新值 → `ThemeRepository` 按 id 取包（本地有就用，没有就下载）→ 应用主题。
+- 场景 B（服务器一个变多个）：Console 增加几个 endpoint 字段，客户端下次拉配置即生效。
+
+这条边界的额外收益：**将来新增任何资源来源时 `xuan_config` 一行不改** —— 它下发的仍是同一个 `themeId`，只是 `xuan-storage` 的来源链里多一个源。
+
+### 8.2 `xuan_config` 现状：槽位已预留
+
+包已存在并有骨架：
+
+```dart
+// xuan_config/lib/src/config_source.dart
+abstract class ConfigSource {
+  Future<String?> loadRaw(String path);
+  String get sourceId;
+}
+```
+
+已有实现：`memory` / `file` / `asset`。`xuan_config/docs/deferred-source-requirements.md` 中已明确列出 `Firebase Hosting | Static YAML/JSON documents hosted on Firebase Hosting | Deferred`，并预先写好了本设计需要的四条约束：source 优先级排序、offline-first 本地缓存 + 后台同步、离线降级、schema 版本与回滚。
+
+**因此这不是新建，是填上已预留的 Deferred 槽位。**
+
+⚠️ 该文档中的硬规则必须遵守：
+
+> No future source category may be introduced into the current theme-token phases (1-6) without a separate OpenSpec change and independent review.
+
+引入 Firebase Hosting source 需单独走一次 OpenSpec change，不得并入本次存储改造。
+
+### 8.3 分层：哪些必须 Hosting，哪些可以 Firestore
+
+二者能力不同，且有一条不能选错：
+
+| | Firebase Hosting | Firestore |
+|---|---|---|
+| 改法 | 改 JSON/YAML 文件 → deploy | Console 直接改字段 |
+| 生效 | CDN 缓存 TTL 后（可设短） | 立即 |
+| 计费 | 无读取计费 | 按读次数 |
+| 灰度分组 | ❌ 全量统一 | ✅ 可按用户分组查询 |
+| **需要 SDK 初始化** | ❌ **纯 HTTP GET** | ✅ 需要 |
+
+最后一行是关键。**服务器地址属于引导配置** —— 它决定客户端连哪个后端，而 Firestore 本身就是后端之一。要从 Firestore 读服务器地址，必须先初始化 Firebase SDK，而初始化需要知道连哪个项目：鸡生蛋。纯 HTTP GET 一个静态文件是唯一能在任何 SDK 初始化之前完成的动作。
+
+| 层 | 内容 | 载体 | 理由 |
+|---|---|---|---|
+| **L0 引导** | 服务器地址列表、Firebase 项目配置、各资源源 endpoint | **必须 Hosting** | 要在 SDK 初始化前拿到 |
+| **L1 运行时** | 功能开关、`defaultThemeId`、各资源 endpoint | Hosting 或 Firestore | 稍慢生效可接受 |
+| **L2 灰度** | 按用户分组下发 | 只能 Firestore | 可选，后期 |
+
+场景 B（服务器一个变多个）落在 L0；场景 A（春节主题）落在 L1。
+
+### 8.4 来源链优先级：顺序不能反
+
+```
+已成功拉取并缓存的 remote  >  bundled asset  >  代码内置默认值
+```
+
+是**「已缓存的 remote」优先，不是「remote 优先」**。启动时直接用上次缓存的配置（零延迟、离线可用），后台再刷新，下次启动生效。
+
+若写成「remote 优先」，每次冷启动都要等一个网络请求，弱网下 app 卡在启动画面 —— 而配置拉取失败是常态而非异常。这正是 deferred 文档中 "Offline-first with local cache, background sync" 的含义。
+
+### 8.5 安全：内置域名白名单
+
+服务器地址由远程下发，最坏情况是**攻击者把所有用户导向他的服务器** —— 之后所有云端同步、分享、资源下载全部经过他。这不是普通的配置读取错误，是整个系统的信任根被替换。
+
+三条硬要求：
+
+1. **内置引导地址** —— app 包内硬编码官方地址，作为拉配置的起点
+2. **内置域名白名单** —— 下发的任何 endpoint 必须匹配包内硬编码的域名后缀列表，不匹配则丢弃并沿用上次配置
+3. **失败不阻塞启动** —— 拿不到配置时用内置默认值，app 照常可用
+
+白名单是对个人维护者的务实取舍：即使 Firebase 账号被攻破、配置被篡改，攻击者也只能在**自有域名范围内**改地址，无法导向外部。叠加 Hosting 自带的 HTTPS/TLS，已堵住最严重的洞。
+
+#### 8.5.1 白名单匹配规则（写死，不得列为待决）
+
+上一版本把「白名单的具体形式」列进 §10 待决事项。**信任根的匹配规则不能待决** —— 朴素后缀匹配下 `https://evil-xuanofficial.com` 会匹配后缀 `xuanofficial.com`。
+
+```dart
+/// 校验下发的 endpoint 是否可信。任何一条不满足即拒绝。
+bool isTrustedEndpoint(String raw) {
+  final uri = Uri.tryParse(raw);
+  if (uri == null) return false;
+  if (uri.scheme != 'https') return false;              // 1. 强制 https
+  if (uri.userInfo.isNotEmpty) return false;            // 2. 拒绝 user:pass@ 歧义
+  if (uri.hasPort && uri.port != 443) return false;     // 3. 端口只允许 443
+  final host = uri.host.toLowerCase();
+  if (_isIpLiteral(host)) return false;                 // 4. 拒绝 IP 字面量
+  if (host.startsWith('xn--') || host.contains('.xn--')) return false; // 5. 拒绝 punycode
+  if (ConfigBootstrap.allowedHostSuffixes.isEmpty) return false; // 6. 空表 fail-closed
+  // 7. label 边界匹配：必须整域相等，或以「点 + 后缀」结尾
+  return ConfigBootstrap.allowedHostSuffixes.any(
+    (s) => host == s || host.endsWith('.$s'),
+  );
+}
+```
+
+第 7 条是关键：`host.endsWith(suffix)` 会放行 `evil-xuanofficial.com`，`host.endsWith('.' + suffix)` 不会。
+
+#### 8.5.2 缓存中毒的持久化风险
+
+§8.4 的来源链是「已成功拉取并缓存的 remote > bundled > 内置默认」。一次成功的投毒写入缓存后会**长期优先于 bundled**，即使线上配置已修复，中毒客户端仍先连恶意端点。而白名单挡不住**白名单内的恶意子域**（攻击者在被攻破的 Firebase 项目上开一个新 Hosting 站点，域名仍在自有域下）。
+
+三条缓解：
+
+1. 缓存条目记 `sourceId + fetchedAt + version`，**最长有效期 7 天**，过期必须重新校验，否则降级 bundled
+2. L0 层 endpoint 相对 bundled 值有差异时，要求**连续 3 次拉到同一新值**才写缓存（抗一次性投毒）
+3. **L0 引导层必须现在就签名**（内置 ed25519 公钥 + 配置签名验证）。签名体系「留待后期」对 L1/L2 可接受，但 L0 是信任根，而它的成本只是包内塞一个公钥加一次验签 —— 对个人维护者的成本论证在这一层不成立
+
+### 8.6 配置源的可切换中间层
+
+**目标**：当前用 Firebase，将来能丝滑切到其他 SaaS 或自建后端（REST / gRPC）。
+
+#### 8.6.1 「丝滑」的可检验定义
+
+不是一句口号，而是四条验收标准：
+
+| # | 标准 | 保障机制 |
+|---|---|---|
+| 1 | 换源**不改任何业务代码** | 业务只认 `ConfigRepository`，不认 `ConfigSource` 实现 |
+| 2 | 换源**不改配置内容** | 内容是源无关的 YAML/JSON 文本，`loadRaw → String` 天然保证 |
+| 3 | 换源**可灰度**，失败自动回退 | 新源插入优先级链首、旧源留在链尾，观察后再摘除 |
+| 4 | 换源**不需要用户重装 app** | 仅限 L1/L2 层；L0 引导层不适用，见 §8.6.4 |
+
+第 2 条是现有设计一个未被点明的优点：`ConfigSource.loadRaw(path) → Future<String?>` 返回**裸文本**而非结构化对象，因此源的差异被彻底挡在字符串边界之外。Firebase Hosting 返回 HTTP body、自建 REST 返回 response body、Firestore 把文档序列化成 JSON —— 到了 `ConfigRepository` 手里都是同一种东西。**这个签名不要改。**
+
+#### 8.6.2 分层接口：本地源与远端源能力不同
+
+现有 `ConfigSource` 保持不变（`memory` / `file` / `asset` 三个实现零改动），远端源在其上扩展：
+
+```dart
+/// 已有，不改动 —— 所有源的最小公共契约。
+abstract class ConfigSource {
+  Future<String?> loadRaw(String path);
+  String get sourceId;
+}
+
+/// 远端配置源：增加版本协商与可用性探测。
+abstract class RemoteConfigSource extends ConfigSource {
+  /// 带版本协商的拉取。
+  /// [knownVersion] 与远端一致时返回 notModified，不传内容 —— 省流量。
+  Future<ConfigFetchResult> fetch(String path, {String? knownVersion});
+
+  /// 源是否可达。用于切换决策与优先级链的回退判断。
+  Future<bool> probe();
+
+  ConfigSourceCapabilities get capabilities;
+}
+
+/// 可选能力：推送式更新。不是所有源都支持，因此独立成接口。
+abstract interface class WatchableConfigSource {
+  Stream<ConfigChange> watch(String path);
+}
+
+sealed class ConfigFetchResult {
+  const factory ConfigFetchResult.payload(ConfigPayload payload) = _Payload;
+  const factory ConfigFetchResult.notModified() = _NotModified;
+  const factory ConfigFetchResult.absent() = _Absent;
+}
+
+class ConfigPayload {
+  final String raw;             // 源无关文本
+  final String? version;        // etag / 文档版本 / commit sha
+  final DateTime fetchedAtUtc;
+  final String sourceId;
+}
+```
+
+**为什么 `watch()` 独立成接口而不是基类的可选方法**：Firebase Hosting 是静态托管，物理上不支持推送；Firestore 支持。若塞进基类，Hosting 实现只能抛 `UnsupportedError` 假装实现。独立接口让调用方用 `if (source is WatchableConfigSource)` 显式分支，能力差异在类型系统里可见。
+
+这也正是 `deferred-source-requirements.md` 里 "May extend `ConfigSource` with `watch()` for reactive updates (deferred)" 那句的落地形态。
+
+#### 8.6.3 实现矩阵
+
+| 实现 | 接口 | 版本协商 | 推送 | 备注 |
+|---|---|---|---|---|
+| `MemoryConfigSource` | `ConfigSource` | — | — | 已有，测试用 |
+| `FileConfigSource` | `ConfigSource` | — | — | 已有 |
+| `AssetConfigSource` | `ConfigSource` | — | — | 已有，`bundled` 兜底 |
+| `FirebaseHostingConfigSource` | `RemoteConfigSource` | HTTP `If-None-Match` | ❌ | **当前主用** |
+| `FirestoreConfigSource` | `RemoteConfigSource` + `WatchableConfigSource` | 文档版本字段 | ✅ | L2 灰度时才需要 |
+| `RestConfigSource` | `RemoteConfigSource` | `If-None-Match` / 自定义头 | ❌ | 自建后端 |
+| `GrpcConfigSource` | `RemoteConfigSource` + `WatchableConfigSource` | 请求字段 | ✅ | 自建后端，server streaming |
+
+本地源不实现 `RemoteConfigSource` —— 从本地文件读取没有省流量需求，强加版本协商是无意义的样板代码。
+
+#### 8.6.4 切换的边界：引导层换不了
+
+必须说清楚，否则会误以为一切都能远程切换：
+
+| 层 | 可否远程切换 | 换法 |
+|---|---|---|
+| **L0 引导源** | ❌ **不可** | 只能发版。但可**内置多个备选地址**做故障转移 |
+| **L1 / L2 运行时源** | ✅ 可 | 由 L0 下发 `sourceType` + `endpoint`，下次启动生效 |
+
+原因是循环依赖：切换目标的地址从哪来？只能来自配置；而配置从引导源取。所以引导源的地址必须硬编码在包内 —— 它是信任根（§8.5）。
+
+```dart
+/// 引导配置：包内硬编码，不可远程更改。
+abstract final class ConfigBootstrap {
+  /// 多个备选，按序尝试，用于故障转移而非切换厂商。
+  static const List<String> endpoints = [ /* 主 */, /* 备 */ ];
+
+  /// 域名白名单，见 §8.5。
+  static const List<String> allowedHostSuffixes = [ /* ... */ ];
+}
+```
+
+#### 8.6.5 切换粒度：整体切换 + 优先级回退，不做 per-key 路由
+
+`ConfigRepository` 持有一条有序的源链，按序尝试直到命中：
+
+```dart
+final repo = ConfigRepository(sources: [
+  newRemoteSource,   // 灰度中的新源
+  oldRemoteSource,   // 旧源，观察期内保留
+  assetConfigSource, // bundled 兜底
+]);
+```
+
+切换流程即调整这个列表的顺序与成员 —— 这就是标准 3「可灰度、失败自动回退」的实现。
+
+**不做 per-key 路由**（某些 key 走 A 源、某些走 B 源）：YAGNI，且会让「当前配置到底来自哪里」变得难以诊断。若将来确有需要，可用多个 `ConfigRepository` 实例分别装配不同源链，而不是在单个 Repository 内部做路由。
+
+诊断要求（`deferred-source-requirements.md` 已列为约束）：每次解析必须能回答「这个值来自哪个 `sourceId`、什么版本、何时拉取」，并保留既有的诊断链 `source → ConfigRepository → ConfigException(code + path + key + message + fix)`。
+
+### 8.7 与现有 `SyncConfiguration` 的区分
+
+`core/lib/configuration/sync_configuration_manager.dart`(653行) 中的 `SyncConfiguration` 是**同步引擎的本地配置**（YAML / 文件存储），不是远程下发系统。两者不可混用，本节所述是新建能力。
+
+---
+
+## 9. 子系统拆分与建议排期
+
+```
+S1a 分类契约 + 端口签名  ←── 地基，全员依赖
+   │
+   ├──> S1b 同步引擎多 peer 化  ←── 任何 peer 实现开工前必须完成
+   │       │
+   │       └──> S3 去中心化传输（a/b/c）  ← 还依赖 S6
+   │
+   ├──> S5c 官方控制下发（xuan_config）  ←── 其余子系统靠它找后端，建议提前
+   ├──> S6  E2EE 密钥管理 + 设备配对      ←── 第二块地基
+   ├──> S2  云端公开分享                  ← 不依赖 S6（媒体入口 B）
+   ├──> S5a 样式资源分发                  ← 不依赖 S6
+   ├──> S5b 数据资源按需下载              ← 不依赖 S6
+   └──> S4  用户资源上架（UGC）           ← 当前阶段不做
+```
+
+| 编号 | 子系统 | 依赖 | 规模与备注 |
+|---|---|---|---|
+| **S1a** | 分类契约 + 端口签名 | — | 六个 enum（§2.1）、`StoragePolicy` 类族（§2.3）、`StoragePolicyRegistry`（§2.3.1）、`LocalBlobStore`+`BlobCipher`（§3.2）、`BlobGateway`（§3.4）、`Transport`+`PeerSession`（§3.5）、通用约定（§3.6）、契约测试含 analyzer 负测试（§2.3.2）。**零实现，但不是一周** —— 见下方范围说明 |
+| **S1b** | 同步引擎多 peer 化 | S1a | 两次 drift schema 迁移（`t_outbox_peer_ack` 新表 + `t_sync_state` 主键加 peerId）、`OutboxStore`/`SyncStateStore`/`SyncPeer` 三个端口签名变更、`PeerFanoutPusher`、per-peer 退避、`ConflictArbiter` + Lamport 序、修 `canAdvanceCursor` 恒真。**全部见 §5.2.1–§5.2.3**。任何 peer 实现开工前必须完成 |
+| **S5c** | 官方控制下发 + 配置源可切换中间层 | S1a | 对接 `xuan_config`：`RemoteConfigSource` 抽象 + Firebase Hosting 实现 + 优先级回退链；引导地址 + 域名白名单 + 安全默认值。**需单独走 OpenSpec change**（见 §8.2）。**建议提前** —— S2/S3/S5a/S5b 都要靠它找后端，它晚到就得先硬编码地址、之后返工 |
+| **S6** | E2EE 密钥管理 + 设备配对 | S1a | 第二块地基，含带外指纹验证。私有数据的任何跨设备能力都卡在这 |
+| **S3a** | 手动导出导入 | S1a+S1b+S6 | `ExportBundleWriter/Reader`（§3.5），不经 `Transport`。零基础设施，全链路可单进程自动化验证，**首个垂直切片**（§9.3） |
+| **S3b** | 局域网直连 | S1a+S1b+S6 | mDNS + socket，Dart 生态成熟 |
+| **S3c** | WebRTC | S1a+S1b+S6 | **只为 blob 而建**；信令复用 Firestore，TURN 用托管服务 |
+| **S2** | 云端公开分享（含帖子媒体） | S1a | 复用现有 `firebase/lib/playground/`，主要工作是降级为 RemoteDataSource + 加缓存层。**媒体主路径（入口 B）不依赖 S6**，可提前开工；入口 A（从私有档案发布）依赖 S6 |
+| **S5a** | 样式资源分发 | S1a + S5c | 主题包下载安装；来源链 `bundled → officialRemote`。官方与用户主题**同构**，同一套仓库 |
+| **S5b** | 数据资源按需下载 | S1a + S5c | 拆书内容按需取；**下载后落 drift 可检索**。可显著降低 app 体积 |
+| **S4** | 用户资源上架（UGC） | S1a + S5a | **当前阶段不做**。见下方范围说明 |
+
+### 9.1 当前阶段范围收窄：不做 Marketplace，资源仅官方下发
+
+需求原文第 3 条为「风格化资源文件：支持用户发布、互相分享、下载」。**当前大阶段收窄为：不建设 Marketplace，资源一律由官方下发，用户不可上架。**
+
+架构影响（全是简化）：
+
+- `resource` 类的 `Publisher` 当前恒为 `official`
+- **审核机制、UGC 举报、内容安全全部不在当前范围** —— S4 的主要成本正在这里
+- S5a 的主题仓库与安装逻辑照常建设，因为它与将来的用户主题**同构**
+
+但端口必须预留 `Publisher.user`：`StoragePolicy.resource` 保留 `publisher` 参数（默认 `official`），将来开放 UGC 时改的是策略声明与审核流程，不改契约。
+
+### 9.2 落地路线：薄契约 + 垂直切片验证
+
+S1 只交付最小可执行契约（零实现）+ 一组证明违规组合无法通过的契约测试，随即用一个垂直切片把契约压在真实场景上验证。
+
+理由：本仓库已经证明端口抽象这条路走得通 —— `core/lib/model/ports.dart` 那套 `OutboxStore` / `RemoteGateway` 端口撑起了 drift + firebase 双实现。同样手法复制到 blob 与 transport 上，风险低且与现有代码风格一致。
+
+替代方案「契约先行（S1 + S6 全部做完再挂子系统）」被否决：S6 独自即可吃掉数周，会把所有产出堵在后面。
+替代方案「纯垂直切片（契约事后补）」被否决：本仓库有 20+ 个业务模块消费存储层，契约晚到一天就多一天的错误调用要清理。
+
+### 9.3 第一个垂直切片（已更正）
+
+**S3a 手动导出导入。**
+
+上一版本选的是「相的私有图片 → 局域网直连同步」。该选择有两个问题：它是四件最难的事（S1a + S1b + S6 + S3b + blob 分块）的交集；而「相」模块的三个前置 OpenSpec change（`add-shared-media-capability`、`add-shared-divination-tag-dimension`、统一 History 分发）**全部仍是 proposal 状态**——等于用四个未建成的子系统去验证一个前置条件未满足的业务模块。
+
+改为 S3a 的理由：它同样一次打通 S1a 契约 + S1b 的多 peer 语义（导出文件就是一个离线 peer）+ S6 的加密 + oplog 序列化 + 跨 peer 合并，但**全链路可在单进程内自动化验证，零物理设备依赖**。§9 表格里 S3a 自己就写着「零基础设施，可最先交付」。
+
+验收标准（必须可判定）：
+
+| # | 判据 | 验证方式 |
+|---|---|---|
+| 1 | 导出包可被另一个 scopeUid 的实例导入，且解密失败 | 单测：两组密钥 |
+| 2 | 同一 scopeUid 导入后，记录集合与源端逐字段一致 | 单测：往返比对 |
+| 3 | 重复导入同一包幂等，不产生重复记录 | 单测：连导两次 |
+| 4 | 导入 `shared` 类记录被拒绝（策略过滤生效） | 单测：断言 §2.3.1 的过滤 |
+| 5 | 导入过程中断后，已导入部分不损坏，可重入 | 单测：注入中断 |
+
+### 9.4 S1a 的验收命令
+
+上一版本 987 行零条验证命令。S1a 完成的判定：
+
+```bash
+cd core && dart analyze --fatal-infos && flutter test
+```
+
+期望：`dart analyze` 零 issue；`flutter test` 全绿，且包含以下测试文件：
+
+| 文件 | 验的东西 |
+|---|---|
+| `core/test/model/storage_policy_test.dart` | §2.3.2 的 5 条不变式，遍历 `StoragePolicyRegistry.all` |
+| `core/test/model/storage_policy_analyzer_test/` | analyzer 负测试 fixture 工程；CI 跑 `dart analyze` 并**期望非零退出** |
+| `core/test/model/blob_types_test.dart` | `BlobHandle` 双 hash 语义、`BlobReadResult` 五分支穷尽 |
+| `core/test/model/policy_channel_filter_test.dart` | 两个 fake `SyncPeer`（cloud / lan），断言 lan peer 收到的记录中无 `shared` entityType |
+
+第四项是「防混用」的真正验收项 —— 前三项都通过而第四项失败，说明契约只是装饰。
+
+---
+
+## 10. 待决事项
+
+以下不阻塞本总纲，各归子系统详细设计解决：
+
+| 事项 | 归属 |
+|---|---|
+| E2EE 密钥派生形态（助记词 / 账号密码派生 / 设备互签）、密钥丢失的处置 | S6 |
+| 冲突仲裁的具体 **UX**（如何呈现被覆盖版本）；仲裁**机制**已上提至 S1b（§5.2.3） | S1b 定接口，UI 层实现 |
+| 组合模式的缓存分级与失效策略 | S2 |
+| oplog compaction 的具体**算法**与触发时机（数据模型已上提至 S1b，见 §5.2.2） | S1b 定表，S3 实现 |
+| 配置 schema 的版本、迁移与回滚策略 | S5c（`xuan_config` deferred 文档已列为约束） |
+| ~~域名白名单的具体形式~~ **已上提，规则写死于 §8.5.1**（信任根不得待决） | — |
+| `ConfigSourceCapabilities` 的具体字段集合 | S5c |
+| 灰度切换的观察期与自动摘除旧源的判据 | S5c |
+| 客户端转码的具体参数（分辨率/码率上限、视频时长上限） | S2 |
+| 举报流程与人工下架后台的形态 | S2 |
+| 缓存区的容量上限与 LRU 触发阈值 | S1a 定接口（`evictCache` 已定签名），S2 定阈值 |
+| 数据资源下载后的 drift 表结构与检索索引设计 | S5b |
+| 主题包的格式、版本兼容与安装/卸载语义 | S5a |
+| UGC 开放后的审核机制、举报、是否收费 | S4（当前阶段不做） |
+
+---
+
+## 11. 决策记录（含被否决方案）
+
+| 决策 | 结论 | 被否决的替代方案与理由 |
+|---|---|---|
+| 分类维度 | 四个正交维度 `Visibility × Publisher × Carrier × Source` | 一维四类 —— 无法表达 blob 与 row 的机制差异，也无法表达来源演进 |
+| `official` 的位置 | **降为 `Publisher`，不是 `Visibility`** | 保留为 Visibility —— 官方主题与用户主题可见性完全相同，区别只在发布者，硬分两类会导致 S4/S5 写两套同构逻辑 |
+| `control` 的引入 | 新增第四个 `Visibility` | 归入 `official` Assets —— 控制下发是控制平面不是数据平面，体量、生效速度、失败后果、安全要求全都不同 |
+| 控制平面与数据平面 | `xuan_config` 管指针与开关，`xuan-storage` 管字节 | 由 xuan-storage 直接读远程配置 —— 会让新增资源来源时两边都要改 |
+| 引导配置载体 | **必须 Firebase Hosting（纯 HTTP GET）** | Firestore —— 需先初始化 SDK，而 SDK 要知道连哪个后端，鸡生蛋 |
+| 配置来源链顺序 | 已缓存 remote > bundled > 内置默认 | remote 优先 —— 每次冷启动等网络请求，弱网卡启动画面 |
+| 控制下发的安全 | 内置引导地址 + 域名白名单（§8.5.1）+ **L0 层 ed25519 签名**（§8.5.2） | 「签名全部留待后期」—— L1/L2 可以，但 L0 是信任根，且白名单挡不住白名单内的恶意子域；L0 签名成本仅为包内一个公钥加一次验签 |
+| 数据资源的落地形态 | 远端下载，但**落地为 row 进 drift** | 当 blob 存文件系统 —— 拆书内容要「按格局查讲解」，必须可检索 |
+| Marketplace | **当前不做**，`Source` 移除 `marketplace` 值 | 保留枚举值占位 —— YAGNI；将来加值加实现即可，不触及其余设计 |
+| 配置源可切换性 | `ConfigSource` 保持裸文本签名；远端源扩展 `RemoteConfigSource`；`watch()` 独立成接口 | 把 `watch()` 放进基类 —— Hosting 物理上不支持推送，只能抛 UnsupportedError 假装实现，能力差异在类型系统里不可见 |
+| 配置切换粒度 | 整体切换 + 优先级回退链 | per-key 路由 —— YAGNI，且「当前值来自哪个源」难以诊断 |
+| 引导源可否切换 | **不可**，只能发版；内置多备选地址做故障转移 | 引导源也可远程切换 —— 循环依赖：切换目标地址本身来自配置 |
+| 帖子媒体的存储 | **私有与公开两份独立物理副本** | 共用一份 —— E2EE 副本别人读不了；交出密钥则 E2EE 失去意义 |
+| 私有 blob 的远端对象名 | **随机 UUID** | 明文 hash —— 引入已知明文攻击，可探测用户是否存过某张图 |
+| 转码位置 | **客户端**，上传前完成 | 服务端 Cloud Functions —— 有计算与带宽账单，且需处理转码失败重试 |
+| 内容审核 | 当前**举报 + 人工下架**，端口保留 `quarantined` 供后续接入自动审核 | 立即接机审 API —— 按调用量付费且需误判申诉流程，早期体量不划算 |
+| 紧急下架 | 三层：服务端拒发 + CDN purge + 经 control 平面下发黑名单清客户端缓存 | 仅删除对象 —— CDN 边缘与客户端本地仍有缓存 |
+| 视频下载方式 | **短期签名 URL** | 永久公开 URL + CDN —— 紧急下架时无法及时失效 |
+| 本地 blob 分区 | `BlobTier{sourceOfTruth, cache}`，`put` 必须携带 | 不分区 —— 「清理缓存」会删掉用户私人照片 |
+| blob 加密位置 | **`LocalBlobStore` 存密文；加密由独立 `BlobCipher` 端口承担**（§3.2） | 在 put 之外加密 —— 本地磁盘裸存私人照片，与「客户端 E2EE」的声称矛盾 |
+| 引用计数 API | **`reconcileRefs` 幂等全量声明 + staged/TTL**（§3.2.2） | 裸 retain/release —— put 与 retain 之间崩溃会让 GC 删掉用户照片，且新旧引用集的 diff 无归属 |
+| blob 就绪状态 | **`BlobStatus` 五态 + `presentChunks`**（§3.2.1） | `bool isPresent` —— 「部分持有」无法表达，三级降级退化为整块重传 |
+| 「防混用」的准确表述 | **不可表达性在工厂参数表上；运行时靠 §2.3.1 的 channel 过滤强制** | 「拓扑上无法到达」—— 经核实为假，`peekBatch` 无 policy 过滤，shared 会被 fan-out 到 LAN peer |
+| 同步引擎改造量 | **S1b：两次 schema 迁移 + 三个端口签名变更**（§5.2.1） | 「SyncCoordinator/SyncRuntime 零改动」—— 经核实为假，三张表与端口均无 peerId |
+| Transport 层级 | **在 SyncPeer/BlobGateway 之下，由 PeerSession 持有**（§3.5） | 三者并列 —— 同一条物理连接的生命周期无归属 |
+| 首个垂直切片 | **S3a 手动导出导入**（§9.3） | 相的图片 + 局域网 —— 四个未建子系统的交集，且相模块三项前置 change 全是 proposal |
+| `enum Visibility` 命名 | **改为 `DataVisibility`** | 裸 `Visibility` —— persistence_core 依赖 flutter，与 Visibility widget 冲突 |
+| private 的 cloud 通道 | **从参数表移除**，结构上不可关闭 | 作为 `Set<Channel>` 自由传入 —— `private(channels: {lan})` 可构造，违反「private 必含 cloud」不变式 |
+| 子类构造器可见性 | **私有（`._`）**，只能经命名工厂 | public —— 可绕过工厂的参数表约束 |
+| 不变式的强制级别 | **区分结构性与注册期两类**（§2.3.0） | 一律宣称「编译期」—— Dart const 构造器不能用 assert 判定集合成员（已实测 `const_eval_method_invocation`） |
+| 密钥上下文 | **`BlobCipher` + `BlobCipherResolver` 端口在 S1a 定死**（§3.2.4） | 只写「加密由 BlobCipher 承担」—— 无签名、无密钥来源，四个密钥问题无法回答 |
+| 同事务保证 | **`RecordBlobUnitOfWork` 聚合端口**（§3.2.3） | 只写「必须同事务」—— 两个端口都无事务令牌，调用方实现不了 |
+| 密文上传路径 | **新增 `readCipherChunk`**（§3.2.5） | 只有 `openRead` 返明文 —— 本地密文取不出来，上传链断裂 |
+| 导出导入的抽象 | **`ExportBundleWriter/Reader`，不实现 `SyncPeer`**（§3.5） | `ExportFileTransport implements Transport` —— 文件无握手/心跳/多路复用，套 PeerSession 会得到一堆 UnsupportedError |
+| 资源上架权限 | **当前阶段仅官方**，端口预留 `Publisher.user` | 立即开放 UGC —— 审核、举报、内容安全是 S4 主要成本，当前阶段不承担 |
+| 防混用机制 | sealed class + 限制构造器 | 运行时断言 / lint 规则 —— 拦不住已写出的错误调用 |
+| Repository 模式 | 按数据类分派（旁路 + 组合） | 全部统一为组合模式 —— 离线冲突逻辑要在 20+ 模块重复实现，且作废现有同步引擎 |
+| 同步触发 | 用户主动发起的配对会话 | 后台自动同步 —— 需要静默推送唤醒，iOS 限制大，且引入中继信箱 |
+| 跨网段不同时在线 | 不解（由「在线即有同步意愿」承接） | L3 加密中继信箱 —— 引入云端持久组件，与会话式模型下的收益不匹配 |
+| 私有数据加密 | E2EE + SSE 纵深叠加 | 仅 SSE —— 云端技术上可读，「敏感数据」承诺只能做到合规级别 |
+| TURN | 托管服务 | 自建 coturn —— DTLS 使二者安全性等同，托管无运维负担 |
+| blob 传输 | 三级降级（LAN > WebRTC > 云端） | 全部上云 —— 存储与带宽成本高；纯 P2P 不上云 —— 设备全丢无法恢复 |
+| blob 生命周期 | 内容寻址 + 引用计数 GC | 跟随 record 生命周期 —— 同图被多记录引用时会误删 |
+| 发布语义 | 单向快照 + 本地反向溯源 | 原地提升可见性 —— 需就地改变加密体制，且无法回收 |
+| 帖子的去中心化同步 | **全生命周期均不做，草稿也不做** | 「草稿归 private 因而可去中心化」—— 讨论中曾提出，被否决：草稿是可分享数据的未发布态，开例外口子会削弱「shared 一律不去中心化」这条约束的完整性 |
+
+---
+
+## 附录 · 术语表
+
+| 术语 | 含义 |
+|---|---|
+| **row** | 结构化记录，走 operation log + LWW 仲裁 + 游标增量同步 |
+| **blob** | 二进制对象，走内容寻址、分块、断点续传、引用计数 GC |
+| **E2EE** | 端到端加密，密钥仅在本人设备，服务端无法解密 |
+| **SSE** | 服务端加密，云厂商持有密钥，桶级配置 |
+| **oplog** | 操作日志，同步的传输单元 |
+| **LWW** | Last-Write-Wins，最后写入者赢的冲突仲裁策略 |
+| **peer** | 同步对端。云端是一个 peer，本人另一台设备也是一个 peer |
+| **scopeUid** | 多账号隔离的最小单位，通常等同于当前登录用户 uid |
+| **STUN / TURN** | NAT 穿透探测服务 / 中继转发服务 |
+| **带外验证** | 通过传输通道之外的途径（肉眼比对指纹、扫二维码）确认对端身份 |
+| **BlobTier** | 本地 blob 的两个区：真相源区（私有，不可自动清理）与缓存区（公开，可 LRU 清理） |
+| **紧急下架** | 使已发布媒体在全网尽快停止可访问的机制，见 §7.5.1 |
+| **控制平面 / 数据平面** | 前者下发指针与开关（`xuan_config`），后者搬运实际字节（`xuan-storage`） |
+| **引导配置** | 决定客户端连哪个后端的最小配置，必须在任何 SDK 初始化之前拿到 |
+| **来源链** | 同一份资源按优先级从多个 `Source` 依次回退获取的顺序 |
+| **版本协商** | 携带已知版本（etag 等）发起请求，远端未变更时只回 notModified 而不传内容 |

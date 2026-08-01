@@ -1,6 +1,7 @@
 import 'package:repository_interface_record/repository_interface_record.dart';
 import 'package:repository_interface_xiang/repository_interface_xiang.dart';
 import '../record/base_record_backed_repository.dart';
+import 'xiang_deletion_audit_event.dart';
 
 /// Concrete instantiation of the abstract [BaseRecordBackedRepository] for
 /// [XiangReading], used internally by [XiangReadingRepositoryImpl] so that
@@ -39,6 +40,9 @@ class XiangReadingRepositoryImpl implements XiangReadingRepository {
   final RecordModuleCodec<XiangReading> _codec;
   final BaseRecordBackedRepository<XiangReading> _delegate;
 
+  /// 删除审计日志（FA12）：只含操作/时间/操作者/媒体引用计数，无敏感内容。
+  final List<XiangDeletionAuditEvent> auditLogs = [];
+
   String get _module => _codec.module;
 
   @override
@@ -59,6 +63,20 @@ class XiangReadingRepositoryImpl implements XiangReadingRepository {
 
   @override
   Future<void> softDelete(String uuid) async {
+    // FA12 单一方针：删除级联清除媒体。删除前统计该记录引用的媒体数，
+    // 删除后记录审计事件（操作/时间/操作者/媒体引用计数，不记敏感内容本身）。
+    final meta = await _store.getRecord(uuid, module: _module);
+    var mediaRefCount = 0;
+    if (meta != null && meta.deletedAt == null) {
+      final reading = _codec.decode(meta, null);
+      mediaRefCount = reading.evidence.where((e) => e.mediaRef != null).length;
+    }
     await _delegate.softDelete(uuid);
+    auditLogs.add(XiangDeletionAuditEvent(
+      operation: 'reading.delete',
+      recordedAt: DateTime.now().toUtc(),
+      operatorUid: _store.scopeUid,
+      mediaRefCount: mediaRefCount,
+    ));
   }
 }
