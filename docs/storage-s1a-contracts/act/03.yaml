@@ -1,0 +1,166 @@
+ACT_VERSION: 1
+TASK_ID: mimo-storage-s1a-contracts/03
+TITLE: blob 值类型 + LocalBlobStore + BlobCipher + RecordBlobUnitOfWork
+TYPE: contract
+ORDER: 3
+DEPENDS_ON: [mimo-storage-s1a-contracts/02]
+DISPATCH_STATUS: ready
+STRONG_MODEL_ONLY: false
+
+OBJECTIVE: >
+  交付 blob 层的本地面契约：值类型、本地存储端口、加解密端口、
+  以及「记录写入与引用对账同事务」的聚合端口。全部零实现。
+
+SCOPE:
+  READ:
+    - docs/superpowers/specs/2026-07-31-storage-architecture-design.md
+      # §3.2 端口签名与加密边界；§3.2.1 为何 statusOf 取代 bool；§3.2.2 为何 reconcileRefs
+      # 取代 retain/release；§3.2.3 聚合事务端口；§3.2.4 密钥上下文；§3.2.5 密文读取
+    - core/lib/model/storage_classification.dart      # ACT 01
+    - core/lib/model/cancellation_token.dart          # ACT 01
+    - core/lib/model/blob_error.dart                  # ACT 01
+    - core/lib/model/types.dart                       # RecordMeta 等既有类型，复用不重定义
+    - core/lib/model/ports.dart                       # dartdoc 风格
+  WRITE:
+    - core/lib/model/blob_types.dart
+    - core/lib/model/blob_cipher.dart
+    - core/lib/model/local_blob_store.dart
+    - core/lib/model/record_blob_unit_of_work.dart
+    - core/test/blob_types_test.dart
+
+SIGNATURE:
+  blob_types.dart: |
+    final class BlobHandle {
+      final String plaintextSha256;   // 本地索引与去重；【永不】作为远端对象名
+      final String cipherManifestId;  // 私有=随机UUID；公开=等于 plaintextSha256
+      final String cipherId;          // 解密时定位实现
+      final int keyVersion;           // 支持密钥轮换后解旧数据
+      final int totalBytes;
+      final int chunkCount;
+      final String mimeType;
+      const BlobHandle({...});
+      // 需实现 == 与 hashCode（值对象）
+    }
+    enum BlobStatus { absent, partial, complete, corrupt, undecryptable }
+    enum BlobTier { sourceOfTruth, cache }
+    enum BlobVisibility { private, public }
+    final class BlobEntry { final BlobHandle handle; final BlobTier tier;
+                            final DateTime lastAccessAtUtc; final int refCount; ... }
+    sealed class BlobReadResult {
+      const factory BlobReadResult.ok(Stream<List<int>> plaintext) = BlobOk;
+      const factory BlobReadResult.absent() = BlobAbsent;
+      const factory BlobReadResult.partial(Set<int> presentChunks) = BlobPartial;
+      const factory BlobReadResult.corrupt(Set<int> badChunks) = BlobCorrupt;
+      const factory BlobReadResult.undecryptable() = BlobUndecryptable;
+    }
+
+  blob_cipher.dart: |
+    typedef CipherId = String;
+    abstract interface class BlobCipher {
+      CipherId get id;
+      int get currentKeyVersion;
+      Future<List<int>> encryptChunk(List<int> plain, {required int chunkIndex});
+      Future<List<int>> decryptChunk(List<int> cipherBytes,
+          {required int chunkIndex, required int keyVersion});
+    }
+    abstract interface class BlobCipherResolver {
+      BlobCipher resolve({required String scopeUid, required BlobVisibility v});
+    }
+
+  local_blob_store.dart: |
+    abstract interface class LocalBlobStore {
+      String get scopeUid;
+      Future<BlobHandle> putFile(String path, {required String mimeType,
+          required BlobTier tier, CancellationToken? cancel,
+          void Function(int sent, int total)? onProgress});
+      Future<BlobHandle> put(Stream<List<int>> bytes, {required String mimeType,
+          required BlobTier tier, required int expectedBytes, CancellationToken? cancel});
+      Future<void> putChunk(BlobHandle handle, int index, List<int> cipherBytes);
+      Future<List<int>> readCipherChunk(BlobHandle handle, int index);
+      Future<BlobReadResult> openRead(BlobHandle handle, {CancellationToken? cancel});
+      Future<BlobStatus> statusOf(BlobHandle handle);
+      Future<Set<int>> presentChunks(BlobHandle handle);
+      Future<int?> sizeOf(BlobHandle handle);
+      Stream<BlobEntry> list({required BlobTier tier});
+      Future<void> reconcileRefs({required String ownerRecordUuid,
+          required Set<BlobHandle> handles});
+      Future<void> evictByExternalId(String externalId);
+      Future<({int freed, int unreclaimable})> evictCache({required int targetFreeBytes});
+    }
+
+  record_blob_unit_of_work.dart: |
+    abstract interface class RecordBlobUnitOfWork {
+      Future<void> saveWithBlobs({required RecordMeta record,
+          required Set<BlobHandle> referencedBlobs});
+      Future<void> deleteWithBlobs(String recordUuid);
+    }
+
+CONSTRAINTS:
+  - 【零实现】。全部是 abstract interface class 或纯值类型。出现任何 Impl 类、
+    任何 `=> throw UnimplementedError()` 的具体实现即不合格。
+  - 【不要】保留 retain / release 方法。它们被 reconcileRefs 取代，理由见 §3.2.2。
+  - 【不要】把 openRead 的返回类型写成 Future<Stream<List<int>>?>。必须是
+    Future<BlobReadResult>，因为「未下载/部分/损坏/解密失败」四种后果的补救动作不同。
+  - 【不要】让 LocalBlobStore 的任何方法接受密钥参数。密钥由 BlobCipherResolver
+    内部持有，调用方不传（§3.2.4）。
+  - evictCache 必须返回 record 类型 ({int freed, int unreclaimable})，不是裸 int。
+  - 每个方法的 dartdoc 必须写明：是否需在独立 isolate 执行、超时约定、
+    取消后的语义（已完成 chunk 保留供续传，不回滚）。见 §3.6。
+
+TESTS_FIRST:
+  CASES:
+    - NAME: blob_handle_carries_both_hashes_and_key_version
+      FILE: core/test/blob_types_test.dart
+      BEHAVIOR: >
+        BlobHandle 同时有 plaintextSha256 与 cipherManifestId 两个不同字段；
+        公开 blob 场景两者可相等，私有 blob 场景两者不等；
+        另有 cipherId 与 keyVersion 字段。值相等语义：同值 == 为真。
+      RED_COMMAND: cd core && flutter test test/blob_types_test.dart
+      RED_EXPECT: 编译失败（BlobHandle 不存在），退出码非 0
+      COVERS: [A1, A2]
+
+    - NAME: blob_read_result_five_branches_exhaustive
+      FILE: core/test/blob_types_test.dart
+      BEHAVIOR: >
+        用 switch 表达式对 BlobReadResult 做穷尽匹配，五个分支
+        (BlobOk/BlobAbsent/BlobPartial/BlobCorrupt/BlobUndecryptable) 各返回不同字符串。
+        因为是 sealed，缺任一分支应编译失败 —— 测试里写全五个即可。
+        另断言 BlobPartial 携带 presentChunks、BlobCorrupt 携带 badChunks。
+      RED_COMMAND: cd core && flutter test test/blob_types_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A1, A2]
+
+    - NAME: blob_status_has_five_states
+      FILE: core/test/blob_types_test.dart
+      BEHAVIOR: >
+        BlobStatus.values 恰有 5 个：absent/partial/complete/corrupt/undecryptable。
+        断言【不存在】布尔式的 isPresent 风格 API（partial 态必须可表达，
+        否则 §6.2 的跨通道断点续传无法实现）。
+      RED_COMMAND: cd core && flutter test test/blob_types_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A1]
+
+    - NAME: blob_tier_two_states_only
+      FILE: core/test/blob_types_test.dart
+      BEHAVIOR: >
+        BlobTier.values 恰有 2 个：sourceOfTruth / cache。
+        这个区分是「清理缓存不会删掉用户私人照片」的唯一保障（§7.4.6）。
+      RED_COMMAND: cd core && flutter test test/blob_types_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A1]
+
+VERIFICATION:
+  - CMD: cd core && dart analyze --fatal-infos lib/model/blob_types.dart lib/model/blob_cipher.dart lib/model/local_blob_store.dart lib/model/record_blob_unit_of_work.dart
+    EXPECT_EXIT: 0
+  - CMD: cd core && flutter test test/blob_types_test.dart
+    EXPECT_EXIT: 0
+  - CMD: grep -nE "UnimplementedError|class .*Impl" core/lib/model/local_blob_store.dart core/lib/model/blob_cipher.dart core/lib/model/record_blob_unit_of_work.dart
+    EXPECT_EXIT: 1   # 零实现：无匹配才通过
+  - CMD: grep -cE "Future<void> (retain|release)\(" core/lib/model/local_blob_store.dart
+    EXPECT_STDOUT: "0"
+  - CMD: grep -c "readCipherChunk" core/lib/model/local_blob_store.dart
+    EXPECT_STDOUT: "1"
+
+DONE_WHEN:
+  - 四个源文件与一个测试文件存在，全部命令按 EXPECT 通过
+  - 四个测试用例全部存在

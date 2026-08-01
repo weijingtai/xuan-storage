@@ -1,0 +1,157 @@
+ACT_VERSION: 1
+TASK_ID: mimo-storage-s1a-contracts/02
+TITLE: StoragePolicy sealed 类族 + StoragePolicyRegistry + 不变式契约测试
+TYPE: contract
+ORDER: 2
+DEPENDS_ON: [mimo-storage-s1a-contracts/01]
+DISPATCH_STATUS: ready
+STRONG_MODEL_ONLY: false
+
+OBJECTIVE: >
+  交付存储策略的密封类族与全局注册表。核心要求：非法组合在参数表上传不进去，
+  而不是靠运行时检查拦截。这是整个「防混用」机制的落点。
+
+SCOPE:
+  READ:
+    - docs/superpowers/specs/2026-07-31-storage-architecture-design.md   # §2.3 全文含完整代码，照抄；§2.3.0 强制级别；§2.3.2 不变式清单
+    - core/lib/model/storage_classification.dart                          # ACT 01 产物
+    - core/lib/model/ports.dart                                           # dartdoc 风格
+  WRITE:
+    - core/lib/model/storage_policy.dart
+    - core/lib/model/storage_policy_registry.dart
+    - core/test/storage_policy_test.dart
+
+SIGNATURE:
+  # 设计稿 §2.3 已给出完整可编译代码。直接照抄，不要"优化"。
+  # 以下是必须逐字满足的形状约束：
+  storage_policy.dart: |
+    sealed class StoragePolicy {
+      const StoragePolicy._();
+      DataVisibility get visibility;
+      Set<Carrier> get carriers;
+      Set<Channel> get channels;
+      Set<Source> get sources;
+      Publisher get publisher;
+      Encryption get encryption;
+
+      // 注意：private 的参数表里【没有】cloud，也【没有】channels
+      const factory StoragePolicy.private({
+        required Set<Carrier> carriers,
+        bool lan, bool webrtc, bool manualExport,
+      }) = PrivatePolicy._;
+
+      // 注意：shared 的参数表里【没有】channels
+      const factory StoragePolicy.shared({required Set<Carrier> carriers}) = SharedPolicy._;
+
+      const factory StoragePolicy.resource({
+        required Set<Carrier> carriers,
+        required Set<Source> sources,
+        Publisher publisher,
+      }) = ResourcePolicy._;
+
+      // 注意：control 【没有任何参数】
+      const factory StoragePolicy.control() = ControlPolicy._;
+    }
+    // 四个子类构造器一律私有（._），默认值写在目标构造器上（已实测合法）
+    final class PrivatePolicy extends StoragePolicy { const PrivatePolicy._({...}) ... }
+    final class SharedPolicy extends StoragePolicy { const SharedPolicy._({...}) ... }
+    final class ResourcePolicy extends StoragePolicy { const ResourcePolicy._({...}) ... }
+    final class ControlPolicy extends StoragePolicy { const ControlPolicy._() ... }
+
+  storage_policy_registry.dart: |
+    abstract final class StoragePolicyRegistry {
+      static void register(String entityType, StoragePolicy policy);  // 重复注册抛 StateError
+      static StoragePolicy? lookup(String entityType);                 // 未注册返回 null
+      static Map<String, StoragePolicy> get all;                       // 契约测试遍历用
+      static void clearForTesting();                                   // 仅测试用，需 @visibleForTesting
+    }
+
+CONSTRAINTS:
+  - PrivatePolicy.channels 的 getter 必须恒含 Channel.cloud，实现为
+    `{Channel.cloud, if (_lan) Channel.lan, if (_webrtc) Channel.webrtc, if (_manualExport) Channel.manualExport}`。
+    cloud 不是参数，调用方拿不掉。
+  - 【不要】试图用 const 构造器的 assert 表达集合成员判定。已实测失败：
+    Set.contains 是方法调用，const 表达式禁止，报 const_eval_method_invocation。
+  - register 必须校验设计稿 §2.3.2 的不变式 4 与 5 并抛 StateError：
+    #4 resource 策略当前阶段 publisher 必须为 official
+    #5 sources 非空 当且仅当 visibility ∈ {resource, control}
+    不变式 1/2/3 是结构性的，register 不需要重复校验（测试里断言即可）。
+
+TESTS_FIRST:
+  CASES:
+    - NAME: structural_invariants_hold_for_all_registered
+      FILE: core/test/storage_policy_test.dart
+      BEHAVIOR: >
+        注册每种可见性各一条策略后遍历 StoragePolicyRegistry.all，断言：
+        #1 shared 策略 channels 恰为 {Channel.cloud}
+        #2 private 策略 encryption == e2eeOverSse 且 channels 含 Channel.cloud
+        #3 control 策略 publisher == official 且 sources 恰为 {Source.officialRemote}
+      RED_COMMAND: cd core && flutter test test/storage_policy_test.dart
+      RED_EXPECT: 编译失败（StoragePolicy 不存在），退出码非 0
+      COVERS: [A1, A2, A7]
+
+    - NAME: private_cloud_cannot_be_removed
+      FILE: core/test/storage_policy_test.dart
+      BEHAVIOR: >
+        构造 StoragePolicy.private(carriers:{Carrier.row}, lan:false, webrtc:false,
+        manualExport:false)，断言 channels 仍然恰为 {Channel.cloud}。
+        这证明 cloud 结构上不可关闭（设计稿 §2.3.0）。
+      RED_COMMAND: cd core && flutter test test/storage_policy_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A7]
+
+    - NAME: private_channel_flags_take_effect
+      FILE: core/test/storage_policy_test.dart
+      BEHAVIOR: >
+        private(lan:false) 的 channels 为 {cloud, webrtc, manualExport}；
+        private(默认) 的 channels 为四条全含。非 happy-path：逐个 flag 单独关闭各断言一次。
+      RED_COMMAND: cd core && flutter test test/storage_policy_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A7]
+
+    - NAME: register_rejects_resource_with_user_publisher
+      FILE: core/test/storage_policy_test.dart
+      BEHAVIOR: >
+        register 一条 resource 策略且 publisher 为 Publisher.user 时必须抛 StateError
+        （不变式 #4，当前阶段仅官方可上架）。用 expect(() => ..., throwsStateError)。
+      RED_COMMAND: cd core && flutter test test/storage_policy_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A2]
+
+    - NAME: register_rejects_empty_sources_on_resource
+      FILE: core/test/storage_policy_test.dart
+      BEHAVIOR: >
+        register 一条 resource 策略且 sources 为空集时必须抛 StateError（不变式 #5）。
+      RED_COMMAND: cd core && flutter test test/storage_policy_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A2]
+
+    - NAME: register_rejects_duplicate_entity_type
+      FILE: core/test/storage_policy_test.dart
+      BEHAVIOR: 同一 entityType 注册两次必须抛 StateError。
+      RED_COMMAND: cd core && flutter test test/storage_policy_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A2]
+
+    - NAME: lookup_unregistered_returns_null_not_default
+      FILE: core/test/storage_policy_test.dart
+      BEHAVIOR: >
+        lookup 一个从未注册的 entityType 返回 null，【不是】返回某个默认策略。
+        调用方据此 fail closed（拒绝推送）。
+      RED_COMMAND: cd core && flutter test test/storage_policy_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A2]
+
+VERIFICATION:
+  - CMD: cd core && dart analyze --fatal-infos lib/model/storage_policy.dart lib/model/storage_policy_registry.dart
+    EXPECT_EXIT: 0
+  - CMD: cd core && flutter test test/storage_policy_test.dart
+    EXPECT_EXIT: 0
+  - CMD: grep -cE "const (PrivatePolicy|SharedPolicy|ResourcePolicy|ControlPolicy)\._" core/lib/model/storage_policy.dart
+    EXPECT_STDOUT: "4"   # 四个子类构造器全部私有
+  - CMD: grep -E "factory StoragePolicy\.private" -A 5 core/lib/model/storage_policy.dart | grep -c "cloud"
+    EXPECT_STDOUT: "0"   # private 工厂参数表中不得出现 cloud
+
+DONE_WHEN:
+  - 两个源文件与一个测试文件存在，全部命令按 EXPECT 通过
+  - 七个测试用例全部存在（不允许只写 happy path）

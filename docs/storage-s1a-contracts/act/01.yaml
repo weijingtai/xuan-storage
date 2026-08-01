@@ -1,0 +1,112 @@
+ACT_VERSION: 1
+TASK_ID: mimo-storage-s1a-contracts/01
+TITLE: 六个分类 enum + CancellationToken + blob 错误子类
+TYPE: contract
+ORDER: 1
+DEPENDS_ON: []
+DISPATCH_STATUS: ready
+STRONG_MODEL_ONLY: false
+
+PREREQUISITES:
+  - 必须能连通内网 Gitea http://192.168.0.165:3000 —— core/pubspec.yaml 有 5 个 git 依赖
+    (metaphysics_core / persistence_domain / divination_case /
+     repository_interface_divination_pipeline / repository_interface_four_zhu_card)。
+    连不通则 `flutter pub get` 失败，本任务无法开工，立即上报，不要试图删依赖绕过。
+  - 先跑 `cd core && flutter pub get` 确认基线可编译。
+
+OBJECTIVE: >
+  在 persistence_core 内建立 S1a 的基础类型层：六个分类 enum、取消令牌、
+  以及 blob 层专用的 StorageError 子类。本 ACT 零业务逻辑，只有类型定义。
+
+SCOPE:
+  READ:
+    - docs/superpowers/specs/2026-07-31-storage-architecture-design.md   # 按 §2.1 定位 enum 定义
+    - core/lib/model/storage_error.dart                                  # 错误子类的既有写法，照抄模式
+    - core/lib/model/ports.dart                                          # dartdoc 中文注释风格，照抄风格
+    - core/pubspec.yaml
+  WRITE:
+    - core/lib/model/storage_classification.dart
+    - core/lib/model/cancellation_token.dart
+    - core/lib/model/blob_error.dart
+    - core/test/storage_classification_test.dart
+
+SIGNATURE:
+  # 严格照 §2.1 原文，不要自行增删枚举值
+  storage_classification.dart: |
+    enum DataVisibility { private, shared, resource, control }
+    enum Publisher { official, user }
+    enum Carrier { row, blob }
+    enum Source { bundled, officialRemote }
+    enum Channel { cloud, lan, webrtc, manualExport }
+    enum Encryption { e2eeOverSse, sseOnly, sseOverTls }
+
+  cancellation_token.dart: |
+    /// 取消令牌。§3.6 规定所有可能超过 1 秒的方法接受 CancellationToken?。
+    abstract interface class CancellationToken {
+      bool get isCancelled;
+      Future<void> get whenCancelled;
+      void throwIfCancelled();
+    }
+
+  blob_error.dart: |
+    // 照 core/lib/model/storage_error.dart 里 SyncConflictError 的写法：
+    // class XxxError extends StorageError，构造器里 super(code/message/reason/suggestion)
+    // code 前缀统一 'storage.blob_'
+    class BlobNotFoundError extends StorageError { ... }      // code: storage.blob_not_found
+    class BlobCorruptError extends StorageError { ... }        // code: storage.blob_corrupt
+    class BlobUndecryptableError extends StorageError { ... }  // code: storage.blob_undecryptable
+    class BlobStorageFullError extends StorageError { ... }    // code: storage.blob_storage_full
+    class BlobCancelledError extends StorageError { ... }      // code: storage.blob_cancelled
+
+CONSTRAINTS:
+  - 枚举名必须是 DataVisibility，不是 Visibility。persistence_core 依赖 flutter，
+    裸 Visibility 会与 Flutter 的 Visibility widget 冲突。
+  - 不要新建名为 NetworkUnavailable 的类。设计稿 §4.3 示例里那个名字是错的。
+  - 所有公开成员必须有中文 dartdoc，照 core/lib/model/ports.dart 的密度。
+
+TESTS_FIRST:
+  CASES:
+    - NAME: six_enums_have_exact_values
+      FILE: core/test/storage_classification_test.dart
+      BEHAVIOR: >
+        六个 enum 的 values.length 与取值名逐一断言：
+        DataVisibility 4 个 (private/shared/resource/control)；
+        Publisher 2 个；Carrier 2 个；Source 2 个 (bundled/officialRemote，无 marketplace)；
+        Channel 4 个；Encryption 3 个 (e2eeOverSse/sseOnly/sseOverTls)。
+      RED_COMMAND: cd core && flutter test test/storage_classification_test.dart
+      RED_EXPECT: 编译失败（类型不存在），退出码非 0
+      COVERS: [A1, A5]
+
+    - NAME: source_has_no_marketplace
+      FILE: core/test/storage_classification_test.dart
+      BEHAVIOR: >
+        断言 Source.values 中不存在名为 marketplace 的取值。
+        Marketplace 已被 YAGNI 移除（设计稿 §2.1 注记），加回来即违规。
+      RED_COMMAND: cd core && flutter test test/storage_classification_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A1]
+
+    - NAME: blob_errors_extend_storage_error_with_stable_codes
+      FILE: core/test/storage_classification_test.dart
+      BEHAVIOR: >
+        五个 blob 错误类均 is StorageError；code 分别等于
+        storage.blob_not_found / storage.blob_corrupt / storage.blob_undecryptable /
+        storage.blob_storage_full / storage.blob_cancelled；
+        且 message/reason/suggestion 四字段均非空字符串。
+      RED_COMMAND: cd core && flutter test test/storage_classification_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A1]
+
+VERIFICATION:
+  - CMD: cd core && dart analyze --fatal-infos lib/model/storage_classification.dart lib/model/cancellation_token.dart lib/model/blob_error.dart
+    EXPECT_EXIT: 0
+  - CMD: cd core && flutter test test/storage_classification_test.dart
+    EXPECT_EXIT: 0
+  - CMD: grep -rn "enum Visibility " core/lib/
+    EXPECT_EXIT: 1   # grep 无匹配时退出码为 1，即「没有裸 Visibility」才算通过
+  - CMD: grep -rn "class NetworkUnavailable" core/lib/
+    EXPECT_EXIT: 1
+
+DONE_WHEN:
+  - 三个源文件与一个测试文件存在且全部命令按 EXPECT_EXIT 通过
+  - 不修改任何既有文件（本 ACT 只新增）

@@ -1,0 +1,127 @@
+ACT_VERSION: 1
+TASK_ID: mimo-storage-s1a-contracts/05
+TITLE: barrel export + 策略通道过滤契约测试
+TYPE: contract
+ORDER: 5
+DEPENDS_ON: [mimo-storage-s1a-contracts/04]
+DISPATCH_STATUS: ready
+STRONG_MODEL_ONLY: false
+
+OBJECTIVE: >
+  把 S1a 全部新增端口挂进包的 barrel，并交付「防混用」机制的真正验收项：
+  证明按 policy 过滤后，shared 类记录不会被派发给非 cloud 通道的 peer。
+
+SCOPE:
+  READ:
+    - docs/superpowers/specs/2026-07-31-storage-architecture-design.md
+      # §2.3.1 强制点与 peekBatch(channel) 过滤；§2.3.2 三类验证手段的分工
+    - core/lib/persistence_core.dart          # 既有 export 列表，追加不重排
+    - core/lib/model/ports.dart               # RemoteGateway / OutboxRecord 既有形状
+    - core/lib/model/types.dart               # OutboxRecord 字段
+    - core/lib/model/storage_policy_registry.dart   # ACT 02
+  WRITE:
+    - core/lib/persistence_core.dart          # 仅追加 export 行
+    - core/test/policy_channel_filter_test.dart
+
+TASK_DETAIL:
+  barrel: >
+    在 core/lib/persistence_core.dart 的 export 列表【末尾追加】以下 9 行，
+    不要重排既有行：
+      export 'model/storage_classification.dart';
+      export 'model/cancellation_token.dart';
+      export 'model/blob_error.dart';
+      export 'model/storage_policy.dart';
+      export 'model/storage_policy_registry.dart';
+      export 'model/blob_types.dart';
+      export 'model/blob_cipher.dart';
+      export 'model/local_blob_store.dart';
+      export 'model/record_blob_unit_of_work.dart';
+      export 'model/blob_gateway.dart';
+      export 'model/transport.dart';
+      export 'model/export_bundle.dart';
+
+  filter_helper: >
+    本 ACT 【不】改 OutboxStore 端口签名（那属于 S1b）。
+    只在测试文件内写一个纯函数作为过滤语义的可执行规格：
+
+      List<OutboxRecord> filterForChannel(
+        List<OutboxRecord> all, Channel channel,
+      ) => all.where((r) {
+        final p = StoragePolicyRegistry.lookup(r.entityType);
+        if (p == null) return false;          // fail closed：未注册一律不推
+        return p.channels.contains(channel);
+      }).toList();
+
+    这个函数就是 S1b 要落进 peekBatch 的判定逻辑。放在测试里先把语义钉死。
+
+TESTS_FIRST:
+  CASES:
+    - NAME: shared_records_never_reach_lan_peer
+      FILE: core/test/policy_channel_filter_test.dart
+      BEHAVIOR: >
+        注册两条策略：'xiang_reading' 为 private、'playground_post' 为 shared。
+        构造混合的 OutboxRecord 列表（两种 entityType 各若干条）。
+        断言 filterForChannel(all, Channel.lan) 的结果中【不含】任何
+        entityType == 'playground_post' 的记录，且含全部 private 记录。
+        这是「防混用」的真正验收项 —— 前面几个 ACT 全绿而这条失败，
+        说明契约只是装饰。
+      RED_COMMAND: cd core && flutter test test/policy_channel_filter_test.dart
+      RED_EXPECT: 编译失败，退出码非 0
+      COVERS: [A2, A7]
+
+    - NAME: shared_records_do_reach_cloud_peer
+      FILE: core/test/policy_channel_filter_test.dart
+      BEHAVIOR: >
+        同一份数据，filterForChannel(all, Channel.cloud) 的结果【同时包含】
+        private 与 shared 两类记录。反向确认过滤不是「一刀切禁掉 shared」。
+      RED_COMMAND: cd core && flutter test test/policy_channel_filter_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A2]
+
+    - NAME: unregistered_entity_type_fails_closed
+      FILE: core/test/policy_channel_filter_test.dart
+      BEHAVIOR: >
+        列表里混入一条 entityType 未注册的记录，断言它在【任何】通道下
+        都不出现在过滤结果中（fail closed）。
+        绝不能因为查不到策略就默认放行。
+      RED_COMMAND: cd core && flutter test test/policy_channel_filter_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A2]
+
+    - NAME: private_with_lan_disabled_excluded_from_lan
+      FILE: core/test/policy_channel_filter_test.dart
+      BEHAVIOR: >
+        注册一条 private 策略且 lan:false。断言其记录不出现在 Channel.lan 的
+        过滤结果中，但仍出现在 Channel.cloud 的结果中。
+        验证 per-policy 的通道开关真的参与判定。
+      RED_COMMAND: cd core && flutter test test/policy_channel_filter_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A2, A7]
+
+    - NAME: barrel_exports_all_new_ports
+      FILE: core/test/policy_channel_filter_test.dart
+      BEHAVIOR: >
+        文件顶部只 `import 'package:persistence_core/persistence_core.dart';`
+        （不逐个 import model 下的文件），然后引用 DataVisibility / StoragePolicy /
+        StoragePolicyRegistry / BlobHandle / BlobStatus / LocalBlobStore /
+        BlobCipher / RecordBlobUnitOfWork / BlobGateway / Transport /
+        PeerSession / ExportBundleReader 各一次。
+        编译通过即证明 barrel 导出完整。
+      RED_COMMAND: cd core && flutter test test/policy_channel_filter_test.dart
+      RED_EXPECT: 编译失败（barrel 未导出），先红
+      COVERS: [A9]
+
+VERIFICATION:
+  - CMD: cd core && dart analyze --fatal-infos
+    EXPECT_EXIT: 0
+  - CMD: cd core && flutter test
+    EXPECT_EXIT: 0
+  - CMD: grep -c "^export 'model/storage_policy.dart';" core/lib/persistence_core.dart
+    EXPECT_STDOUT: "1"
+  - CMD: grep -c "^export 'model/transport.dart';" core/lib/persistence_core.dart
+    EXPECT_STDOUT: "1"
+
+DONE_WHEN:
+  - barrel 追加 12 行 export，既有行未被重排或删除
+  - 五个测试用例全部存在且通过
+  - 全包 dart analyze 与 flutter test 均为 0

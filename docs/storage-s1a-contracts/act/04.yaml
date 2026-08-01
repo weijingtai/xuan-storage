@@ -1,0 +1,153 @@
+ACT_VERSION: 1
+TASK_ID: mimo-storage-s1a-contracts/04
+TITLE: BlobGateway + Transport/PeerSession + ExportBundleWriter/Reader
+TYPE: contract
+ORDER: 4
+DEPENDS_ON: [mimo-storage-s1a-contracts/03]
+DISPATCH_STATUS: ready
+STRONG_MODEL_ONLY: false
+
+OBJECTIVE: >
+  交付 blob 层的远端面与传输层契约。三组端口层级明确：Transport 在下层，
+  由 PeerSession 持有并多路复用；BlobGateway 与 SyncPeer 是其上的协议消费者。
+  导出导入【不走】Transport，走独立的 ExportBundle 端口。
+
+SCOPE:
+  READ:
+    - docs/superpowers/specs/2026-07-31-storage-architecture-design.md
+      # §3.4 BlobGateway；§3.5 Transport/PeerSession 层级与 ExportBundle 为何独立；
+      # §3.6 通用约定；§7.5.2 签名 URL 时效
+    - core/lib/model/blob_types.dart                 # ACT 03
+    - core/lib/model/cancellation_token.dart         # ACT 01
+    - core/lib/model/types.dart                      # RemoteChangesPage 已存在，复用不重定义
+    - core/lib/model/ports.dart                      # RemoteGateway/RegionCapabilities 既有形状
+    - /Users/jingtaiwei/Git/Public/xuan-migration/repository-interface-playground/lib/src/ports/playground_media_repository.dart
+      # 既有 beginUpload/getDownloadUrl 的形状参考，保持风格一致
+  WRITE:
+    - core/lib/model/blob_gateway.dart
+    - core/lib/model/transport.dart
+    - core/lib/model/export_bundle.dart
+    - core/test/transport_contract_test.dart
+
+SIGNATURE:
+  blob_gateway.dart: |
+    final class BlobUploadTicket { final String objectName; final DateTime expiresAtUtc; ... }
+    final class BlobDownloadTicket { final String url; final DateTime expiresAtUtc; ... }
+    final class BlobGatewayCapabilities { final int maxChunkBytes;
+                                          final Duration requestTimeout;
+                                          final bool supportsResumable; ... }
+    abstract interface class BlobGateway {
+      Future<BlobUploadTicket> beginUpload({required String scopeUid,
+          required BlobHandle handle, required BlobVisibility visibility});
+      Future<void> putChunk({required BlobUploadTicket ticket, required int index,
+          required List<int> cipherBytes, CancellationToken? cancel});
+      Future<void> completeUpload(BlobUploadTicket ticket);
+      Future<Set<int>> remoteChunks(BlobUploadTicket ticket);
+      Future<BlobDownloadTicket> getDownloadTicket(BlobHandle handle);
+      Future<void> deleteObject(BlobHandle handle);
+      Future<BlobGatewayCapabilities> getCapabilities();
+    }
+
+  transport.dart: |
+    enum StreamKind { oplog, blobChunk }
+    final class PeerIdentity { final String deviceId; final String publicKeyFingerprint; ... }
+    final class DiscoveredPeer { final String transientServiceId; final Channel channel; ... }
+    final class DeviceKeyPair { ... }   // 仅占位形状，实现属 S6
+    enum PeerSessionState { connecting, authenticated, degraded, closed }
+    abstract interface class PeerStream {
+      Stream<List<int>> get incoming;
+      Future<void> send(List<int> bytes);
+      Future<void> close();
+    }
+    abstract interface class PeerSession {
+      PeerIdentity get remote;
+      Stream<PeerSessionState> get state;
+      Future<PeerStream> openStream(StreamKind kind);
+      Future<void> close();
+    }
+    abstract interface class Transport {
+      Channel get channel;
+      Stream<DiscoveredPeer> discover({Duration? timeout});
+      Future<PeerSession> connect(DiscoveredPeer peer,
+          {required DeviceKeyPair localKeys, CancellationToken? cancel});
+      Future<void> dispose();
+    }
+
+  export_bundle.dart: |
+    final class BundleManifest { final String scopeUid; final int operationCount;
+                                 final DateTime createdAtUtc; final String signature; ... }
+    abstract interface class ExportBundleWriter {
+      Future<void> write({required String scopeUid, required String outputPath,
+          required bool includeBlobs, CancellationToken? cancel});
+    }
+    abstract interface class ExportBundleReader {
+      Future<BundleManifest> inspect(String path);
+      Stream<RemoteChangesPage> readChanges(String path, {required String scopeUid});
+    }
+
+CONSTRAINTS:
+  - 【绝对不要】创建名为 ExportFileTransport 的类，也不要让 ExportBundle* 实现
+    Transport 或 PeerSession。文件不是持续连接：没有握手、没有心跳、没有双向并发流、
+    没有实时多路复用，硬套会得到一堆 UnsupportedError。理由见 §3.5 与任务纪要墓地。
+  - ExportBundleReader.readChanges 必须返回 Stream<RemoteChangesPage>，
+    复用 core/lib/model/types.dart 里【已存在】的 RemoteChangesPage，不要重新定义一个。
+  - Transport.discover 的 dartdoc 必须写明：广播内容只含随机化的临时 service id，
+    【不含】scopeUid 或设备名（否则同一 WiFi 下任何人都能枚举设备归属）。
+  - Transport.connect 的 dartdoc 必须写明：握手需完成认证密钥交换并把指纹绑定到会话
+    （channel binding），否则带外指纹比对对主动 MITM 无效。具体规格属 S6。
+  - 【零实现】。同 ACT 03。
+
+TESTS_FIRST:
+  CASES:
+    - NAME: transport_and_peer_session_are_layered_not_siblings
+      FILE: core/test/transport_contract_test.dart
+      BEHAVIOR: >
+        写一个 fake Transport 实现，connect 返回 fake PeerSession；
+        从同一个 session 上 openStream(oplog) 与 openStream(blobChunk) 得到两条
+        【不同】的 PeerStream 实例。这证明多路复用在契约上成立（§3.5 层级）。
+      RED_COMMAND: cd core && flutter test test/transport_contract_test.dart
+      RED_EXPECT: 编译失败（Transport 不存在），退出码非 0
+      COVERS: [A1, A2]
+
+    - NAME: export_bundle_does_not_implement_transport
+      FILE: core/test/transport_contract_test.dart
+      BEHAVIOR: >
+        断言 ExportBundleWriter 与 ExportBundleReader 【不是】Transport 的子类型，
+        也【不是】PeerSession 的子类型。用 `expect(writer, isNot(isA<Transport>()))`。
+        这条测试的存在本身就是防止后人把文件塞回连接抽象。
+      RED_COMMAND: cd core && flutter test test/transport_contract_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A6]
+
+    - NAME: export_reader_reuses_existing_remote_changes_page
+      FILE: core/test/transport_contract_test.dart
+      BEHAVIOR: >
+        fake ExportBundleReader.readChanges 产出的元素类型是
+        core/lib/model/types.dart 里【既有的】RemoteChangesPage，
+        断言其有 changes / nextCursor / hasMore 三个字段。
+      RED_COMMAND: cd core && flutter test test/transport_contract_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A1]
+
+    - NAME: stream_kind_has_exactly_two_values
+      FILE: core/test/transport_contract_test.dart
+      BEHAVIOR: StreamKind.values 恰有 2 个：oplog / blobChunk。
+      RED_COMMAND: cd core && flutter test test/transport_contract_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A1]
+
+VERIFICATION:
+  - CMD: cd core && dart analyze --fatal-infos lib/model/blob_gateway.dart lib/model/transport.dart lib/model/export_bundle.dart
+    EXPECT_EXIT: 0
+  - CMD: cd core && flutter test test/transport_contract_test.dart
+    EXPECT_EXIT: 0
+  - CMD: grep -rn "ExportFileTransport" core/lib/
+    EXPECT_EXIT: 1
+  - CMD: grep -c "class RemoteChangesPage" core/lib/model/export_bundle.dart
+    EXPECT_STDOUT: "0"   # 不得重新定义，必须复用 types.dart 的
+  - CMD: grep -nE "UnimplementedError|class .*Impl" core/lib/model/blob_gateway.dart core/lib/model/transport.dart core/lib/model/export_bundle.dart
+    EXPECT_EXIT: 1
+
+DONE_WHEN:
+  - 三个源文件与一个测试文件存在，全部命令按 EXPECT 通过
+  - 四个测试用例全部存在
