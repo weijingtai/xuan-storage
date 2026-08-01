@@ -67,26 +67,28 @@
 enum Visibility { private, shared, resource, control }
 enum Publisher  { official, user }
 enum Carrier    { row, blob }
-enum Source     { bundled, officialRemote, marketplace }
+enum Source     { bundled, officialRemote }
 ```
+
+> **Marketplace 不在当前范围。** 讨论中曾把 `marketplace` 列为第三个 `Source`，现按 YAGNI 移除。将来若要做，改动是「`Source` 加一个枚举值 + 一个源实现 + 策略声明的 `sources` 集合加一项」，不触及本设计的其余部分。
 
 **`official` 不是可见性，是发布者身份。** 官方主题（中国红、天青色）与用户自制主题的可见性完全相同 —— 都是公开只读的资源，都只走云端。区别只在于谁发布，而发布者决定的是信任级别与是否需要审核，不是存储策略。
 
 **`Carrier` 的依据**：`repository-interface-media` 已定义 `MediaReference{refId, version, role, mimeType, durationMs}` —— 记录里存的是引用，真正的字节在别处。row 与 blob 的同步机制没有共用面：row 靠 operation log + LWW 仲裁 + 游标增量；blob 靠内容寻址、分块、断点续传、引用计数 GC。二者必须是两套端口，不可塞进同一个 `RemoteGateway`。
 
-**`Source` 会随时间演进**，而 Repository 必须对来源无感 —— 同一个 `ThemeRepository.get(id)`，今天从 bundled assets 读、明天从官方远端下载、后天从 Marketplace 取，业务层一行不改。
+**`Source` 会随时间演进**，而 Repository 必须对来源无感 —— 同一个 `ThemeRepository.get(id)`，今天从 bundled assets 读、明天从官方远端下载，业务层一行不改。
 
 ### 2.1.1 全量对照表
 
-| 东西 | Visibility | Publisher | Carrier | Source（当前 → 未来） |
+| 东西 | Visibility | Publisher | Carrier | Source |
 |---|---|---|---|---|
 | 占卦记录 | private | user | row | 本地 |
 | 相的图片 / 视频 | private | user | blob | 本地 |
 | 帖子草稿 | shared | user | row + blob | 云端 |
 | 已发布帖子 | shared | user | row + blob | 云端 |
 | 用户自制主题 | resource | user | row + blob | *（当前阶段不开放，见 §9.1）* |
-| **官方主题**（中国红 / 天青色） | resource | **official** | row + blob | `bundled` → `marketplace` |
-| **数据资源**（拆书：格局原文与讲解） | resource | **official** | **row** | `bundled` → `marketplace` |
+| **官方主题**（中国红 / 天青色） | resource | **official** | row + blob | `bundled` → `officialRemote` |
+| **数据资源**（拆书：格局原文与讲解） | resource | **official** | **row** | `bundled` → `officialRemote` |
 | **控制下发**（功能开关 / 服务器地址 / 默认主题 id） | **control** | **official** | row | **只能 `officialRemote`** |
 
 ### 2.1.2 三类官方资源的差异
@@ -102,7 +104,7 @@ enum Source     { bundled, officialRemote, marketplace }
 | **获取时机** | 用户选了才下 | 用到哪本下哪本 | 启动时拉 |
 | **更新要求** | 随版本，低频 | 增补，低频 | **必须能快速生效** |
 | **拿不到时** | 回退默认主题 | 该功能不可用 | **用内置默认值，不得阻塞启动** |
-| **未来来源** | Marketplace | Marketplace | **永不 Marketplace** |
+| **来源演进** | `bundled` → `officialRemote` | `bundled` → `officialRemote` | **只能 `officialRemote`** |
 
 一条容易漏掉的关键点：**数据资源虽然从远端下载，但落地后是 row 不是 blob**。拆书内容要支持「按格局查讲解」，因此下载后必须进本地可查询存储（drift），不能当成一个文件扔进文件系统。这与主题包（下载后就是一坨字节）完全不同。
 
@@ -116,7 +118,7 @@ enum Source     { bundled, officialRemote, marketplace }
 |---|---|---|---|---|
 | `private` | 客户端 E2EE + 桶级 SSE | cloud / lan / webrtc / manualExport | — | user |
 | `shared` | 仅 SSE | 仅 cloud | — | user |
-| `resource` | 仅 SSE | 仅 cloud | bundled / officialRemote / marketplace | official（当前）/ user（后续开放） |
+| `resource` | 仅 SSE | 仅 cloud | bundled / officialRemote | official（当前）/ user（后续开放） |
 | `control` | 仅 SSE + 传输层 TLS | 仅 cloud | **仅 officialRemote** | **仅 official** |
 
 **「真相源在哪」不由 `visibility` 决定**，而由「本人能不能改这份数据」决定 —— 见 §4.1。二者正交：本人的帖子草稿属于 `shared`（因此仅云端通道），但它可写，因此真相源在本地。
@@ -214,18 +216,18 @@ const playgroundPostPolicy = StoragePolicy.shared(
 
 const officialThemePolicy = StoragePolicy.resource(
   carriers: {Carrier.row, Carrier.blob},
-  sources: {Source.bundled, Source.marketplace},
+  sources: {Source.bundled, Source.officialRemote},
 );
 
 const tiaoWenPolicy = StoragePolicy.resource(
   carriers: {Carrier.row},               // 数据资源落地为 row，可检索
-  sources: {Source.bundled, Source.marketplace},
+  sources: {Source.bundled, Source.officialRemote},
 );
 
 const remoteControlPolicy = StoragePolicy.control();   // 无参数可传
 ```
 
-某模块从私有改为可分享，改动量是一行策略声明；Repository 代码不动。资源从 `bundled` 演进到 `marketplace`，改动是 `sources` 集合加一个值。
+某模块从私有改为可分享，改动量是一行策略声明；Repository 代码不动。资源从 `bundled` 演进到 `officialRemote`，改动是 `sources` 集合加一个值。
 
 ---
 
@@ -528,7 +530,7 @@ xuan_config（控制平面）              xuan-storage（数据平面）
 defaultThemeId: "cny-2027"    ──→   ThemeRepository.get("cny-2027")
 featureFlags: {...}                   → 本地有？用本地
 serverEndpoints: [...]                → 没有？按 endpoint 下载
-marketplaceUrl: "..."                 → 落 blob + 元数据 row
+themeEndpoint: "..."                  → 落 blob + 元数据 row
 ```
 
 **`xuan_config` 下发的永远是「指针和开关」，不是内容本身。** 内容的获取、缓存、校验、GC 全部归 `xuan-storage`。
@@ -538,7 +540,7 @@ marketplaceUrl: "..."                 → 落 blob + 元数据 row
 - 场景 A（春节主题）：Console 改 `defaultThemeId` → 客户端拉到新值 → `ThemeRepository` 按 id 取包（本地有就用，没有就下载）→ 应用主题。
 - 场景 B（服务器一个变多个）：Console 增加几个 endpoint 字段，客户端下次拉配置即生效。
 
-这条边界的额外收益：**Marketplace 上线时 `xuan_config` 一行不改** —— 它下发的仍是同一个 `themeId`，只是 `xuan-storage` 的来源链里多了一个 marketplace 源。
+这条边界的额外收益：**将来新增任何资源来源时 `xuan_config` 一行不改** —— 它下发的仍是同一个 `themeId`，只是 `xuan-storage` 的来源链里多一个源。
 
 ### 8.2 `xuan_config` 现状：槽位已预留
 
@@ -579,7 +581,7 @@ abstract class ConfigSource {
 | 层 | 内容 | 载体 | 理由 |
 |---|---|---|---|
 | **L0 引导** | 服务器地址列表、Firebase 项目配置、各资源源 endpoint | **必须 Hosting** | 要在 SDK 初始化前拿到 |
-| **L1 运行时** | 功能开关、`defaultThemeId`、Marketplace 开关 | Hosting 或 Firestore | 稍慢生效可接受 |
+| **L1 运行时** | 功能开关、`defaultThemeId`、各资源 endpoint | Hosting 或 Firestore | 稍慢生效可接受 |
 | **L2 灰度** | 按用户分组下发 | 只能 Firestore | 可选，后期 |
 
 场景 B（服务器一个变多个）落在 L0；场景 A（春节主题）落在 L1。
@@ -606,7 +608,124 @@ abstract class ConfigSource {
 
 白名单是对个人维护者的务实取舍：即使 Firebase 账号被攻破、配置被篡改，攻击者也只能在**自有域名范围内**改地址，无法导向外部。叠加 Hosting 自带的 HTTPS/TLS，已堵住最严重的洞。完整签名体系（内置公钥 + 配置签名验证）留待后期，不在当前范围。
 
-### 8.6 与现有 `SyncConfiguration` 的区分
+### 8.6 配置源的可切换中间层
+
+**目标**：当前用 Firebase，将来能丝滑切到其他 SaaS 或自建后端（REST / gRPC）。
+
+#### 8.6.1 「丝滑」的可检验定义
+
+不是一句口号，而是四条验收标准：
+
+| # | 标准 | 保障机制 |
+|---|---|---|
+| 1 | 换源**不改任何业务代码** | 业务只认 `ConfigRepository`，不认 `ConfigSource` 实现 |
+| 2 | 换源**不改配置内容** | 内容是源无关的 YAML/JSON 文本，`loadRaw → String` 天然保证 |
+| 3 | 换源**可灰度**，失败自动回退 | 新源插入优先级链首、旧源留在链尾，观察后再摘除 |
+| 4 | 换源**不需要用户重装 app** | 仅限 L1/L2 层；L0 引导层不适用，见 §8.6.4 |
+
+第 2 条是现有设计一个未被点明的优点：`ConfigSource.loadRaw(path) → Future<String?>` 返回**裸文本**而非结构化对象，因此源的差异被彻底挡在字符串边界之外。Firebase Hosting 返回 HTTP body、自建 REST 返回 response body、Firestore 把文档序列化成 JSON —— 到了 `ConfigRepository` 手里都是同一种东西。**这个签名不要改。**
+
+#### 8.6.2 分层接口：本地源与远端源能力不同
+
+现有 `ConfigSource` 保持不变（`memory` / `file` / `asset` 三个实现零改动），远端源在其上扩展：
+
+```dart
+/// 已有，不改动 —— 所有源的最小公共契约。
+abstract class ConfigSource {
+  Future<String?> loadRaw(String path);
+  String get sourceId;
+}
+
+/// 远端配置源：增加版本协商与可用性探测。
+abstract class RemoteConfigSource extends ConfigSource {
+  /// 带版本协商的拉取。
+  /// [knownVersion] 与远端一致时返回 notModified，不传内容 —— 省流量。
+  Future<ConfigFetchResult> fetch(String path, {String? knownVersion});
+
+  /// 源是否可达。用于切换决策与优先级链的回退判断。
+  Future<bool> probe();
+
+  ConfigSourceCapabilities get capabilities;
+}
+
+/// 可选能力：推送式更新。不是所有源都支持，因此独立成接口。
+abstract interface class WatchableConfigSource {
+  Stream<ConfigChange> watch(String path);
+}
+
+sealed class ConfigFetchResult {
+  const factory ConfigFetchResult.payload(ConfigPayload payload) = _Payload;
+  const factory ConfigFetchResult.notModified() = _NotModified;
+  const factory ConfigFetchResult.absent() = _Absent;
+}
+
+class ConfigPayload {
+  final String raw;             // 源无关文本
+  final String? version;        // etag / 文档版本 / commit sha
+  final DateTime fetchedAtUtc;
+  final String sourceId;
+}
+```
+
+**为什么 `watch()` 独立成接口而不是基类的可选方法**：Firebase Hosting 是静态托管，物理上不支持推送；Firestore 支持。若塞进基类，Hosting 实现只能抛 `UnsupportedError` 假装实现。独立接口让调用方用 `if (source is WatchableConfigSource)` 显式分支，能力差异在类型系统里可见。
+
+这也正是 `deferred-source-requirements.md` 里 "May extend `ConfigSource` with `watch()` for reactive updates (deferred)" 那句的落地形态。
+
+#### 8.6.3 实现矩阵
+
+| 实现 | 接口 | 版本协商 | 推送 | 备注 |
+|---|---|---|---|---|
+| `MemoryConfigSource` | `ConfigSource` | — | — | 已有，测试用 |
+| `FileConfigSource` | `ConfigSource` | — | — | 已有 |
+| `AssetConfigSource` | `ConfigSource` | — | — | 已有，`bundled` 兜底 |
+| `FirebaseHostingConfigSource` | `RemoteConfigSource` | HTTP `If-None-Match` | ❌ | **当前主用** |
+| `FirestoreConfigSource` | `RemoteConfigSource` + `WatchableConfigSource` | 文档版本字段 | ✅ | L2 灰度时才需要 |
+| `RestConfigSource` | `RemoteConfigSource` | `If-None-Match` / 自定义头 | ❌ | 自建后端 |
+| `GrpcConfigSource` | `RemoteConfigSource` + `WatchableConfigSource` | 请求字段 | ✅ | 自建后端，server streaming |
+
+本地源不实现 `RemoteConfigSource` —— 从本地文件读取没有省流量需求，强加版本协商是无意义的样板代码。
+
+#### 8.6.4 切换的边界：引导层换不了
+
+必须说清楚，否则会误以为一切都能远程切换：
+
+| 层 | 可否远程切换 | 换法 |
+|---|---|---|
+| **L0 引导源** | ❌ **不可** | 只能发版。但可**内置多个备选地址**做故障转移 |
+| **L1 / L2 运行时源** | ✅ 可 | 由 L0 下发 `sourceType` + `endpoint`，下次启动生效 |
+
+原因是循环依赖：切换目标的地址从哪来？只能来自配置；而配置从引导源取。所以引导源的地址必须硬编码在包内 —— 它是信任根（§8.5）。
+
+```dart
+/// 引导配置：包内硬编码，不可远程更改。
+abstract final class ConfigBootstrap {
+  /// 多个备选，按序尝试，用于故障转移而非切换厂商。
+  static const List<String> endpoints = [ /* 主 */, /* 备 */ ];
+
+  /// 域名白名单，见 §8.5。
+  static const List<String> allowedHostSuffixes = [ /* ... */ ];
+}
+```
+
+#### 8.6.5 切换粒度：整体切换 + 优先级回退，不做 per-key 路由
+
+`ConfigRepository` 持有一条有序的源链，按序尝试直到命中：
+
+```dart
+final repo = ConfigRepository(sources: [
+  newRemoteSource,   // 灰度中的新源
+  oldRemoteSource,   // 旧源，观察期内保留
+  assetConfigSource, // bundled 兜底
+]);
+```
+
+切换流程即调整这个列表的顺序与成员 —— 这就是标准 3「可灰度、失败自动回退」的实现。
+
+**不做 per-key 路由**（某些 key 走 A 源、某些走 B 源）：YAGNI，且会让「当前配置到底来自哪里」变得难以诊断。若将来确有需要，可用多个 `ConfigRepository` 实例分别装配不同源链，而不是在单个 Repository 内部做路由。
+
+诊断要求（`deferred-source-requirements.md` 已列为约束）：每次解析必须能回答「这个值来自哪个 `sourceId`、什么版本、何时拉取」，并保留既有的诊断链 `source → ConfigRepository → ConfigException(code + path + key + message + fix)`。
+
+### 8.7 与现有 `SyncConfiguration` 的区分
 
 `core/lib/configuration/sync_configuration_manager.dart`(653行) 中的 `SyncConfiguration` 是**同步引擎的本地配置**（YAML / 文件存储），不是远程下发系统。两者不可混用，本节所述是新建能力。
 
@@ -631,19 +750,19 @@ S1 分类与端口契约层  ←── 地基，全员依赖
 | 编号 | 子系统 | 依赖 | 规模与备注 |
 |---|---|---|---|
 | **S1** | 分类与端口契约层 | — | **薄契约，零实现**：四个 enum、`StoragePolicy` sealed 类族、`LocalBlobStore` / `SyncPeer` / `BlobGateway` / `Transport` 端口签名、契约测试。一周内可落地 |
-| **S5c** | 官方控制下发 | S1 | 对接 `xuan_config` 的 Firebase Hosting source；引导地址 + 域名白名单 + 安全默认值。**需单独走 OpenSpec change**（见 §8.2）。**建议提前** —— S2/S3/S5a/S5b 都要靠它找后端，它晚到就得先硬编码地址、之后返工 |
+| **S5c** | 官方控制下发 + 配置源可切换中间层 | S1 | 对接 `xuan_config`：`RemoteConfigSource` 抽象 + Firebase Hosting 实现 + 优先级回退链；引导地址 + 域名白名单 + 安全默认值。**需单独走 OpenSpec change**（见 §8.2）。**建议提前** —— S2/S3/S5a/S5b 都要靠它找后端，它晚到就得先硬编码地址、之后返工 |
 | **S6** | E2EE 密钥管理 + 设备配对 | S1 | 第二块地基，含带外指纹验证。私有数据的任何跨设备能力都卡在这 |
 | **S3a** | 手动导出导入 | S1 + S6 | 零基础设施，可最先交付 |
 | **S3b** | 局域网直连 | S1 + S6 | mDNS + socket，Dart 生态成熟 |
 | **S3c** | WebRTC | S1 + S6 | **只为 blob 而建**；信令复用 Firestore，TURN 用托管服务 |
 | **S2** | 云端公开分享 | S1 | 复用现有 `firebase/lib/playground/`，主要工作是降级为 RemoteDataSource + 加缓存层 |
-| **S5a** | 样式资源分发 | S1 + S5c | 主题包下载安装；来源链 `bundled → marketplace`。官方与用户主题**同构**，同一套仓库 |
+| **S5a** | 样式资源分发 | S1 + S5c | 主题包下载安装；来源链 `bundled → officialRemote`。官方与用户主题**同构**，同一套仓库 |
 | **S5b** | 数据资源按需下载 | S1 + S5c | 拆书内容按需取；**下载后落 drift 可检索**。可显著降低 app 体积 |
 | **S4** | 用户资源上架（UGC） | S1 + S5a | **当前阶段不做**。见下方范围说明 |
 
-### 9.1 当前阶段范围收窄：Marketplace 仅官方可上架
+### 9.1 当前阶段范围收窄：不做 Marketplace，资源仅官方下发
 
-需求原文第 3 条为「风格化资源文件：支持用户发布、互相分享、下载」。**当前大阶段收窄为：只允许官方通过市场发布分发，不允许用户上架。**
+需求原文第 3 条为「风格化资源文件：支持用户发布、互相分享、下载」。**当前大阶段收窄为：不建设 Marketplace，资源一律由官方下发，用户不可上架。**
 
 架构影响（全是简化）：
 
@@ -682,6 +801,8 @@ S1 只交付最小可执行契约（零实现）+ 一组证明违规组合无法
 | oplog compaction 的具体算法与触发时机 | S1 定接口，S3 实现 |
 | 配置 schema 的版本、迁移与回滚策略 | S5c（`xuan_config` deferred 文档已列为约束） |
 | 域名白名单的具体形式（后缀列表 / 完整域名 / 是否含端口） | S5c |
+| `ConfigSourceCapabilities` 的具体字段集合 | S5c |
+| 灰度切换的观察期与自动摘除旧源的判据 | S5c |
 | 数据资源下载后的 drift 表结构与检索索引设计 | S5b |
 | 主题包的格式、版本兼容与安装/卸载语义 | S5a |
 | UGC 开放后的审核机制、举报、是否收费 | S4（当前阶段不做） |
@@ -695,12 +816,16 @@ S1 只交付最小可执行契约（零实现）+ 一组证明违规组合无法
 | 分类维度 | 四个正交维度 `Visibility × Publisher × Carrier × Source` | 一维四类 —— 无法表达 blob 与 row 的机制差异，也无法表达来源演进 |
 | `official` 的位置 | **降为 `Publisher`，不是 `Visibility`** | 保留为 Visibility —— 官方主题与用户主题可见性完全相同，区别只在发布者，硬分两类会导致 S4/S5 写两套同构逻辑 |
 | `control` 的引入 | 新增第四个 `Visibility` | 归入 `official` Assets —— 控制下发是控制平面不是数据平面，体量、生效速度、失败后果、安全要求全都不同 |
-| 控制平面与数据平面 | `xuan_config` 管指针与开关，`xuan-storage` 管字节 | 由 xuan-storage 直接读远程配置 —— 会让 Marketplace 上线时两边都要改 |
+| 控制平面与数据平面 | `xuan_config` 管指针与开关，`xuan-storage` 管字节 | 由 xuan-storage 直接读远程配置 —— 会让新增资源来源时两边都要改 |
 | 引导配置载体 | **必须 Firebase Hosting（纯 HTTP GET）** | Firestore —— 需先初始化 SDK，而 SDK 要知道连哪个后端，鸡生蛋 |
 | 配置来源链顺序 | 已缓存 remote > bundled > 内置默认 | remote 优先 —— 每次冷启动等网络请求，弱网卡启动画面 |
 | 控制下发的安全 | 内置引导地址 + 内置域名白名单 + 安全默认值 | 完整签名体系 —— 对个人维护者成本过高，白名单已堵住「导向外部服务器」这个要害；签名留待后期 |
 | 数据资源的落地形态 | 远端下载，但**落地为 row 进 drift** | 当 blob 存文件系统 —— 拆书内容要「按格局查讲解」，必须可检索 |
-| Marketplace 上架权限 | **当前阶段仅官方**，端口预留 `Publisher.user` | 立即开放 UGC —— 审核、举报、内容安全是 S4 主要成本，当前阶段不承担 |
+| Marketplace | **当前不做**，`Source` 移除 `marketplace` 值 | 保留枚举值占位 —— YAGNI；将来加值加实现即可，不触及其余设计 |
+| 配置源可切换性 | `ConfigSource` 保持裸文本签名；远端源扩展 `RemoteConfigSource`；`watch()` 独立成接口 | 把 `watch()` 放进基类 —— Hosting 物理上不支持推送，只能抛 UnsupportedError 假装实现，能力差异在类型系统里不可见 |
+| 配置切换粒度 | 整体切换 + 优先级回退链 | per-key 路由 —— YAGNI，且「当前值来自哪个源」难以诊断 |
+| 引导源可否切换 | **不可**，只能发版；内置多备选地址做故障转移 | 引导源也可远程切换 —— 循环依赖：切换目标地址本身来自配置 |
+| 资源上架权限 | **当前阶段仅官方**，端口预留 `Publisher.user` | 立即开放 UGC —— 审核、举报、内容安全是 S4 主要成本，当前阶段不承担 |
 | 防混用机制 | sealed class + 限制构造器 | 运行时断言 / lint 规则 —— 拦不住已写出的错误调用 |
 | Repository 模式 | 按数据类分派（旁路 + 组合） | 全部统一为组合模式 —— 离线冲突逻辑要在 20+ 模块重复实现，且作废现有同步引擎 |
 | 同步触发 | 用户主动发起的配对会话 | 后台自动同步 —— 需要静默推送唤醒，iOS 限制大，且引入中继信箱 |
@@ -731,3 +856,4 @@ S1 只交付最小可执行契约（零实现）+ 一组证明违规组合无法
 | **控制平面 / 数据平面** | 前者下发指针与开关（`xuan_config`），后者搬运实际字节（`xuan-storage`） |
 | **引导配置** | 决定客户端连哪个后端的最小配置，必须在任何 SDK 初始化之前拿到 |
 | **来源链** | 同一份资源按优先级从多个 `Source` 依次回退获取的顺序 |
+| **版本协商** | 携带已知版本（etag 等）发起请求，远端未变更时只回 notModified 而不传内容 |
