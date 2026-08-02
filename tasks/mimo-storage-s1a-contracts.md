@@ -55,7 +55,13 @@
   blob_types_test.dart 5 用例全绿。⚠ 上报获批：core/pubspec.yaml 追加
   repository_interface_record git 依赖（RecordMeta 原为传递依赖不可 import，
   经 request_user_input 用户批准加依赖保持设计稿签名原样）。
-- [ ] ACT 04: BlobGateway + Transport/PeerSession + ExportBundleWriter/Reader（未开工）
+- [x] ACT 04: BlobGateway + Transport/PeerSession + ExportBundleWriter/Reader ✅
+  2026-08-01 完成。新增 blob_gateway.dart（两阶段上传凭证 + 能力描述 +
+  端口）、transport.dart（StreamKind/PeerIdentity/DiscoveredPeer/DeviceKeyPair/
+  PeerSessionState/PeerStream/PeerSession/Transport，层级 Transport 在下）、
+  export_bundle.dart（BundleManifest + Writer/Reader，复用既有 RemoteChangesPage）。
+  transport_contract_test.dart 4 用例全绿。注意：transport.dart 的 dartdoc 不得
+  字面出现 ExportFileTransport（VERIFICATION 会 grep 拦截），已改写措辞。
 - [ ] ACT 05: barrel export + 策略通道过滤契约测试（未开工）
 - [ ] ACT 06: analyzer 负测试（未开工）
 
