@@ -121,12 +121,12 @@ fi
 
 # 检查 3：总数不得超过基线
 if [ "$TOTAL" -gt "$BASELINE_TOTAL" ]; then
-  echo "❌ [检查3] 全包 issue 总数 $TOTAL 超过冻结基线 $BASELINE_TOTAL，说明在既有文件里新增了问题"
+  echo "❌ [检查3] 全包 issue 总数 $TOTAL 超过冻结基线 ${BASELINE_TOTAL}，说明在既有文件里新增了问题"
   FAILED=1
 elif [ "$TOTAL" -lt "$BASELINE_TOTAL" ]; then
-  echo "✅ [检查3] 全包 issue 总数 $TOTAL < 基线 $BASELINE_TOTAL（既有断点被修复了，请同步下调 BASELINE_TOTAL）"
+  echo "✅ [检查3] 全包 issue 总数 $TOTAL < 基线 ${BASELINE_TOTAL}（既有断点被修复了，请同步下调 BASELINE_TOTAL）"
 else
-  echo "✅ [检查3] 全包 issue 总数 $TOTAL = 冻结基线 $BASELINE_TOTAL（无新增）"
+  echo "✅ [检查3] 全包 issue 总数 $TOTAL = 冻结基线 ${BASELINE_TOTAL}（无新增）"
 fi
 
 if [ "$FAILED" -ne 0 ]; then
@@ -136,5 +136,5 @@ if [ "$FAILED" -ne 0 ]; then
 fi
 
 echo "———"
-echo "✅ S1a 静态分析门禁通过（既有断点 $BASELINE_TOTAL 条已按人类决定挂账，见任务纪要决定记录）"
+echo "✅ S1a 静态分析门禁通过（既有断点 ${BASELINE_TOTAL} 条已按人类决定挂账，见任务纪要决定记录）"
 exit 0

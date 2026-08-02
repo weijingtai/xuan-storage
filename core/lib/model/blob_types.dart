@@ -64,6 +64,7 @@ final class BlobHandle {
         other.mimeType == mimeType;
   }
 
+  /// 哈希码：与 [operator ==] 保持一致（值对象约定）。
   @override
   int get hashCode => Object.hash(
         plaintextSha256,
@@ -75,6 +76,7 @@ final class BlobHandle {
         mimeType,
       );
 
+  /// 摘要字符串，用于诊断日志。
   @override
   String toString() =>
       'BlobHandle($plaintextSha256, chunks=$chunkCount, $mimeType)';

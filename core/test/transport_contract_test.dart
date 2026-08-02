@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:persistence_core/model/blob_gateway.dart';
 import 'package:persistence_core/model/cancellation_token.dart';
 import 'package:persistence_core/model/export_bundle.dart';
 import 'package:persistence_core/model/storage_classification.dart';
@@ -18,7 +17,7 @@ void main() {
           channel: Channel.lan,
         ),
         localKeys: const DeviceKeyPair(publicKeyPem: 'key'),
-      ) as Future<PeerSession>;
+      );
 
       // ignore: unawaited_futures
       session.then((s) {

@@ -68,7 +68,12 @@
   export_bundle.dart（BundleManifest + Writer/Reader，复用既有 RemoteChangesPage）。
   transport_contract_test.dart 4 用例全绿。注意：transport.dart 的 dartdoc 不得
   字面出现 ExportFileTransport（VERIFICATION 会 grep 拦截），已改写措辞。
-- [ ] ACT 05: barrel export + 策略通道过滤契约测试（未开工）
+- [x] ACT 05: barrel export + 策略通道过滤契约测试 ✅
+  2026-08-01 完成。persistence_core.dart 末尾追加 12 行 export（不重排既有行）；
+  新增 policy_channel_filter_test.dart（filterForChannel 纯函数规格 + 5 用例，
+  含未注册 fail closed / lan:false 排除）+ s1a_dartdoc_coverage_test.dart
+  （A10 中文 dartdoc 门禁）。全包 flutter test 64 绿、A4 零实现无匹配、
+  A9 十二条 export 全 OK。A1 已按人类改判走 run_s1a_analyze_gate.sh（58=58）。
 - [ ] ACT 06: analyzer 负测试（未开工）
 
 ## 决定记录
@@ -105,6 +110,7 @@
 - 2026-08-01 新门禁已做三个负测试，证明它能变红（否则绿灯无意义，同 ACT06 oracle 的教训）: 往 S1a 文件注入 unused import → 检查1 红；往白名单外的 types.dart 注入 → 检查2 红；往白名单内的 sync_runtime.dart 注入 → 检查3 红（58→60）。三次均 EXIT=1，复原后回到 EXIT=0。
 - 2026-08-01 【转译缺陷·我的错不是执行体的错】ACT03 的 READ 里写「core/lib/model/types.dart # RecordMeta 等既有类型」是错的。实查 types.dart 里【没有】RecordMeta，它在外部包 `repository_interface_record`。执行体在 ACT03 把该包从传递依赖（原已在 core/pubspec.lock，且是 drift 包的直接依赖）提升为 core 的直接依赖 —— 这违反了「不改既有文件」，但方向正确: Dart 要求 import 什么就必须声明什么。判定为可接受偏差，不返工。副作用是 pubspec 的 http INFO 从 7 条变 8 条，已计入冻结基线 58。
 - 2026-08-01 A1 口径调整【不】放松 A2: 全包 `flutter test` 仍必须全绿，且当前实测 64 个测试全通过 —— 既有断点没有污染测试面，因为 four_zhu_card_templates 没有被任何测试或 barrel 引用。
+- 2026-08-01 门禁脚本 bash3.2 修复: `run_s1a_analyze_gate.sh` 检查3 的 echo 里 `$BASELINE_TOTAL（` 在 /bin/bash 3.2.57 下把全角标点吞进变量名，报 `BASELINE_TOTALï: unbound variable`，检查3 无法执行。已改为 `${BASELINE_TOTAL}（`（花括号界定变量名），/bin/bash -n 与实跑均通过。改的是人类提交的验收工具本身，非 S1a 交付物。
 
 ## 踩坑墓地
 - 2026-08-01: 尝试用 const 构造器的 `assert(channels.contains(Channel.cloud))` 把不变式做成编译错误，失败。原因: `Set.contains` 是方法调用，const 表达式禁止，报 `const_eval_method_invocation`。结论: 别再试 assert 路线，用「把参数从参数表移除」的结构化手法。
