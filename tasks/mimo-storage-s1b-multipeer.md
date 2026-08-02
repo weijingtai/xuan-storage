@@ -99,7 +99,16 @@ pushToAll 转头发给所有人（Codex R1 · P0-1）。
 验收命令: `bash scripts/run_s1b_analyze_gate.sh && (cd core && flutter test) && (cd drift && flutter test)`
 
 ## 当前状态
-<每完成一个子任务【覆盖重写】本节，≤12行>
+
+**转译 v3 已完成（提交 `0791f1c`），等待跨模型闸门 R3。代码一行未写。**
+
+- 11 个 ACT 就位：`docs/storage-s1b-multipeer/act/01..11.yaml`
+- 自检已跑：YAML 11/11 通过 · 编号自洽 11/11 · grep -c 缺双 EXPECT 0 条 ·
+  `<ACT_BASE>` 残留 0 · `|| true` 恒绿 0 · 验收标准 A1–A14 与 cd064c6 逐字一致
+- **下一步**：把 `docs/storage-s1b-multipeer/CODEX-R3-PROMPT.md` 投喂给 Codex 做第 3 轮闸门；
+  或人类直接放行下发。⚠ wjt-react 的 2 轮上限已被人类额外授权突破一次，**第 4 轮须重新请示**。
+- **冷启动接手请先读 `docs/storage-s1b-multipeer/HANDOFF.md`**（全景 + 环境坑 + 铁律）
+- 遗留风险：本地 `main` 超前 `gitea/main` **27 个提交未推送**，S1b 全部工作建在这批未备份提交上。
 
 ## 决定记录
 - 2026-08-02: A1 改三段式冻结门禁，基线 core=58 / drift=162。理由: 开工前基线就是红的
