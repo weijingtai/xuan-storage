@@ -11,10 +11,10 @@ OBJECTIVE: >
   给多 peer 化立骨架：把「一个远端」升级为「N 个对端」所需的四个类型定死签名。
   本 ACT【零实现、零破坏】—— 只新增文件，不改 ports.dart，不改任何既有实现类。
   既有 RemoteGateway 的三个实现者（RemoteGatewayRouter / FirestoreRemoteGateway /
-  FirebaseRealtimeRemoteGateway）的迁移安排在紧随其后的 ACT 01b，本 ACT 不碰。
+  FirebaseRealtimeRemoteGateway）的迁移安排在紧随其后的 ACT 03，本 ACT 不碰。
 
-  拆成 01 / 01b 的理由（人类 2026-08-02 裁定）：迁移会顺带修掉 firebase 包两个
-  既有 ERROR（见 01b），规模超出单个 ACT 的 30–60 分钟粒度；且拆开后
+  拆成 01 / 02 的理由（人类 2026-08-02 裁定）：迁移会顺带修掉 firebase 包两个
+  既有 ERROR（见 ACT 03），规模超出单个 ACT 的 30–60 分钟粒度；且拆开后
   「新增契约」与「破坏性变更」的 git diff 互不混淆，跨模型审查时看得清。
 
 SCOPE:
@@ -25,7 +25,7 @@ SCOPE:
       # §5.2 命名说明：接口叫 SyncPeer，实现仍叫 *Gateway，不改既有类名
     - core/lib/model/ports.dart
       # RemoteGateway:177-207（push / listChanges / getCapabilities 三个方法的现状与 dartdoc 风格）
-      # DeviceIdentity:240（已存在，ACT 07 会用，本 ACT 只需知道它在）
+      # DeviceIdentity:240（已存在，ACT 10 会用，本 ACT 只需知道它在）
     - core/lib/model/types.dart
       # SyncError:28 / PullCursor:185 / RemoteChangesPage:266 / OutboxRecord:387
       # RegionCapabilities:444 —— PeerCapabilities 要在它基础上加 peer 维度，先看清它有哪三个字段
@@ -111,25 +111,37 @@ SIGNATURE:
       Future<PeerCapabilities> getCapabilities();
     }
 
-    /// 向【全部】对端扇出推送（§5.2.2 第 4 条）。
+    /// 向【指定的合格对端】扇出推送（§5.2.2 第 4 条 + §5.4 第一道锁）。
     ///
     /// 取代 OutboxPusher 的 1-of-N 语义：一条 outbox 记录要送达 N 个对端，
     /// 每个对端各有各的成败，压不成一个 SyncError?（§5.2.1 阻断点 4）。
+    ///
+    /// ⚠ **方法名里的 All 指的是「[eligiblePeers] 里的全部」，不是「持有的全部」。**
+    /// 没有这个参数的版本（转译 v1）会让 §5.4 的 channel 过滤被整个架空：
+    /// peekBatch 辛苦挑出该对端能收的记录，pushToAll 转头又发给了所有人，
+    /// shared 数据照样泄漏到 LAN，而两边各自的测试都是绿的（Codex R1 · P0-1）。
     abstract interface class PeerFanoutPusher {
-      /// 把 [record] 推给全部对端，逐个返回结果。
+      /// 把 [record] 推给 [eligiblePeers] 中的对端，逐个返回结果。
       ///
-      /// 约定（这三条是 ACT 05 实现时的硬要求，写在这里让契约测试能验）：
-      /// - 返回的 Map 必须【为每个对端都留一个条目】，成功的对端值为 null；
+      /// [eligiblePeers]：允许接收本条记录的对端集合，由调用方按存储策略算出
+      /// （ACT 08 的 `PeerEligibility`）。**实现【必须】只推这个集合里的对端。**
+      ///
+      /// 约定（四条都是 ACT 10 实现时的硬要求，写在这里让契约测试能验）：
+      /// - 只推 [eligiblePeers] 里的对端，一个都不许多推；
+      /// - 返回的 Map 的键集合【恰好等于】 [eligiblePeers]，成功的对端值为 null；
       /// - 某个对端抛异常【不得】中断其余对端的推送，异常转成该对端的 SyncError；
       /// - 不得因为某个对端失败就把整体判为失败 —— 成败是 per-peer 的。
-      Future<Map<PeerId, SyncError?>> pushToAll(OutboxRecord record);
+      Future<Map<PeerId, SyncError?>> pushToAll(
+        OutboxRecord record, {
+        required Set<PeerId> eligiblePeers,
+      });
     }
 
 TASK_DETAIL:
   file_placement: >
     全部四个类型放同一个新文件 core/lib/model/sync_peer.dart。
     【不要】塞进 ports.dart —— ports.dart 是既有单 peer 时代的端口集合，
-    ACT 02 还要在里面改 OutboxStore/SyncStateStore 的签名，两件事混在一个文件里
+    ACT 03 还要在里面改 OutboxStore/SyncStateStore 的签名，两件事混在一个文件里
     会让 git diff 无法区分「新增契约」与「破坏性签名变更」，跨模型审查时看不清。
 
   no_touching_remote_gateway: >
@@ -138,12 +150,12 @@ TASK_DETAIL:
       firebase/lib/persistence_firebase.dart:20              FirestoreRemoteGateway
       firebase/lib/firebase_realtime_remote_gateway.dart:26  FirebaseRealtimeRemoteGateway
     动它等于同时改 core 与 firebase 两个包，且要连带改 sync_coordinator.dart 的四处
-    构造参数。那是 ACT 01b 的事。
+    构造参数。那是 ACT 03 的事。
     本 ACT 只是让 SyncPeer 先存在，两个接口并存【一个 ACT 的时间】是故意的。
 
   barrel: >
     暂【不要】加进 core/lib/persistence_core.dart 的 export 列表 ——
-    barrel 与架构守卫统一在 ACT 10 收口，避免每个 ACT 都碰同一行造成串行冲突。
+    barrel 与架构守卫统一在 ACT 12 收口，避免每个 ACT 都碰同一行造成串行冲突。
 
 CONSTRAINTS:
   - 【零实现】：本 ACT 不写任何 `class X implements SyncPeer`。只有测试里的 fake 例外。
@@ -154,7 +166,9 @@ CONSTRAINTS:
   - 【不要】在 SyncPeer 上加 `watch()` / 推送订阅之类的方法。云端 gateway 与
     LAN peer 的能力差异靠 capabilities 表达，不靠往基类塞会抛 UnsupportedError 的方法
     （S5c 已经踩过这个坑并把它写进了墓地：能力差异必须在类型/数据上可见）。
-  - 【不要】给 PeerFanoutPusher 写实现。ACT 05 才实现。
+  - 【不要】给 PeerFanoutPusher 写实现。ACT 10 才实现。
+  - 【不要】把 pushToAll 的 eligiblePeers 做成可选参数或给默认值「全部对端」。
+    可选即等于没有 —— 调用方漏传就退回泄漏状态，而编译器不会拦。
   - 每个公开声明必须有中文 dartdoc（A12）。
 
 TESTS_FIRST:
@@ -197,19 +211,24 @@ TESTS_FIRST:
       RED_EXPECT: 编译失败，先红
       COVERS: [A11]
 
-    - NAME: fanout_result_map_covers_every_peer_including_successes
+    - NAME: fanout_result_map_equals_eligible_set_exactly
       FILE: core/test/s1b_sync_peer_contract_test.dart
       BEHAVIOR: >
-        非 happy-path 核心。在测试内写一个 fake PeerFanoutPusher，
-        三个对端：cloud 成功、lan 失败、webrtc 抛异常。断言 pushToAll 的返回：
-        - Map 的 length 为 3（成功的 cloud 也【必须】有条目，值为 null）；
+        非 happy-path 核心。fake pusher 持有【四个】对端
+        （cloud 成功、lan 失败、webrtc 抛异常、manualExport 计数式 spy），
+        但 `eligiblePeers` 只传【前三个】。断言：
+        - 返回 Map 的键集合【恰好等于】 eligiblePeers（length 为 3）；
+        - cloud 有条目且值为 null（成功也必须留条目）；
         - lan 的值是 SyncError 且 code 可读；
-        - webrtc 的值是 SyncError（异常被转成错误，不是漏项、不是往外抛）。
-        写成「只返回失败的对端」会让调用方无法区分「成功」与「没推」，
-        per-peer ack 表就会漏写行 —— 那正是 ACT 04 的输入。
+        - webrtc 的值是 SyncError（异常转成错误，不漏项、不外抛）；
+        - **manualExport 的 pushCount 为 0，且它【不在】返回 Map 里**。
+        最后一条是 Codex R1 · P0-1 的契约级防线：
+        实现若忽略 eligiblePeers 直接推给持有的全部对端，这条会红。
+        用计数式 spy 记录调用次数，【不用 fail()】—— 调用方有 catch-all 会吞掉
+        TestFailure（S5c 的教训）。
       RED_COMMAND: cd core && flutter test test/s1b_sync_peer_contract_test.dart
       RED_EXPECT: 编译失败，先红
-      COVERS: [A11]
+      COVERS: [A7, A11]
 
     - NAME: sync_peer_has_no_watch_or_push_subscription_method
       FILE: core/test/s1b_sync_peer_contract_test.dart
@@ -244,7 +263,7 @@ VERIFICATION:
   # PeerCapabilities 不得继承 RegionCapabilities
   - CMD: 'grep -nE "PeerCapabilities (extends|implements) RegionCapabilities" core/lib/model/sync_peer.dart'
     EXPECT_EXIT: 1
-  # barrel 本 ACT 不动（ACT 10 才收口）
+  # barrel 本 ACT 不动（ACT 12 才收口）
   - CMD: git diff --exit-code main.. -- core/lib/persistence_core.dart
     EXPECT_EXIT: 0
 
@@ -258,6 +277,20 @@ SELF_CHECK:
   - 在 SyncPeer 里临时加一个 `Stream<int> watch();` →
     `sync_peer_has_no_watch_or_push_subscription_method` 必须变红 → 改回
   - 三次自检后 `git status --porcelain` 必须为空
+
+ON_FAIL:
+  - RED 阶段测试没红（写实现前就绿）→ 测试没真正依赖新类型/新行为，
+    停下重写测试，【不要】继续往下做
+  - 实现后 VERIFICATION 某条不过 → 先看是不是 EXPECT 写错（尤其 grep -c 的
+    双 EXPECT 语义：无匹配时打印 0 且退出码 1），再改实现
+  - core / drift / firebase 的【既有】测试变红 → 立即停下。
+    本 ACT 只加不改，既有测试变红说明动到了不该动的地方
+  - SELF_CHECK 的某条注入后【没有】变红 → 那条门禁是假的，
+    必须重写门禁而不是跳过自检
+  - 基线类命令（analyze 数量、测试数量）不符 → 不要改基线迁就实现，
+    先确认是不是真的引入了新问题
+  - 连续两次修不好同一条 → 在纪要「决定记录」写下现象与已排除的可能，停下上报，
+    不要连续第三次尝试
 
 DONE_WHEN:
   - core/lib/model/sync_peer.dart 与契约测试文件存在，全部命令按 EXPECT 通过

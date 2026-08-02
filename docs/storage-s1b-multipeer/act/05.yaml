@@ -1,228 +1,302 @@
 ACT_VERSION: 1
 TASK_ID: mimo-storage-s1b-multipeer/05
-TITLE: RemoteGatewayRouter 从 1-of-N 改造为 fan-out + PeerFanoutPusher 实现
+TITLE: drift per-peer 实现 —— t_sync_state 主键切换(v8) + DAO/Store 改造，整包恢复绿
 TYPE: implementation
-ORDER: 6
+ORDER: 5
 DEPENDS_ON: [mimo-storage-s1b-multipeer/04]
 DISPATCH_STATUS: ready
-STRONG_MODEL_ONLY: false
+STRONG_MODEL_ONLY: true    # 判定逻辑写错不报错，只在多 peer 场景静默丢操作
 
 OBJECTIVE: >
-  拆掉 §5.2.1 阻断点 4、5：`push` 返回单个 `SyncError?`（N 个结果压不成一个）、
-  `RemoteGatewayRouter` 是 1-of-N 选择器而不是 fan-out。
-  本 ACT 交付 ACT 01 定下的 `PeerFanoutPusher` 的唯一实现，并让 SyncCoordinator
-  改用它 —— 一条 outbox 记录从此推给全部对端，每个对端各记各的 ack（ACT 04 的表）。
+  把 ACT 04 的端口语义与 ACT 05 的表结构接上，让 drift 整包重新编译通过、测试全绿。
+
+  本 ACT 一并完成 **t_sync_state 的主键切换（v8）**：
+  `{scopeUid, entityType}` → `{scopeUid, peerId, entityType}`。
+  它被从 ACT 05 挪到这里，是因为主键切换必然要改 DAO ——
+  放在 ACT 05 会让迁移测试所在的包编译不过（Codex R1 · P1-14）。
+  放在这里，"改主键 + 改 DAO + 跑绿"在同一个 ACT 内闭环。
+
+  本 ACT 结束时 §5.2.1 的阻断点 1/2/3 才算真正拆除。
+
+WHY_STRONG_MODEL: >
+  ⚠ 本 ACT 的核心是一个【左连接 + 空值判定】：
+    peekBatch(peerId) 要返回「t_outbox 里存在、但该 peerId 在 t_outbox_peer_ack 里
+    尚未 success 也未 dead」的记录 —— 包括【ack 行还不存在】的情况（首次推送）。
+  写成 INNER JOIN 会漏掉所有从未推送过的记录（ack 行不存在）——
+  表现是「新记录永远推不出去」，而且只在新增对端时才暴露。
+  写成 `status != 'success'` 而不处理 NULL，SQL 里 `NULL != 'success'` 结果是 NULL 不是 true，
+  同样漏掉首次推送。这两个错误都【不会报错】，测试若只测"推过一次的记录"也不会红。
 
 SCOPE:
   READ:
     - docs/superpowers/specs/2026-07-31-storage-architecture-design.md
-      # §5.2.1 阻断点 4、5 的证据行；§5.2.2 第 4 条 PeerFanoutPusher 原文签名
-    - core/lib/model/sync_peer.dart
-      # ACT 01 的 PeerFanoutPusher 契约与它 dartdoc 里写死的三条约定 ——
-      # 【那三条就是本 ACT 的验收语义，逐条实现】
-    - core/lib/routing/remote_gateway_router.dart   # 51 行，ACT 01b 后已 implements SyncPeer
-    - core/lib/routing/region.dart                  # Region enum
-    - core/lib/core/sync_coordinator.dart           # :57 peekBatch、:74 markSuccess 调用点
-    - core/lib/model/ports.dart                     # ACT 02 的 markSuccess/markFailed(peerId)
-  WRITE:
-    - core/lib/routing/peer_fanout_pusher.dart
-    - core/test/s1b_fanout_test.dart
+      # §5.2.1「不改的后果」两条 —— 本 ACT 的判定逻辑要同时避开这两个坑
+      # §5.4 第一道锁：peekBatch 按 channel 过滤（那是 ACT 06，本 ACT 只留好接口位置）
+    - core/lib/model/ports.dart          # ACT 03 定下的 12 个带 peerId 的方法签名
+    - core/test/persistence_core_test.dart
+      # ACT 03 的 _InMemoryOutboxStore / _InMemorySyncStateStore ——
+      # 【它们是本 ACT 的可执行规格】，drift 实现的行为必须与内存实现逐条一致
+    - drift/lib/persistence_drift.dart
+      # OutboxRecordsDao:226-348（enqueue:232 / peekBatch:236 / listRetryable:251 /
+      #   backlogCount:274 / watchBacklogCount:287 / deadCount:300 /
+      #   markSuccess:311 / markFailed:327）
+      # SyncStatesDao:350-...
+      # DriftOutboxStore:614（enqueue:687 / peekBatch:751 / markSuccess:804 /
+      #   markFailed:834 / backlogCount:873 / watchBacklogCount:882）
+      # DriftSyncStateStore:916
+      # OutboxPeerAcks 表（ACT 04 新增）
+    - drift/test/persistence_drift_test.dart      # 既有 peekBatch 测试:89/102/118 的写法
+    - drift/test/drift_sync_state_store_test.dart # 既有游标测试的写法
   MODIFY:
-    - core/lib/core/sync_coordinator.dart           # 改用 PeerFanoutPusher，逐 peer 回写 ack
-
-SIGNATURE:
-  peer_fanout_pusher.dart: |
-    /// [PeerFanoutPusher] 的默认实现：把一条记录并发推给全部对端。
-    ///
-    /// 与 [RemoteGatewayRouter] 的分工：router 是「按 region 选一个云端后端」，
-    /// 是【路由】；本类是「推给所有对端」，是【扇出】。两者不可互相取代 ——
-    /// router 仍然作为其中一个 peer 参与扇出（它对外表现为单个 cloud peer）。
-    final class DefaultPeerFanoutPusher implements PeerFanoutPusher {
-      /// [peers]：参与扇出的全部对端。顺序不影响结果（并发执行）。
-      DefaultPeerFanoutPusher({required List<SyncPeer> peers});
-
-      /// 当前参与扇出的对端标识，用于诊断「这条记录被推给了谁」。
-      List<PeerId> get peerIds;
-
-      @override
-      Future<Map<PeerId, SyncError?>> pushToAll(OutboxRecord record);
-    }
+    - drift/lib/persistence_drift.dart
+      # 主键切换 + schemaVersion 8 + onUpgrade 加 from<8 + DAO/Store 方法体
+      # OutboxRecordsDao 加 OutboxPeerAcks 到 @DriftAccessor + 全部方法加 peerId
+      # SyncStatesDao 全部方法加 peerId
+      # DriftOutboxStore / DriftSyncStateStore 对齐新端口
+    - drift/test/persistence_drift_test.dart      # 既有调用点补 peerId
+    - drift/test/drift_sync_state_store_test.dart # 既有调用点补 peerId
+    - drift/test/sync/record_local_applier_test.dart   # :38 :170 peekBatch 调用点
+    - drift/test/sync/record_save_outbox_test.dart     # :51 :66 :79 peekBatch 调用点
+  WRITE:
+    - drift/test/sync/outbox_peer_ack_semantics_test.dart
 
 TASK_DETAIL:
-  three_contracts_from_act01: >
-    ACT 01 已在 PeerFanoutPusher 的 dartdoc 里写死三条约定，本 ACT 逐条实现：
-      1. 返回的 Map 必须【为每个对端都留一个条目】，成功的对端值为 null；
-      2. 某个对端抛异常【不得】中断其余对端的推送，异常转成该对端的 SyncError；
-      3. 不得因为某个对端失败就把整体判为失败 —— 成败是 per-peer 的。
-    第 1 条是 ACT 04 的输入：调用方要按 Map 逐个写 ack 行，
-    漏项就等于那个对端的 ack 行不会被写，下次还会重推（幂等，可接受）
-    —— 但若把成功项也省略，调用方无法区分「成功」与「没推」，就会漏写 success ack，
-    该记录对该对端永远推不完。
+  primary_key_switch_v8: >
+    ACT 05 已把 peer_id 列加好（带默认值 'firestore'，既有行已回填）。
+    本 ACT 把主键切到三元组，升 schemaVersion 到 **8**：
 
-  concurrency: >
-    用 `Future.wait` 并发推送，【不要】串行 for 循环 await ——
-    一个不可达的 LAN peer 会有秒级超时，串行会让云端推送排在它后面等。
-    但 `Future.wait` 默认在任一 future 抛出时立即以该异常完成（其余结果丢失），
-    因此【每个 peer 的调用必须各自包一层 try/catch，在进入 Future.wait 之前
-    就把异常转成 SyncError】。直接 `Future.wait([...]).catchError(...)` 是错的。
+      @override
+      Set<Column> get primaryKey => {scopeUid, peerId, entityType};
 
-  error_mapping: >
-    peer.push 抛出的异常转成 `SyncError(code: SyncErrorCode.unknown, message: ...)`。
-    message 里【必须带上该 peer 的 peerId】，否则诊断时看到一条 unknown
-    根本不知道是哪个对端出的事。
-    若异常本身携带可识别的分类（例如超时/网络），映射到对应的 SyncErrorCode；
-    拿不准就用 unknown —— 【不要】猜测性地映射成 permission 或 conflict，
-    那会让重试策略走错分支。
+      if (from < 8) {
+        await m.alterTable(TableMigration(syncStates));   // 主键变更走建新表+搬数据
+      }
 
-  coordinator_rewiring: >
-    sync_coordinator.dart 的推送循环从
-      `final err = await _remoteGateway.push(record); if (err == null) markSuccess(...)`
-    改为
-      `final results = await _pusher.pushToAll(record);`
-      `for (final entry in results.entries) { entry.value == null ? markSuccess(peerId: entry.key, ...) : markFailed(peerId: entry.key, ...) }`
-    markFailed 的 attempt 取【该 peer 的当前 attempt + 1】—— 从 ACT 04 的 ack 表读，
-    【不要】用 record.attempt（那是 t_outbox 上的全局字段，ACT 04 已明确它不再被更新）。
+    SQLite 改主键做不到 ALTER，必须建新表 + 搬数据 + 改名，drift 的 `TableMigration`
+    负责这个流程。【不要】手写 `customStatement('ALTER TABLE ...')` ——
+    手写极易漏掉索引重建。
+    ⚠ 搬数据时 peer_id 列已经有值（ACT 05 填的），本 ACT 不需要再回填。
+    迁移测试要断言：切换后【每一行的每一个字段】与切换前逐字段相等。
 
-  router_stays_one_of_n: >
-    `RemoteGatewayRouter` 的行为【不变】—— 它仍是按 region 选一个云端后端。
-    它作为【一个 peer】参与扇出。
-    把 router 本身改成 fan-out 是错的：region 路由的语义是"大陆用户走 Supabase、
-    海外走 Firebase"，同时推给两个后端等于把同一份数据写进两个云，那是另一件事。
+    【不要】动 onUpgrade 的 from<2..7 七段。
+
+  peek_batch_join: >
+    【本 ACT 的核心逻辑，写错不报错】。peekBatch(scopeUid, peerId, limit) 的正确语义：
+
+      返回 t_outbox 中 scope_uid = ? 的记录，满足：
+        该 (operation_id, peerId) 在 t_outbox_peer_ack 中
+          · 【不存在】            → 可推（首次推送）
+          · 存在且 status 是 'pending' 或 'failed' → 可推（重试）
+          · 存在且 status 是 'success' 或 'dead'   → 不可推
+
+    必须用 LEFT JOIN（或 NOT EXISTS 子查询），且【显式处理 ack 行不存在的情况】。
+    SQL 提示：`WHERE ack.status IS NULL OR ack.status IN ('pending','failed')`
+    —— `ack.status != 'success'` 是错的，NULL != 'success' 求值为 NULL 不是 true。
+
+    排序仍按 created_at_utc 升序（端口约定「返回顺序稳定」，既有测试依赖它）。
+
+  ack_row_creation: >
+    ack 行【惰性创建】：enqueue 时【不】为所有对端预建 ack 行。
+    理由：入队时对端集合还不确定（ACT 03 的 enqueue 没有 peerId），
+    且预建等于要求业务写入层枚举对端 —— 错误的耦合方向。
+    markSuccess / markFailed 用 upsert（insertOnConflictUpdate）写 ack 行。
+
+  counts_are_per_peer: >
+    backlogCount / watchBacklogCount / deadCount 全部按同一个 JOIN 语义计数：
+      backlog = 该 peer 可推的条数（含 ack 行不存在的）
+      dead    = 该 peer 的 ack 行 status = 'dead' 的条数
+    watchBacklogCount 的 stream 必须在【该 peer 的 ack 行变化时】发射新值 ——
+    drift 的 `.watch()` 会自动跟踪被查询表，只要查询里 JOIN 了 t_outbox_peer_ack 就成立；
+    若你为了省事改成只查 t_outbox 再在 Dart 里过滤，stream 将【不会】在 ack 变化时发射，
+    表现是「云端推完后 LAN 的 backlog 数字不更新」。
+
+  sync_state_store: >
+    DriftSyncStateStore 的五个方法把 peerId 加进 where 条件与主键写入。
+    setCursorIfNewer 的「不回退」判定仍按 (scopeUid, peerId, entityType) 那一行做比较 ——
+    【不要】跨 peer 比较游标新旧，两个对端的游标本来就不可比。
+
+  parity_with_memory_fake: >
+    本 ACT 的验收标准是「drift 实现与 ACT 03 的内存 fake 行为逐条一致」。
+    最省事也最可靠的做法：把 core/test 里那几条 per-peer 语义测试
+    （ack_for_one_peer_does_not_hide_record_from_another 等）在 drift 侧【照抄一遍】，
+    只把 store 换成 Drift 实现。两套实现跑同一组断言，差异立刻显形。
 
 CONSTRAINTS:
-  - 【不要】用串行 for-await 推送。见 concurrency。
-  - 【不要】在 pushToAll 里让任何异常逃逸出去。整体永远成功返回一个 Map。
-  - 【不要】把失败的 peer 从返回 Map 里省略，也【不要】省略成功的 peer。
-  - 【不要】改 RemoteGatewayRouter 的 1-of-N 行为。见 router_stays_one_of_n。
-  - 【不要】在本 ACT 做 channel 策略过滤（哪些记录该推给哪些 peer）。那是 ACT 09。
-    本 ACT 的 pushToAll 就是字面意义的 all。
-  - 【不要】在 pushToAll 里写 ack 表。写 ack 是 SyncCoordinator 的职责 ——
-    pusher 只负责"推"，把持久化混进来会让它没法被单元测试。
-  - 每个公开声明必须有中文 dartdoc（A12）。
+  - 【不要】用 INNER JOIN 查 peekBatch。见 peek_batch_join —— 会漏掉所有首次推送的记录。
+  - 【不要】用 `ack.status != 'success'` 作为可推条件。NULL 语义会咬人。
+  - 【不要】在 enqueue 时预建 ack 行。见 ack_row_creation。
+  - 【不要】把 backlog/dead 计数改成"查 t_outbox 再在 Dart 里过滤"。见 counts_are_per_peer。
+  - 【不要】跨 peer 比较游标新旧。见 sync_state_store。
+  - 【不要】在本 ACT 加 channel 策略过滤。那是 ACT 06；混进来会让两个 ACT 的验收纠缠。
+  - 【不要】改动 t_outbox 表结构或 ACT 04 的迁移代码。本 ACT 只写查询与方法体。
+  - 每个改动的公开声明必须更新中文 dartdoc（A12）。
 
 TESTS_FIRST:
   CASES:
-    - NAME: every_peer_gets_an_entry_including_successes
-      FILE: core/test/s1b_fanout_test.dart
+    - NAME: v7_to_v8_primary_key_switch_preserves_all_rows
+      FILE: drift/test/sync/outbox_peer_ack_semantics_test.dart
       BEHAVIOR: >
-        三个 fake SyncPeer：cloud 成功（返回 null）、lan 失败（返回 SyncError）、
-        webrtc 抛异常。调 pushToAll，断言：
-        - `result.length == 3`；
-        - `result[PeerId('cloud')]` 为 null（成功也【必须】有条目）；
-        - `result[PeerId('lan')]` 是 SyncError；
-        - `result[PeerId('webrtc')]` 是 SyncError 且 message 里【含 'webrtc'】。
-        省略成功项会让调用方无法区分「成功」与「没推」，
-        于是漏写 success ack，该记录对该对端永远推不完。
-      RED_COMMAND: cd core && flutter test test/s1b_fanout_test.dart
-      RED_EXPECT: 编译失败（DefaultPeerFanoutPusher 不存在），退出码非 0
-      COVERS: [A11]
+        造一个 v7 库（t_sync_state 主键仍是二元组、peer_id 列已存在且为 'firestore'），
+        插入【至少 3 行】，每行各字段填互不相同的可辨识值。
+        升级到 v8 后断言：
+        - 行数【仍是 3】；
+        - 每一行的【每一个字段】逐字段等于插入时的值；
+        - `PRAGMA table_info` 显示主键为 (scope_uid, peer_id, entity_type)；
+        - `PRAGMA user_version` 为 8。
+        主键切换走的是建新表+搬数据，漏搬或搬错列【不报错】，
+        只会让所有历史游标失效 → 全量重拉。只断言"主键变了"是不够的。
+      RED_COMMAND: cd drift && flutter test test/sync/outbox_peer_ack_semantics_test.dart
+      RED_EXPECT: 断言失败（schemaVersion 仍是 7），退出码非 0
+      COVERS: [A3]
 
-    - NAME: one_peer_throwing_does_not_abort_others
-      FILE: core/test/s1b_fanout_test.dart
+    - NAME: never_acked_record_is_peekable_by_new_peer
+      FILE: drift/test/sync/outbox_peer_ack_semantics_test.dart
       BEHAVIOR: >
-        【本 ACT 最重要的一条】。第一个 peer 立刻抛异常，第二、三个是计数式 fake
-        （记录 pushCount，【不用 fail()】—— catch-all 会吞掉 TestFailure，S5c 教训）。
-        调 pushToAll 后断言：
-        - 不抛异常，正常返回；
-        - 第二、三个 peer 的 pushCount 【都是 1】（都被推了）。
-        写成 `Future.wait([...])` 而没有 per-peer try/catch 时，
-        Future.wait 会在第一个异常时立即完成，其余结果丢失 —— 这条会红。
-      RED_COMMAND: cd core && flutter test test/s1b_fanout_test.dart
+        【本 ACT 最重要的一条 —— 专打 INNER JOIN 与 NULL 语义两个坑】。
+        enqueue 一条记录，【完全不调用任何 markSuccess/markFailed】
+        （即 t_outbox_peer_ack 里一行都没有）。
+        断言 `peekBatch(peerId: PeerId('lan'), ...)` 【返回该记录】。
+        再断言 `backlogCount(peerId: lan)` 为 1。
+        用 INNER JOIN 或 `status != 'success'` 写的实现，这条会红 ——
+        而线上表现是「新记录永远推不出去」，且只在新增对端时才暴露。
+      RED_COMMAND: cd drift && flutter test test/sync/outbox_peer_ack_semantics_test.dart
+      RED_EXPECT: 编译失败（peekBatch 尚无 peerId 参数），退出码非 0
+      COVERS: [A4]
+
+    - NAME: success_on_one_peer_leaves_others_peekable
+      FILE: drift/test/sync/outbox_peer_ack_semantics_test.dart
+      BEHAVIOR: >
+        与 ACT 03 内存 fake 的同名断言【逐条一致】（parity 检查）：
+        enqueue 一条，对 PeerId('firestore') markSuccess。断言：
+        - `peekBatch(peerId: firestore)` 不含该记录；
+        - `peekBatch(peerId: lan)`       仍含该记录；
+        - t_outbox 里该行【仍在】（success 不删记录 —— compaction 才删，§5.3）。
+        最后一条很重要：若实现为了省事在 markSuccess 里删了 t_outbox 行，
+        其他对端就永远拿不到了，而这恰恰是 §5.2.1 第一个「不可接受」。
+      RED_COMMAND: cd drift && flutter test test/sync/outbox_peer_ack_semantics_test.dart
       RED_EXPECT: 编译失败，先红
-      COVERS: [A11]
+      COVERS: [A4]
 
-    - NAME: pushes_are_concurrent_not_serial
-      FILE: core/test/s1b_fanout_test.dart
+    - NAME: dead_on_one_peer_does_not_affect_others
+      FILE: drift/test/sync/outbox_peer_ack_semantics_test.dart
       BEHAVIOR: >
-        三个 fake peer 各自 `await Future.delayed(const Duration(milliseconds: 200))`
-        后返回。用 Stopwatch 测 pushToAll 的总耗时，断言【小于 400ms】
-        （并发约 200ms，串行约 600ms；阈值取中间留足余量避免 CI 抖动）。
-        串行 for-await 会让一个不可达的 LAN peer（秒级超时）把云端推送排在后面等，
-        表现是「LAN 一断，云端同步跟着变慢」。
-      RED_COMMAND: cd core && flutter test test/s1b_fanout_test.dart
-      RED_EXPECT: 编译失败，先红
-      COVERS: [A11]
-
-    - NAME: coordinator_writes_ack_per_peer_from_result_map
-      FILE: core/test/s1b_fanout_test.dart
-      BEHAVIOR: >
-        用 ACT 02 的 `_InMemoryOutboxStore` + 一个 fake pusher（cloud 成功、lan 失败）
-        驱动 SyncCoordinator 跑一轮推送。断言：
-        - `peekBatch(peerId: cloud)` 不含该记录（写了 success ack）；
-        - `peekBatch(peerId: lan)`   仍含该记录（写了 failed ack，可重试）；
-        - lan 的 attempt 为 1，cloud 的 attempt 为 0。
-        这条把 ACT 02/04/05 串起来验一遍 —— 三个 ACT 各自绿但接不上是很常见的。
-      RED_COMMAND: cd core && flutter test test/s1b_fanout_test.dart
-      RED_EXPECT: 编译失败，先红
-      COVERS: [A4, A11]
-
-    - NAME: attempt_comes_from_ack_row_not_from_outbox_record
-      FILE: core/test/s1b_fanout_test.dart
-      BEHAVIOR: >
-        非 happy-path。让同一条记录对 lan 连续失败两轮，断言第二轮写入的 attempt 是 2。
-        再断言 cloud（一直成功）的 attempt 仍为 0。
-        若实现用 `record.attempt`（t_outbox 上的全局字段）算 attempt，
-        两个对端会共用一个计数 —— cloud 成功也会被 lan 的失败推高，
-        进而在 10 次内把 cloud 也推成 dead。
-      RED_COMMAND: cd core && flutter test test/s1b_fanout_test.dart
+        对 PeerId('lan') markFailed 10 次、最后一次 isDead: true。断言：
+        - `deadCount(peerId: lan)` 为 1、`peekBatch(peerId: lan)` 不含该记录；
+        - `deadCount(peerId: firestore)` 为 【0】、`peekBatch(peerId: firestore)` 【仍含】；
+        - t_outbox 里该行的 attempt 字段【未被改动】（attempt 是 per-peer 的，
+          归 ack 表管；写进 t_outbox 会让一个 peer 的重试次数污染其他 peer）。
+      RED_COMMAND: cd drift && flutter test test/sync/outbox_peer_ack_semantics_test.dart
       RED_EXPECT: 编译失败，先红
       COVERS: [A5]
 
-    - NAME: router_behavior_unchanged_still_one_of_n
-      FILE: core/test/s1b_fanout_test.dart
+    - NAME: backlog_stream_emits_on_ack_change
+      FILE: drift/test/sync/outbox_peer_ack_semantics_test.dart
       BEHAVIOR: >
-        回归守卫（与 ACT 01b 的同名断言重复是【故意】的 —— 那边守迁移，这边守扇出改造）。
-        RemoteGatewayRouter 注入两个计数式 fake SyncPeer，currentRegion 指向其一。
-        调 `router.push` 一次，断言另一个的 pushCount 为 【0】。
-        region 路由的语义是「大陆走 Supabase、海外走 Firebase」，
-        同时推给两个云等于把同一份数据写进两个后端，那是完全不同的一件事。
-      RED_COMMAND: cd core && flutter test test/s1b_fanout_test.dart
+        订阅 `watchBacklogCount(scopeUid, PeerId('lan'))`，收集发射序列。
+        enqueue 一条 → 期望收到 1；对 lan markSuccess → 期望收到 0。
+        【关键】：再对 firestore markSuccess → lan 那条流【不应】因此发射新值
+        （或即使发射，值仍是 0）。
+        若实现改成只查 t_outbox 再在 Dart 里过滤，第二步不会发射 ——
+        线上表现是「云端推完后 LAN 的 backlog 数字卡住不动」。
+        用超时收集（例如 `.take(2).timeout(...)`），不要用固定 sleep。
+      RED_COMMAND: cd drift && flutter test test/sync/outbox_peer_ack_semantics_test.dart
       RED_EXPECT: 编译失败，先红
-      COVERS: [A11]
+      COVERS: [A4]
+
+    - NAME: cursor_per_peer_no_cross_peer_regression_guard
+      FILE: drift/test/sync/outbox_peer_ack_semantics_test.dart
+      BEHAVIOR: >
+        对 (scope, firestore, 'record') setCursorIfNewer 一个【较新】的 cursor；
+        再对 (scope, lan, 'record') setCursorIfNewer 一个【较旧】的 cursor。
+        断言后者【写入成功】—— 两个对端的游标不可比，旧不代表回退。
+        若实现跨 peer 比较新旧，lan 的游标会被拒绝写入，
+        表现是「LAN peer 永远从头拉」。
+        再断言两者各读各的、互不覆盖。
+      RED_COMMAND: cd drift && flutter test test/sync/outbox_peer_ack_semantics_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A4]
+
+    - NAME: no_ack_rows_created_at_enqueue
+      FILE: drift/test/sync/outbox_peer_ack_semantics_test.dart
+      BEHAVIOR: >
+        enqueue 一条记录后，直接查 t_outbox_peer_ack 的行数，断言为 【0】。
+        ack 行必须惰性创建。预建等于要求业务写入层枚举所有对端 ——
+        错误的耦合方向，且新增一个对端时历史记录不会有它的 ack 行，
+        逻辑上必须能处理"不存在"，预建只会掩盖这一点直到某天暴露。
+      RED_COMMAND: cd drift && flutter test test/sync/outbox_peer_ack_semantics_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A4]
 
 VERIFICATION:
-  - CMD: cd core && dart analyze --fatal-infos lib/routing/peer_fanout_pusher.dart lib/core/sync_coordinator.dart
+  - CMD: cd drift && dart analyze --fatal-infos lib/persistence_drift.dart
     EXPECT_EXIT: 0
-  - CMD: cd core && flutter test test/s1b_fanout_test.dart
+  - CMD: cd drift && flutter test test/sync/outbox_peer_ack_semantics_test.dart
+    EXPECT_EXIT: 0
+  # drift 整包恢复绿色 —— 既有 276 个测试一个不能少（A2）
+  - CMD: cd drift && flutter test
     EXPECT_EXIT: 0
   - CMD: cd core && flutter test
     EXPECT_EXIT: 0
-  - CMD: cd drift && flutter test
-    EXPECT_EXIT: 0
-  # 必须并发
-  - CMD: 'grep -c "Future.wait" core/lib/routing/peer_fanout_pusher.dart'
-    EXPECT_EXIT: 0
-  # 每个 peer 必须各自 try/catch（不能只在 Future.wait 外面兜一层）
-  - CMD: 'grep -c "catch" core/lib/routing/peer_fanout_pusher.dart'
-    EXPECT_EXIT: 0
-  # pusher 不得写 ack 表
-  - CMD: 'grep -nE "markSuccess|markFailed|OutboxStore" core/lib/routing/peer_fanout_pusher.dart'
+  # 不得用 INNER JOIN 查 ack
+  - CMD: 'grep -niE "innerJoin\(.*outboxPeerAck|INNER JOIN t_outbox_peer_ack" drift/lib/persistence_drift.dart'
     EXPECT_EXIT: 1
-  # router 仍是 1-of-N
-  - CMD: 'grep -nE "pushToAll|Future.wait" core/lib/routing/remote_gateway_router.dart'
+  # 必须显式处理 ack 不存在
+  - CMD: 'grep -qiE "leftOuterJoin|IS NULL|isNull\(\)" drift/lib/persistence_drift.dart'
+    EXPECT_EXIT: 0
+  # markSuccess 不得删 t_outbox 行
+  - CMD: "sed -n '/Future<void> markSuccess/,/^  }/p' drift/lib/persistence_drift.dart | grep -niE 'delete|\\.go\\(\\)'"
     EXPECT_EXIT: 1
-  # 本 ACT 不做策略过滤
-  - CMD: 'grep -nE "StoragePolicyRegistry|Channel\." core/lib/routing/peer_fanout_pusher.dart'
+  # 主键已切换、版本已升到 8
+  - CMD: 'grep -c "Set<Column> get primaryKey => {scopeUid, peerId, entityType};" drift/lib/persistence_drift.dart'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  - CMD: 'grep -c "int get schemaVersion => 8;" drift/lib/persistence_drift.dart'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  - CMD: 'for n in 2 3 4 5 6 7; do grep -q "if (from < $n)" drift/lib/persistence_drift.dart || { echo "LOST:$n"; exit 1; }; done; echo OLD_SEVEN_OK'
+    EXPECT_STDOUT: "OLD_SEVEN_OK"
+    EXPECT_EXIT: 0
+  # 主键切换不得手写 ALTER TABLE
+  - CMD: 'grep -niE "customStatement\(.*ALTER TABLE.*t_sync_state" drift/lib/persistence_drift.dart'
     EXPECT_EXIT: 1
-  # coordinator 不再用 record.attempt 算重试次数
-  - CMD: 'grep -nE "record\.attempt \+ 1|record\.attempt\+1" core/lib/core/sync_coordinator.dart'
+  # 本 ACT 不做 channel 过滤（ACT 06）
+  - CMD: 'grep -nE "StoragePolicyRegistry|Channel\." drift/lib/persistence_drift.dart'
     EXPECT_EXIT: 1
 
 SELF_CHECK:
-  - 把 per-peer 的 try/catch 临时去掉、只在 Future.wait 外面兜一层 →
-    `one_peer_throwing_does_not_abort_others` 必须变红 → 改回。
-    **不做这步不算完成本 ACT**
-  - 把 pushToAll 临时改成串行 for-await → `pushes_are_concurrent_not_serial` 必须变红 → 改回
-  - 把成功的 peer 临时从返回 Map 里省略 →
-    `every_peer_gets_an_entry_including_successes` 与
-    `coordinator_writes_ack_per_peer_from_result_map` 必须【同时】变红 → 改回
-  - 把 coordinator 的 attempt 临时改成 `record.attempt + 1` →
-    `attempt_comes_from_ack_row_not_from_outbox_record` 必须变红 → 改回
-  - 四次自检后 `git status --porcelain` 必须为空
+  - 把 peekBatch 的 LEFT JOIN 临时改成 INNER JOIN →
+    `never_acked_record_is_peekable_by_new_peer` 必须变红 → 改回。
+    **不做这步不算完成本 ACT** —— 它是唯一能证明你处理了"ack 行不存在"的手段
+  - 把可推条件临时改成 `ack.status != 'success'`（不处理 NULL）→
+    同一条必须变红 → 改回
+  - 在 markSuccess 里临时加一句删除 t_outbox 行 →
+    `success_on_one_peer_leaves_others_peekable` 必须变红 → 改回
+  - 把 watchBacklogCount 临时改成只查 t_outbox 再在 Dart 里过滤 →
+    `backlog_stream_emits_on_ack_change` 必须变红 → 改回
+  - 在 v8 的 TableMigration 里临时把 cursor_updated_at_utc 映射成常量（模拟搬错列）→
+    `v7_to_v8_primary_key_switch_preserves_all_rows` 必须变红并指出是哪个字段 → 改回
+  - 把 setCursorIfNewer 的比较临时改成跨 peer →
+    `cursor_per_peer_no_cross_peer_regression_guard` 必须变红 → 改回
+  - 五次自检后 `git status --porcelain` 必须为空
+
+ON_FAIL:
+  - RED 阶段测试没红（写实现前就绿）→ 测试没真正依赖新类型/新行为，
+    停下重写测试，【不要】继续往下做
+  - 实现后 VERIFICATION 某条不过 → 先看是不是 EXPECT 写错（尤其 grep -c 的
+    双 EXPECT 语义：无匹配时打印 0 且退出码 1），再改实现
+  - core / drift / firebase 的【既有】测试变红 → 立即停下。
+    本 ACT 只加不改，既有测试变红说明动到了不该动的地方
+  - SELF_CHECK 的某条注入后【没有】变红 → 那条门禁是假的，
+    必须重写门禁而不是跳过自检
+  - 基线类命令（analyze 数量、测试数量）不符 → 不要改基线迁就实现，
+    先确认是不是真的引入了新问题
+  - 连续两次修不好同一条 → 在纪要「决定记录」写下现象与已排除的可能，停下上报，
+    不要连续第三次尝试
 
 DONE_WHEN:
-  - peer_fanout_pusher.dart 与测试文件存在，全部命令按 EXPECT 通过
-  - SyncCoordinator 改用 pushToAll 并逐 peer 回写 ack
-  - RemoteGatewayRouter 行为零变化
-  - 六个测试用例全部存在，四条 SELF_CHECK 已实做并确认能变红
-  - §5.2.1 阻断点 4、5 至此拆除
+  - t_sync_state 主键切到三元组，schemaVersion 为 8，前七段迁移未动
+  - drift 整包 `dart analyze --fatal-infos lib/` 与 `flutter test` 恢复绿色
+  - 既有 276 个测试一个不少，新增测试文件 6 个用例全部通过
+  - core 64+ 绿
+  - 五条 SELF_CHECK 已实做并确认能变红（尤其前两条 JOIN / NULL 语义）
+  - §5.2.1 阻断点 1/2/3 至此全部拆除，可在当前状态区写明

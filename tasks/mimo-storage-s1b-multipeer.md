@@ -19,26 +19,31 @@
 
 已转译为 ACT，按 ORDER 顺序执行，每个 ACT 内含 SCOPE / SIGNATURE / TESTS_FIRST / VERIFICATION / SELF_CHECK（临时改坏 → 确认变红 → 改回）。
 
-- [ ] ACT 01: `PeerCapabilities` / `PeerId` / `SyncPeer` 端口签名 + `PeerFanoutPusher` 契约（零实现，§5.2.2）-> `docs/storage-s1b-multipeer/act/01.yaml`
-- [ ] ACT 01b: **RemoteGateway → SyncPeer 全量迁移**（14 个文件；顺带修掉 firebase 两个
-  既有 ERROR：两个 gateway 从未实现 `getCapabilities`，一直靠编译 Gitea 旧 core 藏着）
-  -> `act/01b.yaml`
-- [ ] ACT 02: `OutboxStore` / `SyncStateStore` 全部方法加 `peerId` —— 端口 + 既有 fake 同步改（§5.2.2 阻断点 3）-> `act/02.yaml`
-- [ ] ACT 03: **drift v7 迁移（STRONG_MODEL_ONLY）**：新表 `t_outbox_peer_ack`（operationId+peerId 联合主键，status/attempt/ackedAtUtc，兼 §5.3 compaction 水位表）+ `t_sync_state` 主键加 peerId + 既有行回填（建议 'cloud'）+ 迁移测试（§5.2.2）-> `act/03.yaml`
-- [ ] ACT 04: **drift 侧实现改造（STRONG_MODEL_ONLY）**：`OutboxRecordsDao` / `SyncStatesDao` / `DriftOutboxStore` / `DriftSyncStateStore` 加 peerId + per-peer ack 语义（一个 peer success 不影响另一 peer 的该行）-> `act/04.yaml`
-- [ ] ACT 05: `RemoteGatewayRouter` 从 1-of-N 改造成 fan-out；`PeerFanoutPusher` 实现（`pushToAll` 对 N 个 peer 各返回一个结果，一个失败不影响其余，§5.2.2 阻断点 4/5）-> `act/05.yaml`
-- [ ] ACT 06: `SyncRuntime` per-peer 退避改造（`_pushFailureCount` / `_nextPullNotBeforeUtcByEntityType` 加 peer 维度，§5.2.2：不可达 LAN peer 不得拖垮云端 push 调度）-> `act/06.yaml`
-- [ ] ACT 06b: **HLC 接线 + 属性测试**（引入 `hlc_dart`；时钟跨重启持久化；
-  戳存 drift 边表【Data class 零改动】；`RemoteChange` 加可空 hlc/deviceId；
-  3 节点仿真属性测试压单调性/因果性/收敛性）-> `act/06b.yaml`
-- [ ] ACT 07: `ConflictArbiter` + **`(hlc, deviceId)` 定序**（复用 `DeviceIdentity`，不新建）+ `ChangeApplyOutcome` 增加被覆盖 payload 字段（§5.2.3 / §5.3 冲突可见化）-> `act/07.yaml`
-- [ ] ACT 08: 修 `canAdvanceCursor` 恒真（`record_local_applier.dart:60-61`）—— 应用失败不推进游标 + 回归测试（§5.2.3）-> `act/08.yaml`
-- [ ] ACT 09: `peekBatch` 按 channel 策略过滤（照 `policy_channel_filter_test.dart` 语义：lookup 返回 null 时 fail closed，§5.4 第一道锁）-> `act/09.yaml`
-- [ ] ACT 10: **HLC 线上格式规格 + 黄金用例**（A14）+ barrel 导出 + 架构守卫测试（含中文 dartdoc 覆盖计数下限，通用式正则，S1a 教训）+ 创建 `scripts/run_s1b_analyze_gate.sh`（照 run_s1a_analyze_gate.sh 范本，core 基线 58 / drift 基线 162，三条注入负测试证明能变红）-> `act/10.yaml`
+- [ ] ACT 01: `SyncPeer` / `PeerCapabilities` / `PeerId` / `PeerFanoutPusher` 契约
+  （零实现；`pushToAll` 带 **eligiblePeers**，堵住 §5.4 过滤被架空）-> `act/01.yaml`
+- [ ] ACT 02: **RemoteGateway → SyncPeer 全量迁移**（14 文件，顺带修 firebase 两个既有 ERROR）-> `act/02.yaml`
+- [ ] ACT 03: `OutboxStore` / `SyncStateStore` **11 个方法**加 `peerId`（enqueue 例外）+ 内存 fake -> `act/03.yaml`
+- [ ] ACT 04: **drift v7 纯加法迁移**：`t_outbox_peer_ack` 新表 + `t_sync_state` 加 peer_id 列
+  （带默认值，主键暂不动 → drift 保持可编译、276 测试仍绿）-> `act/04.yaml`
+- [ ] ACT 05: **drift v8 + 实现改造**（STRONG）：主键切三元组 + DAO/Store per-peer ack，整包恢复绿 -> `act/05.yaml`
+- [ ] ACT 06: **策略过滤**：`PeerEligibility` 单一判定源 + peekBatch 按 channel 过滤（fail closed）-> `act/06.yaml`
+- [ ] ACT 07: **fan-out**：`PeerFanoutPusher` 实现按 eligiblePeers 并发扇出 + coordinator 端到端接线
+  （router 保持 1-of-N）-> `act/07.yaml`
+- [ ] ACT 08: **per-peer 调度接口 + 退避**（STRONG）：`PeerRegistry` / `PeerPushOutcome` /
+  `pullOnce(peerId)` + 四个退避字段加 peer 维度 -> `act/08.yaml`
+- [ ] ACT 09: **HLC 接线 + 属性测试**（STRONG）：`hlc_dart` + 时钟跨重启持久化 + 戳存 drift 边表
+  （Data class 零改动）+ v9 迁移 + 3 节点仿真压单调性/因果性/收敛性 -> `act/09.yaml`
+- [ ] ACT 10: **`ConflictArbiter`**（STRONG）：`(hlc, deviceId)` 全序 + 冲突**双向**留档 -> `act/10.yaml`
+- [ ] ACT 11: 修 `canAdvanceCursor` 恒真 + 接入仲裁 + 畸形 payload 归 failed -> `act/11.yaml`
+- [ ] ACT 12: **HLC 线上格式规格 + 黄金用例**（A14）+ barrel + 架构守卫 + `run_s1b_analyze_gate.sh` -> `act/12.yaml`
 
-DEPENDS_ON 线性：01 → 01b → 02 → 03 → 04 → 05 → 06 → 06b → 07 → 08 → 09 → 10（无环）。
-STRONG_MODEL_ONLY：03（schema 迁移）/ 04（per-peer ack 判定）/ 06（退避时序）/ 07（Lamport 定序）。
-合计 71 测试用例 / 118 验证命令 / 63 条自检。
+DEPENDS_ON 严格单链 01→02→…→12（无环）。
+STRONG_MODEL_ONLY：04 / 05（schema 迁移）、08（退避时序）、09（因果时钟）、10（定序）。
+合计 **83 测试用例 / 135 验证命令 / 70 条自检**，12 个 ACT 全部有 ON_FAIL。
+
+排序说明：**策略过滤（06）刻意排在扇出（07）之前** —— 不知道谁有资格收，
+就不该先建扇出。转译 v1 把过滤排在后面，导致 peekBatch 挑好的记录被
+pushToAll 转头发给所有人（Codex R1 · P0-1）。
 
 ## 验收标准
 
@@ -159,6 +164,22 @@ STRONG_MODEL_ONLY：03（schema 迁移）/ 04（per-peer ack 判定）/ 06（退
   （区域轴：大陆 Supabase / 海外 Firebase，用户 VPN 切换或出国才用，一年可能一次，冷路径），
   它作为「云」这一个对端参与扇出。纪要原计划「router 改造成 fan-out」措辞不精确，
   按字面执行会变成同时写两个云 —— 那是 bug 不是需求。对端轴的扇出由 PeerFanoutPusher 承担。
+
+- 2026-08-02（转译 v2，回应 Codex R1 的 25 项）: 结构性改动三处 ——
+  ① **重排编号**：策略过滤由 ACT 09 提前到 ACT 06，扇出降到 07。根子在顺序：
+     不知道谁有资格收就不该先建扇出。`pushToAll` 同时加 `required Set<PeerId>
+     eligiblePeers`，并由 ACT 06 的 `PeerEligibility` 做【单一判定源】
+     （peekBatch 与 coordinator 共用，有门禁数判定表达式出现次数）。P0-1 解除。
+  ② **拆迁移解编译死锁**：ACT 04 改为纯加法（建新表 + 加带默认值的 peer_id 列，
+     主键不动），drift 整包保持可编译、276 测试全绿，迁移测试因此能真跑；
+     主键切换（v8）移到 ACT 05 与 DAO 改造同一 ACT 内从红到绿。HLC 迁移顺延 v9。P1-14 解除。
+  ③ **接口先于状态**：ACT 08 先交付 `PeerRegistry` / `PeerPushOutcome` /
+     `pullOnce(peerId)`，再改四个退避字段 —— 只改字段做不到"只跳过 LAN 继续推 cloud"。P0-2 解除。
+  另：ACT 09/10/11 按 HLC 方案重写；冲突留档改为【双向】（keepLocal 也要留远端 loser，
+  因为 skipped 不阻止游标推进，那条远端变更再也拉不到）；畸形 payload 归 failed 而非 skipped。
+  全局：26 条 grep -c 补双 EXPECT（现为 0 条缺）、12 个 ACT 全部补 ON_FAIL、
+  `HEAD~1` 改为不可变 `.act-base`、验收标准防篡改改为与基线提交 cd064c6 逐字比对。
+  规模由 71/118/63 增至 **83 测试 / 135 验证 / 70 自检**。
 
 ## 踩坑墓地
 - 2026-08-02（环境）: drift worktree `pubspec_overrides.yaml` 只写 4 条 path 覆盖是错的——

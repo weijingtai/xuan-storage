@@ -1,238 +1,392 @@
 ACT_VERSION: 1
 TASK_ID: mimo-storage-s1b-multipeer/09
-TITLE: peekBatch 按 channel 策略过滤 —— shared 记录不得扇出到非 cloud 对端
-TYPE: security
-ORDER: 11
+TITLE: HLC 接线 —— hlc_dart 引入 + 时钟持久化 + 戳边表 + 三节点属性测试
+TYPE: implementation
+ORDER: 9
 DEPENDS_ON: [mimo-storage-s1b-multipeer/08]
 DISPATCH_STATUS: ready
-STRONG_MODEL_ONLY: false
+STRONG_MODEL_ONLY: true    # 因果时钟：退化路径【全部是静默的】，测试照样绿
 
 OBJECTIVE: >
-  §5.4 的第一道锁：`peekBatch` 按 channel 过滤，`shared` 类记录不会被派发给
-  非 cloud 的对端（§2.3.1）。
-  ACT 05 让一条记录扇出给全部对端，本 ACT 决定"哪些记录该给哪些对端"。
-  没有这道锁，草稿 oplog 会被 fan-out 到本人的 LAN peer。
+  给冲突仲裁准备一个【不依赖墙上时钟的正确排序】。
+  本 ACT 交付：hlc_dart 依赖、跨重启持久化的本地时钟、存戳的 drift 边表、
+  RemoteChange 上的可空 hlc/deviceId，以及三节点仿真属性测试。
+  仲裁逻辑本身是 ACT 12，本 ACT 只负责"戳是对的、戳存得住、戳传得到"。
 
-WHY_THIS_IS_NOT_OPTIONAL: >
-  ⚠ 设计稿 §5.4 明确删除了上一版「拓扑上无法到达」的说法，并标注【该说法为假】：
+WHY_STRONG_MODEL: >
+  ⚠ HLC 的每一条退化路径都【不报错】：
+  · 只调 localEvent 不调 receiveEvent → 因果性整个消失，退化成墙上时钟，所有单测照样绿
+  · 时钟不持久化 → 重启后从物理时间重来，单调性断裂，看不出来
+  · 戳与记录分事务写 → 偶发失准，重现不了
+  这就是为什么本 ACT 的核心交付不是"调用 hlc_dart"，而是【属性测试】——
+  它是唯一能自动生成上千个反例的裁判。
 
-    去中心化通道的对端确实只有本人授信设备，但这只保证「不会分发给其他用户」，
-    不保证「shared 数据不会离开云端」—— 没有策略过滤时，
-    草稿 oplog 照样会被 fan-out 到本人的 LAN peer。过滤是主动的，不是被动的。
+BACKGROUND: >
+  人类 2026-08-02 设计裁定（见纪要「决定记录」），经四个候选实测比选：
+    drift_crdt   —— 装不上（依赖 sql_crdt/sqlite_crdt ^4.0.0，pub.dev 最高 3.x）
+    Ditto        —— 闭源商业，初始化要 Portal 账号，纯离线 SharedKey 需申请许可
+    sql_crdt     —— 抽象层可用 drift 后端，但 200 个写调用点要改裸 SQL + 全局软删
+    crdt_lf      —— 质量最高（160/160）但为协同文档编辑而生，需双写 + 升 drift 到 2.34
+  选 hlc_dart 1.1.0+2：只取 HLC，不碰数据模型。
 
-  所以不要以为"反正只有自己的设备，无所谓" —— 那正是被判定为假的推理。
+  ⚠ 关键澄清：**HLC 单独不构成全序**。`HybridLogicalClock` 只有 (l, c) 两个字段，
+  【没有 nodeId】，两台设备同毫秒写会 `isConcurrentWith == true`。
+  所以定序是 **(hlc, deviceId)** 二元组。HLC 的价值是消灭【因果倒置】
+  （B 收到过 A ⇒ B 必 > A），把"随机丢数据"降级为"并发时按固定规则选一个"。
+  真并发谁更晚物理上不可判定，由 §5.3 冲突可见化兜底（ACT 12/11）。
+
+ACT_BASE:
+  说明: >
+    本 ACT 的若干 VERIFICATION 用 `<ACT_BASE>..HEAD` 界定"本 ACT 改了什么"。
+    【开工第一件事】记下不可变基线：
+
+      git rev-parse HEAD > .act-base && cat .act-base
+
+    之后所有 no-touch 检查用 `$(cat .act-base)..HEAD`。
+    【不要】用 `HEAD~1` —— 它假设"每个 ACT 恰好一个提交"，
+    一旦你分了两次小提交，守卫就只覆盖最后一次，前面的改动无人看管
+    （Codex R1 · P1-20）。
+    .act-base 是临时文件，收工前删掉，不要提交。
 
 SCOPE:
   READ:
     - docs/superpowers/specs/2026-07-31-storage-architecture-design.md
-      # §5.4 全节（两道锁、被删除的错误说法）；§2.3.1 策略强制点
-    - core/test/policy_channel_filter_test.dart
-      # 【本 ACT 的可执行规格，先完整读完】。里面的 filterForChannel 是
-      # 测试内定义的函数（不是库代码），S1a 把它留在这里就是为了给 S1b 抄。
-      # fail closed 语义已写死：lookup 返回 null 一律不推。
-    - core/lib/model/storage_policy_registry.dart   # lookup / all / clearForTesting
-    - core/lib/model/storage_policy.dart            # channels getter（cloud 结构性恒在）
-    - core/lib/model/storage_classification.dart    # Channel enum:25
-    - core/lib/model/sync_peer.dart                 # SyncPeer.channel（ACT 01）
-    - core/lib/model/ports.dart                     # ACT 02 的 peekBatch(peerId) 签名
-    - drift/lib/persistence_drift.dart              # ACT 04 的 peekBatch 实现（JOIN ack 表）
-  MODIFY:
-    - core/lib/model/ports.dart          # peekBatch 增加 channel 参数（见 SIGNATURE）
-    - core/test/persistence_core_test.dart   # 内存 fake 同步实现过滤
-    - drift/lib/persistence_drift.dart   # drift 实现接上过滤
-    - core/lib/core/sync_coordinator.dart    # 调用点传入该 peer 的 channel
+      # §5.2.3 为何墙上时钟不可用；§5.3 会话式同步的静默丢数据
+    - core/lib/model/types.dart          # RemoteChange:232（七个既有字段）
+    - core/lib/model/ports.dart          # DeviceIdentity:240 / DeviceIdentityProvider:269
+    - drift/lib/persistence_drift.dart   # schemaVersion / onUpgrade（ACT 05 升到 7，ACT 07 升到 8）
+    - drift/lib/sync/record_local_applier.dart   # 消费 RemoteChange 的地方（本 ACT 不改逻辑）
   WRITE:
-    - core/test/s1b_channel_filter_ports_test.dart
-    - drift/test/sync/peek_batch_channel_filter_test.dart
+    - core/lib/sync/hlc_clock.dart
+    - core/test/s1b_hlc_property_test.dart
+    - drift/test/sync/hlc_stamp_store_test.dart
+  MODIFY:
+    - core/pubspec.yaml                  # 仅追加 hlc_dart
+    - core/lib/model/types.dart          # RemoteChange 加两个可空字段
+    - drift/lib/persistence_drift.dart   # 新增 t_entity_stamp 边表 + 时钟单行表 + v9 迁移
+
+DEPENDENCY:
+  ADD:
+    - hlc_dart: ^1.1.0        # 纯 Dart，零第三方依赖，160/160
+  FORBID:
+    - crdt / sql_crdt / sqlite_crdt / drift_crdt / crdt_lf / ditto_live
+      —— 四个方案均已比选否决，理由见 BACKGROUND 与纪要决定记录。
+      不要"顺手也装一个试试"。
 
 SIGNATURE:
-  ports.dart peekBatch: |
-    /// 取一批待推送记录。
+  hlc_clock.dart: |
+    /// 本设备的 HLC 时钟。跨重启持久化，单调不回退。
     ///
-    /// [peerId]：只返回该对端尚未 ack 的记录（ACT 02/04）。
-    /// [channel]：该对端所在通道。只返回【策略允许走该通道】的记录（§5.4 第一道锁）。
+    /// 【两条规则】（hlc_dart 已实现，本类只负责持久化与调用纪律）：
+    /// · 本地写入 [tick]：l = max(旧 l, 物理时间)；l 未变则 c++，变大则 c = 0
+    /// · 收到远端 [observe]：l = max(本地 l, 远端 l, 物理时间)
+    ///   ——【收一次别人的东西，自己的钟就被顶上去一次】，这是因果性的全部来源
+    abstract interface class HlcClock {
+      /// 本地发生一次写入，返回新的戳。
+      Future<HybridLogicalClock> tick();
+
+      /// 观测到一个远端戳，把本地时钟顶上去。
+      ///
+      /// 【必须在每一条入站变更上调用】。漏调不会报错，
+      /// 只会让因果性静默消失 —— 属性测试的第 ② 条就是守这个的。
+      Future<void> observe(HybridLogicalClock remote);
+
+      /// 当前戳（只读，不推进）。
+      HybridLogicalClock get current;
+
+      /// 本设备标识，作为 HLC 相等时的决胜位。
+      String get deviceId;
+    }
+
+    /// 时钟状态的持久化端口。实现由 drift 提供（与 t_entity_stamp 同一次 v9 迁移）。
     ///
-    /// 两个参数看似冗余（peerId 已隐含 channel），但故意分开：
-    /// peerId 决定"推没推过"，channel 决定"该不该推"。
-    /// 合并成一个会让"换了个同通道的新对端"需要重新推导策略，
-    /// 也会让 fail-closed 的判定点从两处变成一处。
-    Future<List<OutboxRecord>> peekBatch({
-      required String scopeUid,
-      required PeerId peerId,
-      required Channel channel,
-      required int limit,
-    });
+    /// 不持久化的后果：重启后 l 从物理时间重来，若期间时钟被回拨，
+    /// 新写入的戳会小于重启前的戳 —— 单调性断裂，且没有任何报错。
+    abstract interface class HlcClockStore {
+      /// 读回上次退出时的时钟；从未存过返回 null。
+      Future<HybridLogicalClock?> load();
+
+      /// 落盘当前时钟。
+      Future<void> save(HybridLogicalClock clock);
+    }
+
+  types.dart RemoteChange 增加: |
+    /// 产生该变更的 HLC 戳（因果序，§5.2.3）。
+    ///
+    /// 线上格式见 docs/storage-s1b-multipeer/HLC-WIRE-FORMAT.md（ACT 12 产出）：
+    /// 48 位 l + 16 位 c 打包成 int64，`(l << 16) | c`。
+    /// 可空：历史 oplog 条目没有这个字段。
+    final int? hlcPacked;
+
+    /// 产生该变更的设备标识（HLC 相等时的决胜位）。
+    ///
+    /// 可空：历史 oplog 条目没有这个字段。
+    final String? deviceId;
+
+  persistence_drift.dart 新增: |
+    /// 每个实体当前版本的 HLC 戳（边表）。
+    ///
+    /// 【为什么用边表而不是往 RecordMeta 加字段】：RecordMeta 在
+    /// repository-interface-record 仓库，改它要连带下游 12 个业务仓库。
+    /// 边表让 S1b 完全留在 xuan-storage 内，所有 Data class 零改动。
+    ///
+    /// 代价：戳与记录不在同一行，【必须同事务写入】（A13 门禁守着）。
+    @DataClassName('EntityStampRow')
+    class EntityStamps extends Table {
+      TextColumn get entityType => text().named('entity_type')();
+      TextColumn get entityId => text().named('entity_id')();
+
+      /// HLC 打包值 `(l << 16) | c`。
+      IntColumn get hlcPacked => integer().named('hlc_packed')();
+
+      /// 写入该版本的设备。HLC 相等时的决胜位。
+      TextColumn get deviceId => text().named('device_id')();
+
+      @override
+      Set<Column> get primaryKey => {entityType, entityId};
+    }
 
 TASK_DETAIL:
-  semantics_copied_verbatim: >
-    过滤语义【逐条照抄】core/test/policy_channel_filter_test.dart 里的 filterForChannel：
+  no_data_class_changes: >
+    【本 ACT 不动任何 Data class】。RecordMeta、各模块的 record 类型、
+    repository-interface-* 的任何仓库 —— 一个字段都不加。
+    戳全部存在 drift 的 t_entity_stamp 边表里，键 (entityType, entityId)。
+    这是人类 2026-08-02 的放置决定，理由见纪要决定记录。
 
-      final p = StoragePolicyRegistry.lookup(r.entityType);
-      if (p == null) return false;          // fail closed
-      return p.channels.contains(channel);
+  wire_format_is_int64: >
+    RemoteChange 上存的是 `hlcPacked`（int64），不是 HybridLogicalClock 对象，
+    也不是字符串。理由：
+    · int64 是 hlc_dart 原生支持的（toInt64 / fromInt64），零歧义；
+    · 它能直接落进 drift 的 IntColumn 与 Firestore/RTDB 的数字字段；
+    · 【将来 Rust / Web 客户端只需实现同一个位布局】——
+      这是 A14 要求产出语言中立规格的原因，规格文档在 ACT 12 写。
+    【不要】用 toString() / "l.c" 字符串格式上线 —— 那把线上格式绑死在
+    hlc_dart 的格式化选择上，换库或换语言时会咬人。
 
-    三点不可改：
-      · lookup 返回 null → 【不推】。不是"默认允许"，是 fail closed。
-        未注册策略的 entityType 意味着"没人想过它该不该外发"，
-        默认允许等于把未经审视的数据推出去。
-      · 判定用 `policy.channels.contains(channel)`，不要自己写 if-else 枚举分支 ——
-        StoragePolicy 的 channels getter 保证了 cloud 结构性恒在（S1a 的不变式 #2），
-        绕过它就绕过了那个保证。
-      · 过滤发生在 peekBatch【内部】，不是调用方过滤。
-        放在调用方意味着每个调用点都要记得过滤，漏一处就是数据外泄。
+  migration_is_v9: >
+    ACT 05 升到 7（新表 + peer_id 列），ACT 07 升到 8（t_sync_state 主键切换）。
+    本 ACT 升到 **9**，onUpgrade 新增且仅新增 `if (from < 9)` 一段：
+      await m.createTable(entityStamps);
+      await m.createTable(hlcClockState);   // 时钟持久化，单行表
+    【不要】动 from<2..8 的八段历史迁移。
 
-  drift_implementation: >
-    drift 侧不能在 SQL 里查策略（策略在 Dart 的 Registry 里，不在库里）。
-    做法：SQL 先按 (scopeUid, peerId, ack 状态) 取候选，再在 Dart 层用上面的语义过滤，
-    最后截断到 limit。
+  clock_persistence_timing: >
+    时钟落盘时机：**每次 tick / observe 之后立刻 save**。
+    不要"退出时再存" —— app 被系统杀掉不会走退出路径，那正是最常见的场景。
+    单行表（固定主键），写入代价可忽略。
 
-    ⚠ 注意 limit 的位置：必须【先过滤再截断】。
-    先按 limit 取 N 条再过滤，会得到少于 N 条的结果，
-    而调用方看到"不足一批"通常理解为"推完了" ——
-    于是一批里 shared 记录多的时候，后面的记录永远轮不上。这是个静默饥饿。
-    实现上可以循环取直到凑够 limit 或候选耗尽。
+  observe_is_mandatory: >
+    【本 ACT 最容易漏、且漏了不报错的一条】：
+    每一条入站的 RemoteChange，只要它带了 hlcPacked，
+    就【必须】在应用之前调 `clock.observe(remote)`。
+    漏掉的后果：本地时钟不会被顶上去，下次本地写入的戳可能小于刚收到的远端戳，
+    因果关系倒置。所有功能测试仍会绿。
+    属性测试的第 ② 条（因果性）是唯一能抓到它的东西。
 
-  backlog_counts_follow_same_filter: >
-    backlogCount / watchBacklogCount / deadCount 【也要】用同一套过滤 ——
-    否则 SyncRuntime 会看到"还有 5 条待推"但 peekBatch 返回空，
-    表现是无限空转唤醒。这三个方法同样要加 channel 参数。
-
-  coordinator_passes_peer_channel: >
-    sync_coordinator.dart 调 peekBatch 时，channel 取【该 peer 的 SyncPeer.channel】
-    （ACT 01 定义的 getter）。不要用常量、不要从配置读 ——
-    对端自己声明自己在哪个通道，这是唯一真相源。
+  no_arbitration_here: >
+    【本 ACT 不做任何比较判断】。不写 ConflictArbiter，不改 applier 的决策逻辑。
+    本 ACT 交付"戳"，ACT 12 交付"怎么比"，ACT 11 交付"比完怎么处置"。
+    混在一起会让"戳错了"和"比错了"在同一个 diff 里无法区分。
 
 CONSTRAINTS:
-  - 【不要】把 lookup 返回 null 当成"允许"。fail closed 是本 ACT 的核心。
-  - 【不要】自己写 if-else 枚举 channel 分支替代 `policy.channels.contains(channel)`。
-  - 【不要】把过滤放到调用方。见 semantics_copied_verbatim 第三点。
-  - 【不要】先按 limit 截断再过滤。见 drift_implementation 的静默饥饿。
-  - 【不要】只给 peekBatch 加过滤而漏掉三个计数方法。见 backlog_counts_follow_same_filter。
-  - 【不要】修改 core/test/policy_channel_filter_test.dart。它是 S1a 留下的规格，
-    本 ACT 是它的实现方，不是它的修改方。
-  - 每个改动的公开声明必须更新中文 dartdoc（A12）。
+  - 【不要】往任何 Data class 或 repository-interface-* 仓库加字段。见 no_data_class_changes。
+  - 【不要】用字符串格式上线 HLC。见 wire_format_is_int64。
+  - 【不要】把 observe 写成"可选优化"。见 observe_is_mandatory。
+  - 【不要】等退出时才保存时钟。见 clock_persistence_timing。
+  - 【不要】在本 ACT 写比较逻辑。见 no_arbitration_here。
+  - 【不要】动 onUpgrade 的 from<2..8 八段。
+  - 【不要】引入 BACKGROUND 里被否决的任何一个包。
+  - 每个公开声明必须有中文 dartdoc（A12）。
 
 TESTS_FIRST:
   CASES:
-    - NAME: shared_record_never_returned_for_lan_peer
-      FILE: core/test/s1b_channel_filter_ports_test.dart
+    - NAME: property_three_node_simulation
+      FILE: core/test/s1b_hlc_property_test.dart
       BEHAVIOR: >
-        【本 ACT 的生死线】。注册两个策略：
-          'xiang_reading'   -> StoragePolicy.private(...)
-          'playground_post' -> StoragePolicy.shared(...)
-        enqueue 两类记录各若干。断言：
-        - `peekBatch(channel: Channel.lan)`   【只含】 xiang_reading；
-        - `peekBatch(channel: Channel.cloud)` 【两类都含】（cloud 结构性恒在）。
-        这条直接对应 §5.4「草稿 oplog 照样会被 fan-out 到本人的 LAN peer」。
-        用 StoragePolicyRegistry.clearForTesting() 在 setUp 里清干净，
-        照抄 policy_channel_filter_test.dart 的做法。
-      RED_COMMAND: cd core && flutter test test/s1b_channel_filter_ports_test.dart
-      RED_EXPECT: 编译失败（peekBatch 尚无 channel 参数），退出码非 0
-      COVERS: [A7]
+        【本 ACT 的生死线，也是整个 HLC 方案能不能自己维护的根据】。
+        构造 3 个节点，各自给一个【随机且不同】的物理时钟偏移（±60 秒），
+        用一个可注入的假时钟源驱动。随机顺序产生【至少 1000 次】事件：
+          · 本地写入（tick）
+          · 把某节点的当前戳发给另一节点（对方 observe）
+        全程记录每个事件的 (nodeId, hlc)。跑完断言三条不变式：
 
-    - NAME: unregistered_entity_type_fails_closed
-      FILE: core/test/s1b_channel_filter_ports_test.dart
+        ① 单调性：同一节点的连续 tick 严格递增（用 compareTo > 0）
+        ② **因果性：若节点 B 在时刻 T observe 过节点 A 的戳 S，
+           则 B 在 T 之后产生的每一个戳都 > S**（这是 HLC 的全部价值）
+        ③ 收敛性：把事件序列交给两个独立的裁判重放，
+           对任意一对 (hlc, deviceId) 得出【同一个】胜负结论
+
+        用固定 seed 的伪随机数，失败时打印 seed 以便复现。
+        ② 是抓"漏调 receiveEvent"的唯一手段 —— 那个 bug 让①③照样绿。
+      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
+      RED_EXPECT: 编译失败（HlcClock 不存在），退出码非 0
+      COVERS: [A8]
+
+    - NAME: causality_survives_clock_skew
+      FILE: core/test/s1b_hlc_property_test.dart
       BEHAVIOR: >
-        enqueue 一条 entityType 【未注册任何策略】的记录。断言：
-        - 对【所有】Channel 值（cloud/lan/webrtc/manualExport）逐个调 peekBatch，
-          结果都【不含】它 —— 包括 cloud。
-        未注册意味着"没人想过它该不该外发"，默认允许等于把未经审视的数据推出去。
-        写成"查不到策略就放行"这条会红，而那种实现平时完全看不出问题，
-        直到某个新模块忘了注册策略。
-      RED_COMMAND: cd core && flutter test test/s1b_channel_filter_ports_test.dart
+        定向版本，直接复现设计稿 §5.2.3 那个场景：
+        节点 A 时钟准，节点 B 时钟【慢 30 秒】。
+        - A 写一次 → 戳 Sa
+        - B observe(Sa)，然后 B 写一次 → 戳 Sb
+        断言 `Sb > Sa`，即使 B 的物理时钟读数比 A 小 30 秒。
+        用墙上时钟的实现这条必红 —— 这就是那个"用户在手机上改的东西
+        被平板上更早的版本盖掉且不知情"的 bug。
+      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
       RED_EXPECT: 编译失败，先红
-      COVERS: [A7]
+      COVERS: [A8]
 
-    - NAME: counts_agree_with_peek_batch
-      FILE: core/test/s1b_channel_filter_ports_test.dart
+    - NAME: hlc_alone_is_not_a_total_order
+      FILE: core/test/s1b_hlc_property_test.dart
       BEHAVIOR: >
-        非 happy-path。enqueue 3 条 shared + 2 条 private，对 lan 断言：
-        - `peekBatch(channel: lan)` 返回 2 条；
-        - `backlogCount(channel: lan)` 【也是 2】（不是 5）。
-        计数不跟着过滤走时，SyncRuntime 会看到"还有 5 条待推"但 peekBatch 只给 2 条，
-        推完后 backlog 仍是 3 —— 无限空转唤醒，CPU 与电量白烧，且没有任何报错。
-      RED_COMMAND: cd core && flutter test test/s1b_channel_filter_ports_test.dart
+        【反向断言，防止误以为 HLC 就够了】。
+        构造两个节点在【同一物理毫秒】各自 tick 且互不知情，
+        断言两个戳 `isConcurrentWith == true`、`compareTo == 0`。
+        再断言：加上 deviceId 之后，(hlc, deviceId) 能比出确定胜负，
+        且【互换提问顺序结论不变】。
+        这条把"HLC 需要 deviceId 决胜"钉成可执行事实 ——
+        没有它，后人会以为 compareTo 就是全序，然后在 ACT 12 里省掉 deviceId。
+      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
       RED_EXPECT: 编译失败，先红
-      COVERS: [A7]
+      COVERS: [A8]
 
-    - NAME: filter_before_limit_no_silent_starvation
-      FILE: drift/test/sync/peek_batch_channel_filter_test.dart
+    - NAME: clock_survives_restart
+      FILE: core/test/s1b_hlc_property_test.dart
       BEHAVIOR: >
-        【专打"先截断后过滤"这个静默饥饿】。
-        按 createdAtUtc 顺序 enqueue：10 条 shared，然后 3 条 private。
-        对 lan 调 `peekBatch(limit: 3)`，断言返回【3 条 private】。
-        先按 limit 取前 3 条（全是 shared）再过滤的实现会返回【空列表】——
-        而调用方看到空通常理解为"推完了"，于是那 3 条 private 记录
-        在 shared 记录被清空之前【永远轮不上】。没有报错，只是不同步。
-      RED_COMMAND: cd drift && flutter test test/sync/peek_batch_channel_filter_test.dart
+        用 fake HlcClockStore：tick 若干次到戳 S，模拟重启
+        （丢弃 HlcClock 实例，用同一个 store 新建一个），
+        断言新实例的第一个 tick 【严格大于】 S。
+        再把物理时钟【回拨 1 小时】后重启，断言仍然严格大于 S ——
+        持久化的意义正在于抗时钟回拨。
+        不持久化的实现这条必红，而线上表现是"重启后写入的戳变小了"，
+        没有任何日志会提到它。
+      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
       RED_EXPECT: 编译失败，先红
-      COVERS: [A7]
+      COVERS: [A13]
 
-    - NAME: drift_matches_memory_fake_behavior
-      FILE: drift/test/sync/peek_batch_channel_filter_test.dart
+    - NAME: clock_saved_on_every_tick_not_on_exit
+      FILE: core/test/s1b_hlc_property_test.dart
       BEHAVIOR: >
-        parity 检查：把 core 侧那三条断言（shared 不给 lan / 未注册 fail closed /
-        计数一致）在 drift 实现上【原样再跑一遍】。
-        两套实现跑同一组断言，差异立刻显形 —— 内存 fake 与 drift 各自绿
-        但行为不一致，是 ACT 02/04 就埋下的风险，这里一并收口。
-      RED_COMMAND: cd drift && flutter test test/sync/peek_batch_channel_filter_test.dart
+        非 happy-path。用记录调用次数的 fake store，tick 5 次，
+        断言 `save` 被调用了 【5 次】（不是 0 次、不是 1 次）。
+        再对 observe 做同样断言。
+        写成"退出时统一保存"时这条会红 —— 而 app 被系统杀掉不会走退出路径，
+        那正是移动端最常见的终止方式。
+      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
       RED_EXPECT: 编译失败，先红
-      COVERS: [A7]
+      COVERS: [A13]
 
-    - NAME: filter_uses_policy_channels_not_hardcoded_enum
-      FILE: core/test/s1b_channel_filter_ports_test.dart
+    - NAME: stamp_written_in_same_transaction_as_record
+      FILE: drift/test/sync/hlc_stamp_store_test.dart
       BEHAVIOR: >
-        以纯文本扫描 core/lib/model/ports.dart 与 drift/lib/persistence_drift.dart
-        中过滤相关的代码，断言【不存在】形如
-        `channel == Channel.lan` / `switch (channel)` 的硬编码分支，
-        且【存在】 `.channels.contains(` 的调用。
-        StoragePolicy 的 channels getter 保证了 cloud 结构性恒在（S1a 不变式 #2）——
-        自己写枚举分支就绕过了那个保证，而绕过之后 S1a 的契约测试仍然全绿，
-        没有任何东西会提醒你。
-      RED_COMMAND: cd core && flutter test test/s1b_channel_filter_ports_test.dart
-      RED_EXPECT: 断言失败，先红
-      COVERS: [A7]
+        【边表方案的核心风险守卫】。在一个 drift 事务里写记录 + 写 t_entity_stamp，
+        中途让写记录那一步抛异常，断言事务回滚后【两者都没写进去】
+        （t_entity_stamp 里查不到该 entityId）。
+        戳与记录分事务写时这条会红 —— 而那种实现的后果是
+        "记录更新了但戳没更新"，下次同步该记录会被误判为旧版本而被覆盖。
+      RED_COMMAND: cd drift && flutter test test/sync/hlc_stamp_store_test.dart
+      RED_EXPECT: 编译失败（t_entity_stamp 不存在），退出码非 0
+      COVERS: [A13]
+
+    - NAME: v8_upgrade_to_v9_preserves_existing_tables
+      FILE: drift/test/sync/hlc_stamp_store_test.dart
+      BEHAVIOR: >
+        造一个 v8 库（含 ACT 05 建的 t_outbox_peer_ack 与 ACT 07 切过主键的 t_sync_state），
+        各插入若干可辨识行，升级到 v9 后断言：
+        - t_entity_stamp 与时钟单行表已建立；
+        - **v8 那两张表的每一行逐字段未变**；
+        - `PRAGMA user_version` 为 9。
+        只断言"新表存在"是不够的 —— 那种写法漏搬旧数据也会绿。
+      RED_COMMAND: cd drift && flutter test test/sync/hlc_stamp_store_test.dart
+      RED_EXPECT: 断言失败（schemaVersion 仍是 8），退出码非 0
+      COVERS: [A3, A13]
+
+    - NAME: remote_change_hlc_fields_are_nullable
+      FILE: core/test/s1b_hlc_property_test.dart
+      BEHAVIOR: >
+        构造一个【不传】 hlcPacked 与 deviceId 的 RemoteChange，
+        断言能编译且两者为 null；再构造传了值的，断言读回正确，
+        且既有七个字段逐个未受影响。
+        加 required 会让两个 firebase gateway、core 的 fake、
+        drift 的多处测试同时编译失败 —— 计划外的破坏。
+      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A8]
 
 VERIFICATION:
-  - CMD: cd core && dart analyze --fatal-infos lib/model/ports.dart
+  - CMD: cd core && dart analyze --fatal-infos lib/sync/hlc_clock.dart lib/model/types.dart
+    EXPECT_EXIT: 0
+  - CMD: cd core && flutter test test/s1b_hlc_property_test.dart
+    EXPECT_EXIT: 0
+  - CMD: cd drift && flutter test test/sync/hlc_stamp_store_test.dart
     EXPECT_EXIT: 0
   - CMD: cd core && flutter test
     EXPECT_EXIT: 0
   - CMD: cd drift && flutter test
     EXPECT_EXIT: 0
-  # 四个方法都带上了 channel
-  - CMD: 'grep -c "required Channel channel" core/lib/model/ports.dart'
-    EXPECT_STDOUT: "4"
-  # 必须用 policy.channels.contains
-  - CMD: 'grep -c "channels.contains(" drift/lib/persistence_drift.dart'
+  # 只引入 hlc_dart，被否决的包一个都不许进
+  - CMD: 'grep -c "hlc_dart:" core/pubspec.yaml'
+    EXPECT_STDOUT: "1"
     EXPECT_EXIT: 0
-  # 不得硬编码 channel 分支
-  - CMD: 'grep -nE "channel == Channel\.|switch \(channel\)" core/lib/model/ports.dart drift/lib/persistence_drift.dart core/lib/core/sync_coordinator.dart'
+  - CMD: 'grep -nE "^\s+(crdt|sql_crdt|sqlite_crdt|drift_crdt|crdt_lf|crdt_lf_drift|ditto_live):" core/pubspec.yaml drift/pubspec.yaml'
     EXPECT_EXIT: 1
-  # fail closed：不得出现 "?? true" 之类的默认放行
-  - CMD: "grep -nE 'lookup\\([^)]*\\)\\s*\\?\\?|p == null.*return true' drift/lib/persistence_drift.dart core/test/persistence_core_test.dart"
+  # 线上格式必须是 int64，不得用字符串
+  - CMD: 'grep -c "final int? hlcPacked;" core/lib/model/types.dart'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  - CMD: 'grep -nE "hlc\.toString\(\)|HybridLogicalClock\.parse" core/lib/model/types.dart core/lib/sync/hlc_clock.dart'
     EXPECT_EXIT: 1
-  # S1a 留下的规格文件未被修改
-  - CMD: git diff --exit-code main.. -- core/test/policy_channel_filter_test.dart
+  # 不得往 Data class / 外部仓库加字段
+  - CMD: git diff --exit-code main.. -- core/lib/model/repository.dart
+    EXPECT_EXIT: 0
+  - CMD: 'grep -rn "class RecordMeta" core/lib drift/lib'
+    EXPECT_EXIT: 1
+  # v9 迁移：新增且仅新增 from<9，前八段未动
+  - CMD: 'grep -c "int get schemaVersion => 9;" drift/lib/persistence_drift.dart'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  - CMD: 'for n in 2 3 4 5 6 7 8; do grep -q "if (from < $n)" drift/lib/persistence_drift.dart || { echo "LOST:$n"; exit 1; }; done; echo OLD_EIGHT_OK'
+    EXPECT_STDOUT: "OLD_EIGHT_OK"
+    EXPECT_EXIT: 0
+  # 本 ACT 不写比较逻辑
+  - CMD: 'grep -nE "ConflictArbiter|arbitrate|compareTo" core/lib/sync/hlc_clock.dart'
+    EXPECT_EXIT: 1
+  # 本 ACT 不改 applier
+  - CMD: git diff --exit-code <ACT_BASE>..HEAD -- drift/lib/sync/record_local_applier.dart
     EXPECT_EXIT: 0
 
 SELF_CHECK:
-  - 把 `if (p == null) return false;` 临时改成 `return true;` →
-    `unregistered_entity_type_fails_closed` 必须变红 → 改回。
-    **不做这步不算完成本 ACT** —— fail closed 是它的全部意义
-  - 把 drift 侧临时改成"先 limit 截断再过滤" →
-    `filter_before_limit_no_silent_starvation` 必须变红 → 改回
-  - 把 backlogCount 临时改回不过滤 →
-    `counts_agree_with_peek_batch` 必须变红 → 改回
-  - 把 `policy.channels.contains(channel)` 临时改成
-    `channel == Channel.cloud || channel == Channel.lan` →
-    `filter_uses_policy_channels_not_hardcoded_enum` 必须变红 → 改回
-  - 四次自检后 `git status --porcelain` 必须为空
+  - 【最关键的一条】把 `observe` 的实现体临时清空（变成空函数）→
+    `property_three_node_simulation` 的 ② 因果性 与 `causality_survives_clock_skew`
+    必须【同时】变红，而 ① 单调性 与 ③ 收敛性【仍然绿】→ 改回。
+    这一步同时证明两件事：属性测试抓得到漏调 observe，
+    且只靠单调性/收敛性是抓不到的
+  - 把 `HlcClockStore.load()` 临时改成恒返回 null（模拟不持久化）→
+    `clock_survives_restart` 必须变红 → 改回
+  - 把 save 临时改成"只在第一次 tick 时存"→
+    `clock_saved_on_every_tick_not_on_exit` 必须变红 → 改回
+  - 把戳与记录临时改成分两个事务写 →
+    `stamp_written_in_same_transaction_as_record` 必须变红 → 改回
+  - 把 `hlcPacked` 临时改成字符串格式 → grep 门禁必须变红 → 改回
+  - 五次自检后 `git status --porcelain` 必须为空
+
+ON_FAIL:
+  - RED 阶段测试没红（写完实现前就绿）→ 说明测试没真正依赖新类型，
+    停下重写测试，不要继续
+  - 属性测试偶发失败（换 seed 就绿）→ **这是真 bug 不是 flaky**，
+    HLC 的三条不变式在任何事件序列下都必须成立。记下失败 seed 并定位，
+    【不要】加重试、不要放宽断言
+  - v8→v9 迁移测试失败 → 优先怀疑漏建表而非漏搬数据（本 ACT 是纯建表），
+    逐字段比对旧行
+  - core / drift 既有测试变红 → 立即停下。本 ACT 只加不改，
+    既有测试变红说明动到了不该动的地方
+  - 连续两次修不好同一条 → 在纪要「决定记录」写下现象与已排除的可能，停下上报
 
 DONE_WHEN:
-  - peekBatch 与三个计数方法都带 channel 且用同一套过滤
-  - fail closed 成立：未注册策略的 entityType 对所有通道都不推
-  - 先过滤后截断，无静默饥饿
-  - 内存 fake 与 drift 实现行为一致（parity 测试通过）
-  - 六个测试用例全部存在，四条 SELF_CHECK 已实做并确认能变红
-  - policy_channel_filter_test.dart 对 main 零 diff
+  - hlc_dart 已加入 core/pubspec.yaml，被否决的六个包一个都没进
+  - HlcClock / HlcClockStore 交付，时钟每次 tick/observe 都落盘
+  - t_entity_stamp 边表 + 时钟单行表建立，schemaVersion 为 9，前八段迁移未动
+  - RemoteChange 有可空 hlcPacked / deviceId，既有七字段未变
+  - 所有 Data class 与 repository-interface-* 仓库【零改动】
+  - 八个测试用例全部存在且通过，属性测试跑满 ≥1000 事件
+  - 五条 SELF_CHECK 已实做并确认能变红，尤其第一条（清空 observe 只红 ②）

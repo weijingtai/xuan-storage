@@ -1,230 +1,340 @@
 ACT_VERSION: 1
 TASK_ID: mimo-storage-s1b-multipeer/08
-TITLE: 修 canAdvanceCursor 恒真 + 把 ConflictArbiter 接进 RecordLocalApplier
-TYPE: bugfix
-ORDER: 10
+TITLE: per-peer 调度接口 + SyncRuntime 退避改造 —— 不可达对端不得拖垮云端
+TYPE: implementation
+ORDER: 8
 DEPENDS_ON: [mimo-storage-s1b-multipeer/07]
 DISPATCH_STATUS: ready
-STRONG_MODEL_ONLY: false
+STRONG_MODEL_ONLY: true    # 时序状态机，写错不报错，只在"某个对端长期离线"时才显形
 
 OBJECTIVE: >
-  §5.2.3 指出的两个既有缺陷，本 ACT 一次修掉：
-  ① `record_local_applier.dart:60-61` 的成功路径 `canAdvanceCursor: true` 【恒为真】——
-     某条 change 应用失败被记为 failed 时，`sync_coordinator.dart:382` 的守卫不触发，
-     **游标照常推进，那条变更永久丢失**；
-  ② 全文件对 updatedAt/rev 只有解析、没有任何比较逻辑 —— record 主线是 RWW
-     （远端无条件覆盖本地），不是 LWW。ACT 07 已备好仲裁器，本 ACT 接上。
+  §5.2.2 末段的连带改动：`_pushFailureCount` 与 `_nextPullNotBeforeUtcByEntityType`
+  都必须 per-peer，否则一个不可达的 LAN peer 会把云端 push 一起拖进 2 分钟退避。
+  ACT 10 让一条记录同时推给 N 个合格对端，本 ACT 让 N 个对端的失败互不传染。
 
-PRE_EXISTING_STATE: >
-  这两个都是【既有缺陷】，不是本任务改坏的。现状（已核实）：
+  ⚠ **改字段不够，必须先有接口**（Codex R1 · P0-2）：
+  当前 SyncCoordinator 只返回聚合的 `OutboxPushRunResult`，`pushOnce`/`pullOnce`
+  都没有 peer 参数，也没有枚举/移除对端的正式 API。
+  只把四个字段改成 Map，runtime 仍然做不到「只跳过 LAN 而继续 push cloud」。
+  所以本 ACT 的第一交付物是【接口】，第二才是退避状态。
 
-    drift/lib/sync/record_local_applier.dart
-      :19-27  entityType 不匹配时返回 canAdvanceCursor: false —— 这条是对的
-      :33-50  成功路径：applied++ 并记 ChangeApplyDecision.applied
-      :51-57  catch 路径：记 ChangeApplyDecision.failed（但不影响返回值）
-      :60-61  return LocalApplyResult(canAdvanceCursor: true, ... lastError: null)
-              ^^^^ 无论 outcomes 里有没有 failed，都是 true，lastError 恒为 null
-
-    core/lib/core/sync_coordinator.dart:382
-      if (!applyResult.canAdvanceCursor || applyResult.lastError != null) { ... }
-      ^^^^ 守卫写得没错，只是永远不触发
-
-  单 gateway 下这已是缺陷；多 peer 下丢失概率线性放大（§5.2.3 原文）。
+WHY_STRONG_MODEL: >
+  ⚠ 退避是【时序状态】，写错不会报错也不会让现有测试变红：
+  单 peer 场景下 per-peer 与全局退避的行为完全一致，全部既有测试都会绿。
+  只有在「一个对端持续失败、另一个持续成功」时差异才显形 ——
+  而那正是 LAN peer 的常态（用户不在家时局域网对端永远不可达）。
+  线上表现：用户离开家 → LAN peer 连不上 → 云端同步被拖进 2 分钟退避 →
+  用户以为 app 坏了。没有任何错误日志能指向这个原因。
 
 SCOPE:
   READ:
     - docs/superpowers/specs/2026-07-31-storage-architecture-design.md
-      # §5.2.3 全节，尤其「游标照常推进，那条变更永久丢失」那两行
-    - core/lib/model/conflict_arbiter.dart      # ACT 07 的 LamportStamp / ConflictArbiter
-    - core/lib/model/types.dart
-      # LocalApplyResult:353（canAdvanceCursor / lastError 的语义）
-      # ChangeApplyOutcome:322（含 ACT 07 新增的 overwrittenPayloadJson / overwrittenStamp）
-      # ChangeApplyDecision:285 / SkipReasonCode:301
-      # RemoteChange:232（含 ACT 06b 新增的可空 rev / deviceId）
-    - core/lib/core/sync_coordinator.dart       # :382 守卫，本 ACT 不改它，只让它真的能触发
-    - drift/lib/sync/record_local_applier.dart  # 全文 107 行
-    - drift/test/sync/record_local_applier_test.dart  # 既有测试的写法
+      # §5.2.2 末段「连带的 SyncRuntime 改动」原文（两个字段 + 理由）
+    - core/lib/sync/sync_runtime.dart
+      # 退避相关的全部现场（769 行，只看这些行）：
+      #   :44-47  pushInterval / pullInterval / minBackoff / maxBackoff 四个可注入参数
+      #   :92     _nextPushNotBeforeUtc          （全局，要改）
+      #   :93     _pushFailureCount              （全局，要改）
+      #   :95     _nextPullNotBeforeUtcByEntityType  （按 entityType，要加 peer 维度）
+      #   :97     _pullFailureCountByEntityType      （按 entityType，要加 peer 维度）
+      #   :341-350 生命周期里对这几个 Map 的 removeWhere / putIfAbsent
+      #   :489 :536 :554-570  push 侧退避的读写
+      #   :632 :672-692       pull 侧退避的读写
+      #   :732-739            reset 路径
+      #   _computeBackoff 的实现
+    - core/lib/model/sync_peer.dart      # PeerId
+    - core/lib/routing/peer_fanout_pusher.dart   # ACT 07：pushToAll 返回 Map<PeerId, SyncError?>
   MODIFY:
-    - drift/lib/sync/record_local_applier.dart
-    - drift/test/sync/record_local_applier_test.dart   # 既有断言若依赖恒真行为，需更新
+    - core/lib/sync/sync_runtime.dart
+    - core/lib/core/sync_coordinator.dart    # pushOnce / pullOnce 加 peer 维度
+    - core/lib/model/types.dart              # OutboxPushRunResult 拆出 per-peer 结果
   WRITE:
-    - drift/test/sync/record_local_applier_conflict_test.dart
+    - core/lib/sync/peer_registry.dart
+    - core/test/s1b_per_peer_backoff_test.dart
+
+SIGNATURE:
+  peer_registry.dart: |
+    /// 当前参与同步的对端集合。SyncRuntime 与 SyncCoordinator 的唯一枚举入口。
+    ///
+    /// 【为什么要正式接口而不是一个 List 字段】：退避状态、ack 行、游标都按 peer 分片，
+    /// 对端集合变化时这些分片必须被清理。没有正式的 add/remove，
+    /// 清理时机就散落在各处，漏一处就是内存里留一批僵尸键（且不报错）。
+    abstract interface class PeerRegistry {
+      /// 当前全部对端。顺序无意义。
+      Iterable<SyncPeer> get peers;
+
+      /// 对端标识集合，供退避 Map 做键清理。
+      Set<PeerId> get peerIds;
+
+      /// 注册一个对端。
+      void register(SyncPeer peer);
+
+      /// 移除一个对端，并【通知监听方清理该 peer 的全部分片状态】。
+      void remove(PeerId peerId);
+
+      /// 对端集合变化流。SyncRuntime 订阅它来清理退避 Map。
+      Stream<Set<PeerId>> get changes;
+    }
+
+  types.dart per-peer 推送结果: |
+    /// 一轮推送中【单个对端】的结果。
+    ///
+    /// 取代把 N 个对端压成一个 OutboxPushRunResult 的做法 ——
+    /// 压扁之后 runtime 无从知道该给谁记失败、该跳过谁。
+    class PeerPushOutcome {
+      /// 对端标识。
+      final PeerId peerId;
+
+      /// 本轮成功推送的条数。
+      final int succeeded;
+
+      /// 本轮失败的条数。
+      final int failed;
+
+      /// 最后一个错误，用于退避决策与诊断。
+      final SyncError? lastError;
+
+      /// 构造一个 [PeerPushOutcome]。
+      const PeerPushOutcome({...});
+    }
+
+  sync_coordinator.dart 签名变更: |
+    /// 推一轮。返回【每个对端各一条】结果，不再压成一个。
+    Future<List<PeerPushOutcome>> pushOnce({required String scopeUid});
+
+    /// 拉一轮。**按对端拉** —— 游标已是 per-(scope, peer, entityType)（ACT 04/05）。
+    Future<PullRunResult> pullOnce({
+      required String scopeUid,
+      required PeerId peerId,
+      required String entityType,
+    });
 
 TASK_DETAIL:
-  cursor_rule: >
-    正确规则：**只要 outcomes 里存在任何一条 `ChangeApplyDecision.failed`，
-    canAdvanceCursor 就必须为 false，且 lastError 非 null。**
+  interfaces_before_state: >
+    实现顺序【必须】是：先 PeerRegistry + PeerPushOutcome + pushOnce/pullOnce 签名，
+    再改四个退避字段。反过来做会得到"字段是 Map 了但判定还是全局"的假完成 ——
+    Codex R1 · P0-2 抓的正是这个形状。
 
-    理由：游标推进意味着"这一页我处理完了，下次从后面拉"。
-    有一条没应用成功却推进游标，那条变更就再也不会被拉到 —— 永久丢失。
-    宁可下次重拉整页（幂等，代价是一点流量），也不能丢。
+  four_fields: >
+    四个退避状态字段全部加 peer 维度：
 
-    `skipped` 【不阻止】游标推进 —— skipped 是"有意不应用"（已应用过、更旧、
-    被仲裁判为 keepLocal），不是失败。把 skipped 也算进去会让游标永远卡在
-    第一个被仲裁拒绝的位置上，同步彻底停摆。这个区分是本 ACT 最容易写反的地方。
+      _nextPushNotBeforeUtc            DateTime?              -> Map<PeerId, DateTime?>
+      _pushFailureCount                int                    -> Map<PeerId, int>
+      _nextPullNotBeforeUtcByEntityType Map<String, DateTime?> -> Map<(PeerId,String), DateTime?>
+      _pullFailureCountByEntityType     Map<String, int>       -> Map<(PeerId,String), int>
 
-  arbitration_wiring: >
-    在应用每条 change 前先仲裁：
-      1. 从 change 取 (rev, deviceId) 构造 remote LamportStamp
-         —— 两者可空，按 ACT 07 定的降级规则处理（rev null → 0；deviceId null → 视为最小）；
-      2. 取本地当前版本的 LamportStamp。**本地版本从哪来是本 ACT 要解决的**：
-         RecordMeta 里若已有 rev/deviceId 字段就用；若没有 →
-         【停下上报】，不要往 RecordMeta 加字段（那是 repository-interface-record
-         仓库的事，跨仓库改动超出本 ACT）。降级方案见 fallback_when_local_stamp_missing。
-      3. arbitrate 结果：
-         takeRemote → 正常应用，并把【被覆盖的本地 payload 与 stamp】填进
-                      ChangeApplyOutcome 的两个新字段（§5.3 冲突可见化）；
-         keepLocal  → 记 decision: skipped、reason 用一个表达"被仲裁拒绝"的
-                      SkipReasonCode（先看 SkipReasonCode:301 有没有合适的；
-                      没有就用最接近的并在 message 里写明，【不要】往那个 enum 加值 ——
-                      它是公开 API）；
-         identical  → 记 skipped，不写库。
+    后两个的键从 entityType 变成 (peerId, entityType) 二元组。
+    Dart 3 的 record 类型 `(PeerId, String)` 可直接作 Map 键（有值语义的 ==/hashCode），
+    比拼字符串 `'$peerId::$entityType'` 安全 —— 拼字符串在 peerId 含分隔符时会串键。
+    【不要】用嵌套 Map<PeerId, Map<String, T>>，那会让 :341-350 的 removeWhere /
+    putIfAbsent 变成两层遍历，极易漏清理。
 
-  fallback_when_local_stamp_missing: >
-    若 RecordMeta 拿不到本地 rev/deviceId：
-    本 ACT 仍然要交付「① canAdvanceCursor 修复」与「② 仲裁器接线的骨架」，
-    但仲裁降级为"本地 stamp 不可得 → takeRemote"（即维持现状 RWW），
-    并在 ChangeApplyOutcome 的 message 里标注降级原因。
-    这样 ACT 08 的第一个目标（游标缺陷）不被第二个目标（仲裁）阻塞。
-    降级这件事【必须写进纪要「决定记录」】并作为 S3a 的前置待办，
-    否则"仲裁器接上了但其实没生效"会被当成已完成。
+  push_side: >
+    :554-570 那段：失败时 `_pushFailureCount[peerId] += 1`，
+    `_nextPushNotBeforeUtc[peerId] = now.add(_computeBackoff(该 peer 的失败数))`；
+    成功时把【该 peer 的】两个值清零/置 null。
 
-  no_coordinator_changes: >
-    【不改 sync_coordinator.dart】。:382 的守卫写得是对的，问题在于它永远不触发。
-    本 ACT 让它真的能触发即可。改守卫会让"applier 报错了没"与
-    "coordinator 拦住了没"两件事混在一起，出问题时无法归因。
+    ACT 07 的 pushToAll 返回 `Map<PeerId, SyncError?>` ——
+    逐条目更新对应 peer 的退避状态。
+    【关键】：某个 peer 失败【不得】改动其他 peer 的 `_nextPushNotBeforeUtc`。
+
+    :489 与 :536 的「是否到点可推」判定改成【逐 peer 判定】：
+    某个 peer 在退避窗口内就跳过那个 peer，其余照推。
+    【不要】写成「任一 peer 在退避窗口内就整轮跳过」——
+    那等于把 per-peer 退避又退化回全局。
+
+  pull_side: >
+    :632 / :672-692 同理，键换成 (peerId, entityType)。
+    pull 是按对端各自的游标拉的（ACT 03/04 已让游标 per-peer），
+    退避自然也要 per-peer。
+
+  lifecycle_cleanup: >
+    :341-350 的 removeWhere / putIfAbsent 与 :732-739 的 reset 要同步改：
+    entityType 集合变化时清理对应条目，现在要按 (peerId, entityType) 清。
+    【漏清理不会报错，只会让 Map 无限增长】—— 每次对端集合变化就留下一批僵尸键。
+    本 ACT 的最后一条测试专门验这个。
+
+  backoff_params_stay_global: >
+    minBackoff / maxBackoff / pushInterval / pullInterval（:44-47）【保持全局】，
+    不要做成 per-peer 可配。它们是策略参数不是运行时状态；
+    per-peer 可配会让"为什么这个对端退避这么久"变成一个需要查配置才能回答的问题。
 
 CONSTRAINTS:
-  - 【不要】让 skipped 阻止游标推进。见 cursor_rule 末段 —— 会让同步彻底停摆。
-  - 【不要】改 sync_coordinator.dart。见 no_coordinator_changes。
-  - 【不要】往 SkipReasonCode 或 RecordMeta 加字段。前者是公开 API，
-    后者在另一个仓库（repository-interface-record）。需要就停下上报。
-  - 【不要】在 catch 路径里吞掉异常后仍返回 canAdvanceCursor: true。那就是现在的 bug。
-  - 【不要】把 lastError 填成一个笼统的 'some changes failed'。
-    要带上【第一条失败的 operationId 与原始错误】，否则线上排查时
-    只知道"有东西失败了"却不知道是哪条。
-  - 每个改动的公开声明必须更新中文 dartdoc（A12）。
+  - 【不要】用字符串拼接做复合键。见 four_fields。
+  - 【不要】用嵌套 Map。见 four_fields。
+  - 【不要】写成「任一 peer 在退避中就整轮跳过」。见 push_side。
+  - 【不要】把 minBackoff/maxBackoff 做成 per-peer。见 backoff_params_stay_global。
+  - 【不要】动 _computeBackoff 的算法。本 ACT 只改"这个数存在哪"，不改"怎么算"；
+    两件事混在一起会让退避行为的回归无法归因。
+  - 【不要】在本 ACT 改动 SyncRuntime 里与退避无关的部分。769 行的文件，
+    顺手重构会让 diff 无法审查。
+  - 每个改动的私有字段也要更新中文注释说明键的含义（A12 只管公开声明，
+    但这四个字段的键语义写错就是本 ACT 的全部风险，必须写清楚）。
 
 TESTS_FIRST:
   CASES:
-    - NAME: failed_change_blocks_cursor_advance
-      FILE: drift/test/sync/record_local_applier_conflict_test.dart
+    - NAME: unreachable_peer_does_not_delay_cloud_push
+      FILE: core/test/s1b_per_peer_backoff_test.dart
       BEHAVIOR: >
-        【本 ACT 的生死线 —— 直接对应 §5.2.3「那条变更永久丢失」】。
-        构造 3 条 change，让【中间那条】的 applyRecord 抛异常（注入的回调里抛）。
-        断言返回的 LocalApplyResult：
-        - `canAdvanceCursor` 为 【false】；
-        - `lastError` 【非 null】，且其 message 里含【那条失败 change 的 operationId】；
-        - `appliedCount` 为 2（另外两条确实应用了 —— 一条失败不该中断整批）；
-        - outcomes 里恰好一条 decision 为 failed。
-        当前实现这条会红（恒真 true / lastError 恒 null）。
-      RED_COMMAND: cd drift && flutter test test/sync/record_local_applier_conflict_test.dart
-      RED_EXPECT: 断言失败（canAdvanceCursor 恒为 true），退出码非 0
-      COVERS: [A10]
+        【本 ACT 的生死线，也是 §5.2.2 末段那句话的可执行版本】。
+        两个 fake peer：cloud 恒成功、lan 恒失败。跑若干轮推送后断言：
+        - lan 的 `nextPushNotBefore` 被推到了未来（进入退避）；
+        - cloud 的 `nextPushNotBefore` 【为 null】（从未退避）；
+        - 继续推送时 cloud 【仍被调用】，调用次数随轮次线性增长。
+        退避状态若是全局的，cloud 会被 lan 的失败拖进 2 分钟窗口 ——
+        线上表现是「用户离开家，云端同步就变慢」，且无任何日志指向原因。
+        观测内部退避状态用 `@visibleForTesting` 的【只读 getter】
+        （例如 `Map<PeerId, DateTime?> get debugNextPushNotBefore`），
+        【不要】把私有字段直接改成 public 字段。
+        ⚠ 门禁只禁「可写字段」，合法的只读 getter 必须放行（Codex R1 · P1-16）。
+      RED_COMMAND: cd core && flutter test test/s1b_per_peer_backoff_test.dart
+      RED_EXPECT: 编译失败（无 per-peer 退避视图），退出码非 0
+      COVERS: [A6]
 
-    - NAME: skipped_change_does_not_block_cursor_advance
-      FILE: drift/test/sync/record_local_applier_conflict_test.dart
+    - NAME: failure_count_resets_per_peer_on_success
+      FILE: core/test/s1b_per_peer_backoff_test.dart
       BEHAVIOR: >
-        【与上一条方向相反，必须同时成立】。构造 3 条 change，
-        让其中一条被仲裁判为 keepLocal（记 skipped），其余正常应用。
-        断言 `canAdvanceCursor` 为 【true】。
-        写成"有任何非 applied 就不推进"时这条会红 ——
-        而那种写法会让游标永远卡在第一个被仲裁拒绝的位置，同步彻底停摆。
-        这是本 ACT 最容易写反的地方，两条测试必须成对存在。
-      RED_COMMAND: cd drift && flutter test test/sync/record_local_applier_conflict_test.dart
-      RED_EXPECT: 断言失败，先红
-      COVERS: [A10]
-
-    - NAME: all_success_still_advances_cursor
-      FILE: drift/test/sync/record_local_applier_conflict_test.dart
-      BEHAVIOR: >
-        回归守卫：全部应用成功时 canAdvanceCursor 为 true、lastError 为 null。
-        修 bug 时把条件写反（变成"恒 false"）会让同步完全不前进，
-        而那种错误在只测失败路径的情况下不会被发现。
-      RED_COMMAND: cd drift && flutter test test/sync/record_local_applier_conflict_test.dart
-      RED_EXPECT: 断言失败或编译失败，先红
-      COVERS: [A10]
-
-    - NAME: entity_type_mismatch_still_blocks_advance
-      FILE: drift/test/sync/record_local_applier_conflict_test.dart
-      BEHAVIOR: >
-        回归守卫：传一个不匹配的 entityType，断言仍返回 canAdvanceCursor: false
-        （applier.dart:19-27 的既有行为是对的，不能被本 ACT 改坏）。
-        改 canAdvanceCursor 的计算方式时很容易把这个早退分支一并重写掉。
-      RED_COMMAND: cd drift && flutter test test/sync/record_local_applier_conflict_test.dart
-      RED_EXPECT: 断言失败或编译失败，先红
-      COVERS: [A10]
-
-    - NAME: arbiter_keep_local_records_skipped_not_applied
-      FILE: drift/test/sync/record_local_applier_conflict_test.dart
-      BEHAVIOR: >
-        注入一个恒返回 keepLocal 的 fake ConflictArbiter。断言：
-        - 注入的 applyRecord 回调【一次都没被调用】（用计数式 fake 记录调用次数，
-          【不用 fail()】—— applier 里有 catch-all 会吞掉 TestFailure）；
-        - outcome 的 decision 为 skipped；
-        - `appliedCount` 为 0。
-        证明仲裁真的挡在写库之前，而不是"写完再说"。
-      RED_COMMAND: cd drift && flutter test test/sync/record_local_applier_conflict_test.dart
-      RED_EXPECT: 编译失败（applier 尚不接受 arbiter），退出码非 0
-      COVERS: [A8]
-
-    - NAME: take_remote_captures_overwritten_payload
-      FILE: drift/test/sync/record_local_applier_conflict_test.dart
-      BEHAVIOR: >
-        注入恒返回 takeRemote 的 fake arbiter，本地已有一个可辨识的旧 payload。
-        断言应用后的 ChangeApplyOutcome：
-        - `overwrittenPayloadJson` 【等于那份旧 payload】（不是 null、不是新 payload）；
-        - `overwrittenStamp` 非 null。
-        §5.3 要求"冲突时保留被覆盖的版本并使其对用户可见可回溯"。
-        字段存在但从不填值，是这类需求最常见的落地失败方式 ——
-        看起来做了，实际上用户永远看不到自己丢了什么。
-      RED_COMMAND: cd drift && flutter test test/sync/record_local_applier_conflict_test.dart
+        lan 先失败 3 次（失败数 3），随后成功一次，断言 lan 的失败数归 0
+        且 `nextPushNotBefore[lan]` 回到 null。
+        同时断言 cloud 的失败数【全程为 0】、未被 lan 的归零操作影响
+        （写成"任一 peer 成功就全局清零"同样是错的，方向相反而已）。
+      RED_COMMAND: cd core && flutter test test/s1b_per_peer_backoff_test.dart
       RED_EXPECT: 编译失败，先红
-      COVERS: [A9]
+      COVERS: [A6]
+
+    - NAME: peer_in_backoff_is_skipped_others_still_pushed
+      FILE: core/test/s1b_per_peer_backoff_test.dart
+      BEHAVIOR: >
+        非 happy-path。把 lan 的 `nextPushNotBefore` 置于未来（模拟退避中），
+        触发一轮推送，断言：
+        - lan 的 pushCount 【未增加】（被跳过）；
+        - cloud 的 pushCount 【增加了 1】（照常推）。
+        写成「任一 peer 在退避中就整轮跳过」时，cloud 的 pushCount 不增加 ——
+        这条会红。那种写法等于把 per-peer 退避退化回全局，
+        而且更隐蔽：字段确实是 Map，只是判定逻辑没跟上。
+      RED_COMMAND: cd core && flutter test test/s1b_per_peer_backoff_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A6]
+
+    - NAME: pull_backoff_keyed_by_peer_and_entity_type
+      FILE: core/test/s1b_per_peer_backoff_test.dart
+      BEHAVIOR: >
+        让 (lan, 'record') 的拉取失败进入退避，断言：
+        - (cloud, 'record') 【不受影响】；
+        - (lan, 'divination_case') 【也不受影响】。
+        两个维度都要验 —— 只把键改成 peerId、丢掉 entityType 维度，
+        或反之，都会让其中一条红。
+      RED_COMMAND: cd core && flutter test test/s1b_per_peer_backoff_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A6]
+
+    - NAME: runtime_drives_per_peer_through_formal_api
+      FILE: core/test/s1b_per_peer_backoff_test.dart
+      BEHAVIOR: >
+        【本 ACT 的接口交付验收，对应 Codex R1 · P0-2】。
+        全程走正式 API，**不许直接篡改 debug Map**：
+        - 用 PeerRegistry 注册 cloud + lan 两个对端；
+        - lan 恒失败若干轮直到进入退避；
+        - 调 `pushOnce(scopeUid:)`，断言返回的 `List<PeerPushOutcome>` 长度为 2，
+          且 cloud 那条 `succeeded > 0`、lan 那条 `failed > 0`；
+        - 断言 cloud 的 pushCount 随轮次线性增长（没被 lan 拖住）。
+        再调 `pullOnce(peerId: cloud, ...)`，断言只拉了 cloud、没碰 lan。
+        只改字段不加接口时这条编译不过 —— 那正是它存在的意义。
+      RED_COMMAND: cd core && flutter test test/s1b_per_peer_backoff_test.dart
+      RED_EXPECT: 编译失败（PeerRegistry / PeerPushOutcome 不存在），退出码非 0
+      COVERS: [A6]
+
+    - NAME: backoff_maps_do_not_leak_removed_peers
+      FILE: core/test/s1b_per_peer_backoff_test.dart
+      BEHAVIOR: >
+        让 lan 进入退避（Map 里有它的条目），随后调 `PeerRegistry.remove(lan)`
+        —— 走【正式 API】，不是直接 clear Map。
+        断言四个退避 Map 里【都不再有】任何 lan 的键。
+        漏清理不报错，只让 Map 无限增长 —— 每次对端集合变化留下一批僵尸键，
+        长跑进程会缓慢泄漏。这类问题从来不会被功能测试抓到。
+      RED_COMMAND: cd core && flutter test test/s1b_per_peer_backoff_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A6]
+
+    - NAME: backoff_algorithm_unchanged
+      FILE: core/test/s1b_per_peer_backoff_test.dart
+      BEHAVIOR: >
+        回归守卫。对单个 peer 连续失败 1..5 次，断言退避时长序列与改造前一致
+        （指数增长、被 maxBackoff 截断、不小于 minBackoff）。
+        本 ACT 只改"这个数存在哪"，不改"怎么算" ——
+        两件事混在一起会让退避行为的回归无法归因。
+        具体期望值从改造前的 _computeBackoff 实现推出并写死在测试里。
+      RED_COMMAND: cd core && flutter test test/s1b_per_peer_backoff_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A6]
 
 VERIFICATION:
-  - CMD: cd drift && dart analyze --fatal-infos lib/sync/record_local_applier.dart
+  - CMD: cd core && dart analyze --fatal-infos lib/sync/sync_runtime.dart
     EXPECT_EXIT: 0
-  - CMD: cd drift && flutter test test/sync/record_local_applier_conflict_test.dart
-    EXPECT_EXIT: 0
-  - CMD: cd drift && flutter test
+  - CMD: cd core && flutter test test/s1b_per_peer_backoff_test.dart
     EXPECT_EXIT: 0
   - CMD: cd core && flutter test
     EXPECT_EXIT: 0
-  # 恒真的字面量必须消失
-  - CMD: 'grep -n "canAdvanceCursor: true," drift/lib/sync/record_local_applier.dart'
+  - CMD: cd drift && flutter test
+    EXPECT_EXIT: 0
+  # 四个字段都带上了 PeerId 维度
+  - CMD: 'grep -q "PeerId" core/lib/sync/sync_runtime.dart'
+    EXPECT_EXIT: 0
+  # 不得用字符串拼接做复合键
+  - CMD: "grep -nE \"'\\\\\\$peerId::|\\\\\\$peerId\\\\\\$|peerId + '\" core/lib/sync/sync_runtime.dart"
     EXPECT_EXIT: 1
-  # lastError 不再恒 null
-  - CMD: 'grep -c "lastError: null," drift/lib/sync/record_local_applier.dart'
+  # 不得出现嵌套 Map
+  - CMD: 'grep -nE "Map<PeerId, Map<" core/lib/sync/sync_runtime.dart'
+    EXPECT_EXIT: 1
+  # 退避参数保持全局（未被改成 Map）
+  - CMD: 'grep -cE "Duration minBackoff = const Duration\(seconds: 2\)" core/lib/sync/sync_runtime.dart'
     EXPECT_STDOUT: "1"
-  # 本 ACT 不改 coordinator
-  - CMD: git diff --exit-code HEAD~1 -- core/lib/core/sync_coordinator.dart
     EXPECT_EXIT: 0
-  # 不得往公开 enum 加值
-  - CMD: git diff --exit-code main.. -- core/lib/model/types.dart | grep -E "^\+.*SkipReasonCode\." || true
+  - CMD: 'grep -cE "Duration maxBackoff = const Duration\(minutes: 2\)" core/lib/sync/sync_runtime.dart'
+    EXPECT_STDOUT: "1"
     EXPECT_EXIT: 0
-  # 仲裁在写库之前（arbitrate 的调用行号必须小于 applyRecord 的）
-  - CMD: "awk '/arbitrate\\(/{a=NR} /await applyRecord\\(/{b=NR} END{exit !(a && b && a<b)}' drift/lib/sync/record_local_applier.dart"
+  # 只禁可写 public 字段；只读 getter 合法
+  - CMD: 'grep -nE "^  (Map<PeerId[^>]*>|DateTime\?|int) [a-z][A-Za-z]* *(=|;)" core/lib/sync/sync_runtime.dart'
+    EXPECT_EXIT: 1
+  # 必须有正式的 per-peer 接口，不是只改字段
+  - CMD: 'grep -c "abstract interface class PeerRegistry" core/lib/sync/peer_registry.dart'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  - CMD: 'grep -c "Future<List<PeerPushOutcome>> pushOnce" core/lib/core/sync_coordinator.dart'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  - CMD: 'grep -q "required PeerId peerId," core/lib/core/sync_coordinator.dart'
     EXPECT_EXIT: 0
 
 SELF_CHECK:
-  - 把 canAdvanceCursor 临时改回恒 true →
-    `failed_change_blocks_cursor_advance` 必须变红 → 改回
-  - 把 canAdvanceCursor 临时改成"有任何非 applied 就 false"（把 skipped 也算进去）→
-    `skipped_change_does_not_block_cursor_advance` 必须变红 → 改回。
-    **这一步最关键** —— 它证明你区分了 failed 与 skipped，而不是一刀切
-  - 把 canAdvanceCursor 临时改成恒 false →
-    `all_success_still_advances_cursor` 必须变红 → 改回
-  - 把仲裁调用临时挪到 applyRecord 之后 →
-    `arbiter_keep_local_records_skipped_not_applied` 必须变红 → 改回
-  - 把 overwrittenPayloadJson 临时填成新 payload（而非旧的）→
-    `take_remote_captures_overwritten_payload` 必须变红 → 改回
-  - 五次自检后 `git status --porcelain` 必须为空
+  - 把 `_pushFailureCount` 临时改回全局 int →
+    `unreachable_peer_does_not_delay_cloud_push` 与
+    `failure_count_resets_per_peer_on_success` 必须【同时】变红 → 改回
+  - 保留 Map 结构，但把「是否到点可推」的判定临时改成「任一 peer 在退避中就整轮跳过」→
+    `peer_in_backoff_is_skipped_others_still_pushed` 必须变红 → 改回。
+    **这一步最关键** —— 它证明你的测试抓的是行为不是字段形状
+  - 把 pull 退避的键临时改成只有 peerId（丢掉 entityType）→
+    `pull_backoff_keyed_by_peer_and_entity_type` 必须变红 → 改回
+  - 把生命周期清理临时注释掉 → `backoff_maps_do_not_leak_removed_peers` 必须变红 → 改回
+  - 四次自检后 `git status --porcelain` 必须为空
+
+ON_FAIL:
+  - RED 阶段测试没红（写实现前就绿）→ 测试没真正依赖新类型/新行为，
+    停下重写测试，【不要】继续往下做
+  - 实现后 VERIFICATION 某条不过 → 先看是不是 EXPECT 写错（尤其 grep -c 的
+    双 EXPECT 语义：无匹配时打印 0 且退出码 1），再改实现
+  - core / drift / firebase 的【既有】测试变红 → 立即停下。
+    本 ACT 只加不改，既有测试变红说明动到了不该动的地方
+  - SELF_CHECK 的某条注入后【没有】变红 → 那条门禁是假的，
+    必须重写门禁而不是跳过自检
+  - 基线类命令（analyze 数量、测试数量）不符 → 不要改基线迁就实现，
+    先确认是不是真的引入了新问题
+  - 连续两次修不好同一条 → 在纪要「决定记录」写下现象与已排除的可能，停下上报，
+    不要连续第三次尝试
 
 DONE_WHEN:
-  - failed 阻止游标推进、skipped 不阻止，两条测试成对通过
-  - lastError 带上第一条失败的 operationId 与原始错误
-  - ConflictArbiter 接进 applier 且仲裁在写库之前
-  - takeRemote 时被覆盖的 payload 与 stamp 被记进 outcome
-  - 六个测试用例全部存在，五条 SELF_CHECK 已实做并确认能变红
-  - 若本地 stamp 不可得而降级为 RWW：已写进纪要「决定记录」并列为 S3a 前置待办
+  - 四个退避状态字段全部带 peer 维度，键用 Dart record 而非拼接字符串
+  - 判定逻辑逐 peer 生效（不是"任一退避就整轮跳过"）
+  - 生命周期清理覆盖新键，无僵尸条目
+  - 退避算法本身零变化
+  - 六个测试用例全部存在，四条 SELF_CHECK 已实做并确认能变红

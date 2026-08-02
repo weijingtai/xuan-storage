@@ -1,274 +1,279 @@
 ACT_VERSION: 1
 TASK_ID: mimo-storage-s1b-multipeer/02
-TITLE: OutboxStore / SyncStateStore 全部方法加 peerId（端口 + 内存 fake）
-TYPE: contract-breaking
-ORDER: 3
-DEPENDS_ON: [mimo-storage-s1b-multipeer/01b]
+TITLE: RemoteGateway → SyncPeer 全量迁移（含修复 firebase 两个既有 ERROR）
+TYPE: migration
+ORDER: 2
+DEPENDS_ON: [mimo-storage-s1b-multipeer/01]
 DISPATCH_STATUS: ready
 STRONG_MODEL_ONLY: false
 
 OBJECTIVE: >
-  拆掉 §5.2.1 阻断点 3：`markSuccess({operationId, atUtc})` 没有 peerId。
-  不改的后果是二选一、都不可接受（§5.2.1 原文）：
-    · 标 success → outbox 行退出 peekBatch，离线的 LAN peer【永远收不到这条操作】
-    · 标 failed  → attempt+1，一个长期离线的 peer 会在 10 次重试内把整个 outbox 推成 dead
-  本 ACT 只改【端口签名 + core 内存 fake】。drift 侧实现是 ACT 04，
-  schema 是 ACT 03 —— 本 ACT 结束时 drift 会编译不过，这是预期的（见 EXPECTED_BREAKAGE）。
+  把 ACT 01 造好的 SyncPeer 真正接上：删掉 RemoteGateway，三个实现者全部改口，
+  getCapabilities 返回 PeerCapabilities（§5.2.1 阻断点 6）。
+  顺带修掉 firebase 包两个【既有】ERROR 与两个【既有】路径失败测试 ——
+  它们不是你弄坏的，是本任务把 firebase 挂上本地 core 之后才显形的，见 PRE_EXISTING_STATE。
 
-EXPECTED_BREAKAGE: >
-  ⚠ 本 ACT 完成时的正确状态是：
-    cd core  && flutter test  → 全绿
-    cd drift && dart analyze  → 【有 ERROR】，DriftOutboxStore / DriftSyncStateStore
-                                 缺少新参数，报 NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
-                                 或 参数不匹配
-  这不是失败，是 02→03→04 三步走的中间态。**不要为了让 drift 变绿而在 core 端口上
-  给 peerId 加默认值。** 默认值会让 drift 侧"忘记传 peerId"变成静默通过，
-  而那正是本 ACT 要消灭的东西 —— 编译器是这里唯一可靠的门禁。
-  drift 恢复绿色是 ACT 04 的 DONE_WHEN。
+PRE_EXISTING_STATE: >
+  ⚠ 开工前先读这一段，否则你会以为是自己搞坏的。
+
+  firebase 包的 pubspec.yaml 走 Gitea 拿 persistence_core，钉在 bc7f91d（= gitea/main）。
+  本地 main 超前 27 个提交且未推送，那 27 个提交里装着整个 S1a，也包含
+  「给 RemoteGateway 加 getCapabilities()」这个改动。于是 firebase 一直编译的是
+  【没有 getCapabilities 的旧 core】，两个实现类没跟上也不会报错 —— 藏了很久。
+
+  本任务的 worktree 已通过 firebase/pubspec_overrides.yaml（gitignored）把
+  persistence_core 指向本地 ../core，真相因此显形。你会看到的起点是：
+
+    cd firebase && dart analyze  → 38 issues（2 ERROR / 17 WARNING / 19 INFO），退出码 3
+      ERROR ①  firebase/lib/persistence_firebase.dart
+               Missing concrete implementation of 'RemoteGateway.getCapabilities'
+      ERROR ②  firebase/lib/firebase_realtime_remote_gateway.dart
+               同上
+    cd firebase && flutter test  → 100 通过 / 3 跳过 / 4 失败，退出码 1
+      失败 ①②  fake_persistence_test.dart / persistence_firebase_test.dart
+               —— Failed to load，是上面两个 ERROR 的连带
+      失败 ③④  test/account/firebase_account_boundary_test.dart:35 与 :56
+               —— `Directory('../../repository-interface-account/lib')` 在 worktree
+                  里深两级找不到，与 core 无关，是【路径写法】的问题
+
+  本 ACT 要把这四个失败全部清零。**这是收紧，不是降低口径。**
 
 SCOPE:
   READ:
     - docs/superpowers/specs/2026-07-31-storage-architecture-design.md
-      # §5.2.1 阻断点 1/2/3 与「不改的后果」两条；§5.2.2 第 3 条端口签名原文
-    - core/lib/model/sync_peer.dart          # ACT 01 的 PeerId
-    - core/lib/model/ports.dart              # OutboxStore:22-110、SyncStateStore:121-167 现状
-    - core/lib/core/sync_coordinator.dart    # :57 peekBatch、:74 markSuccess —— 唯一业务调用点
+      # §5.2.1 阻断点 6；§5.2 命名说明（接口叫 SyncPeer，实现仍叫 *Gateway）
+    - core/lib/model/sync_peer.dart          # ACT 01 交付的 SyncPeer / PeerCapabilities / PeerId
+    - core/lib/model/ports.dart              # RemoteGateway:177-207，本 ACT 要删掉它
+    - core/lib/model/types.dart              # RegionCapabilities:444，删 RemoteGateway 后它是否还有消费者
+    - core/lib/routing/region.dart           # Region enum，router 按它分派
+  WRITE:
+    - core/test/s1b_migration_guard_test.dart
   MODIFY:
-    - core/lib/model/ports.dart              # OutboxStore 7 个方法 + SyncStateStore 5 个方法
-    - core/lib/core/sync_coordinator.dart    # 调用点补 peerId
-    - core/lib/sync/sync_runtime.dart        # 若有 OutboxStore/SyncStateStore 调用点，一并补
-    - core/test/persistence_core_test.dart   # _InMemoryOutboxStore:7 / _InMemorySyncStateStore:154
-
-SIGNATURE:
-  ports.dart OutboxStore: |
-    /// 取一批待推送记录。
-    ///
-    /// [peerId]：只返回【该对端尚未 ack】的记录。这是多 peer 的核心 ——
-    /// 同一条 operationId 对 cloud 已成功、对 lan 仍 pending 是常态。
-    Future<List<OutboxRecord>> peekBatch({
-      required String scopeUid,
-      required PeerId peerId,
-      required int limit,
-    });
-
-    /// 标记【某一条记录对某一个对端】推送成功。
-    ///
-    /// 语义变更（§5.2.1 阻断点 3）：success 是 (operationId, peerId) 二元组的属性，
-    /// 不是 operationId 的属性。对 cloud 成功【不得】让该行退出其他对端的 peekBatch。
-    Future<void> markSuccess({
-      required String operationId,
-      required PeerId peerId,
-      required DateTime atUtc,
-    });
-
-    /// 标记【某一条记录对某一个对端】推送失败。
-    ///
-    /// [attempt] 与 [isDead] 同样是 per-peer 的 —— 一个长期离线的 LAN peer
-    /// 达到 dead 阈值，【不得】影响该行对 cloud 的可推送性。
-    Future<void> markFailed({
-      required String operationId,
-      required PeerId peerId,
-      required int attempt,
-      required String errorCode,
-      required String errorMessage,
-      required DateTime atUtc,
-      required bool isDead,
-    });
-
-    /// 该对端的待推送积压数。
-    Future<int> backlogCount({required String scopeUid, required PeerId peerId});
-
-    /// 订阅该对端的待推送积压数。
-    Stream<int> watchBacklogCount({required String scopeUid, required PeerId peerId});
-
-    /// 该对端的死信数。
-    Future<int> deadCount({required String scopeUid, required PeerId peerId});
-
-    // enqueue(OutboxRecord) 【不变】—— 入队时还不知道要推给谁，
-    // 对端集合是推送时才确定的。给 enqueue 加 peerId 等于要求业务层
-    // 在写入时就枚举所有对端，那是错误的耦合方向。
-
-  ports.dart SyncStateStore: |
-    // 五个方法全部加 peerId：游标是 per-(scope, peer, entityType) 的。
-    // 云端游标推进到 T，不代表 LAN peer 也同步到了 T —— 混用会导致
-    // 「换了个 peer 就从错误的位置续拉」，静默丢变更。
-    Future<PullCursor?> getCursor({
-      required String scopeUid,
-      required PeerId peerId,
-      required String entityType,
-    });
-
-    Future<void> setCursorIfNewer({
-      required String scopeUid,
-      required PeerId peerId,
-      required String entityType,
-      required PullCursor cursor,
-      required DateTime atUtc,
-    });
-
-    Future<void> clear({
-      required String scopeUid,
-      required PeerId peerId,
-      required String entityType,
-    });
-
-    Future<void> markPulledAt({
-      required String scopeUid,
-      required PeerId peerId,
-      required String entityType,
-      required DateTime atUtc,
-    });
-
-    Future<void> markPushedAt({
-      required String scopeUid,
-      required PeerId peerId,
-      required DateTime atUtc,
-    });
+    - core/lib/model/ports.dart                              # 删除 RemoteGateway
+    - core/lib/routing/remote_gateway_router.dart            # implements SyncPeer（51 行，全文见 TASK_DETAIL）
+    - core/lib/core/sync_coordinator.dart                    # 7 处引用：构造参数 + 字段 + dartdoc
+    - core/lib/sync/sync_runtime.dart                        # 1 处引用
+    - core/lib/configuration/sync_configuration_manager.dart # 1 处引用（:592 构造参数）
+    - core/test/persistence_core_test.dart                   # 8 处：_FakeRemoteGateway 等
+    - core/test/remote_gateway_router_test.dart              # 4 处
+    - firebase/lib/persistence_firebase.dart                 # FirestoreRemoteGateway:20
+    - firebase/lib/firebase_realtime_remote_gateway.dart     # FirebaseRealtimeRemoteGateway:26
+    - firebase/test/fake_persistence_test.dart               # 4 处
+    - firebase/test/persistence_firebase_test.dart           # 2 处
+    - firebase/test/account/firebase_account_boundary_test.dart  # 仅改 :35 与 :56 两处路径
+    - drift/test/sync/record_remote_gateway_test.dart        # 7 处
+    - drift/test/sync/record_sync_e2e_test.dart              # 2 处
 
 TASK_DETAIL:
-  parameter_position: >
-    peerId 一律紧跟 scopeUid 之后（或 operationId 之后），保持 12 个方法的参数顺序一致。
-    全是 named 参数，位置本不影响调用，但一致的顺序让 review 时一眼能看出漏了谁。
+  scope_is_exhaustive: >
+    上面 MODIFY 列表是【全量】的，由 grep 得出，不要自己再找：
+      grep -rn "RemoteGateway\|RegionCapabilities" core/lib core/test drift/test firebase/lib firebase/test
+    共 14 个文件（supabase 包不涉及 —— 它只有一个 328 字节的存根，没有 gateway 实现）。
+    改完再跑一次这条 grep，除了 `*Gateway` 类名本身，不应再有 `RemoteGateway` 这个标识符。
 
-  in_memory_fake_keying: >
-    core/test/persistence_core_test.dart 的两个 fake 是本 ACT 的【可执行规格】：
-      _InMemoryOutboxStore:7    —— 内部状态必须按 (operationId, peerId) 二元组存 ack，
-                                    【不是】给 OutboxRecord 加一个 status 字段。
-                                    记录本身只有一份，ack 有 N 份。
-      _InMemorySyncStateStore:154 —— 游标按 (scopeUid, peerId, entityType) 三元组存。
-    这两个 fake 的形状会被 ACT 03 的 schema 照抄，写歪了后面全歪。
+  class_names_do_not_change: >
+    §5.2 命名说明：【类名一个都不改】。
+      RemoteGatewayRouter            仍叫 RemoteGatewayRouter
+      FirestoreRemoteGateway         仍叫 FirestoreRemoteGateway
+      FirebaseRealtimeRemoteGateway  仍叫 FirebaseRealtimeRemoteGateway
+    只把 `implements RemoteGateway` 改成 `implements SyncPeer`。
+    改类名会连带下游 12 个业务仓库的构造点，而它们【没有】引用这三个类之外的端口
+    （已实测），别把这个优势浪费掉。
 
-  sync_coordinator_call_sites: >
-    core/lib/core/sync_coordinator.dart:57 与 :74 是 peekBatch / markSuccess 的
-    【唯一业务调用点】（已实测：下游 12 个业务仓库没有任何一处引用这两个端口）。
-    本 ACT 让它先用一个【单一 peerId】跑通（从构造参数注入，或暂用
-    ACT 01b 定下的 PeerId('firestore')），行为与现在完全一致。
-    真正的 fan-out 是 ACT 05，【本 ACT 不做】。
+  peer_id_and_channel: >
+    SyncPeer 比 RemoteGateway 多两个 getter（peerId / channel），三个实现都要给出：
+      RemoteGatewayRouter            -> 转发给 _active（它是个代理，身份跟随当前 region）
+      FirestoreRemoteGateway         -> PeerId('firestore')，Channel.cloud
+      FirebaseRealtimeRemoteGateway  -> PeerId('firebase_realtime')，Channel.cloud
+    这两个字符串会成为 ACT 04 那张 per-peer ack 表的行键，【定下来就不要再改】——
+    改了等于历史 ack 行全部对不上，效果和回填错 peerId 一样。
+
+  get_capabilities_two_errors: >
+    两个 firebase 实现【本来就没有】getCapabilities，本 ACT 要新写：
+      返回 PeerCapabilities(peerId: <上面定的>, channel: Channel.cloud,
+                            entityVersions: ..., supportedFeatures: ..., protocolVersion: ...)
+    entityVersions / supportedFeatures / protocolVersion 的取值：
+    照 RemoteGatewayRouter 转发的语义与 core 里 RegionCapabilities 既有用法推断，
+    【不要凭空发明 feature 名】。当前没有真实后端协商，返回一个诚实的最小值即可
+    （例如 entityVersions: const {}、supportedFeatures: const {'outbox_v1'}、
+    protocolVersion: 1），并在 dartdoc 里写明「当前为静态值，待后端协商接口就绪后改为真实上报」。
+    【不要】抛 UnimplementedError —— 那会让 SyncRuntime 的 feature gating 在运行时炸。
+
+  region_capabilities_disposition: >
+    删掉 RemoteGateway 后检查 RegionCapabilities（types.dart:444）是否还有消费者。
+    - 若无消费者：【不要删】。它是公开 API，删除属于破坏性变更，超出本 ACT 范围；
+      加一行 dartdoc 注明「S1b 后由 PeerCapabilities 取代，保留待清理」即可。
+    - 若仍有消费者：原样不动。
+
+  boundary_test_path_fix: >
+    firebase/test/account/firebase_account_boundary_test.dart 的 :35 与 :56：
+      Directory('../../repository-interface-account/lib')
+      Directory('../../xuan-account/lib')
+    在主工作区正确，在 worktree（深两级）找不到。
+    【不要】改成 `../../../../` —— 那只是把错误挪个位置，主工作区反过来会坏。
+    正确做法：从 Directory.current 逐级向上找，直到某一级目录下同时存在
+    `repository-interface-account` 与 `xuan-account`，以那一级为基准拼路径；
+    向上找到文件系统根仍未命中才 fail。
+    这样主工作区与任意深度的 worktree 都成立。
+    【只改这两处的定位方式，断言逻辑一个字不动】——
+    这两条测试守的是「Firebase SDK 不得泄漏进 account 层」，那个语义不属于本 ACT。
 
 CONSTRAINTS:
-  - 【不要】给 peerId 加默认值。理由见 EXPECTED_BREAKAGE —— 默认值会让漏传变成静默通过。
-  - 【不要】给 enqueue 加 peerId。理由见 SIGNATURE 末尾注释。
-  - 【不要】为了让 drift 编译过而在本 ACT 顺手改 drift。那是 ACT 03/04，
-    混进来会让 schema 迁移的 diff 和端口变更的 diff 缠在一起，跨模型审查看不清。
-  - 【不要】把 peerId 写成 String。ACT 01 定的是 extension type PeerId，
-    用 String 会让 peerId 与 scopeUid / entityType 在类型上无法区分（它们都是 String）。
-  - 【不要】动 OutboxRecord 的字段。ack 状态不属于记录本身，属于 (记录, 对端) 关系。
-  - 每个改动的公开声明必须更新中文 dartdoc，说明 peerId 的语义（A12）。
+  - 【不要】改任何类名。见 class_names_do_not_change。
+  - 【不要】保留 RemoteGateway 作为 deprecated 别名。它与 SyncPeer 的 getCapabilities
+    返回类型不同，typedef 别名做不到；留一个空壳抽象类只会让下一个人不知道该实现哪个。
+  - 【不要】在本 ACT 做 fan-out。RemoteGatewayRouter 仍是 1-of-N 选择器，
+    改造成 fan-out 是 ACT 10。本 ACT 只换接口，行为一个字不变。
+  - 【不要】用 `../../../../` 修边界测试。见 boundary_test_path_fix。
+  - 【不要】动 firebase 那 17 个 WARNING 与 19 个 INFO。本 ACT 只清 ERROR 与 4 个失败测试；
+    顺手清理别的会让 diff 混浊，审查时分不清哪些是迁移哪些是打扫。
+  - 每个新增公开声明必须有中文 dartdoc（A12）。
 
 TESTS_FIRST:
   CASES:
-    - NAME: ack_for_one_peer_does_not_hide_record_from_another
-      FILE: core/test/s1b_ports_peer_scoped_test.dart
+    - NAME: no_remote_gateway_identifier_left_anywhere
+      FILE: core/test/s1b_migration_guard_test.dart
       BEHAVIOR: >
-        【本 ACT 最重要的一条，也是整个 S1b 的立身之本】。
-        用 _InMemoryOutboxStore：enqueue 一条记录，对 PeerId('cloud') 调 markSuccess。
-        断言：
-        - `peekBatch(peerId: PeerId('cloud'))` 【不含】该记录；
-        - `peekBatch(peerId: PeerId('lan'))`   【仍含】该记录。
-        写成「success 是 operationId 的属性」这条会红 —— 而那正是 §5.2.1
-        「离线的 LAN peer 永远收不到这条操作」的成因。
-      RED_COMMAND: cd core && flutter test test/s1b_ports_peer_scoped_test.dart
-      RED_EXPECT: 编译失败（peekBatch 尚无 peerId 参数），退出码非 0
-      COVERS: [A4]
-
-    - NAME: dead_for_one_peer_does_not_kill_another
-      FILE: core/test/s1b_ports_peer_scoped_test.dart
-      BEHAVIOR: >
-        非 happy-path，对应 §5.2.1 的第二个「不可接受」。
-        对 PeerId('lan') 连续 markFailed 10 次，最后一次 isDead: true。断言：
-        - `deadCount(peerId: lan)` 为 1；
-        - `deadCount(peerId: cloud)` 为 【0】；
-        - `peekBatch(peerId: cloud)` 【仍含】该记录（云端照常可推）。
-        attempt 计数若不是 per-peer，一个长期离线的 LAN peer 会把整个 outbox 推成 dead，
-        连带云端同步一起死。
-      RED_COMMAND: cd core && flutter test test/s1b_ports_peer_scoped_test.dart
-      RED_EXPECT: 编译失败，先红
-      COVERS: [A5]
-
-    - NAME: cursor_is_isolated_per_peer
-      FILE: core/test/s1b_ports_peer_scoped_test.dart
-      BEHAVIOR: >
-        用 _InMemorySyncStateStore：对 (scope, cloud, 'record') 写入一个较新的 cursor，
-        断言 `getCursor(scope, lan, 'record')` 返回 【null】（lan 从未拉过）。
-        再对 lan 写入一个较旧的 cursor，断言两者互不覆盖、各读各的。
-        游标若不按 peer 隔离，换个 peer 就会从错误的位置续拉 —— 静默丢变更，
-        且丢的量等于两个 peer 的进度差。
-      RED_COMMAND: cd core && flutter test test/s1b_ports_peer_scoped_test.dart
-      RED_EXPECT: 编译失败，先红
-      COVERS: [A4]
-
-    - NAME: backlog_stream_is_per_peer
-      FILE: core/test/s1b_ports_peer_scoped_test.dart
-      BEHAVIOR: >
-        订阅 `watchBacklogCount(scope, cloud)` 与 `watchBacklogCount(scope, lan)` 两条流。
-        enqueue 一条记录 → 断言两条流【都】收到 1。
-        对 cloud markSuccess → 断言 cloud 流收到 0，而 lan 流【仍是 1】。
-        这条守的是 SyncRuntime 的触发逻辑：backlog 流若不 per-peer，
-        云端推完后 runtime 会认为「没活了」而不再唤醒 LAN 推送。
-      RED_COMMAND: cd core && flutter test test/s1b_ports_peer_scoped_test.dart
-      RED_EXPECT: 编译失败，先红
-      COVERS: [A4]
-
-    - NAME: enqueue_signature_unchanged
-      FILE: core/test/s1b_ports_peer_scoped_test.dart
-      BEHAVIOR: >
-        以纯文本读取 core/lib/model/ports.dart，断言其中【逐字】包含
-        `Future<void> enqueue(OutboxRecord record);`。
-        入队时对端集合还不确定，给 enqueue 加 peerId 会把「有哪些对端」
-        这个运行时问题推给业务写入层 —— 错误的耦合方向。
-        这种改动在 review 里极易被当成「保持一致」而放过，所以要有文本级守卫。
-      RED_COMMAND: cd core && flutter test test/s1b_ports_peer_scoped_test.dart
-      RED_EXPECT: 断言失败或编译失败，先红
+        以纯文本扫描 core/lib、core/test、drift/test、firebase/lib、firebase/test 下的全部
+        .dart 文件，断言【不存在】标识符 `RemoteGateway` 单独出现
+        （正则要排除 `RemoteGatewayRouter` / `FirestoreRemoteGateway` /
+        `FirebaseRealtimeRemoteGateway` 这三个保留类名，用 `\bRemoteGateway\b(?!Router)`
+        之类的写法，并对三个类名做显式白名单）。
+        失败时打印 文件:行号 与该行内容。
+        【必须同时断言扫描到的文件总数 >= 一个写死的下限】——
+        没有下限，glob 写错导致一个文件都没扫到时门禁会静默全绿（S1a 的教训）。
+      RED_COMMAND: cd core && flutter test test/s1b_migration_guard_test.dart
+      RED_EXPECT: 断言失败并列出仍在引用 RemoteGateway 的文件，退出码非 0
       COVERS: [A12]
 
-    - NAME: no_default_value_on_peer_id
-      FILE: core/test/s1b_ports_peer_scoped_test.dart
+    - NAME: three_implementors_are_sync_peer_with_stable_ids
+      FILE: core/test/s1b_migration_guard_test.dart
       BEHAVIOR: >
-        以纯文本扫描 core/lib/model/ports.dart，断言【不存在】
-        `PeerId peerId = ` 或 `PeerId peerId,` 前带 `[` 之类的可选写法 ——
-        即 12 个方法的 peerId 全部是 `required`。
-        再断言 `required PeerId peerId` 出现次数 >= 12（写死下限）。
-        默认值会让 drift 侧漏传 peerId 变成静默通过，编译器就不再是门禁了。
-      RED_COMMAND: cd core && flutter test test/s1b_ports_peer_scoped_test.dart
-      RED_EXPECT: 断言失败，先红
-      COVERS: [A4]
+        构造 RemoteGatewayRouter（注入两个 fake SyncPeer），断言：
+        - `router is SyncPeer` 为 true；
+        - `router.peerId` 与 `router.channel` 转发自当前 region 对应的那个 peer
+          （切换 currentRegion 后两个值随之改变 —— 证明它是代理而不是硬编码）。
+        再断言两个 firebase 实现的 peerId 字面量【逐字】等于
+        'firestore' 与 'firebase_realtime'（以纯文本读源文件断言，不构造实例 ——
+        构造 Firestore 实例需要真实 SDK 初始化）。
+        这两个字符串是 ACT 04 ack 表的行键，改了会让历史 ack 全部对不上，
+        所以要有一条测试把它们钉死。
+      RED_COMMAND: cd core && flutter test test/s1b_migration_guard_test.dart
+      RED_EXPECT: 编译失败（router 尚未 implements SyncPeer），退出码非 0
+      COVERS: [A11]
+
+    - NAME: get_capabilities_never_throws
+      FILE: core/test/s1b_migration_guard_test.dart
+      BEHAVIOR: >
+        非 happy-path。对 RemoteGatewayRouter 与两个 fake SyncPeer 调 getCapabilities()，
+        断言返回 PeerCapabilities 且【不抛异常】。
+        再断言返回值的 peerId 与该实现的 peerId 一致（不是随便填的）。
+        写成 `throw UnimplementedError()` 会让 SyncRuntime 的 feature gating 在
+        运行时炸而不是编译期报错 —— 这条守的就是那个。
+      RED_COMMAND: cd core && flutter test test/s1b_migration_guard_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A11]
+
+    - NAME: router_still_selects_one_of_n_not_fanout
+      FILE: core/test/s1b_migration_guard_test.dart
+      BEHAVIOR: >
+        行为不变守卫。注入两个计数式 fake SyncPeer（记录 push 调用次数，
+        【不要用 fail()】—— 若调用方有 catch-all 会被吞掉，S5c 的教训），
+        currentRegion 指向其中一个。调 router.push 一次，断言：
+        - 被指向的那个 peer 的 pushCount == 1；
+        - 另一个的 pushCount == 【0】。
+        本 ACT 只换接口不改行为；写成 fan-out 会让这条变红 ——
+        fan-out 是 ACT 07 的事，提前做会让两个 ACT 的验收互相污染。
+      RED_COMMAND: cd core && flutter test test/s1b_migration_guard_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A11]
+
+    - NAME: firebase_boundary_test_locates_repos_from_any_depth
+      FILE: firebase/test/account/firebase_account_boundary_test.dart
+      BEHAVIOR: >
+        改造既有的两条边界测试（:35 / :56），使其从 Directory.current 逐级向上
+        定位容器目录。改完后【在 worktree 里】跑必须通过。
+        额外加一条：断言定位函数在找不到时返回 null 而不是抛异常，
+        且此时测试给出的失败信息里包含它【实际搜索过的起点路径】——
+        否则下一个人看到 "not found" 完全不知道它在哪儿找的（现在就是这样）。
+      RED_COMMAND: cd firebase && flutter test test/account/firebase_account_boundary_test.dart
+      RED_EXPECT: 两条测试因 `../../` 找不到目录而失败（这是【现状】，先确认它确实红）
+      COVERS: [A2]
 
 VERIFICATION:
-  - CMD: cd core && dart analyze --fatal-infos lib/model/ports.dart
+  - CMD: cd core && dart analyze --fatal-infos lib/model/ports.dart lib/routing/remote_gateway_router.dart
     EXPECT_EXIT: 0
   - CMD: cd core && flutter test
     EXPECT_EXIT: 0
-  # 12 个方法全部带 required peerId
-  - CMD: 'grep -c "required PeerId peerId" core/lib/model/ports.dart'
-    EXPECT_STDOUT: "12"
-  # peerId 不得有默认值 / 不得可选
-  - CMD: 'grep -nE "PeerId peerId\s*=|\[\s*PeerId peerId" core/lib/model/ports.dart'
-    EXPECT_EXIT: 1
-  # 不得退化成 String
-  - CMD: 'grep -nE "required String peerId" core/lib/model/ports.dart'
-    EXPECT_EXIT: 1
-  # enqueue 签名未变
-  - CMD: 'grep -c "Future<void> enqueue(OutboxRecord record);" core/lib/model/ports.dart'
-    EXPECT_STDOUT: "1"
-  # OutboxRecord 字段未被塞入 ack 状态
-  - CMD: git diff --exit-code main.. -- core/lib/model/types.dart
+  - CMD: cd drift && flutter test
     EXPECT_EXIT: 0
-  # 本 ACT 不碰 drift 与 firebase 的 lib
-  - CMD: git diff --exit-code HEAD~1 -- drift/lib firebase/lib
+  # firebase 的两个 ERROR 必须清零（本 ACT 的核心交付之一）
+  - CMD: 'cd firebase && dart analyze --format=machine 2>/dev/null | grep -c "^ERROR"'
+    EXPECT_STDOUT: "0"
+    EXPECT_EXIT: 1
+  # firebase 测试必须全绿（含那两条边界测试）
+  - CMD: cd firebase && flutter test
+    EXPECT_EXIT: 0
+  # RemoteGateway 标识符已绝迹（三个保留类名除外）
+  - CMD: 'grep -rn "RemoteGateway" core/lib core/test drift/test firebase/lib firebase/test | grep -vE "RemoteGatewayRouter|FirestoreRemoteGateway|FirebaseRealtimeRemoteGateway"'
+    EXPECT_EXIT: 1
+  # 三个类名一个都没改
+  - CMD: 'grep -c "class RemoteGatewayRouter implements SyncPeer" core/lib/routing/remote_gateway_router.dart'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  - CMD: 'grep -c "class FirestoreRemoteGateway implements SyncPeer" firebase/lib/persistence_firebase.dart'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  - CMD: 'grep -c "class FirebaseRealtimeRemoteGateway implements SyncPeer" firebase/lib/firebase_realtime_remote_gateway.dart'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  # peerId 字面量钉死（ACT 04 ack 表行键）
+  - CMD: "grep -c \"PeerId('firestore')\" firebase/lib/persistence_firebase.dart"
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  - CMD: "grep -c \"PeerId('firebase_realtime')\" firebase/lib/firebase_realtime_remote_gateway.dart"
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  # 不得用 ../../../../ 修边界测试
+  - CMD: 'grep -n "\.\./\.\./\.\./\.\." firebase/test/account/firebase_account_boundary_test.dart'
+    EXPECT_EXIT: 1
+  # 本 ACT 不做 fan-out
+  - CMD: 'grep -nE "pushToAll|Future.wait|forEach.*push" core/lib/routing/remote_gateway_router.dart'
+    EXPECT_EXIT: 1
+  # supabase 未被卷入
+  - CMD: git diff --exit-code main.. -- supabase
     EXPECT_EXIT: 0
 
 SELF_CHECK:
-  - 把 _InMemoryOutboxStore 的 ack 临时改成按 operationId 存（丢掉 peerId 维度）→
-    `ack_for_one_peer_does_not_hide_record_from_another` 与
-    `backlog_stream_is_per_peer` 必须【同时】变红。只红一条说明覆盖不足 → 改回
-  - 把 markFailed 的 dead 判定临时改成全局 →
-    `dead_for_one_peer_does_not_kill_another` 必须变红 → 改回
-  - 给 ports.dart 里任意一个 peerId 临时加默认值 →
-    `no_default_value_on_peer_id` 与 grep 门禁必须变红 → 改回
-  - 三次自检后 `git status --porcelain` 必须为空
+  - 把 RemoteGatewayRouter 临时改回 `implements RemoteGateway`（并临时恢复 ports.dart 的
+    RemoteGateway）→ `no_remote_gateway_identifier_left_anywhere` 必须变红 → 改回
+  - 把 `no_remote_gateway_identifier_left_anywhere` 的文件下限临时调到 999 →
+    必须变红（证明下限自检有效，不是扫了 0 个文件在装绿）→ 改回
+  - 把 router.push 临时改成同时推给所有 gateway（伪 fan-out）→
+    `router_still_selects_one_of_n_not_fanout` 必须变红 → 改回
+  - 把 FirestoreRemoteGateway 的 peerId 临时改成 'firestore_v2' →
+    peerId 字面量门禁必须变红 → 改回
+  - 把 getCapabilities 临时改成 `throw UnimplementedError()` →
+    `get_capabilities_never_throws` 必须变红 → 改回
+  - 五次自检后 `git status --porcelain` 必须为空
+
+ON_FAIL:
+  - RED 阶段测试没红（写实现前就绿）→ 测试没真正依赖新类型/新行为，
+    停下重写测试，【不要】继续往下做
+  - 实现后 VERIFICATION 某条不过 → 先看是不是 EXPECT 写错（尤其 grep -c 的
+    双 EXPECT 语义：无匹配时打印 0 且退出码 1），再改实现
+  - core / drift / firebase 的【既有】测试变红 → 立即停下。
+    本 ACT 只加不改，既有测试变红说明动到了不该动的地方
+  - SELF_CHECK 的某条注入后【没有】变红 → 那条门禁是假的，
+    必须重写门禁而不是跳过自检
+  - 基线类命令（analyze 数量、测试数量）不符 → 不要改基线迁就实现，
+    先确认是不是真的引入了新问题
+  - 连续两次修不好同一条 → 在纪要「决定记录」写下现象与已排除的可能，停下上报，
+    不要连续第三次尝试
 
 DONE_WHEN:
-  - ports.dart 的 12 个方法全部带 required PeerId，enqueue 未变
-  - 两个内存 fake 按二元组/三元组存状态，core 全部测试绿
-  - 六个测试用例全部存在，三条 SELF_CHECK 已实做并确认能变红
-  - drift 处于【预期的编译失败】状态 —— 这是中间态，不是缺陷，写进当前状态区
+  - 14 个文件全部改完，`RemoteGateway` 标识符绝迹（三个保留类名除外）
+  - firebase `dart analyze` 的 ERROR 数为 0；`flutter test` 全绿（4 个既有失败清零）
+  - core 64+ 绿、drift 276 绿，一个都不能少
+  - 五个测试用例全部存在，五条 SELF_CHECK 已实做并确认能变红
+  - supabase 对 main 零 diff
