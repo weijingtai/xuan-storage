@@ -50,12 +50,10 @@
 - [x] ACT 04 ✅ BlobGateway + Transport/PeerSession + ExportBundleWriter/Reader
 - [x] ACT 05 ✅ barrel export 12 行 + 策略通道过滤契约测试 + dartdoc 门禁
 - [x] ACT 06 ✅ analyzer 负测试：8 条非法组合逐条被拒绝（bash3.2 跑通）
-- [x] 总验收 ✅ 2026-08-01 全部通过：
-  `bash scripts/run_s1a_analyze_gate.sh` EXIT=0（58=58，A1 已按人类改判）、
-  `(cd core && flutter test)` 64 全绿、`bash scripts/run_policy_negative_check.sh`
-  8 行 ✅ EXIT=0。A4 零实现 / A5 无裸 Visibility / A6 无 ExportFileTransport /
-  A7 参数表约束 / A8 私有构造器 / A9 十二条 export / A10 dartdoc 门禁全过。
-  S1a 契约层交付完成，待 PR 合并。
+- [x] 总验收 ✅ 2026-08-01 全部通过（门禁 58=58 / flutter test 64 绿 / 负测试 8 行 ✅）
+- [x] A10 返工 ✅ 2026-08-01 门禁加固：member 正则去白名单改通用式，member
+  覆盖 55→98 行，8 条漏检探针全红、2 条反向探针全过，下限自检写死 90。
+  仅改 s1a_dartdoc_coverage_test.dart，12 个源文件零改动，待 PR 合并。
 
 ## 决定记录
 - 2026-08-01: S1 拆为 S1a(契约) + S1b(引擎多 peer 化)。理由: 核实发现 `t_outbox` 主键 `{operationId}`、`t_sync_state` 主键 `{scopeUid,entityType}`、`markSuccess` 签名均无 peerId，多 peer 需两次 schema 迁移，不属契约层。原文档「SyncCoordinator/SyncRuntime 零改动」经核实为假。
@@ -92,6 +90,7 @@
 - 2026-08-01 【转译缺陷·我的错不是执行体的错】ACT03 的 READ 里写「core/lib/model/types.dart # RecordMeta 等既有类型」是错的。实查 types.dart 里【没有】RecordMeta，它在外部包 `repository_interface_record`。执行体在 ACT03 把该包从传递依赖（原已在 core/pubspec.lock，且是 drift 包的直接依赖）提升为 core 的直接依赖 —— 这违反了「不改既有文件」，但方向正确: Dart 要求 import 什么就必须声明什么。判定为可接受偏差，不返工。副作用是 pubspec 的 http INFO 从 7 条变 8 条，已计入冻结基线 58。
 - 2026-08-01 A1 口径调整【不】放松 A2: 全包 `flutter test` 仍必须全绿，且当前实测 64 个测试全通过 —— 既有断点没有污染测试面，因为 four_zhu_card_templates 没有被任何测试或 barrel 引用。
 - 2026-08-01 门禁脚本 bash3.2 修复: `run_s1a_analyze_gate.sh` 检查3 的 echo 里 `$BASELINE_TOTAL（` 在 /bin/bash 3.2.57 下把全角标点吞进变量名，报 `BASELINE_TOTALï: unbound variable`，检查3 无法执行。已改为 `${BASELINE_TOTAL}（`（花括号界定变量名），/bin/bash -n 与实跑均通过。改的是人类提交的验收工具本身，非 S1a 交付物。
+- 2026-08-01 A10 门禁加固（人类指派返工）: s1a_dartdoc_coverage_test.dart 的 member 正则原来是手工类型白名单（Future|Stream|...），要求类型名后至少再跟一个字符，导致 `Type get name;`、无参方法、static 成员、记录类型返回值、const 公开构造器等形态漏检。改为通用式五分支（static / getter / 方法 / const factory / const 构造器），member 覆盖从 55 增至 98（全门禁 topLevel+member 从 104 增至 147）。新增覆盖下限自检：member 计数断言 >= 90（实测 98 留余量）。8 条漏检探针（删注释块→门禁变红→复原）与 2 条反向探针（私有成员无注释不报 / 下限调高变红）全部通过。12 个源文件零改动，只碰门禁测试本身。
 
 ## 踩坑墓地
 - 2026-08-01: 尝试用 const 构造器的 `assert(channels.contains(Channel.cloud))` 把不变式做成编译错误，失败。原因: `Set.contains` 是方法调用，const 表达式禁止，报 `const_eval_method_invocation`。结论: 别再试 assert 路线，用「把参数从参数表移除」的结构化手法。

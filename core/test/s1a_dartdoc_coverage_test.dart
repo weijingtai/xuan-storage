@@ -27,19 +27,27 @@ void main() {
     r'|abstract final class |typedef )',
   );
 
-  // 类体内缩进两格的方法与 getter 签名（排除以 `_` 开头的私有成员，
-  // `const Xxx._(...)` 的 `._` 不是 `[a-z]`，天然被排除）。
+  // 类体内缩进两格的公开成员声明（通用式，不维护类型白名单）。
+  //
+  // 覆盖形态：
+  // - static 成员：`static void register(`、`static Map<...> get all =>`
+  // - 普通 getter：`int get currentKeyVersion;`（类型与 get 之间一个空格）
+  // - 普通方法：`void throwIfCancelled();`（无参）、
+  //   `Future<({int freed, int unreclaimable})> evictCache({`（记录类型返回值）
+  // - const 公开构造器：`const BlobHandle({`
+  // - const factory：`const factory StoragePolicy.private({`
+  //
+  // 排除：
+  // - 私有成员：名字以 `_` 开头（`final bool _lan;`、`_byEntityType` 等）
+  //   —— `[a-z]\w*\(` / `get [a-z]\w*` 天然不匹配 `_` 开头。
+  // - 私有构造器：`const StoragePolicy._();` —— `(?!\.)` 排除类名后跟点。
   final member = RegExp(
     r'^  (?:'
-    r'(?:Future|Stream|Set|Map|List|int|String|bool|void|double|Duration'
-    r'|DateTime|CipherId|DataVisibility|Publisher|Carrier|Source|Channel'
-    r'|Encryption|BlobHandle|BlobStatus|BlobTier|BlobVisibility|BlobEntry'
-    r'|BlobReadResult|PeerIdentity|DiscoveredPeer|DeviceKeyPair'
-    r'|PeerSessionState|PeerStream|PeerSession|Transport|BundleManifest'
-    r'|BlobUploadTicket|BlobDownloadTicket|BlobGatewayCapabilities'
-    r'|RecordMeta|StoragePolicy|CancellationToken|OutboxRecord'
-    r'|RemoteChangesPage)[A-Za-z<>?,() ]+ (?:get [a-z]\w*|[a-z]\w*\()'
-    r'|const (?:factory )?[A-Za-z]+\.[a-z]\w*\('
+    r'static [A-Za-z_][A-Za-z0-9_<>?,()\[\]{} ]* (?:get [a-z]\w*|[a-z]\w*\()'
+    r'|[A-Za-z_][A-Za-z0-9_<>?,()\[\]{} ]* get [a-z]\w*'
+    r'|[A-Za-z_][A-Za-z0-9_<>?,()\[\]{} ]* [a-z]\w*\('
+    r'|const factory [A-Z][A-Za-z0-9]*\.[a-z]\w*\('
+    r'|const [A-Z][A-Za-z0-9]*(?!\.)\('
     r')',
   );
 
@@ -47,6 +55,7 @@ void main() {
 
   test('chinese_dartdoc_on_every_public_declaration', () {
     final failures = <String>[];
+    var memberCount = 0;
 
     for (final path in files) {
       final lines = File(path).readAsLinesSync();
@@ -54,6 +63,9 @@ void main() {
         final line = lines[i];
         if (!topLevel.hasMatch(line) && !member.hasMatch(line)) {
           continue;
+        }
+        if (member.hasMatch(line)) {
+          memberCount++;
         }
 
         // 向上收集紧邻的注释块：允许跳过空行与 @ 注解行（dartdoc 惯例
@@ -79,6 +91,14 @@ void main() {
         }
       }
     }
+
+    // 覆盖下限自检：member 正则被改窄后此处立即变红，防止静默漏检。
+    // 实测值 98（2026-08-01 A10 返工后），下限取 90 留余量 ——
+    // 低于 90 即说明有人把通用正则改窄成白名单式了。
+    const minMemberDeclarations = 90;
+    expect(memberCount, greaterThanOrEqualTo(minMemberDeclarations),
+        reason: 'member 正则覆盖的声明总数 $memberCount 低于下限 '
+            '$minMemberDeclarations，正则可能被改窄了');
 
     if (failures.isNotEmpty) {
       fail('以下公开声明缺中文 dartdoc（或注释块中无 CJK 字符）：\n'
