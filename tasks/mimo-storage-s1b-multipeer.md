@@ -28,12 +28,13 @@
 - [ ] ACT 04: **drift 侧实现改造（STRONG_MODEL_ONLY）**：`OutboxRecordsDao` / `SyncStatesDao` / `DriftOutboxStore` / `DriftSyncStateStore` 加 peerId + per-peer ack 语义（一个 peer success 不影响另一 peer 的该行）-> `act/04.yaml`
 - [ ] ACT 05: `RemoteGatewayRouter` 从 1-of-N 改造成 fan-out；`PeerFanoutPusher` 实现（`pushToAll` 对 N 个 peer 各返回一个结果，一个失败不影响其余，§5.2.2 阻断点 4/5）-> `act/05.yaml`
 - [ ] ACT 06: `SyncRuntime` per-peer 退避改造（`_pushFailureCount` / `_nextPullNotBeforeUtcByEntityType` 加 peer 维度，§5.2.2：不可达 LAN peer 不得拖垮云端 push 调度）-> `act/06.yaml`
-- [ ] ACT 06b: **`RemoteChange` 携带 Lamport 坐标**（新增可空 `rev` / `deviceId`，
-  由两个 firebase gateway 从已有 oplog 字段填值）-> `act/06b.yaml`
-- [ ] ACT 07: `ConflictArbiter` + Lamport 序 `(rev, deviceId)`（复用 `DeviceIdentity`，不新建）+ `ChangeApplyOutcome` 增加被覆盖 payload 字段（§5.2.3 / §5.3 冲突可见化）-> `act/07.yaml`
+- [ ] ACT 06b: **HLC 接线 + 属性测试**（引入 `hlc_dart`；时钟跨重启持久化；
+  戳存 drift 边表【Data class 零改动】；`RemoteChange` 加可空 hlc/deviceId；
+  3 节点仿真属性测试压单调性/因果性/收敛性）-> `act/06b.yaml`
+- [ ] ACT 07: `ConflictArbiter` + **`(hlc, deviceId)` 定序**（复用 `DeviceIdentity`，不新建）+ `ChangeApplyOutcome` 增加被覆盖 payload 字段（§5.2.3 / §5.3 冲突可见化）-> `act/07.yaml`
 - [ ] ACT 08: 修 `canAdvanceCursor` 恒真（`record_local_applier.dart:60-61`）—— 应用失败不推进游标 + 回归测试（§5.2.3）-> `act/08.yaml`
 - [ ] ACT 09: `peekBatch` 按 channel 策略过滤（照 `policy_channel_filter_test.dart` 语义：lookup 返回 null 时 fail closed，§5.4 第一道锁）-> `act/09.yaml`
-- [ ] ACT 10: barrel 导出 + 架构守卫测试（含中文 dartdoc 覆盖计数下限，通用式正则，S1a 教训）+ 创建 `scripts/run_s1b_analyze_gate.sh`（照 run_s1a_analyze_gate.sh 范本，core 基线 58 / drift 基线 162，三条注入负测试证明能变红）-> `act/10.yaml`
+- [ ] ACT 10: **HLC 线上格式规格 + 黄金用例**（A14）+ barrel 导出 + 架构守卫测试（含中文 dartdoc 覆盖计数下限，通用式正则，S1a 教训）+ 创建 `scripts/run_s1b_analyze_gate.sh`（照 run_s1a_analyze_gate.sh 范本，core 基线 58 / drift 基线 162，三条注入负测试证明能变红）-> `act/10.yaml`
 
 DEPENDS_ON 线性：01 → 01b → 02 → 03 → 04 → 05 → 06 → 06b → 07 → 08 → 09 → 10（无环）。
 STRONG_MODEL_ONLY：03（schema 迁移）/ 04（per-peer ack 判定）/ 06（退避时序）/ 07（Lamport 定序）。
@@ -57,13 +58,21 @@ STRONG_MODEL_ONLY：03（schema 迁移）/ 04（per-peer ack 判定）/ 06（退
       （`_pushFailureCount` 不 per-peer → 必须变红）
 - [ ] A7 `shared` 类记录不出现在非 cloud peer 的 `peekBatch` 结果里；`lookup` 返回 null 时
       **fail closed**（过滤写成 fail-open / 直接放行 → 必须变红）
-- [ ] A8 Lamport 序：`rev` 相同时按 `deviceId` 决胜，结果**确定且与两端时钟无关**
-      （退化成墙上时钟 LWW → 必须变红）
+- [ ] A8 定序用 **HLC（Hybrid Logical Clock）+ deviceId 决胜**，不是墙上时钟、不是自造 rev。
+      三条不变式各须有【属性测试】守着（3 节点仿真、随机时钟偏移、≥1000 事件）：
+      ① 单调性：同一节点连续写入严格递增
+      ② **因果性：若 B 收到过 A，则 B > A**（注释掉 `receiveEvent` → 必须变红）
+      ③ 收敛性：任意两节点重放同一组事件，对每对版本得出同一胜负
+      HLC 相等（`isConcurrentWith`）时按 `deviceId` 字典序决胜，结果确定且与两端时钟无关
 - [ ] A9 冲突时被覆盖的 payload 可从 `ChangeApplyOutcome` 取回（字段被优化掉 / 只存 flag → 必须变红）
 - [ ] A10 change 应用**失败**时游标**不得**推进（`canAdvanceCursor` 恒真 → 必须变红）
 - [ ] A11 `PeerFanoutPusher.pushToAll` 对 N 个 peer 各返回一个结果，一个失败**不影响**其余
       （fan-out 退化成 1-of-N → 必须变红）
 - [ ] A12 所有新增公开声明有中文 dartdoc，且**覆盖计数有写死下限**（正则被改窄 → 必须变红）
+- [ ] A13 HLC 时钟**跨重启持久化**，且戳与记录**同事务写入**
+      （重启后从物理时间重来 → 单调性变红；戳与记录分事务 → 门禁变红）
+- [ ] A14 存在一份**语言中立的 HLC 线上格式规格**（48 位 l + 16 位 c 的位布局、字节序、
+      deviceId 决胜规则、时钟漂移阈值）+ 一组黄金用例，供将来 Web / Rust 客户端对表
 
 验收命令: `bash scripts/run_s1b_analyze_gate.sh && (cd core && flutter test) && (cd drift && flutter test)`
 
@@ -122,6 +131,34 @@ STRONG_MODEL_ONLY：03（schema 迁移）/ 04（per-peer ack 判定）/ 06（退
     （仅 ACT01 幸免）。转译者在 ACT10 里写下这条规则，却在其余 ACT 里违反了它。
   其余待人类裁定项：ACT05 router 职责与纪要计划自相矛盾（计划说改 fan-out，
   ACT 却守卫它保持 1-of-N）；ACT09 给 backlog/watch/dead 三方法扩 channel 属计划外扩张。
+
+- 2026-08-02（**人类设计裁定，推翻转译 v1**）: 冲突定序改用 **HLC + deviceId**，
+  弃用转译者自造的 `(rev, deviceId)`。选型经过：`drift_crdt`（**装不上** ——
+  依赖 sql_crdt/sqlite_crdt ^4.0.0，pub.dev 最高只到 3.x，实跑求解失败）；
+  `Ditto`（闭源商业，初始化就要 Portal 账号与 Playground Token，纯离线 SharedKey
+  需 support@ditto.com 申请许可，文档型数据库）；`sql_crdt`（抽象层可用 drift 后端，
+  但 200 个写调用点要改裸 SQL + 全局软删）；`crdt_lf`+`crdt_lf_drift`（工程质量最高，
+  160/160，但为协同文档编辑而生，需双写架构，且要求 drift ^2.34.0 而本仓是 2.31.0）。
+  **选 `hlc_dart` 1.1.0+2**（160/160，零第三方依赖）：只取 HLC，不碰数据模型。
+- 2026-08-02（澄清）: **HLC 单独不构成全序** —— `HybridLogicalClock` 只有 (l, c)
+  没有 nodeId，两台设备同毫秒写会 `isConcurrentWith`。故定序是 **(hlc, deviceId)**。
+  HLC 的价值是消灭【因果倒置】（B 收到过 A 则 B 必 > A），把"随机丢数据"
+  降级为"并发时按固定规则选一个"；真并发谁更晚物理上不可判定，由 §5.3 冲突可见化兜底。
+- 2026-08-02（放置决定）: HLC 戳存 **drift 边表**，键 (entityType, entityId)，
+  **`RecordMeta` 与所有 Data class 零改动**、不跨仓库。代价：戳与记录不同行，
+  必须同事务写（A13 门禁守）。否决放 RecordMeta（跨 repository-interface-record 仓库）
+  与只放同步信封（本地无戳可比，不成立）。
+- 2026-08-02（跨语言）: 选 HLC 的最强理由是**协议自主**。`hlc_dart` 的序列化是
+  显式可移植的（toInt64 = (l<<16)|c；toUint8List = 8 字节大端），任何语言几十行可复现。
+  crdt_lf/sql_crdt 的二进制格式归包作者所有，换包等于换协议。故新增 A14：
+  必须产出语言中立规格 + 黄金用例，为将来 Web/Rust 客户端留门。
+- 2026-08-02（**验收标准区变更，人类授权**）: A8 由「Lamport (rev, deviceId)」
+  改写为「HLC + deviceId + 三条属性测试不变式」；新增 A13（时钟持久化 + 同事务）
+  与 A14（线上格式规格）。转译者本无权改验收标准区，本次依人类当次设计裁定执行并留痕。
+- 2026-08-02（router 职责，人类确认）: `RemoteGatewayRouter` **保持 1-of-N**
+  （区域轴：大陆 Supabase / 海外 Firebase，用户 VPN 切换或出国才用，一年可能一次，冷路径），
+  它作为「云」这一个对端参与扇出。纪要原计划「router 改造成 fan-out」措辞不精确，
+  按字面执行会变成同时写两个云 —— 那是 bug 不是需求。对端轴的扇出由 PeerFanoutPusher 承担。
 
 ## 踩坑墓地
 - 2026-08-02（环境）: drift worktree `pubspec_overrides.yaml` 只写 4 条 path 覆盖是错的——
