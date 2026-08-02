@@ -38,7 +38,16 @@
 验收命令: `cd core && dart analyze --fatal-infos && flutter test && bash test/model/storage_policy_analyzer_test/run_negative_check.sh`
 
 ## 当前状态
-蓝图已就绪，未开工。
+- [x] ACT 01: 六个分类 enum + CancellationToken + blob 错误子类 ✅
+  2026-08-01 完成。新增 4 文件：storage_classification.dart（6 enum 照 §2.1）、
+  cancellation_token.dart（抽象接口）、blob_error.dart（5 子类，code 前缀
+  storage.blob_）、storage_classification_test.dart（3 用例全绿）。
+  验证: analyze 0 / flutter test 4 通过 / 无裸 Visibility / 无 NetworkUnavailable。
+- [ ] ACT 02: StoragePolicy sealed 族 + Registry + 不变式契约测试（未开工）
+- [ ] ACT 03: blob 值类型 + LocalBlobStore + BlobCipher + RecordBlobUnitOfWork（未开工）
+- [ ] ACT 04: BlobGateway + Transport/PeerSession + ExportBundleWriter/Reader（未开工）
+- [ ] ACT 05: barrel export + 策略通道过滤契约测试（未开工）
+- [ ] ACT 06: analyzer 负测试（未开工）
 
 ## 决定记录
 - 2026-08-01: S1 拆为 S1a(契约) + S1b(引擎多 peer 化)。理由: 核实发现 `t_outbox` 主键 `{operationId}`、`t_sync_state` 主键 `{scopeUid,entityType}`、`markSuccess` 签名均无 peerId，多 peer 需两次 schema 迁移，不属契约层。原文档「SyncCoordinator/SyncRuntime 零改动」经核实为假。
