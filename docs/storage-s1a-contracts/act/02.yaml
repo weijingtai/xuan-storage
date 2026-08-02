@@ -148,10 +148,26 @@ VERIFICATION:
     EXPECT_EXIT: 0
   - CMD: cd core && flutter test test/storage_policy_test.dart
     EXPECT_EXIT: 0
-  - CMD: grep -cE "const (PrivatePolicy|SharedPolicy|ResourcePolicy|ControlPolicy)\._" core/lib/model/storage_policy.dart
-    EXPECT_STDOUT: "4"   # 四个子类构造器全部私有
+  # A8 逐类验证：总数为 4 不能证明「每类各一个」（可能 4 条都是 PrivatePolicy._）
+  - CMD: grep -c "const PrivatePolicy\._" core/lib/model/storage_policy.dart
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  - CMD: grep -c "const SharedPolicy\._" core/lib/model/storage_policy.dart
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  - CMD: grep -c "const ResourcePolicy\._" core/lib/model/storage_policy.dart
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  - CMD: grep -c "const ControlPolicy\._" core/lib/model/storage_policy.dart
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  # 且不得存在任何公开构造器（无下划线的 const XxxPolicy(）
+  - CMD: grep -cE "const (PrivatePolicy|SharedPolicy|ResourcePolicy|ControlPolicy)\(" core/lib/model/storage_policy.dart
+    EXPECT_STDOUT: "0"
+    EXPECT_EXIT: 1   # grep -c 无匹配时打印 0 且退出 1，两者都要断言
   - CMD: grep -E "factory StoragePolicy\.private" -A 5 core/lib/model/storage_policy.dart | grep -c "cloud"
-    EXPECT_STDOUT: "0"   # private 工厂参数表中不得出现 cloud
+    EXPECT_STDOUT: "0"
+    EXPECT_EXIT: 1   # 同上：stdout 与 exit 必须一起断言，否则契约不闭合
 
 DONE_WHEN:
   - 两个源文件与一个测试文件存在，全部命令按 EXPECT 通过

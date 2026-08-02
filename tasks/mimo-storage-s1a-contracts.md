@@ -55,6 +55,13 @@
 - 2026-08-01 转译期偏差修正3: analyzer 负测试 fixture 由纪要的 `core/test/model/storage_policy_analyzer_test/` 移到仓库根 `test_fixtures/policy_negative/`，依赖路径由 `../../../..` 改为 `../../core`。理由: 已实测嵌套 fixture 会被 `cd core && dart analyze` 扫到导致全包 analyze 失败; 而用 analysis_options exclude 排除后 fixture 单独 analyze 会继承排除规则、变成 No issues，负测试失效。放仓库根两边互不可见。
 - 2026-08-01 转译期偏差修正4: 负测试的判定由「期望退出码非 0」收紧为「期望退出码恰为 3」。理由: 已实测 dart analyze 退出码分级 0=无问题/1=info/2=warning/3=error，fixture 只剩 unused_import 警告时退出码是 2，按「非零」判会假通过。
 - 2026-08-01 转译期新增前置条件: ACT 01 标注必须能连通内网 Gitea 192.168.0.165:3000。理由: core/pubspec.yaml 有 5 个 git 依赖托管在该地址，连不通则 flutter pub get 失败，整个任务无法开工。
+- 2026-08-01 转译审查R1(执行者: Codex, 与转译者 Claude 不同厂商): 返工 9 项，已全部修复。核心问题是 oracle 过宽——多处验证只能证明「至少一条约束生效」，不能证明「每条都生效」。
+- 2026-08-01 R1返工-1: ACT06 由「五条违规同文件、只看总退出码」改为「八条违规各一文件、逐条独立 analyze」。理由: 聚合 oracle 下即使 v2-v5 全部意外合法，只要 v1 仍报错脚本照样通过。同时把子类直接构造的负探针从 1 个（PrivatePolicy）补到 4 个（四个子类各一）。
+- 2026-08-01 R1返工-2: ACT06 脚本改用 dart analyze --format=machine，逐条核对错误【码】与错误【所在文件】，不再只看退出码。新增 pub get 退出码检查与 URI_DOES_NOT_EXIST 拦截。理由: 依赖解析失败也会让 analyze 返回 3，会被误判为「约束生效」。
+- 2026-08-01 R1返工-3: ACT02/03/04 中三处 `grep -c` 的 EXPECT_STDOUT:"0" 补上 EXPECT_EXIT:1。理由: 已实测 grep -c 无匹配时打印 0 但退出码是 1，只声明 stdout 会让验证契约不闭合。
+- 2026-08-01 R1返工-4: ACT02 的 A8 验证由「四个 ._ 总数为 4」改为「四个子类各自 grep -c 为 1」+「无匹配任何公开构造器」。理由: 总数为 4 无法排除「4 条都是 PrivatePolicy._」。
+- 2026-08-01 R1返工-5: ACT05 补 A4 全目录零实现扫描（原先各 ACT 只扫自己那几个文件）、A9 由验 2 条 export 改为逐条验 12 条、A10 新增中文 dartdoc 门禁测试（原先 A10 只写在 CONSTRAINTS 里，无任何验证）。
+- 2026-08-01 转译审查R1 结论: 9 项返工全部修复，ACT 由 6 个块（22 测试用例/26 验证命令）增至 6 个块（27 测试用例/32 验证命令）。待 R2 复审。
 
 ## 踩坑墓地
 - 2026-08-01: 尝试用 const 构造器的 `assert(channels.contains(Channel.cloud))` 把不变式做成编译错误，失败。原因: `Set.contains` 是方法调用，const 表达式禁止，报 `const_eval_method_invocation`。结论: 别再试 assert 路线，用「把参数从参数表移除」的结构化手法。

@@ -145,6 +145,7 @@ VERIFICATION:
     EXPECT_EXIT: 1
   - CMD: grep -c "class RemoteChangesPage" core/lib/model/export_bundle.dart
     EXPECT_STDOUT: "0"   # 不得重新定义，必须复用 types.dart 的
+    EXPECT_EXIT: 1       # grep -c 无匹配时打印 0 且退出 1
   - CMD: grep -nE "UnimplementedError|class .*Impl" core/lib/model/blob_gateway.dart core/lib/model/transport.dart core/lib/model/export_bundle.dart
     EXPECT_EXIT: 1
 

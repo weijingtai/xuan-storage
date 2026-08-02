@@ -6,6 +6,7 @@ ORDER: 5
 DEPENDS_ON: [mimo-storage-s1a-contracts/04]
 DISPATCH_STATUS: ready
 STRONG_MODEL_ONLY: false
+REVISION: R1   # 按转译闸门 R1 返工：补 A4 全目录扫描、A9 全 12 条、A10 门禁
 
 OBJECTIVE: >
   把 S1a 全部新增端口挂进包的 barrel，并交付「防混用」机制的真正验收项：
@@ -22,10 +23,11 @@ SCOPE:
   WRITE:
     - core/lib/persistence_core.dart          # 仅追加 export 行
     - core/test/policy_channel_filter_test.dart
+    - core/test/s1a_dartdoc_coverage_test.dart   # A10 门禁（R1 返工新增）
 
 TASK_DETAIL:
   barrel: >
-    在 core/lib/persistence_core.dart 的 export 列表【末尾追加】以下 9 行，
+    在 core/lib/persistence_core.dart 的 export 列表【末尾追加】以下 12 行，
     不要重排既有行：
       export 'model/storage_classification.dart';
       export 'model/cancellation_token.dart';
@@ -98,15 +100,41 @@ TESTS_FIRST:
       RED_EXPECT: 编译失败，先红
       COVERS: [A2, A7]
 
+    - NAME: chinese_dartdoc_on_every_public_declaration
+      FILE: core/test/s1a_dartdoc_coverage_test.dart
+      BEHAVIOR: >
+        （R1 返工新增：A10 原先只写在 CONSTRAINTS 里，没有任何门禁）
+        以纯文本方式读取本任务新增的 12 个源文件，逐行扫描公开声明
+        （匹配行首的 `enum ` / `class ` / `final class ` / `sealed class ` /
+        `abstract interface class ` / `abstract final class `，以及类体内
+        缩进两格的方法与 getter 签名，排除以 `_` 开头的私有成员）。
+        对每一个匹配到的声明，断言它【紧邻的上一行或上若干行】存在以 `///` 开头
+        的注释块，且该注释块中【至少含一个 CJK 字符】（正则 [\u4e00-\u9fff]）。
+        任一公开声明缺注释或注释无中文，测试失败并打印 文件:行号 与该行内容。
+      RED_COMMAND: cd core && flutter test test/s1a_dartdoc_coverage_test.dart
+      RED_EXPECT: 编译失败或断言失败（源文件尚不存在 / 注释未补齐），退出码非 0
+      COVERS: [A10]
+
     - NAME: barrel_exports_all_new_ports
       FILE: core/test/policy_channel_filter_test.dart
       BEHAVIOR: >
         文件顶部只 `import 'package:persistence_core/persistence_core.dart';`
-        （不逐个 import model 下的文件），然后引用 DataVisibility / StoragePolicy /
-        StoragePolicyRegistry / BlobHandle / BlobStatus / LocalBlobStore /
-        BlobCipher / RecordBlobUnitOfWork / BlobGateway / Transport /
-        PeerSession / ExportBundleReader 各一次。
-        编译通过即证明 barrel 导出完整。
+        （不逐个 import model 下的文件）。
+        （R1 返工：原先只覆盖 10 个文件，遗漏 cancellation_token 与 blob_error）
+        必须为【12 个新增文件各引用至少一个该文件独有的公开类型】：
+          storage_classification -> DataVisibility
+          cancellation_token     -> CancellationToken
+          blob_error             -> BlobNotFoundError
+          storage_policy         -> StoragePolicy
+          storage_policy_registry-> StoragePolicyRegistry
+          blob_types             -> BlobHandle
+          blob_cipher            -> BlobCipherResolver
+          local_blob_store       -> LocalBlobStore
+          record_blob_unit_of_work-> RecordBlobUnitOfWork
+          blob_gateway           -> BlobGateway
+          transport              -> PeerSession
+          export_bundle          -> ExportBundleReader
+        编译通过即证明 barrel 导出完整。遗漏任一条则该类型未定义，编译失败。
       RED_COMMAND: cd core && flutter test test/policy_channel_filter_test.dart
       RED_EXPECT: 编译失败（barrel 未导出），先红
       COVERS: [A9]
@@ -116,12 +144,19 @@ VERIFICATION:
     EXPECT_EXIT: 0
   - CMD: cd core && flutter test
     EXPECT_EXIT: 0
-  - CMD: grep -c "^export 'model/storage_policy.dart';" core/lib/persistence_core.dart
-    EXPECT_STDOUT: "1"
-  - CMD: grep -c "^export 'model/transport.dart';" core/lib/persistence_core.dart
-    EXPECT_STDOUT: "1"
+  # A4 全目录零实现门禁（R1 返工：原先各 ACT 只扫自己那几个文件）
+  - CMD: grep -rnE "class .*Impl|UnimplementedError" core/lib/model/
+    EXPECT_EXIT: 1
+  # A9 逐条验证 12 条 export 各恰好出现一次（R1 返工：原先只验 2 条）
+  - CMD: for f in storage_classification cancellation_token blob_error storage_policy storage_policy_registry blob_types blob_cipher local_blob_store record_blob_unit_of_work blob_gateway transport export_bundle; do n=$(grep -c "^export 'model/$f.dart';" core/lib/persistence_core.dart); [ "$n" = "1" ] || { echo "MISSING_OR_DUP:$f=$n"; exit 1; }; done; echo ALL_12_OK
+    EXPECT_STDOUT: "ALL_12_OK"
+    EXPECT_EXIT: 0
+  # A10 中文 dartdoc 门禁
+  - CMD: cd core && flutter test test/s1a_dartdoc_coverage_test.dart
+    EXPECT_EXIT: 0
 
 DONE_WHEN:
   - barrel 追加 12 行 export，既有行未被重排或删除
-  - 五个测试用例全部存在且通过
+  - 六个测试用例全部存在且通过（含 R1 新增的 dartdoc 门禁）
   - 全包 dart analyze 与 flutter test 均为 0
+  - core/lib/model/ 全目录零实现扫描无匹配

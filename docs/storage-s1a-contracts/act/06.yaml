@@ -1,155 +1,233 @@
 ACT_VERSION: 1
 TASK_ID: mimo-storage-s1a-contracts/06
-TITLE: analyzer 负测试 — 证明非法策略组合写不出来
+TITLE: analyzer 负测试 — 逐条证明非法策略组合写不出来
 TYPE: contract
 ORDER: 6
 DEPENDS_ON: [mimo-storage-s1a-contracts/05]
 DISPATCH_STATUS: ready
-STRONG_MODEL_ONLY: true   # 方向易反，需较强模型或人工复核
+STRONG_MODEL_ONLY: true
+REVISION: R1   # 按转译闸门 R1 返工：聚合 oracle 改为逐条独立验证
 
 OBJECTIVE: >
-  建立一个【故意编译不过】的 fixture 工程，用 dart analyze 的退出码证明
-  非法策略组合在语法上不存在。这是 §2.3 「防混用」主张的唯一硬证据。
+  建立【故意编译不过】的 fixture，用 dart analyze 的机器可读输出逐条证明
+  五种非法策略组合各自被拒绝。这是 §2.3「防混用」主张的唯一硬证据。
 
 READ_THIS_THREE_TIMES: |
   本任务【不是】「写测试让它变绿」。
   本任务是【证明某些代码写不出来】。
-  fixture 里的代码【必须编译失败】，脚本才算通过。
-  如果你让 fixture 编译通过了，就是把方向做反了，整项作废。
+  fixture 里的每个文件【必须各自编译失败】，脚本才算通过。
+  如果你让任何一个 fixture 文件编译通过了，就是把方向做反了。
+
+WHY_ONE_FILE_PER_VIOLATION: |
+  R1 返工原因：上一版把五条违规放在同一个文件里，只看总退出码。
+  那样只能证明「至少有一条失败」——即使 v2~v5 全部意外合法，
+  只要 v1 还报错，脚本照样通过。必须【一违规一文件、逐条独立 analyze】，
+  且诊断位置必须落在该违规自己的文件上。
 
 SCOPE:
   READ:
-    - docs/superpowers/specs/2026-07-31-storage-architecture-design.md   # §2.3 参数表；§2.3.2 三类验证手段
-    - core/lib/model/storage_policy.dart        # ACT 02 产物，违规样本要针对它的真实签名写
+    - docs/superpowers/specs/2026-07-31-storage-architecture-design.md
+    - core/lib/model/storage_policy.dart        # ACT 02 产物，违规样本对着它的真实签名写
     - core/pubspec.yaml
   WRITE:
     - test_fixtures/policy_negative/pubspec.yaml
-    - test_fixtures/policy_negative/lib/violations.dart
     - test_fixtures/policy_negative/analysis_options.yaml
+    - test_fixtures/policy_negative/lib/v1_shared_with_channels.dart
+    - test_fixtures/policy_negative/lib/v2_control_with_publisher.dart
+    - test_fixtures/policy_negative/lib/v3_private_with_cloud.dart
+    - test_fixtures/policy_negative/lib/v4_private_with_channels.dart
+    - test_fixtures/policy_negative/lib/v5_private_policy_direct_ctor.dart
+    - test_fixtures/policy_negative/lib/v6_shared_policy_direct_ctor.dart
+    - test_fixtures/policy_negative/lib/v7_resource_policy_direct_ctor.dart
+    - test_fixtures/policy_negative/lib/v8_control_policy_direct_ctor.dart
     - scripts/run_policy_negative_check.sh
 
+MKDIR_FIRST: |
+  test_fixtures/policy_negative/lib 与 scripts 目录当前不存在，需先创建。
+
 LAYOUT_DECISION: |
-  fixture 放在【仓库根】的 test_fixtures/policy_negative/，不放在 core/test/ 下。
+  fixture 放在【仓库根】的 test_fixtures/policy_negative/，不放 core/test/ 下。
+  已实测：嵌套在 core/test/ 下会被 `cd core && dart analyze` 扫到，
+  导致 ACT 05 的全包 analyze 失败；而用 analysis_options 的 exclude 排除后，
+  fixture 单独 analyze 会向上继承那条排除规则，变成「No issues found」，
+  负测试反而失效。放仓库根则两边互不可见。
 
-  理由（已实测）：嵌套在 core/test/ 下的 fixture 会被 `cd core && dart analyze`
-  扫到，导致 ACT 05 的全包 analyze 失败；而用 analysis_options 的 exclude 排除后，
-  fixture 单独 analyze 时会向上继承那条排除规则，变成「No issues found」，
-  负测试反而失效。放仓库根则两边互不可见，最稳。
-
-  fixture 依赖 persistence_core 用相对路径：
+  依赖：
     dependencies:
       persistence_core:
         path: ../../core
 
-FILE_CONTENT:
-  test_fixtures/policy_negative/analysis_options.yaml: |
-    # 独立配置，切断向上继承。不要 include 任何 lints 包，
-    # 我们只关心「是否产生 error 级问题」。
-    analyzer:
-      errors:
-        unused_import: ignore
-        unused_local_variable: ignore
-
-  test_fixtures/policy_negative/lib/violations.dart: |
-    // 本文件【故意编译不过】。每一行都对应设计稿 §2.3 的一条参数表约束。
-    // 若某一行竟然编译通过，说明对应约束失效，必须回 ACT 02 修 storage_policy.dart。
+VIOLATION_FILES:
+  # 每个文件【只放一条】违规。注释里写明期望的 analyzer 错误码。
+  v1_shared_with_channels.dart: |
+    // 期望：UNDEFINED_NAMED_PARAMETER —— shared 工厂没有 channels 参数
     import 'package:persistence_core/persistence_core.dart';
-
-    // 违规 1：shared 没有 channels 参数
     const v1 = StoragePolicy.shared(
       carriers: {Carrier.row},
       channels: {Channel.lan},
     );
-
-    // 违规 2：control 没有任何参数
+  v2_control_with_publisher.dart: |
+    // 期望：UNDEFINED_NAMED_PARAMETER —— control 工厂没有任何参数
+    import 'package:persistence_core/persistence_core.dart';
     const v2 = StoragePolicy.control(publisher: Publisher.user);
-
-    // 违规 3：private 没有 cloud 参数（cloud 结构上不可关闭）
-    const v3 = StoragePolicy.private(
-      carriers: {Carrier.row},
-      cloud: false,
-    );
-
-    // 违规 4：private 没有 channels 参数
+  v3_private_with_cloud.dart: |
+    // 期望：UNDEFINED_NAMED_PARAMETER —— private 工厂没有 cloud 参数（cloud 结构上不可关闭）
+    import 'package:persistence_core/persistence_core.dart';
+    const v3 = StoragePolicy.private(carriers: {Carrier.row}, cloud: false);
+  v4_private_with_channels.dart: |
+    // 期望：UNDEFINED_NAMED_PARAMETER —— private 工厂没有 channels 参数
+    import 'package:persistence_core/persistence_core.dart';
     const v4 = StoragePolicy.private(
       carriers: {Carrier.row},
       channels: {Channel.lan},
     );
-
-    // 违规 5：子类构造器私有，跨库不可见
+  v5_private_policy_direct_ctor.dart: |
+    // 期望：CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT —— 子类构造器私有，跨库不可见
+    import 'package:persistence_core/persistence_core.dart';
     const v5 = PrivatePolicy(carriers: {Carrier.row});
+  v6_shared_policy_direct_ctor.dart: |
+    // 期望：CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT
+    import 'package:persistence_core/persistence_core.dart';
+    const v6 = SharedPolicy(carriers: {Carrier.row});
+  v7_resource_policy_direct_ctor.dart: |
+    // 期望：CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT
+    import 'package:persistence_core/persistence_core.dart';
+    const v7 = ResourcePolicy(carriers: {Carrier.row}, sources: {Source.bundled});
+  v8_control_policy_direct_ctor.dart: |
+    // 期望：CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT
+    import 'package:persistence_core/persistence_core.dart';
+    const v8 = ControlPolicy();
+
+FILE_CONTENT:
+  test_fixtures/policy_negative/analysis_options.yaml: |
+    # 独立配置，切断向上继承。只关心 error 级问题。
+    analyzer:
+      errors:
+        unused_import: ignore
+        unused_local_variable: ignore
+        unused_element: ignore
 
   scripts/run_policy_negative_check.sh: |
     #!/usr/bin/env bash
-    # 负测试：fixture 内的违规代码【必须】产生 error 级问题。
-    # dart analyze 退出码分级：0=无问题 1=info 2=warning 3=error
-    # 【只判非零是不够的】——只剩警告时也是 2，会假通过。必须恰好为 3。
+    # 负测试：fixture 里【每一个】违规文件都必须各自产生【预期类型】的 error。
+    #
+    # R1 加固要点：
+    #  1. pub get 失败立即退出 —— 否则依赖解析失败也会让 analyze 报 error，假通过
+    #  2. 逐文件独立 analyze —— 聚合只能证明「至少一条失败」
+    #  3. 用 --format=machine 核对错误【码】与错误【所在文件】，不只看退出码
+    #  4. 出现依赖/URI 类错误一律判失败 —— 那说明是环境问题不是约束生效
     set -uo pipefail
-    FIXTURE_DIR="$(cd "$(dirname "$0")/../test_fixtures/policy_negative" && pwd)"
-    cd "$FIXTURE_DIR" || { echo "找不到 fixture 目录"; exit 1; }
+    ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+    FIXTURE="$ROOT/test_fixtures/policy_negative"
+    cd "$FIXTURE" || { echo "❌ 找不到 fixture 目录 $FIXTURE"; exit 1; }
 
-    dart pub get --suppress-analytics >/dev/null 2>&1
-
-    dart analyze --suppress-analytics . >/tmp/policy_negative_analyze.log 2>&1
-    ACTUAL=$?
-
-    if [ "$ACTUAL" -eq 3 ]; then
-      echo "✅ 负测试通过：违规代码产生了 error 级问题（退出码 3）"
-      echo "   实际报告的问题："
-      grep -E "^\s+error" /tmp/policy_negative_analyze.log | head -10
-      exit 0
+    if ! dart pub get --suppress-analytics >/tmp/pn_pubget.log 2>&1; then
+      echo "❌ dart pub get 失败，无法判定。这是环境问题，不是约束失效。"
+      cat /tmp/pn_pubget.log
+      exit 1
     fi
 
-    echo "❌ 负测试失败：期望 dart analyze 退出码 3（error），实际 $ACTUAL"
-    case "$ACTUAL" in
-      0) echo "   含义：违规代码【竟然全部编译通过】。storage_policy.dart 的参数表约束失效了。" ;;
-      1) echo "   含义：只有 info 级问题，没有 error。约束没生效。" ;;
-      2) echo "   含义：只有 warning 级问题，没有 error。约束没生效。" ;;
-      *) echo "   含义：analyze 本身执行异常，检查 fixture 的 pub get 是否成功。" ;;
-    esac
-    echo "   完整输出："
-    cat /tmp/policy_negative_analyze.log
+    # 文件名 -> 允许的错误码（| 分隔）
+    declare -A EXPECT=(
+      [v1_shared_with_channels]="UNDEFINED_NAMED_PARAMETER"
+      [v2_control_with_publisher]="UNDEFINED_NAMED_PARAMETER"
+      [v3_private_with_cloud]="UNDEFINED_NAMED_PARAMETER"
+      [v4_private_with_channels]="UNDEFINED_NAMED_PARAMETER"
+      [v5_private_policy_direct_ctor]="CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT|NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT"
+      [v6_shared_policy_direct_ctor]="CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT|NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT"
+      [v7_resource_policy_direct_ctor]="CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT|NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT"
+      [v8_control_policy_direct_ctor]="CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT|NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT"
+    )
+
+    FAILED=0
+    for NAME in "${!EXPECT[@]}"; do
+      SRC="lib/${NAME}.dart"
+      [ -f "$SRC" ] || { echo "❌ $NAME: 缺文件 $SRC"; FAILED=1; continue; }
+
+      LOG="/tmp/pn_${NAME}.log"
+      dart analyze --suppress-analytics --format=machine "$SRC" >"$LOG" 2>&1
+
+      # 环境类错误一律判失败
+      if grep -qE "URI_DOES_NOT_EXIST|URI_HAS_NOT_BEEN_GENERATED" "$LOG"; then
+        echo "❌ $NAME: 出现 URI 解析错误，说明依赖没装好，不能据此判定约束生效"
+        FAILED=1; continue
+      fi
+
+      # 必须有一条 ERROR，错误码在期望集合内，且所在文件就是本违规文件
+      if awk -F'|' -v pat="${EXPECT[$NAME]}" -v f="$NAME.dart" \
+           '$1=="ERROR" && $3 ~ pat && index($4, f) > 0 { found=1 }
+            END { exit found?0:1 }' "$LOG"; then
+        echo "✅ $NAME: 按预期被拒绝（${EXPECT[$NAME]}）"
+      else
+        echo "❌ $NAME: 【没有】产生预期的 error。该条约束失效了。"
+        echo "   期望错误码: ${EXPECT[$NAME]}"
+        echo "   实际 analyze 输出:"
+        sed 's/^/     /' "$LOG"
+        FAILED=1
+      fi
+    done
+
+    if [ "$FAILED" -eq 0 ]; then
+      echo "✅ 负测试全部通过：8 条非法组合逐条被拒绝"
+      exit 0
+    fi
+    echo "❌ 负测试失败：上面标 ❌ 的条目对应的参数表约束没有生效，回 ACT 02 修 storage_policy.dart"
     exit 1
 
 CONSTRAINTS:
-  - 脚本必须 `chmod +x`。
-  - 【不要】为了让脚本通过而去修改 violations.dart 使其编译成功。方向反了。
-  - 【不要】把期望退出码放宽成「非零」。只剩警告时退出码是 2，会假通过。
-  - 五条违规样本必须【逐条】对着 core/lib/model/storage_policy.dart 的真实签名写。
-    若 ACT 02 的实现与设计稿有出入，以实现为准并【上报差异】，不要自行改实现来迁就样本。
-  - fixture 的 pubspec name 用 policy_negative_fixture，publish_to: none。
+  - 脚本必须 chmod +x。
+  - 【不要】为了让脚本通过而修改任何 vN 文件使其编译成功。方向反了。
+  - 【不要】把多条违规合并进一个文件。R1 返工的原因就是聚合 oracle 不成立。
+  - 若某条违规的实际错误码与 EXPECT 表不符：先确认约束是否真的生效
+    （读 analyze 输出），确认生效后再把实际错误码补进 EXPECT 表并【在纪要决定记录里记一行】。
+    不要直接放宽成「任意 error 都算」。
+  - 若 ACT 02 的实现与设计稿有出入，以实现为准并【上报差异】，
+    不要改实现来迁就样本。
 
 TESTS_FIRST:
-  # 本 ACT 的「测试」就是脚本自身。自检方式：先做反向验证再做正向验证。
   CASES:
-    - NAME: script_fails_when_violations_removed
+    - NAME: script_detects_a_disabled_constraint
       BEHAVIOR: >
-        自检步骤（做完删掉临时改动）：把 violations.dart 内容临时换成
-        一个合法的空 main()，跑脚本，【必须】看到「❌ 负测试失败」且脚本退出码为 1。
-        这证明脚本方向没反。做完把 violations.dart 恢复。
+        自检（做完恢复）：把 v3_private_with_cloud.dart 内容临时换成一个合法声明
+        （例如 `const v3 = StoragePolicy.private(carriers: {Carrier.row});`），
+        跑脚本。【必须】看到 "❌ v3_private_with_cloud: 【没有】产生预期的 error"
+        且脚本退出码为 1。这证明单条约束失效能被抓到，而不是被其他条目掩盖。
+        做完恢复原内容。
       RED_COMMAND: bash scripts/run_policy_negative_check.sh
-      RED_EXPECT: 脚本打印 ❌ 且退出码 1
-      COVERS: [A3]
+      RED_EXPECT: 打印该条 ❌，退出码 1
+      COVERS: [A3, A7, A8]
 
-    - NAME: script_passes_with_violations_present
+    - NAME: script_passes_with_all_violations_present
       BEHAVIOR: >
-        violations.dart 为五条违规样本时跑脚本，【必须】看到「✅ 负测试通过」
-        且脚本退出码为 0，输出里列出实际的 error 条目。
+        八个 vN 文件齐全时跑脚本，【必须】看到 8 行 ✅ 与
+        "✅ 负测试全部通过：8 条非法组合逐条被拒绝"，退出码 0。
       RED_COMMAND: bash scripts/run_policy_negative_check.sh
-      RED_EXPECT: 首次运行时 fixture 尚不存在，脚本报错退出非 0
+      RED_EXPECT: 首次运行 fixture 尚不存在，脚本报错退出 1
+      COVERS: [A3, A7, A8]
+
+    - NAME: script_fails_closed_on_broken_deps
+      BEHAVIOR: >
+        自检（做完恢复）：把 fixture 的 pubspec.yaml 里 persistence_core 的 path
+        临时改成一个不存在的目录，跑脚本。【必须】看到
+        "❌ dart pub get 失败" 且退出码 1，而不是因为 analyze 报一堆 URI 错误
+        就误判为「约束生效」。做完恢复。
+      RED_COMMAND: bash scripts/run_policy_negative_check.sh
+      RED_EXPECT: 打印 pub get 失败，退出码 1
       COVERS: [A3]
 
 VERIFICATION:
   - CMD: test -x scripts/run_policy_negative_check.sh
     EXPECT_EXIT: 0
+  - CMD: ls test_fixtures/policy_negative/lib/*.dart | wc -l | tr -d ' '
+    EXPECT_STDOUT: "8"
   - CMD: bash scripts/run_policy_negative_check.sh
     EXPECT_EXIT: 0
   - CMD: cd core && dart analyze --fatal-infos
-    EXPECT_EXIT: 0   # 关键：fixture 放在仓库根，不得影响 core 的全包 analyze
+    EXPECT_EXIT: 0   # fixture 放仓库根，不得影响 core 全包 analyze
   - CMD: cd core && flutter test
     EXPECT_EXIT: 0
 
 DONE_WHEN:
-  - 脚本可执行且返回 0
-  - core 的全包 analyze 与 test 仍然全绿（fixture 未污染主包）
-  - 自检 case 1 已实际执行过并确认脚本会在无违规时失败
+  - 8 个违规文件各自独立被拒绝，脚本输出 8 行 ✅
+  - 三个自检 case 全部实际执行过（尤其第 1、3 条的反向验证）
+  - core 全包 analyze 与 test 仍全绿
