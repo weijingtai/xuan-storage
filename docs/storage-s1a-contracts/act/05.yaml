@@ -140,7 +140,13 @@ TESTS_FIRST:
       COVERS: [A9]
 
 VERIFICATION:
-  - CMD: cd core && dart analyze --fatal-infos
+  # R3（2026-08-01，人类决定）：原为 `cd core && dart analyze --fatal-infos` EXPECT_EXIT 0。
+  # 该命令在开工前基线（1fae94c）就是红的：58 issue 全部来自既有代码，其中 42 条在
+  # lib/four_zhu_card_templates/（该模块 import 了 package:drift 与 ../database/app_database.dart，
+  # 但 core 既无 drift 依赖也无 lib/database/ 目录，是从 persistence_drift 搬来未接线的孤儿模块），
+  # 与 main 完全一致。S1a 无权修既有文件，故原口径不可满足 —— 这是转译缺陷，不是执行体的错。
+  # 替换为下面的门禁脚本，它把「零 issue」拆成三条更严的判据，且已用三个负测试验证可以变红。
+  - CMD: bash scripts/run_s1a_analyze_gate.sh
     EXPECT_EXIT: 0
   - CMD: cd core && flutter test
     EXPECT_EXIT: 0
@@ -158,5 +164,5 @@ VERIFICATION:
 DONE_WHEN:
   - barrel 追加 12 行 export，既有行未被重排或删除
   - 六个测试用例全部存在且通过（含 R1 新增的 dartdoc 门禁）
-  - 全包 dart analyze 与 flutter test 均为 0
+  - scripts/run_s1a_analyze_gate.sh 退出码 0，且全包 flutter test 退出码 0
   - core/lib/model/ 全目录零实现扫描无匹配
