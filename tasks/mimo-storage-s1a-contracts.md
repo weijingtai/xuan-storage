@@ -44,43 +44,18 @@
 验收命令: `bash scripts/run_s1a_analyze_gate.sh && (cd core && flutter test) && bash scripts/run_policy_negative_check.sh`
 
 ## 当前状态
-- [x] ACT 01: 六个分类 enum + CancellationToken + blob 错误子类 ✅
-  2026-08-01 完成。新增 4 文件：storage_classification.dart（6 enum 照 §2.1）、
-  cancellation_token.dart（抽象接口）、blob_error.dart（5 子类，code 前缀
-  storage.blob_）、storage_classification_test.dart（3 用例全绿）。
-  验证: analyze 0 / flutter test 4 通过 / 无裸 Visibility / 无 NetworkUnavailable。
-- [x] ACT 02: StoragePolicy sealed 族 + Registry + 不变式契约测试 ✅
-  2026-08-01 完成。新增 storage_policy.dart（照 §2.3 原文，四子类构造器全私有）、
-  storage_policy_registry.dart（register 校验不变式 #4/#5 抛 StateError）、
-  storage_policy_test.dart（7 用例全绿）。A8 自检已做：临时加 SharedPolicy.public
-  被 grep 拦到后恢复。@visibleForTesting 改从 flutter/foundation 取（meta 未声明为依赖）。
-- [x] ACT 03: blob 值类型 + LocalBlobStore + BlobCipher + RecordBlobUnitOfWork ✅
-  2026-08-01 完成。新增 blob_types.dart（BlobHandle 值对象 + BlobReadResult
-  sealed 五分支 + 3 enum + BlobEntry）、blob_cipher.dart、local_blob_store.dart
-  （含 readCipherChunk 补链）、record_blob_unit_of_work.dart，全零实现。
-  blob_types_test.dart 5 用例全绿。⚠ 上报获批：core/pubspec.yaml 追加
-  repository_interface_record git 依赖（RecordMeta 原为传递依赖不可 import，
-  经 request_user_input 用户批准加依赖保持设计稿签名原样）。
-- [x] ACT 04: BlobGateway + Transport/PeerSession + ExportBundleWriter/Reader ✅
-  2026-08-01 完成。新增 blob_gateway.dart（两阶段上传凭证 + 能力描述 +
-  端口）、transport.dart（StreamKind/PeerIdentity/DiscoveredPeer/DeviceKeyPair/
-  PeerSessionState/PeerStream/PeerSession/Transport，层级 Transport 在下）、
-  export_bundle.dart（BundleManifest + Writer/Reader，复用既有 RemoteChangesPage）。
-  transport_contract_test.dart 4 用例全绿。注意：transport.dart 的 dartdoc 不得
-  字面出现 ExportFileTransport（VERIFICATION 会 grep 拦截），已改写措辞。
-- [x] ACT 05: barrel export + 策略通道过滤契约测试 ✅
-  2026-08-01 完成。persistence_core.dart 末尾追加 12 行 export（不重排既有行）；
-  新增 policy_channel_filter_test.dart（filterForChannel 纯函数规格 + 5 用例，
-  含未注册 fail closed / lan:false 排除）+ s1a_dartdoc_coverage_test.dart
-  （A10 中文 dartdoc 门禁）。全包 flutter test 64 绿、A4 零实现无匹配、
-  A9 十二条 export 全 OK。A1 已按人类改判走 run_s1a_analyze_gate.sh（58=58）。
-- [x] ACT 06: analyzer 负测试 —— 8 条非法组合逐条被拒绝 ✅
-  2026-08-01 完成。test_fixtures/policy_negative/（仓库根，独立 pubspec path
-  ../../core，8 个 vN 文件一违规一文件）+ scripts/run_policy_negative_check.sh
-  （bash3.2 表驱动，逐条核对错误码+所在文件，退出码恰为 3，拒绝无关 ERROR）。
-  /bin/bash -n 与实跑均通过，8 行 ✅。三自检实际执行：v3 合法化→判失败、
-  v1 注入 UNDEFINED_IDENTIFIER→报预期之外、pubspec path 断开→pub get 失败，
-  均退出 1 后恢复。注意：脚本注释不得字面含 declare -A（oracle 会 grep）。
+- [x] ACT 01 ✅ 六个分类 enum + CancellationToken + blob 错误子类
+- [x] ACT 02 ✅ StoragePolicy sealed 族 + Registry + 不变式契约测试（7 用例）
+- [x] ACT 03 ✅ blob 值类型 + LocalBlobStore + BlobCipher + RecordBlobUnitOfWork
+- [x] ACT 04 ✅ BlobGateway + Transport/PeerSession + ExportBundleWriter/Reader
+- [x] ACT 05 ✅ barrel export 12 行 + 策略通道过滤契约测试 + dartdoc 门禁
+- [x] ACT 06 ✅ analyzer 负测试：8 条非法组合逐条被拒绝（bash3.2 跑通）
+- [x] 总验收 ✅ 2026-08-01 全部通过：
+  `bash scripts/run_s1a_analyze_gate.sh` EXIT=0（58=58，A1 已按人类改判）、
+  `(cd core && flutter test)` 64 全绿、`bash scripts/run_policy_negative_check.sh`
+  8 行 ✅ EXIT=0。A4 零实现 / A5 无裸 Visibility / A6 无 ExportFileTransport /
+  A7 参数表约束 / A8 私有构造器 / A9 十二条 export / A10 dartdoc 门禁全过。
+  S1a 契约层交付完成，待 PR 合并。
 
 ## 决定记录
 - 2026-08-01: S1 拆为 S1a(契约) + S1b(引擎多 peer 化)。理由: 核实发现 `t_outbox` 主键 `{operationId}`、`t_sync_state` 主键 `{scopeUid,entityType}`、`markSuccess` 签名均无 peerId，多 peer 需两次 schema 迁移，不属契约层。原文档「SyncCoordinator/SyncRuntime 零改动」经核实为假。
