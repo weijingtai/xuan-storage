@@ -106,6 +106,23 @@ STRONG_MODEL_ONLY：03（schema 迁移）/ 04（per-peer ack 判定）/ 06（退
   A9->ACT07,08; A10->ACT08; A11->ACT01,01b,05; A12->ACT10(+各 ACT 自身 dartdoc 要求)。
   每条验收标准至少有一个 ACT 的 TESTS_FIRST 覆盖，且均含非 happy-path 用例。
 
+- 2026-08-02（**转译审查 R1: 返工**）: Codex 跨模型闸门判定不可开工，25 项必须返工。
+  全文见 `docs/storage-s1b-multipeer/REACT-R1-CODEX.md`。转译者已独立复核 4 条关键指控，全部属实：
+  · **P0-1 channel 过滤被 pushToAll 架空**：ACT09 只在 peekBatch 内按 channel 过滤，
+    ACT05 的 `pushToAll(record)` 仍扇出给全部 peer → shared 记录照样泄漏到 LAN。
+    两个 ACT 各自的测试都会绿，没有测试覆盖 coordinator→peekBatch→pusher 真实链路。
+  · **P0-3 ACT06b 取错字段**：listChanges 读的是【实体文档】，其中写的是 `lastDeviceId`
+    (persistence_firebase.dart:222/741/757)；ACT06b 指向的 `'deviceId'`(:644) 在
+    `_deviceToMap()` 里、只进【oplog】。按 ACT 造假数据测试会绿，生产环境 deviceId 恒 null。
+  · **P0-4/5 Lamport 不在同一时钟域**：RTDB 的 `_revisionRef(scopeUid, entityType)` 是
+    【集合级】计数器，不是实体级版本；且本地 drift schema 【根本没有 rev 列】。
+    Firestore rev null→0 遇本地 rev≥1 恒 keepLocal（Firestore 变更永不生效），
+    而 ACT08 的"拿不到本地 stamp 就 takeRemote"降级又退回 RWW —— 两头都不成立。
+  · **P1-18 26 条 grep -c 缺双 EXPECT**：实测确为 26 条、涉及 11 个 ACT
+    （仅 ACT01 幸免）。转译者在 ACT10 里写下这条规则，却在其余 ACT 里违反了它。
+  其余待人类裁定项：ACT05 router 职责与纪要计划自相矛盾（计划说改 fan-out，
+  ACT 却守卫它保持 1-of-N）；ACT09 给 backlog/watch/dead 三方法扩 channel 属计划外扩张。
+
 ## 踩坑墓地
 - 2026-08-02（环境）: drift worktree `pubspec_overrides.yaml` 只写 4 条 path 覆盖是错的——
   `dependency_overrides` 整块【替换】pubspec.yaml 同名块（不是合并），会抹掉原有 15 条
