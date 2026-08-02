@@ -48,7 +48,13 @@
   storage_policy_registry.dart（register 校验不变式 #4/#5 抛 StateError）、
   storage_policy_test.dart（7 用例全绿）。A8 自检已做：临时加 SharedPolicy.public
   被 grep 拦到后恢复。@visibleForTesting 改从 flutter/foundation 取（meta 未声明为依赖）。
-- [ ] ACT 03: blob 值类型 + LocalBlobStore + BlobCipher + RecordBlobUnitOfWork（未开工）
+- [x] ACT 03: blob 值类型 + LocalBlobStore + BlobCipher + RecordBlobUnitOfWork ✅
+  2026-08-01 完成。新增 blob_types.dart（BlobHandle 值对象 + BlobReadResult
+  sealed 五分支 + 3 enum + BlobEntry）、blob_cipher.dart、local_blob_store.dart
+  （含 readCipherChunk 补链）、record_blob_unit_of_work.dart，全零实现。
+  blob_types_test.dart 5 用例全绿。⚠ 上报获批：core/pubspec.yaml 追加
+  repository_interface_record git 依赖（RecordMeta 原为传递依赖不可 import，
+  经 request_user_input 用户批准加依赖保持设计稿签名原样）。
 - [ ] ACT 04: BlobGateway + Transport/PeerSession + ExportBundleWriter/Reader（未开工）
 - [ ] ACT 05: barrel export + 策略通道过滤契约测试（未开工）
 - [ ] ACT 06: analyzer 负测试（未开工）
