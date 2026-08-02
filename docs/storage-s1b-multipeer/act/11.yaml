@@ -1,309 +1,349 @@
 ACT_VERSION: 1
 TASK_ID: mimo-storage-s1b-multipeer/11
-TITLE: 修 canAdvanceCursor 恒真 + 接入 HLC 仲裁 + 冲突双向留档
-TYPE: bugfix
+TITLE: 收口 —— HLC 线上格式规格 + barrel + 架构守卫 + 三段式冻结门禁
+TYPE: governance
 ORDER: 11
 DEPENDS_ON: [mimo-storage-s1b-multipeer/10]
 DISPATCH_STATUS: ready
 STRONG_MODEL_ONLY: false
 
 OBJECTIVE: >
-  §5.2.3 指出的两个既有缺陷，本 ACT 一次修掉：
-  ① `record_local_applier.dart:60-61` 的成功路径 `canAdvanceCursor: true` 【恒为真】——
-     某条 change 应用失败被记为 failed 时，`sync_coordinator.dart:382` 的守卫不触发，
-     **游标照常推进，那条变更永久丢失**；
-  ② 全文件对 updatedAt/rev 只有解析、没有任何比较逻辑 —— record 主线是 RWW
-     （远端无条件覆盖本地），不是 LWW。ACT 12 已备好仲裁器，本 ACT 接上。
-
-PRE_EXISTING_STATE: >
-  这两个都是【既有缺陷】，不是本任务改坏的。现状（已核实）：
-
-    drift/lib/sync/record_local_applier.dart
-      :19-27  entityType 不匹配时返回 canAdvanceCursor: false —— 这条是对的
-      :33-50  成功路径：applied++ 并记 ChangeApplyDecision.applied
-      :51-57  catch 路径：记 ChangeApplyDecision.failed（但不影响返回值）
-      :60-61  return LocalApplyResult(canAdvanceCursor: true, ... lastError: null)
-              ^^^^ 无论 outcomes 里有没有 failed，都是 true，lastError 恒为 null
-
-    core/lib/core/sync_coordinator.dart:382
-      if (!applyResult.canAdvanceCursor || applyResult.lastError != null) { ... }
-      ^^^^ 守卫写得没错，只是永远不触发
-
-  单 gateway 下这已是缺陷；多 peer 下丢失概率线性放大（§5.2.3 原文）。
-
-ACT_BASE:
-  说明: >
-    本 ACT 的若干 VERIFICATION 用 `<ACT_BASE>..HEAD` 界定"本 ACT 改了什么"。
-    【开工第一件事】记下不可变基线：
-
-      git rev-parse HEAD > .act-base && cat .act-base
-
-    之后所有 no-touch 检查用 `$(cat .act-base)..HEAD`。
-    【不要】用 `HEAD~1` —— 它假设"每个 ACT 恰好一个提交"，
-    一旦你分了两次小提交，守卫就只覆盖最后一次，前面的改动无人看管
-    （Codex R1 · P1-20）。
-    .act-base 是临时文件，收工前删掉，不要提交。
+  收口三件事：把 S1b 的新能力挂进包的公开面、建立 A1 的可执行门禁、
+  用测试守住本任务确立的不变式，防止后续改动把它们悄悄退化掉。
 
 SCOPE:
   READ:
-    - docs/superpowers/specs/2026-07-31-storage-architecture-design.md
-      # §5.2.3 全节，尤其「游标照常推进，那条变更永久丢失」那两行
-    - core/lib/model/conflict_arbiter.dart      # ACT 12 的 VersionStamp / ConflictArbiter
-    - core/lib/sync/hlc_clock.dart             # ACT 06 的 HlcClock —— observe 必须在这里调
-    - core/lib/model/types.dart
-      # LocalApplyResult:353（canAdvanceCursor / lastError 的语义）
-      # ChangeApplyOutcome:322（含 ACT 12 新增的 discardedPayloadJson / discardedStamp / discardedSide）
-      # ChangeApplyDecision:285 / SkipReasonCode:301
-      # RemoteChange:232（含 ACT 06 新增的可空 hlcPacked / deviceId）
-    - core/lib/core/sync_coordinator.dart       # :382 守卫，本 ACT 不改它，只让它真的能触发
-    - drift/lib/sync/record_local_applier.dart  # 全文 107 行
-    - drift/test/sync/record_local_applier_test.dart  # 既有测试的写法
-  MODIFY:
-    - drift/lib/sync/record_local_applier.dart
-    - drift/test/sync/record_local_applier_test.dart   # 既有断言若依赖恒真行为，需更新
+    - scripts/run_s1a_analyze_gate.sh
+      # 【三段式冻结门禁的范本，照抄骨架】：
+      #   BASELINE_TOTAL:24 / BASELINE_FILES:27 / S1A_FILES:40
+      #   检查1 :61-85  scoped analyze 必须零 issue
+      #   检查2 :105-119 有 issue 的文件 ⊆ 冻结白名单
+      #   检查3 :121-129 全包总数不超基线
+      #   注意 :127 的分支：总数【低于】基线时提示同步下调，不是报错
+    - core/lib/persistence_core.dart          # 既有 barrel，【末尾追加不重排】
+    - tasks/mimo-storage-s1b-multipeer.md     # A1–A14 全文
+    - tasks/mimo-storage-s1a-contracts.md     # A10 门禁返工记录：member 正则去白名单的教训
+    - core/test/s1a_dartdoc_coverage_test.dart
+      # S1a 的 dartdoc 门禁成品。它经过两轮返工才做对，【照抄它的通用式正则与覆盖下限】，
+      # 不要重新发明 —— 重新发明的第一版一定会漏掉某些声明形态
+    - core/lib/sync/hlc_clock.dart          # ACT 08 的 HLC 与打包语义
+    - core/lib/model/conflict_arbiter.dart  # ACT 09 的 VersionStamp.toPacked
   WRITE:
-    - drift/test/sync/record_local_applier_conflict_test.dart
+    - scripts/run_s1b_analyze_gate.sh
+    - docs/storage-s1b-multipeer/HLC-WIRE-FORMAT.md
+    - core/test/s1b_architecture_guard_test.dart
+    - core/test/s1b_wire_format_golden_test.dart
+  MODIFY:
+    - core/lib/persistence_core.dart          # 仅在 export 列表【末尾追加】
+    - tasks/mimo-storage-s1b-multipeer.md     # 当前状态区 + 决定记录（不改验收标准区）
 
 TASK_DETAIL:
-  cursor_rule: >
-    正确规则：**只要 outcomes 里存在任何一条 `ChangeApplyDecision.failed`，
-    canAdvanceCursor 就必须为 false，且 lastError 非 null。**
+  barrel: >
+    在 core/lib/persistence_core.dart 的 export 列表【末尾追加】以下 6 行，不重排既有行：
+      export 'model/sync_peer.dart';            // ACT 01
+      export 'model/peer_eligibility.dart';     // ACT 05
+      export 'routing/peer_fanout_pusher.dart'; // ACT 06
+      export 'sync/peer_registry.dart';         // ACT 07
+      export 'sync/hlc_clock.dart';             // ACT 08
+      export 'model/conflict_arbiter.dart';     // ACT 09
 
-    理由：游标推进意味着"这一页我处理完了，下次从后面拉"。
-    有一条没应用成功却推进游标，那条变更就再也不会被拉到 —— 永久丢失。
-    宁可下次重拉整页（幂等，代价是一点流量），也不能丢。
+    ⚠ 【不要】导出 core/lib/test_support/in_memory_stores.dart（ACT 04 交付）。
+    它是给测试与 parity 比对用的 fake，不是产品 API；导出它等于承诺维护它的兼容性。
 
-    `skipped` 【不阻止】游标推进 —— skipped 是"有意不应用"（已应用过、更旧、
-    被仲裁判为 keepLocal），不是失败。把 skipped 也算进去会让游标永远卡在
-    第一个被仲裁拒绝的位置上，同步彻底停摆。这个区分是本 ACT 最容易写反的地方。
+  wire_format_spec: >
+    【A14 的交付物】。写一份 docs/storage-s1b-multipeer/HLC-WIRE-FORMAT.md，
+    语言中立（不出现 Dart 代码，只出现位布局与规则），至少含：
 
-  observe_before_apply: >
-    【本 ACT 最容易漏、且漏了不报错的一条】。每一条带 hlcPacked 的入站变更，
-    在仲裁【之前】必须调 `clock.observe(remoteStamp.hlc)`。
-    漏掉的后果：本地时钟不会被顶上去，下次本地写入的戳可能小于刚收到的远端戳，
-    因果关系倒置，而所有功能测试仍会绿。
-    ACT 06 的属性测试守的是时钟本身，本 ACT 这条守的是【调用点】。
+    ① **打包布局**：int64，`(l << 16) | c`。l 占高 48 位（毫秒），c 占低 16 位。
+       字节序：大端（与 hlc_dart 的 toUint8List 一致）。
+    ② **决胜规则**：先比 hlc（先 l 后 c）；hlc 完全相等时比 deviceId 的
+       **UTF-8 字节序**（不是本地化排序），大者胜。
+    ③ **时钟漂移阈值**：一个明确的毫秒数。各语言实现必须用同一个值，
+       否则一端接受一端拒绝。
+    ④ **溢出行为与有效范围**（Codex R2 要求闭合的跨语言边界）：
+       · c 达到 65535 时怎么办；
+       · l 的【有效上限】必须写明。打包值落在 **signed int64** 里，
+         最高位是符号位，因此 l 的合法范围是 `0 <= l < 2^47`，
+         超过就会让 packed 变负、比较结果翻转。
+         2026-08-02 实测：当前毫秒数 l ≈ 2^40，打包后占 57 位，距符号位还有 6 位，
+         **需要 l ≥ 2^47（约公元 6440 年）才会变负** —— 实践安全，
+         但规格必须写死这个上限，否则各语言实现各自猜（有的语言默认无符号，
+         同一个字节序列会被读成两个不同的数）。
+       · 实现遇到 l ≥ 2^47 时的行为：**拒绝并报错**，不许静默截断。
+       · deviceId 的比较基准是 **UTF-8 字节序**（见 ②），
+         规格里要写明"不是 UTF-16 码元序、不是本地化排序"——
+         Dart 的 `String.compareTo` 是 UTF-16 码元序，
+         对 BMP 外字符与 UTF-8 字节序【结论不同】，跨语言实现必须对齐到一个。
+    ⑤ **黄金用例表**：至少 8 组 `(l, c, deviceId) → packed(hex) → 与另一组的比较结果`，
+       将来 Rust / Web 客户端拿它对表即可验证实现正确。
 
-  malformed_payload_is_failed_not_skipped: >
-    JSON 解析失败、必需字段缺失、写库抛异常 —— 这三类【一律归 failed】，
-    因此 canAdvanceCursor 为 false、lastError 非空。
-    只有【终局性拒绝】才可以是 skipped：已应用过、identical、仲裁判 keepLocal。
-    把畸形 payload 归 skipped 会让游标照常推进，那条变更永久丢失
-    —— 正是 §5.2.3 要修的那个 bug 换了个入口（Codex R1 · P0-9）。
+    这份文档是【协议所有权】的载体：包可以换，规格不能丢。
+    选 HLC 而不是 crdt_lf/sql_crdt 的最强理由就在这里 ——
+    那两个的二进制格式归包作者所有，换包等于换协议。
 
-  keep_local_must_archive_remote: >
-    仲裁判 keepLocal 时，outcome 必须填 discardedSide = remote +
-    远端的 payload 与 stamp。
-    理由（Codex R1 · P0-8）：skipped 不阻止游标推进，游标一推进，
-    那条远端变更【再也不会被拉到】。"下次同步还能重新拿到"是错的。
-    用户丢的是"这两周里对方改的东西"，且完全不知情。
+  analyze_gate_baselines: >
+    三段式门禁要覆盖【三个包】，这是它与 S1a 版本的最大区别（S1a 只有 core）。
+    2026-08-02 实测基线（挂账值，写死在脚本里）：
 
-  arbitration_wiring: >
-    在应用每条 change 前先仲裁：
-      1. 从 change 取 (rev, deviceId) 构造 remote LamportStamp
-         —— 两者可空，按 ACT 10 定的降级规则处理（rev null → 0；deviceId null → 视为最小）；
-      2. 取本地当前版本的 LamportStamp。**本地版本从哪来是本 ACT 要解决的**：
-         RecordMeta 里若已有 rev/deviceId 字段就用；若没有 →
-         【停下上报】，不要往 RecordMeta 加字段（那是 repository-interface-record
-         仓库的事，跨仓库改动超出本 ACT）。降级方案见 fallback_when_local_stamp_missing。
-      3. arbitrate 结果：
-         takeRemote → 正常应用；outcome 填 discardedSide = **local** +
-                      被覆盖的本地 payload 与 stamp；同事务更新 t_entity_stamp
-         keepLocal  → 记 decision: skipped；outcome 填 discardedSide = **remote** +
-                      被丢弃的远端 payload 与 stamp（见 keep_local_must_archive_remote）；
-                      reason 用 SkipReasonCode:301 里最接近的值并在 message 写明，
-                      【不要】往那个 enum 加值 —— 它是公开 API
-         identical  → 记 skipped，不写库，discardedSide 为 null
+      core     退出码 3   总数 58   34 ERROR / 9 WARNING / 15 INFO   9 个文件
+      drift    退出码 2   总数 162  0 ERROR / 70 WARNING / 92 INFO   71 个文件
+      firebase 退出码 3   总数 38   2 ERROR / 17 WARNING / 19 INFO
 
-  local_stamp_comes_from_side_table: >
-    本地 stamp 从 ACT 06 的 **t_entity_stamp 边表**读，键 (entityType, entityId)。
-    【不要】去 RecordMeta 找 —— 它在另一个仓库且没有这个字段，
-    正是转译 v1 在这里假设了不存在的数据源（Codex R1 · P0-7）。
-    查不到边表记录 = 本地首次收到该实体 → ACT 12 的 null 降级规则给出 takeRemote。
-    写入时【同事务】更新边表（ACT 06 的 A13 门禁守着）。
+    ⚠ firebase 那 2 个 ERROR 【应当已被 ACT 02 清零】。
+    脚本里 firebase 的 ERROR 基线写 **0**，不是 2 ——
+    ACT 02 的 DONE_WHEN 已要求清零，这里不给它留退路。
+    若执行到本 ACT 时 firebase 仍有 ERROR，说明 ACT 02 没做完，【停下上报】。
 
-  no_coordinator_changes: >
-    【不改 sync_coordinator.dart】。:382 的守卫写得是对的，问题在于它永远不触发。
-    本 ACT 让它真的能触发即可。改守卫会让"applier 报错了没"与
-    "coordinator 拦住了没"两件事混在一起，出问题时无法归因。
+    core 那 34 个 ERROR 是 main 分支既有断点（four_zhu_card_templates 孤儿模块
+    import 了 drift，而 core 没有 drift 依赖），与 S1a 冻结基线逐条一致，继续挂账。
+
+    S1B_FILES（检查1 的 scoped analyze 对象）列本任务新增/重写的文件：
+      core/lib/model/sync_peer.dart
+      core/lib/model/peer_eligibility.dart
+      core/lib/model/conflict_arbiter.dart
+      core/lib/routing/peer_fanout_pusher.dart
+      core/lib/sync/peer_registry.dart
+      core/lib/sync/hlc_clock.dart
+      core/lib/model/ports.dart
+      core/lib/sync/sync_runtime.dart
+      core/lib/core/sync_coordinator.dart
+      core/lib/routing/remote_gateway_router.dart
+      drift/lib/persistence_drift.dart
+      drift/lib/sync/record_local_applier.dart
+      firebase/lib/persistence_firebase.dart
+      firebase/lib/firebase_realtime_remote_gateway.dart
+      + 本任务新增的全部 test 文件
+    这些文件的 `dart analyze --fatal-infos` 必须【零 issue】。
+
+  gate_must_be_provable: >
+    S1a 的门禁脚本是靠【三条注入负测试】证明有效的，本 ACT 照做：
+      注入1 往 S1B_FILES 里的某个文件加一个 unused import → 检查1 必须红
+      注入2 往【非白名单】文件（例如 core/lib/model/types.dart 的某个未被本任务
+             触及的位置）加 unused import → 检查2 必须红
+      注入3 往【白名单内】文件（例如 core/lib/model/calculation_strategy_config_data_model.dart）
+             加 unused import → 检查3 必须红（总数超基线）
+    三条都要实做并把结果写进纪要，只写脚本不验证等于没做。
+
+  bash_compatibility: >
+    macOS 的 /bin/bash 是 **3.2.57**：
+      · 没有 `declare -A`（关联数组）
+      · 没有 `mapfile` / `readarray`
+    S1a 的脚本用多行字符串 + for 循环绕开了这两个，照抄那个写法。
+
+  grep_c_semantics: >
+    `grep -c` 在无匹配时【打印 "0" 并且退出码为 1】。
+    因此凡是用 grep -c 做断言的地方，EXPECT_STDOUT 与 EXPECT_EXIT 【两个都要写】，
+    只写一个会漏判。S1a 的脚本里有现成写法。
+
+  dartdoc_guard: >
+    照抄 core/test/s1a_dartdoc_coverage_test.dart 的通用式正则与覆盖下限机制。
+
+    ⚠ **扫描范围是本任务新增/改动的【全部】库文件，不是三个**（Codex R1 · P2-22）：
+      core/lib/model/sync_peer.dart              (ACT 01)
+      core/lib/model/peer_eligibility.dart       (ACT 05)
+      core/lib/model/conflict_arbiter.dart       (ACT 09)
+      core/lib/routing/peer_fanout_pusher.dart   (ACT 06)
+      core/lib/sync/peer_registry.dart           (ACT 07)
+      core/lib/sync/hlc_clock.dart               (ACT 08)
+      core/lib/test_support/in_memory_stores.dart (ACT 04)
+      core/lib/model/ports.dart                  (ACT 04/05 改动的公开声明)
+    只扫三个的写法会让其余四个文件的公开声明【永远没有 dartdoc 门禁】——
+    而它们恰好是 HLC / 退避 / 仲裁这三块最需要解释的代码。
+    ⚠ 【必须同时断言扫描到的文件数 == 8】—— 硬编码路径列表里漏掉一个不会报错。
+    【必须有写死的覆盖数下限】—— 没有下限，正则被改窄后门禁会静默失效。
+    下限取实测值往下留少量余量，并在注释里写明实测值与日期。
+    S1a 的 A10 为此返工了两轮，教训是：不要手工枚举声明形态白名单，用通用式。
 
 CONSTRAINTS:
-  - 【不要】让 skipped 阻止游标推进。见 cursor_rule 末段 —— 会让同步彻底停摆。
-  - 【不要】改 sync_coordinator.dart。见 no_coordinator_changes。
-  - 【不要】往 SkipReasonCode 或 RecordMeta 加字段。前者是公开 API，
-    后者在另一个仓库（repository-interface-record）。需要就停下上报。
-  - 【不要】在 catch 路径里吞掉异常后仍返回 canAdvanceCursor: true。那就是现在的 bug。
-  - 【不要】把 lastError 填成一个笼统的 'some changes failed'。
-    要带上【第一条失败的 operationId 与原始错误】，否则线上排查时
-    只知道"有东西失败了"却不知道是哪条。
-  - 每个改动的公开声明必须更新中文 dartdoc（A12）。
+  - 【不要】重排或删除 core/lib/persistence_core.dart 里的既有 export 行。
+  - 【不要】给 firebase 的 ERROR 留基线余量。见 analyze_gate_baselines。
+  - 【不要】用 `declare -A` 或 `mapfile`。见 bash_compatibility。
+  - 【不要】只写 EXPECT_STDOUT 不写 EXPECT_EXIT。见 grep_c_semantics。
+  - 【不要】重新发明 dartdoc 门禁的正则。见 dartdoc_guard。
+  - 【不要】修改任务纪要的「验收标准」区（A1–A14）。转译者与执行者都无权改它。
+  - 架构守卫测试必须是【可以变红】的。写完按 SELF_CHECK 反向验证。
 
 TESTS_FIRST:
   CASES:
-    - NAME: failed_change_blocks_cursor_advance
-      FILE: drift/test/sync/record_local_applier_conflict_test.dart
+    - NAME: barrel_exports_all_new_public_api
+      FILE: core/test/s1b_architecture_guard_test.dart
       BEHAVIOR: >
-        【本 ACT 的生死线 —— 直接对应 §5.2.3「那条变更永久丢失」】。
-        构造 3 条 change，让【中间那条】的 applyRecord 抛异常（注入的回调里抛）。
-        断言返回的 LocalApplyResult：
-        - `canAdvanceCursor` 为 【false】；
-        - `lastError` 【非 null】，且其 message 里含【那条失败 change 的 operationId】；
-        - `appliedCount` 为 2（另外两条确实应用了 —— 一条失败不该中断整批）；
-        - outcomes 里恰好一条 decision 为 failed。
-        当前实现这条会红（恒真 true / lastError 恒 null）。
-      RED_COMMAND: cd drift && flutter test test/sync/record_local_applier_conflict_test.dart
-      RED_EXPECT: 断言失败（canAdvanceCursor 恒为 true），退出码非 0
-      COVERS: [A10]
+        文件顶部【只】`import 'package:persistence_core/persistence_core.dart';`
+        （不逐个 import model/ 下的文件）。为每个新增文件各引用至少一个该文件独有的公开类型：
+          sync_peer.dart          -> SyncPeer / PeerCapabilities / PeerId / PeerFanoutPusher
+          conflict_arbiter.dart   -> VersionStamp / ArbitrationDecision / ConflictArbiter / ConflictSide
+          peer_fanout_pusher.dart -> DefaultPeerFanoutPusher
+        编译通过即证明 barrel 完整；遗漏任一条则该类型未定义，编译失败。
+      RED_COMMAND: cd core && flutter test test/s1b_architecture_guard_test.dart
+      RED_EXPECT: 编译失败（barrel 未导出），退出码非 0
+      COVERS: [A12]
 
-    - NAME: skipped_change_does_not_block_cursor_advance
-      FILE: drift/test/sync/record_local_applier_conflict_test.dart
+    - NAME: wire_format_golden_vectors
+      FILE: core/test/s1b_wire_format_golden_test.dart
       BEHAVIOR: >
-        【与上一条方向相反，必须同时成立】。构造 3 条 change，
-        让其中一条被仲裁判为 keepLocal（记 skipped），其余正常应用。
-        断言 `canAdvanceCursor` 为 【true】。
-        写成"有任何非 applied 就不推进"时这条会红 ——
-        而那种写法会让游标永远卡在第一个被仲裁拒绝的位置，同步彻底停摆。
-        这是本 ACT 最容易写反的地方，两条测试必须成对存在。
-      RED_COMMAND: cd drift && flutter test test/sync/record_local_applier_conflict_test.dart
+        【A14 的可执行部分】。把 HLC-WIRE-FORMAT.md 里的黄金用例表
+        逐条搬进测试（至少 8 组），对每组断言：
+        - `(l, c)` 打包后等于文档里写死的 hex 值；
+        - 从该 hex 解包后 `(l, c)` 逐字段还原；
+        - 与另一组的比较结果等于文档里写死的胜负。
+        文档与实现分家是这类规格最常见的死法 —— 文档写了没人对，
+        实现改了没人改文档。有了这条，改实现不改文档就会红。
+        ⚠ 期望值【写死在测试里】，不许从实现反算。
+      RED_COMMAND: cd core && flutter test test/s1b_wire_format_golden_test.dart
+      RED_EXPECT: 断言失败或文件不存在，退出码非 0
+      COVERS: [A14]
+
+    - NAME: existing_test_counts_do_not_regress
+      FILE: core/test/s1b_architecture_guard_test.dart
+      BEHAVIOR: >
+        【对应 Codex R1 · P2-21：A2 只跑 flutter test 是守不住既有测试的】。
+        以纯文本扫描 core/test 与 drift/test 下【S1b 之前就存在】的测试文件，
+        断言其中 `test(` 与 `testWidgets(` 的出现次数总和 >= 写死的下限
+        （core 64 / drift 276 对应的实测值，2026-08-02 基线）。
+        再断言这些文件里【不含】 `skip:` 与 `, skip` 标记。
+        只跑 `flutter test` 退出码 0 抓不到"把碍事的既有测试删了/跳过了"——
+        删掉之后照样绿。
+      RED_COMMAND: cd core && flutter test test/s1b_architecture_guard_test.dart
+      RED_EXPECT: 断言失败，退出码非 0
+      COVERS: [A2]
+
+    - NAME: six_blockers_are_all_removed
+      FILE: core/test/s1b_architecture_guard_test.dart
+      BEHAVIOR: >
+        §5.2.1 六个阻断点的收口守卫，逐条以纯文本断言：
+          ① t_outbox_peer_ack 表存在      -> drift/lib/persistence_drift.dart 含 't_outbox_peer_ack'
+          ② t_sync_state 主键含 peerId    -> 含 '{scopeUid, peerId, entityType}'
+          ③ markSuccess 带 peerId         -> core/lib/model/ports.dart 含 'required PeerId peerId'
+          ④ 存在 pushToAll 且【带 eligiblePeers】
+                                          -> sync_peer.dart 含 'required Set<PeerId> eligiblePeers'
+          ⑤ 存在 fan-out 实现             -> peer_fanout_pusher.dart 存在且含 'Future.wait'
+          ⑥ PeerCapabilities 取代 RegionCapabilities
+                                          -> sync_peer.dart 含 'PeerCapabilities'，
+                                             且 ports.dart 不再含 'RemoteGateway'
+        ④ 特意断言 eligiblePeers 而不只是 pushToAll ——
+        没有那个参数的 pushToAll 会架空 §5.4 的过滤（Codex R1 · P0-1）
+        六条各一个断言，失败时打印是哪一条。
+        这是整个 S1b 的"完工清单"，任何一条被后续改动退化都会在这里红。
+      RED_COMMAND: cd core && flutter test test/s1b_architecture_guard_test.dart
+      RED_EXPECT: 断言失败（部分阻断点未拆除），退出码非 0
+      COVERS: [A12]
+
+    - NAME: fail_closed_semantics_preserved
+      FILE: core/test/s1b_architecture_guard_test.dart
+      BEHAVIOR: >
+        以纯文本读取 core/test/policy_channel_filter_test.dart，断言其中【逐字】包含
+        `if (p == null) return false;`。
+        这是 S1a 留下的可执行规格，ACT 05 的实现照抄了它。
+        规格文件本身被改宽（例如改成 return true）会让 ACT 05 的实现失去参照，
+        而这种改动在 review 里极易被当成"修个笔误"放过。
+      RED_COMMAND: cd core && flutter test test/s1b_architecture_guard_test.dart
       RED_EXPECT: 断言失败，先红
-      COVERS: [A10]
+      COVERS: [A7]
 
-    - NAME: all_success_still_advances_cursor
-      FILE: drift/test/sync/record_local_applier_conflict_test.dart
+    - NAME: no_wall_clock_in_conflict_path
+      FILE: core/test/s1b_architecture_guard_test.dart
       BEHAVIOR: >
-        回归守卫：全部应用成功时 canAdvanceCursor 为 true、lastError 为 null。
-        修 bug 时把条件写反（变成"恒 false"）会让同步完全不前进，
-        而那种错误在只测失败路径的情况下不会被发现。
-      RED_COMMAND: cd drift && flutter test test/sync/record_local_applier_conflict_test.dart
-      RED_EXPECT: 断言失败或编译失败，先红
-      COVERS: [A10]
-
-    - NAME: entity_type_mismatch_still_blocks_advance
-      FILE: drift/test/sync/record_local_applier_conflict_test.dart
-      BEHAVIOR: >
-        回归守卫：传一个不匹配的 entityType，断言仍返回 canAdvanceCursor: false
-        （applier.dart:19-27 的既有行为是对的，不能被本 ACT 改坏）。
-        改 canAdvanceCursor 的计算方式时很容易把这个早退分支一并重写掉。
-      RED_COMMAND: cd drift && flutter test test/sync/record_local_applier_conflict_test.dart
-      RED_EXPECT: 断言失败或编译失败，先红
-      COVERS: [A10]
-
-    - NAME: malformed_payload_is_failed_and_blocks_cursor
-      FILE: drift/test/sync/record_local_applier_conflict_test.dart
-      BEHAVIOR: >
-        非 happy-path 三连（对应 Codex R1 · P0-9）。三条 change 分别是：
-        ① payloadJson 不是合法 JSON；② JSON 合法但缺 meta 字段；③ 写库回调抛异常。
-        对每一条断言：`decision == failed`、`canAdvanceCursor == false`、
-        `lastError` 非空且 message 含该条的 operationId。
-        把畸形 payload 归 skipped 的实现这条会红 —— 而那种写法让游标照常推进，
-        那条变更永久丢失，等于把 §5.2.3 的 bug 换了个入口重新引入。
-      RED_COMMAND: cd drift && flutter test test/sync/record_local_applier_conflict_test.dart
-      RED_EXPECT: 断言失败（当前恒真 true），退出码非 0
-      COVERS: [A10]
-
-    - NAME: keep_local_archives_the_discarded_remote
-      FILE: drift/test/sync/record_local_applier_conflict_test.dart
-      BEHAVIOR: >
-        【对应 Codex R1 · P0-8】。注入恒返回 keepLocal 的 fake arbiter，
-        远端 change 带一个可辨识的 payload。断言 outcome：
-        - `decision == skipped`、`canAdvanceCursor == true`（skipped 不阻止推进）；
-        - `discardedSide == ConflictSide.remote`；
-        - `discardedPayloadJson` 【等于那条远端 payload】；
-        - `discardedStamp` 非空且等于远端戳。
-        只在 takeRemote 方向留档的实现这条会红。
-        而它红的现实含义是：游标已推进，那条远端变更再也拉不到，
-        用户永远不知道对方改过什么。
-      RED_COMMAND: cd drift && flutter test test/sync/record_local_applier_conflict_test.dart
-      RED_EXPECT: 编译失败，先红
-      COVERS: [A9]
-
-    - NAME: observe_called_on_every_stamped_inbound_change
-      FILE: drift/test/sync/record_local_applier_conflict_test.dart
-      BEHAVIOR: >
-        用计数式 fake HlcClock（记录 observe 的调用次数与参数，
-        【不用 fail()】—— applier 里有 catch-all）。
-        送 5 条带 hlcPacked 的 change + 2 条不带的，断言：
-        - `observe` 被调用【恰好 5 次】；
-        - 每次的参数等于对应 change 的戳；
-        - **observe 的调用发生在 arbitrate 之前**（用调用序列记录断言顺序）。
-        漏调 observe 时因果性静默消失，其余测试全绿 —— 只有这条会红。
-      RED_COMMAND: cd drift && flutter test test/sync/record_local_applier_conflict_test.dart
-      RED_EXPECT: 编译失败，先红
+        包级守卫（与 ACT 09 的同名单元测试重复是【故意】的 —— 删一个另一个还在）。
+        断言 core/lib/model/conflict_arbiter.dart 【不含】
+        `DateTime` / `.now()` / `updatedAt`。
+        "顺手加个时间戳兜底比较"是定序代码最常见的退化路径，
+        加了之后所有功能测试仍会绿。
+      RED_COMMAND: cd core && flutter test test/s1b_architecture_guard_test.dart
+      RED_EXPECT: 断言失败，先红
       COVERS: [A8]
 
-    - NAME: arbiter_keep_local_records_skipped_not_applied
-      FILE: drift/test/sync/record_local_applier_conflict_test.dart
+    - NAME: chinese_dartdoc_on_new_public_declarations
+      FILE: core/test/s1b_architecture_guard_test.dart
       BEHAVIOR: >
-        注入一个恒返回 keepLocal 的 fake ConflictArbiter。断言：
-        - 注入的 applyRecord 回调【一次都没被调用】（用计数式 fake 记录调用次数，
-          【不用 fail()】—— applier 里有 catch-all 会吞掉 TestFailure）；
-        - outcome 的 decision 为 skipped；
-        - `appliedCount` 为 0。
-        证明仲裁真的挡在写库之前，而不是"写完再说"。
-      RED_COMMAND: cd drift && flutter test test/sync/record_local_applier_conflict_test.dart
-      RED_EXPECT: 编译失败（applier 尚不接受 arbiter），退出码非 0
-      COVERS: [A8]
+        照抄 core/test/s1a_dartdoc_coverage_test.dart 的通用式正则（顶层 + 类内成员），
+        扫描 TASK_DETAIL.dartdoc_guard 列出的【全部 8 个文件】（不是 3 个），
+        对每个公开声明断言紧邻上方存在 `///` 注释块且含 CJK 字符（正则 [一-鿿]）。
+        【同时断言扫描到的文件数恰好为 8】——
+        路径列表里漏一个不会报错，只会静默少守一个文件（Codex R1 · P2-22）。
+        失败时打印 文件:行号 与该行内容。
+        【必须同时断言覆盖到的声明总数 >= 一个写死的下限】。
+        S1a 的 A10 为这条返工两轮，教训是：不要手工枚举声明形态白名单。
+      RED_COMMAND: cd core && flutter test test/s1b_architecture_guard_test.dart
+      RED_EXPECT: 断言失败，退出码非 0
+      COVERS: [A12]
 
-    - NAME: take_remote_captures_overwritten_payload
-      FILE: drift/test/sync/record_local_applier_conflict_test.dart
+    - NAME: barrel_existing_lines_intact
+      FILE: core/test/s1b_architecture_guard_test.dart
       BEHAVIOR: >
-        注入恒返回 takeRemote 的 fake arbiter，本地已有一个可辨识的旧 payload。
-        断言应用后的 ChangeApplyOutcome：
-        - `overwrittenPayloadJson` 【等于那份旧 payload】（不是 null、不是新 payload）；
-        - `overwrittenStamp` 非 null。
-        §5.3 要求"冲突时保留被覆盖的版本并使其对用户可见可回溯"。
-        字段存在但从不填值，是这类需求最常见的落地失败方式 ——
-        看起来做了，实际上用户永远看不到自己丢了什么。
-      RED_COMMAND: cd drift && flutter test test/sync/record_local_applier_conflict_test.dart
-      RED_EXPECT: 编译失败，先红
-      COVERS: [A9]
+        以纯文本读取 core/lib/persistence_core.dart，断言 S1a 交付的那批 export
+        （model/storage_classification.dart / storage_policy.dart /
+        storage_policy_registry.dart / transport.dart / export_bundle.dart 等）
+        【逐行仍在】，且新增的 6 行各恰好出现一次。
+        重排 barrel 不会让任何测试变红，但会让 git blame 失去意义、
+        也容易在合并时把某一行吃掉。
+      RED_COMMAND: cd core && flutter test test/s1b_architecture_guard_test.dart
+      RED_EXPECT: 断言失败，先红
+      COVERS: [A12]
 
 VERIFICATION:
-  - CMD: cd drift && dart analyze --fatal-infos lib/sync/record_local_applier.dart
-    EXPECT_EXIT: 0
-  - CMD: cd drift && flutter test test/sync/record_local_applier_conflict_test.dart
-    EXPECT_EXIT: 0
-  - CMD: cd drift && flutter test
+  - CMD: bash scripts/run_s1b_analyze_gate.sh
     EXPECT_EXIT: 0
   - CMD: cd core && flutter test
     EXPECT_EXIT: 0
-  # 恒真的字面量必须消失
-  - CMD: 'grep -n "canAdvanceCursor: true," drift/lib/sync/record_local_applier.dart'
+  - CMD: cd drift && flutter test
+    EXPECT_EXIT: 0
+  - CMD: cd firebase && flutter test
+    EXPECT_EXIT: 0
+  # firebase 的 ERROR 必须为 0（ACT 02 的成果不得回退）
+  - CMD: 'cd firebase && dart analyze --format=machine 2>/dev/null | grep -c "^ERROR"'
+    EXPECT_STDOUT: "0"
     EXPECT_EXIT: 1
-  # lastError 不再恒 null
-  - CMD: 'grep -c "lastError: null," drift/lib/sync/record_local_applier.dart'
-    EXPECT_STDOUT: "1"
+  # barrel 六行各恰好一次
+  - CMD: 'for f in "model/sync_peer.dart" "model/peer_eligibility.dart" "routing/peer_fanout_pusher.dart" "sync/peer_registry.dart" "sync/hlc_clock.dart" "model/conflict_arbiter.dart"; do n=$(grep -c "^export ''$f'';" core/lib/persistence_core.dart); [ "$n" = "1" ] || { echo "BAD:$f=$n"; exit 1; }; done; echo BARREL_OK'
+    EXPECT_STDOUT: "BARREL_OK"
     EXPECT_EXIT: 0
-  # 本 ACT 不改 coordinator
-  - CMD: git diff --exit-code <ACT_BASE> -- core/lib/core/sync_coordinator.dart
+  # S1a 的 barrel 行未被删
+  - CMD: 'for f in "model/storage_classification.dart" "model/storage_policy.dart" "model/storage_policy_registry.dart" "model/transport.dart"; do grep -q "^export ''$f'';" core/lib/persistence_core.dart || { echo "LOST:$f"; exit 1; }; done; echo S1A_BARREL_INTACT'
+    EXPECT_STDOUT: "S1A_BARREL_INTACT"
     EXPECT_EXIT: 0
-  # 不得往公开 enum 加值
-  - CMD: git diff --exit-code main.. -- core/lib/model/types.dart | grep -E "^\+.*SkipReasonCode\." || true
+  # 门禁脚本里不得有 `|| true` 之类的恒绿写法（Codex R1 · P2-24）
+  - CMD: 'grep -nE "\|\| *true" scripts/run_s1b_analyze_gate.sh'
+    EXPECT_EXIT: 1
+  # dartdoc 门禁必须扫满 8 个文件
+  - CMD: 'grep -c "core/lib/" core/test/s1b_architecture_guard_test.dart'
+    EXPECT_STDOUT: "8"
     EXPECT_EXIT: 0
-  # 仲裁在写库之前（arbitrate 的调用行号必须小于 applyRecord 的）
-  - CMD: "awk '/arbitrate\\(/{a=NR} /await applyRecord\\(/{b=NR} END{exit !(a && b && a<b)}' drift/lib/sync/record_local_applier.dart"
+  # A14 规格必须写明 signed int64 的 l 上限与 UTF-8 字节序
+  - CMD: 'for k in "2^47" "signed int64" "UTF-8"; do grep -q "$k" docs/storage-s1b-multipeer/HLC-WIRE-FORMAT.md || { echo "MISSING:$k"; exit 1; }; done; echo BOUNDS_OK'
+    EXPECT_STDOUT: "BOUNDS_OK"
+    EXPECT_EXIT: 0
+  # 不得导出测试用 fake
+  - CMD: 'grep -n "test_support" core/lib/persistence_core.dart'
+    EXPECT_EXIT: 1
+  # 门禁脚本 bash 3.2 兼容
+  - CMD: 'grep -nE "declare -A|mapfile|readarray" scripts/run_s1b_analyze_gate.sh'
+    EXPECT_EXIT: 1
+  # S1a 的规格文件与门禁脚本未被改动
+  - CMD: git diff --exit-code main.. -- core/test/policy_channel_filter_test.dart scripts/run_s1a_analyze_gate.sh
+    EXPECT_EXIT: 0
+  # 验收标准区未被篡改：与 A1–A14 定稿的基线提交逐字比对
+  # （main 里没有本任务文件，`main..` 只能看到整文件新增 —— 那个门禁恒弱，
+  #   Codex R1 · P2-23。cd064c6 是 HLC 裁定后 A8 改写、A13/A14 新增的那一次提交，
+  #   2026-08-02 实测该区共 35 行，此后未变。）
+  - CMD: 'git show cd064c6:tasks/mimo-storage-s1b-multipeer.md | sed -n "/^## 验收标准/,/^验收命令/p" > /tmp/_a_base.txt; sed -n "/^## 验收标准/,/^验收命令/p" tasks/mimo-storage-s1b-multipeer.md > /tmp/_a_now.txt; diff -q /tmp/_a_base.txt /tmp/_a_now.txt'
+    EXPECT_EXIT: 0
+  # A14 规格文档存在且含五个必需章节
+  - CMD: 'for k in "打包布局" "决胜规则" "时钟漂移阈值" "溢出行为" "黄金用例"; do grep -q "$k" docs/storage-s1b-multipeer/HLC-WIRE-FORMAT.md || { echo "MISSING:$k"; exit 1; }; done; echo SPEC_OK'
+    EXPECT_STDOUT: "SPEC_OK"
     EXPECT_EXIT: 0
 
 SELF_CHECK:
-  - 把 canAdvanceCursor 临时改回恒 true →
-    `failed_change_blocks_cursor_advance` 必须变红 → 改回
-  - 把 canAdvanceCursor 临时改成"有任何非 applied 就 false"（把 skipped 也算进去）→
-    `skipped_change_does_not_block_cursor_advance` 必须变红 → 改回。
-    **这一步最关键** —— 它证明你区分了 failed 与 skipped，而不是一刀切
-  - 把 canAdvanceCursor 临时改成恒 false →
-    `all_success_still_advances_cursor` 必须变红 → 改回
-  - 把仲裁调用临时挪到 applyRecord 之后 →
-    `arbiter_keep_local_records_skipped_not_applied` 必须变红 → 改回
-  - 把 discardedPayloadJson 临时填成新 payload（而非旧的）→
-    `take_remote_captures_overwritten_payload` 必须变红 → 改回
-  - 把 keepLocal 分支的留档临时删掉 →
-    `keep_local_archives_the_discarded_remote` 必须变红 → 改回
-  - 把畸形 payload 临时归成 skipped →
-    `malformed_payload_is_failed_and_blocks_cursor` 必须变红 → 改回
-  - 把 `clock.observe(...)` 临时注释掉 →
-    `observe_called_on_every_stamped_inbound_change` 必须变红，
-    而其余测试【仍然绿】→ 改回。这一步同时证明只有这条抓得到漏调
-  - 五次自检后 `git status --porcelain` 必须为空
+  - 【门禁脚本三条注入负测试，必须实做】：
+    · 往 S1B_FILES 里某文件加 unused import → 检查1 变红 → 撤销
+    · 往非白名单文件加 unused import        → 检查2 变红 → 撤销
+    · 往白名单内文件加 unused import        → 检查3 变红（总数超基线）→ 撤销
+    三条结果写进纪要「当前状态」。只写脚本不验证等于没做
+  - 临时删掉 barrel 里任意一行新增 export → `barrel_exports_all_new_public_api` 必须变红 → 改回
+  - 临时把某个新增公开声明的中文注释删掉 → dartdoc 门禁必须变红并报出该行 → 改回
+  - 临时把 dartdoc 门禁的下限调到 999 → 必须变红（证明下限自检有效）→ 改回
+  - 临时把 `if (p == null) return false;` 改成 return true →
+    `fail_closed_semantics_preserved` 必须变红 → 改回
+  - 全部自检后 `git status --porcelain` 必须为空
 
 ON_FAIL:
   - RED 阶段测试没红（写实现前就绿）→ 测试没真正依赖新类型/新行为，
@@ -320,9 +360,13 @@ ON_FAIL:
     不要连续第三次尝试
 
 DONE_WHEN:
-  - failed 阻止游标推进、skipped 不阻止，两条测试成对通过
-  - lastError 带上第一条失败的 operationId 与原始错误
-  - ConflictArbiter 接进 applier 且仲裁在写库之前
-  - takeRemote 时被覆盖的 payload 与 stamp 被记进 outcome
-  - 六个测试用例全部存在，五条 SELF_CHECK 已实做并确认能变红
-  - 若本地 stamp 不可得而降级为 RWW：已写进纪要「决定记录」并列为 S3a 前置待办
+  - scripts/run_s1b_analyze_gate.sh 存在、bash 3.2 兼容、退出码 0
+  - 三条注入负测试已实做并确认能让对应检查变红，结果写进纪要
+  - barrel 追加 6 行，S1a 的既有行未被重排或删除
+  - HLC-WIRE-FORMAT.md 存在，五个必需章节齐全，黄金用例有测试对表
+  - 八个测试用例全部存在且通过
+  - 五条 SELF_CHECK 已实做并确认能变红（含门禁脚本三条注入负测试）
+  - core / drift / firebase 三个包全部测试绿，firebase ERROR 为 0
+  - 纪要「当前状态」与「决定记录」已更新（含方案 A 的 ACT 03/04 合并理由、
+    ACT 03 回填值 'firestore' 的跨包比对结果、ACT 10 对"边表无戳"两种现实的区分）
+  - 验收标准区 A1–A14 逐字未动

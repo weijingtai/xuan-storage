@@ -1,48 +1,32 @@
 ACT_VERSION: 1
 TASK_ID: mimo-storage-s1b-multipeer/09
-TITLE: HLC 接线 —— hlc_dart 引入 + 时钟持久化 + 戳边表 + 三节点属性测试
+TITLE: ConflictArbiter —— (hlc, deviceId) 全序仲裁 + 冲突双向可回溯
 TYPE: implementation
 ORDER: 9
 DEPENDS_ON: [mimo-storage-s1b-multipeer/08]
 DISPATCH_STATUS: ready
-STRONG_MODEL_ONLY: true    # 因果时钟：退化路径【全部是静默的】，测试照样绿
+STRONG_MODEL_ONLY: true    # 定序判断写错不报错
 
 OBJECTIVE: >
-  给冲突仲裁准备一个【不依赖墙上时钟的正确排序】。
-  本 ACT 交付：hlc_dart 依赖、跨重启持久化的本地时钟、存戳的 drift 边表、
-  RemoteChange 上的可空 hlc/deviceId，以及三节点仿真属性测试。
-  仲裁逻辑本身是 ACT 12，本 ACT 只负责"戳是对的、戳存得住、戳传得到"。
+  §5.2.3：record 主线【没有 LWW，是 RWW】（远端无条件覆盖本地），全文件对
+  updatedAt/rev 只有解析、无比较逻辑。本 ACT 交付 `ConflictArbiter` 端口与
+  `(hlc, deviceId)` 全序实现，并让 `ChangeApplyOutcome` 能承载
+  【被丢弃的那一方】—— 无论丢的是本地还是远端（§5.3 冲突可见化）。
 
-WHY_STRONG_MODEL: >
-  ⚠ HLC 的每一条退化路径都【不报错】：
-  · 只调 localEvent 不调 receiveEvent → 因果性整个消失，退化成墙上时钟，所有单测照样绿
-  · 时钟不持久化 → 重启后从物理时间重来，单调性断裂，看不出来
-  · 戳与记录分事务写 → 偶发失准，重现不了
-  这就是为什么本 ACT 的核心交付不是"调用 hlc_dart"，而是【属性测试】——
-  它是唯一能自动生成上千个反例的裁判。
-
-BACKGROUND: >
-  人类 2026-08-02 设计裁定（见纪要「决定记录」），经四个候选实测比选：
-    drift_crdt   —— 装不上（依赖 sql_crdt/sqlite_crdt ^4.0.0，pub.dev 最高 3.x）
-    Ditto        —— 闭源商业，初始化要 Portal 账号，纯离线 SharedKey 需申请许可
-    sql_crdt     —— 抽象层可用 drift 后端，但 200 个写调用点要改裸 SQL + 全局软删
-    crdt_lf      —— 质量最高（160/160）但为协同文档编辑而生，需双写 + 升 drift 到 2.34
-  选 hlc_dart 1.1.0+2：只取 HLC，不碰数据模型。
-
-  ⚠ 关键澄清：**HLC 单独不构成全序**。`HybridLogicalClock` 只有 (l, c) 两个字段，
-  【没有 nodeId】，两台设备同毫秒写会 `isConcurrentWith == true`。
-  所以定序是 **(hlc, deviceId)** 二元组。HLC 的价值是消灭【因果倒置】
-  （B 收到过 A ⇒ B 必 > A），把"随机丢数据"降级为"并发时按固定规则选一个"。
-  真并发谁更晚物理上不可判定，由 §5.3 冲突可见化兜底（ACT 12/11）。
+  仲裁纯计算、无 IO。接进 applier 是 ACT 10。
 
 ACT_BASE:
   说明: >
-    本 ACT 的若干 VERIFICATION 用 `<ACT_BASE>..HEAD` 界定"本 ACT 改了什么"。
+    本 ACT 的若干 VERIFICATION 需要界定"本 ACT 改了什么"。
     【开工第一件事】记下不可变基线：
 
       git rev-parse HEAD > .act-base && cat .act-base
 
-    之后所有 no-touch 检查用 `$(cat .act-base)..HEAD`。
+    之后所有 no-touch 检查【逐字】这样写（`$(cat .act-base)` 是可执行的
+    shell 命令替换，不是占位符 —— 直接复制粘贴就能跑）：
+
+      git diff --exit-code "$(cat .act-base)"..HEAD -- <路径>
+
     【不要】用 `HEAD~1` —— 它假设"每个 ACT 恰好一个提交"，
     一旦你分了两次小提交，守卫就只覆盖最后一次，前面的改动无人看管
     （Codex R1 · P1-20）。
@@ -51,342 +35,379 @@ ACT_BASE:
 SCOPE:
   READ:
     - docs/superpowers/specs/2026-07-31-storage-architecture-design.md
-      # §5.2.3 为何墙上时钟不可用；§5.3 会话式同步的静默丢数据
-    - core/lib/model/types.dart          # RemoteChange:232（七个既有字段）
-    - core/lib/model/ports.dart          # DeviceIdentity:240 / DeviceIdentityProvider:269
-    - drift/lib/persistence_drift.dart   # schemaVersion / onUpgrade（ACT 05 升到 7，ACT 07 升到 8）
-    - drift/lib/sync/record_local_applier.dart   # 消费 RemoteChange 的地方（本 ACT 不改逻辑）
+      # §5.2.3 全节；§5.3「冲突可见化」：必须保留被覆盖的版本并使其可回溯
+    - core/lib/sync/hlc_clock.dart       # ACT 08 的 HlcClock / 戳语义
+    - core/lib/model/types.dart
+      # ChangeApplyDecision:285 / SkipReasonCode:301 / ChangeApplyOutcome:322
+      # RemoteChange —— ACT 08 已加可空 hlcPacked / deviceId
+    - core/lib/model/ports.dart          # DeviceIdentity:240（复用，不新建）
+    - docs/storage-s1b-multipeer/act/08.yaml
+      # 08 的 BACKGROUND：HLC 单独不构成全序，故必须 (hlc, deviceId)
   WRITE:
-    - core/lib/sync/hlc_clock.dart
-    - core/test/s1b_hlc_property_test.dart
-    - drift/test/sync/hlc_stamp_store_test.dart
+    - core/lib/model/conflict_arbiter.dart
+    - core/test/s1b_conflict_arbiter_test.dart
   MODIFY:
-    - core/pubspec.yaml                  # 仅追加 hlc_dart
-    - core/lib/model/types.dart          # RemoteChange 加两个可空字段
-    - drift/lib/persistence_drift.dart   # 新增 t_entity_stamp 边表 + 时钟单行表 + v9 迁移
-
-DEPENDENCY:
-  ADD:
-    - hlc_dart: ^1.1.0        # 纯 Dart，零第三方依赖，160/160
-  FORBID:
-    - crdt / sql_crdt / sqlite_crdt / drift_crdt / crdt_lf / ditto_live
-      —— 四个方案均已比选否决，理由见 BACKGROUND 与纪要决定记录。
-      不要"顺手也装一个试试"。
+    - core/lib/model/types.dart          # ChangeApplyOutcome 增加冲突可回溯字段
 
 SIGNATURE:
-  hlc_clock.dart: |
-    /// 本设备的 HLC 时钟。跨重启持久化，单调不回退。
+  conflict_arbiter.dart: |
+    /// 版本坐标：(hlc, deviceId)。
     ///
-    /// 【两条规则】（hlc_dart 已实现，本类只负责持久化与调用纪律）：
-    /// · 本地写入 [tick]：l = max(旧 l, 物理时间)；l 未变则 c++，变大则 c = 0
-    /// · 收到远端 [observe]：l = max(本地 l, 远端 l, 物理时间)
-    ///   ——【收一次别人的东西，自己的钟就被顶上去一次】，这是因果性的全部来源
-    abstract interface class HlcClock {
-      /// 本地发生一次写入，返回新的戳。
-      Future<HybridLogicalClock> tick();
-
-      /// 观测到一个远端戳，把本地时钟顶上去。
-      ///
-      /// 【必须在每一条入站变更上调用】。漏调不会报错，
-      /// 只会让因果性静默消失 —— 属性测试的第 ② 条就是守这个的。
-      Future<void> observe(HybridLogicalClock remote);
-
-      /// 当前戳（只读，不推进）。
-      HybridLogicalClock get current;
-
-      /// 本设备标识，作为 HLC 相等时的决胜位。
-      String get deviceId;
-    }
-
-    /// 时钟状态的持久化端口。实现由 drift 提供（与 t_entity_stamp 同一次 v9 迁移）。
+    /// 【为什么需要 deviceId】：`HybridLogicalClock` 只有 (l, c)，没有 nodeId。
+    /// 两台设备在同一物理毫秒各写一次且互不知情时 `isConcurrentWith == true`、
+    /// `compareTo == 0` —— HLC 给的是【因果序（偏序）】，不是全序。
+    /// deviceId 作为决胜位把它补成全序，保证任意两台设备对同一对版本
+    /// 得出【同一个】结论。
     ///
-    /// 不持久化的后果：重启后 l 从物理时间重来，若期间时钟被回拨，
-    /// 新写入的戳会小于重启前的戳 —— 单调性断裂，且没有任何报错。
-    abstract interface class HlcClockStore {
-      /// 读回上次退出时的时钟；从未存过返回 null。
-      Future<HybridLogicalClock?> load();
+    /// 比较规则：先比 hlc；hlc 相等（并发）时比 deviceId 字典序，大者胜。
+    final class VersionStamp implements Comparable<VersionStamp> {
+      /// HLC 戳。打包形式见 ACT 11 的线上格式规格。
+      final HybridLogicalClock hlc;
 
-      /// 落盘当前时钟。
-      Future<void> save(HybridLogicalClock clock);
-    }
+      /// 写入该版本的设备标识。取自 [DeviceIdentity.deviceId]。
+      final String deviceId;
 
-  types.dart RemoteChange 增加: |
-    /// 产生该变更的 HLC 戳（因果序，§5.2.3）。
-    ///
-    /// 线上格式见 docs/storage-s1b-multipeer/HLC-WIRE-FORMAT.md（ACT 12 产出）：
-    /// 48 位 l + 16 位 c 打包成 int64，`(l << 16) | c`。
-    /// 可空：历史 oplog 条目没有这个字段。
-    final int? hlcPacked;
+      /// 构造一个 [VersionStamp]。
+      const VersionStamp({required this.hlc, required this.deviceId});
 
-    /// 产生该变更的设备标识（HLC 相等时的决胜位）。
-    ///
-    /// 可空：历史 oplog 条目没有这个字段。
-    final String? deviceId;
+      /// 从线上打包值还原。[packed] 为 `(l << 16) | c`。
+      factory VersionStamp.fromPacked(int packed, String deviceId);
 
-  persistence_drift.dart 新增: |
-    /// 每个实体当前版本的 HLC 戳（边表）。
-    ///
-    /// 【为什么用边表而不是往 RecordMeta 加字段】：RecordMeta 在
-    /// repository-interface-record 仓库，改它要连带下游 12 个业务仓库。
-    /// 边表让 S1b 完全留在 xuan-storage 内，所有 Data class 零改动。
-    ///
-    /// 代价：戳与记录不在同一行，【必须同事务写入】（A13 门禁守着）。
-    @DataClassName('EntityStampRow')
-    class EntityStamps extends Table {
-      TextColumn get entityType => text().named('entity_type')();
-      TextColumn get entityId => text().named('entity_id')();
-
-      /// HLC 打包值 `(l << 16) | c`。
-      IntColumn get hlcPacked => integer().named('hlc_packed')();
-
-      /// 写入该版本的设备。HLC 相等时的决胜位。
-      TextColumn get deviceId => text().named('device_id')();
+      /// 打包成线上格式 int64。
+      int toPacked();
 
       @override
-      Set<Column> get primaryKey => {entityType, entityId};
+      int compareTo(VersionStamp other);
     }
 
+    /// 一次冲突的裁决。
+    enum ArbitrationDecision {
+      /// 远端版本胜出，应覆盖本地。被覆盖的【本地】版本要留档。
+      takeRemote,
+
+      /// 本地版本胜出，远端变更应被丢弃。被丢弃的【远端】版本【同样】要留档。
+      keepLocal,
+
+      /// 两者坐标完全相同 —— 同一版本，无冲突，无需写入。
+      identical,
+    }
+
+    /// 冲突仲裁器。决定"远端来的这条变更该不该覆盖本地"。
+    ///
+    /// 【纯函数，无 IO、无状态】。持久化由调用方（ACT 10 的 applier）负责 ——
+    /// 混进来会让它没法被单元测试穷举，而定序正是最需要穷举的那类代码。
+    abstract interface class ConflictArbiter {
+      /// 比较远端与本地版本，给出裁决。
+      ///
+      /// [remote] 可空：历史 oplog 条目没有戳。降级规则见 TASK_DETAIL。
+      /// [local] 可空：t_entity_stamp 里还没有该实体的戳（首次收到）。
+      ArbitrationDecision arbitrate({
+        required VersionStamp? remote,
+        required VersionStamp? local,
+      });
+    }
+
+    /// 默认实现：严格按 (hlc, deviceId) 全序比较。
+    final class HlcConflictArbiter implements ConflictArbiter {
+      /// 构造一个 [HlcConflictArbiter]。
+      const HlcConflictArbiter();
+    }
+
+  types.dart ChangeApplyOutcome 增加: |
+    /// 本次冲突中【被丢弃的那一方】的 payload（§5.3 冲突可见化）。
+    ///
+    /// · decision 为 applied 且发生覆盖 → 这里是【被覆盖的本地版本】
+    /// · decision 为 skipped 且原因是仲裁判 keepLocal → 这里是【被丢弃的远端版本】
+    ///
+    /// 两个方向都要留档。只留前者是不够的：远端 loser 被丢弃后游标照常推进
+    /// （skipped 不阻止推进，见 ACT 10），那条远端变更【再也不会被拉到】。
+    /// 会话式同步可能两周才跑一次，用户丢的是"这两周里对方改的东西"。
+    final String? discardedPayloadJson;
+
+    /// 被丢弃那一方的版本坐标，用于向用户展示"你丢的是哪个版本、来自哪台设备"。
+    final VersionStamp? discardedStamp;
+
+    /// 被丢弃的是哪一侧。null 表示本次没有冲突。
+    final ConflictSide? discardedSide;
+
+    /// 冲突中被丢弃的一侧。
+    enum ConflictSide { local, remote }
+
 TASK_DETAIL:
-  no_data_class_changes: >
-    【本 ACT 不动任何 Data class】。RecordMeta、各模块的 record 类型、
-    repository-interface-* 的任何仓库 —— 一个字段都不加。
-    戳全部存在 drift 的 t_entity_stamp 边表里，键 (entityType, entityId)。
-    这是人类 2026-08-02 的放置决定，理由见纪要决定记录。
+  total_order_requirement: >
+    compareTo 必须是【全序】：
+    · 反对称  a.compareTo(b) == -b.compareTo(a)
+    · 传递性  a<b 且 b<c ⇒ a<c
+    · 自反    a.compareTo(a) == 0
+    · **0 当且仅当 hlc 相等【且】 deviceId 相等**
 
-  wire_format_is_int64: >
-    RemoteChange 上存的是 `hlcPacked`（int64），不是 HybridLogicalClock 对象，
-    也不是字符串。理由：
-    · int64 是 hlc_dart 原生支持的（toInt64 / fromInt64），零歧义；
-    · 它能直接落进 drift 的 IntColumn 与 Firestore/RTDB 的数字字段；
-    · 【将来 Rust / Web 客户端只需实现同一个位布局】——
-      这是 A14 要求产出语言中立规格的原因，规格文档在 ACT 12 写。
-    【不要】用 toString() / "l.c" 字符串格式上线 —— 那把线上格式绑死在
-    hlc_dart 的格式化选择上，换库或换语言时会咬人。
+    最后一条是关键：hlc 相等但 deviceId 不同【不得】返回 0。
+    返回 0 会让两台设备的并发编辑被判为 identical，于是谁都不覆盖谁，
+    两边永久分叉 —— 而且不报错。
 
-  migration_is_v9: >
-    ACT 05 升到 7（新表 + peer_id 列），ACT 07 升到 8（t_sync_state 主键切换）。
-    本 ACT 升到 **9**，onUpgrade 新增且仅新增 `if (from < 9)` 一段：
-      await m.createTable(entityStamps);
-      await m.createTable(hlcClockState);   // 时钟持久化，单行表
-    【不要】动 from<2..8 的八段历史迁移。
+  null_degradation: >
+    两个参数都可空，四种组合各有明确语义，【各须一条测试】：
 
-  clock_persistence_timing: >
-    时钟落盘时机：**每次 tick / observe 之后立刻 save**。
-    不要"退出时再存" —— app 被系统杀掉不会走退出路径，那正是最常见的场景。
-    单行表（固定主键），写入代价可忽略。
+      remote=null, local=null   → identical（都没戳，无从比较，不写入）
+      remote=null, local≠null   → **keepLocal**（远端是无戳的历史条目，不覆盖有戳的本地）
+      remote≠null, local=null   → **takeRemote**（本地【没有可比的版本坐标】，直接采用）
+      remote≠null, local≠null   → 正常比较
 
-  observe_is_mandatory: >
-    【本 ACT 最容易漏、且漏了不报错的一条】：
-    每一条入站的 RemoteChange，只要它带了 hlcPacked，
-    就【必须】在应用之前调 `clock.observe(remote)`。
-    漏掉的后果：本地时钟不会被顶上去，下次本地写入的戳可能小于刚收到的远端戳，
-    因果关系倒置。所有功能测试仍会绿。
-    属性测试的第 ② 条（因果性）是唯一能抓到它的东西。
+    第二条的方向是 fail-safe：丢远端的一次更新，用户下次同步还能拿到；
+    丢本地的编辑不可恢复。
+    【不要】写成"拿不准就 takeRemote" —— 那正是 §5.2.3 判定为缺陷的 RWW 行为，
+    等于本 ACT 白做。
 
-  no_arbitration_here: >
-    【本 ACT 不做任何比较判断】。不写 ConflictArbiter，不改 applier 的决策逻辑。
-    本 ACT 交付"戳"，ACT 12 交付"怎么比"，ACT 11 交付"比完怎么处置"。
-    混在一起会让"戳错了"和"比错了"在同一个 diff 里无法区分。
+  local_null_is_ambiguous_by_design: >
+    ⚠ **`local == null` 在语义上覆盖了两种不同的现实**（Codex R2）：
+      (a) 本地【根本没有这个实体】—— 首次收到，直接采用是对的；
+      (b) 本地【有这个实体，但 t_entity_stamp 里没有它的戳】——
+          比如实体是 S1b 之前写入的历史数据，从没被打过戳。
+          此时 takeRemote 会【无条件覆盖一份真实存在的本地数据】，
+          而那正是 §5.2.3 判定为缺陷的 RWW 行为。
+
+    本 ACT 的处理：**arbitrate 只看版本坐标，不区分 (a)(b) —— 这是设计选择，
+    不是遗漏。** 理由：ConflictArbiter 是纯函数，它拿不到"本地实体存不存在"
+    这个事实，硬塞进来就要给它 IO 或再加一个参数，两者都会污染它的可穷举性。
+
+    区分的责任在【调用方】，写在 ACT 10 的 applier 里：
+      · applier 查到本地实体不存在 → 直接走 takeRemote，不必仲裁
+      · applier 查到本地实体存在但边表无戳 → **必须留档**
+        （discardedSide = local + 被覆盖的本地 payload），
+        使用户能看到"这条历史数据被远端覆盖了"
+    ACT 10 有一条专门的测试守这个区分，【本 ACT 只负责把语义写清楚，不实现它】。
+
+  no_subtraction_in_compare_to: >
+    ⚠ compareTo 【不许用减法实现】（`a.l - b.l` / `a.hlcPacked - b.hlcPacked`）。
+    减法在普通数值上同样满足反对称/传递/自反，所以 Codex R1 指出的那四条性质
+    【抓不到它】（R2 复核确认此洞仍在）。
+    减法的真实故障点是【溢出】：两个相距超过 2^62 的打包值相减会绕回，
+    符号翻转，胜负颠倒 —— 而正常业务数据永远碰不到这个区间，测不出来。
+    正确写法是三路比较（`if (a < b) return -1; if (a > b) return 1; ...`）。
+    对应的门禁是 CASES 里的 `compare_to_survives_extreme_magnitude`，
+    以及一条文本级 grep。
+
+  discarded_is_bidirectional: >
+    §5.3 要求"冲突时保留被覆盖的版本并使其对用户可见可回溯"。
+    【两个方向都要】：
+      takeRemote → 留【本地】被覆盖的 payload
+      keepLocal  → 留【远端】被丢弃的 payload
+    只留前者是常见的漏：keepLocal 时游标照常推进（skipped 不阻止推进），
+    那条远端变更再也不会被拉到，用户永远不知道对方改过什么。
+
+  arbiter_is_pure: >
+    ConflictArbiter 【无 IO、无状态、不碰数据库】。它只回答"谁赢"。
+    "被丢弃的 payload 存到哪"是 ACT 10 的事。
+
+  no_applier_changes: >
+    【本 ACT 不改 drift/lib/sync/record_local_applier.dart】。
+    修 canAdvanceCursor 恒真、把仲裁器接进 applier，都是 ACT 10。
 
 CONSTRAINTS:
-  - 【不要】往任何 Data class 或 repository-interface-* 仓库加字段。见 no_data_class_changes。
-  - 【不要】用字符串格式上线 HLC。见 wire_format_is_int64。
-  - 【不要】把 observe 写成"可选优化"。见 observe_is_mandatory。
-  - 【不要】等退出时才保存时钟。见 clock_persistence_timing。
-  - 【不要】在本 ACT 写比较逻辑。见 no_arbitration_here。
-  - 【不要】动 onUpgrade 的 from<2..8 八段。
-  - 【不要】引入 BACKGROUND 里被否决的任何一个包。
+  - 【不要】用墙上时钟（DateTime）参与定序。ACT 08 已交付 HLC，用它。
+  - 【不要】在 hlc 相等时返回 0 而不比 deviceId。见 total_order_requirement。
+  - 【不要】把 null 降级写成"拿不准就 takeRemote"。见 null_degradation。
+  - 【不要】只留 takeRemote 方向的被覆盖 payload。见 discarded_is_bidirectional。
+  - 【不要】新建 DeviceIdentity 的替代品。ports.dart:240 已有。
+  - 【不要】给 ChangeApplyOutcome 的新字段加 required（既有构造点会全挂）。
+  - 【不要】让 ConflictArbiter 有 IO 或可变状态。
+  - 【不要】改 record_local_applier.dart。那是 ACT 10。
   - 每个公开声明必须有中文 dartdoc（A12）。
 
 TESTS_FIRST:
   CASES:
-    - NAME: property_three_node_simulation
-      FILE: core/test/s1b_hlc_property_test.dart
+    - NAME: later_hlc_wins_regardless_of_device
+      FILE: core/test/s1b_conflict_arbiter_test.dart
       BEHAVIOR: >
-        【本 ACT 的生死线，也是整个 HLC 方案能不能自己维护的根据】。
-        构造 3 个节点，各自给一个【随机且不同】的物理时钟偏移（±60 秒），
-        用一个可注入的假时钟源驱动。随机顺序产生【至少 1000 次】事件：
-          · 本地写入（tick）
-          · 把某节点的当前戳发给另一节点（对方 observe）
-        全程记录每个事件的 (nodeId, hlc)。跑完断言三条不变式：
-
-        ① 单调性：同一节点的连续 tick 严格递增（用 compareTo > 0）
-        ② **因果性：若节点 B 在时刻 T observe 过节点 A 的戳 S，
-           则 B 在 T 之后产生的每一个戳都 > S**（这是 HLC 的全部价值）
-        ③ 收敛性：把事件序列交给两个独立的裁判重放，
-           对任意一对 (hlc, deviceId) 得出【同一个】胜负结论
-
-        用固定 seed 的伪随机数，失败时打印 seed 以便复现。
-        ② 是抓"漏调 receiveEvent"的唯一手段 —— 那个 bug 让①③照样绿。
-      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
-      RED_EXPECT: 编译失败（HlcClock 不存在），退出码非 0
+        remote 的 hlc 严格大于 local，且 remote.deviceId 字典序【更小】
+        （'aaa' vs 'zzz'）→ takeRemote。
+        反过来 local 的 hlc 更大而 deviceId 更小 → keepLocal。
+        证明 hlc 是第一顺位，deviceId 只在并发时说话 ——
+        写成"先比 deviceId"这条会红。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 编译失败（VersionStamp 不存在），退出码非 0
       COVERS: [A8]
 
-    - NAME: causality_survives_clock_skew
-      FILE: core/test/s1b_hlc_property_test.dart
+    - NAME: concurrent_tie_broken_by_device_id_deterministically
+      FILE: core/test/s1b_conflict_arbiter_test.dart
       BEHAVIOR: >
-        定向版本，直接复现设计稿 §5.2.3 那个场景：
-        节点 A 时钟准，节点 B 时钟【慢 30 秒】。
-        - A 写一次 → 戳 Sa
-        - B observe(Sa)，然后 B 写一次 → 戳 Sb
-        断言 `Sb > Sa`，即使 B 的物理时钟读数比 A 小 30 秒。
-        用墙上时钟的实现这条必红 —— 这就是那个"用户在手机上改的东西
-        被平板上更早的版本盖掉且不知情"的 bug。
-      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
+        【本 ACT 最重要的一条】。两个 VersionStamp 的 hlc【完全相等】
+        （用 ACT 08 的 `hlc_alone_is_not_a_total_order` 造出的那种并发戳），
+        deviceId 分别 'device-a' / 'device-b'。
+        - remote='device-b', local='device-a' → takeRemote
+        - 【互换角色】remote='device-a', local='device-b' → keepLocal
+        断言两次的【胜者是同一台设备】—— 这就是"全序且确定"的可执行定义。
+        hlc 相等时直接返回 identical 的实现这条会红，
+        而那种写法让两台设备永久分叉且不报错。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
       RED_EXPECT: 编译失败，先红
       COVERS: [A8]
 
-    - NAME: hlc_alone_is_not_a_total_order
-      FILE: core/test/s1b_hlc_property_test.dart
+    - NAME: identical_iff_both_hlc_and_device_equal
+      FILE: core/test/s1b_conflict_arbiter_test.dart
       BEHAVIOR: >
-        【反向断言，防止误以为 HLC 就够了】。
-        构造两个节点在【同一物理毫秒】各自 tick 且互不知情，
-        断言两个戳 `isConcurrentWith == true`、`compareTo == 0`。
-        再断言：加上 deviceId 之后，(hlc, deviceId) 能比出确定胜负，
-        且【互换提问顺序结论不变】。
-        这条把"HLC 需要 deviceId 决胜"钉成可执行事实 ——
-        没有它，后人会以为 compareTo 就是全序，然后在 ACT 12 里省掉 deviceId。
-      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
+        - hlc 相等 + deviceId 相等 → identical
+        - hlc 相等 + deviceId 不同 → 【不是】identical
+        - hlc 不同 + deviceId 相等 → 【不是】identical
+        identical 语义是"同一个版本，无需写入"，判宽了会漏掉真实冲突。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
       RED_EXPECT: 编译失败，先红
       COVERS: [A8]
 
-    - NAME: clock_survives_restart
-      FILE: core/test/s1b_hlc_property_test.dart
+    - NAME: comparison_is_a_total_order_exhaustive
+      FILE: core/test/s1b_conflict_arbiter_test.dart
       BEHAVIOR: >
-        用 fake HlcClockStore：tick 若干次到戳 S，模拟重启
-        （丢弃 HlcClock 实例，用同一个 store 新建一个），
-        断言新实例的第一个 tick 【严格大于】 S。
-        再把物理时钟【回拨 1 小时】后重启，断言仍然严格大于 S ——
-        持久化的意义正在于抗时钟回拨。
-        不持久化的实现这条必红，而线上表现是"重启后写入的戳变小了"，
-        没有任何日志会提到它。
-      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
-      RED_EXPECT: 编译失败，先红
-      COVERS: [A13]
-
-    - NAME: clock_saved_on_every_tick_not_on_exit
-      FILE: core/test/s1b_hlc_property_test.dart
-      BEHAVIOR: >
-        非 happy-path。用记录调用次数的 fake store，tick 5 次，
-        断言 `save` 被调用了 【5 次】（不是 0 次、不是 1 次）。
-        再对 observe 做同样断言。
-        写成"退出时统一保存"时这条会红 —— 而 app 被系统杀掉不会走退出路径，
-        那正是移动端最常见的终止方式。
-      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
-      RED_EXPECT: 编译失败，先红
-      COVERS: [A13]
-
-    - NAME: stamp_written_in_same_transaction_as_record
-      FILE: drift/test/sync/hlc_stamp_store_test.dart
-      BEHAVIOR: >
-        【边表方案的核心风险守卫】。在一个 drift 事务里写记录 + 写 t_entity_stamp，
-        中途让写记录那一步抛异常，断言事务回滚后【两者都没写进去】
-        （t_entity_stamp 里查不到该 entityId）。
-        戳与记录分事务写时这条会红 —— 而那种实现的后果是
-        "记录更新了但戳没更新"，下次同步该记录会被误判为旧版本而被覆盖。
-      RED_COMMAND: cd drift && flutter test test/sync/hlc_stamp_store_test.dart
-      RED_EXPECT: 编译失败（t_entity_stamp 不存在），退出码非 0
-      COVERS: [A13]
-
-    - NAME: v8_upgrade_to_v9_preserves_existing_tables
-      FILE: drift/test/sync/hlc_stamp_store_test.dart
-      BEHAVIOR: >
-        造一个 v8 库（含 ACT 05 建的 t_outbox_peer_ack 与 ACT 07 切过主键的 t_sync_state），
-        各插入若干可辨识行，升级到 v9 后断言：
-        - t_entity_stamp 与时钟单行表已建立；
-        - **v8 那两张表的每一行逐字段未变**；
-        - `PRAGMA user_version` 为 9。
-        只断言"新表存在"是不够的 —— 那种写法漏搬旧数据也会绿。
-      RED_COMMAND: cd drift && flutter test test/sync/hlc_stamp_store_test.dart
-      RED_EXPECT: 断言失败（schemaVersion 仍是 8），退出码非 0
-      COVERS: [A3, A13]
-
-    - NAME: remote_change_hlc_fields_are_nullable
-      FILE: core/test/s1b_hlc_property_test.dart
-      BEHAVIOR: >
-        构造一个【不传】 hlcPacked 与 deviceId 的 RemoteChange，
-        断言能编译且两者为 null；再构造传了值的，断言读回正确，
-        且既有七个字段逐个未受影响。
-        加 required 会让两个 firebase gateway、core 的 fake、
-        drift 的多处测试同时编译失败 —— 计划外的破坏。
-      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
+        构造至少 8 个 VersionStamp（跨 hlc 与 deviceId 的组合，
+        含若干 hlc 相等 deviceId 不同的并发对），对所有两两与三三组合断言：
+        - 反对称 `a.compareTo(b) == -b.compareTo(a)`
+        - 传递性 a<b 且 b<c ⇒ a<c（三重循环穷举）
+        - 自反   `a.compareTo(a) == 0`
+        - **0 当且仅当 hlc 与 deviceId 都相等**（这一条是 Codex R1 指出的
+          "只验性质抓不到 `rev - other.rev` 式实现"的补丁）
+        最后一条要显式遍历所有配对逐个断言，不能只靠前三条推。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
       RED_EXPECT: 编译失败，先红
       COVERS: [A8]
+
+    - NAME: compare_to_survives_extreme_magnitude
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        【专打"用减法实现 compareTo"，对应 Codex R1 指出、R2 复核仍在的洞】。
+        构造两个 VersionStamp，其打包值分别接近 int64 的正负两端
+        （例如 l 取规格允许的最大值与 0，deviceId 相同）。断言：
+        - `big.compareTo(small) > 0` 且 `small.compareTo(big) < 0`；
+        - 两者的差【超过 2^62】—— 用减法实现时结果会绕回、符号翻转，这条会红。
+        再取一组差值恰好跨过 2^63 边界的（如果规格允许的 l 上限做不到，
+        就直接对 `toPacked()` 返回的两个 int 断言三路比较的结果，
+        并在注释里写明"本条守的是实现手法，不是业务可达值"）。
+        ⚠ 这条与四条序性质【不重复】：那四条在普通值上对减法实现同样成立，
+        只有极端量级能把减法和三路比较区分开。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A8, A14]
+
+    - NAME: null_degradation_four_combinations
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        非 happy-path，四种 null 组合逐个断言（见 TASK_DETAIL.null_degradation）：
+          (null, null)  → identical
+          (null, 有)    → keepLocal    ← fail-safe 方向
+          (有, null)    → takeRemote
+          (有, 有)      → 正常比较
+        全程【不抛异常】。
+        写成"拿不准就 takeRemote"时第二条会红 —— 那会让所有无戳的历史
+        oplog 条目无条件覆盖本地，等于退回 RWW。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A8]
+
+    - NAME: outcome_carries_discarded_side_both_directions
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        构造两个 ChangeApplyOutcome：
+        ① takeRemote 场景 → discardedSide == ConflictSide.local，
+           discardedPayloadJson 是【本地旧 payload】，discardedStamp 是本地戳
+        ② keepLocal 场景  → discardedSide == ConflictSide.remote，
+           discardedPayloadJson 是【远端 payload】，discardedStamp 是远端戳
+        再构造一个【不传】这三个字段的 outcome，断言能编译且三者为 null
+        （既有构造点未破坏）。
+        只实现方向①的话②会红 —— 而②正是"用户永远不知道对方改过什么"的成因。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A9]
+
+    - NAME: arbiter_has_no_wall_clock_and_no_io
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        以纯文本读取 core/lib/model/conflict_arbiter.dart，断言【不含】
+        `DateTime` / `.now()` / `updatedAt` / `serverTime` / `Future<` / `async`。
+        文本级守卫，故意不依赖类型系统 ——
+        "顺手加个时间戳兜底比较"是这类代码最常见的退化路径，
+        加了之后所有功能测试仍会绿。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 断言失败或文件不存在，先红
+      COVERS: [A8]
+
+    - NAME: packed_round_trips_losslessly
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        对一组 VersionStamp（含 l 接近 48 位上限、c 接近 16 位上限的边界值）
+        做 `toPacked()` → `fromPacked()` 往返，断言 hlc 逐字段相等。
+        再断言两个不同 stamp 的 packed 值【不相等】。
+        这条是 A14 线上格式的第一道防线：打包丢位会让远端戳被读成另一个值，
+        而那不会报错，只会让定序悄悄错乱。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A14]
 
 VERIFICATION:
-  - CMD: cd core && dart analyze --fatal-infos lib/sync/hlc_clock.dart lib/model/types.dart
+  - CMD: cd core && dart analyze --fatal-infos lib/model/conflict_arbiter.dart lib/model/types.dart
     EXPECT_EXIT: 0
-  - CMD: cd core && flutter test test/s1b_hlc_property_test.dart
-    EXPECT_EXIT: 0
-  - CMD: cd drift && flutter test test/sync/hlc_stamp_store_test.dart
+  - CMD: cd core && flutter test test/s1b_conflict_arbiter_test.dart
     EXPECT_EXIT: 0
   - CMD: cd core && flutter test
     EXPECT_EXIT: 0
   - CMD: cd drift && flutter test
     EXPECT_EXIT: 0
-  # 只引入 hlc_dart，被否决的包一个都不许进
-  - CMD: 'grep -c "hlc_dart:" core/pubspec.yaml'
+  # 仲裁器不得依赖墙上时钟、不得有 IO
+  - CMD: 'grep -nE "DateTime|\.now\(\)|updatedAt|serverTime" core/lib/model/conflict_arbiter.dart'
+    EXPECT_EXIT: 1
+  - CMD: 'grep -nE "dart:io|Future<|async" core/lib/model/conflict_arbiter.dart'
+    EXPECT_EXIT: 1
+  # 三个新字段可空、非 required
+  - CMD: 'grep -c "final String? discardedPayloadJson;" core/lib/model/types.dart'
     EXPECT_STDOUT: "1"
     EXPECT_EXIT: 0
-  - CMD: 'grep -nE "^\s+(crdt|sql_crdt|sqlite_crdt|drift_crdt|crdt_lf|crdt_lf_drift|ditto_live):" core/pubspec.yaml drift/pubspec.yaml'
-    EXPECT_EXIT: 1
-  # 线上格式必须是 int64，不得用字符串
-  - CMD: 'grep -c "final int? hlcPacked;" core/lib/model/types.dart'
+  - CMD: 'grep -c "final ConflictSide? discardedSide;" core/lib/model/types.dart'
     EXPECT_STDOUT: "1"
     EXPECT_EXIT: 0
-  - CMD: 'grep -nE "hlc\.toString\(\)|HybridLogicalClock\.parse" core/lib/model/types.dart core/lib/sync/hlc_clock.dart'
+  - CMD: 'grep -nE "required this.discarded" core/lib/model/types.dart'
     EXPECT_EXIT: 1
-  # 不得往 Data class / 外部仓库加字段
-  - CMD: git diff --exit-code main.. -- core/lib/model/repository.dart
-    EXPECT_EXIT: 0
-  - CMD: 'grep -rn "class RecordMeta" core/lib drift/lib'
+  # compareTo 不得用减法（三路比较）—— 文本级守卫，与极端量级用例互补
+  - CMD: "sed -n '/int compareTo(VersionStamp other)/,/^  }/p' core/lib/model/conflict_arbiter.dart | grep -nE '[a-zA-Z)\\]] *- *(other|[a-z])'"
     EXPECT_EXIT: 1
-  # v9 迁移：新增且仅新增 from<9，前八段未动
-  - CMD: 'grep -c "int get schemaVersion => 9;" drift/lib/persistence_drift.dart'
+  # 双向留档：ConflictSide 两个值都要用上
+  - CMD: 'grep -c "ConflictSide.remote" core/test/s1b_conflict_arbiter_test.dart'
     EXPECT_STDOUT: "1"
     EXPECT_EXIT: 0
-  - CMD: 'for n in 2 3 4 5 6 7 8; do grep -q "if (from < $n)" drift/lib/persistence_drift.dart || { echo "LOST:$n"; exit 1; }; done; echo OLD_EIGHT_OK'
-    EXPECT_STDOUT: "OLD_EIGHT_OK"
-    EXPECT_EXIT: 0
-  # 本 ACT 不写比较逻辑
-  - CMD: 'grep -nE "ConflictArbiter|arbitrate|compareTo" core/lib/sync/hlc_clock.dart'
-    EXPECT_EXIT: 1
   # 本 ACT 不改 applier
-  - CMD: git diff --exit-code <ACT_BASE>..HEAD -- drift/lib/sync/record_local_applier.dart
+  - CMD: git diff --exit-code "$(cat .act-base)"..HEAD -- drift/lib/sync/record_local_applier.dart
     EXPECT_EXIT: 0
 
 SELF_CHECK:
-  - 【最关键的一条】把 `observe` 的实现体临时清空（变成空函数）→
-    `property_three_node_simulation` 的 ② 因果性 与 `causality_survives_clock_skew`
-    必须【同时】变红，而 ① 单调性 与 ③ 收敛性【仍然绿】→ 改回。
-    这一步同时证明两件事：属性测试抓得到漏调 observe，
-    且只靠单调性/收敛性是抓不到的
-  - 把 `HlcClockStore.load()` 临时改成恒返回 null（模拟不持久化）→
-    `clock_survives_restart` 必须变红 → 改回
-  - 把 save 临时改成"只在第一次 tick 时存"→
-    `clock_saved_on_every_tick_not_on_exit` 必须变红 → 改回
-  - 把戳与记录临时改成分两个事务写 →
-    `stamp_written_in_same_transaction_as_record` 必须变红 → 改回
-  - 把 `hlcPacked` 临时改成字符串格式 → grep 门禁必须变红 → 改回
-  - 五次自检后 `git status --porcelain` 必须为空
+  - 把 compareTo 临时改成"只比 hlc，相等返回 0"→
+    `concurrent_tie_broken_by_device_id_deterministically` 与
+    `identical_iff_both_hlc_and_device_equal` 与
+    `comparison_is_a_total_order_exhaustive` 的第四条【三条同时变红】→ 改回。
+    只红一两条说明覆盖不足（Codex R1 就是抓的这个）
+  - 把 (null, 有) 的降级临时改成 takeRemote →
+    `null_degradation_four_combinations` 必须变红 → 改回
+  - 把 keepLocal 分支的 discardedPayloadJson 临时置空 →
+    `outcome_carries_discarded_side_both_directions` 的②必须变红 → 改回
+  - 在 conflict_arbiter.dart 里临时加 `final _ = DateTime.now();` →
+    `arbiter_has_no_wall_clock_and_no_io` 必须变红 → 改回
+  - 把 toPacked 的位移临时从 16 改成 15 →
+    `packed_round_trips_losslessly` 必须变红 → 改回
+  - 把 compareTo 临时改成 `return toPacked() - other.toPacked();`（减法实现）→
+    `compare_to_survives_extreme_magnitude` 必须变红，
+    而 `comparison_is_a_total_order_exhaustive` 的前三条【仍然绿】→ 改回。
+    **这一步同时证明两件事**：极端量级用例抓得到减法，
+    且光靠四条序性质是抓不到的（Codex R1 指出、R2 复核仍在的洞）
+  - 六次自检后 `git status --porcelain` 必须为空
 
 ON_FAIL:
-  - RED 阶段测试没红（写完实现前就绿）→ 说明测试没真正依赖新类型，
-    停下重写测试，不要继续
-  - 属性测试偶发失败（换 seed 就绿）→ **这是真 bug 不是 flaky**，
-    HLC 的三条不变式在任何事件序列下都必须成立。记下失败 seed 并定位，
-    【不要】加重试、不要放宽断言
-  - v8→v9 迁移测试失败 → 优先怀疑漏建表而非漏搬数据（本 ACT 是纯建表），
-    逐字段比对旧行
-  - core / drift 既有测试变红 → 立即停下。本 ACT 只加不改，
-    既有测试变红说明动到了不该动的地方
+  - RED 阶段没红 → 测试没真正依赖新类型，重写测试
+  - 传递性断言失败 → 优先怀疑 compareTo 用了减法（`a.l - b.l`）而非三路比较
+  - 既有 core/drift 测试变红 → 立即停下，本 ACT 只加不改
   - 连续两次修不好同一条 → 在纪要「决定记录」写下现象与已排除的可能，停下上报
 
 DONE_WHEN:
-  - hlc_dart 已加入 core/pubspec.yaml，被否决的六个包一个都没进
-  - HlcClock / HlcClockStore 交付，时钟每次 tick/observe 都落盘
-  - t_entity_stamp 边表 + 时钟单行表建立，schemaVersion 为 9，前八段迁移未动
-  - RemoteChange 有可空 hlcPacked / deviceId，既有七字段未变
-  - 所有 Data class 与 repository-interface-* 仓库【零改动】
-  - 八个测试用例全部存在且通过，属性测试跑满 ≥1000 事件
-  - 五条 SELF_CHECK 已实做并确认能变红，尤其第一条（清空 observe 只红 ②）
+  - conflict_arbiter.dart 与测试文件存在，全部命令按 EXPECT 通过
+  - compareTo 经穷举验证为全序，且 0 当且仅当 hlc 与 deviceId 都相等
+  - 四种 null 组合各有测试，fail-safe 方向正确
+  - 冲突留档【双向】：takeRemote 留本地、keepLocal 留远端
+  - compareTo 用三路比较而非减法，极端量级用例通过
+  - local == null 的两种现实（本地无实体 / 有实体无戳）已在
+    TASK_DETAIL.local_null_is_ambiguous_by_design 写清，区分责任明确划给 ACT 10
+  - 九个测试用例全部存在，六条 SELF_CHECK 已实做并确认能变红
+  - applier 与既有 Data class 零改动

@@ -3,7 +3,7 @@
 状态: 蓝图
 
 ## 目标
-把同步引擎从单 peer（云端）改造成多 peer：两次 drift schema 迁移 + 三个端口签名变更 + fan-out 推送 + per-peer 退避 + Lamport 冲突仲裁，并修 `canAdvanceCursor` 恒真（S1b，任何 peer 实现开工前必须完成）。
+把同步引擎从单 peer（云端）改造成多 peer：两次 drift schema 迁移 + 三个端口签名变更 + fan-out 推送 + per-peer 退避 + HLC 冲突仲裁，并修 `canAdvanceCursor` 恒真（S1b，任何 peer 实现开工前必须完成）。
 
 ## 规格来源
 `docs/superpowers/specs/2026-07-31-storage-architecture-design.md`（1659 行，已过 /autoplan 三阶段评审 + Codex 跨模型验证）。
@@ -22,28 +22,45 @@
 - [ ] ACT 01: `SyncPeer` / `PeerCapabilities` / `PeerId` / `PeerFanoutPusher` 契约
   （零实现；`pushToAll` 带 **eligiblePeers**，堵住 §5.4 过滤被架空）-> `act/01.yaml`
 - [ ] ACT 02: **RemoteGateway → SyncPeer 全量迁移**（14 文件，顺带修 firebase 两个既有 ERROR）-> `act/02.yaml`
-- [ ] ACT 03: `OutboxStore` / `SyncStateStore` **11 个方法**加 `peerId`（enqueue 例外）+ 内存 fake -> `act/03.yaml`
-- [ ] ACT 04: **drift v7 纯加法迁移**：`t_outbox_peer_ack` 新表 + `t_sync_state` 加 peer_id 列
-  （带默认值，主键暂不动 → drift 保持可编译、276 测试仍绿）-> `act/04.yaml`
-- [ ] ACT 05: **drift v8 + 实现改造**（STRONG）：主键切三元组 + DAO/Store per-peer ack，整包恢复绿 -> `act/05.yaml`
-- [ ] ACT 06: **策略过滤**：`PeerEligibility` 单一判定源 + peekBatch 按 channel 过滤（fail closed）-> `act/06.yaml`
-- [ ] ACT 07: **fan-out**：`PeerFanoutPusher` 实现按 eligiblePeers 并发扇出 + coordinator 端到端接线
-  （router 保持 1-of-N）-> `act/07.yaml`
-- [ ] ACT 08: **per-peer 调度接口 + 退避**（STRONG）：`PeerRegistry` / `PeerPushOutcome` /
-  `pullOnce(peerId)` + 四个退避字段加 peer 维度 -> `act/08.yaml`
-- [ ] ACT 09: **HLC 接线 + 属性测试**（STRONG）：`hlc_dart` + 时钟跨重启持久化 + 戳存 drift 边表
-  （Data class 零改动）+ v9 迁移 + 3 节点仿真压单调性/因果性/收敛性 -> `act/09.yaml`
-- [ ] ACT 10: **`ConflictArbiter`**（STRONG）：`(hlc, deviceId)` 全序 + 冲突**双向**留档 -> `act/10.yaml`
-- [ ] ACT 11: 修 `canAdvanceCursor` 恒真 + 接入仲裁 + 畸形 payload 归 failed -> `act/11.yaml`
-- [ ] ACT 12: **HLC 线上格式规格 + 黄金用例**（A14）+ barrel + 架构守卫 + `run_s1b_analyze_gate.sh` -> `act/12.yaml`
+- [ ] ACT 03: **drift schema 全量前置 v6→v7**（STRONG）：`t_outbox_peer_ack` 新表 +
+  `t_sync_state` 加 peer_id 列（默认 'firestore'）+ 主键切三元组。
+  **端口与 DAO/Store 一个字不动 ⇒ 整包全程编译绿、276 测试全绿** -> `act/03.yaml`
+- [ ] ACT 04: **端口加 `peerId` + drift 实现跟进**（STRONG，本任务最大的 ACT）：
+  `OutboxStore` / `SyncStateStore` **12 个方法**（enqueue 例外，新增 `attemptFor`）
+  + 内存 fake 抽到 `lib/test_support/` + DAO/Store LEFT JOIN 改造 + 既有调用点。
+  分四阶段推进，**红→绿在同一个 ACT 内闭环** -> `act/04.yaml`
+- [ ] ACT 05: **策略过滤**：`PeerEligibility` 单一判定源 + peekBatch 按 channel 过滤（fail closed）-> `act/05.yaml`
+- [ ] ACT 06: **fan-out**：`PeerFanoutPusher` 实现按 eligiblePeers 并发扇出 + coordinator 端到端接线
+  （router 保持 1-of-N；attempt 走 `attemptFor` 端口）-> `act/06.yaml`
+- [ ] ACT 07: **per-peer 调度接口 + 退避**（STRONG）：`PeerRegistry` / `PeerPushOutcome` /
+  `pullOnce(peerId)` + 四个退避字段加 peer 维度 -> `act/07.yaml`
+- [ ] ACT 08: **HLC 接线 + 属性测试**（STRONG）：`hlc_dart 1.1.0+2`（钉死）+ 时钟跨重启持久化
+  + 戳存 drift 边表 `t_entity_stamp`（主键含 **scope_uid**，Data class 零改动）
+  + `applyWithStamp` 同事务接口 + v8 迁移 + 3 节点仿真压单调性/因果性/收敛性 -> `act/08.yaml`
+- [ ] ACT 09: **`ConflictArbiter`**（STRONG）：`(hlc, deviceId)` 全序（三路比较，禁减法）
+  + 冲突**双向**留档 -> `act/09.yaml`
+- [ ] ACT 10: 修 `canAdvanceCursor` 恒真 + 接入仲裁 + 畸形 payload 归 failed
+  + 区分"本地无实体"与"本地有实体无戳" -> `act/10.yaml`
+- [ ] ACT 11: **HLC 线上格式规格 + 黄金用例**（A14，含 signed int64 上限与 UTF-8 字节序）
+  + barrel + 架构守卫 + `run_s1b_analyze_gate.sh` -> `act/11.yaml`
 
-DEPENDS_ON 严格单链 01→02→…→12（无环）。
-STRONG_MODEL_ONLY：04 / 05（schema 迁移）、08（退避时序）、09（因果时钟）、10（定序）。
-合计 **83 测试用例 / 135 验证命令 / 70 条自检**，12 个 ACT 全部有 ON_FAIL。
+DEPENDS_ON 严格单链 01→02→…→11（无环）。
+STRONG_MODEL_ONLY：03（schema 迁移）、04（端口+实现）、07（退避时序）、08（因果时钟）、09（定序）。
+合计 **88 测试用例 / 158 验证命令 / 64 条自检**，11 个 ACT 全部有 ON_FAIL。
 
-排序说明：**策略过滤（06）刻意排在扇出（07）之前** —— 不知道谁有资格收，
+排序说明一：**策略过滤（05）刻意排在扇出（06）之前** —— 不知道谁有资格收，
 就不该先建扇出。转译 v1 把过滤排在后面，导致 peekBatch 挑好的记录被
 pushToAll 转头发给所有人（Codex R1 · P0-1）。
+
+排序说明二（**方案 A，人类 2026-08-02 裁定**）：**schema 全部前置到 03，
+端口变更与 drift 实现合并进 04**。
+转译 v2 曾试图三步走（端口 → 加列 → 主键+实现）以保持每步可编译，但那做不到：
+`DriftOutboxStore` / `DriftSyncStateStore` 直接 `implements` core 的端口，
+端口一改它们立刻报 `NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER` ——
+编译是被【端口变更】打断的，不是被 schema 打断的（Codex R2 实证）。
+在静态类型 + 跨包 implements 下，"端口变更"与"实现跟进"无法拆到两个 ACT
+而不产生不可编译的中间态。代价是 ACT 04 显著超粒度，用 STRONG + 四阶段
++ 九条自检补偿。
 
 ## 验收标准
 
@@ -180,6 +197,54 @@ pushToAll 转头发给所有人（Codex R1 · P0-1）。
   全局：26 条 grep -c 补双 EXPECT（现为 0 条缺）、12 个 ACT 全部补 ON_FAIL、
   `HEAD~1` 改为不可变 `.act-base`、验收标准防篡改改为与基线提交 cd064c6 逐字比对。
   规模由 71/118/63 增至 **83 测试 / 135 验证 / 70 自检**。
+
+- 2026-08-02（**转译审查 R2: 仍返工，wjt-react 2 轮上限用尽，已上报人类**）:
+  全文见 `docs/storage-s1b-multipeer/REACT-R2-CODEX.md`。R1 那 25 项：
+  修了 11 / 部分修 6 / 没修 5 / 因 HLC 方案取代而失效 4；Codex 另提 10 项新的必须返工。
+  最要命的一条是转译者自己修错了地方并已实证：
+  · **v2 的"拆迁移解编译死锁"救错了对象**。`DriftOutboxStore`(:614) /
+    `DriftSyncStateStore`(:916) **直接 implements core 的端口**，端口一加
+    `required peerId` 就必然报 `NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER` ——
+    编译是被【端口变更】打断的，不是被 schema 打断的，加不加列都一样红。
+    暴露的是**分解方式本身**：静态类型 + 跨包 implements 下，
+    "端口变更"与"实现跟进"无法拆到两个 ACT 而不产生不可编译的中间态。
+  · 另实测一条属规格缺口非现网 bug：`(l<<16)|c` 当前占 57 位，
+    需 l ≥ 2^47（约公元 6440 年）才会撞 signed int64 符号位。实践安全，但规格必须写死上限。
+
+- 2026-08-02（**方案 A，人类裁定；转译 v3**）: 合并 ACT，让端口与实现同生共死。
+  人类在三个走法（A 合并 ACT / B 接受不可编译中间态改验收口径 / C 停下重新立项）中选 **A**。
+  结构性改动：
+  ① **schema 全部前置到 ACT 03**（v6→v7 一次做完：建 ack 表 + 加 peer_id 列 + 主键切三元组）。
+     关键事实：改 `t_sync_state` 主键**不破坏编译** —— drift 的 `primaryKey` 只影响 DDL
+     与 upsert 冲突目标，DAO 的 `where(列比较)` 照常编译；且此刻 peer_id 只有 'firestore'
+     一个取值，三元组唯一性与二元组等价 ⇒ 行为零变化。所以 ACT 03 可以做到【全程整包绿】。
+  ② **端口变更 + drift 实现合并进 ACT 04**，红→绿在单个 ACT 内闭环。
+     代价：ACT 04 显著超粒度（Codex R1 · P2-25 的问题在这里被主动加重了）。
+     补偿：STRONG_MODEL_ONLY + 四阶段推进（每阶段一次可验证的中间检查）+ 九条自检。
+     **这是"粒度"与"可编译性"的二选一，人类明知代价后选了后者。**
+  ③ ACT 05–11 整体前移一位；HLC 迁移由 v9 降为 **v8**（因为 v7/v8 合并了）。
+  同时修掉 Codex R2 的其余 9 项：
+  · ACT 06 实现侧 `pushToAll` 签名补 `required Set<PeerId> eligiblePeers`（v2 仍是旧签名）
+  · `EntityStamps` 主键补 **scope_uid**（缺了会让两个账号下同名实体共用一行戳）
+  · 新增 `HlcClockStates` 单行表结构 + `applyWithStamp(...)` **同事务生产接口**（A13 原先只有测试意图）
+  · 属性测试③收敛性改为【两组独立实例、不同到达顺序】重放，不再是同一确定性函数自比
+  · 新增 `compare_to_survives_extreme_magnitude` + 文本级 grep，专抓"用减法实现 compareTo"
+  · ACT 10 区分"本地无实体"与"本地有实体但边表无戳"，后者必须留档
+  · ACT 10 清掉 `LamportStamp` / `rev` / `overwritten*` 残留，`|| true` 恒绿门禁改为可红
+  · `<ACT_BASE>` 占位符全部改为可执行的 `"$(cat .act-base)"`
+  · `hlc_dart` 钉死 **1.1.0+2**；dartdoc 门禁扫描面由 3 个文件扩到 **8 个**并断言文件数
+  · A14 规格补 signed int64 的 l 上限（`0 <= l < 2^47`）与 deviceId 的 **UTF-8 字节序**基准
+  新增 `OutboxStore.attemptFor(operationId:, peerId:)` 读取端口（P1-15：没有它
+  coordinator 只能退回 `record.attempt`，两个对端共用一个计数）；
+  内存 fake 由 `core/test` 私有类抽到 `core/lib/test_support/in_memory_stores.dart`
+  公开类（P1-15：跨包 import 不到私有测试类，drift 侧 parity 测试原本无从写起）。
+  规模由 83/135/70 变为 **88 测试 / 158 验证 / 64 自检**，11 个 ACT 全部有 ON_FAIL。
+  覆盖对照 v3（A1–A14 → ACT）:
+  A1->ACT11(门禁脚本)+各 ACT 的 analyze; A2->全部 ACT 的 flutter test;
+  A3->ACT03,08; A4->ACT04,05,06; A5->ACT04,06; A6->ACT07;
+  A7->ACT05(+ACT06 端到端, ACT11 包级守卫); A8->ACT08,09,10(+ACT11 包级守卫);
+  A9->ACT09,10; A10->ACT10; A11->ACT01,02,06; A12->ACT11(+各 ACT 自身 dartdoc 要求);
+  A13->ACT08; A14->ACT09(打包往返),11(规格+黄金用例)。线性 01→11 无环。
 
 ## 踩坑墓地
 - 2026-08-02（环境）: drift worktree `pubspec_overrides.yaml` 只写 4 条 path 覆盖是错的——

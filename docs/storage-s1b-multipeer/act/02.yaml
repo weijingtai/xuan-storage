@@ -85,7 +85,7 @@ TASK_DETAIL:
       RemoteGatewayRouter            -> 转发给 _active（它是个代理，身份跟随当前 region）
       FirestoreRemoteGateway         -> PeerId('firestore')，Channel.cloud
       FirebaseRealtimeRemoteGateway  -> PeerId('firebase_realtime')，Channel.cloud
-    这两个字符串会成为 ACT 04 那张 per-peer ack 表的行键，【定下来就不要再改】——
+    这两个字符串会成为 ACT 03 那张 per-peer ack 表的行键，【定下来就不要再改】——
     改了等于历史 ack 行全部对不上，效果和回填错 peerId 一样。
 
   get_capabilities_two_errors: >
@@ -123,7 +123,7 @@ CONSTRAINTS:
   - 【不要】保留 RemoteGateway 作为 deprecated 别名。它与 SyncPeer 的 getCapabilities
     返回类型不同，typedef 别名做不到；留一个空壳抽象类只会让下一个人不知道该实现哪个。
   - 【不要】在本 ACT 做 fan-out。RemoteGatewayRouter 仍是 1-of-N 选择器，
-    改造成 fan-out 是 ACT 10。本 ACT 只换接口，行为一个字不变。
+    改造成 fan-out 是 ACT 06。本 ACT 只换接口，行为一个字不变。
   - 【不要】用 `../../../../` 修边界测试。见 boundary_test_path_fix。
   - 【不要】动 firebase 那 17 个 WARNING 与 19 个 INFO。本 ACT 只清 ERROR 与 4 个失败测试；
     顺手清理别的会让 diff 混浊，审查时分不清哪些是迁移哪些是打扫。
@@ -156,7 +156,7 @@ TESTS_FIRST:
         再断言两个 firebase 实现的 peerId 字面量【逐字】等于
         'firestore' 与 'firebase_realtime'（以纯文本读源文件断言，不构造实例 ——
         构造 Firestore 实例需要真实 SDK 初始化）。
-        这两个字符串是 ACT 04 ack 表的行键，改了会让历史 ack 全部对不上，
+        这两个字符串是 ACT 03 ack 表的行键，改了会让历史 ack 全部对不上，
         所以要有一条测试把它们钉死。
       RED_COMMAND: cd core && flutter test test/s1b_migration_guard_test.dart
       RED_EXPECT: 编译失败（router 尚未 implements SyncPeer），退出码非 0
@@ -183,7 +183,7 @@ TESTS_FIRST:
         - 被指向的那个 peer 的 pushCount == 1；
         - 另一个的 pushCount == 【0】。
         本 ACT 只换接口不改行为；写成 fan-out 会让这条变红 ——
-        fan-out 是 ACT 07 的事，提前做会让两个 ACT 的验收互相污染。
+        fan-out 是 ACT 06 的事，提前做会让两个 ACT 的验收互相污染。
       RED_COMMAND: cd core && flutter test test/s1b_migration_guard_test.dart
       RED_EXPECT: 编译失败，先红
       COVERS: [A11]
@@ -227,7 +227,7 @@ VERIFICATION:
   - CMD: 'grep -c "class FirebaseRealtimeRemoteGateway implements SyncPeer" firebase/lib/firebase_realtime_remote_gateway.dart'
     EXPECT_STDOUT: "1"
     EXPECT_EXIT: 0
-  # peerId 字面量钉死（ACT 04 ack 表行键）
+  # peerId 字面量钉死（ACT 03 的迁移回填值要跨包比对它）
   - CMD: "grep -c \"PeerId('firestore')\" firebase/lib/persistence_firebase.dart"
     EXPECT_STDOUT: "1"
     EXPECT_EXIT: 0

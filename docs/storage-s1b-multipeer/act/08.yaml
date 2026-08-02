@@ -1,340 +1,526 @@
 ACT_VERSION: 1
 TASK_ID: mimo-storage-s1b-multipeer/08
-TITLE: per-peer 调度接口 + SyncRuntime 退避改造 —— 不可达对端不得拖垮云端
+TITLE: HLC 接线 —— hlc_dart 引入 + 时钟持久化 + 戳边表 + 三节点属性测试
 TYPE: implementation
 ORDER: 8
 DEPENDS_ON: [mimo-storage-s1b-multipeer/07]
 DISPATCH_STATUS: ready
-STRONG_MODEL_ONLY: true    # 时序状态机，写错不报错，只在"某个对端长期离线"时才显形
+STRONG_MODEL_ONLY: true    # 因果时钟：退化路径【全部是静默的】，测试照样绿
 
 OBJECTIVE: >
-  §5.2.2 末段的连带改动：`_pushFailureCount` 与 `_nextPullNotBeforeUtcByEntityType`
-  都必须 per-peer，否则一个不可达的 LAN peer 会把云端 push 一起拖进 2 分钟退避。
-  ACT 10 让一条记录同时推给 N 个合格对端，本 ACT 让 N 个对端的失败互不传染。
-
-  ⚠ **改字段不够，必须先有接口**（Codex R1 · P0-2）：
-  当前 SyncCoordinator 只返回聚合的 `OutboxPushRunResult`，`pushOnce`/`pullOnce`
-  都没有 peer 参数，也没有枚举/移除对端的正式 API。
-  只把四个字段改成 Map，runtime 仍然做不到「只跳过 LAN 而继续 push cloud」。
-  所以本 ACT 的第一交付物是【接口】，第二才是退避状态。
+  给冲突仲裁准备一个【不依赖墙上时钟的正确排序】。
+  本 ACT 交付：hlc_dart 依赖、跨重启持久化的本地时钟、存戳的 drift 边表、
+  RemoteChange 上的可空 hlc/deviceId，以及三节点仿真属性测试。
+  仲裁逻辑本身是 ACT 09，本 ACT 只负责"戳是对的、戳存得住、戳传得到"。
 
 WHY_STRONG_MODEL: >
-  ⚠ 退避是【时序状态】，写错不会报错也不会让现有测试变红：
-  单 peer 场景下 per-peer 与全局退避的行为完全一致，全部既有测试都会绿。
-  只有在「一个对端持续失败、另一个持续成功」时差异才显形 ——
-  而那正是 LAN peer 的常态（用户不在家时局域网对端永远不可达）。
-  线上表现：用户离开家 → LAN peer 连不上 → 云端同步被拖进 2 分钟退避 →
-  用户以为 app 坏了。没有任何错误日志能指向这个原因。
+  ⚠ HLC 的每一条退化路径都【不报错】：
+  · 只调 localEvent 不调 receiveEvent → 因果性整个消失，退化成墙上时钟，所有单测照样绿
+  · 时钟不持久化 → 重启后从物理时间重来，单调性断裂，看不出来
+  · 戳与记录分事务写 → 偶发失准，重现不了
+  这就是为什么本 ACT 的核心交付不是"调用 hlc_dart"，而是【属性测试】——
+  它是唯一能自动生成上千个反例的裁判。
+
+BACKGROUND: >
+  人类 2026-08-02 设计裁定（见纪要「决定记录」），经四个候选实测比选：
+    drift_crdt   —— 装不上（依赖 sql_crdt/sqlite_crdt ^4.0.0，pub.dev 最高 3.x）
+    Ditto        —— 闭源商业，初始化要 Portal 账号，纯离线 SharedKey 需申请许可
+    sql_crdt     —— 抽象层可用 drift 后端，但 200 个写调用点要改裸 SQL + 全局软删
+    crdt_lf      —— 质量最高（160/160）但为协同文档编辑而生，需双写 + 升 drift 到 2.34
+  选 hlc_dart 1.1.0+2：只取 HLC，不碰数据模型。
+
+  ⚠ 关键澄清：**HLC 单独不构成全序**。`HybridLogicalClock` 只有 (l, c) 两个字段，
+  【没有 nodeId】，两台设备同毫秒写会 `isConcurrentWith == true`。
+  所以定序是 **(hlc, deviceId)** 二元组。HLC 的价值是消灭【因果倒置】
+  （B 收到过 A ⇒ B 必 > A），把"随机丢数据"降级为"并发时按固定规则选一个"。
+  真并发谁更晚物理上不可判定，由 §5.3 冲突可见化兜底（ACT 09/10）。
+
+ACT_BASE:
+  说明: >
+    本 ACT 的若干 VERIFICATION 需要界定"本 ACT 改了什么"。
+    【开工第一件事】记下不可变基线：
+
+      git rev-parse HEAD > .act-base && cat .act-base
+
+    之后所有 no-touch 检查【逐字】这样写（`$(cat .act-base)` 是可执行的
+    shell 命令替换，不是占位符 —— 直接复制粘贴就能跑）：
+
+      git diff --exit-code "$(cat .act-base)"..HEAD -- <路径>
+
+    【不要】用 `HEAD~1` —— 它假设"每个 ACT 恰好一个提交"，
+    一旦你分了两次小提交，守卫就只覆盖最后一次，前面的改动无人看管
+    （Codex R1 · P1-20）。
+    .act-base 是临时文件，收工前删掉，不要提交。
 
 SCOPE:
   READ:
     - docs/superpowers/specs/2026-07-31-storage-architecture-design.md
-      # §5.2.2 末段「连带的 SyncRuntime 改动」原文（两个字段 + 理由）
-    - core/lib/sync/sync_runtime.dart
-      # 退避相关的全部现场（769 行，只看这些行）：
-      #   :44-47  pushInterval / pullInterval / minBackoff / maxBackoff 四个可注入参数
-      #   :92     _nextPushNotBeforeUtc          （全局，要改）
-      #   :93     _pushFailureCount              （全局，要改）
-      #   :95     _nextPullNotBeforeUtcByEntityType  （按 entityType，要加 peer 维度）
-      #   :97     _pullFailureCountByEntityType      （按 entityType，要加 peer 维度）
-      #   :341-350 生命周期里对这几个 Map 的 removeWhere / putIfAbsent
-      #   :489 :536 :554-570  push 侧退避的读写
-      #   :632 :672-692       pull 侧退避的读写
-      #   :732-739            reset 路径
-      #   _computeBackoff 的实现
-    - core/lib/model/sync_peer.dart      # PeerId
-    - core/lib/routing/peer_fanout_pusher.dart   # ACT 07：pushToAll 返回 Map<PeerId, SyncError?>
-  MODIFY:
-    - core/lib/sync/sync_runtime.dart
-    - core/lib/core/sync_coordinator.dart    # pushOnce / pullOnce 加 peer 维度
-    - core/lib/model/types.dart              # OutboxPushRunResult 拆出 per-peer 结果
+      # §5.2.3 为何墙上时钟不可用；§5.3 会话式同步的静默丢数据
+    - core/lib/model/types.dart          # RemoteChange:232（七个既有字段）
+    - core/lib/model/ports.dart          # DeviceIdentity:240 / DeviceIdentityProvider:269
+    - drift/lib/persistence_drift.dart   # schemaVersion / onUpgrade（ACT 03 已升到 7）
+    - drift/lib/sync/record_local_applier.dart   # 消费 RemoteChange 的地方（本 ACT 不改逻辑）
   WRITE:
-    - core/lib/sync/peer_registry.dart
-    - core/test/s1b_per_peer_backoff_test.dart
+    - core/lib/sync/hlc_clock.dart
+    - core/test/s1b_hlc_property_test.dart
+    - drift/test/sync/hlc_stamp_store_test.dart
+  MODIFY:
+    - core/pubspec.yaml                  # 仅追加 hlc_dart
+    - core/lib/model/types.dart          # RemoteChange 加两个可空字段
+    - drift/lib/persistence_drift.dart   # 新增 t_entity_stamp 边表 + 时钟单行表 + v8 迁移
+
+DEPENDENCY:
+  ADD:
+    - hlc_dart: 1.1.0+2       # 【钉死版本，不用 ^】。线上格式的位布局依赖它的
+                              # toInt64/fromInt64 语义，允许 minor 漂移等于允许协议漂移。
+                              # 纯 Dart，零第三方依赖，pub.dev 160/160
+  FORBID:
+    - crdt / sql_crdt / sqlite_crdt / drift_crdt / crdt_lf / ditto_live
+      —— 四个方案均已比选否决，理由见 BACKGROUND 与纪要决定记录。
+      不要"顺手也装一个试试"。
 
 SIGNATURE:
-  peer_registry.dart: |
-    /// 当前参与同步的对端集合。SyncRuntime 与 SyncCoordinator 的唯一枚举入口。
+  hlc_clock.dart: |
+    /// 本设备的 HLC 时钟。跨重启持久化，单调不回退。
     ///
-    /// 【为什么要正式接口而不是一个 List 字段】：退避状态、ack 行、游标都按 peer 分片，
-    /// 对端集合变化时这些分片必须被清理。没有正式的 add/remove，
-    /// 清理时机就散落在各处，漏一处就是内存里留一批僵尸键（且不报错）。
-    abstract interface class PeerRegistry {
-      /// 当前全部对端。顺序无意义。
-      Iterable<SyncPeer> get peers;
+    /// 【两条规则】（hlc_dart 已实现，本类只负责持久化与调用纪律）：
+    /// · 本地写入 [tick]：l = max(旧 l, 物理时间)；l 未变则 c++，变大则 c = 0
+    /// · 收到远端 [observe]：l = max(本地 l, 远端 l, 物理时间)
+    ///   ——【收一次别人的东西，自己的钟就被顶上去一次】，这是因果性的全部来源
+    abstract interface class HlcClock {
+      /// 本地发生一次写入，返回新的戳。
+      Future<HybridLogicalClock> tick();
 
-      /// 对端标识集合，供退避 Map 做键清理。
-      Set<PeerId> get peerIds;
+      /// 观测到一个远端戳，把本地时钟顶上去。
+      ///
+      /// 【必须在每一条入站变更上调用】。漏调不会报错，
+      /// 只会让因果性静默消失 —— 属性测试的第 ② 条就是守这个的。
+      Future<void> observe(HybridLogicalClock remote);
 
-      /// 注册一个对端。
-      void register(SyncPeer peer);
+      /// 当前戳（只读，不推进）。
+      HybridLogicalClock get current;
 
-      /// 移除一个对端，并【通知监听方清理该 peer 的全部分片状态】。
-      void remove(PeerId peerId);
-
-      /// 对端集合变化流。SyncRuntime 订阅它来清理退避 Map。
-      Stream<Set<PeerId>> get changes;
+      /// 本设备标识，作为 HLC 相等时的决胜位。
+      String get deviceId;
     }
 
-  types.dart per-peer 推送结果: |
-    /// 一轮推送中【单个对端】的结果。
+    /// 时钟状态的持久化端口。实现由 drift 提供（与 t_entity_stamp 同一次 v8 迁移）。
     ///
-    /// 取代把 N 个对端压成一个 OutboxPushRunResult 的做法 ——
-    /// 压扁之后 runtime 无从知道该给谁记失败、该跳过谁。
-    class PeerPushOutcome {
-      /// 对端标识。
-      final PeerId peerId;
+    /// 不持久化的后果：重启后 l 从物理时间重来，若期间时钟被回拨，
+    /// 新写入的戳会小于重启前的戳 —— 单调性断裂，且没有任何报错。
+    abstract interface class HlcClockStore {
+      /// 读回上次退出时的时钟；从未存过返回 null。
+      Future<HybridLogicalClock?> load();
 
-      /// 本轮成功推送的条数。
-      final int succeeded;
-
-      /// 本轮失败的条数。
-      final int failed;
-
-      /// 最后一个错误，用于退避决策与诊断。
-      final SyncError? lastError;
-
-      /// 构造一个 [PeerPushOutcome]。
-      const PeerPushOutcome({...});
+      /// 落盘当前时钟。
+      Future<void> save(HybridLogicalClock clock);
     }
 
-  sync_coordinator.dart 签名变更: |
-    /// 推一轮。返回【每个对端各一条】结果，不再压成一个。
-    Future<List<PeerPushOutcome>> pushOnce({required String scopeUid});
+  types.dart RemoteChange 增加: |
+    /// 产生该变更的 HLC 戳（因果序，§5.2.3）。
+    ///
+    /// 线上格式见 docs/storage-s1b-multipeer/HLC-WIRE-FORMAT.md（ACT 11 产出）：
+    /// 48 位 l + 16 位 c 打包成 int64，`(l << 16) | c`。
+    /// 可空：历史 oplog 条目没有这个字段。
+    final int? hlcPacked;
 
-    /// 拉一轮。**按对端拉** —— 游标已是 per-(scope, peer, entityType)（ACT 04/05）。
-    Future<PullRunResult> pullOnce({
+    /// 产生该变更的设备标识（HLC 相等时的决胜位）。
+    ///
+    /// 可空：历史 oplog 条目没有这个字段。
+    final String? deviceId;
+
+  persistence_drift.dart 新增: |
+    /// 每个实体当前版本的 HLC 戳（边表）。
+    ///
+    /// 【为什么用边表而不是往 RecordMeta 加字段】：RecordMeta 在
+    /// repository-interface-record 仓库，改它要连带下游 12 个业务仓库。
+    /// 边表让 S1b 完全留在 xuan-storage 内，所有 Data class 零改动。
+    ///
+    /// 代价：戳与记录不在同一行，【必须同事务写入】（A13 门禁守着）。
+    @DataClassName('EntityStampRow')
+    class EntityStamps extends Table {
+      @override
+      String get tableName => 't_entity_stamp';
+
+      /// 所属账号作用域。
+      ///
+      /// ⚠ **主键里必须有它**（Codex R2）。本库里所有同步侧的表
+      /// （t_outbox / t_sync_state）都以 scope_uid 分片；戳表少了这一维，
+      /// 两个账号下 entityId 相同的实体会【共用同一行戳】——
+      /// 切换账号后仲裁读到的是另一个账号的版本坐标，于是要么无脑覆盖、
+      /// 要么无脑丢弃，而且不报错。
+      TextColumn get scopeUid => text().named('scope_uid')();
+
+      TextColumn get entityType => text().named('entity_type')();
+      TextColumn get entityId => text().named('entity_id')();
+
+      /// HLC 打包值 `(l << 16) | c`。有效范围与溢出行为见 ACT 11 的线上格式规格。
+      IntColumn get hlcPacked => integer().named('hlc_packed')();
+
+      /// 写入该版本的设备。HLC 相等时的决胜位。
+      TextColumn get deviceId => text().named('device_id')();
+
+      @override
+      Set<Column> get primaryKey => {scopeUid, entityType, entityId};
+    }
+
+    /// 本设备 HLC 时钟的持久化状态（单行表）。
+    ///
+    /// 【为什么是单行表而不是 key-value】：时钟是设备级的唯一状态，
+    /// 用固定主键的单行表，读写各一条语句，且不可能出现"存了两份钟"。
+    @DataClassName('HlcClockStateRow')
+    class HlcClockStates extends Table {
+      @override
+      String get tableName => 't_hlc_clock_state';
+
+      /// 固定为 0。单行表的哨兵主键 —— 有 CHECK 约束保证只可能有一行。
+      IntColumn get id =>
+          integer().withDefault(const Constant(0)).named('id')();
+
+      /// 上次退出/上次 tick 时的 HLC 打包值。
+      IntColumn get hlcPacked => integer().named('hlc_packed')();
+
+      /// 本设备标识。与 [DeviceIdentity.deviceId] 一致。
+      TextColumn get deviceId => text().named('device_id')();
+
+      /// 最后一次落盘时间，仅供诊断，【不参与定序】。
+      DateTimeColumn get savedAtUtc => dateTime().named('saved_at_utc')();
+
+      @override
+      Set<Column> get primaryKey => {id};
+
+      @override
+      List<String> get customConstraints => const ['CHECK (id = 0)'];
+    }
+
+  persistence_drift.dart 同事务写入接口: |
+    /// 在【同一个 drift 事务】里写业务记录并更新它的 HLC 戳。
+    ///
+    /// 【A13 的生产落地点】（Codex R2：v2 只有测试意图，没有可调用的接口，
+    /// 于是"同事务"这个要求在生产代码里没有任何着力点）。
+    ///
+    /// [write] 是业务写入回调，在事务内执行；它抛出时整个事务回滚，
+    /// 戳与记录【一起】不落盘。调用方【不得】自己开事务再调本方法。
+    ///
+    /// ACT 10 的 applier 必须走这个方法，不许自己 `transaction(() { ... })`
+    /// 里分别调两次 —— 那样写法上看着也在一个事务里，但戳的更新会散落在
+    /// applier 的多个分支中，漏掉一个分支不报错。
+    Future<void> applyWithStamp({
       required String scopeUid,
-      required PeerId peerId,
       required String entityType,
+      required String entityId,
+      required int hlcPacked,
+      required String deviceId,
+      required Future<void> Function() write,
     });
 
 TASK_DETAIL:
-  interfaces_before_state: >
-    实现顺序【必须】是：先 PeerRegistry + PeerPushOutcome + pushOnce/pullOnce 签名，
-    再改四个退避字段。反过来做会得到"字段是 Map 了但判定还是全局"的假完成 ——
-    Codex R1 · P0-2 抓的正是这个形状。
+  no_data_class_changes: >
+    【本 ACT 不动任何 Data class】。RecordMeta、各模块的 record 类型、
+    repository-interface-* 的任何仓库 —— 一个字段都不加。
+    戳全部存在 drift 的 t_entity_stamp 边表里，键 (scopeUid, entityType, entityId)。
+    这是人类 2026-08-02 的放置决定，理由见纪要决定记录。
 
-  four_fields: >
-    四个退避状态字段全部加 peer 维度：
+  wire_format_is_int64: >
+    RemoteChange 上存的是 `hlcPacked`（int64），不是 HybridLogicalClock 对象，
+    也不是字符串。理由：
+    · int64 是 hlc_dart 原生支持的（toInt64 / fromInt64），零歧义；
+    · 它能直接落进 drift 的 IntColumn 与 Firestore/RTDB 的数字字段；
+    · 【将来 Rust / Web 客户端只需实现同一个位布局】——
+      这是 A14 要求产出语言中立规格的原因，规格文档在 ACT 11 写。
+    【不要】用 toString() / "l.c" 字符串格式上线 —— 那把线上格式绑死在
+    hlc_dart 的格式化选择上，换库或换语言时会咬人。
 
-      _nextPushNotBeforeUtc            DateTime?              -> Map<PeerId, DateTime?>
-      _pushFailureCount                int                    -> Map<PeerId, int>
-      _nextPullNotBeforeUtcByEntityType Map<String, DateTime?> -> Map<(PeerId,String), DateTime?>
-      _pullFailureCountByEntityType     Map<String, int>       -> Map<(PeerId,String), int>
+  migration_is_v8: >
+    ACT 03 已把 schema 升到 7（ack 表 + peer_id 列 + t_sync_state 三元组主键）。
+    本 ACT 升到 **8**，onUpgrade 新增且仅新增 `if (from < 8)` 一段：
+      await m.createTable(entityStamps);
+      await m.createTable(hlcClockStates);   // 时钟持久化，单行表
+    【不要】动 from<2..7 的六段历史迁移。
 
-    后两个的键从 entityType 变成 (peerId, entityType) 二元组。
-    Dart 3 的 record 类型 `(PeerId, String)` 可直接作 Map 键（有值语义的 ==/hashCode），
-    比拼字符串 `'$peerId::$entityType'` 安全 —— 拼字符串在 peerId 含分隔符时会串键。
-    【不要】用嵌套 Map<PeerId, Map<String, T>>，那会让 :341-350 的 removeWhere /
-    putIfAbsent 变成两层遍历，极易漏清理。
+  clock_persistence_timing: >
+    时钟落盘时机：**每次 tick / observe 之后立刻 save**。
+    不要"退出时再存" —— app 被系统杀掉不会走退出路径，那正是最常见的场景。
+    单行表（固定主键），写入代价可忽略。
 
-  push_side: >
-    :554-570 那段：失败时 `_pushFailureCount[peerId] += 1`，
-    `_nextPushNotBeforeUtc[peerId] = now.add(_computeBackoff(该 peer 的失败数))`；
-    成功时把【该 peer 的】两个值清零/置 null。
+  observe_is_mandatory: >
+    【本 ACT 最容易漏、且漏了不报错的一条】：
+    每一条入站的 RemoteChange，只要它带了 hlcPacked，
+    就【必须】在应用之前调 `clock.observe(remote)`。
+    漏掉的后果：本地时钟不会被顶上去，下次本地写入的戳可能小于刚收到的远端戳，
+    因果关系倒置。所有功能测试仍会绿。
+    属性测试的第 ② 条（因果性）是唯一能抓到它的东西。
 
-    ACT 07 的 pushToAll 返回 `Map<PeerId, SyncError?>` ——
-    逐条目更新对应 peer 的退避状态。
-    【关键】：某个 peer 失败【不得】改动其他 peer 的 `_nextPushNotBeforeUtc`。
-
-    :489 与 :536 的「是否到点可推」判定改成【逐 peer 判定】：
-    某个 peer 在退避窗口内就跳过那个 peer，其余照推。
-    【不要】写成「任一 peer 在退避窗口内就整轮跳过」——
-    那等于把 per-peer 退避又退化回全局。
-
-  pull_side: >
-    :632 / :672-692 同理，键换成 (peerId, entityType)。
-    pull 是按对端各自的游标拉的（ACT 03/04 已让游标 per-peer），
-    退避自然也要 per-peer。
-
-  lifecycle_cleanup: >
-    :341-350 的 removeWhere / putIfAbsent 与 :732-739 的 reset 要同步改：
-    entityType 集合变化时清理对应条目，现在要按 (peerId, entityType) 清。
-    【漏清理不会报错，只会让 Map 无限增长】—— 每次对端集合变化就留下一批僵尸键。
-    本 ACT 的最后一条测试专门验这个。
-
-  backoff_params_stay_global: >
-    minBackoff / maxBackoff / pushInterval / pullInterval（:44-47）【保持全局】，
-    不要做成 per-peer 可配。它们是策略参数不是运行时状态；
-    per-peer 可配会让"为什么这个对端退避这么久"变成一个需要查配置才能回答的问题。
+  no_arbitration_here: >
+    【本 ACT 不做任何比较判断】。不写 ConflictArbiter，不改 applier 的决策逻辑。
+    本 ACT 交付"戳"，ACT 09 交付"怎么比"，ACT 10 交付"比完怎么处置"。
+    混在一起会让"戳错了"和"比错了"在同一个 diff 里无法区分。
 
 CONSTRAINTS:
-  - 【不要】用字符串拼接做复合键。见 four_fields。
-  - 【不要】用嵌套 Map。见 four_fields。
-  - 【不要】写成「任一 peer 在退避中就整轮跳过」。见 push_side。
-  - 【不要】把 minBackoff/maxBackoff 做成 per-peer。见 backoff_params_stay_global。
-  - 【不要】动 _computeBackoff 的算法。本 ACT 只改"这个数存在哪"，不改"怎么算"；
-    两件事混在一起会让退避行为的回归无法归因。
-  - 【不要】在本 ACT 改动 SyncRuntime 里与退避无关的部分。769 行的文件，
-    顺手重构会让 diff 无法审查。
-  - 每个改动的私有字段也要更新中文注释说明键的含义（A12 只管公开声明，
-    但这四个字段的键语义写错就是本 ACT 的全部风险，必须写清楚）。
+  - 【不要】往任何 Data class 或 repository-interface-* 仓库加字段。见 no_data_class_changes。
+  - 【不要】用字符串格式上线 HLC。见 wire_format_is_int64。
+  - 【不要】把 observe 写成"可选优化"。见 observe_is_mandatory。
+  - 【不要】等退出时才保存时钟。见 clock_persistence_timing。
+  - 【不要】在本 ACT 写比较逻辑。见 no_arbitration_here。
+  - 【不要】动 onUpgrade 的 from<2..7 六段。
+  - 【不要】引入 BACKGROUND 里被否决的任何一个包。
+  - 每个公开声明必须有中文 dartdoc（A12）。
 
 TESTS_FIRST:
   CASES:
-    - NAME: unreachable_peer_does_not_delay_cloud_push
-      FILE: core/test/s1b_per_peer_backoff_test.dart
+    - NAME: property_three_node_simulation
+      FILE: core/test/s1b_hlc_property_test.dart
       BEHAVIOR: >
-        【本 ACT 的生死线，也是 §5.2.2 末段那句话的可执行版本】。
-        两个 fake peer：cloud 恒成功、lan 恒失败。跑若干轮推送后断言：
-        - lan 的 `nextPushNotBefore` 被推到了未来（进入退避）；
-        - cloud 的 `nextPushNotBefore` 【为 null】（从未退避）；
-        - 继续推送时 cloud 【仍被调用】，调用次数随轮次线性增长。
-        退避状态若是全局的，cloud 会被 lan 的失败拖进 2 分钟窗口 ——
-        线上表现是「用户离开家，云端同步就变慢」，且无任何日志指向原因。
-        观测内部退避状态用 `@visibleForTesting` 的【只读 getter】
-        （例如 `Map<PeerId, DateTime?> get debugNextPushNotBefore`），
-        【不要】把私有字段直接改成 public 字段。
-        ⚠ 门禁只禁「可写字段」，合法的只读 getter 必须放行（Codex R1 · P1-16）。
-      RED_COMMAND: cd core && flutter test test/s1b_per_peer_backoff_test.dart
-      RED_EXPECT: 编译失败（无 per-peer 退避视图），退出码非 0
-      COVERS: [A6]
+        【本 ACT 的生死线，也是整个 HLC 方案能不能自己维护的根据】。
+        构造 3 个节点，各自给一个【随机且不同】的物理时钟偏移（±60 秒），
+        用一个可注入的假时钟源驱动。随机顺序产生【至少 1000 次】事件：
+          · 本地写入（tick）
+          · 把某节点的当前戳发给另一节点（对方 observe）
+        全程记录每个事件的 (nodeId, hlc)。跑完断言三条不变式：
 
-    - NAME: failure_count_resets_per_peer_on_success
-      FILE: core/test/s1b_per_peer_backoff_test.dart
+        ① 单调性：同一节点的连续 tick 严格递增（用 compareTo > 0）
+        ② **因果性：若节点 B 在时刻 T observe 过节点 A 的戳 S，
+           则 B 在 T 之后产生的每一个戳都 > S**（这是 HLC 的全部价值）
+        ③ 收敛性：**两个从零开始的独立 HlcClock 实例集，各自以【不同的接收顺序】
+           重放同一组事件（一个按产生顺序，一个把每个节点的入站消息乱序但保持
+           因果先后），跑完后对任意一对最终 (hlc, deviceId) 得出同一个胜负结论。**
+
+           ⚠ 【不许写成"同一个确定性函数自比"】（Codex R2）：
+           拿同一组已算好的戳，调两次 compareTo 再断言两次结果相同 ——
+           那是在断言"纯函数是纯函数"，任何实现都会绿，证明力为零。
+           收敛性要证的是【不同的到达顺序不改变最终胜负】，
+           所以两侧必须是真正独立跑出来的两组戳。
+
+        用固定 seed 的伪随机数，失败时打印 seed 以便复现。
+        ② 是抓"漏调 receiveEvent"的唯一手段 —— 那个 bug 让①③照样绿。
+      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
+      RED_EXPECT: 编译失败（HlcClock 不存在），退出码非 0
+      COVERS: [A8]
+
+    - NAME: causality_survives_clock_skew
+      FILE: core/test/s1b_hlc_property_test.dart
       BEHAVIOR: >
-        lan 先失败 3 次（失败数 3），随后成功一次，断言 lan 的失败数归 0
-        且 `nextPushNotBefore[lan]` 回到 null。
-        同时断言 cloud 的失败数【全程为 0】、未被 lan 的归零操作影响
-        （写成"任一 peer 成功就全局清零"同样是错的，方向相反而已）。
-      RED_COMMAND: cd core && flutter test test/s1b_per_peer_backoff_test.dart
+        定向版本，直接复现设计稿 §5.2.3 那个场景：
+        节点 A 时钟准，节点 B 时钟【慢 30 秒】。
+        - A 写一次 → 戳 Sa
+        - B observe(Sa)，然后 B 写一次 → 戳 Sb
+        断言 `Sb > Sa`，即使 B 的物理时钟读数比 A 小 30 秒。
+        用墙上时钟的实现这条必红 —— 这就是那个"用户在手机上改的东西
+        被平板上更早的版本盖掉且不知情"的 bug。
+      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
       RED_EXPECT: 编译失败，先红
-      COVERS: [A6]
+      COVERS: [A8]
 
-    - NAME: peer_in_backoff_is_skipped_others_still_pushed
-      FILE: core/test/s1b_per_peer_backoff_test.dart
+    - NAME: hlc_alone_is_not_a_total_order
+      FILE: core/test/s1b_hlc_property_test.dart
       BEHAVIOR: >
-        非 happy-path。把 lan 的 `nextPushNotBefore` 置于未来（模拟退避中），
-        触发一轮推送，断言：
-        - lan 的 pushCount 【未增加】（被跳过）；
-        - cloud 的 pushCount 【增加了 1】（照常推）。
-        写成「任一 peer 在退避中就整轮跳过」时，cloud 的 pushCount 不增加 ——
-        这条会红。那种写法等于把 per-peer 退避退化回全局，
-        而且更隐蔽：字段确实是 Map，只是判定逻辑没跟上。
-      RED_COMMAND: cd core && flutter test test/s1b_per_peer_backoff_test.dart
+        【反向断言，防止误以为 HLC 就够了】。
+        构造两个节点在【同一物理毫秒】各自 tick 且互不知情，
+        断言两个戳 `isConcurrentWith == true`、`compareTo == 0`。
+        再断言：加上 deviceId 之后，(hlc, deviceId) 能比出确定胜负，
+        且【互换提问顺序结论不变】。
+        这条把"HLC 需要 deviceId 决胜"钉成可执行事实 ——
+        没有它，后人会以为 compareTo 就是全序，然后在 ACT 09 里省掉 deviceId。
+      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
       RED_EXPECT: 编译失败，先红
-      COVERS: [A6]
+      COVERS: [A8]
 
-    - NAME: pull_backoff_keyed_by_peer_and_entity_type
-      FILE: core/test/s1b_per_peer_backoff_test.dart
+    - NAME: clock_survives_restart
+      FILE: core/test/s1b_hlc_property_test.dart
       BEHAVIOR: >
-        让 (lan, 'record') 的拉取失败进入退避，断言：
-        - (cloud, 'record') 【不受影响】；
-        - (lan, 'divination_case') 【也不受影响】。
-        两个维度都要验 —— 只把键改成 peerId、丢掉 entityType 维度，
-        或反之，都会让其中一条红。
-      RED_COMMAND: cd core && flutter test test/s1b_per_peer_backoff_test.dart
+        用 fake HlcClockStore：tick 若干次到戳 S，模拟重启
+        （丢弃 HlcClock 实例，用同一个 store 新建一个），
+        断言新实例的第一个 tick 【严格大于】 S。
+        再把物理时钟【回拨 1 小时】后重启，断言仍然严格大于 S ——
+        持久化的意义正在于抗时钟回拨。
+        不持久化的实现这条必红，而线上表现是"重启后写入的戳变小了"，
+        没有任何日志会提到它。
+      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
       RED_EXPECT: 编译失败，先红
-      COVERS: [A6]
+      COVERS: [A13]
 
-    - NAME: runtime_drives_per_peer_through_formal_api
-      FILE: core/test/s1b_per_peer_backoff_test.dart
+    - NAME: clock_saved_on_every_tick_not_on_exit
+      FILE: core/test/s1b_hlc_property_test.dart
       BEHAVIOR: >
-        【本 ACT 的接口交付验收，对应 Codex R1 · P0-2】。
-        全程走正式 API，**不许直接篡改 debug Map**：
-        - 用 PeerRegistry 注册 cloud + lan 两个对端；
-        - lan 恒失败若干轮直到进入退避；
-        - 调 `pushOnce(scopeUid:)`，断言返回的 `List<PeerPushOutcome>` 长度为 2，
-          且 cloud 那条 `succeeded > 0`、lan 那条 `failed > 0`；
-        - 断言 cloud 的 pushCount 随轮次线性增长（没被 lan 拖住）。
-        再调 `pullOnce(peerId: cloud, ...)`，断言只拉了 cloud、没碰 lan。
-        只改字段不加接口时这条编译不过 —— 那正是它存在的意义。
-      RED_COMMAND: cd core && flutter test test/s1b_per_peer_backoff_test.dart
-      RED_EXPECT: 编译失败（PeerRegistry / PeerPushOutcome 不存在），退出码非 0
-      COVERS: [A6]
-
-    - NAME: backoff_maps_do_not_leak_removed_peers
-      FILE: core/test/s1b_per_peer_backoff_test.dart
-      BEHAVIOR: >
-        让 lan 进入退避（Map 里有它的条目），随后调 `PeerRegistry.remove(lan)`
-        —— 走【正式 API】，不是直接 clear Map。
-        断言四个退避 Map 里【都不再有】任何 lan 的键。
-        漏清理不报错，只让 Map 无限增长 —— 每次对端集合变化留下一批僵尸键，
-        长跑进程会缓慢泄漏。这类问题从来不会被功能测试抓到。
-      RED_COMMAND: cd core && flutter test test/s1b_per_peer_backoff_test.dart
+        非 happy-path。用记录调用次数的 fake store，tick 5 次，
+        断言 `save` 被调用了 【5 次】（不是 0 次、不是 1 次）。
+        再对 observe 做同样断言。
+        写成"退出时统一保存"时这条会红 —— 而 app 被系统杀掉不会走退出路径，
+        那正是移动端最常见的终止方式。
+      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
       RED_EXPECT: 编译失败，先红
-      COVERS: [A6]
+      COVERS: [A13]
 
-    - NAME: backoff_algorithm_unchanged
-      FILE: core/test/s1b_per_peer_backoff_test.dart
+    - NAME: apply_with_stamp_rolls_back_both_on_write_failure
+      FILE: drift/test/sync/hlc_stamp_store_test.dart
       BEHAVIOR: >
-        回归守卫。对单个 peer 连续失败 1..5 次，断言退避时长序列与改造前一致
-        （指数增长、被 maxBackoff 截断、不小于 minBackoff）。
-        本 ACT 只改"这个数存在哪"，不改"怎么算" ——
-        两件事混在一起会让退避行为的回归无法归因。
-        具体期望值从改造前的 _computeBackoff 实现推出并写死在测试里。
-      RED_COMMAND: cd core && flutter test test/s1b_per_peer_backoff_test.dart
+        【边表方案的核心风险守卫，走【生产接口】而非测试内自拼事务】。
+        调 `applyWithStamp(...)`，传一个【抛异常】的 write 回调。断言：
+        - 异常向外传播（不被吞掉）；
+        - t_entity_stamp 里查不到该 (scopeUid, entityType, entityId)；
+        - write 回调里那一步本应写入的业务行也不在。
+        再调一次 write 正常返回的，断言两者【都】写进去了。
+        ⚠ 【必须调 applyWithStamp】，不许在测试里自己写
+        `db.transaction(() { ... })` 然后分别插两张表 —— 那样测的是
+        "drift 的事务能回滚"（drift 自己保证的事），不是"生产代码走了同一个事务"
+        （Codex R2）。
+        戳与记录分事务写的后果是"记录更新了但戳没更新"，
+        下次同步该记录会被误判为旧版本而被覆盖。
+      RED_COMMAND: cd drift && flutter test test/sync/hlc_stamp_store_test.dart
+      RED_EXPECT: 编译失败（applyWithStamp / t_entity_stamp 不存在），退出码非 0
+      COVERS: [A13]
+
+    - NAME: stamp_is_scoped_by_scope_uid
+      FILE: drift/test/sync/hlc_stamp_store_test.dart
+      BEHAVIOR: >
+        【对应 Codex R2 指出的主键缺 scopeUid】。
+        对 ('scope-a', 'record', 'entity-1') 与 ('scope-b', 'record', 'entity-1')
+        各写一个【不同的】戳，断言：
+        - 两行【都在】（主键少了 scopeUid 时第二次写会覆盖第一次，这条会红）；
+        - 各自读回的 hlcPacked / deviceId 是自己写进去的那个。
+        两个账号下 entityId 相同的实体共用一行戳时，切换账号后仲裁读到的是
+        另一个账号的版本坐标 —— 要么无脑覆盖、要么无脑丢弃，且不报错。
+      RED_COMMAND: cd drift && flutter test test/sync/hlc_stamp_store_test.dart
+      RED_EXPECT: 断言失败（第二次写覆盖了第一次），退出码非 0
+      COVERS: [A13]
+
+    - NAME: clock_state_table_holds_at_most_one_row
+      FILE: drift/test/sync/hlc_stamp_store_test.dart
+      BEHAVIOR: >
+        往 t_hlc_clock_state 插入 id = 0 的一行，再试图插入 id = 1 —— 断言【被拒】
+        （CHECK (id = 0) 生效）。再对 id = 0 做 upsert，断言表里【仍只有一行】
+        且值已更新。
+        单行表若退化成可存多行，"当前时钟是哪个"会变成一个需要 ORDER BY 才能
+        回答的问题，而任何一次读错都让单调性静默断裂。
+      RED_COMMAND: cd drift && flutter test test/sync/hlc_stamp_store_test.dart
+      RED_EXPECT: 断言失败或表不存在，退出码非 0
+      COVERS: [A13]
+
+    - NAME: v7_upgrade_to_v8_preserves_existing_tables
+      FILE: drift/test/sync/hlc_stamp_store_test.dart
+      BEHAVIOR: >
+        造一个 v7 库（含 ACT 03 建的 t_outbox_peer_ack 与切过主键的 t_sync_state），
+        各插入若干可辨识行，升级到 v8 后断言：
+        - t_entity_stamp 与时钟单行表已建立；
+        - **v7 那两张表的每一行逐字段未变**；
+        - `PRAGMA user_version` 为 8。
+        只断言"新表存在"是不够的 —— 那种写法漏搬旧数据也会绿。
+      RED_COMMAND: cd drift && flutter test test/sync/hlc_stamp_store_test.dart
+      RED_EXPECT: 断言失败（schemaVersion 仍是 7），退出码非 0
+      COVERS: [A3, A13]
+
+    - NAME: remote_change_hlc_fields_are_nullable
+      FILE: core/test/s1b_hlc_property_test.dart
+      BEHAVIOR: >
+        构造一个【不传】 hlcPacked 与 deviceId 的 RemoteChange，
+        断言能编译且两者为 null；再构造传了值的，断言读回正确，
+        且既有七个字段逐个未受影响。
+        加 required 会让两个 firebase gateway、core 的 fake、
+        drift 的多处测试同时编译失败 —— 计划外的破坏。
+      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
       RED_EXPECT: 编译失败，先红
-      COVERS: [A6]
+      COVERS: [A8]
 
 VERIFICATION:
-  - CMD: cd core && dart analyze --fatal-infos lib/sync/sync_runtime.dart
+  - CMD: cd core && dart analyze --fatal-infos lib/sync/hlc_clock.dart lib/model/types.dart
     EXPECT_EXIT: 0
-  - CMD: cd core && flutter test test/s1b_per_peer_backoff_test.dart
+  - CMD: cd core && flutter test test/s1b_hlc_property_test.dart
+    EXPECT_EXIT: 0
+  - CMD: cd drift && flutter test test/sync/hlc_stamp_store_test.dart
     EXPECT_EXIT: 0
   - CMD: cd core && flutter test
     EXPECT_EXIT: 0
   - CMD: cd drift && flutter test
     EXPECT_EXIT: 0
-  # 四个字段都带上了 PeerId 维度
-  - CMD: 'grep -q "PeerId" core/lib/sync/sync_runtime.dart'
+  # 只引入 hlc_dart，被否决的包一个都不许进
+  - CMD: 'grep -c "hlc_dart:" core/pubspec.yaml'
+    EXPECT_STDOUT: "1"
     EXPECT_EXIT: 0
-  # 不得用字符串拼接做复合键
-  - CMD: "grep -nE \"'\\\\\\$peerId::|\\\\\\$peerId\\\\\\$|peerId + '\" core/lib/sync/sync_runtime.dart"
+  - CMD: 'grep -nE "^\s+(crdt|sql_crdt|sqlite_crdt|drift_crdt|crdt_lf|crdt_lf_drift|ditto_live):" core/pubspec.yaml drift/pubspec.yaml'
     EXPECT_EXIT: 1
-  # 不得出现嵌套 Map
-  - CMD: 'grep -nE "Map<PeerId, Map<" core/lib/sync/sync_runtime.dart'
+  # 线上格式必须是 int64，不得用字符串
+  - CMD: 'grep -c "final int? hlcPacked;" core/lib/model/types.dart'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  - CMD: 'grep -nE "hlc\.toString\(\)|HybridLogicalClock\.parse" core/lib/model/types.dart core/lib/sync/hlc_clock.dart'
     EXPECT_EXIT: 1
-  # 退避参数保持全局（未被改成 Map）
-  - CMD: 'grep -cE "Duration minBackoff = const Duration\(seconds: 2\)" core/lib/sync/sync_runtime.dart'
-    EXPECT_STDOUT: "1"
+  # 不得往 Data class / 外部仓库加字段
+  - CMD: git diff --exit-code main.. -- core/lib/model/repository.dart
     EXPECT_EXIT: 0
-  - CMD: 'grep -cE "Duration maxBackoff = const Duration\(minutes: 2\)" core/lib/sync/sync_runtime.dart'
-    EXPECT_STDOUT: "1"
-    EXPECT_EXIT: 0
-  # 只禁可写 public 字段；只读 getter 合法
-  - CMD: 'grep -nE "^  (Map<PeerId[^>]*>|DateTime\?|int) [a-z][A-Za-z]* *(=|;)" core/lib/sync/sync_runtime.dart'
+  - CMD: 'grep -rn "class RecordMeta" core/lib drift/lib'
     EXPECT_EXIT: 1
-  # 必须有正式的 per-peer 接口，不是只改字段
-  - CMD: 'grep -c "abstract interface class PeerRegistry" core/lib/sync/peer_registry.dart'
+  # v8 迁移：新增且仅新增 from<8，前六段未动
+  - CMD: 'grep -c "int get schemaVersion => 8;" drift/lib/persistence_drift.dart'
     EXPECT_STDOUT: "1"
     EXPECT_EXIT: 0
-  - CMD: 'grep -c "Future<List<PeerPushOutcome>> pushOnce" core/lib/core/sync_coordinator.dart'
+  - CMD: 'for n in 2 3 4 5 6 7; do grep -q "if (from < $n)" drift/lib/persistence_drift.dart || { echo "LOST:$n"; exit 1; }; done; echo OLD_SIX_OK'
+    EXPECT_STDOUT: "OLD_SIX_OK"
+    EXPECT_EXIT: 0
+  # 戳表主键必须含 scope_uid（Codex R2）
+  - CMD: 'grep -c "Set<Column> get primaryKey => {scopeUid, entityType, entityId};" drift/lib/persistence_drift.dart'
     EXPECT_STDOUT: "1"
     EXPECT_EXIT: 0
-  - CMD: 'grep -q "required PeerId peerId," core/lib/core/sync_coordinator.dart'
+  # 时钟单行表存在且有 CHECK 约束
+  - CMD: "grep -c \"CHECK (id = 0)\" drift/lib/persistence_drift.dart"
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  # 同事务写入接口存在（A13 的生产落地点）
+  - CMD: 'grep -c "Future<void> applyWithStamp(" drift/lib/persistence_drift.dart'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  # 依赖钉死，不得用 ^ 或 any
+  - CMD: 'grep -c "hlc_dart: 1.1.0+2" core/pubspec.yaml'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  - CMD: 'grep -nE "hlc_dart:\s*(\^|any|>=)" core/pubspec.yaml'
+    EXPECT_EXIT: 1
+  # 本 ACT 不写比较逻辑
+  - CMD: 'grep -nE "ConflictArbiter|arbitrate|compareTo" core/lib/sync/hlc_clock.dart'
+    EXPECT_EXIT: 1
+  # 本 ACT 不改 applier
+  - CMD: git diff --exit-code "$(cat .act-base)"..HEAD -- drift/lib/sync/record_local_applier.dart
     EXPECT_EXIT: 0
 
 SELF_CHECK:
-  - 把 `_pushFailureCount` 临时改回全局 int →
-    `unreachable_peer_does_not_delay_cloud_push` 与
-    `failure_count_resets_per_peer_on_success` 必须【同时】变红 → 改回
-  - 保留 Map 结构，但把「是否到点可推」的判定临时改成「任一 peer 在退避中就整轮跳过」→
-    `peer_in_backoff_is_skipped_others_still_pushed` 必须变红 → 改回。
-    **这一步最关键** —— 它证明你的测试抓的是行为不是字段形状
-  - 把 pull 退避的键临时改成只有 peerId（丢掉 entityType）→
-    `pull_backoff_keyed_by_peer_and_entity_type` 必须变红 → 改回
-  - 把生命周期清理临时注释掉 → `backoff_maps_do_not_leak_removed_peers` 必须变红 → 改回
-  - 四次自检后 `git status --porcelain` 必须为空
+  - 【最关键的一条】把 `observe` 的实现体临时清空（变成空函数）→
+    `property_three_node_simulation` 的 ② 因果性 与 `causality_survives_clock_skew`
+    必须【同时】变红，而 ① 单调性 与 ③ 收敛性【仍然绿】→ 改回。
+    这一步同时证明两件事：属性测试抓得到漏调 observe，
+    且只靠单调性/收敛性是抓不到的
+  - 把 `HlcClockStore.load()` 临时改成恒返回 null（模拟不持久化）→
+    `clock_survives_restart` 必须变红 → 改回
+  - 把 save 临时改成"只在第一次 tick 时存"→
+    `clock_saved_on_every_tick_not_on_exit` 必须变红 → 改回
+  - 把 applyWithStamp 里的戳更新临时挪到事务【外面】→
+    `apply_with_stamp_rolls_back_both_on_write_failure` 必须变红 → 改回
+  - 把 EntityStamps 主键临时改回 {entityType, entityId}（去掉 scopeUid）→
+    `stamp_is_scoped_by_scope_uid` 必须变红 → 改回
+  - 把属性测试 ③ 的第二组临时改成"复用第一组算好的戳"→
+    这条【不会变红】，那正说明它退化成了自比；
+    确认现象后改回成两组独立重放（Codex R2）
+  - 把 `hlcPacked` 临时改成字符串格式 → grep 门禁必须变红 → 改回
+  - 七次自检后 `git status --porcelain` 必须为空
 
 ON_FAIL:
-  - RED 阶段测试没红（写实现前就绿）→ 测试没真正依赖新类型/新行为，
-    停下重写测试，【不要】继续往下做
-  - 实现后 VERIFICATION 某条不过 → 先看是不是 EXPECT 写错（尤其 grep -c 的
-    双 EXPECT 语义：无匹配时打印 0 且退出码 1），再改实现
-  - core / drift / firebase 的【既有】测试变红 → 立即停下。
-    本 ACT 只加不改，既有测试变红说明动到了不该动的地方
-  - SELF_CHECK 的某条注入后【没有】变红 → 那条门禁是假的，
-    必须重写门禁而不是跳过自检
-  - 基线类命令（analyze 数量、测试数量）不符 → 不要改基线迁就实现，
-    先确认是不是真的引入了新问题
-  - 连续两次修不好同一条 → 在纪要「决定记录」写下现象与已排除的可能，停下上报，
-    不要连续第三次尝试
+  - RED 阶段测试没红（写完实现前就绿）→ 说明测试没真正依赖新类型，
+    停下重写测试，不要继续
+  - 属性测试偶发失败（换 seed 就绿）→ **这是真 bug 不是 flaky**，
+    HLC 的三条不变式在任何事件序列下都必须成立。记下失败 seed 并定位，
+    【不要】加重试、不要放宽断言
+  - v7→v8 迁移测试失败 → 优先怀疑漏建表而非漏搬数据（本 ACT 是纯建表），
+    逐字段比对旧行
+  - core / drift 既有测试变红 → 立即停下。本 ACT 只加不改，
+    既有测试变红说明动到了不该动的地方
+  - 连续两次修不好同一条 → 在纪要「决定记录」写下现象与已排除的可能，停下上报
 
 DONE_WHEN:
-  - 四个退避状态字段全部带 peer 维度，键用 Dart record 而非拼接字符串
-  - 判定逻辑逐 peer 生效（不是"任一退避就整轮跳过"）
-  - 生命周期清理覆盖新键，无僵尸条目
-  - 退避算法本身零变化
-  - 六个测试用例全部存在，四条 SELF_CHECK 已实做并确认能变红
+  - hlc_dart 已以【钉死版本 1.1.0+2】加入 core/pubspec.yaml，被否决的六个包一个都没进
+  - HlcClock / HlcClockStore 交付，时钟每次 tick/observe 都落盘
+  - t_entity_stamp 边表（主键含 scope_uid）+ t_hlc_clock_state 单行表建立，
+    schemaVersion 为 8，前六段迁移未动
+  - applyWithStamp 生产接口存在，戳与记录在同一事务内落盘
+  - RemoteChange 有可空 hlcPacked / deviceId，既有七字段未变
+  - 所有 Data class 与 repository-interface-* 仓库【零改动】
+  - 十个测试用例全部存在且通过，属性测试跑满 ≥1000 事件
+  - 七条 SELF_CHECK 已实做并确认能变红，尤其第一条（清空 observe 只红 ②）
+    与倒数第一条（③ 自比时抓不到，证明它确实退化过）
