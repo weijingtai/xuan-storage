@@ -36,10 +36,14 @@ void main() {
   //   `Future<({int freed, int unreclaimable})> evictCache({`（记录类型返回值）
   // - const 公开构造器：`const BlobHandle({`
   // - const factory：`const factory StoragePolicy.private({`
+  // - 公开字段：`final Set<Carrier> carriers;`、`final X y = ...;`、
+  //   `static final Map<...> all;`、`static const X y;`（含泛型/记录类型）
   //
   // 排除：
   // - 私有成员：名字以 `_` 开头（`final bool _lan;`、`_byEntityType` 等）
-  //   —— `[a-z]\w*\(` / `get [a-z]\w*` 天然不匹配 `_` 开头。
+  //   —— 字段/方法/getter 分支的名字都用 `[a-z]\w*`，天然不匹配 `_` 开头；
+  //     `static final Map<...> _byEntityType = {};` 的类型部分虽可吞 `_byEntityType`，
+  //     但名字 `[a-z]\w*` 回溯后仍不匹配 `_`，整行不命中。
   // - 私有构造器：`const StoragePolicy._();` —— `(?!\.)` 排除类名后跟点。
   final member = RegExp(
     r'^  (?:'
@@ -48,6 +52,8 @@ void main() {
     r'|[A-Za-z_][A-Za-z0-9_<>?,()\[\]{} ]* [a-z]\w*\('
     r'|const factory [A-Z][A-Za-z0-9]*\.[a-z]\w*\('
     r'|const [A-Z][A-Za-z0-9]*(?!\.)\('
+    r'|(?:static (?:final|const)|final) '
+    r'[A-Za-z_][A-Za-z0-9_<>?,()\[\]{} ]* [a-z]\w*(?:;| =)'
     r')',
   );
 
@@ -93,9 +99,9 @@ void main() {
     }
 
     // 覆盖下限自检：member 正则被改窄后此处立即变红，防止静默漏检。
-    // 实测值 98（2026-08-01 A10 返工后），下限取 90 留余量 ——
-    // 低于 90 即说明有人把通用正则改窄成白名单式了。
-    const minMemberDeclarations = 90;
+    // 实测值 133（2026-08-01 字段分支补入后），下限取 123 留余量 ——
+    // 低于 123 即说明有人把通用正则改窄成白名单式了。
+    const minMemberDeclarations = 123;
     expect(memberCount, greaterThanOrEqualTo(minMemberDeclarations),
         reason: 'member 正则覆盖的声明总数 $memberCount 低于下限 '
             '$minMemberDeclarations，正则可能被改窄了');
