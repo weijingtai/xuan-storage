@@ -1,0 +1,227 @@
+ACT_VERSION: 1
+TASK_ID: mimo-storage-s1b-multipeer/06
+TITLE: SyncRuntime per-peer 退避 —— 不可达对端不得拖垮云端调度
+TYPE: implementation
+ORDER: 7
+DEPENDS_ON: [mimo-storage-s1b-multipeer/05]
+DISPATCH_STATUS: ready
+STRONG_MODEL_ONLY: true    # 时序状态机，写错不报错，只在"某个对端长期离线"时才显形
+
+OBJECTIVE: >
+  §5.2.2 末段的连带改动：`_pushFailureCount` 与 `_nextPullNotBeforeUtcByEntityType`
+  都必须 per-peer，否则一个不可达的 LAN peer 会把云端 push 一起拖进 2 分钟退避。
+  ACT 05 让一条记录同时推给 N 个对端，本 ACT 让 N 个对端的失败互不传染。
+
+WHY_STRONG_MODEL: >
+  ⚠ 退避是【时序状态】，写错不会报错也不会让现有测试变红：
+  单 peer 场景下 per-peer 与全局退避的行为完全一致，全部既有测试都会绿。
+  只有在「一个对端持续失败、另一个持续成功」时差异才显形 ——
+  而那正是 LAN peer 的常态（用户不在家时局域网对端永远不可达）。
+  线上表现：用户离开家 → LAN peer 连不上 → 云端同步被拖进 2 分钟退避 →
+  用户以为 app 坏了。没有任何错误日志能指向这个原因。
+
+SCOPE:
+  READ:
+    - docs/superpowers/specs/2026-07-31-storage-architecture-design.md
+      # §5.2.2 末段「连带的 SyncRuntime 改动」原文（两个字段 + 理由）
+    - core/lib/sync/sync_runtime.dart
+      # 退避相关的全部现场（769 行，只看这些行）：
+      #   :44-47  pushInterval / pullInterval / minBackoff / maxBackoff 四个可注入参数
+      #   :92     _nextPushNotBeforeUtc          （全局，要改）
+      #   :93     _pushFailureCount              （全局，要改）
+      #   :95     _nextPullNotBeforeUtcByEntityType  （按 entityType，要加 peer 维度）
+      #   :97     _pullFailureCountByEntityType      （按 entityType，要加 peer 维度）
+      #   :341-350 生命周期里对这几个 Map 的 removeWhere / putIfAbsent
+      #   :489 :536 :554-570  push 侧退避的读写
+      #   :632 :672-692       pull 侧退避的读写
+      #   :732-739            reset 路径
+      #   _computeBackoff 的实现
+    - core/lib/model/sync_peer.dart      # PeerId
+    - core/lib/routing/peer_fanout_pusher.dart   # ACT 05：pushToAll 返回 Map<PeerId, SyncError?>
+  MODIFY:
+    - core/lib/sync/sync_runtime.dart
+  WRITE:
+    - core/test/s1b_per_peer_backoff_test.dart
+
+TASK_DETAIL:
+  four_fields: >
+    四个退避状态字段全部加 peer 维度：
+
+      _nextPushNotBeforeUtc            DateTime?              -> Map<PeerId, DateTime?>
+      _pushFailureCount                int                    -> Map<PeerId, int>
+      _nextPullNotBeforeUtcByEntityType Map<String, DateTime?> -> Map<(PeerId,String), DateTime?>
+      _pullFailureCountByEntityType     Map<String, int>       -> Map<(PeerId,String), int>
+
+    后两个的键从 entityType 变成 (peerId, entityType) 二元组。
+    Dart 3 的 record 类型 `(PeerId, String)` 可直接作 Map 键（有值语义的 ==/hashCode），
+    比拼字符串 `'$peerId::$entityType'` 安全 —— 拼字符串在 peerId 含分隔符时会串键。
+    【不要】用嵌套 Map<PeerId, Map<String, T>>，那会让 :341-350 的 removeWhere /
+    putIfAbsent 变成两层遍历，极易漏清理。
+
+  push_side: >
+    :554-570 那段：失败时 `_pushFailureCount[peerId] += 1`，
+    `_nextPushNotBeforeUtc[peerId] = now.add(_computeBackoff(该 peer 的失败数))`；
+    成功时把【该 peer 的】两个值清零/置 null。
+
+    ACT 05 的 pushToAll 返回 `Map<PeerId, SyncError?>` ——
+    逐条目更新对应 peer 的退避状态。
+    【关键】：某个 peer 失败【不得】改动其他 peer 的 `_nextPushNotBeforeUtc`。
+
+    :489 与 :536 的「是否到点可推」判定改成【逐 peer 判定】：
+    某个 peer 在退避窗口内就跳过那个 peer，其余照推。
+    【不要】写成「任一 peer 在退避窗口内就整轮跳过」——
+    那等于把 per-peer 退避又退化回全局。
+
+  pull_side: >
+    :632 / :672-692 同理，键换成 (peerId, entityType)。
+    pull 是按对端各自的游标拉的（ACT 02/04 已让游标 per-peer），
+    退避自然也要 per-peer。
+
+  lifecycle_cleanup: >
+    :341-350 的 removeWhere / putIfAbsent 与 :732-739 的 reset 要同步改：
+    entityType 集合变化时清理对应条目，现在要按 (peerId, entityType) 清。
+    【漏清理不会报错，只会让 Map 无限增长】—— 每次对端集合变化就留下一批僵尸键。
+    本 ACT 的最后一条测试专门验这个。
+
+  backoff_params_stay_global: >
+    minBackoff / maxBackoff / pushInterval / pullInterval（:44-47）【保持全局】，
+    不要做成 per-peer 可配。它们是策略参数不是运行时状态；
+    per-peer 可配会让"为什么这个对端退避这么久"变成一个需要查配置才能回答的问题。
+
+CONSTRAINTS:
+  - 【不要】用字符串拼接做复合键。见 four_fields。
+  - 【不要】用嵌套 Map。见 four_fields。
+  - 【不要】写成「任一 peer 在退避中就整轮跳过」。见 push_side。
+  - 【不要】把 minBackoff/maxBackoff 做成 per-peer。见 backoff_params_stay_global。
+  - 【不要】动 _computeBackoff 的算法。本 ACT 只改"这个数存在哪"，不改"怎么算"；
+    两件事混在一起会让退避行为的回归无法归因。
+  - 【不要】在本 ACT 改动 SyncRuntime 里与退避无关的部分。769 行的文件，
+    顺手重构会让 diff 无法审查。
+  - 每个改动的私有字段也要更新中文注释说明键的含义（A12 只管公开声明，
+    但这四个字段的键语义写错就是本 ACT 的全部风险，必须写清楚）。
+
+TESTS_FIRST:
+  CASES:
+    - NAME: unreachable_peer_does_not_delay_cloud_push
+      FILE: core/test/s1b_per_peer_backoff_test.dart
+      BEHAVIOR: >
+        【本 ACT 的生死线，也是 §5.2.2 末段那句话的可执行版本】。
+        两个 fake peer：cloud 恒成功、lan 恒失败。跑若干轮推送后断言：
+        - lan 的 `nextPushNotBefore` 被推到了未来（进入退避）；
+        - cloud 的 `nextPushNotBefore` 【为 null】（从未退避）；
+        - 继续推送时 cloud 【仍被调用】，调用次数随轮次线性增长。
+        退避状态若是全局的，cloud 会被 lan 的失败拖进 2 分钟窗口 ——
+        线上表现是「用户离开家，云端同步就变慢」，且无任何日志指向原因。
+        需要能观测内部退避状态：加一个 `@visibleForTesting` 的只读视图
+        （例如 `Map<PeerId, DateTime?> get debugNextPushNotBefore`），
+        【不要】把私有字段直接改成 public。
+      RED_COMMAND: cd core && flutter test test/s1b_per_peer_backoff_test.dart
+      RED_EXPECT: 编译失败（无 per-peer 退避视图），退出码非 0
+      COVERS: [A6]
+
+    - NAME: failure_count_resets_per_peer_on_success
+      FILE: core/test/s1b_per_peer_backoff_test.dart
+      BEHAVIOR: >
+        lan 先失败 3 次（失败数 3），随后成功一次，断言 lan 的失败数归 0
+        且 `nextPushNotBefore[lan]` 回到 null。
+        同时断言 cloud 的失败数【全程为 0】、未被 lan 的归零操作影响
+        （写成"任一 peer 成功就全局清零"同样是错的，方向相反而已）。
+      RED_COMMAND: cd core && flutter test test/s1b_per_peer_backoff_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A6]
+
+    - NAME: peer_in_backoff_is_skipped_others_still_pushed
+      FILE: core/test/s1b_per_peer_backoff_test.dart
+      BEHAVIOR: >
+        非 happy-path。把 lan 的 `nextPushNotBefore` 置于未来（模拟退避中），
+        触发一轮推送，断言：
+        - lan 的 pushCount 【未增加】（被跳过）；
+        - cloud 的 pushCount 【增加了 1】（照常推）。
+        写成「任一 peer 在退避中就整轮跳过」时，cloud 的 pushCount 不增加 ——
+        这条会红。那种写法等于把 per-peer 退避退化回全局，
+        而且更隐蔽：字段确实是 Map，只是判定逻辑没跟上。
+      RED_COMMAND: cd core && flutter test test/s1b_per_peer_backoff_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A6]
+
+    - NAME: pull_backoff_keyed_by_peer_and_entity_type
+      FILE: core/test/s1b_per_peer_backoff_test.dart
+      BEHAVIOR: >
+        让 (lan, 'record') 的拉取失败进入退避，断言：
+        - (cloud, 'record') 【不受影响】；
+        - (lan, 'divination_case') 【也不受影响】。
+        两个维度都要验 —— 只把键改成 peerId、丢掉 entityType 维度，
+        或反之，都会让其中一条红。
+      RED_COMMAND: cd core && flutter test test/s1b_per_peer_backoff_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A6]
+
+    - NAME: backoff_maps_do_not_leak_removed_peers
+      FILE: core/test/s1b_per_peer_backoff_test.dart
+      BEHAVIOR: >
+        让 lan 进入退避（Map 里有它的条目），随后把 lan 从对端集合中移除
+        并触发生命周期清理（对应 sync_runtime.dart:341-350 / :732-739 的路径）。
+        断言四个退避 Map 里【都不再有】任何 lan 的键。
+        漏清理不报错，只让 Map 无限增长 —— 每次对端集合变化留下一批僵尸键，
+        长跑进程会缓慢泄漏。这类问题从来不会被功能测试抓到。
+      RED_COMMAND: cd core && flutter test test/s1b_per_peer_backoff_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A6]
+
+    - NAME: backoff_algorithm_unchanged
+      FILE: core/test/s1b_per_peer_backoff_test.dart
+      BEHAVIOR: >
+        回归守卫。对单个 peer 连续失败 1..5 次，断言退避时长序列与改造前一致
+        （指数增长、被 maxBackoff 截断、不小于 minBackoff）。
+        本 ACT 只改"这个数存在哪"，不改"怎么算" ——
+        两件事混在一起会让退避行为的回归无法归因。
+        具体期望值从改造前的 _computeBackoff 实现推出并写死在测试里。
+      RED_COMMAND: cd core && flutter test test/s1b_per_peer_backoff_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A6]
+
+VERIFICATION:
+  - CMD: cd core && dart analyze --fatal-infos lib/sync/sync_runtime.dart
+    EXPECT_EXIT: 0
+  - CMD: cd core && flutter test test/s1b_per_peer_backoff_test.dart
+    EXPECT_EXIT: 0
+  - CMD: cd core && flutter test
+    EXPECT_EXIT: 0
+  - CMD: cd drift && flutter test
+    EXPECT_EXIT: 0
+  # 四个字段都带上了 PeerId 维度
+  - CMD: 'grep -c "PeerId" core/lib/sync/sync_runtime.dart'
+    EXPECT_EXIT: 0
+  # 不得用字符串拼接做复合键
+  - CMD: "grep -nE \"'\\\\\\$peerId::|\\\\\\$peerId\\\\\\$|peerId + '\" core/lib/sync/sync_runtime.dart"
+    EXPECT_EXIT: 1
+  # 不得出现嵌套 Map
+  - CMD: 'grep -nE "Map<PeerId, Map<" core/lib/sync/sync_runtime.dart'
+    EXPECT_EXIT: 1
+  # 退避参数保持全局（未被改成 Map）
+  - CMD: 'grep -cE "Duration minBackoff = const Duration\(seconds: 2\)" core/lib/sync/sync_runtime.dart'
+    EXPECT_STDOUT: "1"
+  - CMD: 'grep -cE "Duration maxBackoff = const Duration\(minutes: 2\)" core/lib/sync/sync_runtime.dart'
+    EXPECT_STDOUT: "1"
+  # 测试用只读视图而非把私有字段改 public
+  - CMD: 'grep -nE "^  (Map<PeerId|DateTime\? nextPush|int pushFailure)" core/lib/sync/sync_runtime.dart'
+    EXPECT_EXIT: 1
+
+SELF_CHECK:
+  - 把 `_pushFailureCount` 临时改回全局 int →
+    `unreachable_peer_does_not_delay_cloud_push` 与
+    `failure_count_resets_per_peer_on_success` 必须【同时】变红 → 改回
+  - 保留 Map 结构，但把「是否到点可推」的判定临时改成「任一 peer 在退避中就整轮跳过」→
+    `peer_in_backoff_is_skipped_others_still_pushed` 必须变红 → 改回。
+    **这一步最关键** —— 它证明你的测试抓的是行为不是字段形状
+  - 把 pull 退避的键临时改成只有 peerId（丢掉 entityType）→
+    `pull_backoff_keyed_by_peer_and_entity_type` 必须变红 → 改回
+  - 把生命周期清理临时注释掉 → `backoff_maps_do_not_leak_removed_peers` 必须变红 → 改回
+  - 四次自检后 `git status --porcelain` 必须为空
+
+DONE_WHEN:
+  - 四个退避状态字段全部带 peer 维度，键用 Dart record 而非拼接字符串
+  - 判定逻辑逐 peer 生效（不是"任一退避就整轮跳过"）
+  - 生命周期清理覆盖新键，无僵尸条目
+  - 退避算法本身零变化
+  - 六个测试用例全部存在，四条 SELF_CHECK 已实做并确认能变红

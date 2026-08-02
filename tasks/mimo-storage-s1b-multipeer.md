@@ -20,18 +20,24 @@
 已转译为 ACT，按 ORDER 顺序执行，每个 ACT 内含 SCOPE / SIGNATURE / TESTS_FIRST / VERIFICATION / SELF_CHECK（临时改坏 → 确认变红 → 改回）。
 
 - [ ] ACT 01: `PeerCapabilities` / `PeerId` / `SyncPeer` 端口签名 + `PeerFanoutPusher` 契约（零实现，§5.2.2）-> `docs/storage-s1b-multipeer/act/01.yaml`
+- [ ] ACT 01b: **RemoteGateway → SyncPeer 全量迁移**（14 个文件；顺带修掉 firebase 两个
+  既有 ERROR：两个 gateway 从未实现 `getCapabilities`，一直靠编译 Gitea 旧 core 藏着）
+  -> `act/01b.yaml`
 - [ ] ACT 02: `OutboxStore` / `SyncStateStore` 全部方法加 `peerId` —— 端口 + 既有 fake 同步改（§5.2.2 阻断点 3）-> `act/02.yaml`
 - [ ] ACT 03: **drift v7 迁移（STRONG_MODEL_ONLY）**：新表 `t_outbox_peer_ack`（operationId+peerId 联合主键，status/attempt/ackedAtUtc，兼 §5.3 compaction 水位表）+ `t_sync_state` 主键加 peerId + 既有行回填（建议 'cloud'）+ 迁移测试（§5.2.2）-> `act/03.yaml`
 - [ ] ACT 04: **drift 侧实现改造（STRONG_MODEL_ONLY）**：`OutboxRecordsDao` / `SyncStatesDao` / `DriftOutboxStore` / `DriftSyncStateStore` 加 peerId + per-peer ack 语义（一个 peer success 不影响另一 peer 的该行）-> `act/04.yaml`
 - [ ] ACT 05: `RemoteGatewayRouter` 从 1-of-N 改造成 fan-out；`PeerFanoutPusher` 实现（`pushToAll` 对 N 个 peer 各返回一个结果，一个失败不影响其余，§5.2.2 阻断点 4/5）-> `act/05.yaml`
 - [ ] ACT 06: `SyncRuntime` per-peer 退避改造（`_pushFailureCount` / `_nextPullNotBeforeUtcByEntityType` 加 peer 维度，§5.2.2：不可达 LAN peer 不得拖垮云端 push 调度）-> `act/06.yaml`
+- [ ] ACT 06b: **`RemoteChange` 携带 Lamport 坐标**（新增可空 `rev` / `deviceId`，
+  由两个 firebase gateway 从已有 oplog 字段填值）-> `act/06b.yaml`
 - [ ] ACT 07: `ConflictArbiter` + Lamport 序 `(rev, deviceId)`（复用 `DeviceIdentity`，不新建）+ `ChangeApplyOutcome` 增加被覆盖 payload 字段（§5.2.3 / §5.3 冲突可见化）-> `act/07.yaml`
 - [ ] ACT 08: 修 `canAdvanceCursor` 恒真（`record_local_applier.dart:60-61`）—— 应用失败不推进游标 + 回归测试（§5.2.3）-> `act/08.yaml`
 - [ ] ACT 09: `peekBatch` 按 channel 策略过滤（照 `policy_channel_filter_test.dart` 语义：lookup 返回 null 时 fail closed，§5.4 第一道锁）-> `act/09.yaml`
 - [ ] ACT 10: barrel 导出 + 架构守卫测试（含中文 dartdoc 覆盖计数下限，通用式正则，S1a 教训）+ 创建 `scripts/run_s1b_analyze_gate.sh`（照 run_s1a_analyze_gate.sh 范本，core 基线 58 / drift 基线 162，三条注入负测试证明能变红）-> `act/10.yaml`
 
-DEPENDS_ON 线性：01 → 02 → 03 → 04 → 05 → 06 → 07 → 08 → 09 → 10。
-03/04 是全任务风险最高的两块（schema 迁移写错不报错但静默丢历史游标）。
+DEPENDS_ON 线性：01 → 01b → 02 → 03 → 04 → 05 → 06 → 06b → 07 → 08 → 09 → 10（无环）。
+STRONG_MODEL_ONLY：03（schema 迁移）/ 04（per-peer ack 判定）/ 06（退避时序）/ 07（Lamport 定序）。
+合计 71 测试用例 / 118 验证命令 / 63 条自检。
 
 ## 验收标准
 
@@ -76,6 +82,29 @@ DEPENDS_ON 线性：01 → 02 → 03 → 04 → 05 → 06 → 07 → 08 → 09 �
   A9->ACT07; A10->ACT08; A11->ACT05; A12->ACT10。线性 01→10 无环。
 - 2026-08-02: 02 端口签名变更与 03 schema 迁移拆分两个 ACT（一个管端口+fake，一个管 drift 迁移）。
   理由: schema 迁移是全任务风险最高块，STRONG_MODEL_ONLY 单独成 ACT 便于跨模型审查聚焦。
+
+- 2026-08-02（转译）: ACT 01 拆为 01（契约，零破坏）+ 01b（全量迁移）。理由: 迁移要动
+  core 与 firebase 两个包共 14 个文件，且顺带要修 firebase 两个既有 ERROR，
+  单个 ACT 超出 30–60 分钟粒度；拆开后「新增契约」与「破坏性变更」的 diff 不混淆。
+- 2026-08-02（转译，**推翻原决定**）: `t_sync_state` 既有行的 peerId 回填值由 'cloud'
+  改为 **'firestore'**。理由: 必须与 ACT 01b 钉死的 `FirestoreRemoteGateway.peerId
+  = PeerId('firestore')` 逐字一致，对不上则历史游标全部查不到→全量重拉。
+  'cloud' 是 Channel 的名字不是 peerId。ACT 03 有跨文件比对测试守着。
+- 2026-08-02（转译）: 新增 ACT 06b。理由: `RemoteChange`(types.dart:232) 只有
+  operationId/entityType/entityId/opType/cursor/payloadJson/serverTimeUtc，
+  **没有 rev 也没有 deviceId**，Lamport 序无处取数；而给它加字段是跨 core/firebase
+  的端口变更，不应混进 ACT 07 的定序逻辑里。人类 2026-08-02 裁定走此方案。
+- 2026-08-02（转译）: **Firestore 侧 `rev` 恒为 null，有意为之**。理由:
+  FirestoreRemoteGateway 走 TimestampCursor 没有 revision；用 serverUpdatedAt 毫秒数
+  填 rev 等于把墙上时钟改名塞进去（§5.2.3 已判定墙上时钟不可用）；新建 Firestore
+  revision 分配器属于后端能力改造，超出 S1b。代价: Firestore 来源的变更只能靠
+  deviceId 决胜，定序弱于 RTDB。ACT 06b 有测试钉死这个决定。
+- 2026-08-02（转译）: 覆盖对照 v1（A1–A12 → ACT）:
+  A1->ACT10(门禁脚本)+各 ACT 的 analyze; A2->全部 ACT 的 flutter test;
+  A3->ACT03; A4->ACT02,04,05,09; A5->ACT02,04,05; A6->ACT06;
+  A7->ACT09(+ACT10 包级守卫); A8->ACT06b,07(+ACT10 包级守卫);
+  A9->ACT07,08; A10->ACT08; A11->ACT01,01b,05; A12->ACT10(+各 ACT 自身 dartdoc 要求)。
+  每条验收标准至少有一个 ACT 的 TESTS_FIRST 覆盖，且均含非 happy-path 用例。
 
 ## 踩坑墓地
 - 2026-08-02（环境）: drift worktree `pubspec_overrides.yaml` 只写 4 条 path 覆盖是错的——

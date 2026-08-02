@@ -1,0 +1,305 @@
+ACT_VERSION: 1
+TASK_ID: mimo-storage-s1b-multipeer/07
+TITLE: ConflictArbiter + Lamport 序 (rev, deviceId) + ChangeApplyOutcome 承载被覆盖 payload
+TYPE: implementation
+ORDER: 9
+DEPENDS_ON: [mimo-storage-s1b-multipeer/06b]
+DISPATCH_STATUS: ready
+STRONG_MODEL_ONLY: true    # 分布式定序，写错不报错；错误只在两台设备时钟不同步时显形
+
+OBJECTIVE: >
+  §5.2.3：record 主线【没有 LWW，是 RWW】（远端无条件覆盖本地），
+  且纯墙上时钟 LWW 在多 peer 下不可用 —— 云端时间戳来自服务器，
+  LAN peer 时间戳来自对端设备本地时钟，两台设备差 30 秒就能让两周的编辑量归属随机。
+  本 ACT 交付 `ConflictArbiter` 端口 + Lamport 序 (rev, deviceId)，
+  并让 `ChangeApplyOutcome` 能承载【被覆盖的 payload】（§5.3 冲突可见化）。
+
+WHY_STRONG_MODEL: >
+  ⚠ 定序错误不报错。用墙上时钟的实现在单元测试里永远绿 ——
+  测试里两个时间戳是你自己写的，当然有序。
+  它只在真实的两台设备之间显形：设备 A 的时钟慢 30 秒，
+  于是 A 上更晚的编辑被 B 上更早的编辑覆盖，用户丢的是"两周里改的东西"，
+  而且【不知道自己丢了】。这就是 §5.3 要求冲突可见化的原因。
+
+SCOPE:
+  READ:
+    - docs/superpowers/specs/2026-07-31-storage-architecture-design.md
+      # §5.2.3 全节：RWW 现状、canAdvanceCursor 恒真、为何墙上时钟不可用、S1b 必须交付什么
+      # §5.3「冲突可见化」：LWW 会静默丢数据，必须保留被覆盖的版本并使其可回溯
+    - core/lib/model/ports.dart
+      # DeviceIdentity:240（deviceId/platform/formFactor/... —— 【复用它，不要新建】）
+      # LocalApplier:217 applyRemoteChanges 的签名
+    - core/lib/model/types.dart
+      # ChangeApplyDecision:285 / SkipReasonCode:301 / ChangeApplyOutcome:322 /
+      # LocalApplyResult:353（canAdvanceCursor 字段）
+      # TimestampCursor:194（已有 tieBreaker 字段，建议用 operationId）
+      # RevisionCursor:216（revision 单调递增）
+      # RemoteChange:232 —— ACT 06b 已给它加了可空的 rev / deviceId，本 ACT 从这里取值
+    - docs/storage-s1b-multipeer/act/06b.yaml
+      # 06b 的 firestore_rev 决定：Firestore 侧 rev 恒为 null 是【有意为之】
+    - drift/lib/sync/record_local_applier.dart
+      # :60-61 canAdvanceCursor: true 恒真（ACT 08 修，本 ACT 只需知道它在）
+      # 全文件对 updatedAt/rev 只有解析、无比较逻辑 —— 本 ACT 补上比较
+  WRITE:
+    - core/lib/model/conflict_arbiter.dart
+    - core/test/s1b_conflict_arbiter_test.dart
+  MODIFY:
+    - core/lib/model/types.dart      # ChangeApplyOutcome 增加被覆盖 payload 字段
+
+SIGNATURE:
+  conflict_arbiter.dart: |
+    /// Lamport 序坐标：(rev, deviceId)。
+    ///
+    /// 为什么不用墙上时钟（§5.2.3）：云端时间戳来自服务器，LAN peer 的时间戳
+    /// 来自对端设备本地时钟。两台设备差 30 秒就能让两周的编辑量归属随机，
+    /// 而且【不会报错】—— 用户只是发现内容变回了旧版本。
+    ///
+    /// 比较规则：先比 [rev]（大者胜）；rev 相同时比 [deviceId] 的字典序（大者胜）。
+    /// deviceId 作为决胜位保证【全序且确定】—— 任意两台设备对同一对版本
+    /// 得出的胜负结论必然一致，与它们各自的时钟无关。
+    final class LamportStamp implements Comparable<LamportStamp> {
+      /// 单调递增的修订号。同一实体每次写入 +1。
+      final int rev;
+
+      /// 产生该版本的设备标识。取自 [DeviceIdentity.deviceId]。
+      final String deviceId;
+
+      /// 构造一个 [LamportStamp]。
+      const LamportStamp({required this.rev, required this.deviceId});
+
+      @override
+      int compareTo(LamportStamp other);
+    }
+
+    /// 一次冲突的仲裁结果。
+    enum ArbitrationDecision {
+      /// 远端版本胜出，应覆盖本地。
+      takeRemote,
+
+      /// 本地版本胜出，远端变更应被丢弃。
+      keepLocal,
+
+      /// 两者 Lamport 坐标完全相同 —— 同一版本，无冲突，无需写入。
+      identical,
+    }
+
+    /// 冲突仲裁器。决定"远端来的这条变更该不该覆盖本地"。
+    ///
+    /// 【纯函数，无 IO】。持久化与"被覆盖的版本存哪"由调用方负责 ——
+    /// 混进来会让它没法被单元测试穷举。
+    abstract interface class ConflictArbiter {
+      /// 比较远端与本地版本，给出裁决。
+      ArbitrationDecision arbitrate({
+        required LamportStamp remote,
+        required LamportStamp local,
+      });
+    }
+
+    /// 默认实现：严格按 (rev, deviceId) 全序比较。
+    final class LamportConflictArbiter implements ConflictArbiter {
+      /// 构造一个 [LamportConflictArbiter]。
+      const LamportConflictArbiter();
+    }
+
+  types.dart ChangeApplyOutcome 增加: |
+    /// 被本次变更【覆盖掉】的本地 payload（§5.3 冲突可见化）。
+    ///
+    /// 仅当 decision 为 applied 且确实发生了覆盖时非空。
+    /// 会话式同步可能两周才跑一次，期间双方各改了一批 —— LWW 在这种场景下
+    /// 静默丢数据：用户在平板上改的内容被手机上更晚的版本覆盖，且他不知情。
+    /// 保留这一份是让"冲突可回溯"成为可能的最低要求。
+    final String? overwrittenPayloadJson;
+
+    /// 被覆盖版本的 Lamport 坐标，用于向用户展示"你丢的是哪个版本"。
+    final LamportStamp? overwrittenStamp;
+
+TASK_DETAIL:
+  total_order_requirement: >
+    compareTo 必须是【全序】：任意两个 LamportStamp 都能比出大小，
+    且比较结果与比较顺序无关（a.compareTo(b) == -b.compareTo(a)）。
+    rev 相同且 deviceId 相同 → 返回 0（同一版本）。
+    【不要】在 rev 相同时返回 0 而不比 deviceId —— 那会让两台设备的并发编辑
+    被判为"相同"，于是谁都不覆盖谁，两边永久分叉。
+
+  where_rev_and_device_come_from: >
+    rev 与 deviceId 从 `RemoteChange` 的【ACT 06b 新增的两个可空字段】取，
+    不要再自己往 RemoteChange 加东西 —— 06b 已经加完了。
+
+    ⚠ 两个字段都【可空】，本 ACT 必须显式决定降级规则并写进决定记录：
+      · deviceId 为 null  → 无法决胜。建议按「视为最小值」处理（远端不覆盖本地），
+        即 fail-safe 偏向保留本地 —— 丢远端的一次更新，用户下次同步还能拿到；
+        反过来丢本地的编辑则不可恢复。
+      · rev 为 null       → Firestore 来源的变更就是这种（06b 决定记录：
+        Firestore 走 TimestampCursor，没有 revision，有意留 null）。
+        建议按 rev = 0 处理，退化为只靠 deviceId 决胜。
+    这两条【必须各有一条测试】，见 TESTS_FIRST 的 null_degradation_is_fail_safe。
+
+  arbiter_is_pure: >
+    ConflictArbiter 【无 IO、无状态】。它只回答"谁赢"。
+    "被覆盖的 payload 存到哪"是调用方（applier）的事，ACT 08 才接。
+    把持久化混进来会让它没法被单元测试穷举 ——
+    而定序逻辑正是最需要穷举的那类代码。
+
+  outcome_fields_are_nullable: >
+    ChangeApplyOutcome 的两个新字段都是可空的，且【不要】加 required。
+    它有既有构造点（drift/lib/sync/record_local_applier.dart 里就有两处），
+    加 required 会让所有既有构造点编译失败 —— 那不是本 ACT 的范围。
+
+  no_applier_changes: >
+    【本 ACT 不改 record_local_applier.dart】。修 canAdvanceCursor 恒真、
+    把仲裁器接进 applier，都是 ACT 08 的事。
+    本 ACT 只交付端口与类型，让 ACT 08 有东西可接。
+
+CONSTRAINTS:
+  - 【不要】用墙上时钟（DateTime）参与定序。见 SIGNATURE 里的理由。
+  - 【不要】新建 DeviceIdentity 或它的替代品。ports.dart:240 已经有了，复用其 deviceId。
+  - 【不要】在 rev 相同时直接返回 0 而不比 deviceId。见 total_order_requirement。
+  - 【不要】给 ChangeApplyOutcome 的新字段加 required。见 outcome_fields_are_nullable。
+  - 【不要】让 ConflictArbiter 有任何 IO 或可变状态。
+  - 【不要】改 record_local_applier.dart。那是 ACT 08。
+  - 【不要】往 RemoteChange 加字段。ACT 06b 已加完 rev / deviceId，本 ACT 只消费。
+  - 【不要】把 null 的 rev/deviceId 当成"跳过仲裁、直接采用远端"。那等于退回 RWW。
+  - 每个公开声明必须有中文 dartdoc（A12）。
+
+TESTS_FIRST:
+  CASES:
+    - NAME: higher_rev_wins_regardless_of_device
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        remote(rev: 5, deviceId: 'aaa') vs local(rev: 4, deviceId: 'zzz')
+        → takeRemote（rev 大者胜，deviceId 不参与）。
+        反过来 remote(rev: 4, 'zzz') vs local(rev: 5, 'aaa') → keepLocal。
+        证明 rev 是第一顺位，deviceId 只在平局时说话。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 编译失败（LamportStamp 不存在），退出码非 0
+      COVERS: [A8]
+
+    - NAME: tie_broken_by_device_id_deterministically
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        【本 ACT 最重要的一条】。remote(rev: 7, 'device-b') vs local(rev: 7, 'device-a')
+        → takeRemote（'device-b' > 'device-a' 字典序）。
+        再把两边【互换角色】重跑：remote(rev: 7, 'device-a') vs local(rev: 7, 'device-b')
+        → keepLocal。
+        断言两次的【胜者是同一个设备】—— 这就是"全序且确定"的可执行定义：
+        任意两台设备对同一对版本得出的结论必然一致，与谁在问、与两边时钟无关。
+        rev 相同时直接返回 identical 的实现，这条会红 —— 而那种写法会让
+        两台设备的并发编辑永久分叉（谁都不覆盖谁）。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A8]
+
+    - NAME: identical_only_when_both_fields_equal
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        (rev: 3, 'x') vs (rev: 3, 'x') → identical。
+        (rev: 3, 'x') vs (rev: 3, 'y') → 【不是】identical。
+        (rev: 3, 'x') vs (rev: 4, 'x') → 【不是】identical。
+        identical 语义是"同一个版本，无需写入"，判宽了会漏掉真实冲突。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A8]
+
+    - NAME: comparison_is_antisymmetric_and_transitive
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        全序性质的穷举验证。构造一组 stamp（跨 rev 与 deviceId 的组合，至少 6 个），
+        对所有两两组合断言：
+        - 反对称：`a.compareTo(b) == -b.compareTo(a)`；
+        - 传递性：a<b 且 b<c ⇒ a<c（三重循环穷举）；
+        - 自反：`a.compareTo(a) == 0`。
+        把 compareTo 写成只比 rev、或写成 `rev - other.rev` 加上错误的 deviceId 处理，
+        传递性会断 —— 而那种 bug 在两两测试里可能看不出来。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A8]
+
+    - NAME: null_degradation_is_fail_safe
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        两个字段都可空（ACT 06b 的产物），本条穷举降级路径：
+        - remote.deviceId 为 null、rev 相同 → 【keepLocal】（无法决胜时偏向保留本地）；
+        - remote.rev 为 null（Firestore 来源）→ 按 rev = 0 处理，
+          与 local.rev = 0 时退化为只比 deviceId；与 local.rev > 0 时 keepLocal；
+        - 【两者都为 null】→ keepLocal，且【不抛异常】。
+        为什么偏向 keepLocal：丢远端的一次更新，用户下次同步还能拿到；
+        丢本地的编辑则不可恢复。fail-safe 的方向必须是这个。
+        写成"拿不准就采用远端"会让所有缺字段的历史 oplog 条目
+        无条件覆盖本地 —— 那正是 §5.2.3 判定为缺陷的 RWW 行为，等于本 ACT 白做。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A8]
+
+    - NAME: arbiter_has_no_wall_clock_dependency
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        以纯文本读取 core/lib/model/conflict_arbiter.dart，断言其中【不含】
+        `DateTime` / `.now()` / `serverUpdatedAt` / `updatedAt` 这几个记号。
+        这是文本级守卫，故意不依赖类型系统 ——
+        「顺手加一个时间戳做兜底比较」是这类代码最常见的退化路径，
+        而它一旦加入，定序就重新变成时钟依赖的了，且所有既有测试仍会绿。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 断言失败或文件不存在，先红
+      COVERS: [A8]
+
+    - NAME: outcome_carries_overwritten_payload_and_stamp
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        构造一个 ChangeApplyOutcome，带上 overwrittenPayloadJson 与 overwrittenStamp，
+        断言两者都能读回且值正确。
+        再构造一个【不传】这两个字段的 outcome，断言能编译通过且两者为 null ——
+        证明既有构造点没被破坏（drift 的 record_local_applier.dart 里就有两处）。
+        §5.3 要求"冲突时保留被覆盖的版本并使其对用户可见可回溯"，
+        字段被优化成一个 bool flag 的话，"可回溯"就没了。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A9]
+
+VERIFICATION:
+  - CMD: cd core && dart analyze --fatal-infos lib/model/conflict_arbiter.dart lib/model/types.dart
+    EXPECT_EXIT: 0
+  - CMD: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+    EXPECT_EXIT: 0
+  - CMD: cd core && flutter test
+    EXPECT_EXIT: 0
+  - CMD: cd drift && flutter test
+    EXPECT_EXIT: 0
+  # 仲裁器不得依赖墙上时钟
+  - CMD: 'grep -nE "DateTime|\.now\(\)|updatedAt" core/lib/model/conflict_arbiter.dart'
+    EXPECT_EXIT: 1
+  # 仲裁器无 IO
+  - CMD: 'grep -nE "dart:io|Future<|async" core/lib/model/conflict_arbiter.dart'
+    EXPECT_EXIT: 1
+  # 不得新建 DeviceIdentity 替代品
+  - CMD: 'grep -nE "class .*Device(Identity|Info|Id)\b" core/lib/model/conflict_arbiter.dart'
+    EXPECT_EXIT: 1
+  # 新字段可空且非 required
+  - CMD: 'grep -c "final String? overwrittenPayloadJson;" core/lib/model/types.dart'
+    EXPECT_STDOUT: "1"
+  - CMD: 'grep -nE "required this.overwrittenPayloadJson|required this.overwrittenStamp" core/lib/model/types.dart'
+    EXPECT_EXIT: 1
+  # 本 ACT 不改 applier（ACT 08 才动）
+  - CMD: git diff --exit-code HEAD~1 -- drift/lib/sync/record_local_applier.dart
+    EXPECT_EXIT: 0
+
+SELF_CHECK:
+  - 把 compareTo 临时改成只比 rev（rev 相同返回 0）→
+    `tie_broken_by_device_id_deterministically` 与 `identical_only_when_both_fields_equal`
+    必须【同时】变红。只红一条说明覆盖不足 → 改回
+  - 在 conflict_arbiter.dart 里临时加一句 `final _ = DateTime.now();` →
+    `arbiter_has_no_wall_clock_dependency` 必须变红 → 改回
+  - 把 compareTo 临时改成 `rev - other.rev`（整数溢出/未处理 deviceId）→
+    `comparison_is_antisymmetric_and_transitive` 必须变红 → 改回
+  - 把 null 降级临时改成"拿不准就 takeRemote" →
+    `null_degradation_is_fail_safe` 必须变红 → 改回。
+    这条守的是 fail-safe 方向，写反了不报错，只是悄悄退回 RWW
+  - 把 overwrittenPayloadJson 临时改成 `bool wasOverwritten` →
+    `outcome_carries_overwritten_payload_and_stamp` 必须变红 → 改回
+  - 四次自检后 `git status --porcelain` 必须为空
+
+DONE_WHEN:
+  - conflict_arbiter.dart 与测试文件存在，全部命令按 EXPECT 通过
+  - LamportStamp 的 compareTo 经穷举验证为全序（反对称 + 传递 + 自反）
+  - ChangeApplyOutcome 两个新字段可空、既有构造点未被破坏
+  - 六个测试用例全部存在，四条 SELF_CHECK 已实做并确认能变红
+  - 若 RemoteChange 缺 deviceId：已在纪要「决定记录」提异议并停下上报

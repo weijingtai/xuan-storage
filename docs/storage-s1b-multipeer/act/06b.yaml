@@ -1,0 +1,250 @@
+ACT_VERSION: 1
+TASK_ID: mimo-storage-s1b-multipeer/06b
+TITLE: RemoteChange 携带 Lamport 坐标 —— 新增 rev / deviceId 字段并由各 gateway 填值
+TYPE: contract-breaking
+ORDER: 8
+DEPENDS_ON: [mimo-storage-s1b-multipeer/06]
+DISPATCH_STATUS: ready
+STRONG_MODEL_ONLY: false
+
+OBJECTIVE: >
+  给 ACT 07 的 Lamport 仲裁准备数据来源。
+  §5.2.3 要求 S1b 交付 (rev, deviceId) 定序，但 `RemoteChange`（types.dart:232）
+  当前只有 operationId / entityType / entityId / opType / cursor / payloadJson /
+  serverTimeUtc —— 【没有 rev，没有 deviceId】，仲裁器无处取数。
+  本 ACT 只做"把已有的数据搬到端口上"，不含任何定序逻辑（那是 ACT 07）。
+
+PRE_EXISTING_STATE: >
+  好消息：这两个值【远端 oplog 里已经有了】，本 ACT 是接线不是造数据。已实测：
+
+    firebase/lib/persistence_firebase.dart:644           写入 'deviceId': _device.deviceId
+    firebase/lib/firebase_realtime_remote_gateway.dart:242  同上
+    firebase/lib/firebase_realtime_remote_gateway.dart:222  _allocateNextRevision（RTDB 事务自增）
+                                                       :301/:339/:364 写入 'revision'
+                                                       :747 listChanges 按 revision 排序
+
+  但两个 gateway 的游标策略【不同】，这是本 ACT 的主要难点：
+    FirestoreRemoteGateway         → TimestampCursor（:397/:519/:537），【没有 revision】
+    FirebaseRealtimeRemoteGateway  → RevisionCursor（:735/:837/:845），有完整 revision 机制
+
+  所以 Firestore 侧的 rev 从哪来，必须显式决定 —— 见 TASK_DETAIL.firestore_rev。
+
+SCOPE:
+  READ:
+    - docs/superpowers/specs/2026-07-31-storage-architecture-design.md
+      # §5.2.3 全节：为何必须 (rev, deviceId)、为何墙上时钟不可用
+    - core/lib/model/types.dart
+      # RemoteChange:232（七个字段的现状）、TimestampCursor:194、RevisionCursor:216
+    - core/lib/model/ports.dart          # DeviceIdentity:240
+    - firebase/lib/persistence_firebase.dart
+      # :397/:519/:524/:537 listChanges 构造 RemoteChange 的地方
+      # :644 _deviceToMap 里已有的 deviceId
+    - firebase/lib/firebase_realtime_remote_gateway.dart
+      # :222 _allocateNextRevision；:242 deviceId；:747-845 listChanges 构造 RemoteChange
+    - core/test/persistence_core_test.dart      # fake gateway 的 RemoteChange 构造点
+    - drift/lib/sync/record_local_applier.dart  # 消费 RemoteChange 的地方（本 ACT 不改逻辑）
+  MODIFY:
+    - core/lib/model/types.dart                            # RemoteChange 加两个可空字段
+    - firebase/lib/persistence_firebase.dart               # listChanges 填 deviceId（+ rev 见下）
+    - firebase/lib/firebase_realtime_remote_gateway.dart   # listChanges 填 rev + deviceId
+    - core/test/persistence_core_test.dart                 # fake 的构造点按需补
+    - firebase/test/persistence_firebase_test.dart         # 断言新字段被填上
+  WRITE:
+    - core/test/s1b_remote_change_lamport_fields_test.dart
+
+SIGNATURE:
+  types.dart RemoteChange 增加: |
+    /// 产生该变更的版本号（Lamport 序的第一顺位，§5.2.3）。
+    ///
+    /// 可空：并非所有后端都提供单调 revision ——
+    /// RTDB 有（事务自增），Firestore 走 TimestampCursor 没有。
+    /// 为 null 时仲裁降级，降级规则由 ACT 07 的调用方定，本类不做判断。
+    final int? rev;
+
+    /// 产生该变更的设备标识（Lamport 序的决胜位，§5.2.3）。
+    ///
+    /// 取自远端 oplog 里已写入的 deviceId（两个 gateway 都有）。
+    /// 可空：历史 oplog 条目可能没有这个字段。
+    final String? deviceId;
+
+TASK_DETAIL:
+  nullable_and_not_required: >
+    两个字段都【可空且非 required】。RemoteChange 有多处既有构造点
+    （两个 firebase gateway、core 的 fake、drift 的测试），
+    加 required 会让它们全部编译失败 —— 那不是本 ACT 的范围。
+    可空还有一层真实含义：历史 oplog 条目确实可能没有这两个值。
+
+  firestore_rev: >
+    【本 ACT 唯一需要判断的地方】。FirestoreRemoteGateway 走 TimestampCursor，
+    没有 revision 概念。三个候选，按下面的顺序考虑：
+
+      a) rev 留 null，只填 deviceId。仲裁降级由 ACT 07 处理。
+      b) 用 serverUpdatedAt 的毫秒数当 rev。
+      c) 在 Firestore 侧新建一个 revision 分配器，对齐 RTDB。
+
+    **本 ACT 选 (a)**。理由：
+      · (b) 是把墙上时钟改个名字塞进 rev —— §5.2.3 明确判定墙上时钟不可用，
+        换个字段名不会让它变得可用，反而会让"这个 rev 是不是真的单调"
+        变成一个没人记得的隐患；
+      · (c) 是新建后端能力，需要 Firestore 事务 + 一个计数文档，
+        属于独立的后端改造，超出 S1b 范围。
+    选 (a) 的代价：Firestore 来源的变更在 ACT 07 里只能靠 deviceId 决胜，
+    定序能力弱于 RTDB。这个代价必须写进纪要「决定记录」，让后人知道
+    "Firestore 侧没有 rev"是有意为之而不是漏了。
+
+  realtime_rev_is_already_there: >
+    RTDB 侧直接用 :837 那行已经在读的 `revisionRaw`（它已经用来构造 RevisionCursor）。
+    【不要】重新分配 —— _allocateNextRevision 是【写入侧】的事，
+    listChanges 是读取侧，在读取时分配 revision 会污染 RTDB 的计数器。
+
+  device_id_extraction: >
+    两个 gateway 的 oplog 里 deviceId 有两处写法：
+      顶层 'deviceId'（firestore:644 / realtime:242）
+      嵌套 'device' map 里的 'deviceId'（firestore:670 / realtime:300 的 _deviceToMap）
+    读取时【两处都要尝试】，优先顶层，回退嵌套，都没有则 null。
+    只读一处会让一部分历史 oplog 条目取不到 deviceId 而静默降级 ——
+    降级不报错，只是定序变弱，没人会发现。
+
+  no_arbitration_logic: >
+    【本 ACT 不含任何定序/比较逻辑】。不写 LamportStamp，不写 ConflictArbiter，
+    不在 applier 里做任何判断。本 ACT 交付的是"数据到端口上"，
+    "拿数据干什么"是 ACT 07。混在一起会让"取值取错"和"比较写错"
+    两类 bug 在同一个 diff 里无法区分。
+
+CONSTRAINTS:
+  - 【不要】给两个新字段加 required。见 nullable_and_not_required。
+  - 【不要】用 serverUpdatedAt 的毫秒数填 rev。见 firestore_rev 的 (b)。
+  - 【不要】在 listChanges 里调用 _allocateNextRevision。见 realtime_rev_is_already_there。
+  - 【不要】只读顶层 'deviceId' 而不回退嵌套 map。见 device_id_extraction。
+  - 【不要】在本 ACT 写任何比较逻辑。见 no_arbitration_logic。
+  - 【不要】改动 RemoteChange 的既有七个字段（含 serverTimeUtc —— 它还有别的消费者）。
+  - 每个新增公开声明必须有中文 dartdoc（A12）。
+
+TESTS_FIRST:
+  CASES:
+    - NAME: existing_construction_sites_still_compile
+      FILE: core/test/s1b_remote_change_lamport_fields_test.dart
+      BEHAVIOR: >
+        构造一个【不传】 rev 与 deviceId 的 RemoteChange，断言能编译通过
+        且两个字段为 null。
+        这条守的是"可空且非 required" —— 加 required 会让两个 firebase gateway、
+        core 的 fake、drift 的多处测试同时编译失败，而那是计划外的破坏。
+      RED_COMMAND: cd core && flutter test test/s1b_remote_change_lamport_fields_test.dart
+      RED_EXPECT: 编译失败（字段不存在），退出码非 0
+      COVERS: [A8]
+
+    - NAME: fields_round_trip_when_provided
+      FILE: core/test/s1b_remote_change_lamport_fields_test.dart
+      BEHAVIOR: >
+        构造带 `rev: 42, deviceId: 'device-x'` 的 RemoteChange，断言两者读回正确。
+        同时断言既有七个字段【全部未受影响】（逐个读回比对）——
+        往一个有 7 个字段的类加字段时，改错构造器参数顺序是常见事故，
+        而 named 参数下编译器不会报错。
+      RED_COMMAND: cd core && flutter test test/s1b_remote_change_lamport_fields_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A8]
+
+    - NAME: realtime_gateway_fills_rev_from_oplog_not_from_allocator
+      FILE: firebase/test/persistence_firebase_test.dart
+      BEHAVIOR: >
+        【本 ACT 最重要的一条】。用 fake RTDB 数据（oplog 条目含
+        `'revision': 7` 与 `'deviceId': 'dev-a'`）驱动 listChanges，断言返回的
+        RemoteChange 的 `rev == 7`、`deviceId == 'dev-a'`。
+        再断言 `_allocateNextRevision` 对应的 RTDB 计数器路径【未被写入】——
+        在读取侧分配 revision 会污染写入侧的计数器，表现是"每拉一次，
+        下次写入的 revision 就跳一大截"，且不会报错。
+        若 fake RTDB 难以断言"未写入"，改为断言 listChanges 全程未调用任何
+        runTransaction（用注入的 fake 记录调用次数）。
+      RED_COMMAND: cd firebase && flutter test test/persistence_firebase_test.dart
+      RED_EXPECT: 断言失败（rev 为 null），退出码非 0
+      COVERS: [A8]
+
+    - NAME: device_id_falls_back_to_nested_device_map
+      FILE: firebase/test/persistence_firebase_test.dart
+      BEHAVIOR: >
+        非 happy-path。构造三种 oplog 条目：
+          ① 只有顶层 'deviceId'            → 取到该值
+          ② 只有嵌套 'device': {'deviceId': ...} → 【也要】取到该值
+          ③ 两者都没有                      → deviceId 为 null，且【不抛异常】
+        只读顶层的实现，②会红。而线上表现是"一部分历史 oplog 条目取不到 deviceId
+        → 定序静默降级"，没有任何日志会提到这件事。
+      RED_COMMAND: cd firebase && flutter test test/persistence_firebase_test.dart
+      RED_EXPECT: 断言失败，先红
+      COVERS: [A8]
+
+    - NAME: firestore_gateway_leaves_rev_null_by_design
+      FILE: firebase/test/persistence_firebase_test.dart
+      BEHAVIOR: >
+        用 fake Firestore 数据驱动 listChanges，断言返回的 RemoteChange：
+        - `deviceId` 【非空】（从 oplog 取到）；
+        - `rev` 为 【null】。
+        这是【有意为之】（TASK_DETAIL.firestore_rev 选了方案 a），不是遗漏 ——
+        所以要有一条测试把这个决定钉住。将来若有人"顺手"用
+        serverUpdatedAt 的毫秒数填 rev，这条会红，从而强迫他去读决定记录。
+      RED_COMMAND: cd firebase && flutter test test/persistence_firebase_test.dart
+      RED_EXPECT: 断言失败，先红
+      COVERS: [A8]
+
+    - NAME: no_comparison_logic_introduced
+      FILE: core/test/s1b_remote_change_lamport_fields_test.dart
+      BEHAVIOR: >
+        以纯文本扫描本 ACT 修改的三个 lib 文件，断言其中【不含】
+        `compareTo` / `LamportStamp` / `ConflictArbiter` / `arbitrate` 这些记号。
+        本 ACT 只搬数据不做判断；提前写比较逻辑会让"取值取错"与"比较写错"
+        两类 bug 混在同一个 diff 里，ACT 07 的验收就失去归因能力。
+      RED_COMMAND: cd core && flutter test test/s1b_remote_change_lamport_fields_test.dart
+      RED_EXPECT: 断言失败或文件不存在，先红
+      COVERS: [A8]
+
+VERIFICATION:
+  - CMD: cd core && dart analyze --fatal-infos lib/model/types.dart
+    EXPECT_EXIT: 0
+  - CMD: cd core && flutter test
+    EXPECT_EXIT: 0
+  - CMD: cd firebase && flutter test
+    EXPECT_EXIT: 0
+  - CMD: cd drift && flutter test
+    EXPECT_EXIT: 0
+  # 两个新字段可空、非 required
+  - CMD: 'grep -c "final int? rev;" core/lib/model/types.dart'
+    EXPECT_STDOUT: "1"
+  - CMD: 'grep -c "final String? deviceId;" core/lib/model/types.dart'
+    EXPECT_STDOUT: "1"
+  - CMD: 'grep -nE "required this.rev|required this.deviceId" core/lib/model/types.dart'
+    EXPECT_EXIT: 1
+  # 不得用时间戳毫秒数填 rev
+  - CMD: 'grep -nE "rev: .*(millisecondsSinceEpoch|serverUpdatedAt|serverTime)" firebase/lib/persistence_firebase.dart'
+    EXPECT_EXIT: 1
+  # listChanges 不得分配 revision
+  - CMD: "sed -n '/Future<RemoteChangesPage> listChanges/,/^  }/p' firebase/lib/firebase_realtime_remote_gateway.dart | grep -n '_allocateNextRevision'"
+    EXPECT_EXIT: 1
+  # 本 ACT 不引入比较逻辑
+  - CMD: 'grep -nE "compareTo|LamportStamp|ConflictArbiter|arbitrate" core/lib/model/types.dart firebase/lib/persistence_firebase.dart firebase/lib/firebase_realtime_remote_gateway.dart'
+    EXPECT_EXIT: 1
+  # 既有七个字段未被改动
+  - CMD: 'for f in operationId entityType entityId opType cursor payloadJson serverTimeUtc; do grep -q "final .*\b$f;" core/lib/model/types.dart || { echo "LOST:$f"; exit 1; }; done; echo SEVEN_FIELDS_OK'
+    EXPECT_STDOUT: "SEVEN_FIELDS_OK"
+    EXPECT_EXIT: 0
+  # 本 ACT 不碰 applier
+  - CMD: git diff --exit-code HEAD~1 -- drift/lib/sync/record_local_applier.dart
+    EXPECT_EXIT: 0
+
+SELF_CHECK:
+  - 给 rev 或 deviceId 临时加 required →
+    `existing_construction_sites_still_compile` 必须变红，且 firebase/drift 的编译
+    也会同时坏掉（正好证明为什么不能加）→ 改回
+  - 把 deviceId 提取临时改成只读顶层 'deviceId' →
+    `device_id_falls_back_to_nested_device_map` 必须变红 → 改回
+  - 把 Firestore 侧的 rev 临时改成 `serverUpdatedAt.millisecondsSinceEpoch` →
+    `firestore_gateway_leaves_rev_null_by_design` 与 grep 门禁必须【同时】变红 → 改回
+  - 在 listChanges 里临时调一次 _allocateNextRevision →
+    `realtime_gateway_fills_rev_from_oplog_not_from_allocator` 必须变红 → 改回
+  - 四次自检后 `git status --porcelain` 必须为空
+
+DONE_WHEN:
+  - RemoteChange 有 rev / deviceId 两个可空字段，既有七字段未动
+  - RTDB gateway 从 oplog 已有的 revision 与 deviceId 填值，未触发分配器
+  - Firestore gateway 填 deviceId、rev 保持 null（有意为之，已写进决定记录）
+  - deviceId 提取覆盖顶层与嵌套两种写法
+  - 六个测试用例全部存在，四条 SELF_CHECK 已实做并确认能变红
+  - core / drift / firebase 三个包全部测试绿

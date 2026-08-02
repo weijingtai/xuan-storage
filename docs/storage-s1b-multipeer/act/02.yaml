@@ -1,0 +1,274 @@
+ACT_VERSION: 1
+TASK_ID: mimo-storage-s1b-multipeer/02
+TITLE: OutboxStore / SyncStateStore 全部方法加 peerId（端口 + 内存 fake）
+TYPE: contract-breaking
+ORDER: 3
+DEPENDS_ON: [mimo-storage-s1b-multipeer/01b]
+DISPATCH_STATUS: ready
+STRONG_MODEL_ONLY: false
+
+OBJECTIVE: >
+  拆掉 §5.2.1 阻断点 3：`markSuccess({operationId, atUtc})` 没有 peerId。
+  不改的后果是二选一、都不可接受（§5.2.1 原文）：
+    · 标 success → outbox 行退出 peekBatch，离线的 LAN peer【永远收不到这条操作】
+    · 标 failed  → attempt+1，一个长期离线的 peer 会在 10 次重试内把整个 outbox 推成 dead
+  本 ACT 只改【端口签名 + core 内存 fake】。drift 侧实现是 ACT 04，
+  schema 是 ACT 03 —— 本 ACT 结束时 drift 会编译不过，这是预期的（见 EXPECTED_BREAKAGE）。
+
+EXPECTED_BREAKAGE: >
+  ⚠ 本 ACT 完成时的正确状态是：
+    cd core  && flutter test  → 全绿
+    cd drift && dart analyze  → 【有 ERROR】，DriftOutboxStore / DriftSyncStateStore
+                                 缺少新参数，报 NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
+                                 或 参数不匹配
+  这不是失败，是 02→03→04 三步走的中间态。**不要为了让 drift 变绿而在 core 端口上
+  给 peerId 加默认值。** 默认值会让 drift 侧"忘记传 peerId"变成静默通过，
+  而那正是本 ACT 要消灭的东西 —— 编译器是这里唯一可靠的门禁。
+  drift 恢复绿色是 ACT 04 的 DONE_WHEN。
+
+SCOPE:
+  READ:
+    - docs/superpowers/specs/2026-07-31-storage-architecture-design.md
+      # §5.2.1 阻断点 1/2/3 与「不改的后果」两条；§5.2.2 第 3 条端口签名原文
+    - core/lib/model/sync_peer.dart          # ACT 01 的 PeerId
+    - core/lib/model/ports.dart              # OutboxStore:22-110、SyncStateStore:121-167 现状
+    - core/lib/core/sync_coordinator.dart    # :57 peekBatch、:74 markSuccess —— 唯一业务调用点
+  MODIFY:
+    - core/lib/model/ports.dart              # OutboxStore 7 个方法 + SyncStateStore 5 个方法
+    - core/lib/core/sync_coordinator.dart    # 调用点补 peerId
+    - core/lib/sync/sync_runtime.dart        # 若有 OutboxStore/SyncStateStore 调用点，一并补
+    - core/test/persistence_core_test.dart   # _InMemoryOutboxStore:7 / _InMemorySyncStateStore:154
+
+SIGNATURE:
+  ports.dart OutboxStore: |
+    /// 取一批待推送记录。
+    ///
+    /// [peerId]：只返回【该对端尚未 ack】的记录。这是多 peer 的核心 ——
+    /// 同一条 operationId 对 cloud 已成功、对 lan 仍 pending 是常态。
+    Future<List<OutboxRecord>> peekBatch({
+      required String scopeUid,
+      required PeerId peerId,
+      required int limit,
+    });
+
+    /// 标记【某一条记录对某一个对端】推送成功。
+    ///
+    /// 语义变更（§5.2.1 阻断点 3）：success 是 (operationId, peerId) 二元组的属性，
+    /// 不是 operationId 的属性。对 cloud 成功【不得】让该行退出其他对端的 peekBatch。
+    Future<void> markSuccess({
+      required String operationId,
+      required PeerId peerId,
+      required DateTime atUtc,
+    });
+
+    /// 标记【某一条记录对某一个对端】推送失败。
+    ///
+    /// [attempt] 与 [isDead] 同样是 per-peer 的 —— 一个长期离线的 LAN peer
+    /// 达到 dead 阈值，【不得】影响该行对 cloud 的可推送性。
+    Future<void> markFailed({
+      required String operationId,
+      required PeerId peerId,
+      required int attempt,
+      required String errorCode,
+      required String errorMessage,
+      required DateTime atUtc,
+      required bool isDead,
+    });
+
+    /// 该对端的待推送积压数。
+    Future<int> backlogCount({required String scopeUid, required PeerId peerId});
+
+    /// 订阅该对端的待推送积压数。
+    Stream<int> watchBacklogCount({required String scopeUid, required PeerId peerId});
+
+    /// 该对端的死信数。
+    Future<int> deadCount({required String scopeUid, required PeerId peerId});
+
+    // enqueue(OutboxRecord) 【不变】—— 入队时还不知道要推给谁，
+    // 对端集合是推送时才确定的。给 enqueue 加 peerId 等于要求业务层
+    // 在写入时就枚举所有对端，那是错误的耦合方向。
+
+  ports.dart SyncStateStore: |
+    // 五个方法全部加 peerId：游标是 per-(scope, peer, entityType) 的。
+    // 云端游标推进到 T，不代表 LAN peer 也同步到了 T —— 混用会导致
+    // 「换了个 peer 就从错误的位置续拉」，静默丢变更。
+    Future<PullCursor?> getCursor({
+      required String scopeUid,
+      required PeerId peerId,
+      required String entityType,
+    });
+
+    Future<void> setCursorIfNewer({
+      required String scopeUid,
+      required PeerId peerId,
+      required String entityType,
+      required PullCursor cursor,
+      required DateTime atUtc,
+    });
+
+    Future<void> clear({
+      required String scopeUid,
+      required PeerId peerId,
+      required String entityType,
+    });
+
+    Future<void> markPulledAt({
+      required String scopeUid,
+      required PeerId peerId,
+      required String entityType,
+      required DateTime atUtc,
+    });
+
+    Future<void> markPushedAt({
+      required String scopeUid,
+      required PeerId peerId,
+      required DateTime atUtc,
+    });
+
+TASK_DETAIL:
+  parameter_position: >
+    peerId 一律紧跟 scopeUid 之后（或 operationId 之后），保持 12 个方法的参数顺序一致。
+    全是 named 参数，位置本不影响调用，但一致的顺序让 review 时一眼能看出漏了谁。
+
+  in_memory_fake_keying: >
+    core/test/persistence_core_test.dart 的两个 fake 是本 ACT 的【可执行规格】：
+      _InMemoryOutboxStore:7    —— 内部状态必须按 (operationId, peerId) 二元组存 ack，
+                                    【不是】给 OutboxRecord 加一个 status 字段。
+                                    记录本身只有一份，ack 有 N 份。
+      _InMemorySyncStateStore:154 —— 游标按 (scopeUid, peerId, entityType) 三元组存。
+    这两个 fake 的形状会被 ACT 03 的 schema 照抄，写歪了后面全歪。
+
+  sync_coordinator_call_sites: >
+    core/lib/core/sync_coordinator.dart:57 与 :74 是 peekBatch / markSuccess 的
+    【唯一业务调用点】（已实测：下游 12 个业务仓库没有任何一处引用这两个端口）。
+    本 ACT 让它先用一个【单一 peerId】跑通（从构造参数注入，或暂用
+    ACT 01b 定下的 PeerId('firestore')），行为与现在完全一致。
+    真正的 fan-out 是 ACT 05，【本 ACT 不做】。
+
+CONSTRAINTS:
+  - 【不要】给 peerId 加默认值。理由见 EXPECTED_BREAKAGE —— 默认值会让漏传变成静默通过。
+  - 【不要】给 enqueue 加 peerId。理由见 SIGNATURE 末尾注释。
+  - 【不要】为了让 drift 编译过而在本 ACT 顺手改 drift。那是 ACT 03/04，
+    混进来会让 schema 迁移的 diff 和端口变更的 diff 缠在一起，跨模型审查看不清。
+  - 【不要】把 peerId 写成 String。ACT 01 定的是 extension type PeerId，
+    用 String 会让 peerId 与 scopeUid / entityType 在类型上无法区分（它们都是 String）。
+  - 【不要】动 OutboxRecord 的字段。ack 状态不属于记录本身，属于 (记录, 对端) 关系。
+  - 每个改动的公开声明必须更新中文 dartdoc，说明 peerId 的语义（A12）。
+
+TESTS_FIRST:
+  CASES:
+    - NAME: ack_for_one_peer_does_not_hide_record_from_another
+      FILE: core/test/s1b_ports_peer_scoped_test.dart
+      BEHAVIOR: >
+        【本 ACT 最重要的一条，也是整个 S1b 的立身之本】。
+        用 _InMemoryOutboxStore：enqueue 一条记录，对 PeerId('cloud') 调 markSuccess。
+        断言：
+        - `peekBatch(peerId: PeerId('cloud'))` 【不含】该记录；
+        - `peekBatch(peerId: PeerId('lan'))`   【仍含】该记录。
+        写成「success 是 operationId 的属性」这条会红 —— 而那正是 §5.2.1
+        「离线的 LAN peer 永远收不到这条操作」的成因。
+      RED_COMMAND: cd core && flutter test test/s1b_ports_peer_scoped_test.dart
+      RED_EXPECT: 编译失败（peekBatch 尚无 peerId 参数），退出码非 0
+      COVERS: [A4]
+
+    - NAME: dead_for_one_peer_does_not_kill_another
+      FILE: core/test/s1b_ports_peer_scoped_test.dart
+      BEHAVIOR: >
+        非 happy-path，对应 §5.2.1 的第二个「不可接受」。
+        对 PeerId('lan') 连续 markFailed 10 次，最后一次 isDead: true。断言：
+        - `deadCount(peerId: lan)` 为 1；
+        - `deadCount(peerId: cloud)` 为 【0】；
+        - `peekBatch(peerId: cloud)` 【仍含】该记录（云端照常可推）。
+        attempt 计数若不是 per-peer，一个长期离线的 LAN peer 会把整个 outbox 推成 dead，
+        连带云端同步一起死。
+      RED_COMMAND: cd core && flutter test test/s1b_ports_peer_scoped_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A5]
+
+    - NAME: cursor_is_isolated_per_peer
+      FILE: core/test/s1b_ports_peer_scoped_test.dart
+      BEHAVIOR: >
+        用 _InMemorySyncStateStore：对 (scope, cloud, 'record') 写入一个较新的 cursor，
+        断言 `getCursor(scope, lan, 'record')` 返回 【null】（lan 从未拉过）。
+        再对 lan 写入一个较旧的 cursor，断言两者互不覆盖、各读各的。
+        游标若不按 peer 隔离，换个 peer 就会从错误的位置续拉 —— 静默丢变更，
+        且丢的量等于两个 peer 的进度差。
+      RED_COMMAND: cd core && flutter test test/s1b_ports_peer_scoped_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A4]
+
+    - NAME: backlog_stream_is_per_peer
+      FILE: core/test/s1b_ports_peer_scoped_test.dart
+      BEHAVIOR: >
+        订阅 `watchBacklogCount(scope, cloud)` 与 `watchBacklogCount(scope, lan)` 两条流。
+        enqueue 一条记录 → 断言两条流【都】收到 1。
+        对 cloud markSuccess → 断言 cloud 流收到 0，而 lan 流【仍是 1】。
+        这条守的是 SyncRuntime 的触发逻辑：backlog 流若不 per-peer，
+        云端推完后 runtime 会认为「没活了」而不再唤醒 LAN 推送。
+      RED_COMMAND: cd core && flutter test test/s1b_ports_peer_scoped_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A4]
+
+    - NAME: enqueue_signature_unchanged
+      FILE: core/test/s1b_ports_peer_scoped_test.dart
+      BEHAVIOR: >
+        以纯文本读取 core/lib/model/ports.dart，断言其中【逐字】包含
+        `Future<void> enqueue(OutboxRecord record);`。
+        入队时对端集合还不确定，给 enqueue 加 peerId 会把「有哪些对端」
+        这个运行时问题推给业务写入层 —— 错误的耦合方向。
+        这种改动在 review 里极易被当成「保持一致」而放过，所以要有文本级守卫。
+      RED_COMMAND: cd core && flutter test test/s1b_ports_peer_scoped_test.dart
+      RED_EXPECT: 断言失败或编译失败，先红
+      COVERS: [A12]
+
+    - NAME: no_default_value_on_peer_id
+      FILE: core/test/s1b_ports_peer_scoped_test.dart
+      BEHAVIOR: >
+        以纯文本扫描 core/lib/model/ports.dart，断言【不存在】
+        `PeerId peerId = ` 或 `PeerId peerId,` 前带 `[` 之类的可选写法 ——
+        即 12 个方法的 peerId 全部是 `required`。
+        再断言 `required PeerId peerId` 出现次数 >= 12（写死下限）。
+        默认值会让 drift 侧漏传 peerId 变成静默通过，编译器就不再是门禁了。
+      RED_COMMAND: cd core && flutter test test/s1b_ports_peer_scoped_test.dart
+      RED_EXPECT: 断言失败，先红
+      COVERS: [A4]
+
+VERIFICATION:
+  - CMD: cd core && dart analyze --fatal-infos lib/model/ports.dart
+    EXPECT_EXIT: 0
+  - CMD: cd core && flutter test
+    EXPECT_EXIT: 0
+  # 12 个方法全部带 required peerId
+  - CMD: 'grep -c "required PeerId peerId" core/lib/model/ports.dart'
+    EXPECT_STDOUT: "12"
+  # peerId 不得有默认值 / 不得可选
+  - CMD: 'grep -nE "PeerId peerId\s*=|\[\s*PeerId peerId" core/lib/model/ports.dart'
+    EXPECT_EXIT: 1
+  # 不得退化成 String
+  - CMD: 'grep -nE "required String peerId" core/lib/model/ports.dart'
+    EXPECT_EXIT: 1
+  # enqueue 签名未变
+  - CMD: 'grep -c "Future<void> enqueue(OutboxRecord record);" core/lib/model/ports.dart'
+    EXPECT_STDOUT: "1"
+  # OutboxRecord 字段未被塞入 ack 状态
+  - CMD: git diff --exit-code main.. -- core/lib/model/types.dart
+    EXPECT_EXIT: 0
+  # 本 ACT 不碰 drift 与 firebase 的 lib
+  - CMD: git diff --exit-code HEAD~1 -- drift/lib firebase/lib
+    EXPECT_EXIT: 0
+
+SELF_CHECK:
+  - 把 _InMemoryOutboxStore 的 ack 临时改成按 operationId 存（丢掉 peerId 维度）→
+    `ack_for_one_peer_does_not_hide_record_from_another` 与
+    `backlog_stream_is_per_peer` 必须【同时】变红。只红一条说明覆盖不足 → 改回
+  - 把 markFailed 的 dead 判定临时改成全局 →
+    `dead_for_one_peer_does_not_kill_another` 必须变红 → 改回
+  - 给 ports.dart 里任意一个 peerId 临时加默认值 →
+    `no_default_value_on_peer_id` 与 grep 门禁必须变红 → 改回
+  - 三次自检后 `git status --porcelain` 必须为空
+
+DONE_WHEN:
+  - ports.dart 的 12 个方法全部带 required PeerId，enqueue 未变
+  - 两个内存 fake 按二元组/三元组存状态，core 全部测试绿
+  - 六个测试用例全部存在，三条 SELF_CHECK 已实做并确认能变红
+  - drift 处于【预期的编译失败】状态 —— 这是中间态，不是缺陷，写进当前状态区
