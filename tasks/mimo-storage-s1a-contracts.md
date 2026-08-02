@@ -62,6 +62,12 @@
 - 2026-08-01 R1返工-4: ACT02 的 A8 验证由「四个 ._ 总数为 4」改为「四个子类各自 grep -c 为 1」+「无匹配任何公开构造器」。理由: 总数为 4 无法排除「4 条都是 PrivatePolicy._」。
 - 2026-08-01 R1返工-5: ACT05 补 A4 全目录零实现扫描（原先各 ACT 只扫自己那几个文件）、A9 由验 2 条 export 改为逐条验 12 条、A10 新增中文 dartdoc 门禁测试（原先 A10 只写在 CONSTRAINTS 里，无任何验证）。
 - 2026-08-01 转译审查R1 结论: 9 项返工全部修复，ACT 由 6 个块（22 测试用例/26 验证命令）增至 6 个块（27 测试用例/32 验证命令）。待 R2 复审。
+- 2026-08-01 转译审查R2(Codex): 9 项中 6 项确认已修，2 项部分修复，另发现 1 项新风险。三项已全部修复。
+- 2026-08-01 R2返工-1: ACT02 的 A8 正则由 `XxxPolicy\(` 扩为 `XxxPolicy(\.[a-zA-Z]|\()`。理由: 原正则只拦无名公开构造器，`SharedPolicy.public(...)` 这类公开【命名】构造器仍可逃逸（`._` 因 _ 非字母不被误伤）。
+- 2026-08-01 R2返工-2: ACT06 脚本弃用 `declare -A`，改 while-read 表驱动。理由: 已实测 macOS 自带 /bin/bash 为 3.2.57，不支持关联数组，配合 set -u 直接退出 127，脚本会在跑到八项检查前就死。VERIFICATION 增加 `/bin/bash -n` 与 `/bin/bash 跑通` 两条。
+- 2026-08-01 R2返工-3: ACT06 oracle 由「日志中存在目标错误」收紧为「analyze 退出码恰为 3 + 存在目标错误 + 不存在允许集合之外的 ERROR」。理由: 原判据下「目标错误 + 一堆无关错误」也会通过。已在 bash 3.2 下用假日志实测：注入 UNDEFINED_IDENTIFIER 后正确判失败。
+- 2026-08-01 R2返工-4: 伴生错误码纳入允许集合。理由: `const x = Foo(bad:1)` 除 UNDEFINED_NAMED_PARAMETER 外必然连带 CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE，若不允许会误报。已实测确认该伴生关系。
+- 2026-08-01 转译审查R2 结论: 3 项返工已修复并实测验证（bash 3.2 兼容性 + oracle 严格性）。ACT 最终 6 块 / 28 测试用例 / 36 验证命令。协议规定闸门 ≤2 轮，是否再跑 R3 由人类决定。
 
 ## 踩坑墓地
 - 2026-08-01: 尝试用 const 构造器的 `assert(channels.contains(Channel.cloud))` 把不变式做成编译错误，失败。原因: `Set.contains` 是方法调用，const 表达式禁止，报 `const_eval_method_invocation`。结论: 别再试 assert 路线，用「把参数从参数表移除」的结构化手法。

@@ -6,6 +6,7 @@ ORDER: 2
 DEPENDS_ON: [mimo-storage-s1a-contracts/01]
 DISPATCH_STATUS: ready
 STRONG_MODEL_ONLY: false
+REVISION: R2   # 闸门 R2：A8 补拦截公开命名构造器
 
 OBJECTIVE: >
   交付存储策略的密封类族与全局注册表。核心要求：非法组合在参数表上传不进去，
@@ -161,10 +162,15 @@ VERIFICATION:
   - CMD: grep -c "const ControlPolicy\._" core/lib/model/storage_policy.dart
     EXPECT_STDOUT: "1"
     EXPECT_EXIT: 0
-  # 且不得存在任何公开构造器（无下划线的 const XxxPolicy(）
-  - CMD: grep -cE "const (PrivatePolicy|SharedPolicy|ResourcePolicy|ControlPolicy)\(" core/lib/model/storage_policy.dart
+  # 且不得存在任何公开构造器。R2 加固：原先只排除了无名公开构造器 `XxxPolicy(`，
+  # 公开【命名】构造器如 `SharedPolicy.public(` 仍可逃逸。
+  # 下面的正则同时拦截两种：`.字母` 匹配公开命名构造器（`._` 不匹配，因为 _ 不是字母），
+  # `\(` 匹配无名公开构造器。
+  - CMD: grep -cE "const (PrivatePolicy|SharedPolicy|ResourcePolicy|ControlPolicy)(\.[a-zA-Z]|\()" core/lib/model/storage_policy.dart
     EXPECT_STDOUT: "0"
     EXPECT_EXIT: 1   # grep -c 无匹配时打印 0 且退出 1，两者都要断言
+  # 自检：把 `const SharedPolicy.public(...)` 临时加进文件，上面这条必须变为非 0；
+  # 验证完删除。不做这步自检不算完成 A8。
   - CMD: grep -E "factory StoragePolicy\.private" -A 5 core/lib/model/storage_policy.dart | grep -c "cloud"
     EXPECT_STDOUT: "0"
     EXPECT_EXIT: 1   # 同上：stdout 与 exit 必须一起断言，否则契约不闭合
