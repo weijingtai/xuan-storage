@@ -1,0 +1,10 @@
+name: policy_negative
+description: 故意编译不过的 fixture 工程 —— 逐条证明非法策略组合写不出来（ACT 06）
+publish_to: none
+
+environment:
+  sdk: '>=3.11.0 <4.0.0'
+
+dependencies:
+  persistence_core:
+    path: ../../core

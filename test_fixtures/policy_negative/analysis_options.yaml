@@ -1,0 +1,6 @@
+# 独立配置，切断向上继承。只关心 error 级问题。
+analyzer:
+  errors:
+    unused_import: ignore
+    unused_local_variable: ignore
+    unused_element: ignore

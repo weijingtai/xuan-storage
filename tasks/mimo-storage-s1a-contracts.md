@@ -74,7 +74,13 @@
   含未注册 fail closed / lan:false 排除）+ s1a_dartdoc_coverage_test.dart
   （A10 中文 dartdoc 门禁）。全包 flutter test 64 绿、A4 零实现无匹配、
   A9 十二条 export 全 OK。A1 已按人类改判走 run_s1a_analyze_gate.sh（58=58）。
-- [ ] ACT 06: analyzer 负测试（未开工）
+- [x] ACT 06: analyzer 负测试 —— 8 条非法组合逐条被拒绝 ✅
+  2026-08-01 完成。test_fixtures/policy_negative/（仓库根，独立 pubspec path
+  ../../core，8 个 vN 文件一违规一文件）+ scripts/run_policy_negative_check.sh
+  （bash3.2 表驱动，逐条核对错误码+所在文件，退出码恰为 3，拒绝无关 ERROR）。
+  /bin/bash -n 与实跑均通过，8 行 ✅。三自检实际执行：v3 合法化→判失败、
+  v1 注入 UNDEFINED_IDENTIFIER→报预期之外、pubspec path 断开→pub get 失败，
+  均退出 1 后恢复。注意：脚本注释不得字面含 declare -A（oracle 会 grep）。
 
 ## 决定记录
 - 2026-08-01: S1 拆为 S1a(契约) + S1b(引擎多 peer 化)。理由: 核实发现 `t_outbox` 主键 `{operationId}`、`t_sync_state` 主键 `{scopeUid,entityType}`、`markSuccess` 签名均无 peerId，多 peer 需两次 schema 迁移，不属契约层。原文档「SyncCoordinator/SyncRuntime 零改动」经核实为假。
