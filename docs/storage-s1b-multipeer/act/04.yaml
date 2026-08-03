@@ -43,8 +43,18 @@ STAGES: >
   按此顺序推进，每个阶段末尾的检查通过了再进下一个。
   中间阶段【允许】drift 编译不过 —— 那是 ACT 内部的红，不是交付态。
 
-    阶段 1（core 端口 + 内存 fake）
-      改 ports.dart 的 12 个方法 + 抽出公共 fake 文件 + 写 core 侧测试
+    阶段 1（core 端口 + 内存 fake + core 侧调用点）
+      改 ports.dart 的 12 个方法 + 抽出公共 fake 文件 + 写 core 侧测试，
+      【并在同一阶段内】把 core 包内的调用点一并接上单一 peerId：
+        · core/lib/core/sync_coordinator.dart:57（peekBatch）、:74（markSuccess）
+        · core/lib/core/sync_runtime.dart 里对这两个端口的转发点（若有）
+      接法见下方 TASK_DETAIL.sync_coordinator_call_sites：先用一个单一 peerId
+      跑通，行为与现在完全一致，真正的 fan-out 留给 ACT 06。
+      ⚠ 【调用点必须在本阶段内改完，不能拖到阶段 3】——
+      端口签名一改，core 内的旧调用点立刻编译不过，
+      不跟进的话 `cd core && flutter test` 不可能全绿，本阶段的检查就永远过不了
+      （Codex R3：阶段 1 原文只写"端口 + fake + core 测试"，
+      执行者照着做会卡在一个自相矛盾的检查上）。
       检查：cd core && flutter test 全绿   （drift 此时必然红，正常）
 
     阶段 2（drift DAO 层）

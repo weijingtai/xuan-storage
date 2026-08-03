@@ -214,6 +214,26 @@ SIGNATURE:
       required Future<void> Function() write,
     });
 
+  persistence_drift.dart 戳读取接口: |
+    /// 读取某个实体当前的 HLC 戳；边表里没有该行时返回 null。
+    ///
+    /// 【ACT 10 的 applier 靠它拿"本地版本"参与仲裁】（Codex R3 · P0-1：
+    /// v3 只给了写入接口 applyWithStamp，没有读取接口，
+    /// 于是 ACT 10 要求的"读本地 stamp 再仲裁"在生产代码里没有通道，
+    /// 执行者只能自己去测试里裸查表 —— 那不是生产接线）。
+    ///
+    /// 返回 null 有【两种现实】且本方法【区分不了】：
+    ///   ① 本地压根没有这个实体
+    ///   ② 本地有实体，但边表还没有它的戳（v8 迁移前写入的历史数据）
+    /// 这个区分【必须由调用方做】—— ACT 10 的 applier 结合
+    /// 本地实体是否存在来判定，见 ACT 09 的
+    /// TASK_DETAIL.local_null_is_ambiguous_by_design 与 ACT 10 的对应用例。
+    Future<EntityStampRow?> getEntityStamp({
+      required String scopeUid,
+      required String entityType,
+      required String entityId,
+    });
+
 TASK_DETAIL:
   no_data_class_changes: >
     【本 ACT 不动任何 Data class】。RecordMeta、各模块的 record 类型、
@@ -276,26 +296,52 @@ TESTS_FIRST:
         用一个可注入的假时钟源驱动。随机顺序产生【至少 1000 次】事件：
           · 本地写入（tick）
           · 把某节点的当前戳发给另一节点（对方 observe）
-        全程记录每个事件的 (nodeId, hlc)。跑完断言三条不变式：
+        全程记录每个事件的 (nodeId, hlc)。跑完断言【两条】不变式：
 
         ① 单调性：同一节点的连续 tick 严格递增（用 compareTo > 0）
         ② **因果性：若节点 B 在时刻 T observe 过节点 A 的戳 S，
            则 B 在 T 之后产生的每一个戳都 > S**（这是 HLC 的全部价值）
-        ③ 收敛性：**两个从零开始的独立 HlcClock 实例集，各自以【不同的接收顺序】
-           重放同一组事件（一个按产生顺序，一个把每个节点的入站消息乱序但保持
-           因果先后），跑完后对任意一对最终 (hlc, deviceId) 得出同一个胜负结论。**
 
-           ⚠ 【不许写成"同一个确定性函数自比"】（Codex R2）：
-           拿同一组已算好的戳，调两次 compareTo 再断言两次结果相同 ——
-           那是在断言"纯函数是纯函数"，任何实现都会绿，证明力为零。
-           收敛性要证的是【不同的到达顺序不改变最终胜负】，
-           所以两侧必须是真正独立跑出来的两组戳。
+        ⚠ 【收敛性不在本用例里】（Codex R3 · P0-2）：
+        HLC 的逻辑计数 c 【本身就受 observe 到达顺序影响】——
+        同一组事件按不同顺序重放，生成的戳可以合法地不同。
+        要求"不同顺序重放后戳相同或胜负相同"是在断言 HLC 【没有承诺】的性质，
+        实现正确也可能红，那是个假门禁。
+        收敛性改由下一条 `convergence_over_fixed_stamps` 覆盖：
+        它对【已经生成好的】一组戳做归并，那才是收敛性真正的战场。
 
         用固定 seed 的伪随机数，失败时打印 seed 以便复现。
-        ② 是抓"漏调 receiveEvent"的唯一手段 —— 那个 bug 让①③照样绿。
+        ② 是抓"漏调 receiveEvent"的唯一手段 —— 那个 bug 让①照样绿。
       RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
       RED_EXPECT: 编译失败（HlcClock 不存在），退出码非 0
       COVERS: [A8]
+
+    - NAME: convergence_over_fixed_stamps
+      FILE: core/test/s1b_hlc_property_test.dart
+      BEHAVIOR: >
+        【收敛性的正确测法】（Codex R3 · P0-2 修正标准）。
+        分两步，关键是【戳先固定下来，再谈归并】：
+
+        第一步：用上一条的 3 节点仿真跑出【一组固定的】
+        `(hlc, deviceId)` 版本列表（≥50 个，含若干 hlc 相等 deviceId 不同的并发对）。
+        这组戳生成一次就【冻结】，后面两侧用的是【同一组戳】。
+
+        第二步：造两个【互相独立】的归并器实例（各自维护
+        "entityId → 当前胜出版本" 的映射），把同一组戳
+        以【两种不同的到达顺序】喂进去：
+          · 一侧按产生顺序
+          · 另一侧用固定 seed 打乱（允许违反因果先后 ——
+            网络乱序时本来就会这样，归并结果必须照样一致）
+        跑完断言：两侧对【每一个 entityId】选出的最终胜出版本【完全相同】。
+
+        这条证的是"最终状态与到达顺序无关"，即 §5.3 要的收敛性。
+        它落在【归并/仲裁】这一层，不依赖 HLC 生成顺序的可重复性，
+        所以实现正确时它必然绿、退化成 RWW（后到者赢）时它必然红。
+
+        ⚠ 【不许写成"同一个确定性函数自比"】（Codex R2）：
+        拿同一组戳调两次 compareTo 再断言两次结果相同 ——
+        那是在断言"纯函数是纯函数"，任何实现都会绿，证明力为零。
+        两侧必须是两个真正独立的归并器实例、两种真正不同的喂入顺序。
 
     - NAME: causality_survives_clock_skew
       FILE: core/test/s1b_hlc_property_test.dart
@@ -484,9 +530,9 @@ VERIFICATION:
 SELF_CHECK:
   - 【最关键的一条】把 `observe` 的实现体临时清空（变成空函数）→
     `property_three_node_simulation` 的 ② 因果性 与 `causality_survives_clock_skew`
-    必须【同时】变红，而 ① 单调性 与 ③ 收敛性【仍然绿】→ 改回。
+    必须【同时】变红，而 ① 单调性【仍然绿】→ 改回。
     这一步同时证明两件事：属性测试抓得到漏调 observe，
-    且只靠单调性/收敛性是抓不到的
+    且只靠单调性是抓不到的
   - 把 `HlcClockStore.load()` 临时改成恒返回 null（模拟不持久化）→
     `clock_survives_restart` 必须变红 → 改回
   - 把 save 临时改成"只在第一次 tick 时存"→
@@ -495,18 +541,24 @@ SELF_CHECK:
     `apply_with_stamp_rolls_back_both_on_write_failure` 必须变红 → 改回
   - 把 EntityStamps 主键临时改回 {entityType, entityId}（去掉 scopeUid）→
     `stamp_is_scoped_by_scope_uid` 必须变红 → 改回
-  - 把属性测试 ③ 的第二组临时改成"复用第一组算好的戳"→
+  - 把 `convergence_over_fixed_stamps` 的归并规则临时改成"后到者恒胜"（退化成 RWW）→
+    该用例必须变红，而 `property_three_node_simulation` 【仍然绿】→ 改回。
+    这一步证明收敛性用例真的在考归并、且 HLC 生成侧的用例管不到这个失效
+  - 把 `convergence_over_fixed_stamps` 的第二个归并器临时改成
+    "复用第一个归并器的实例"（而非独立实例）→
     这条【不会变红】，那正说明它退化成了自比；
-    确认现象后改回成两组独立重放（Codex R2）
+    确认现象后改回成两个独立实例（Codex R2）
   - 把 `hlcPacked` 临时改成字符串格式 → grep 门禁必须变红 → 改回
-  - 七次自检后 `git status --porcelain` 必须为空
+  - 八次自检后 `git status --porcelain` 必须为空
 
 ON_FAIL:
   - RED 阶段测试没红（写完实现前就绿）→ 说明测试没真正依赖新类型，
     停下重写测试，不要继续
   - 属性测试偶发失败（换 seed 就绿）→ **这是真 bug 不是 flaky**，
-    HLC 的三条不变式在任何事件序列下都必须成立。记下失败 seed 并定位，
+    HLC 的单调性与因果性在任何事件序列下都必须成立。记下失败 seed 并定位，
     【不要】加重试、不要放宽断言
+  - 用例 `convergence_over_fixed_stamps` 偶发失败 → 同上，收敛性对任意到达顺序都必须成立；
+    若只在乱序侧红，怀疑归并器里混入了"按到达先后"的隐式偏好
   - v7→v8 迁移测试失败 → 优先怀疑漏建表而非漏搬数据（本 ACT 是纯建表），
     逐字段比对旧行
   - core / drift 既有测试变红 → 立即停下。本 ACT 只加不改，
@@ -519,8 +571,9 @@ DONE_WHEN:
   - t_entity_stamp 边表（主键含 scope_uid）+ t_hlc_clock_state 单行表建立，
     schemaVersion 为 8，前六段迁移未动
   - applyWithStamp 生产接口存在，戳与记录在同一事务内落盘
+  - getEntityStamp 读取接口存在（ACT 10 的 applier 靠它拿本地戳）
   - RemoteChange 有可空 hlcPacked / deviceId，既有七字段未变
   - 所有 Data class 与 repository-interface-* 仓库【零改动】
-  - 十个测试用例全部存在且通过，属性测试跑满 ≥1000 事件
-  - 七条 SELF_CHECK 已实做并确认能变红，尤其第一条（清空 observe 只红 ②）
-    与倒数第一条（③ 自比时抓不到，证明它确实退化过）
+  - 十一个测试用例全部存在且通过，属性测试跑满 ≥1000 事件
+  - 八条 SELF_CHECK 已实做并确认能变红，尤其第一条（清空 observe 只红 ②）
+    与倒数第二条（归并器自比时抓不到，证明它确实退化过）

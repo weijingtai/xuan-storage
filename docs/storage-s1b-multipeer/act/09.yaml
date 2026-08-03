@@ -59,7 +59,20 @@ SIGNATURE:
     /// deviceId 作为决胜位把它补成全序，保证任意两台设备对同一对版本
     /// 得出【同一个】结论。
     ///
-    /// 比较规则：先比 hlc；hlc 相等（并发）时比 deviceId 字典序，大者胜。
+    /// 比较规则：先比 hlc；hlc 相等（并发）时比 deviceId 的
+    /// **UTF-8 字节序**（无符号逐字节字典序），大者胜。
+    ///
+    /// ⚠⚠ 【deviceId 必须按 UTF-8 字节比，不许直接用 `String.compareTo`】
+    /// （Codex R3 · P0-3）。Dart 的 `String.compareTo` 走的是 **UTF-16 code unit**
+    /// 序，与 UTF-8 字节序【在非 ASCII 上结论相反】：
+    ///   · U+10000（𐀀，UTF-8 = F0 90 80 80；UTF-16 = D800 DC00 代理对）
+    ///   · U+E000（，UTF-8 = EE 80 80；UTF-16 = E000）
+    ///   UTF-8 序：EE < F0 ⇒ U+E000 < U+10000
+    ///   UTF-16 序：D800 < E000 ⇒ U+10000 < U+E000   ←【结论相反】
+    /// 两端若一端用 UTF-8 一端用 UTF-16，对同一对并发版本会选出【不同的赢家】，
+    /// 那正是 A14「跨语言客户端可对表」要防的事，且不报错、只是静默分叉。
+    /// 实现方式：`utf8.encode(deviceId)` 后逐字节比无符号值，
+    /// 短的是长的前缀时短者小。ASCII 范围内两种序一致，所以【纯 ASCII 测试抓不到这个 bug】。
     final class VersionStamp implements Comparable<VersionStamp> {
       /// HLC 戳。打包形式见 ACT 11 的线上格式规格。
       final HybridLogicalClock hlc;
@@ -274,14 +287,39 @@ TESTS_FIRST:
       BEHAVIOR: >
         【专打"用减法实现 compareTo"，对应 Codex R1 指出、R2 复核仍在的洞】。
         构造两个 VersionStamp，其打包值分别接近 int64 的正负两端
-        （例如 l 取规格允许的最大值与 0，deviceId 相同）。断言：
+        （例如 l 取规格允许的最大值 2^47-1 与 0，deviceId 相同）。断言：
         - `big.compareTo(small) > 0` 且 `small.compareTo(big) < 0`；
         - 两者的差【超过 2^62】—— 用减法实现时结果会绕回、符号翻转，这条会红。
         再取一组差值恰好跨过 2^63 边界的（如果规格允许的 l 上限做不到，
         就直接对 `toPacked()` 返回的两个 int 断言三路比较的结果，
         并在注释里写明"本条守的是实现手法，不是业务可达值"）。
-        ⚠ 这条与四条序性质【不重复】：那四条在普通值上对减法实现同样成立，
-        只有极端量级能把减法和三路比较区分开。
+        ⚠ 【本用例必须配合下方 VERIFICATION 的文本 grep 一起读，两者互补】：
+        合法值域内减法不会符号翻转，本用例的溢出断言只在【非法/极端值】上红，
+        所以【真正抓到减法实现的是那条文本 grep】（Codex R3 · P1-1）。
+        本用例的价值是兜住"用减法但数值没溢出"的漏网 —— 两者缺一不可。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A8, A14]
+
+    - NAME: device_id_compared_as_utf8_bytes_not_utf16
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        【专打"直接用 `String.compareTo` 比 deviceId"的实现】，
+        （Codex R3 · P0-3）。
+        取两个 hlc 完全相等、deviceId 在【非 ASCII】上相反的标识：
+          · `'\u{10000}'`（U+10000）  UTF-8 首字节 F0 ｜ UTF-16 首单元 D800
+          · `'\u{e000}'`  （U+E000）   UTF-8 首字节 EE ｜ UTF-16 首单元 E000
+        UTF-8 字节序：EE < F0 ⇒ U+E000 小、U+10000 大；
+        UTF-16 code unit 序：D800 < E000 ⇒ 结论【相反】。
+        断言按【UTF-8 字节序】：
+          - `a = VersionStamp(hlc: same, deviceId: '\u{e000}')`
+            `b = VersionStamp(hlc: same, deviceId: '\u{10000}')`
+            `b.compareTo(a) > 0`（U+10000 是 UTF-8 序的大者）且 `a.compareTo(b) < 0`
+        ⚠ 【纯 ASCII 测试抓不到这个 bug】—— ASCII 在两种序下完全相同，
+        所以本用例必须用上面两个非 ASCII 标识。
+        这条也是 A14「跨语言客户端对表」的第一道防线：
+        Web/Rust 端按 UTF-8 字节比，Dart 端若按 UTF-16 比，同一对并发版本
+        会选出【不同的赢家】且不报错 —— 那正是本用例要钉死的静默分叉。
       RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
       RED_EXPECT: 编译失败，先红
       COVERS: [A8, A14]
@@ -363,9 +401,21 @@ VERIFICATION:
     EXPECT_EXIT: 0
   - CMD: 'grep -nE "required this.discarded" core/lib/model/types.dart'
     EXPECT_EXIT: 1
-  # compareTo 不得用减法（三路比较）—— 文本级守卫，与极端量级用例互补
+  # compareTo 不得用减法（三路比较）—— 文本级守卫，【禁止减法的权威门禁】
+  # （Codex R3 · P1-1：合法值域内减法不溢出，测试用例抓不到，只有这条能抓）
   - CMD: "sed -n '/int compareTo(VersionStamp other)/,/^  }/p' core/lib/model/conflict_arbiter.dart | grep -nE '[a-zA-Z)\\]] *- *(other|[a-z])'"
     EXPECT_EXIT: 1
+  # deviceId 必须按 UTF-8 字节比，不许直接用 String.compareTo（Codex R3 · P0-3）
+  - CMD: "sed -n '/int compareTo(VersionStamp other)/,/^  }/p' core/lib/model/conflict_arbiter.dart | grep -nE 'deviceId\\.compareTo|deviceId *\\.compareTo'"
+    EXPECT_EXIT: 1
+  # 且必须真的出现 utf8 编码调用
+  - CMD: 'grep -cE "utf8\.encode" core/lib/model/conflict_arbiter.dart'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  # UTF-8 分歧用例必须存在（纯 ASCII 测试抓不到 P0-3）
+  - CMD: 'grep -cE "\\\\u\{10000\}|\\\\u\{e000\}" core/test/s1b_conflict_arbiter_test.dart'
+    EXPECT_STDOUT: "2"
+    EXPECT_EXIT: 0
   # 双向留档：ConflictSide 两个值都要用上
   - CMD: 'grep -c "ConflictSide.remote" core/test/s1b_conflict_arbiter_test.dart'
     EXPECT_STDOUT: "1"
@@ -389,25 +439,37 @@ SELF_CHECK:
   - 把 toPacked 的位移临时从 16 改成 15 →
     `packed_round_trips_losslessly` 必须变红 → 改回
   - 把 compareTo 临时改成 `return toPacked() - other.toPacked();`（减法实现）→
-    `compare_to_survives_extreme_magnitude` 必须变红，
-    而 `comparison_is_a_total_order_exhaustive` 的前三条【仍然绿】→ 改回。
-    **这一步同时证明两件事**：极端量级用例抓得到减法，
-    且光靠四条序性质是抓不到的（Codex R1 指出、R2 复核仍在的洞）
-  - 六次自检后 `git status --porcelain` 必须为空
+    **文本 grep 门禁必须变红**（那条 sed 管道 grep 减法的命令，
+    其 EXPECT_EXIT 为 1 的期望会失败）→ 改回。
+    ⚠ 【不要声称 `compare_to_survives_extreme_magnitude` 一定会红】
+    （Codex R3 · P1-1）：A14 把合法 packed 值限定在 `[0, 2^63)`，
+    合法值域内两数相减【不会符号翻转】，所以那条用例在合法值上抓不到减法。
+    **禁止减法的权威门禁是文本 grep，不是那条测试用例。**
+    极端量级用例的定位是兜底（非法/越界值时的第二道网），不是主力。
+  - 把 compareTo 的 deviceId 比较临时改成 `a.deviceId.compareTo(b.deviceId)`
+    （即直接用 Dart 的 UTF-16 序）→
+    `device_id_compared_as_utf8_bytes_not_utf16` 必须变红，
+    而其余所有用例【仍然绿】→ 改回。
+    这一步证明 UTF-8 门禁真的在守 P0-3，且纯 ASCII 用例确实抓不到它
+  - 七次自检后 `git status --porcelain` 必须为空
 
 ON_FAIL:
   - RED 阶段没红 → 测试没真正依赖新类型，重写测试
   - 传递性断言失败 → 优先怀疑 compareTo 用了减法（`a.l - b.l`）而非三路比较
+  - 用例 `device_id_compared_as_utf8_bytes_not_utf16` 红 → 几乎必然是直接用了
+    `String.compareTo`；改成 `utf8.encode()` 后逐字节比无符号值
   - 既有 core/drift 测试变红 → 立即停下，本 ACT 只加不改
   - 连续两次修不好同一条 → 在纪要「决定记录」写下现象与已排除的可能，停下上报
 
 DONE_WHEN:
   - conflict_arbiter.dart 与测试文件存在，全部命令按 EXPECT 通过
   - compareTo 经穷举验证为全序，且 0 当且仅当 hlc 与 deviceId 都相等
+  - deviceId 按 **UTF-8 字节序**比较（不是 `String.compareTo` 的 UTF-16 序），
+    且有能区分两者的非 ASCII 用例守着
   - 四种 null 组合各有测试，fail-safe 方向正确
   - 冲突留档【双向】：takeRemote 留本地、keepLocal 留远端
-  - compareTo 用三路比较而非减法，极端量级用例通过
+  - compareTo 用三路比较而非减法，由【文本 grep 门禁】权威守卫
   - local == null 的两种现实（本地无实体 / 有实体无戳）已在
     TASK_DETAIL.local_null_is_ambiguous_by_design 写清，区分责任明确划给 ACT 10
-  - 九个测试用例全部存在，六条 SELF_CHECK 已实做并确认能变红
+  - 十个测试用例全部存在，七条 SELF_CHECK 已实做并确认能变红
   - applier 与既有 Data class 零改动

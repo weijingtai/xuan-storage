@@ -46,7 +46,7 @@
 
 DEPENDS_ON 严格单链 01→02→…→11（无环）。
 STRONG_MODEL_ONLY：03（schema 迁移）、04（端口+实现）、07（退避时序）、08（因果时钟）、09（定序）。
-合计 **88 测试用例 / 158 验证命令 / 64 条自检**，11 个 ACT 全部有 ON_FAIL。
+合计 **91 测试用例 / 163 验证命令 / 66 条自检注入**，11 个 ACT 全部有 ON_FAIL。
 
 排序说明一：**策略过滤（05）刻意排在扇出（06）之前** —— 不知道谁有资格收，
 就不该先建扇出。转译 v1 把过滤排在后面，导致 peekBatch 挑好的记录被
@@ -100,13 +100,17 @@ pushToAll 转头发给所有人（Codex R1 · P0-1）。
 
 ## 当前状态
 
-**转译 v3 已完成（提交 `0791f1c`），等待跨模型闸门 R3。代码一行未写。**
+**转译 v3.1 已完成（回应 Codex R3 的 6 项），等待人类裁定是否需要 R4。代码一行未写。**
 
 - 11 个 ACT 就位：`docs/storage-s1b-multipeer/act/01..11.yaml`
-- 自检已跑：YAML 11/11 通过 · 编号自洽 11/11 · grep -c 缺双 EXPECT 0 条 ·
-  `<ACT_BASE>` 残留 0 · `|| true` 恒绿 0 · 验收标准 A1–A14 与 cd064c6 逐字一致
-- **下一步**：把 `docs/storage-s1b-multipeer/CODEX-R3-PROMPT.md` 投喂给 Codex 做第 3 轮闸门；
-  或人类直接放行下发。⚠ wjt-react 的 2 轮上限已被人类额外授权突破一次，**第 4 轮须重新请示**。
+- R3 闸门：Codex 判返工 6 项 → 转译者逐条独立复核 → **采纳 6 项、驳回 1 项**（P2-1 重复 key 属误判）。
+  复核与处置全文见 `docs/storage-s1b-multipeer/REACT-R3-REMEDIATION.md`
+- 自检已跑（v3.1）：YAML 严格解析 11/11（含重复 key 检测）· 编号自洽 11/11 ·
+  grep -c 缺双 EXPECT 0 条 · `<ACT_BASE>` 残留 0 · `|| true` 恒绿 0 ·
+  验收标准 A1–A14 与 cd064c6 逐字一致
+- **下一步**：人类裁定 —— 直接下发执行，或再走一轮 R4 验证本轮改动。
+  ⚠ wjt-react 的 2 轮上限已被人类额外授权突破一次（R3 是那次兑现），
+  **第 4 轮必须重新请示人类**。
 - **冷启动接手请先读 `docs/storage-s1b-multipeer/HANDOFF.md`**（全景 + 环境坑 + 铁律）
 - 遗留风险：本地 `main` 超前 `gitea/main` **27 个提交未推送**，S1b 全部工作建在这批未备份提交上。
 
@@ -254,6 +258,48 @@ pushToAll 转头发给所有人（Codex R1 · P0-1）。
   A7->ACT05(+ACT06 端到端, ACT11 包级守卫); A8->ACT08,09,10(+ACT11 包级守卫);
   A9->ACT09,10; A10->ACT10; A11->ACT01,02,06; A12->ACT11(+各 ACT 自身 dartdoc 要求);
   A13->ACT08; A14->ACT09(打包往返),11(规格+黄金用例)。线性 01→11 无环。
+
+- 2026-08-03（**转译审查 R3: 返工 6 项；转译者复核后采纳 6、驳回 1；产出 v3.1**）:
+  Codex 报告 `docs/storage-s1b-multipeer/REACT-R3-CODEX.md`，
+  转译者逐条复核与处置 `docs/storage-s1b-multipeer/REACT-R3-REMEDIATION.md`。
+  **方案 A 成立性获 Codex 独立确认**（ACT 03「改主键不破坏编译」断言为真，
+  转译者另行验证：`SyncStatesCompanion.insert` 两处调用点 :390/:420 均无 peerId 参数，
+  新列带 withDefault ⇒ drift 不生成 required ⇒ 一字不改）。
+  采纳并已改的 6 项：
+  · **ACT 04 阶段 1** 补入 core 侧调用点迁移（sync_coordinator.dart:57/:74 +
+    sync_runtime.dart）。端口一改调用点立刻编译不过，不跟进则该阶段检查
+    `cd core && flutter test` 永远过不了 —— 原文只写"端口+fake+core测试"是自相矛盾的。
+  · **P0-1 戳读取与构造点契约**：ACT 08 加 `getEntityStamp` 读取接口；
+    ACT 10 新增两节 TASK_DETAIL 钉死 applier 构造签名（四个新增 required 回调：
+    readLocalRecord / readLocalStamp / applyWithStamp / arbiter，**沿用现有回调注入风格**，
+    scopeUid 不进构造参数）与全部 8 个既有构造点的迁移样板。
+    **修正 Codex 的数字**：构造点是 8 处不是 7 处，且**全在 drift/test 内，
+    生产 lib/ 下一处都没有**（已实测），迁移面比报告乐观，不牵动任何业务仓库。
+  · **P0-2 收敛性测错性质**：HLC 的逻辑计数 c 本身就受 observe 到达顺序影响，
+    要求"不同顺序重放后胜负相同"是在断言 HLC **没有承诺**的性质，实现正确也可能红。
+    改法：属性测试收缩为两条不变式（单调性+因果性），
+    收敛性独立成 `convergence_over_fixed_stamps` —— **先冻结一组已生成的戳**，
+    再用两个独立归并器按不同到达顺序喂入。收敛性归属【归并/仲裁层】而非 HLC 生成层。
+  · **P0-3 UTF-8 排序未落到 compareTo**：ACT 09 只说"字典序"，ACT 11 才提 UTF-16 分歧，
+    执行者会直接用 `String.compareTo`，ASCII 测试全绿但跨语言客户端得出**相反胜负**。
+    改法：契约明确要求 UTF-8 字节序 + 新增用例
+    `device_id_compared_as_utf8_bytes_not_utf16`（用 U+10000 vs U+E000 这组
+    UTF-8 与 UTF-16 结论相反的码点）+ 两道文本门禁（禁 deviceId.compareTo、须有 utf8.encode）。
+  · **P1-1 减法自检的必红声明是假的**：A14 把合法 packed 值限定在 [0, 2^63)，
+    **合法值域内相减不会符号翻转**，极端量级用例抓不到减法。
+    改法：明确**禁止减法的权威门禁是文本 grep**，测试用例降级为兜底，
+    并在 SELF_CHECK 里写明"不要声称那条用例一定会红"。
+  · **P2-2 A1 无 TESTS_FIRST 覆盖**：A1 原先只有收工时一条 EXPECT_EXIT: 0，
+    没有任何用例证明门禁能红。改法：ACT 11 新增
+    `analyze_gate_catches_all_three_regressions`（COVERS: [A1]），
+    要求写姊妹脚本 `scripts/test_s1b_analyze_gate.sh` 对门禁三段各做一次注入并断言必红。
+  **驳回 1 项**：P2-1「重复 YAML key」为**误判**。用 PyYAML + 自定义 loader
+  （对同 mapping 内重复 key 告警）扫描 11 个 ACT **零命中**；
+  Codex 指的四处均为**不同 list item 的同名字段**（YAML 合法），
+  且 `no_subtraction_in_compare_to` 全文件只出现 1 次。
+  但采纳其修正标准后半段：严格校验器纳入常设自检流程（本轮它当场抓出了
+  转译者自己引入的两处 YAML 语法错误 —— list item 以反引号开头）。
+  规模由 88/158/64 变为 **91 测试 / 163 验证 / 66 自检注入**。
 
 ## 踩坑墓地
 - 2026-08-02（环境）: drift worktree `pubspec_overrides.yaml` 只写 4 条 path 覆盖是错的——

@@ -30,6 +30,9 @@ SCOPE:
     - core/lib/model/conflict_arbiter.dart  # ACT 09 的 VersionStamp.toPacked
   WRITE:
     - scripts/run_s1b_analyze_gate.sh
+    - scripts/test_s1b_analyze_gate.sh
+      # A1 门禁的注入型自测（Codex R3 · P2-2）——
+      # 三次注入证明 run_s1b_analyze_gate.sh 三段各自都能红
     - docs/storage-s1b-multipeer/HLC-WIRE-FORMAT.md
     - core/test/s1b_architecture_guard_test.dart
     - core/test/s1b_wire_format_golden_test.dart
@@ -280,9 +283,54 @@ TESTS_FIRST:
       RED_EXPECT: 断言失败，先红
       COVERS: [A12]
 
+    - NAME: analyze_gate_catches_all_three_regressions
+      FILE: scripts/test_s1b_analyze_gate.sh
+      BEHAVIOR: >
+        【A1 的注入型门禁自测，A1 唯一的 TESTS_FIRST 覆盖】（Codex R3 · P2-2：
+        v3 里 A1 只有 ACT 11 收工时那条 `bash scripts/run_s1b_analyze_gate.sh`
+        EXPECT_EXIT: 0，没有任何用例证明这个门禁【能红】。
+        一个绿的门禁如果证明不了自己能红，它就是假的）。
+
+        写一个【姊妹脚本】 scripts/test_s1b_analyze_gate.sh，
+        它对 run_s1b_analyze_gate.sh 做三次注入，每次都必须让后者【非 0 退出】：
+
+          ① scoped analyze 必须为 0 这一段
+             注入：临时在 S1b 新增文件（如 core/lib/model/conflict_arbiter.dart）
+             末尾追加一行制造 INFO 级问题的代码
+             （例：加一个未使用的顶层私有变量 `final _unused = 1;`）
+             断言：run_s1b_analyze_gate.sh 退出码非 0
+             恢复：git checkout 那个文件
+
+          ② 白名单子集这一段
+             注入：临时把一个【不在白名单里】的 lint 问题引入被扫描目录
+             （或直接临时改白名单变量，去掉其中一项后重跑）
+             断言：退出码非 0
+
+          ③ 总数不超基线这一段
+             注入：临时把脚本里的基线常量 core=58 / drift=162
+             改成 core=0 / drift=0 再重跑
+             断言：退出码非 0（实际数超过了"基线"）
+             恢复：改回 58 / 162
+
+        三次注入【每次都要 restore 并确认 `git status --porcelain` 干净】。
+        脚本自身用 `set -euo pipefail`，任一注入没能让门禁变红就 exit 1
+        并打印是哪一段失守。
+
+        ⚠ 【不许用 `|| true` 兜任何一步】——那会让这个自测脚本自己恒绿。
+        ⚠ macOS /bin/bash 是 3.2.57：没有 `declare -A`、没有 `mapfile`/`readarray`。
+      RED_COMMAND: bash scripts/test_s1b_analyze_gate.sh
+      RED_EXPECT: 脚本不存在或 run_s1b_analyze_gate.sh 不存在，退出码非 0
+      COVERS: [A1]
+
 VERIFICATION:
   - CMD: bash scripts/run_s1b_analyze_gate.sh
     EXPECT_EXIT: 0
+  # A1 门禁必须能证明自己会红（Codex R3 · P2-2）
+  - CMD: bash scripts/test_s1b_analyze_gate.sh
+    EXPECT_EXIT: 0
+  # 自测脚本不许用 || true 把自己变成恒绿
+  - CMD: 'grep -nE "\|\| *true" scripts/test_s1b_analyze_gate.sh'
+    EXPECT_EXIT: 1
   - CMD: cd core && flutter test
     EXPECT_EXIT: 0
   - CMD: cd drift && flutter test

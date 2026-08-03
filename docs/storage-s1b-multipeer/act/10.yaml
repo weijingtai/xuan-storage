@@ -61,14 +61,104 @@ SCOPE:
       # RemoteChange:232（含 ACT 08 新增的可空 hlcPacked / deviceId）
     - core/lib/core/sync_coordinator.dart       # :382 守卫，本 ACT 不改它，只让它真的能触发
     - drift/lib/sync/record_local_applier.dart  # 全文 107 行
+    - drift/lib/record/drift_record_data_source.dart
+      # applyRemoteRecord:72 / softDeleteRecord —— 现有两个回调的来源，
+      # 本 ACT 新增的读取回调也从这里取
     - drift/test/sync/record_local_applier_test.dart  # 既有测试的写法
+    - drift/test/sync/record_sync_e2e_test.dart       # 另外 3 个构造点在这里
   MODIFY:
     - drift/lib/sync/record_local_applier.dart
     - drift/test/sync/record_local_applier_test.dart   # 既有断言若依赖恒真行为，需更新
+    - drift/test/sync/record_sync_e2e_test.dart        # 3 个构造点补新参数
   WRITE:
     - drift/test/sync/record_local_applier_conflict_test.dart
 
 TASK_DETAIL:
+  applier_constructor_signature: >
+    【本 ACT 的接线契约，执行者照抄，不要自创注入方式】（Codex R3 · P0-1：
+    v3 要求 applier "读本地实体、读本地戳、走同事务写"，却没说通过什么接口读、
+    怎么注入、既有构造点怎么迁移 —— 便宜执行者无法机械实现）。
+
+    现状（record_local_applier.dart:6-13）是【回调注入式】：两个函数字段
+    `applyRecord` / `deleteRecord`，由 DriftRecordDataSource 的方法引用填充。
+    **新依赖沿用同一风格**，不要改成传仓库对象或传 Database ——
+    那会把 8 个构造点全部推倒重写，且让 applier 依赖 drift 具体类型。
+
+    改造后的构造签名（四个新增参数全部 required）：
+
+      class RecordLocalApplier implements LocalApplier {
+        final Future<void> Function(RecordMeta meta, List<SearchTag> tags) applyRecord;
+        final Future<bool> Function(String uuid) deleteRecord;
+
+        /// 读本地实体是否存在。用于区分 local stamp == null 的两种现实
+        /// （本地无实体 / 本地有实体但边表无戳）。返回 null 表示无实体。
+        final Future<RecordMeta?> Function(String uuid) readLocalRecord;
+
+        /// 读本地 HLC 戳。直接转发 ACT 08 的
+        /// PersistenceDriftDatabase.getEntityStamp。边表无该行时返回 null。
+        final Future<EntityStampRow?> Function(String entityId) readLocalStamp;
+
+        /// 同事务写入。直接转发 ACT 08 的
+        /// PersistenceDriftDatabase.applyWithStamp（A13 的生产落地点）。
+        /// applier【不得】自己 transaction(...) 里分别写记录和戳。
+        final Future<void> Function({
+          required String entityType,
+          required String entityId,
+          required int hlcPacked,
+          required String deviceId,
+          required Future<void> Function() write,
+        }) applyWithStamp;
+
+        /// 冲突仲裁器。ACT 09 的 ConflictArbiter，纯函数，无 IO。
+        final ConflictArbiter arbiter;
+
+        RecordLocalApplier({
+          required this.applyRecord,
+          required this.deleteRecord,
+          required this.readLocalRecord,
+          required this.readLocalStamp,
+          required this.applyWithStamp,
+          required this.arbiter,
+        });
+
+    ⚠ `scopeUid` 【不进构造参数】—— 它是 applyRemoteChanges 的方法参数，
+    每次调用可能不同；把它固化到构造里会让同一个 applier 实例无法跨 scope 复用。
+    readLocalStamp / applyWithStamp 的闭包在构造点捕获 scopeUid 即可
+    （DriftRecordDataSource 本来就是按 scopeUid 构造的，见 :58 的 `_db` 用法）。
+
+  existing_construction_sites: >
+    既有构造点【共 8 处，全部在测试代码里，生产 lib/ 下一处都没有】（已实测）：
+      · drift/test/sync/record_local_applier_test.dart:76, 104, 149, 175
+      · drift/test/sync/record_sync_e2e_test.dart:111, 172, 231
+      · drift/lib/sync/record_local_applier.dart:10（定义处，不是调用）
+    所以本 ACT 的迁移面【只在 drift/test 内】，不牵动任何业务仓库 ——
+    这也是选回调注入而非仓库注入的另一个理由。
+
+    每个构造点按下面这个样板补四个参数（以 record_local_applier_test.dart:76 为例）：
+
+      final applier = RecordLocalApplier(
+        applyRecord: ds.applyRemoteRecord,
+        deleteRecord: ds.softDeleteRecord,
+        readLocalRecord: (uuid) => ds.findRecordByUuid(uuid),
+        readLocalStamp: (entityId) => db.getEntityStamp(
+          scopeUid: scope, entityType: 'record_meta', entityId: entityId,
+        ),
+        applyWithStamp: ({
+          required entityType, required entityId,
+          required hlcPacked, required deviceId, required write,
+        }) => db.applyWithStamp(
+          scopeUid: scope, entityType: entityType, entityId: entityId,
+          hlcPacked: hlcPacked, deviceId: deviceId, write: write,
+        ),
+        arbiter: const ConflictArbiter(),
+      );
+
+    若 DriftRecordDataSource 没有 `findRecordByUuid` 这类按 uuid 读单条的方法，
+    【就地加一个】（drift/lib/record/drift_record_data_source.dart，
+    与 applyRemoteRecord:72 同风格，中文 dartdoc），并把它加进本 ACT 的 MODIFY。
+    【不要】在测试里裸查表绕过它 —— 那样生产接线仍然是空的，
+    A13 与本条 P0-1 的修正就都落不了地。
+
   cursor_rule: >
     正确规则：**只要 outcomes 里存在任何一条 `ChangeApplyDecision.failed`，
     canAdvanceCursor 就必须为 false，且 lastError 非 null。**
