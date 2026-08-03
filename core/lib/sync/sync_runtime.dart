@@ -23,7 +23,7 @@ class SyncRuntime {
   ///
   /// Parameters:
   /// - [coordinator]: The core sync engine. Must be configured with the
-  ///   appropriate `OutboxStore`, `RemoteGateway`, and optionally
+  ///   appropriate `OutboxStore`, `SyncPeer`, and optionally
   ///   `SyncStateStore` + `LocalApplier` if pull is used.
   /// - [authScopeProvider]: Optional. If provided, [start] can auto-resolve the
   ///   current scope uid by calling it when scope is not set explicitly.

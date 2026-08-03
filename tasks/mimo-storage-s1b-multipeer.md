@@ -100,19 +100,20 @@ pushToAll 转头发给所有人（Codex R1 · P0-1）。
 
 ## 当前状态
 
-**转译 v3.3 已完成（回应 Codex R5 的 3 项，全部采纳），等待人类裁定是否需要 R6。代码一行未写。**
+**执行中：ACT 01/02 已完成并提交，正在推进 ACT 03。**
 
+- ✅ ACT 01（`6e78fd9`）：SyncPeer/PeerCapabilities/PeerId/PeerFanoutPusher 契约（零实现）。
+  5 个契约用例全绿；三条 SELF_CHECK 注入（typedef 退化 / 只推失败 / watch 方法）均已实做确认能变红。
+- ✅ ACT 02（提交中）：RemoteGateway→SyncPeer 全量迁移（14 文件）+ firebase 两个既有 ERROR 清零 + 4 个既有失败测试清零。
+  5 个守卫用例全绿；五条 SELF_CHECK 注入均已实做确认能变红。
+- 基线：core 73+ 绿 / drift 276 绿 / firebase 114 绿 ~3 跳过；firebase `dart analyze` ERROR 数 0。
 - 11 个 ACT 就位：`docs/storage-s1b-multipeer/act/01..11.yaml`
 - 闸门历史（**问题数在收敛**）：R1 **25** / R2 **10** / R3 **6**（采纳 6 驳回 1）/
-  R4 **5**（全采纳）/ **R5 3（全采纳）**。
+  R4 **5**（全采纳）/ **R5 3（全采纳）** / **R6 通过（封闭式，可进入执行阶段）**。
   R5 复核与处置全文见 `docs/storage-s1b-multipeer/REACT-R5-REMEDIATION.md`
 - 自检已跑（v3.3）：YAML 严格解析 11/11 · 用例字段完整性 94/94（六项字段全齐）·
   A1–A14 结构化覆盖 14/14 · `|| true` 恒绿 0 ·
   VERIFICATION `bash -n` 167 条 0 错 · 验收标准与 cd064c6 逐字一致
-- **下一步**：人类裁定 —— 直接下发执行，或走一轮**封闭式 R6**
-  （Codex 建议：只验 R5 那 3 项 + 固定回归门禁，不再开放式扩张范围）。
-  ⚠ wjt-react 的 2 轮上限已被突破三次（R3、R4、R5 各一次人类授权），
-  **第 6 轮必须重新请示人类**。
 - **冷启动接手请先读 `docs/storage-s1b-multipeer/HANDOFF.md`**（全景 + 环境坑 + 铁律）
 - 遗留风险：本地 `main` 超前 `gitea/main` **27 个提交未推送**，S1b 全部工作建在这批未备份提交上。
 

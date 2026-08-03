@@ -261,7 +261,7 @@ class RemoteChange {
 /// One page of remote changes.
 ///
 /// 功能说明：
-/// - 由 [RemoteGateway.listChanges] 返回，用于分页拉取。
+/// - 由 [SyncPeer.listChanges] 返回，用于分页拉取。
 /// - 当 [hasMore] 为 true 时，上层可继续请求下一页。
 class RemoteChangesPage {
   /// Creates a [RemoteChangesPage].
@@ -439,8 +439,10 @@ class OutboxRecord {
 /// Capabilities reported by a region's remote backend.
 ///
 /// 功能说明：
-/// - 由 [RemoteGateway.getCapabilities] 返回。
+/// - 由 [SyncPeer.getCapabilities] 返回。
 /// - SyncRuntime 可根据 capabilities 做动态 feature gating。
+///
+/// 注意：S1b 后由 [PeerCapabilities] 取代，保留待清理。
 class RegionCapabilities {
   /// Creates a [RegionCapabilities].
   ///

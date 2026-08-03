@@ -1,8 +1,9 @@
-import 'package:persistence_core/model/ports.dart';
+import 'package:persistence_core/model/storage_classification.dart';
+import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/model/types.dart';
 import 'package:persistence_core/routing/region.dart';
 
-/// Routes [RemoteGateway] calls to the appropriate region backend.
+/// Routes [SyncPeer] calls to the appropriate region backend.
 ///
 /// Used in dual-line hedge mode where users are partitioned by region
 /// (mainland China → Supabase; overseas → Firebase).
@@ -10,24 +11,31 @@ import 'package:persistence_core/routing/region.dart';
 /// 功能说明：
 /// - 根据 [currentRegion] 动态分派 push / listChanges / getCapabilities。
 /// - 支持运行时 region 切换（例如网络环境变化、用户手动切换）。
-class RemoteGatewayRouter implements RemoteGateway {
-  final Map<Region, RemoteGateway> _gateways;
+/// - 本类是一个代理：身份（peerId / channel）跟随当前 region 对应的对端。
+class RemoteGatewayRouter implements SyncPeer {
+  final Map<Region, SyncPeer> _gateways;
   final Region Function() _currentRegion;
 
   RemoteGatewayRouter({
-    required Map<Region, RemoteGateway> gateways,
+    required Map<Region, SyncPeer> gateways,
     required Region Function() currentRegion,
   })  : _gateways = gateways,
         _currentRegion = currentRegion;
 
-  RemoteGateway get _active {
+  SyncPeer get _active {
     final region = _currentRegion();
     final gateway = _gateways[region];
     if (gateway == null) {
-      throw StateError('No RemoteGateway registered for region $region');
+      throw StateError('No SyncPeer registered for region $region');
     }
     return gateway;
   }
+
+  @override
+  PeerId get peerId => _active.peerId;
+
+  @override
+  Channel get channel => _active.channel;
 
   @override
   Future<SyncError?> push(OutboxRecord record) => _active.push(record);
@@ -47,5 +55,5 @@ class RemoteGatewayRouter implements RemoteGateway {
       );
 
   @override
-  Future<RegionCapabilities> getCapabilities() => _active.getCapabilities();
+  Future<PeerCapabilities> getCapabilities() => _active.getCapabilities();
 }

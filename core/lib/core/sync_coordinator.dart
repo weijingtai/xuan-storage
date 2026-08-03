@@ -1,12 +1,13 @@
 import 'package:persistence_core/logging/sync_logger.dart';
 import 'package:persistence_core/model/ports.dart';
+import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/model/types.dart';
 
 /// Pushes local outbox records to a remote gateway.
 ///
 /// 功能说明：
 /// - 从 [OutboxStore] 按时间顺序取出一批待同步的 [OutboxRecord]
-/// - 逐条调用 [RemoteGateway.push] 推送到远端
+/// - 逐条调用 [SyncPeer.push] 推送到远端
 /// - 根据推送结果回写 outbox 状态：成功标记 success；失败标记 failed；超过阈值标记 dead
 ///
 /// 设计要点：
@@ -24,7 +25,7 @@ class OutboxPusher {
   /// - [maxAttemptsBeforeDead]: 单条记录最大允许尝试次数，达到阈值将标记 dead。
   OutboxPusher({
     required OutboxStore outboxStore,
-    required RemoteGateway remoteGateway,
+    required SyncPeer remoteGateway,
     required DateTime Function() nowUtc,
     int batchSize = 50,
     int maxAttemptsBeforeDead = 10,
@@ -35,7 +36,7 @@ class OutboxPusher {
         _maxAttemptsBeforeDead = maxAttemptsBeforeDead;
 
   final OutboxStore _outboxStore;
-  final RemoteGateway _remoteGateway;
+  final SyncPeer _remoteGateway;
   final DateTime Function() _nowUtc;
   final int _batchSize;
   final int _maxAttemptsBeforeDead;
@@ -50,7 +51,7 @@ class OutboxPusher {
   ///
   /// 行为细节：
   /// - 取数：通过 [OutboxStore.peekBatch] 获取 pending/failed 的一批记录。
-  /// - 推送：对每条记录调用 [RemoteGateway.push]。
+  /// - 推送：对每条记录调用 [SyncPeer.push]。
   /// - 成功：调用 [OutboxStore.markSuccess]。
   /// - 失败：尝试次数 +1，并调用 [OutboxStore.markFailed]；若超过阈值则 isDead=true。
   Future<OutboxPushRunResult> runOnce({required String scopeUid}) async {
@@ -114,7 +115,7 @@ class OutboxPusher {
 /// - 状态：通过 [status] 暴露最近一次运行的状态与统计信息（backlog/dead/最近错误等）。
 ///
 /// 约束与集成点：
-/// - Push 仅依赖 [OutboxStore] 与 [RemoteGateway]。
+/// - Push 仅依赖 [OutboxStore] 与 [SyncPeer]。
 /// - Pull 需要额外注入 [SyncStateStore]（cursor 存储）与 [LocalApplier]（回填本地）。
 /// - 调度/生命周期不在此类处理，应由上层（例如 SyncRuntime）负责。
 class SyncCoordinator {
@@ -131,7 +132,7 @@ class SyncCoordinator {
   /// - [maxAttemptsBeforeDead]: outbox 单条记录最大尝试次数，超过会标记为 dead。
   SyncCoordinator({
     required OutboxStore outboxStore,
-    required RemoteGateway remoteGateway,
+    required SyncPeer remoteGateway,
     required DateTime Function() nowUtc,
     SyncStateStore? syncStateStore,
     LocalApplier? localApplier,
@@ -164,7 +165,7 @@ class SyncCoordinator {
 
   final OutboxStore _outboxStore;
   final SyncStateStore? _syncStateStore;
-  final RemoteGateway _remoteGateway;
+  final SyncPeer _remoteGateway;
   final LocalApplier? _localApplier;
   final DateTime Function() _nowUtc;
   final int _pullBatchSize;

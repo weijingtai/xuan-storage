@@ -166,50 +166,10 @@ abstract class SyncStateStore {
   });
 }
 
-/// Remote read/write gateway.
-///
-/// 功能说明：
-/// - 将 outbox 操作推送到远端（[push]）。
-/// - 按游标增量拉取远端变更（[listChanges]）。
-///
-/// 典型实现：
-/// - Firestore：push=写业务文档+写 oplog；listChanges=按 serverTime/cursor 查询 oplog。
-abstract class RemoteGateway {
-  /// Pushes one [OutboxRecord] to remote.
-  ///
-  /// 返回值：
-  /// - 成功返回 null。
-  /// - 失败返回 [SyncError]，用于 outbox 状态回写与诊断。
-  Future<SyncError?> push(OutboxRecord record);
-
-  /// Lists remote changes for one entity type since [sinceCursor].
-  ///
-  /// 参数说明：
-  /// - [scopeUid]: 作用域 uid。
-  /// - [entityType]: 实体类型。
-  /// - [sinceCursor]: 断点续拉游标，null 表示从头开始（或服务端默认）。
-  /// - [limit]: 单页最大条数。
-  ///
-  /// 返回值：
-  /// - [RemoteChangesPage]：包含 changes、nextCursor 与 hasMore。
-  Future<RemoteChangesPage> listChanges({
-    required String scopeUid,
-    required String entityType,
-    required PullCursor? sinceCursor,
-    required int limit,
-  });
-
-  /// Returns the capabilities of this region's backend.
-  ///
-  /// 用途：
-  /// - SyncRuntime 可根据 capabilities 做动态 feature gating。
-  Future<RegionCapabilities> getCapabilities();
-}
-
 /// Applies remote changes to local storage.
 ///
 /// 功能说明：
-/// - 将 [RemoteGateway.listChanges] 返回的 [RemoteChange] 回填到本地数据库。
+/// - 将 [SyncPeer.listChanges] 返回的 [RemoteChange] 回填到本地数据库。
 /// - 给出逐条处理结果（outcomes），并指示是否允许推进 cursor。
 ///
 /// 关键约束（防回环）：

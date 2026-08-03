@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/persistence_core.dart';
 import 'package:test/test.dart';
 
@@ -104,8 +105,8 @@ class _InMemoryOutboxStore implements OutboxStore {
   }
 }
 
-class _FakeRemoteGateway implements RemoteGateway {
-  _FakeRemoteGateway({
+class _FakeSyncPeer implements SyncPeer {
+  _FakeSyncPeer({
     required this.pushError,
     RemoteChangesPage Function(
       String scopeUid,
@@ -122,6 +123,12 @@ class _FakeRemoteGateway implements RemoteGateway {
     PullCursor? sinceCursor,
     int limit,
   )? _listChangesFn;
+
+  @override
+  PeerId get peerId => PeerId('fake');
+
+  @override
+  Channel get channel => Channel.cloud;
 
   @override
   Future<SyncError?> push(OutboxRecord record) async {
@@ -144,10 +151,12 @@ class _FakeRemoteGateway implements RemoteGateway {
   }
 
   @override
-  Future<RegionCapabilities> getCapabilities() async => const RegionCapabilities(
-    entityVersions: {'seeker': 1, 'divination': 1},
-    supportedFeatures: {'outbox_v1', 'tag_index_v1'},
-    serverProtocolVersion: 1,
+  Future<PeerCapabilities> getCapabilities() async => PeerCapabilities(
+    peerId: peerId,
+    channel: channel,
+    entityVersions: const {'seeker': 1, 'divination': 1},
+    supportedFeatures: const {'outbox_v1', 'tag_index_v1'},
+    protocolVersion: 1,
   );
 }
 
@@ -253,7 +262,7 @@ void main() {
 
     final coordinator = SyncCoordinator(
       outboxStore: outbox,
-      remoteGateway: _FakeRemoteGateway(
+      remoteGateway: _FakeSyncPeer(
         pushError: (_) => const SyncError(
           code: SyncErrorCode.network,
           message: 'timeout',
@@ -299,7 +308,7 @@ void main() {
 
     final coordinator = SyncCoordinator(
       outboxStore: outbox,
-      remoteGateway: _FakeRemoteGateway(
+      remoteGateway: _FakeSyncPeer(
         pushError: (_) => shouldFail
             ? const SyncError(code: SyncErrorCode.network, message: 'down')
             : null,
@@ -325,7 +334,7 @@ void main() {
     final now = DateTime.utc(2026, 1, 10, 9, 0, 0);
 
     final stateStore = _InMemorySyncStateStore();
-    final remote = _FakeRemoteGateway(
+    final remote = _FakeSyncPeer(
       pushError: (_) => null,
       listChangesFn: (scope, type, since, limit) {
         expect(scope, equals(scopeUid));
@@ -404,7 +413,7 @@ void main() {
     final now = DateTime.utc(2026, 1, 10, 9, 0, 0);
 
     final stateStore = _InMemorySyncStateStore();
-    final remote = _FakeRemoteGateway(
+    final remote = _FakeSyncPeer(
       pushError: (_) => null,
       listChangesFn: (_, __, ___, ____) {
         return RemoteChangesPage(
@@ -563,7 +572,7 @@ void main() {
     final outbox = _InMemoryOutboxStore();
     final coordinator = SyncCoordinator(
       outboxStore: outbox,
-      remoteGateway: _FakeRemoteGateway(
+      remoteGateway: _FakeSyncPeer(
         pushError: (_) => throw StateError('push should not be called'),
       ),
       nowUtc: () => now,

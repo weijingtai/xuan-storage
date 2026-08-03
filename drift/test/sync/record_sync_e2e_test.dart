@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/persistence_core.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
@@ -19,8 +20,14 @@ class _TagAdapter implements ModuleRecordAdapter {
       const [SearchTag('upper_gua', '3')];
 }
 
-class _InMemRemoteGw implements RemoteGateway {
+class _InMemRemoteGw implements SyncPeer {
   final _store = <String, List<Map<String, dynamic>>>{};
+
+  @override
+  PeerId get peerId => const PeerId('in-memory');
+
+  @override
+  Channel get channel => Channel.cloud;
 
   @override
   Future<SyncError?> push(OutboxRecord record) async {
@@ -70,8 +77,10 @@ class _InMemRemoteGw implements RemoteGateway {
     );
   }
 
-  @override Future<RegionCapabilities> getCapabilities() async => RegionCapabilities(
-    entityVersions: {'record_meta': 1}, supportedFeatures: {'outbox_v1'}, serverProtocolVersion: 1,
+  @override Future<PeerCapabilities> getCapabilities() async => PeerCapabilities(
+    peerId: peerId, channel: channel,
+    entityVersions: const {'record_meta': 1}, supportedFeatures: const {'outbox_v1'},
+    protocolVersion: 1,
   );
 }
 

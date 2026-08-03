@@ -2,9 +2,11 @@ import 'dart:convert';
 
 import 'package:firebase_core/firebase_core.dart' show FirebaseException;
 import 'package:firebase_database/firebase_database.dart';
+import 'package:persistence_core/model/storage_classification.dart';
+import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/persistence_core.dart';
 
-/// Firebase Realtime Database implementation of [RemoteGateway].
+/// Firebase Realtime Database implementation of [SyncPeer].
 ///
 /// 功能说明：
 /// - 将 [OutboxRecord] push 到 Realtime Database（实体节点 + oplog 节点）。
@@ -23,7 +25,7 @@ import 'package:persistence_core/persistence_core.dart';
 ///
 /// 注意：
 /// - public scope 约定为 pull-only；push 会返回 permission 错误。
-class FirebaseRealtimeRemoteGateway implements RemoteGateway {
+class FirebaseRealtimeRemoteGateway implements SyncPeer {
   /// Creates a Realtime Database based gateway.
   ///
   /// 参数说明：
@@ -55,6 +57,14 @@ class FirebaseRealtimeRemoteGateway implements RemoteGateway {
   final SyncLogger _logger;
 
   static const String _publicScopeUid = 'public';
+
+  /// 本对端标识。钉死为 'firebase_realtime'（ACT 03 的 ack 表行键，勿改）。
+  @override
+  PeerId get peerId => const PeerId('firebase_realtime');
+
+  /// 本对端走云端通道。
+  @override
+  Channel get channel => Channel.cloud;
 
   /// Redacts potentially sensitive identifiers for production logs.
   ///
@@ -900,6 +910,20 @@ class FirebaseRealtimeRemoteGateway implements RemoteGateway {
       );
       rethrow;
     }
+  }
+
+  /// 该对端报告的能力。
+  ///
+  /// 当前为静态值（诚实的最小值），待后端协商接口就绪后改为真实上报。
+  @override
+  Future<PeerCapabilities> getCapabilities() async {
+    return PeerCapabilities(
+      peerId: peerId,
+      channel: channel,
+      entityVersions: const {},
+      supportedFeatures: const {'outbox_v1'},
+      protocolVersion: 1,
+    );
   }
 }
 

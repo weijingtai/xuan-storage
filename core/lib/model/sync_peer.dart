@@ -2,7 +2,7 @@
 ///
 /// 设计稿 §5.2。把「一个远端」升级为「N 个对端」所需的四个类型。
 /// 本文件【零实现】—— 只定义类型契约，不写任何 SyncPeer 的实现类。
-/// 既有 `RemoteGateway` 与其实现者的迁移见 ACT 02。
+/// 既有单 peer 网关（*Gateway 实现类）的迁移见 ACT 02。
 library;
 
 import 'storage_classification.dart';
@@ -62,7 +62,7 @@ abstract interface class SyncPeer {
   /// 推送一条 outbox 记录到该对端。成功返回 null，失败返回 [SyncError]。
   Future<SyncError?> push(OutboxRecord record);
 
-  /// 按游标增量拉取该对端的变更。语义同既有 RemoteGateway.listChanges。
+  /// 按游标增量拉取该对端的变更。语义同既有单 peer 网关的 listChanges。
   Future<RemoteChangesPage> listChanges({
     required String scopeUid,
     required String entityType,

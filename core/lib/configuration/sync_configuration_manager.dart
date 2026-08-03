@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:persistence_core/core/sync_coordinator.dart';
 import 'package:persistence_core/logging/sync_logger.dart';
 import 'package:persistence_core/model/ports.dart';
+import 'package:persistence_core/model/sync_peer.dart';
 import '../sync/sync_runtime.dart';
 
 import 'yaml_file_loader.dart';
@@ -589,7 +590,7 @@ class SyncConfigurationManager {
   /// - [syncStateStore]/[localApplier]：用于启用 pull（可选）。
   SyncCoordinator buildCoordinator({
     required OutboxStore outboxStore,
-    required RemoteGateway remoteGateway,
+    required SyncPeer remoteGateway,
     required DateTime Function() nowUtc,
     SyncStateStore? syncStateStore,
     LocalApplier? localApplier,
