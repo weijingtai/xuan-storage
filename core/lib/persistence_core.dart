@@ -36,3 +36,11 @@ export 'model/record_blob_unit_of_work.dart';
 export 'model/blob_gateway.dart';
 export 'model/transport.dart';
 export 'model/export_bundle.dart';
+
+// ── XRAP 资源资产协议（docs/superpowers/specs/2026-08-02-resource-asset-protocol.md）──
+export 'model/dataset/dataset_error.dart';
+export 'model/dataset/dataset_manifest.dart';
+export 'model/dataset/dataset_source.dart';
+export 'model/dataset/dataset_materializer.dart';
+export 'model/dataset/dataset_registry.dart';
+export 'model/dataset/dataset_installer.dart';
