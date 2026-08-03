@@ -37,6 +37,8 @@ SCOPE:
     - docs/superpowers/specs/2026-07-31-storage-architecture-design.md
       # §5.2.3 全节；§5.3「冲突可见化」：必须保留被覆盖的版本并使其可回溯
     - core/lib/sync/hlc_clock.dart       # ACT 08 的 HlcClock / 戳语义
+    - core/lib/test_support/frozen_stamps.dart
+      # ACT 08 交付的 generateFrozenStamps —— 收敛性用例的测试数据来源
     - core/lib/model/types.dart
       # ChangeApplyDecision:285 / SkipReasonCode:301 / ChangeApplyOutcome:322
       # RemoteChange —— ACT 08 已加可空 hlcPacked / deviceId
@@ -288,6 +290,49 @@ TESTS_FIRST:
       RED_EXPECT: 编译失败，先红
       COVERS: [A8]
 
+    - NAME: convergence_over_fixed_stamps
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        【收敛性：最终状态与到达顺序无关】（§5.3；Codex R5 · P0-1 修正标准）。
+        本用例**必须驱动真实的生产仲裁器** `HlcConflictArbiter`，
+        不许在测试里自造归并规则 —— 自造规则只能证明测试辅助代码，
+        约束不了任何生产实现（v3.2 曾把它放在 ACT 08 并"收缩为数学结构命题"，
+        因为那时还没有生产仲裁器，已废弃）。
+
+        第一步：拿 ACT 08 的 `generateFrozenStamps(seed: <写死>)`
+        取一组【冻结的】版本（≥50 条、含并发对、≥3 个 entityId）。
+        两侧用的是**同一组戳**，本用例【不生成】任何新戳。
+
+        第二步：造两个【互相独立】的状态容器
+        （各是一个 `Map<String, VersionStamp>`，键 entityId），
+        各配一个 `const HlcConflictArbiter()`。把同一组戳
+        以【两种不同的到达顺序】归并进去：
+          · 一侧按列表原顺序
+          · 另一侧用另一个写死 seed 打乱（**允许违反因果先后** ——
+            网络乱序时本来就会这样，收敛结果必须照样一致）
+
+        归并规则（两侧完全相同，都走生产仲裁器）：
+          对每条戳 s，取容器里 entityId 的现值 cur（可能为 null）：
+            · cur == null → 直接放入 s
+            · 否则调 `arbiter.arbitrate(remote: s, local: cur)`，
+              按返回的 ArbitrationDecision 决定是否替换
+              （takeRemote → 替换为 s；keepLocal → 保持 cur）
+
+        第三步断言：**两个容器逐 entityId 完全相等**
+        （比 hlc 与 deviceId 两个字段，不是比对象引用）。
+
+        ⚠ 【这条必须能红】：把归并规则临时改成"后到者恒胜"（无条件替换，
+        即退化成 RWW）→ 两侧因到达顺序不同而得出不同的最终状态 → 必红。
+        SELF_CHECK 有一条专门做这个注入。
+        ⚠ 【不许写成"同一个确定性函数自比"】（Codex R2）：
+        拿同一组戳调两次 compareTo 再断言两次结果相同 ——
+        那是在断言"纯函数是纯函数"，任何实现都会绿，证明力为零。
+        两侧必须是两个真正独立的容器、两种真正不同的喂入顺序，
+        且**都经过 `arbiter.arbitrate`**。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 编译失败（HlcConflictArbiter 或 generateFrozenStamps 不存在），先红
+      COVERS: [A8]
+
     - NAME: compare_to_orders_extreme_packed_values_correctly
       FILE: core/test/s1b_conflict_arbiter_test.dart
       BEHAVIOR: >
@@ -466,7 +511,15 @@ SELF_CHECK:
     `device_id_compared_as_utf8_bytes_not_utf16` 必须变红，
     而其余所有用例【仍然绿】→ 改回。
     这一步证明 UTF-8 门禁真的在守 P0-3，且纯 ASCII 用例确实抓不到它
-  - 七次自检后 `git status --porcelain` 必须为空
+  - 把 `convergence_over_fixed_stamps` 的归并规则临时改成"后到者恒胜"
+    （无条件替换，即绕开 arbiter 退化成 RWW）→ 该用例必须变红，
+    而其余所有用例【仍然绿】→ 改回。
+    这一步证明收敛性用例真的在考仲裁器，且别的用例管不到这个失效
+  - 把 `convergence_over_fixed_stamps` 的第二个容器临时改成
+    "复用第一个容器的实例"（而非独立实例）→
+    这条【不会变红】，那正说明它退化成了自比；
+    确认现象后改回成两个独立容器（Codex R2 的老教训）
+  - 九次自检后 `git status --porcelain` 必须为空
 
 ON_FAIL:
   - RED 阶段没红 → 测试没真正依赖新类型，重写测试
@@ -486,5 +539,8 @@ DONE_WHEN:
   - compareTo 用三路比较而非减法，由【文本 grep 门禁】权威守卫
   - local == null 的两种现实（本地无实体 / 有实体无戳）已在
     TASK_DETAIL.local_null_is_ambiguous_by_design 写清，区分责任明确划给 ACT 10
-  - 十个测试用例全部存在，七条 SELF_CHECK 已实做并确认能变红
+  - 已验证**收敛性**：同一组冻结戳以两种到达顺序、经【真实 HlcConflictArbiter】
+    归并进两个独立容器后，逐 entityId 最终状态完全相同
+    （退化成 RWW 时该用例必红，有 SELF_CHECK 注入证明）
+  - 十一个测试用例全部存在，九条 SELF_CHECK 已实做并确认能变红
   - applier 与既有 Data class 零改动

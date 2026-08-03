@@ -86,30 +86,31 @@ TASK_DETAIL:
     **新依赖沿用同一风格**，不要改成传仓库对象或传 Database ——
     那会把 8 个构造点全部推倒重写，且让 applier 依赖 drift 具体类型。
 
-    改造后的构造签名（四个新增参数全部 required）：
+    改造后的构造签名（**scopeUid 进构造参数**，四个新增回调全部 required）：
 
       class RecordLocalApplier implements LocalApplier {
+        /// 本 applier 绑定的 scope。**一个实例只服务一个 scope**。
+        /// applyRemoteChanges 收到不同的 scopeUid 时【拒绝处理】，
+        /// 理由见下方 applier_is_scope_bound。
+        final String scopeUid;
+
         final Future<void> Function(RecordMeta meta, List<SearchTag> tags) applyRecord;
         final Future<bool> Function(String uuid) deleteRecord;
 
         /// 读本地实体是否存在。用于区分 local stamp == null 的两种现实
         /// （本地无实体 / 本地有实体但边表无戳）。返回 null 表示无实体。
+        /// 与 applyRecord / deleteRecord 同源：都来自【同一个】
+        /// 按 scopeUid 构造的 DriftRecordDataSource。
         final Future<RecordMeta?> Function(String uuid) readLocalRecord;
 
-        /// 读本地 HLC 戳。直接转发 ACT 08 的
-        /// PersistenceDriftDatabase.getEntityStamp。边表无该行时返回 null。
-        /// scopeUid 由 applyRemoteChanges 的【本次调用参数】传入，
-        /// 【不在构造时捕获】—— 见下方 scope_is_per_call。
-        final Future<EntityStampRow?> Function({
-          required String scopeUid,
-          required String entityId,
-        }) readLocalStamp;
+        /// 读本地 HLC 戳。转发 ACT 08 的 getEntityStamp，
+        /// scopeUid 用【构造时绑定的那个】。边表无该行时返回 null。
+        final Future<EntityStampRow?> Function(String entityId) readLocalStamp;
 
-        /// 同事务写入。直接转发 ACT 08 的
-        /// PersistenceDriftDatabase.applyWithStamp（A13 的生产落地点）。
+        /// 同事务写入。转发 ACT 08 的 applyWithStamp（A13 的生产落地点），
+        /// scopeUid 用【构造时绑定的那个】。
         /// applier【不得】自己 transaction(...) 里分别写记录和戳。
         final Future<void> Function({
-          required String scopeUid,
           required String entityType,
           required String entityId,
           required int hlcPacked,
@@ -128,6 +129,7 @@ TASK_DETAIL:
         final ConflictArbiter arbiter;
 
         RecordLocalApplier({
+          required this.scopeUid,
           required this.applyRecord,
           required this.deleteRecord,
           required this.readLocalRecord,
@@ -136,25 +138,47 @@ TASK_DETAIL:
           required this.arbiter,
         });
 
-  scope_is_per_call: >
-    ⚠⚠ 【scopeUid 是"每次调用"的量，不是"每个实例"的量 —— 这一条决定回调签名】
-    （Codex R4 · P0-2：v3.1 一边说"不进构造参数以便跨 scope 复用"，
-    一边让样板闭包在构造点捕获固定的 scope，两句话互相取消。
-    照后者写出来的实例**根本不能跨 scope 工作**，而前者是承诺）。
+  applier_is_scope_bound: >
+    ⚠⚠ 【一个 applier 实例只服务一个 scope。scopeUid 进构造参数。】
+    （Codex R4 · P0-2 → R5 复核仍未闭合。这一节是本 ACT 的 scope 契约唯一真相，
+    v3.1 的"闭包捕获"与 v3.2 的"两个回调 per-call"**两版都是错的**，已全部作废。）
 
-    定下来的一致契约：**需要访问数据库的两个回调显式接收 `scopeUid`**，
-    由 `applyRemoteChanges({required scopeUid, ...})` 把【本次调用】的值传进去。
-      · `readLocalStamp({required scopeUid, required entityId})`
-      · `applyWithStamp({required scopeUid, required entityType, ...})`
-    这样同一个 applier 实例真的能跨 scope 复用，承诺与实现一致。
+    **为什么必须绑定，而不是 per-call 传参**（转译者 R5 实测，比 Codex 的判断更深）：
+    applier 的**四个数据回调里有三个**都来自同一个
+    `DriftRecordDataSource`，而那个类**在构造时固定 scopeUid**
+    （`drift/lib/record/drift_record_data_source.dart:6-9`
+    `DriftRecordDataSource(this.db, {required this.scopeUid})`），
+    并且它的查询**全部用实例字段过滤**，不接受 scope 参数：
+      · `getRecord(uuid)`          :89-93  → `t.scopeUid.equals(scopeUid)`
+      · `applyRemoteRecord(...)`   :73-84  → `_companion()` 里写 `scopeUid`
+      · `softDeleteRecord(uuid)`   :166-174 → `t.scopeUid.equals(scopeUid)`
+    所以 Codex 给的方案 1（"给 readLocalRecord 也加 scopeUid 参数"）
+    **救不了这个洞** —— `applyRecord` / `deleteRecord` 是【既有签名】，
+    要让它们接受 per-call scope 就得改 DriftRecordDataSource 的三个方法，
+    那是溢出 ACT 10 范围的改动，也会波及其它调用方。
+    因此本 ACT 采用 **Codex 方案 2：applier 按 scope 构造**。
 
-    `readLocalRecord(uuid)` **不需要** scopeUid ——
-    `DriftRecordDataSource.getRecord(uuid)` 本身是按 scope 构造的实例方法，
-    uuid 在 scope 内已唯一。这不是疏漏，是这两类依赖的性质不同：
-    前两个直接打库（scope 是查询条件），后一个走已绑定 scope 的数据源。
+    **跨 scope 复用的承诺【彻底删除】。** 需要处理另一个 scope 就
+    **另建一个 applier 实例**（连同它自己的 DriftRecordDataSource）。
+    这与既有代码的形状一致：数据源本来就是 per-scope 的对象。
 
-    【不许】改回"构造时捕获 scope"。若执行者觉得传参啰嗦而想走回头路，
-    那就等于把"跨 scope 复用"这句承诺删掉 —— 二者只能选一套，本 ACT 选的是传参。
+    **`applyRemoteChanges` 必须拒绝 scope 不匹配的调用**：
+      if (scopeUid != this.scopeUid) {
+        return LocalApplyResult(
+          canAdvanceCursor: false, appliedCount: 0,
+          outcomes: const [], lastError: <说明 scope 不匹配的错误>,
+        );
+      }
+    ⚠ 这个早退**必须在最前面**，与既有的 entityType 早退
+    （applier.dart:24-28）并列。**canAdvanceCursor 必须是 false** ——
+    传错 scope 是调用方 bug，绝不能让游标推进。
+
+    **为什么这条早退不是多余的防御性代码**：三个回调锚在实例 scope 上，
+    而 `readLocalStamp` 若被写成转发构造时绑定的 scope，
+    两边就都锚定同一个 scope，**静默串读的窗口只剩"调用方传错 scopeUid"这一个**。
+    堵住它，"本地无实体 / 本地有实体但边表无戳"的判断才有意义 ——
+    否则戳从 B 读、实体从 A 读，那个区分会跨租户给出错误答案（R5 · P0-2 原话）。
+    有专门的测试守这条，见 TESTS_FIRST 的 `rejects_scope_mismatch`。
 
   existing_construction_sites: >
     既有构造点【共 8 处，全部在测试代码里，生产 lib/ 下一处都没有】（已实测）：
@@ -171,21 +195,24 @@ TASK_DETAIL:
     v3.1 曾写"若没有 findRecordByUuid 就地加一个"—— 那个名字是凭空造的，
     照着做会重复造一个已存在的接口。**直接用 getRecord，不要新增方法。**
 
-    每个构造点按下面这个样板补四个参数（以 record_local_applier_test.dart:76 为例）：
+    每个构造点按下面这个样板补五个参数（以 record_local_applier_test.dart:76 为例）。
+    ⚠ 注意 `scope` 出现三次且**必须是同一个值**：applier 的绑定 scope、
+    `ds` 的构造 scope、两个转发闭包里的 scope —— 三者不一致就是串读。
 
+      final ds = DriftRecordDataSource(db, scopeUid: scope);   // ← 已有，注意它绑 scope
       final applier = RecordLocalApplier(
+        scopeUid: scope,                                       // ← 新增：绑定 scope
         applyRecord: ds.applyRemoteRecord,
         deleteRecord: ds.softDeleteRecord,
         readLocalRecord: (uuid) => ds.getRecord(uuid),
-        readLocalStamp: ({required scopeUid, required entityId}) =>
-            db.getEntityStamp(
-          scopeUid: scopeUid, entityType: 'record_meta', entityId: entityId,
+        readLocalStamp: (entityId) => db.getEntityStamp(
+          scopeUid: scope, entityType: 'record_meta', entityId: entityId,
         ),
         applyWithStamp: ({
-          required scopeUid, required entityType, required entityId,
+          required entityType, required entityId,
           required hlcPacked, required deviceId, required write,
         }) => db.applyWithStamp(
-          scopeUid: scopeUid, entityType: entityType, entityId: entityId,
+          scopeUid: scope, entityType: entityType, entityId: entityId,
           hlcPacked: hlcPacked, deviceId: deviceId, write: write,
         ),
         arbiter: const HlcConflictArbiter(),
@@ -348,6 +375,61 @@ TESTS_FIRST:
         回归守卫：传一个不匹配的 entityType，断言仍返回 canAdvanceCursor: false
         （applier.dart:19-27 的既有行为是对的，不能被本 ACT 改坏）。
         改 canAdvanceCursor 的计算方式时很容易把这个早退分支一并重写掉。
+      RED_COMMAND: cd drift && flutter test test/sync/record_local_applier_conflict_test.dart
+      RED_EXPECT: 断言失败或编译失败，先红
+      COVERS: [A10]
+
+    - NAME: rejects_scope_mismatch
+      FILE: drift/test/sync/record_local_applier_conflict_test.dart
+      BEHAVIOR: >
+        【scope 绑定契约的守卫】（Codex R5 · P0-2）。
+        applier 用 `scopeUid: 'scope-A'` 构造（其 ds 也绑 'scope-A'），
+        然后用 `applyRemoteChanges(scopeUid: 'scope-B', ...)` 调用它。
+        断言：
+          ① `canAdvanceCursor == false`（传错 scope 是调用方 bug，
+             绝不能让游标推进）
+          ② `appliedCount == 0` 且 `outcomes` 为空 —— **一条都不许应用**
+          ③ `lastError` 非 null 且能看出是 scope 不匹配
+          ④ 【最关键】断言 **scope-A 的库里没有任何写入**
+             （用一条 scope-B 的 upsert change，跑完去查 scope-A
+             那条 uuid 仍不存在）—— 这一条抓的是真正的危害：串写。
+
+        把早退删掉的实现在这条会红。**不要只断言返回值** ——
+        只查返回值的话，一个"记了 error 但仍继续应用"的实现照样绿，
+        而那正是跨租户串写。
+
+        ⚠ 为什么必须有这条：applier 的三个回调
+        （applyRecord / deleteRecord / readLocalRecord）都锚在
+        构造时绑定 scope 的 DriftRecordDataSource 上
+        （见 TASK_DETAIL.applier_is_scope_bound 的实测行号）。
+        调用方传错 scopeUid 是唯一剩下的串读窗口，堵住它，
+        "本地无实体 / 本地有实体但边表无戳"的区分才有意义 ——
+        否则戳从 B 读、实体从 A 读，那个区分会跨租户给出错误答案。
+      RED_COMMAND: cd drift && flutter test test/sync/record_local_applier_conflict_test.dart
+      RED_EXPECT: 断言失败或编译失败（scopeUid 构造参数不存在），先红
+      COVERS: [A10]
+
+    - NAME: same_uuid_in_two_scopes_never_cross_reads
+      FILE: drift/test/sync/record_local_applier_conflict_test.dart
+      BEHAVIOR: >
+        【R5 明确要求的串读测试】（Codex R5 · P0-2 修正标准末段）。
+        造两个 scope，**同一个 uuid 在两边的实体存在性不同**：
+          · scope-A：uuid 'shared-id' 【存在】本地实体，边表【有】戳
+          · scope-B：uuid 'shared-id' 【不存在】本地实体
+        为两个 scope 各建一个 applier（各自绑定自己的 scope 与自己的 ds）。
+
+        用一条 uuid = 'shared-id' 的远端 change 分别喂给两个 applier，
+        断言两边走的是【不同的分支】：
+          · scope-A 的 applier → 走"本地有实体"路径，进入仲裁；
+            若远端败则留档（discardedSide == local）
+          · scope-B 的 applier → 走"本地无实体"路径，
+            直接应用，**不产生 discarded 留档**
+        （两个分支的语义见 TASK_DETAIL 与
+        `stampless_existing_local_is_archived_but_absent_local_is_not`）
+
+        这条证的是：**scope 绑定真的把两个租户隔开了**。
+        任何一处把 scope 写死成常量、或让两个 applier 共用同一个 ds，
+        两边就会得出同一个分支 —— 这条必红。
       RED_COMMAND: cd drift && flutter test test/sync/record_local_applier_conflict_test.dart
       RED_EXPECT: 断言失败或编译失败，先红
       COVERS: [A10]
@@ -529,7 +611,13 @@ SELF_CHECK:
   - 把 `clock.observe(...)` 临时注释掉 →
     `observe_called_on_every_stamped_inbound_change` 必须变红，
     而其余测试【仍然绿】→ 改回。这一步同时证明只有这条抓得到漏调
-  - 十一次自检后 `git status --porcelain` 必须为空
+  - 把 applyRemoteChanges 开头的 scope 不匹配早退临时删掉 →
+    `rejects_scope_mismatch` 必须变红（尤其是"scope-A 库里没有写入"那条断言）
+    → 改回。这一步证明早退不是装饰性代码
+  - 把两个 applier 临时改成共用同一个 `ds`（模拟"忘了给第二个 scope
+    单独建数据源"）→ `same_uuid_in_two_scopes_never_cross_reads` 必须变红
+    → 改回。这一步证明串读测试真的在考隔离，而不是走个过场
+  - 十三次自检后 `git status --porcelain` 必须为空
 
 ON_FAIL:
   - RED 阶段测试没红（写实现前就绿）→ 测试没真正依赖新类型/新行为，
@@ -557,4 +645,10 @@ DONE_WHEN:
     （⚠ `RecordMeta.rev` 作为**业务字段**的解析与保存是既有合法行为，
     【不得】全局禁裸词 rev —— 那会误杀正常领域字段。Codex R4 · P2-1）
   - 戳与记录走 ACT 08 的 applyWithStamp 同事务接口
-  - 十一个测试用例全部存在，十条 SELF_CHECK 已实做并确认能变红
+  - applier **绑定单一 scope**（scopeUid 是构造参数），
+    `applyRemoteChanges` 拒绝 scope 不匹配的调用且 canAdvanceCursor 为 false，
+    三个数据回调与 readLocalStamp/applyWithStamp 锚定【同一个】scope
+    （⚠ 跨 scope 复用的承诺已彻底删除 —— DriftRecordDataSource 构造时
+    固定 scopeUid，三个方法全用实例字段过滤，做不到 per-call。Codex R5 · P0-2）
+  - 同一 uuid 在两个 scope 下实体存在性不同时，两个 applier 走不同分支、**绝不串读**
+  - 十三个测试用例全部存在，十三条 SELF_CHECK 已实做并确认能变红

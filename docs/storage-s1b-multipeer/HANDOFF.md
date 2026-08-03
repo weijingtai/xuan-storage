@@ -8,9 +8,9 @@
 ## 0. 三十秒版本
 
 - **任务**：`storage-s1b-multipeer` —— 把 xuan-storage 的同步引擎从「单 peer（云端）」改造成「多 peer」。
-- **当前阶段**：**R5 复核完成，判定返工但正在收敛（剩余 3 项）**。代码一行都还没写。
-- **下一步**：转译者按 `REACT-R5-CODEX.md` 封闭修复 3 项；下一轮只做定向复验，不再开放式扩张范围。
-- **最新提交**：见 `git log -1`（v3.2 = R4 返工修复）
+- **当前阶段**：**转译 v3.3 完成（R5 的 3 项已全部修复），等待人类裁定是否需要 R6**。代码一行都还没写。
+- **下一步**：人类裁定 —— 直接下发给执行者（见 §7），或走一轮**封闭式 R6**（只验那 3 项 + 固定回归门禁）。
+- **最新提交**：见 `git log -1`（v3.3 = R5 返工修复）
 - **工作目录**：`xuan-storage/.worktrees/mimo-storage-s1b-multipeer/`，分支 `agent/mimo/storage-s1b-multipeer`
 
 ---
@@ -99,6 +99,18 @@ wjt-plan(立项) → wjt-act(转译) → wjt-react(闸门, Codex 跨模型) → 
 | **R2** | 仍返工，10 项新的 | 最重：**编译死锁没修好，而且转译者修错了地方**（见下） |
 | **R3** | 返工，6 项 | 方案 A 成立性**获确认**；6 项里转译者复核后**采纳 6、驳回 1**（P2-1 重复 key 误判）。产出 v3.1 |
 | **R4** | 返工，5 项 | 方案 A 未被推翻；5 项**全部采纳，无驳回**。产出 v3.2。Codex 本轮亦**主动更正** R3 的重复 key 系其误判 |
+| **R5** | 返工，3 项 | **Codex 判定"整体正在收敛"**；3 项全部采纳。产出 v3.3 |
+
+> **收敛曲线**：25 → 10 → 6 → 5 → **3**。严重度亦下降：
+> R1/R2 是数据泄漏、编译死锁、计划分解错误；R5 只剩三个局部契约/控制流问题。
+
+**R5 的三项与处置**（详见 `REACT-R5-CODEX.md` 原文 + `REACT-R5-REMEDIATION.md` 复核）：
+
+| 项 | 内容 | 处置 |
+|---|---|---|
+| P0-1 | 收敛性用例仍无生产被测对象：RED_EXPECT 只是"HlcClock 不存在"，**不实现任何归并器也能从红变绿** | **兑现 R4 承诺，挪到 ACT 09** 跑真实 `HlcConflictArbiter`；ACT 08 改为交付 `generateFrozenStamps` 数据生成器 |
+| P0-2 | ACT 10 的 scope 契约仍矛盾。**转译者实测发现比报告更深**：三个回调的来源方法全用 DriftRecordDataSource 的实例字段过滤 ⇒ Codex 方案 1 救不了 | 改用**方案 2：applier 按 scope 构造**；新增 `rejects_scope_mismatch` 与 `same_uuid_in_two_scopes_never_cross_reads` |
+| P1-2 | A1 自测控制流顺序错：快照比较在 restore 之前 ⇒ **脚本必然假失败**；且已退出的脚本无法自证 trap | restore 改幂等函数 + 正常路径显式调用 + trap 只兜异常；trap 自测改为外层 harness 起子进程 |
 
 **R4 的五项与处置**（详见 `REACT-R4-CODEX.md` 原文 + `REACT-R4-REMEDIATION.md` 复核）：
 
@@ -161,7 +173,7 @@ v2 做的"把 schema 拆成纯加法保持可编译"救错了对象。
 | 10 | 修 `canAdvanceCursor` 恒真 + 接入仲裁 + 畸形 payload 归 failed | | |
 | 11 | HLC 线上格式规格（A14）+ barrel + 架构守卫 + `run_s1b_analyze_gate.sh` | | |
 
-**规模**：91 测试用例 / 164 验证命令 / 66 条自检注入，11 个 ACT 全部有 ON_FAIL。
+**规模**：94 测试用例 / 167 验证命令 / 68 条自检注入，11 个 ACT 全部有 ON_FAIL。
 
 ### 让 ACT 03 能"全程绿"的关键事实（**必须理解，否则会以为它写错了**）
 
@@ -234,28 +246,32 @@ ACT 02 负责把这 4 个失败清零。**这是收紧，不是降低口径。**
 
 ## 6. 下一步：你该做什么
 
-**R4 已做完**（Codex 判返工 5 项 → 转译者复核后**全部采纳，无驳回** → 产出 v3.2）。
+**R5 已做完**（Codex 判返工 3 项、**整体正在收敛** → 转译者复核后全部采纳 → 产出 v3.3）。
 现在是**人类裁定点**，两条路：
 
 ### 路 A：直接下发执行（进 §7）
 
-v3.2 已修掉 R4 的全部 5 项，自检全绿
-（含新增的结构化校验：91 个用例六项字段全齐、A1–A14 覆盖 14/14）。
+v3.3 已修掉 R5 的全部 3 项，自检全绿
+（94 个用例六项字段全齐、A1–A14 覆盖 14/14、bash -n 167 条 0 错）。
 若人类认为不必再验，直接按 §7 从 ACT 01 开始下发。
 
-### 路 B：再走一轮 R5，验证本轮改动
+### 路 B：封闭式 R6（Codex 自己建议的口径）
 
-⚠ **wjt-react 的 2 轮上限已被人类额外授权突破【两次】（R3、R4 各一次）。
-第 5 轮必须重新请示人类，agent 不得自行发起。**
+⚠ **wjt-react 的 2 轮上限已被人类额外授权突破【三次】（R3、R4、R5 各一次）。
+第 6 轮必须重新请示人类，agent 不得自行发起。**
 
-若人类授权 R5，重点验这四处（本轮新写或改动较大的）：
-- ACT 10 的 `scope_is_per_call` —— 两个打库回调改成显式收 scopeUid 后，
-  样板是否真能编译、`readLocalRecord` 不带 scopeUid 的理由是否站得住
-- ACT 08 的 `convergence_over_fixed_stamps` —— **职责收缩为"数学结构命题"是否可接受**
-  （Codex R4 要求挪到 ACT 09，我给了不挪的理由，这是本轮唯一的分歧点）
-- ACT 09 的 `compare_to_orders_extreme_packed_values_correctly` ——
-  重写后是否还残留"数值测试能识别实现手法"的错误暗示
-- ACT 11 的 `test_s1b_analyze_gate.sh` —— trap 骨架 + 前后快照比较是否真的异常安全
+Codex 在 R5 报告末尾明确建议：**不要再做全量自由探索式翻查**，
+只验 R5 那 3 项的修复 + 跑固定回归门禁（YAML / 字段完整性 / A1–A14 / bash -n）。
+若三项关闭且门禁无回退，应判 READY；
+除非发现会导致编译失败、数据错误或假绿验收的 P0/P1 新证据，否则不再扩张范围。
+
+三项的复验要点：
+- **P0-1**：ACT 09 的 `convergence_over_fixed_stamps` 是否真的驱动
+  `HlcConflictArbiter`；ACT 08 的 `generateFrozenStamps` 能否被 ACT 09 import
+- **P0-2**：applier 绑定 scope 后，三个回调 + 两个转发闭包是否**全部锚定同一个 scope**；
+  `rejects_scope_mismatch` 第④条（scope-A 无写入）能否抓到"记了 error 仍继续应用"
+- **P1-2**：`restore` 的显式调用是否在取 `SNAPSHOT_AFTER` **之前**；
+  trap harness 的子进程退出码检查是否可靠
 
 **agent 不要自行判定"过了"** —— 跨模型闸门的意义就在于不是同一个模型自审。
 返工的话，逐条独立复核（**不要照单全收，Codex 会错** —— R3 的 P2-1 就是误判，
@@ -304,48 +320,49 @@ Codex 本人在 R4 报告里也承认了）。
 
 | 项 | 状态 |
 |---|---|
-| 转译 | **v3.2 完成**（R4 返工修复） |
-| 跨模型闸门 | R1 返工 25 / R2 返工 10 / R3 返工 6（采纳 6 驳回 1）/ R4 返工 5（全采纳）→ **已修复，等人类裁定是否 R5** |
+| 转译 | **v3.3 完成**（R5 返工修复） |
+| 跨模型闸门 | R1 **25** / R2 **10** / R3 **6**（采纳 6 驳回 1）/ R4 **5**（全采纳）/ R5 **3**（全采纳）→ **已修复，等人类裁定是否封闭式 R6** |
 | 代码 | **一行都没写** |
 | 分支 | `agent/mimo/storage-s1b-multipeer`，worktree 干净 |
 | 未推送 | 本地 `main` 超前 `gitea/main` **27 个提交** |
 | 主工作区未提交 | `firebase/infrastructure/emulator/firestore.rules`（**不是本任务改的，别动**）、`.codegraph/daemon.pid`（同上） |
 
-### v3.2 的自检结果（已跑）
+### v3.3 的自检结果（已跑）
 
 ```
 YAML 严格解析 ............ 11/11（含重复 key 检测，PyYAML 自定义 loader）
 编号自洽 ................. 11/11（TASK_ID = 文件名 = ORDER，DEPENDS_ON 严格单链）
-用例字段完整性 ........... 91/91（NAME/FILE/BEHAVIOR/RED_COMMAND/RED_EXPECT/COVERS 六项）
+用例字段完整性 ........... 94/94（NAME/FILE/BEHAVIOR/RED_COMMAND/RED_EXPECT/COVERS 六项）
 A1–A14 结构化覆盖 ........ 14/14 全部有 COVERS 映射
 grep -c 缺双 EXPECT ...... 0 条
 <ACT_BASE> 占位符残留 .... 0
 || true 恒绿门禁 ......... 0（仅剩"禁止它"的说明文字）
-VERIFICATION bash -n ..... 164 条，语法错 0 条
+VERIFICATION bash -n ..... 167 条，语法错 0 条
 验收标准 A1–A14 .......... 与 cd064c6 逐字一致
 ```
 
 > 💡 **两道校验值得常设**（都是被 Codex 抓过之后补的）：
-> ① **YAML 严格解析** —— 曾当场抓出转译者自己引入的两处语法错误：
-> **list item 以反引号开头**会被 YAML 当成特殊字符而解析失败。
-> 写 ACT 时若一行要以反引号开头，前面加个词（如「用例 \`foo\` ...」）。
+> ① **YAML 严格解析** —— 已两次当场抓出转译者自己引入的语法错误。
+> **list item 的首字符不能是 `` ` `` 或 `*`**：
+> 反引号会被当成特殊字符，`**粗体**` 开头会被当成 alias（`*` 是 YAML 的别名前缀）。
+> 写 ACT 时若一行要以它们开头，前面加个词（如「用例 \`foo\` ...」「已**导出**…」）。
 > ② **用例字段完整性结构化校验** —— R4 的 P0-1 就是"新增用例漏了
 > RED_COMMAND/RED_EXPECT/COVERS"，肉眼看不出来，脚本一跑就现形。
 
 ---
 
-## 11. 已知的未决问题（v3.2 没解决的）
+## 11. 已知的未决问题（v3.3 没解决的）
 
 1. **ACT 04 超粒度** —— 已知代价，非缺陷，但执行时可能真的做不完一轮会话。若执行者反馈做不动，选项是：给它更强的模型 / 允许它分多次提交（ACT 文件已允许，no-touch 守卫用 `"$(cat .act-base)"` 而非 `HEAD~1`）。
-2. **Firestore 侧 `rev` 恒为 null** —— 这是 v1/v2 时代的决定，HLC 方案下已不再依赖 rev，但纪要「决定记录」里那条历史记录仍在，**不要按它执行**，以 v3.2 的记录为准。
+2. **Firestore 侧 `rev` 恒为 null** —— 这是 v1/v2 时代的决定，HLC 方案下已不再依赖 rev，但纪要「决定记录」里那条历史记录仍在，**不要按它执行**，以 v3.3 的记录为准。
    ⚠ 另注意（R4 · P2-1）：`RecordMeta.rev` 作为**业务字段**是既有合法行为，
    S1b 禁的是"把 rev 当定序坐标"，**不是禁这个字段名**。
 3. **oplog compaction（§5.3）** —— 数据模型已由 `t_outbox_peer_ack` 确定（"所有已知 peer 均已 success 的 operationId 可被压缩"直接查这张表），但**压缩逻辑本身不在 S1b 范围**。
 4. **E2EE（§5.4 第二道锁）** —— 不在 S1b 范围。
-5. **`local == null` 的两义性** —— 区分责任明确划给 ACT 10 的 applier，ACT 10 有专门的测试守着（R3 后已补 `readLocalRecord` 回调，区分通道完整）。这是设计选择不是遗漏。
-6. **收敛性用例的归属**（R4 唯一分歧点）—— Codex 要求把
-   `convergence_over_fixed_stamps` 挪到 ACT 09 在真实仲裁上跑；
-   转译者选择留在 ACT 08 并把职责收缩为"数学结构命题"，理由见
-   `REACT-R4-REMEDIATION.md`。**这是边界品味问题，R5 若不认可可按原方案挪。**
-7. **第 5 轮闸门** —— 是否 R5 由人类裁定，agent 不得自行发起（2 轮上限已被突破两次）。
-6. **第 4 轮闸门** —— 是否 R4 由人类裁定，agent 不得自行发起（2 轮上限已被额外授权突破一次）。
+5. **`local == null` 的两义性** —— 区分责任明确划给 ACT 10 的 applier，ACT 10 有专门的测试守着（`readLocalRecord` 回调 + `stampless_existing_local_is_archived_but_absent_local_is_not`）。这是设计选择不是遗漏。
+6. **applier 不能跨 scope 复用** —— 这是 R5 后的**明确设计决定**，不是限制遗漏。
+   根因：`DriftRecordDataSource` 构造时固定 scopeUid，三个方法全用实例字段过滤。
+   需要另一个 scope 就另建 applier 实例。详见 `act/10.yaml` 的
+   `TASK_DETAIL.applier_is_scope_bound`。
+7. **第 6 轮闸门** —— 是否 R6 由人类裁定，agent 不得自行发起
+   （2 轮上限已被突破三次：R3、R4、R5）。Codex 建议若走则用**封闭式**口径。

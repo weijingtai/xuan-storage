@@ -33,6 +33,9 @@ SCOPE:
     - scripts/test_s1b_analyze_gate.sh
       # A1 门禁的注入型自测（Codex R3 · P2-2）——
       # 三次注入证明 run_s1b_analyze_gate.sh 三段各自都能红
+    - scripts/test_s1b_analyze_gate_trap.sh
+      # 外层 harness：用子进程验 trap 真能恢复现场（Codex R5 · P1-1）——
+      # 已退出的脚本无法自证 trap，必须由父进程检查
     - docs/storage-s1b-multipeer/HLC-WIRE-FORMAT.md
     - core/test/s1b_architecture_guard_test.dart
     - core/test/s1b_wire_format_golden_test.dart
@@ -302,34 +305,60 @@ TESTS_FIRST:
           · 执行 ACT 11 时本来就有多个新增/修改的未提交文件，
             工作树【合法地】非空，要求它为空等于要求这个门禁永远失败。
 
-        正确骨架（照抄这个结构）：
+        正确骨架（照抄这个结构，**注意执行顺序**）：
 
+          #!/bin/bash
           set -euo pipefail
+
           BACKUP_DIR="$(mktemp -d)"
-          CREATED_FILES=""          # 本脚本【新建】的文件，逐个记录
+          CREATED_FILES=""          # 本脚本【新建】的文件，空格分隔
+          BACKED_UP=""              # 已备份的原文件，空格分隔
           SNAPSHOT_BEFORE="$(git status --porcelain)"
+          RESTORED=0                # 幂等标志
 
-          restore() {
-            # 1) 还原所有备份过的文件（逐文件 cp 回原位）
-            #    备份时用 cp "$f" "$BACKUP_DIR/$(echo "$f" | tr / _)"
-            # 2) 删除本脚本新建的文件（CREATED_FILES 逐个 rm -f）
-            # 3) rm -rf "$BACKUP_DIR"
+          backup_file() {           # 注入前先调它
+            local f="$1"
+            cp "$f" "$BACKUP_DIR/$(echo "$f" | tr / _)"
+            BACKED_UP="$BACKED_UP $f"
           }
-          trap restore EXIT INT TERM     # ← 成功/失败/被中断【都】恢复
 
-        收尾断言【比较前后快照】而不是要求全局为空：
+          restore() {               # 【幂等】：重复调用无副作用
+            [ "$RESTORED" = "1" ] && return 0
+            RESTORED=1
+            for f in $BACKED_UP; do
+              cp "$BACKUP_DIR/$(echo "$f" | tr / _)" "$f"
+            done
+            for f in $CREATED_FILES; do rm -f "$f"; done
+            rm -rf "$BACKUP_DIR"
+          }
 
-          SNAPSHOT_AFTER="$(git status --porcelain)"
-          [ "$SNAPSHOT_BEFORE" = "$SNAPSHOT_AFTER" ] || {
-            echo "工作树被污染，注入未完全恢复"; exit 1; }
+          trap restore EXIT INT TERM   # ← 仅作【异常兜底】，正常路径不靠它
 
-        三次注入（每次注入前先 cp 备份到 $BACKUP_DIR）：
+          # ...... 三次注入，每次 backup_file 后再改 ......
+
+          # 【关键顺序】先显式恢复，再比较快照：
+          restore                                    # ① 显式调用，不等 trap
+          SNAPSHOT_AFTER="$(git status --porcelain)" # ② 恢复之后才取快照
+          if [ "$SNAPSHOT_BEFORE" != "$SNAPSHOT_AFTER" ]; then
+            echo "工作树被污染，注入未完全恢复"; exit 1
+          fi
+          echo "A1 门禁自测通过"
+          exit 0
+
+        ⚠⚠ 【顺序错了这个脚本必然假失败】（Codex R5 · P1-1）：
+        v3.2 的骨架把 `SNAPSHOT_AFTER` 的读取写在 trap 之后、
+        但在脚本【尚未退出】时执行 —— 那时 trap 根本没跑，
+        三次注入还留在工作树上，比较必然不等，脚本必然报失败。
+        **trap 只在进程退出时触发，不能用它来"先恢复再比较"。**
+        正确做法就是上面这样：restore 做成【幂等函数】，
+        正常路径【显式调用】它，trap 只兜异常。
+
+        三次注入（每次注入前先 `backup_file`）：
 
           ① scoped analyze 必须为 0 这一段
              注入：在 S1b 新增文件（如 core/lib/model/conflict_arbiter.dart）
              末尾追加一个未使用的顶层私有变量 `final _unused = 1;`
              断言：run_s1b_analyze_gate.sh 退出码非 0
-             恢复：由 trap 统一处理（cp 回备份），【不用 git checkout】
 
           ② 白名单子集这一段
              注入：临时改脚本里的白名单变量，去掉其中一项后重跑
@@ -340,13 +369,32 @@ TESTS_FIRST:
              断言：退出码非 0（实际数超过了"基线"）
 
         任一注入没能让门禁变红就 exit 1 并打印是哪一段失守
-        （此时 trap 仍会恢复现场）。
+        （此时 trap 会兜底恢复）。
 
-        **最后一步：自测 trap 本身**。
-        故意在第二次注入后插入一个 `exit 3` 提前退出，
-        确认 trap 仍把工作树恢复到 SNAPSHOT_BEFORE、且 $BACKUP_DIR 已清理；
-        确认后把那行 `exit 3` 删掉。
-        【这一步不做，就等于没有证明恢复机制可靠】。
+        **trap 自测：必须用【子进程】，不能让已退出的脚本自证**
+        （Codex R5 · P1-1）。写第二个脚本
+        `scripts/test_s1b_analyze_gate_trap.sh` 作为外层 harness：
+
+          #!/bin/bash
+          set -euo pipefail
+          SNAP_BEFORE="$(git status --porcelain)"
+          # 用环境变量让子进程在第二次注入后自杀
+          S1B_TRAP_SELFTEST=1 bash scripts/test_s1b_analyze_gate.sh || rc=$?
+          [ "${rc:-0}" = "3" ] || { echo "子进程未按预期以 3 退出"; exit 1; }
+          SNAP_AFTER="$(git status --porcelain)"
+          [ "$SNAP_BEFORE" = "$SNAP_AFTER" ] || {
+            echo "trap 未能恢复现场"; exit 1; }
+          # 临时目录必须已清理：子进程里 mktemp 的目录不应残留
+          echo "trap 自测通过"
+
+        对应地，`test_s1b_analyze_gate.sh` 里在第二次注入后加：
+
+          if [ "${S1B_TRAP_SELFTEST:-0}" = "1" ]; then exit 3; fi
+
+        ⚠ 这一行【是脚本的常驻部分，不要事后删掉】——
+        默认不设该环境变量时它不生效，设了才自杀，
+        所以既不影响正常路径，又让 trap 可被反复验证。
+        v3.2 要求"确认后把 exit 3 删掉"是错的：删了就再也验不了。
 
         ⚠ 【不许用 `|| true` 兜任何一步】——那会让这个自测脚本自己恒绿。
         ⚠ macOS /bin/bash 是 3.2.57：没有 `declare -A`、没有 `mapfile`/`readarray`；
@@ -364,6 +412,17 @@ VERIFICATION:
   # 自测脚本不许用 || true 把自己变成恒绿
   - CMD: 'grep -nE "\|\| *true" scripts/test_s1b_analyze_gate.sh'
     EXPECT_EXIT: 1
+  # trap 必须真能恢复现场 —— 由外层 harness 起子进程验（Codex R5 · P1-1）
+  - CMD: bash scripts/test_s1b_analyze_gate_trap.sh
+    EXPECT_EXIT: 0
+  # restore 必须在【正常路径显式调用】，不能只挂 trap
+  # （trap 只在退出时触发，靠它做"先恢复再比较"必然假失败）
+  - CMD: 'grep -nE "^[[:space:]]*restore[[:space:]]*$" scripts/test_s1b_analyze_gate.sh'
+    EXPECT_EXIT: 0
+  # 自测脚本必须保留 S1B_TRAP_SELFTEST 钩子（删了就再也验不了 trap）
+  - CMD: 'grep -c "S1B_TRAP_SELFTEST" scripts/test_s1b_analyze_gate.sh'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
   - CMD: cd core && flutter test
     EXPECT_EXIT: 0
   - CMD: cd drift && flutter test
