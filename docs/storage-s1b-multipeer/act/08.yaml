@@ -342,6 +342,12 @@ TESTS_FIRST:
         拿同一组戳调两次 compareTo 再断言两次结果相同 ——
         那是在断言"纯函数是纯函数"，任何实现都会绿，证明力为零。
         两侧必须是两个真正独立的归并器实例、两种真正不同的喂入顺序。
+        ⚠ 【本用例不做仲裁的具体实现，也不管"哪个版本赢"】——
+        谁是胜者由 ACT 09 的 HlcConflictArbiter 判定，本用例只负责
+        【冻结一组版本、证明收敛性命题的数学结构】。
+      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A8]
 
     - NAME: causality_survives_clock_skew
       FILE: core/test/s1b_hlc_property_test.dart

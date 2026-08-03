@@ -8,9 +8,9 @@
 ## 0. 三十秒版本
 
 - **任务**：`storage-s1b-multipeer` —— 把 xuan-storage 的同步引擎从「单 peer（云端）」改造成「多 peer」。
-- **当前阶段**：**R4 复核完成，判定返工**。代码一行都还没写。
-- **下一步**：转译者按 `REACT-R4-CODEX.md` 修复 5 项，再进行下一轮独立验收。
-- **最新提交**：见 `git log -1`（v3.1 = R3 返工修复）
+- **当前阶段**：**转译 v3.2 完成（R4 的 5 项已全部修复），等待人类裁定是否需要 R5**。代码一行都还没写。
+- **下一步**：人类裁定 —— 直接下发给执行者（见 §7），或再走一轮 R5 验证本轮改动。
+- **最新提交**：见 `git log -1`（v3.2 = R4 返工修复）
 - **工作目录**：`xuan-storage/.worktrees/mimo-storage-s1b-multipeer/`，分支 `agent/mimo/storage-s1b-multipeer`
 
 ---
@@ -98,6 +98,17 @@ wjt-plan(立项) → wjt-act(转译) → wjt-react(闸门, Codex 跨模型) → 
 | **R1** | 返工，25 项 | 最重：**P0-1 channel 过滤被 `pushToAll` 架空**（peekBatch 辛苦挑出该对端能收的记录，`pushToAll` 转头发给所有人，两边测试都绿） |
 | **R2** | 仍返工，10 项新的 | 最重：**编译死锁没修好，而且转译者修错了地方**（见下） |
 | **R3** | 返工，6 项 | 方案 A 成立性**获确认**；6 项里转译者复核后**采纳 6、驳回 1**（P2-1 重复 key 误判）。产出 v3.1 |
+| **R4** | 返工，5 项 | 方案 A 未被推翻；5 项**全部采纳，无驳回**。产出 v3.2。Codex 本轮亦**主动更正** R3 的重复 key 系其误判 |
+
+**R4 的五项与处置**（详见 `REACT-R4-CODEX.md` 原文 + `REACT-R4-REMEDIATION.md` 复核）：
+
+| 项 | 内容 | 处置 |
+|---|---|---|
+| P0-1 | 收敛性用例缺 RED_COMMAND/RED_EXPECT/COVERS（R3 新增时的疏漏），且 ACT 08 无生产归并类型 | 补齐三字段 + 职责收缩为"数学结构命题"。**未按原方案挪到 ACT 09，是唯一分歧点** |
+| P0-2 | ACT 10 接线契约四处矛盾，全为 R3 引入 | ① scope 改为回调显式收参 ② `const ConflictArbiter()` 不可编译→`HlcConflictArbiter` ③ `findRecordByUuid` 是凭空造的→用既有 `getRecord:89` ④ 该文件钉死只读 |
+| P1-1 | 减法论证仍自相矛盾（R3 修得不彻底） | 用例改名为 `..._orders_extreme_packed_values_correctly` + 明确"**不能识别实现手法**" |
+| P1-2 | A1 自测用 `git checkout` 恢复不了未跟踪文件；要求全局 porcelain 为空必然失败 | 改 `mktemp -d`+`trap` 骨架 + 前后快照比较 + 新增"自测 trap 本身"一步 |
+| P2-1 | DONE_WHEN 说"不再有 rev"但 grep 实际不禁它，且会误杀业务字段 | 改为"**定序坐标里**不再有" + 新增仲裁路径精确门禁 |
 
 **R3 的六项与处置**（详见 `REACT-R3-CODEX.md` 原文 + `REACT-R3-REMEDIATION.md` 复核）：
 
@@ -150,7 +161,7 @@ v2 做的"把 schema 拆成纯加法保持可编译"救错了对象。
 | 10 | 修 `canAdvanceCursor` 恒真 + 接入仲裁 + 畸形 payload 归 failed | | |
 | 11 | HLC 线上格式规格（A14）+ barrel + 架构守卫 + `run_s1b_analyze_gate.sh` | | |
 
-**规模**：91 测试用例 / 163 验证命令 / 66 条自检注入，11 个 ACT 全部有 ON_FAIL。
+**规模**：91 测试用例 / 164 验证命令 / 66 条自检注入，11 个 ACT 全部有 ON_FAIL。
 
 ### 让 ACT 03 能"全程绿"的关键事实（**必须理解，否则会以为它写错了**）
 
@@ -223,29 +234,35 @@ ACT 02 负责把这 4 个失败清零。**这是收紧，不是降低口径。**
 
 ## 6. 下一步：你该做什么
 
-**R3 已做完**（Codex 判返工 6 项 → 转译者复核后采纳 6、驳回 1 → 产出 v3.1）。
+**R4 已做完**（Codex 判返工 5 项 → 转译者复核后**全部采纳，无驳回** → 产出 v3.2）。
 现在是**人类裁定点**，两条路：
 
 ### 路 A：直接下发执行（进 §7）
 
-v3.1 已修掉 R3 的全部实质问题，自检全绿。
+v3.2 已修掉 R4 的全部 5 项，自检全绿
+（含新增的结构化校验：91 个用例六项字段全齐、A1–A14 覆盖 14/14）。
 若人类认为不必再验，直接按 §7 从 ACT 01 开始下发。
 
-### 路 B：再走一轮 R4，验证本轮改动
+### 路 B：再走一轮 R5，验证本轮改动
 
-⚠ **wjt-react 的 2 轮上限已被人类额外授权突破一次（R3 就是那次兑现）。
-第 4 轮必须重新请示人类，agent 不得自行发起。**
+⚠ **wjt-react 的 2 轮上限已被人类额外授权突破【两次】（R3、R4 各一次）。
+第 5 轮必须重新请示人类，agent 不得自行发起。**
 
-若人类授权 R4，重点验这三处（都是本轮新写、还没被任何外部模型看过的）：
-- ACT 10 的 `applier_constructor_signature` —— 四个新增回调的注入方式是否真能机械照抄
-- ACT 08 的 `convergence_over_fixed_stamps` —— 收敛性挪到归并层后，断言是否还成立
-- ACT 11 的 `test_s1b_analyze_gate.sh` —— 三段注入是否真能让门禁红
+若人类授权 R5，重点验这四处（本轮新写或改动较大的）：
+- ACT 10 的 `scope_is_per_call` —— 两个打库回调改成显式收 scopeUid 后，
+  样板是否真能编译、`readLocalRecord` 不带 scopeUid 的理由是否站得住
+- ACT 08 的 `convergence_over_fixed_stamps` —— **职责收缩为"数学结构命题"是否可接受**
+  （Codex R4 要求挪到 ACT 09，我给了不挪的理由，这是本轮唯一的分歧点）
+- ACT 09 的 `compare_to_orders_extreme_packed_values_correctly` ——
+  重写后是否还残留"数值测试能识别实现手法"的错误暗示
+- ACT 11 的 `test_s1b_analyze_gate.sh` —— trap 骨架 + 前后快照比较是否真的异常安全
 
 **agent 不要自行判定"过了"** —— 跨模型闸门的意义就在于不是同一个模型自审。
-返工的话，逐条独立复核（**不要照单全收，Codex 会错** —— R3 的 P2-1 就是误判）。
+返工的话，逐条独立复核（**不要照单全收，Codex 会错** —— R3 的 P2-1 就是误判，
+Codex 本人在 R4 报告里也承认了）。
 
 > ⚠ 若要再投 Codex，记得在 prompt 里加一句
-> 「把报告写到 `docs/storage-s1b-multipeer/REACT-R4-CODEX.md`」——
+> 「把报告写到 `docs/storage-s1b-multipeer/REACT-R5-CODEX.md`」——
 > R3 那次没写，报告只留在终端里差点丢了。
 
 ---
@@ -287,36 +304,48 @@ v3.1 已修掉 R3 的全部实质问题，自检全绿。
 
 | 项 | 状态 |
 |---|---|
-| 转译 | **v3.1 完成**（R3 返工修复） |
-| 跨模型闸门 | R1 返工 / R2 返工 / R3 返工 6 项 → **已修复，等人类裁定是否 R4** |
+| 转译 | **v3.2 完成**（R4 返工修复） |
+| 跨模型闸门 | R1 返工 25 / R2 返工 10 / R3 返工 6（采纳 6 驳回 1）/ R4 返工 5（全采纳）→ **已修复，等人类裁定是否 R5** |
 | 代码 | **一行都没写** |
 | 分支 | `agent/mimo/storage-s1b-multipeer`，worktree 干净 |
 | 未推送 | 本地 `main` 超前 `gitea/main` **27 个提交** |
 | 主工作区未提交 | `firebase/infrastructure/emulator/firestore.rules`（**不是本任务改的，别动**）、`.codegraph/daemon.pid`（同上） |
 
-### v3.1 的自检结果（已跑）
+### v3.2 的自检结果（已跑）
 
 ```
 YAML 严格解析 ............ 11/11（含重复 key 检测，PyYAML 自定义 loader）
 编号自洽 ................. 11/11（TASK_ID = 文件名 = ORDER，DEPENDS_ON 严格单链）
+用例字段完整性 ........... 91/91（NAME/FILE/BEHAVIOR/RED_COMMAND/RED_EXPECT/COVERS 六项）
+A1–A14 结构化覆盖 ........ 14/14 全部有 COVERS 映射
 grep -c 缺双 EXPECT ...... 0 条
 <ACT_BASE> 占位符残留 .... 0
 || true 恒绿门禁 ......... 0（仅剩"禁止它"的说明文字）
-LamportStamp 残留 ........ 仅剩"禁止它"的守卫本身
+VERIFICATION bash -n ..... 164 条，语法错 0 条
 验收标准 A1–A14 .......... 与 cd064c6 逐字一致
 ```
 
-> 💡 **YAML 严格校验值得常设**：本轮它当场抓出了转译者自己引入的两处语法错误 ——
-> **list item 以反引号开头**（`  - \`foo\` 红了 → ...`）会被 YAML 当成特殊字符而解析失败。
+> 💡 **两道校验值得常设**（都是被 Codex 抓过之后补的）：
+> ① **YAML 严格解析** —— 曾当场抓出转译者自己引入的两处语法错误：
+> **list item 以反引号开头**会被 YAML 当成特殊字符而解析失败。
 > 写 ACT 时若一行要以反引号开头，前面加个词（如「用例 \`foo\` ...」）。
+> ② **用例字段完整性结构化校验** —— R4 的 P0-1 就是"新增用例漏了
+> RED_COMMAND/RED_EXPECT/COVERS"，肉眼看不出来，脚本一跑就现形。
 
 ---
 
-## 11. 已知的未决问题（v3.1 没解决的）
+## 11. 已知的未决问题（v3.2 没解决的）
 
 1. **ACT 04 超粒度** —— 已知代价，非缺陷，但执行时可能真的做不完一轮会话。若执行者反馈做不动，选项是：给它更强的模型 / 允许它分多次提交（ACT 文件已允许，no-touch 守卫用 `"$(cat .act-base)"` 而非 `HEAD~1`）。
-2. **Firestore 侧 `rev` 恒为 null** —— 这是 v1/v2 时代的决定，HLC 方案下已不再依赖 rev，但纪要「决定记录」里那条历史记录仍在，**不要按它执行**，以 v3.1 的记录为准。
+2. **Firestore 侧 `rev` 恒为 null** —— 这是 v1/v2 时代的决定，HLC 方案下已不再依赖 rev，但纪要「决定记录」里那条历史记录仍在，**不要按它执行**，以 v3.2 的记录为准。
+   ⚠ 另注意（R4 · P2-1）：`RecordMeta.rev` 作为**业务字段**是既有合法行为，
+   S1b 禁的是"把 rev 当定序坐标"，**不是禁这个字段名**。
 3. **oplog compaction（§5.3）** —— 数据模型已由 `t_outbox_peer_ack` 确定（"所有已知 peer 均已 success 的 operationId 可被压缩"直接查这张表），但**压缩逻辑本身不在 S1b 范围**。
 4. **E2EE（§5.4 第二道锁）** —— 不在 S1b 范围。
-5. **`local == null` 的两义性** —— 区分责任明确划给 ACT 10 的 applier，ACT 10 有专门的测试守着（R3 后 ACT 10 已补 `readLocalRecord` 回调，区分通道完整）。这是设计选择不是遗漏。
+5. **`local == null` 的两义性** —— 区分责任明确划给 ACT 10 的 applier，ACT 10 有专门的测试守着（R3 后已补 `readLocalRecord` 回调，区分通道完整）。这是设计选择不是遗漏。
+6. **收敛性用例的归属**（R4 唯一分歧点）—— Codex 要求把
+   `convergence_over_fixed_stamps` 挪到 ACT 09 在真实仲裁上跑；
+   转译者选择留在 ACT 08 并把职责收缩为"数学结构命题"，理由见
+   `REACT-R4-REMEDIATION.md`。**这是边界品味问题，R5 若不认可可按原方案挪。**
+7. **第 5 轮闸门** —— 是否 R5 由人类裁定，agent 不得自行发起（2 轮上限已被突破两次）。
 6. **第 4 轮闸门** —— 是否 R4 由人类裁定，agent 不得自行发起（2 轮上限已被额外授权突破一次）。

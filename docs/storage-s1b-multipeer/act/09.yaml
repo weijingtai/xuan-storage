@@ -194,11 +194,17 @@ TASK_DETAIL:
     ⚠ compareTo 【不许用减法实现】（`a.l - b.l` / `a.hlcPacked - b.hlcPacked`）。
     减法在普通数值上同样满足反对称/传递/自反，所以 Codex R1 指出的那四条性质
     【抓不到它】（R2 复核确认此洞仍在）。
-    减法的真实故障点是【溢出】：两个相距超过 2^62 的打包值相减会绕回，
-    符号翻转，胜负颠倒 —— 而正常业务数据永远碰不到这个区间，测不出来。
-    正确写法是三路比较（`if (a < b) return -1; if (a > b) return 1; ...`）。
-    对应的门禁是 CASES 里的 `compare_to_survives_extreme_magnitude`，
-    以及一条文本级 grep。
+    减法实现的问题不只是溢出：它把"语义比较"降级成"数值相减"，
+    一旦将来打包格式或决胜位（deviceId）的参与方式变化，减法的含义
+    会悄悄漂移而不报错。正确写法是三路比较
+    （`if (a.hlc < b.hlc) return -1; ...` 最后比 deviceId 的 UTF-8 字节序）。
+    ⚠ 【不要声称"减法在极端值上必然溢出所以能测出来"】（Codex R4 · P1-1）：
+    A14 把合法 packed 值限定在 `[0, 2^63)`，该区间内相减不溢出、
+    符号与三路比较一致，数值测试【无法】识别减法实现。
+    权威门禁是 VERIFICATION 里对 compareTo 函数体的【源码文本检查】
+    （禁 `- other`，且必须有 `utf8.encode`），
+    由 SELF_CHECK「临时改成减法 → 文本门禁必红」证明其证明力。
+    对应的行为用例是 `compare_to_orders_extreme_packed_values_correctly`。
 
   discarded_is_bidirectional: >
     §5.3 要求"冲突时保留被覆盖的版本并使其对用户可见可回溯"。
@@ -282,21 +288,30 @@ TESTS_FIRST:
       RED_EXPECT: 编译失败，先红
       COVERS: [A8]
 
-    - NAME: compare_to_survives_extreme_magnitude
+    - NAME: compare_to_orders_extreme_packed_values_correctly
       FILE: core/test/s1b_conflict_arbiter_test.dart
       BEHAVIOR: >
-        【专打"用减法实现 compareTo"，对应 Codex R1 指出、R2 复核仍在的洞】。
-        构造两个 VersionStamp，其打包值分别接近 int64 的正负两端
-        （例如 l 取规格允许的最大值 2^47-1 与 0，deviceId 相同）。断言：
-        - `big.compareTo(small) > 0` 且 `small.compareTo(big) < 0`；
-        - 两者的差【超过 2^62】—— 用减法实现时结果会绕回、符号翻转，这条会红。
-        再取一组差值恰好跨过 2^63 边界的（如果规格允许的 l 上限做不到，
-        就直接对 `toPacked()` 返回的两个 int 断言三路比较的结果，
-        并在注释里写明"本条守的是实现手法，不是业务可达值"）。
-        ⚠ 【本用例必须配合下方 VERIFICATION 的文本 grep 一起读，两者互补】：
-        合法值域内减法不会符号翻转，本用例的溢出断言只在【非法/极端值】上红，
-        所以【真正抓到减法实现的是那条文本 grep】（Codex R3 · P1-1）。
-        本用例的价值是兜住"用减法但数值没溢出"的漏网 —— 两者缺一不可。
+        【纯行为验证：极端合法值上的排序结果必须正确】。
+        构造两个 VersionStamp，打包值取规格允许的两端
+        （l = 2^47-1 与 l = 0，deviceId 相同）。断言：
+        - `big.compareTo(small) > 0`
+        - `small.compareTo(big) < 0`
+        - `big.compareTo(big) == 0`
+        再补一组 c 位取满（`c = 2^16-1`）的相邻值，断言低位不被吃掉。
+
+        ⚠⚠ 【本用例【不能】用来识别"是否用减法实现"】（Codex R4 · P1-1）。
+        A14 把合法 packed 值限定在 `[0, 2^63)`，该区间内任意两值相减
+        **既不溢出、也不符号翻转**，减法给出的比较结果与三路比较**完全一致**。
+        所以：
+          · 不要声称"差值超过 2^62 时减法会绕回，本条会红"——【那是错的】，
+            2^47-1 打包后约 2^63 的量级仍在正数域内，减法照样给出正确符号；
+          · 更不要声称"本条能兜住用减法但没溢出的漏网"——【逻辑正好相反】，
+            没溢出时减法的结果是对的，本用例必然绿。
+        v3.1 曾同时写下这两句互相取消的话，本轮全部删除。
+
+        **禁止减法实现的权威门禁是 VERIFICATION 里的源码文本检查**，
+        由 SELF_CHECK 里"临时改成减法 → 文本门禁必红"那条证明其证明力。
+        本用例的定位仅是：极端合法值上的排序行为正确，不涉及实现手法。
       RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
       RED_EXPECT: 编译失败，先红
       COVERS: [A8, A14]
@@ -441,8 +456,8 @@ SELF_CHECK:
   - 把 compareTo 临时改成 `return toPacked() - other.toPacked();`（减法实现）→
     **文本 grep 门禁必须变红**（那条 sed 管道 grep 减法的命令，
     其 EXPECT_EXIT 为 1 的期望会失败）→ 改回。
-    ⚠ 【不要声称 `compare_to_survives_extreme_magnitude` 一定会红】
-    （Codex R3 · P1-1）：A14 把合法 packed 值限定在 `[0, 2^63)`，
+    ⚠ 【不要声称 `compare_to_orders_extreme_packed_values_correctly` 一定会红】
+    （Codex R3 · P1-1，R4 复核仍在）：A14 把合法 packed 值限定在 `[0, 2^63)`，
     合法值域内两数相减【不会符号翻转】，所以那条用例在合法值上抓不到减法。
     **禁止减法的权威门禁是文本 grep，不是那条测试用例。**
     极端量级用例的定位是兜底（非法/越界值时的第二道网），不是主力。

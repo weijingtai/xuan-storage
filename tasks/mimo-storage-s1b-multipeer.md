@@ -46,7 +46,7 @@
 
 DEPENDS_ON 严格单链 01→02→…→11（无环）。
 STRONG_MODEL_ONLY：03（schema 迁移）、04（端口+实现）、07（退避时序）、08（因果时钟）、09（定序）。
-合计 **91 测试用例 / 163 验证命令 / 66 条自检注入**，11 个 ACT 全部有 ON_FAIL。
+合计 **91 测试用例 / 164 验证命令 / 66 条自检注入**，11 个 ACT 全部有 ON_FAIL。
 
 排序说明一：**策略过滤（05）刻意排在扇出（06）之前** —— 不知道谁有资格收，
 就不该先建扇出。转译 v1 把过滤排在后面，导致 peekBatch 挑好的记录被
@@ -100,17 +100,18 @@ pushToAll 转头发给所有人（Codex R1 · P0-1）。
 
 ## 当前状态
 
-**转译 v3.1 已完成（回应 Codex R3 的 6 项），等待人类裁定是否需要 R4。代码一行未写。**
+**转译 v3.2 已完成（回应 Codex R4 的 5 项，全部采纳），等待人类裁定是否需要 R5。代码一行未写。**
 
 - 11 个 ACT 就位：`docs/storage-s1b-multipeer/act/01..11.yaml`
-- R3 闸门：Codex 判返工 6 项 → 转译者逐条独立复核 → **采纳 6 项、驳回 1 项**（P2-1 重复 key 属误判）。
-  复核与处置全文见 `docs/storage-s1b-multipeer/REACT-R3-REMEDIATION.md`
-- 自检已跑（v3.1）：YAML 严格解析 11/11（含重复 key 检测）· 编号自洽 11/11 ·
-  grep -c 缺双 EXPECT 0 条 · `<ACT_BASE>` 残留 0 · `|| true` 恒绿 0 ·
-  验收标准 A1–A14 与 cd064c6 逐字一致
-- **下一步**：人类裁定 —— 直接下发执行，或再走一轮 R4 验证本轮改动。
-  ⚠ wjt-react 的 2 轮上限已被人类额外授权突破一次（R3 是那次兑现），
-  **第 4 轮必须重新请示人类**。
+- 闸门历史：R1 返工 25 项 / R2 返工 10 项 / R3 返工 6 项（采纳 6、驳回 1）/
+  **R4 返工 5 项（全部采纳，无驳回）**。
+  R4 复核与处置全文见 `docs/storage-s1b-multipeer/REACT-R4-REMEDIATION.md`
+- 自检已跑（v3.2）：YAML 严格解析 11/11 · 用例字段完整性 91/91（六项字段全齐）·
+  A1–A14 结构化覆盖 14/14 · grep -c 缺双 EXPECT 0 · `|| true` 恒绿 0 ·
+  VERIFICATION `bash -n` 164 条 0 错 · 验收标准与 cd064c6 逐字一致
+- **下一步**：人类裁定 —— 直接下发执行，或再走一轮 R5。
+  ⚠ wjt-react 的 2 轮上限已被突破两次（R3、R4 各一次人类授权），
+  **第 5 轮必须重新请示人类**。
 - **冷启动接手请先读 `docs/storage-s1b-multipeer/HANDOFF.md`**（全景 + 环境坑 + 铁律）
 - 遗留风险：本地 `main` 超前 `gitea/main` **27 个提交未推送**，S1b 全部工作建在这批未备份提交上。
 
@@ -300,6 +301,48 @@ pushToAll 转头发给所有人（Codex R1 · P0-1）。
   但采纳其修正标准后半段：严格校验器纳入常设自检流程（本轮它当场抓出了
   转译者自己引入的两处 YAML 语法错误 —— list item 以反引号开头）。
   规模由 88/158/64 变为 **91 测试 / 163 验证 / 66 自检注入**。
+
+- 2026-08-03（**转译审查 R4: 返工 5 项；转译者复核后全部采纳；产出 v3.2**）:
+  Codex 报告 `docs/storage-s1b-multipeer/REACT-R4-CODEX.md`，
+  复核与处置 `docs/storage-s1b-multipeer/REACT-R4-REMEDIATION.md`。
+  方案 A 成立性未被推翻。**5 项全部采纳，无驳回**（Codex 本轮亦主动更正：
+  R3 的"重复 YAML key"确系其截断输出导致的误判，与转译者当时的驳回一致）。
+  · **P0-1 收敛性用例缺 RED_COMMAND/RED_EXPECT/COVERS**（R3 新增时的疏漏），
+    且 ACT 08 无生产归并类型、真正的 HlcConflictArbiter 要到 ACT 09 才有。
+    处置：补齐三字段，并把该用例职责**收缩为"冻结版本 + 证明收敛性命题的数学结构"**，
+    明确"谁是胜者由 ACT 09 判定"。未按 Codex 原方案挪到 ACT 09 ——
+    理由：冻结的戳是 ACT 08 的产物，挪走会让 09 反向依赖 08 的仿真装置。
+    **这是边界品味问题，R5 若不认可可按原方案挪。**
+  · **P0-2 ACT 10 接线契约自相矛盾，四处全中且均为 R3 引入**：
+    ① scope 契约自我取消（说"不进构造参数以便跨 scope 复用"，样板却闭包捕获固定 scope，
+       照做出来的实例根本不能跨 scope）→ 改为**两个打库回调显式接收 scopeUid**，
+       新增 TASK_DETAIL.scope_is_per_call 钉死；readLocalRecord 保持不带（走已绑定 scope 的数据源）。
+    ② `const ConflictArbiter()` **不可编译**（那是抽象接口）→ 改 `const HlcConflictArbiter()`，
+       字段类型保持抽象接口以便注入 fake，并把该设计意图写进 dartdoc。
+    ③ `findRecordByUuid` 是**凭空造的方法名** → 实测既有
+       `drift_record_data_source.dart:89 getRecord(String uuid)` 签名完全吻合，
+       改用它并删除"就地加一个"的条件式指令。
+    ④ 条件式修改 SCOPE → ③ 解决后自动消失，该文件注释钉死为"只读，一个字都不改"。
+  · **P1-1 减法论证仍自相矛盾**（R3 修得不彻底：加了免责声明却没删错误论证）：
+    同一段里"差超 2^62 会符号翻转必红"/"合法值域内不会翻转"/"能兜住没溢出的减法"
+    三句互相打架，第三句逻辑正好相反。处置：用例改名
+    `compare_to_survives_extreme_magnitude` → `compare_to_orders_extreme_packed_values_correctly`，
+    BEHAVIOR 重写为纯行为验证并写明"**本用例不能识别实现手法**"，
+    TASK_DETAIL 里同源的"真实故障点是溢出"一并改掉。权威门禁明确为源码文本检查。
+  · **P1-2 A1 自测恢复机制不可靠，三条全中**：`git checkout` 恢复不了未跟踪新建文件
+    且违反 worktree 安全规则；"要求全局 porcelain 为空"在 ACT 11 执行中**必然不成立**
+    （等于让门禁永远失败）；中途退出会遗留污染。处置：整段按 `mktemp -d` + `trap`
+    （EXIT INT TERM）重写并给可照抄骨架，收尾改为**前后快照比较**，
+    **新增"自测 trap 本身"一步**（故意 exit 3 中途退出验证恢复）。
+  · **P2-1 `rev` 完成条件过宽且与 VERIFICATION 口径冲突**：实际 grep 只禁
+    LamportStamp/overwritten*，DONE_WHEN 却写"不再有 rev"，而 `RecordMeta.rev`
+    是既有合法业务字段，全局禁会误杀。处置：DONE_WHEN 改为
+    "**定序坐标里**不再有…且 rev 不被用作仲裁坐标"，
+    新增**精确门禁** `grep -nE "rev.*compareTo|compareTo.*rev|rev.*hlc|hlc.*rev"`（EXPECT_EXIT 1）。
+  规模由 91/163/66 变为 **91 测试 / 164 验证 / 66 自检注入**。
+  自检：YAML 严格解析 11/11 · 用例字段完整性 91/91（六项字段结构化校验）·
+  A1–A14 结构化覆盖 14/14 · VERIFICATION bash -n 164 条 0 错 ·
+  验收标准与 cd064c6 逐字一致。
 
 ## 踩坑墓地
 - 2026-08-02（环境）: drift worktree `pubspec_overrides.yaml` 只写 4 条 path 覆盖是错的——

@@ -292,32 +292,65 @@ TESTS_FIRST:
         一个绿的门禁如果证明不了自己能红，它就是假的）。
 
         写一个【姊妹脚本】 scripts/test_s1b_analyze_gate.sh，
-        它对 run_s1b_analyze_gate.sh 做三次注入，每次都必须让后者【非 0 退出】：
+        它对 run_s1b_analyze_gate.sh 做三次注入，每次都必须让后者【非 0 退出】。
+
+        ⚠⚠ 【恢复机制必须先写好，再写注入】（Codex R4 · P1-2）。
+        v3.1 用 `git checkout` 恢复 + 要求全局 `git status --porcelain` 为空，
+        两条都不成立：
+          · `git checkout` 【恢复不了未跟踪的新建文件】，也不符合本 worktree
+            的安全规则（不得用 git 破坏性命令兜工作树）；
+          · 执行 ACT 11 时本来就有多个新增/修改的未提交文件，
+            工作树【合法地】非空，要求它为空等于要求这个门禁永远失败。
+
+        正确骨架（照抄这个结构）：
+
+          set -euo pipefail
+          BACKUP_DIR="$(mktemp -d)"
+          CREATED_FILES=""          # 本脚本【新建】的文件，逐个记录
+          SNAPSHOT_BEFORE="$(git status --porcelain)"
+
+          restore() {
+            # 1) 还原所有备份过的文件（逐文件 cp 回原位）
+            #    备份时用 cp "$f" "$BACKUP_DIR/$(echo "$f" | tr / _)"
+            # 2) 删除本脚本新建的文件（CREATED_FILES 逐个 rm -f）
+            # 3) rm -rf "$BACKUP_DIR"
+          }
+          trap restore EXIT INT TERM     # ← 成功/失败/被中断【都】恢复
+
+        收尾断言【比较前后快照】而不是要求全局为空：
+
+          SNAPSHOT_AFTER="$(git status --porcelain)"
+          [ "$SNAPSHOT_BEFORE" = "$SNAPSHOT_AFTER" ] || {
+            echo "工作树被污染，注入未完全恢复"; exit 1; }
+
+        三次注入（每次注入前先 cp 备份到 $BACKUP_DIR）：
 
           ① scoped analyze 必须为 0 这一段
-             注入：临时在 S1b 新增文件（如 core/lib/model/conflict_arbiter.dart）
-             末尾追加一行制造 INFO 级问题的代码
-             （例：加一个未使用的顶层私有变量 `final _unused = 1;`）
+             注入：在 S1b 新增文件（如 core/lib/model/conflict_arbiter.dart）
+             末尾追加一个未使用的顶层私有变量 `final _unused = 1;`
              断言：run_s1b_analyze_gate.sh 退出码非 0
-             恢复：git checkout 那个文件
+             恢复：由 trap 统一处理（cp 回备份），【不用 git checkout】
 
           ② 白名单子集这一段
-             注入：临时把一个【不在白名单里】的 lint 问题引入被扫描目录
-             （或直接临时改白名单变量，去掉其中一项后重跑）
+             注入：临时改脚本里的白名单变量，去掉其中一项后重跑
              断言：退出码非 0
 
           ③ 总数不超基线这一段
-             注入：临时把脚本里的基线常量 core=58 / drift=162
-             改成 core=0 / drift=0 再重跑
+             注入：临时把基线常量 core=58 / drift=162 改成 core=0 / drift=0
              断言：退出码非 0（实际数超过了"基线"）
-             恢复：改回 58 / 162
 
-        三次注入【每次都要 restore 并确认 `git status --porcelain` 干净】。
-        脚本自身用 `set -euo pipefail`，任一注入没能让门禁变红就 exit 1
-        并打印是哪一段失守。
+        任一注入没能让门禁变红就 exit 1 并打印是哪一段失守
+        （此时 trap 仍会恢复现场）。
+
+        **最后一步：自测 trap 本身**。
+        故意在第二次注入后插入一个 `exit 3` 提前退出，
+        确认 trap 仍把工作树恢复到 SNAPSHOT_BEFORE、且 $BACKUP_DIR 已清理；
+        确认后把那行 `exit 3` 删掉。
+        【这一步不做，就等于没有证明恢复机制可靠】。
 
         ⚠ 【不许用 `|| true` 兜任何一步】——那会让这个自测脚本自己恒绿。
-        ⚠ macOS /bin/bash 是 3.2.57：没有 `declare -A`、没有 `mapfile`/`readarray`。
+        ⚠ macOS /bin/bash 是 3.2.57：没有 `declare -A`、没有 `mapfile`/`readarray`；
+        CREATED_FILES 用空格分隔的字符串 + `for f in $CREATED_FILES`，不要用数组。
       RED_COMMAND: bash scripts/test_s1b_analyze_gate.sh
       RED_EXPECT: 脚本不存在或 run_s1b_analyze_gate.sh 不存在，退出码非 0
       COVERS: [A1]

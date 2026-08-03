@@ -62,8 +62,10 @@ SCOPE:
     - core/lib/core/sync_coordinator.dart       # :382 守卫，本 ACT 不改它，只让它真的能触发
     - drift/lib/sync/record_local_applier.dart  # 全文 107 行
     - drift/lib/record/drift_record_data_source.dart
-      # applyRemoteRecord:72 / softDeleteRecord —— 现有两个回调的来源，
-      # 本 ACT 新增的读取回调也从这里取
+      # 【只读，本 ACT 一个字都不改】（Codex R4 · P0-2）
+      # applyRemoteRecord:72 / softDeleteRecord —— 现有两个回调的来源
+      # getRecord:89 (Future<RecordMeta?> getRecord(String uuid))
+      #   —— readLocalRecord 回调【直接用它】，签名完全吻合，不要新增方法
     - drift/test/sync/record_local_applier_test.dart  # 既有测试的写法
     - drift/test/sync/record_sync_e2e_test.dart       # 另外 3 个构造点在这里
   MODIFY:
@@ -96,12 +98,18 @@ TASK_DETAIL:
 
         /// 读本地 HLC 戳。直接转发 ACT 08 的
         /// PersistenceDriftDatabase.getEntityStamp。边表无该行时返回 null。
-        final Future<EntityStampRow?> Function(String entityId) readLocalStamp;
+        /// scopeUid 由 applyRemoteChanges 的【本次调用参数】传入，
+        /// 【不在构造时捕获】—— 见下方 scope_is_per_call。
+        final Future<EntityStampRow?> Function({
+          required String scopeUid,
+          required String entityId,
+        }) readLocalStamp;
 
         /// 同事务写入。直接转发 ACT 08 的
         /// PersistenceDriftDatabase.applyWithStamp（A13 的生产落地点）。
         /// applier【不得】自己 transaction(...) 里分别写记录和戳。
         final Future<void> Function({
+          required String scopeUid,
           required String entityType,
           required String entityId,
           required int hlcPacked,
@@ -109,7 +117,14 @@ TASK_DETAIL:
           required Future<void> Function() write,
         }) applyWithStamp;
 
-        /// 冲突仲裁器。ACT 09 的 ConflictArbiter，纯函数，无 IO。
+        /// 冲突仲裁器。**字段类型是抽象接口** `ConflictArbiter`
+        /// （ACT 09 的 conflict_arbiter.dart:112），纯函数、无 IO。
+        /// 声明成抽象接口是为了让测试能注入 fake（见 TESTS_FIRST 里
+        /// "注入恒返回 keepLocal 的 fake" 那条）；
+        /// 生产与大部分测试构造点【实例化具体类】
+        /// `const HlcConflictArbiter()`（09.yaml:124，有 const 构造）。
+        /// ⚠ 【不要写 `const ConflictArbiter()`】—— 那是抽象接口，不能实例化，
+        /// 照抄会直接编译不过（Codex R4 · P0-2 抓到 v3.1 的这个错）。
         final ConflictArbiter arbiter;
 
         RecordLocalApplier({
@@ -121,10 +136,25 @@ TASK_DETAIL:
           required this.arbiter,
         });
 
-    ⚠ `scopeUid` 【不进构造参数】—— 它是 applyRemoteChanges 的方法参数，
-    每次调用可能不同；把它固化到构造里会让同一个 applier 实例无法跨 scope 复用。
-    readLocalStamp / applyWithStamp 的闭包在构造点捕获 scopeUid 即可
-    （DriftRecordDataSource 本来就是按 scopeUid 构造的，见 :58 的 `_db` 用法）。
+  scope_is_per_call: >
+    ⚠⚠ 【scopeUid 是"每次调用"的量，不是"每个实例"的量 —— 这一条决定回调签名】
+    （Codex R4 · P0-2：v3.1 一边说"不进构造参数以便跨 scope 复用"，
+    一边让样板闭包在构造点捕获固定的 scope，两句话互相取消。
+    照后者写出来的实例**根本不能跨 scope 工作**，而前者是承诺）。
+
+    定下来的一致契约：**需要访问数据库的两个回调显式接收 `scopeUid`**，
+    由 `applyRemoteChanges({required scopeUid, ...})` 把【本次调用】的值传进去。
+      · `readLocalStamp({required scopeUid, required entityId})`
+      · `applyWithStamp({required scopeUid, required entityType, ...})`
+    这样同一个 applier 实例真的能跨 scope 复用，承诺与实现一致。
+
+    `readLocalRecord(uuid)` **不需要** scopeUid ——
+    `DriftRecordDataSource.getRecord(uuid)` 本身是按 scope 构造的实例方法，
+    uuid 在 scope 内已唯一。这不是疏漏，是这两类依赖的性质不同：
+    前两个直接打库（scope 是查询条件），后一个走已绑定 scope 的数据源。
+
+    【不许】改回"构造时捕获 scope"。若执行者觉得传参啰嗦而想走回头路，
+    那就等于把"跨 scope 复用"这句承诺删掉 —— 二者只能选一套，本 ACT 选的是传参。
 
   existing_construction_sites: >
     既有构造点【共 8 处，全部在测试代码里，生产 lib/ 下一处都没有】（已实测）：
@@ -134,30 +164,38 @@ TASK_DETAIL:
     所以本 ACT 的迁移面【只在 drift/test 内】，不牵动任何业务仓库 ——
     这也是选回调注入而非仓库注入的另一个理由。
 
+    **`drift_record_data_source.dart` 一个字都不用改**（Codex R4 · P0-2）：
+    按 uuid 读单条的方法【已经存在】，就是
+    `drift/lib/record/drift_record_data_source.dart:89` 的
+    `Future<RecordMeta?> getRecord(String uuid)`，签名与 readLocalRecord 完全吻合。
+    v3.1 曾写"若没有 findRecordByUuid 就地加一个"—— 那个名字是凭空造的，
+    照着做会重复造一个已存在的接口。**直接用 getRecord，不要新增方法。**
+
     每个构造点按下面这个样板补四个参数（以 record_local_applier_test.dart:76 为例）：
 
       final applier = RecordLocalApplier(
         applyRecord: ds.applyRemoteRecord,
         deleteRecord: ds.softDeleteRecord,
-        readLocalRecord: (uuid) => ds.findRecordByUuid(uuid),
-        readLocalStamp: (entityId) => db.getEntityStamp(
-          scopeUid: scope, entityType: 'record_meta', entityId: entityId,
+        readLocalRecord: (uuid) => ds.getRecord(uuid),
+        readLocalStamp: ({required scopeUid, required entityId}) =>
+            db.getEntityStamp(
+          scopeUid: scopeUid, entityType: 'record_meta', entityId: entityId,
         ),
         applyWithStamp: ({
-          required entityType, required entityId,
+          required scopeUid, required entityType, required entityId,
           required hlcPacked, required deviceId, required write,
         }) => db.applyWithStamp(
-          scopeUid: scope, entityType: entityType, entityId: entityId,
+          scopeUid: scopeUid, entityType: entityType, entityId: entityId,
           hlcPacked: hlcPacked, deviceId: deviceId, write: write,
         ),
-        arbiter: const ConflictArbiter(),
+        arbiter: const HlcConflictArbiter(),
       );
 
-    若 DriftRecordDataSource 没有 `findRecordByUuid` 这类按 uuid 读单条的方法，
-    【就地加一个】（drift/lib/record/drift_record_data_source.dart，
-    与 applyRemoteRecord:72 同风格，中文 dartdoc），并把它加进本 ACT 的 MODIFY。
-    【不要】在测试里裸查表绕过它 —— 那样生产接线仍然是空的，
+    【不要】在测试里裸查表绕过 `getRecord` —— 那样生产接线仍然是空的，
     A13 与本条 P0-1 的修正就都落不了地。
+    【不要】新增任何读单条方法 —— `getRecord` 已经存在且签名吻合。
+    若样板里的某个回调在当前代码里无法直接引用，
+    【停下核对】，不要凭记忆造方法名（Codex R4 · P0-2 就是抓这个）。
 
   cursor_rule: >
     正确规则：**只要 outcomes 里存在任何一条 `ChangeApplyDecision.failed`，
@@ -194,9 +232,12 @@ TASK_DETAIL:
 
   arbitration_wiring: >
     ⚠ 定序坐标是 **(hlc, deviceId)**，类型是 ACT 09 的 `VersionStamp`。
-    【本 ACT 里不存在 LamportStamp、不存在 rev】——
+    【定序坐标里不存在 LamportStamp、不存在 rev】——
     转译 v1 用的 `(rev, deviceId)` / `LamportStamp` 已被 HLC 方案整体取代
     （人类 2026-08-02 裁定，见纪要决定记录；Codex R2 抓到 v2 此处仍有残留）。
+    ⚠ 注意区分：`RecordMeta.rev` 作为【业务字段】的解析与保存
+    【继续合法存在】（它是记录自身的业务版本号，不是定序坐标）——
+    本 ACT 禁的是把 rev 当仲裁依据，不是禁这个字段名（Codex R4 · P2-1）。
 
     在应用每条 change 前先仲裁：
       1. 从 change 取 `(hlcPacked, deviceId)`（ACT 08 加的两个可空字段）
@@ -442,8 +483,11 @@ VERIFICATION:
   #    注意匹配的是【枚举值定义】而非引用 —— 引用它是允许的，加值才不允许。
   - CMD: 'git diff "$(cat .act-base)"..HEAD -- core/lib/model/types.dart | grep -nE "^\+\s+[a-z][A-Za-z0-9]*,\s*$" | grep -q . && echo NEW_ENUM_VALUE_ADDED'
     EXPECT_EXIT: 1
-  # 残留旧名守卫：LamportStamp / rev / overwritten* 一律不许再出现
+  # 残留旧名守卫：LamportStamp / overwritten* 一律不许再出现（rev 除外——它是业务字段）
   - CMD: 'grep -nE "LamportStamp|overwrittenPayloadJson|overwrittenStamp" drift/lib/sync/record_local_applier.dart drift/test/sync/record_local_applier_conflict_test.dart'
+    EXPECT_EXIT: 1
+  # rev 不得用作仲裁坐标（业务字段除外）：applier 里不许出现"rev 参与定序"的写法
+  - CMD: 'grep -nE "rev.*compareTo|compareTo.*rev|rev.*hlc|hlc.*rev" drift/lib/sync/record_local_applier.dart'
     EXPECT_EXIT: 1
   # 必须用 ACT 09 的 VersionStamp
   - CMD: 'grep -q "VersionStamp" drift/lib/sync/record_local_applier.dart'
@@ -508,6 +552,9 @@ DONE_WHEN:
   - takeRemote 时被覆盖的本地 payload 与 stamp 记进 outcome 的 discarded* 三个字段
   - 边表无戳时区分"本地无实体"与"本地有实体无戳"，后者【必须留档】
   - remote 无 hlcPacked 时传 null 而非补 0，走 keepLocal 的 fail-safe 方向
-  - 源码里【不再有】 LamportStamp / rev / overwritten* 这三类旧名
+  - 【定序坐标】里不再有 LamportStamp / overwritten* 这两类旧名，
+    且 `rev` 不被用作冲突仲裁坐标、版本胜负依据或旧 Lamport 路径
+    （⚠ `RecordMeta.rev` 作为**业务字段**的解析与保存是既有合法行为，
+    【不得】全局禁裸词 rev —— 那会误杀正常领域字段。Codex R4 · P2-1）
   - 戳与记录走 ACT 08 的 applyWithStamp 同事务接口
   - 十一个测试用例全部存在，十条 SELF_CHECK 已实做并确认能变红
