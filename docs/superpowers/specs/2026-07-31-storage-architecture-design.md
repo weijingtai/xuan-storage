@@ -1478,7 +1478,9 @@ S1a 分类契约 + 端口签名  ←── 地基，全员依赖
    │
    ├──> S1b 同步引擎多 peer 化  ←── 任何 peer 实现开工前必须完成
    │       │
-   │       └──> S3 去中心化传输（a/b/c）  ← 还依赖 S6
+   │       └──> S1c 全量对齐  ←── S3 实现 compaction 前必须完成（还依赖 S6）
+   │               │
+   │               └──> S3 去中心化传输（a/b/c）  ← 还依赖 S6
    │
    ├──> S5c 官方控制下发（xuan_config）  ←── 其余子系统靠它找后端，建议提前
    ├──> S6  E2EE 密钥管理 + 设备配对      ←── 第二块地基
@@ -1494,6 +1496,7 @@ S1a 分类契约 + 端口签名  ←── 地基，全员依赖
 | **S1b** | 同步引擎多 peer 化 | S1a | 两次 drift schema 迁移（`t_outbox_peer_ack` 新表 + `t_sync_state` 主键加 peerId）、`OutboxStore`/`SyncStateStore`/`SyncPeer` 三个端口签名变更、`PeerFanoutPusher`、per-peer 退避、`ConflictArbiter` + Lamport 序、修 `canAdvanceCursor` 恒真。**全部见 §5.2.1–§5.2.3**。任何 peer 实现开工前必须完成 |
 | **S5c** | 官方控制下发 + 配置源可切换中间层 | S1a | 对接 `xuan_config`：`RemoteConfigSource` 抽象 + Firebase Hosting 实现 + 优先级回退链；引导地址 + 域名白名单 + 安全默认值。**需单独走 OpenSpec change**（见 §8.2）。**建议提前** —— S2/S3/S5a/S5b 都要靠它找后端，它晚到就得先硬编码地址、之后返工 |
 | **S6** | E2EE 密钥管理 + 设备配对 | S1a | 第二块地基，含带外指纹验证。私有数据的任何跨设备能力都卡在这 |
+| **S1c** | 全量对齐（首次同步 / 新设备 / 数据丢失 / 久未上线） | S1a+S1b+S6 | 清单比对（建在 `t_entity_stamp` 上）+ 触发判定（无游标 / 游标龄 > 90 天 / 对端否决）+ 墓碑 + 分片续传。**S3 实现 oplog compaction 前必须完成** —— 否则久未上线的设备会静默丢失被压缩区间的变更。见 `2026-08-03-s1c-full-reconciliation-design.md` |
 | **S3a** | 手动导出导入 | S1a+S1b+S6 | `ExportBundleWriter/Reader`（§3.5），不经 `Transport`。零基础设施，全链路可单进程自动化验证，**首个垂直切片**（§9.3） |
 | **S3b** | 局域网直连 | S1a+S1b+S6 | mDNS + socket，Dart 生态成熟 |
 | **S3c** | WebRTC | S1a+S1b+S6 | **只为 blob 而建**；信令复用 Firestore，TURN 用托管服务 |
@@ -1571,7 +1574,7 @@ cd core && dart analyze --fatal-infos && flutter test
 | E2EE 密钥派生形态（助记词 / 账号密码派生 / 设备互签）、密钥丢失的处置 | S6 |
 | 冲突仲裁的具体 **UX**（如何呈现被覆盖版本）；仲裁**机制**已上提至 S1b（§5.2.3） | S1b 定接口，UI 层实现 |
 | 组合模式的缓存分级与失效策略 | S2 |
-| oplog compaction 的具体**算法**与触发时机（数据模型已上提至 S1b，见 §5.2.2） | S1b 定表，S3 实现 |
+| oplog compaction 的具体**算法**与触发时机（数据模型已上提至 S1b，见 §5.2.2） | S1b 定表，S3 实现。⚠ **S1c 未交付前不得实现** —— 压缩后久未上线的设备只能拿到保留窗口内的增量，却照常把游标推进到"现在"，中间区间静默丢失且零报错。前置条件是「游标落在保留窗口外 → 强制全量对齐」，该判定归 S1c |
 | 配置 schema 的版本、迁移与回滚策略 | S5c（`xuan_config` deferred 文档已列为约束） |
 | ~~域名白名单的具体形式~~ **已上提，规则写死于 §8.5.1**（信任根不得待决） | — |
 | `ConfigSourceCapabilities` 的具体字段集合 | S5c |

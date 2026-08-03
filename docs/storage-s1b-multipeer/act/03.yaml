@@ -108,6 +108,14 @@ SIGNATURE:
     /// 本表【同时】是 §5.3 oplog compaction 的水位表：
     /// 「所有已知 peer 均已 success 的 operationId 可被压缩」这一判定直接查本表。
     /// 因此 compaction 的数据模型不是待决项，它就是这张表。
+    ///
+    /// ⚠ 但本表提供的是压缩的【判据】，不是压缩的【许可】。
+    /// compaction 的前置条件是「游标落在 oplog 保留窗口外 → 强制全量对齐」，
+    /// 该能力归 S1c（见 specs/2026-08-03-s1c-full-reconciliation-design.md）。
+    /// 缺了它而实现压缩，久未上线的设备会静默丢失被压缩区间的变更：
+    /// 对端只能给出保留窗口内的增量，而该设备收下后照常把游标推进到"现在"
+    /// ——【零报错、零测试变红】。
+    /// 【S1b 内不得实现 compaction】。
     @DataClassName('OutboxPeerAckRow')
     class OutboxPeerAcks extends Table {
       @override
