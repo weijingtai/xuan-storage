@@ -8,8 +8,8 @@
 ## 0. 三十秒版本
 
 - **任务**：`storage-s1b-multipeer` —— 把 xuan-storage 的同步引擎从「单 peer（云端）」改造成「多 peer」。
-- **当前阶段**：**转译 v3.3 完成（R5 的 3 项已全部修复），等待人类裁定是否需要 R6**。代码一行都还没写。
-- **下一步**：人类裁定 —— 直接下发给执行者（见 §7），或走一轮**封闭式 R6**（只验那 3 项 + 固定回归门禁）。
+- **当前阶段**：**R6 封闭式复核通过，可进入执行阶段**。代码一行都还没写。
+- **下一步**：按 §7 从 ACT 01 开始，严格按 `DEPENDS_ON` 顺序下发执行者。
 - **最新提交**：见 `git log -1`（v3.3 = R5 返工修复）
 - **工作目录**：`xuan-storage/.worktrees/mimo-storage-s1b-multipeer/`，分支 `agent/mimo/storage-s1b-multipeer`
 
