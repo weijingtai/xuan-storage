@@ -331,24 +331,34 @@ STUN 直连约 80–90%（对称型 NAT 打不通），TURN 兜底后接近 99%�
                               ↓
   ┌─ 设备互认（Ed25519 挑战-应答，RFC 8032）────────────────────┐
   │  cryptography 的 Ed25519；公钥存 Firestore + 安全规则限 uid │
-  │  ✅ channel binding：签名对象 = nonce ‖ DTLS指纹（§5.2b 必做）│
+  │  ✅ channel binding：签名 = nonce ‖ 通道指纹（§5.2b 必做）   │
+  │     路径 A 绑 TLS 证书指纹 / 路径 B 绑 DTLS 指纹            │
   │  ❌ 不做带外指纹人肉比对（砍掉设计稿 §6.3 :1072，见 §5.2）    │
   └────────────────────────────────────────────────────────────┘
                               ↓
-  ┌─ 传输 ─────────────────────────────────────────────────────┐
-  │  信令   →  Firestore（一个 collection 换 SDP / ICE）        │
-  │  连接   →  flutter_webrtc（Native）/ dart_webrtc（Web）     │
-  │  加密   →  DTLS（强制，无法关闭，每次连接 ECDHE 前向保密）   │
-  │  STUN   →  公共免费服务（stun:stun.l.google.com:19302 等）   │
-  │  TURN   →  SaaS 中转兜底（§3.4；仅此路径需应用层加密）       │
-  │  分块   →  16KB chunk + bufferedAmount 流控（§3.3 硬要求）   │
-  │  续传   →  chunk 独立 sha256，复用 S1a BlobStatus.partial    │
+  ┌─ 传输：【两条独立路径，不是一条链】（2026-08-04 修正）──────┐
+  │                                                            │
+  │  路径 A · LAN 直连（Channel.lan）——【不经 WebRTC】          │
+  │    发现 → bonsoir (mDNS/DNS-SD)                            │
+  │    连接 → 裸 TCP socket（ServerSocket / SecureSocket）      │
+  │    加密 → TLS                                              │
+  │    信令 → 【不需要】—— 无 SDP/ICE，故【断网完全可用】       │
+  │    依据 → 设计稿 :953 LanPeerGateway /* mDNS + socket */    │
+  │                                                            │
+  │  路径 B · WebRTC（Channel.webrtc）——【跨网段才用】          │
+  │    发现 → Firestore 在线设备表                             │
+  │    信令 → Firestore 换 SDP / ICE（:1065）→【需要互联网】    │
+  │    连接 → flutter_webrtc(Native) / dart_webrtc(Web)        │
+  │    加密 → DTLS（强制，每次连接 ECDHE 前向保密）             │
+  │    STUN → 公共免费服务；TURN → SaaS 兜底（§3.4）            │
+  │                                                            │
+  │  两条路径共用：16KB 分块 + 背压流控 + chunk 独立 sha256 续传 │
   └────────────────────────────────────────────────────────────┘
                               ↓
-  ┌─ 中转加密（仅当无法直连时，§4.2）──────────────────────────┐
+  ┌─ 中转加密（仅路径 B 的 relay 兜底时，§4.2）─────────────────┐
   │  一次一密：随机 DEK 加密文件；X25519+HKDF 包装 DEK           │
   │  会话密钥临时生成、用完即弃 → 【不需要任何安全存储】         │
-  │  中转 TTL ≤ 30 分钟强制过期（不依赖客户端主动删除）          │
+  │  三层删除：接收端立即删 → 发送端兜底 → GCS 生命周期规则      │
   └────────────────────────────────────────────────────────────┘
                               ↓
   ┌─ 落盘保护（两层，§4.3）────────────────────────────────────┐
@@ -358,9 +368,31 @@ STUN 直连约 80–90%（对称型 NAT 打不通），TURN 兜底后接近 99%�
   │    ③ Android allowBackup="false"（否则自动上 Google Drive） │
   │  第二层 系统全盘加密  → 防设备关机后被物理取走               │
   │    iOS Data Protection / Android FBE / FileVault / BitLocker│
-  │  ⚠ 应用层【不】加密、【不】持久保存任何密钥（理由见 §4.3）   │
+  │  ⚠ 移动端不做应用层加密；桌面端做（AES-GCM + DEK，§5.3）    │
   └────────────────────────────────────────────────────────────┘
 ```
+
+> **⚠ 2026-08-04 重大修正：LAN 与 WebRTC 是两条独立路径，不是一条链。**
+>
+> **前一版把二者画成「发现 → 信令 → WebRTC 连接」的单链，这是误读。**
+> 该错误由 Codex 验收指出（「完全离线的 LAN 同步按当前架构无法建连」）。
+> 核实设计稿 :953-954 后确认，原架构一直是两个**并列**的实现类：
+>
+> ```dart
+> final class LanPeerGateway    implements SyncPeer { /* mDNS + socket */ }
+> final class WebRtcPeerGateway implements SyncPeer { /* 信令 + DataChannel */ }
+> ```
+>
+> **LAN 走 mDNS + 裸 socket，根本不经过 WebRTC，因此不需要 SDP/ICE 信令，
+> 断网环境下完全可用。** 前一版的单链画法会推导出「断网时 bonsoir 发现了设备
+> 却因取不到 Firestore 信令而无法建连」这一死路 —— **该断路是画法造成的，
+> 不是架构缺陷**，故无需如 Codex 建议的那样「增加本地信令通道」。
+>
+> **排期上也是分开的**：设计稿 :1501 `S3b 局域网直连 = mDNS + socket`、
+> :1502 `S3c WebRTC = 信令复用 Firestore` —— 本就是两个任务。
+>
+> **推论：channel binding 的绑定对象随路径而变** —— 路径 A 绑 TLS 证书指纹，
+> 路径 B 绑 DTLS 指纹。§5.2b 原文只写了 DTLS，已在该节补充。
 
 ### 3.2 设备发现
 
