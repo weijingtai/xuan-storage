@@ -45,5 +45,6 @@ export 'model/dataset/dataset_materializer.dart';
 export 'model/dataset/dataset_descriptor.dart';
 export 'model/dataset/dataset_registry.dart';
 export 'model/dataset/dataset_installer.dart';
+export 'model/dataset/dataset_generation_store.dart';
 export 'model/dataset/bundled_dataset_source.dart';
 export 'model/dataset/in_memory_dataset_installer.dart';
