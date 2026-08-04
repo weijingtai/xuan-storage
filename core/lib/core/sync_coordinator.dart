@@ -1,110 +1,11 @@
 import 'package:persistence_core/logging/sync_logger.dart';
+import 'package:persistence_core/model/peer_eligibility.dart';
 import 'package:persistence_core/model/ports.dart';
+import 'package:persistence_core/model/storage_classification.dart';
+import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/model/types.dart';
+import 'package:persistence_core/routing/peer_fanout_pusher.dart';
 
-/// Pushes local outbox records to a remote gateway.
-///
-/// 功能说明：
-/// - 从 [OutboxStore] 按时间顺序取出一批待同步的 [OutboxRecord]
-/// - 逐条调用 [RemoteGateway.push] 推送到远端
-/// - 根据推送结果回写 outbox 状态：成功标记 success；失败标记 failed；超过阈值标记 dead
-///
-/// 设计要点：
-/// - 该类只负责“推送 outbox”的最小闭环，不处理 pull、不做定时调度。
-/// - 失败次数阈值由构造参数 [maxAttemptsBeforeDead] 控制。
-/// - 所有时间戳通过注入的 [nowUtc] 获取，便于测试与确定性。
-class OutboxPusher {
-  /// Creates an [OutboxPusher].
-  ///
-  /// 参数说明：
-  /// - [outboxStore]: 本地 outbox 存储，负责取数与状态回写。
-  /// - [remoteGateway]: 远端网关，负责把单条 [OutboxRecord] 推送到远端。
-  /// - [nowUtc]: 统一的 UTC 时钟函数，用于生成状态回写时间。
-  /// - [batchSize]: 单次 run 的最大处理条数。
-  /// - [maxAttemptsBeforeDead]: 单条记录最大允许尝试次数，达到阈值将标记 dead。
-  OutboxPusher({
-    required OutboxStore outboxStore,
-    required RemoteGateway remoteGateway,
-    required DateTime Function() nowUtc,
-    int batchSize = 50,
-    int maxAttemptsBeforeDead = 10,
-  })  : _outboxStore = outboxStore,
-        _remoteGateway = remoteGateway,
-        _nowUtc = nowUtc,
-        _batchSize = batchSize,
-        _maxAttemptsBeforeDead = maxAttemptsBeforeDead;
-
-  final OutboxStore _outboxStore;
-  final RemoteGateway _remoteGateway;
-  final DateTime Function() _nowUtc;
-  final int _batchSize;
-  final int _maxAttemptsBeforeDead;
-
-  /// Runs a single push pass.
-  ///
-  /// 参数说明：
-  /// - [scopeUid]: outbox 的逻辑分区 key（通常为用户 uid），只处理该 scope 下的记录。
-  ///
-  /// 返回值：
-  /// - [OutboxPushRunResult]：包含处理条数、成功/失败/死信计数，以及最后一个错误。
-  ///
-  /// 行为细节：
-  /// - 取数：通过 [OutboxStore.peekBatch] 获取 pending/failed 的一批记录。
-  /// - 推送：对每条记录调用 [RemoteGateway.push]。
-  /// - 成功：调用 [OutboxStore.markSuccess]。
-  /// - 失败：尝试次数 +1，并调用 [OutboxStore.markFailed]；若超过阈值则 isDead=true。
-  Future<OutboxPushRunResult> runOnce({required String scopeUid}) async {
-    final batch = await _outboxStore.peekBatch(
-      scopeUid: scopeUid,
-      limit: _batchSize,
-    );
-
-    var processed = 0;
-    var succeeded = 0;
-    var failed = 0;
-    var dead = 0;
-    SyncError? lastError;
-
-    for (final record in batch) {
-      final nextAttempt = record.attempt + 1;
-      final atUtc = _nowUtc();
-      final error = await _remoteGateway.push(record);
-
-      if (error == null) {
-        await _outboxStore.markSuccess(
-          operationId: record.operationId,
-          atUtc: atUtc,
-        );
-        succeeded += 1;
-      } else {
-        lastError = error;
-        failed += 1;
-
-        final isDead = nextAttempt >= _maxAttemptsBeforeDead;
-        if (isDead) dead += 1;
-
-        await _outboxStore.markFailed(
-          operationId: record.operationId,
-          attempt: nextAttempt,
-          errorCode: error.code.name,
-          errorMessage: error.message,
-          atUtc: atUtc,
-          isDead: isDead,
-        );
-      }
-
-      processed += 1;
-    }
-
-    return OutboxPushRunResult(
-      processed: processed,
-      succeeded: succeeded,
-      failed: failed,
-      dead: dead,
-      lastError: lastError,
-    );
-  }
-}
 
 /// Coordinates one-off push and pull sync runs.
 ///
@@ -114,7 +15,7 @@ class OutboxPusher {
 /// - 状态：通过 [status] 暴露最近一次运行的状态与统计信息（backlog/dead/最近错误等）。
 ///
 /// 约束与集成点：
-/// - Push 仅依赖 [OutboxStore] 与 [RemoteGateway]。
+/// - Push 仅依赖 [OutboxStore] 与 [SyncPeer]。
 /// - Pull 需要额外注入 [SyncStateStore]（cursor 存储）与 [LocalApplier]（回填本地）。
 /// - 调度/生命周期不在此类处理，应由上层（例如 SyncRuntime）负责。
 class SyncCoordinator {
@@ -129,15 +30,22 @@ class SyncCoordinator {
   /// - [pushBatchSize]: 单次 push 的最大 outbox 处理条数。
   /// - [pullBatchSize]: 单次 pull 请求的默认 page size。
   /// - [maxAttemptsBeforeDead]: outbox 单条记录最大尝试次数，超过会标记为 dead。
+  /// - [peerId]: 本对端标识。
+  /// - [channel]: 本对端所在通道（§5.4 第一道锁）。默认 cloud。
+  /// - [peers]: 参与扇出的全部对端（§5.2）。默认 `[remoteGateway]`（单对端回退）。
+  ///   [remoteGateway] 仍单独保留，供 pull 与 getCapabilities 使用。
   SyncCoordinator({
     required OutboxStore outboxStore,
-    required RemoteGateway remoteGateway,
+    required SyncPeer remoteGateway,
     required DateTime Function() nowUtc,
     SyncStateStore? syncStateStore,
     LocalApplier? localApplier,
     int pushBatchSize = 50,
     int pullBatchSize = 50,
     int maxAttemptsBeforeDead = 10,
+    PeerId peerId = const PeerId('firestore'),
+    Channel channel = Channel.cloud,
+    List<SyncPeer>? peers,
     SyncLogger? logger,
   })  : _outboxStore = outboxStore,
         _syncStateStore = syncStateStore,
@@ -145,14 +53,12 @@ class SyncCoordinator {
         _localApplier = localApplier,
         _nowUtc = nowUtc,
         _pullBatchSize = pullBatchSize,
+        _pushBatchSize = pushBatchSize,
+        _maxAttemptsBeforeDead = maxAttemptsBeforeDead,
         _logger = logger ?? SyncLogger.noop(),
-        _pusher = OutboxPusher(
-          outboxStore: outboxStore,
-          remoteGateway: remoteGateway,
-          nowUtc: nowUtc,
-          batchSize: pushBatchSize,
-          maxAttemptsBeforeDead: maxAttemptsBeforeDead,
-        ),
+        _peerId = peerId,
+        _channel = channel,
+        _peers = peers ?? <SyncPeer>[remoteGateway],
         _status = const SyncStatus(
           state: SyncRunState.stopped,
           scopeUid: null,
@@ -164,13 +70,20 @@ class SyncCoordinator {
 
   final OutboxStore _outboxStore;
   final SyncStateStore? _syncStateStore;
-  final RemoteGateway _remoteGateway;
+  final SyncPeer _remoteGateway;
   final LocalApplier? _localApplier;
   final DateTime Function() _nowUtc;
   final int _pullBatchSize;
+  final int _pushBatchSize;
+  final int _maxAttemptsBeforeDead;
   final SyncLogger _logger;
-  final OutboxPusher _pusher;
+  final PeerId _peerId;
+  final Channel _channel;
+  final List<SyncPeer> _peers;
   SyncStatus _status;
+
+  /// 当前参与扇出的对端。
+  List<SyncPeer> get peers => List.unmodifiable(_peers);
 
   /// Returns the latest sync status snapshot.
   ///
@@ -179,32 +92,47 @@ class SyncCoordinator {
   /// - 如果需要响应式订阅，建议由上层（如 SyncRuntime）把状态转成 stream/notifier。
   SyncStatus get status => _status;
 
-  /// Watches outbox backlog count (pending + failed) for [scopeUid].
+  /// Watches outbox backlog count (pending + failed) for [scopeUid] and [peerId].
   ///
   /// 用途：
   /// - 供上层 runtime 订阅，在 outbox 发生变化时触发 push。
-  Stream<int> watchBacklogCount(String scopeUid) {
-    return _outboxStore.watchBacklogCount(scopeUid);
+  Stream<int> watchBacklogCount(
+    String scopeUid, {
+    required PeerId peerId,
+    required Channel channel,
+  }) {
+    return _outboxStore.watchBacklogCount(
+      scopeUid: scopeUid,
+      peerId: peerId,
+      channel: channel,
+    );
   }
 
   /// Runs a single push pass from local outbox to remote.
   ///
   /// 参数说明：
   /// - [scopeUid]: 当前同步作用域（通常为用户 uid）。
+  /// - [onlyPeers]: 【可选】仅推这些对端。SyncRuntime 用它跳过退避中的对端
+  ///   （§5.2.2）—— 不在退避窗口的 peer 才参与本轮推送。
   ///
   /// 返回值：
-  /// - [OutboxPushRunResult]：推送过程的统计与最后错误。
+  /// - [List] of [PeerPushOutcome]：每个参与对端一条结果（§5.2.2）。
+  ///   不再压成单个聚合结果 —— 调用方（SyncRuntime）据此逐对端记退避。
   ///
   /// 状态更新规则：
   /// - 运行前：将 [status.state] 置为 syncing，并刷新 backlogCount/deadCount。
   /// - 运行后：
-  ///   - 若无错误：state=idle，更新 lastSuccessAtUtc/lastPushAtUtc，并可写入 [SyncStateStore.markPushedAt]。
-  ///   - 若有错误：state=error，保留 lastSuccessAtUtc/lastPushAtUtc，填充 lastError。
-  Future<OutboxPushRunResult> pushOnce({required String scopeUid}) async {
+  ///   - 若有任一对端失败：state=error，保留 lastSuccessAtUtc，填充 lastError。
+  ///   - 若全部成功：state=idle，更新 lastSuccessAtUtc/lastPushAtUtc，
+  ///     并可写入 [SyncStateStore.markPushedAt]。
+  Future<List<PeerPushOutcome>> pushOnce({
+    required String scopeUid,
+    Set<PeerId>? onlyPeers,
+  }) async {
     final sw = Stopwatch()..start();
 
-    final backlogBefore = await _outboxStore.backlogCount(scopeUid);
-    final deadBefore = await _outboxStore.deadCount(scopeUid);
+    final backlogBefore = await _outboxStore.backlogCount(scopeUid: scopeUid, peerId: _peerId, channel: _channel);
+    final deadBefore = await _outboxStore.deadCount(scopeUid: scopeUid, peerId: _peerId, channel: _channel);
 
     _logger.debug(
       'sync_push_start',
@@ -223,58 +151,162 @@ class SyncCoordinator {
       lastError: null,
     );
 
-    final result = await _pusher.runOnce(scopeUid: scopeUid);
+    final outcomes = await _runPushPass(scopeUid: scopeUid, onlyPeers: onlyPeers);
 
-    final backlog = await _outboxStore.backlogCount(scopeUid);
-    final deadCount = await _outboxStore.deadCount(scopeUid);
+    final backlog = await _outboxStore.backlogCount(scopeUid: scopeUid, peerId: _peerId, channel: _channel);
+    final deadCount = await _outboxStore.deadCount(scopeUid: scopeUid, peerId: _peerId, channel: _channel);
     final atUtc = _nowUtc();
 
-    if (!result.hasError) {
+    final anyError = outcomes.any((o) => o.hasError);
+    SyncError? lastError;
+    for (final o in outcomes) {
+      final e = o.lastError;
+      if (e != null) {
+        lastError = e;
+        break;
+      }
+    }
+
+    if (!anyError) {
       final store = _syncStateStore;
       if (store != null) {
-        await store.markPushedAt(scopeUid: scopeUid, atUtc: atUtc);
+        await store.markPushedAt(
+          scopeUid: scopeUid,
+          peerId: _peerId,
+          atUtc: atUtc,
+        );
       }
     }
 
     _status = _status.copyWith(
-      state: result.hasError ? SyncRunState.error : SyncRunState.idle,
+      state: anyError ? SyncRunState.error : SyncRunState.idle,
       backlogCount: backlog,
       deadCount: deadCount,
-      lastSuccessAtUtc: result.hasError ? _status.lastSuccessAtUtc : atUtc,
-      lastPushAtUtc: result.hasError ? _status.lastPushAtUtc : atUtc,
-      lastError: result.lastError,
+      lastSuccessAtUtc: anyError ? _status.lastSuccessAtUtc : atUtc,
+      lastPushAtUtc: anyError ? _status.lastPushAtUtc : atUtc,
+      lastError: lastError,
     );
 
-    if (result.hasError) {
+    if (anyError) {
       _logger.warn(
         'sync_push_fail',
         data: <String, Object?>{
           'scopeUid': scopeUid,
-          'processed': result.processed,
-          'succeeded': result.succeeded,
-          'failed': result.failed,
-          'dead': result.dead,
-          'errorCode': result.lastError?.code.name,
+          'outcomes': outcomes.length,
+          'errorCode': lastError?.code.name,
           'durationMs': sw.elapsedMilliseconds,
         },
-        error: result.lastError,
+        error: lastError,
       );
     } else {
       _logger.info(
         'sync_push_ok',
         data: <String, Object?>{
           'scopeUid': scopeUid,
-          'processed': result.processed,
-          'succeeded': result.succeeded,
-          'failed': result.failed,
-          'dead': result.dead,
+          'outcomes': outcomes.length,
           'backlogAfter': backlog,
           'durationMs': sw.elapsedMilliseconds,
         },
       );
     }
 
-    return result;
+    return outcomes;
+  }
+
+  /// 执行一次扇出推送（§5.2.1 阻断点 4/5 拆除后的核心路径）。
+  ///
+  /// 流程：
+  /// 1. 对每个对端分别 peekBatch（该对端尚未 ack 的记录），按 operationId
+  ///    合并去重 —— 某条记录对 cloud 已成功但对 lan 仍 pending 时，第二轮
+  ///    peekBatch(cloud) 为空、peekBatch(lan) 仍含它，必须并集才不漏推。
+  /// 2. 对每条记录用 ACT 05 的单一判定源算合格对端，[PeerFanoutPusher.pushToAll]
+  ///    并发推给合格对端。
+  /// 3. 逐对端回写 ack：成功 markSuccess，失败 markFailed。
+  ///
+  /// 规则：
+  /// - 合格对端集合用 ACT 05 的单一判定源计算，【不要】在这里重写
+  ///   `lookup(...).channels.contains(...)`（ACT 05 有门禁数该表达式次数）。
+  /// - markFailed 的 attempt 用 ACT 04 的读取端口（按 operationId + peerId 读）
+  ///   读该对端当前的尝试次数再 +1 —— 【不要】用 record.attempt（t_outbox
+  ///   全局字段，ACT 04 已明确它不再被更新）。
+  Future<List<PeerPushOutcome>> _runPushPass({
+    required String scopeUid,
+    Set<PeerId>? onlyPeers,
+  }) async {
+    final activePeers = onlyPeers == null
+        ? _peers
+        : _peers.where((p) => onlyPeers.contains(p.peerId)).toList();
+
+    final byOperationId = <String, OutboxRecord>{};
+    for (final peer in activePeers) {
+      final batch = await _outboxStore.peekBatch(
+        scopeUid: scopeUid,
+        peerId: peer.peerId,
+        channel: peer.channel,
+        limit: _pushBatchSize,
+      );
+      for (final r in batch) {
+        byOperationId[r.operationId] = r;
+      }
+    }
+
+    final successByPeer = <PeerId, int>{};
+    final failByPeer = <PeerId, int>{};
+    final lastErrorByPeer = <PeerId, SyncError>{};
+
+    for (final record in byOperationId.values) {
+      final eligible =
+          PeerEligibility.eligiblePeers(record.entityType, activePeers);
+      final results =
+          await DefaultPeerFanoutPusher(peers: activePeers)
+              .pushToAll(record, eligiblePeers: eligible);
+
+      for (final entry in results.entries) {
+        final peerId = entry.key;
+        final error = entry.value;
+        final atUtc = _nowUtc();
+
+        if (error == null) {
+          await _outboxStore.markSuccess(
+            operationId: record.operationId,
+            peerId: peerId,
+            atUtc: atUtc,
+          );
+          successByPeer[peerId] = (successByPeer[peerId] ?? 0) + 1;
+        } else {
+          lastErrorByPeer[peerId] = error;
+
+          final nextAttempt =
+              await _outboxStore.attemptFor(
+                operationId: record.operationId,
+                peerId: peerId,
+              ) +
+              1;
+          final isDead = nextAttempt >= _maxAttemptsBeforeDead;
+
+          await _outboxStore.markFailed(
+            operationId: record.operationId,
+            peerId: peerId,
+            attempt: nextAttempt,
+            errorCode: error.code.name,
+            errorMessage: error.message,
+            atUtc: atUtc,
+            isDead: isDead,
+          );
+          failByPeer[peerId] = (failByPeer[peerId] ?? 0) + 1;
+        }
+      }
+    }
+
+    return activePeers.map((peer) {
+      final peerId = peer.peerId;
+      return PeerPushOutcome(
+        peerId: peerId,
+        succeeded: successByPeer[peerId] ?? 0,
+        failed: failByPeer[peerId] ?? 0,
+        lastError: lastErrorByPeer[peerId],
+      );
+    }).toList(growable: false);
   }
 
   /// Counts how many outcomes are [ChangeApplyDecision.skipped].
@@ -312,6 +344,7 @@ class SyncCoordinator {
   /// - 本地回填失败时不得推进 cursor，防止数据丢失。
   Future<PullRunResult> pullOnce({
     required String scopeUid,
+    required PeerId peerId,
     required String entityType,
     int? limit,
     int maxPages = 100,
@@ -322,6 +355,7 @@ class SyncCoordinator {
       'sync_pull_start',
       data: <String, Object?>{
         'scopeUid': scopeUid,
+        'peerId': peerId.value,
         'entityType': entityType,
         'limit': limit,
         'maxPages': maxPages,
@@ -338,15 +372,28 @@ class SyncCoordinator {
     _status = _status.copyWith(
       state: SyncRunState.syncing,
       scopeUid: scopeUid,
-      backlogCount: await _outboxStore.backlogCount(scopeUid),
-      deadCount: await _outboxStore.deadCount(scopeUid),
+      backlogCount: await _outboxStore.backlogCount(scopeUid: scopeUid, peerId: peerId, channel: _channel),
+      deadCount: await _outboxStore.deadCount(scopeUid: scopeUid, peerId: peerId, channel: _channel),
       lastPullEntityType: entityType,
       lastPullOutcomes: const <ChangeApplyOutcome>[],
       lastError: null,
     );
 
-    var cursor =
-        await stateStore.getCursor(scopeUid: scopeUid, entityType: entityType);
+    var cursor = await stateStore.getCursor(
+      scopeUid: scopeUid,
+      peerId: peerId,
+      entityType: entityType,
+    );
+
+    // 按传入的 peerId 找对应对端的 gateway（§5.2.2 pull 按对端各自的游标拉）。
+    // 找不到时回退到 remoteGateway（单对端时代的行为）。
+    SyncPeer pullGateway = _remoteGateway;
+    for (final p in _peers) {
+      if (p.peerId == peerId) {
+        pullGateway = p;
+        break;
+      }
+    }
 
     var pages = 0;
     var fetched = 0;
@@ -357,7 +404,7 @@ class SyncCoordinator {
     SyncError? lastError;
 
     while (pages < maxPages) {
-      final page = await _remoteGateway.listChanges(
+      final page = await pullGateway.listChanges(
         scopeUid: scopeUid,
         entityType: entityType,
         sinceCursor: cursor,
@@ -391,6 +438,7 @@ class SyncCoordinator {
       if (page.nextCursor != null) {
         await stateStore.setCursorIfNewer(
           scopeUid: scopeUid,
+          peerId: peerId,
           entityType: entityType,
           cursor: page.nextCursor!,
           atUtc: _nowUtc(),
@@ -405,6 +453,7 @@ class SyncCoordinator {
     if (lastError == null) {
       await stateStore.markPulledAt(
         scopeUid: scopeUid,
+        peerId: peerId,
         entityType: entityType,
         atUtc: _nowUtc(),
       );
@@ -448,8 +497,8 @@ class SyncCoordinator {
 
     _status = _status.copyWith(
       state: lastError == null ? SyncRunState.idle : SyncRunState.error,
-      backlogCount: await _outboxStore.backlogCount(scopeUid),
-      deadCount: await _outboxStore.deadCount(scopeUid),
+      backlogCount: await _outboxStore.backlogCount(scopeUid: scopeUid, peerId: peerId, channel: _channel),
+      deadCount: await _outboxStore.deadCount(scopeUid: scopeUid, peerId: peerId, channel: _channel),
       lastSuccessAtUtc:
           lastError == null ? _nowUtc() : _status.lastSuccessAtUtc,
       lastPullAtUtc: lastError == null ? _nowUtc() : _status.lastPullAtUtc,

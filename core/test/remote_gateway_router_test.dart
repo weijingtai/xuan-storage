@@ -1,12 +1,17 @@
 import 'package:test/test.dart';
-import 'package:persistence_core/model/ports.dart';
+import 'package:persistence_core/model/storage_classification.dart';
+import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/model/types.dart';
 import 'package:persistence_core/routing/region.dart';
 import 'package:persistence_core/routing/remote_gateway_router.dart';
 
-class _FakeGateway implements RemoteGateway {
+class _FakeGateway implements SyncPeer {
   final String label;
   _FakeGateway(this.label);
+  @override
+  PeerId get peerId => PeerId(label);
+  @override
+  Channel get channel => Channel.cloud;
   @override
   Future<SyncError?> push(OutboxRecord record) async => null;
   @override
@@ -19,11 +24,13 @@ class _FakeGateway implements RemoteGateway {
     return const RemoteChangesPage(changes: [], nextCursor: null, hasMore: false);
   }
   @override
-  Future<RegionCapabilities> getCapabilities() async {
-    return RegionCapabilities(
+  Future<PeerCapabilities> getCapabilities() async {
+    return PeerCapabilities(
+      peerId: peerId,
+      channel: channel,
       entityVersions: {label: 1},
       supportedFeatures: const {},
-      serverProtocolVersion: 1,
+      protocolVersion: 1,
     );
   }
 }

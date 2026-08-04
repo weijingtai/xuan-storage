@@ -1,5 +1,9 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:persistence_core/model/storage_classification.dart';
+import 'package:persistence_core/model/storage_policy.dart';
+import 'package:persistence_core/model/storage_policy_registry.dart';
+import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
 
@@ -22,6 +26,16 @@ class _TagAdapter implements ModuleRecordAdapter {
 }
 
 void main() {
+  const peer = PeerId('firestore');
+  setUp(() {
+    // ACT 05：peekBatch 按 channel 过滤且 fail closed。本文件用 record_meta。
+    StoragePolicyRegistry.clearForTesting();
+    StoragePolicyRegistry.register(
+      'record_meta',
+      StoragePolicy.private(carriers: const {}),
+    );
+  });
+
   test('C0→C2: record save via LocalRecordRepository enqueues outbox (gap closed)', () async {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
@@ -40,7 +54,7 @@ void main() {
     await repo.saveRecord(meta);
 
     final outboxRows = await outboxStore.peekBatch(
-      scopeUid: 'test-scope-c0', limit: 100,
+      scopeUid: 'test-scope-c0', peerId: peer, channel: Channel.cloud, limit: 100,
     );
     expect(outboxRows, isNotEmpty,
       reason: 'After C2: saveRecord via LocalRecordRepository with OutboxStore '

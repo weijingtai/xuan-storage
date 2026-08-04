@@ -13,6 +13,7 @@ dependencies:
   cloud_firestore: ^6.1.2
   firebase_auth: ^6.1.4
   firebase_database: ^12.1.2
+  firebase_core: ^4.12.1
   uuid: ^4.6.0
   persistence_core:
     path: ../core
