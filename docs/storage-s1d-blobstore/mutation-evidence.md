@@ -11,3 +11,14 @@
   - `schema v9 · blob 三表迁移 v8 旧库升到 v9：三张 blob 表可用` — table `t_blob_meta` doesn't exist
   - `schema v9 · blob 三表迁移 v8 旧库里的既有数据，升到 v9 后逐字段未丢` — same
 - **Restored**: `if (from < 9)` — all 11 blob tests pass.
+
+## Task 4: Atomic Native Chunk Files
+
+### Mutation 2: All chunk indices write to `0.bin`
+- **File**: `drift/lib/blob/native.dart`
+- **Injected violation**: Changed `targetPath` to always use `0` instead of `$index`.
+- **Expected failure**: Concurrent different-index writes test must fail because all writes overwrite the same file.
+- **Command**: `flutter test test/blob/file_system_blob_byte_backend_test.dart`
+- **Observed**: 1/6 tests failed:
+  - `atomic chunk files concurrent different-index writes are safe` — PathNotFoundException on rename
+- **Restored**: `$index` in targetPath — all 6 tests pass.
