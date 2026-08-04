@@ -1,7 +1,7 @@
 # S1d · blob 落地层设计（`LocalBlobStore` + `BlobGateway` 实现）
 
-> 状态：**待人类确认**。本文档回答派工单第 4 节的 Q1–Q7。
-> **Q1–Q7 未获确认前不写任何生产代码**（派工单 §9 硬要求）。
+> 状态：**Q1–Q7 已获人类确认（2026-08-03）**，可以开始实现。
+> 四项拍板结论见 §0.1。
 >
 > 作者：S1d 承接方　日期：2026-08-03
 > 基线：`main` @ `16987fe`（`schemaVersion => 6`）
@@ -9,19 +9,33 @@
 
 ---
 
+## 0.1 ⚠ 人类裁定（2026-08-03，具约束力）
+
+以下四条已由人类拍板，**实现必须遵守，不得自行更改**：
+
+| # | 事项 | 裁定 | 对实现的影响 |
+|---|---|---|---|
+| **1** | schema 版本号 | **S1b 先合并，S1d 用 v8** | blob 迁移写 **v8**，`onUpgrade` 加 `if (from < 8)` 分支。**我需 rebase 到含 S1b 的 main 后再合并**。派工单 §1 的「先按 v7 写 + 标注待定」处置**作废**，直接写 v8 |
+| **2** | Web 端 blob | **本期不交付** | `web.dart` / `unsupported.dart` 分支全部方法抛明确的「Web 本期不支持」错误。援引 S6 D18 先例 |
+| **3** | P1 / P2 平台缺口 | **都不修，只在文档记录** | **不动 `xuan-shell` 仓库**。P1（Android `allowBackup`）与 P2（macOS Release entitlements）的风险记录于 §11，留待后续子系统处置。⚠ 这意味着本设计的落盘保护在 Android 上仍会被 Auto Backup 绕过 —— 是已知且已被接受的残余风险 |
+| **4** | GC 对 sourceOfTruth 的收紧 | **采纳** | `tier == sourceOfTruth` 且 `refCount == 0` → 转 `orphaned` 标记，**不自动删字节**，等用户显式操作。见 §5 |
+
+---
+
 ## 0. 一页纸摘要
 
-| 问题 | 我的结论 | 需人类拍板? |
+| 问题 | 我的结论 | 状态 |
 |---|---|---|
-| **Q1** 字节存哪 | **混合**：字节走文件系统，元数据/引用计数走 drift | 否（论证充分） |
-| **Q2** 目录布局 | `getApplicationSupportDirectory()/blobs/<scopeUid>/<tier>/<aa>/<manifestId>/<index>.bin` | 否 |
-| **Q3** chunk 大小 | **对齐 16KB**，与 S6 的 DataChannel 值一致 | 否（论证充分） |
-| **Q4** staged 状态机 | staged →(reconcileRefs)→ committed；TTL 24h；GC 三条规则 | 否 |
-| **Q5** drift 表设计 | 3 张表：`t_blob_meta` / `t_blob_chunk` / `t_blob_ref` | 否 |
-| **Q6** Web 端 | **本期不交付 Web blob**，援引 S6 的 D18 先例 | ⚠ **是** |
-| **Q7** `dart:io` | 条件导入，照抄仓库既有三文件模式 | 否 |
-| **附 A** schema 版本号 | 与 S1b 抢 v7 | ⚠ **是，且我明确不自行决定** |
-| **附 B** P1/P2 平台缺口 | **在 xuan-shell 独立仓库，S1d 无法「在内」修** | ⚠ **是** |
+| Q1 | 字节存哪 | **混合**：字节走文件系统，元数据/引用计数走 drift | ✅ 通过 |
+| Q2 | 目录布局 | `getApplicationSupportDirectory()/blobs/<scopeUid>/<tier>/<aa>/<manifestId>/<index>.bin` | ✅ 通过 |
+| Q3 | chunk 大小 | **对齐 16KB**，与 S6 的 DataChannel 值一致 | ✅ 通过 |
+| Q4 | staged 状态机 | staged →(reconcileRefs)→ committed；TTL 24h；GC 三条规则 | ✅ 通过 |
+| Q5 | drift 表设计 | 3 张表：`t_blob_meta` / `t_blob_chunk` / `t_blob_ref` | ✅ 通过 |
+| Q6 | Web 端 | **本期不交付 Web blob** | ✅ **已裁定** |
+| Q7 | `dart:io` | 条件导入，照抄仓库既有三文件模式 | ✅ 通过 |
+| 附 A | schema 版本号 | **v8**（S1b 先合并） | ✅ **已裁定** |
+| 附 B | P1/P2 平台缺口 | **不修，只记录** | ✅ **已裁定** |
+| 附 C | GC 收紧 | sourceOfTruth 归零不自动删 | ✅ **已裁定** |
 
 ---
 
@@ -257,7 +271,8 @@ S6 文档 `:371-373`：「chunk 大小取 **16KB**（DataChannel 安全值）。
   在 `BlobEntry` 上通过 `refCount == 0 && tier == sourceOfTruth` 即可被 UI 识别。
 
 这是我对设计稿 §6.4 的一处**收紧**（不是违反：§6.4 说 GC「只回收」这两类，
-是回收范围的上界，我在其内进一步收紧）。**若人类认为不必收紧，请指出，我改回。**
+是回收范围的上界，我在其内进一步收紧）。
+✅ **人类 2026-08-03 已裁定采纳这处收紧。**
 
 ### 跨设备引用计数不收敛
 
@@ -339,7 +354,7 @@ S6 文档 `:371-373`：「chunk 大小取 **16KB**（DataChannel 安全值）。
 新增 3 张表，**不改动任何既有表**——因此迁移是纯 `create` 操作，
 对既有数据零影响。这也使「逐字段比对旧数据未丢」的验收项 13 容易通过。
 
-⚠ **版本号见 §10，我不自行决定。**
+**目标版本号：v8**（人类已裁定，见 §10）。
 
 ---
 
@@ -451,61 +466,63 @@ cd firebase && dart analyze --fatal-infos && flutter test
 
 ---
 
-## 10. ⚠ 必须由人类拍板：schema 版本号
+## 10. schema 版本号：**v8**（已裁定）
 
-**我明确不自行决定**（派工单 §9 第 1 条：「不要自己决定合并顺序」）。
+**人类裁定（2026-08-03）：S1b 先合并，S1d 用 v8。**
 
-**事实**：
+**事实基线**：
 - `main` 当前 `schemaVersion => 6`（实测 `persistence_drift.dart:541`）
 - S1b 工作树已改到 `=> 7`（新增 `t_outbox_peer_ack` + `t_sync_state` 主键加 peerId）
 - S1b **尚未合并** main（实测）
-- 我的 3 张 blob 表也需要一个新版本号
 
-**风险**：两个迁移抢同一版本号会导致**已发版用户的数据库升级路径分叉**，
-派工单称之为「不可逆事故」。
+**因此本实现**：
+1. blob 迁移写 **v8**，`onUpgrade` 中新增 `if (from < 8) { ... }` 分支。
+2. **合并前必须 rebase 到已含 S1b（v7）的 main。** 在 S1b 合并前，
+   本分支的迁移测试需要以「v7 已存在」为前提编写。
+3. 派工单 §1 原写的「先按 v7 写 + 在注释里标注版本号待定」的处置**已作废**。
 
-**请人类在下列二者中选一，或给出第三种安排**：
-
-| 选项 | 含义 | 我要做的调整 |
-|---|---|---|
-| **A** | **S1b 先合并**，S1d 顺延为 **v8** | blob 迁移写 v8，`onUpgrade` 加 `if (from < 8)` 分支，且我需 rebase 到含 S1b 的 main |
-| **B** | **S1d 先合并**，占用 **v7**，S1b 改 v8 | blob 迁移写 v7；**需通知 S1b 负责方改他们的迁移**（他们已写好 v7 测试，代价在他们侧） |
-
-**我的倾向：A。** 理由：S1b 的 v7 已有测试（`drift/test/sync/schema_v7_migration_test.dart`
-已存在于其工作树），改动成本在他们侧已经沉没；而我尚未动笔，写 v8 与写 v7 对我成本相同。
-**但这取决于两者的实际合并时序，我没有这个信息。**
-
-在获得裁定前，我按派工单 §1 的指示**先按 v7 写并在代码注释与 PR 描述里显式标注**
-「本迁移目标版本号取决于 S1b 合并顺序」。
+⚠ **对我的实际约束**：我基于 `main`(v6) 开工，但要写 v8 迁移。
+这意味着 `onUpgrade` 里会出现一个「从 7 升到 8」的分支，而 v7 本身在我的
+基线里不存在。**处置**：迁移代码按目标形态写（v8 分支），
+迁移测试在 rebase 前以 v6→v8 验证建表正确性，**rebase 后补 v7→v8 的完整链路测试**。
+这一条会写进 PR 描述。
 
 ---
 
-## 11. ⚠ 必须由人类拍板：P1 / P2 跨仓库缺口
+## 11. P1 / P2 平台缺口：不修，仅记录（已裁定）
 
-如 §1「修正 1」，`xuan-shell` 是**独立 Git 仓库**，S1d 的 PR 无法包含其改动。
+**人类裁定（2026-08-03）：都不修，只在文档记录。不动 `xuan-shell` 仓库。**
 
-| 缺口 | 严重性 | 建议处置 |
-|---|---|---|
-| **P1** Android `allowBackup="false"` | **高** —— 不修则私有 blob 静默上传用户 Google Drive，与 E2EE 前提直接冲突 | 建议**开 xuan-shell 的独立 PR**。若人类同意，我可在本任务内顺手做掉（需明确授权动第二个仓库） |
-| **P2** macOS Release 缺 `network.client`/`network.server` | **中**（对 S1d）—— 只影响 `BlobGateway` 联网；对 S6 是高 | 同上。属「开发期全绿、发版即死」类缺陷 |
+如 §1「修正 1」，`xuan-shell` 是**独立 Git 仓库**
+（`git rev-parse --show-toplevel` → `/Users/jingtaiwei/Git/Public/xuan-migration/xuan-shell`），
+S1d 的 PR 无法包含其改动。派工单 §6 建议的「在 S1d 内修掉」在仓库结构上不成立。
 
-**两者的共同特征是静默失败**——不报错、不崩溃，只是行为与设计意图相反。
-**无法靠功能测试发现，只能靠静态门禁。**
-若授权我修，我会同时配门禁测试；门禁测试放哪个仓库也需一并确定。
+### 已知且已被接受的残余风险
+
+| 缺口 | 实测证据 | 后果 | 状态 |
+|---|---|---|---|
+| **P1** Android 缺 `allowBackup="false"` | `xuan-shell/android/app/src/main/AndroidManifest.xml:2-5` 的 `<application>` 只有 label/name/icon；`grep -rn "allowBackup\|fullBackupContent" android/` → **0 命中**，即取默认值 `true` | ⚠ **私有 blob 会被 Android Auto Backup 静默传到用户 Google Drive。** 这使本设计 §3 的落盘保护在 Android 上被绕过 —— 字节确实落在 app-specific 目录，但该目录**正是 Auto Backup 的备份范围** | **已知未修**，人类 2026-08-03 接受 |
+| **P2** macOS `Release.entitlements` 缺网络权限 | `Release.entitlements` 只有 `com.apple.security.app-sandbox`；`DebugProfile.entitlements` 另有 `network.client` + `network.server` | `BlobGateway` 在 macOS Release 包中联网会**静默失败**（开发期全绿、发版即死） | **已知未修**，人类 2026-08-03 接受 |
+
+**两者的共同特征是静默失败** —— 不报错、不崩溃，只是行为与设计意图相反，
+**无法靠功能测试发现**。留待 S6 或专门的平台配置任务处置。
+
+> 本节的作用是让后续承接方不必重新发现这两个缺口。
+> S6 文档 §7.1b 已将其列为 P1/P2 前置修复项（`:1225-1226`）。
 
 ---
 
-## 12. 待人类确认清单
+## 12. 实现启动条件：已满足
 
-开始写生产代码前，我需要以下答复：
-
-| # | 事项 | 我的建议 |
+| # | 事项 | 状态 |
 |---|---|---|
-| **1** | Q1–Q5、Q7 的设计结论 | 按本文档执行（论证已充分，若无异议即视为通过） |
-| **2** | **Q6：Web 端 blob 本期是否不交付** | 建议**不交付**，援引 S6 的 D18 先例 |
-| **3** | **schema 版本号 v7 还是 v8**（§10） | 倾向 A（S1b 先合并，我用 v8），但需你确认合并时序 |
-| **4** | **P1/P2 跨仓库缺口是否授权我动 xuan-shell**（§11） | 建议授权修 P1（严重且属落盘领域） |
-| **5** | §5 我对 GC 的收紧（sourceOfTruth 的 refCount 归零不自动删字节） | 建议采纳；若认为多余请指出 |
+| 1 | Q1–Q5、Q7 的设计结论 | ✅ 通过 |
+| 2 | Q6 Web 端本期不交付 | ✅ 已裁定 |
+| 3 | schema 版本号 = v8 | ✅ 已裁定 |
+| 4 | P1/P2 不修，仅记录 | ✅ 已裁定 |
+| 5 | GC 对 sourceOfTruth 的收紧 | ✅ 已采纳 |
+
+**可以开始按 §9 的阶段 A–G 实现。**
 
 ---
 
