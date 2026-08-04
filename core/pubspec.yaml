@@ -13,6 +13,7 @@ dependencies:
   shared_preferences: ^2.3.2
   protobuf: ^6.0.0
   json_annotation: ^4.10.0
+  crypto: ^3.0.6
   metaphysics_core:
     git:
       url: http://192.168.0.165:3000/xuan/metaphysics-core.git

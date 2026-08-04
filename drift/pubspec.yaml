@@ -75,11 +75,11 @@ dependencies:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-taiyishenshu.git
   repository_interface_xiang:
-    path: ../../repository-interface-xiang
+    path: ../../../../repository-interface-xiang
   repository_interface_divination_tag:
-    path: ../../repository-interface-divination-tag
+    path: ../../../../repository-interface-divination-tag
   repository_interface_media:
-    path: ../../repository-interface-media
+    path: ../../../../repository-interface-media
   taiyishenshu:
     git:
       url: http://192.168.0.165:3000/xuan/xuan-taiyishenshu.git
@@ -133,9 +133,7 @@ dependency_overrides:
     git:
       url: http://192.168.0.165:3000/xuan/metaphysics-core.git
   persistence_core:
-    git:
-      url: http://192.168.0.165:3000/xuan/xuan-storage.git
-      path: core
+    path: ../core
   theme:
     git:
       url: http://192.168.0.165:3000/xuan/theme.git
@@ -152,13 +150,13 @@ dependency_overrides:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-liuyao.git
   repository_interface_record:
-    path: ../../repository-interface-record
+    path: ../../../../repository-interface-record
   repository_interface_xiang:
-    path: ../../repository-interface-xiang
+    path: ../../../../repository-interface-xiang
   repository_interface_divination_tag:
-    path: ../../repository-interface-divination-tag
+    path: ../../../../repository-interface-divination-tag
   repository_interface_media:
-    path: ../../repository-interface-media
+    path: ../../../../repository-interface-media
   repository_interface_account:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-account.git
