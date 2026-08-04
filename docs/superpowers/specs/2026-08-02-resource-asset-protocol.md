@@ -33,7 +33,7 @@
 
 | 本文档章节 | 对应代码 | 包 |
 |---|---|---|
-| §2 概念模型 | `DatasetManifest` | `persistence_core` |
+| §2 概念模型 | `DatasetManifest` / `DatasetPayloadFormat` | `persistence_core` |
 | §3 模块必须提供什么 | `DatasetDescriptor` / `DatasetRegistry` / `DatasetMaterializer` / `MaterializeOutcome` | `persistence_core` |
 | §4 取用与来源链 | `DatasetSource` / `DatasetEndpointProvider` | `persistence_core` |
 | §5 安装与生命周期 | `DatasetInstaller` / `InstalledDataset` / `DatasetGenerationStatus` / `InstallOutcome` | `persistence_core` |
@@ -116,27 +116,34 @@
 | 字段 | 类型 | 作用 | 是否参与兼容判定 |
 |---|---|---|---|
 | `contentVersion` | String | 人读，展示与诊断 | **否** |
-| `schemaRevision` | int | 机械兼容判定的唯一依据 | **是** |
+| `minimumAppSchemaRevision` | int | 机械兼容判定的唯一依据 | **是** |
 
-**为什么不用 semver**：semver 要求发布者正确判断「这次改动算不算 breaking」。当发布与迁移由多个不同的人或 AI agent 执行时，这个判断必然不一致。一个由消费方代码硬声明的整数集合是机械的、无歧义的、且 fail closed。
+**为什么不用 semver**：semver 要求比较方正确解析并比较字符串，且「1.2.0 → 2.0.0 算不算 breaking」在不同人手里判断不一。整数比大小没有歧义，也没有解析失败的可能。
 
 > 同源教训：S1a 区分「结构性不变式」与「注册期不变式」（《总纲》§2.3.0）—— 不要把正确性寄托在判断力上。
 
-### 2.4 兼容判定方向（D2）
+### 2.4 兼容判定方向（D2 · 已定：方向 B）
 
-**消费方声明能力，发布方声明需求，不匹配则拒装。**
+**发布方声明「读我需要什么水平的 app」，消费方只比大小。**
 
 ```
-app 声明：supportedSchemaRevisions = {1, 2}
-manifest 声明：schemaRevision = 3
-判定：3 ∉ {1,2} → 拒绝安装，沿用现有世代（P5），不报错
+manifest 声明：minimumAppSchemaRevision = 2   ← 发布方做判断
+app    声明：appSchemaRevision          = 3   ← 编译期常量
+判定：3 >= 2 → 安装
+     若 app 为 1：1 < 2 → 拒绝安装，沿用现有世代（P5），不报错
 ```
 
-这一条同时覆盖两个方向：
-- **老 app 遇到新数据集** → 拒装，继续用旧世代，不崩溃；
-- **新 app 遇到老数据集** → app 把旧 revision 一并列入支持集，或由内置世代兜底。
+这是 `minSdkVersion` 模型：判断「这次结构改动要求消费方具备什么能力」由**发布方**做出并写进清单，消费方不做兼容性推理，只做一次整数比较。
 
-没有这条，服务端一次发布就能让全部老客户端崩溃，且无法回滚。
+**新增字段而不升 revision 的场景**：只加可选字段、不改已有字段语义时，
+`minimumAppSchemaRevision` **保持不变** —— 老 app 忽略新字段照常工作。
+只有当「老 app 读了会出错或读出错误结果」时才递增。**这个判断是发布方的责任。**
+
+**已知代价（人类知情后选定）**：发布方一旦判断失误 —— 该升没升 —— 老客户端会装进读不了的数据。协议提供的缓解是**留痕而非阻止**：
+
+- `InstallOutcome` 记录本次判定的两个数值（`requiredRevision` / `appRevision`），出事时可一眼定位是哪次发布、哪个版本区间受影响；
+- 完整性自检（不变式 I4：行数比对）仍在下游兜底，结构性损坏在落地阶段仍会被拦截，不会进入 ready。
+
 
 ---
 
@@ -181,12 +188,31 @@ manifest 声明：schemaRevision = 3
 
 与《总纲》§8.4:1297 的配置来源链同构。**是「已安装的」优先，不是「远端」优先** —— 冷启动直接用本地已有世代，零网络（P4）。
 
-### 4.2 内置世代也是一个世代（D3）
+### 4.2 内置世代必须预构建，不在设备上解析（D3 · 已定）
 
-内置资源**不走单独的读路径**，而是作为 generation 0 参与同一套机制。
+内置资源作为 generation 0 参与同一套机制，**但它的载荷是构建期就做好的落地形态，不是原始 JSON/CSV**。
 
-- 收益：全局只有一条读路径、一条落地路径。协议的可理解性正来自于此。
-- 代价：首次访问要跑一次落地（3515 行 INSERT 约数十毫秒；blob 类就是拷一个文件）。
+```
+构建期（开发机 / CI）            设备上（首次启动）
+────────────────────            ──────────────────
+原始 JSON/CSV                    直接落位预构建产物
+   │  解析 + 建表 + 建索引          （文件拷贝 / 首次打开）
+   ▼                              零解析、零建索引
+预构建产物（.sqlite 等）  ──────▶  立即可查
+   随包发布
+```
+
+**硬要求：设备上不得在首次访问时解析原始文本。** 3515 行的 JSON 解析加建索引会让首个用到该数据集的界面卡顿，这是不可接受的。
+
+仓库既有先例：`xuan-qizhengsiyu` 的 `ge_ju_database.sqlite`（440K）就是随包的预构建 SQLite。
+
+由此产生的两条约束：
+
+1. **`DatasetMaterializer` 必须能处理两种载荷**：预构建产物（内置 / 未来可能的远端）与原始文本（远端增量）。协议不规定哪种，由 `DatasetManifest.payloadFormat` 声明；
+2. **构建期工具链是接入方的交付物之一**（§3 第 2 项）—— 「把原始数据变成预构建产物」的脚本必须可重复执行、可在 CI 中运行，不能是某个人手工做一次。
+
+**远端世代不受此限**：远端可以下发原始文本并在设备上解析，因为那发生在用户显式触发更新之后（§5.6），不在启动或首访路径上。若远端也下发预构建产物，则设备侧零解析，代价是产物体积通常大于压缩文本。
+
 
 ### 4.3 endpoint 的来源
 
@@ -363,11 +389,11 @@ cd core && dart analyze --fatal-infos && flutter test
 
 ## 10. 待拍板
 
-| # | 事项 | 推荐 |
+| # | 事项 | 结论 |
 |---|---|---|
-| D1 | 版本标识形态 | `contentVersion`(人读) + `schemaRevision`(机械)，不用 semver |
-| D2 | 兼容判定方向 | app 声明支持集，manifest 不在集内则拒装 |
-| D3 | 内置资源是否算一个世代 | 算。统一读路径，代价是首访落地开销 |
+| D1 | 版本标识形态 | ✅ **已定**：`contentVersion`(人读) + `minimumAppSchemaRevision`(机械)，不用 semver |
+| D2 | 兼容判定方向 | ✅ **已定（人类 2026-08-02）**：方向 B —— 发布方声明所需 app 水平，消费方比大小（minSdkVersion 模型） |
+| D3 | 内置资源是否算一个世代 | ✅ **已定（人类 2026-08-02）**：算，**但必须预构建**，设备上零解析 |
 | D4 | 回滚是否暴露给用户 | 机制支持，UI 不暴露 |
 | D5 | GC 保留几代 | 保留 1 个 superseded 作回滚窗口 |
 | D6 | 更新检查时机 | 冷启动不查，仅三个显式触发点 |
@@ -387,7 +413,8 @@ cd core && dart analyze --fatal-infos && flutter test
 |---|---|---|
 | 形态枚举 | **复用 S1a 的 `Carrier`** | 新造 `DatasetShape{row,opaque,hybrid}` —— 概念膨胀，且与 `StoragePolicy.resource` 的参数表重复 |
 | 落地形态的判据 | **由检索需求决定** | 「数据资源一律落 row」—— 时区边界是 TopoJSON，点在多边形内 SQL 表达不了，硬拆成 row 是主动做错 |
-| 兼容判定 | **app 声明支持集，fail closed** | semver —— 依赖发布者对 breaking 的判断，多 agent 执行时必然不一致 |
+| 兼容判定 | **发布方声明 `minimumAppSchemaRevision`，消费方比大小**（人类 2026-08-02 定，方向 B） | ①semver —— 需解析与比较字符串，且 breaking 的界定因人而异；②消费方声明支持集（方向 A）—— 每次结构升级都要发新版 app 才能用上新数据，人类判定该代价更高 |
+| 内置世代形态 | **预构建产物随包，设备上零解析**（人类 2026-08-02 定） | 设备上解析原始 JSON —— 3515 行解析加建索引会让首访界面卡顿，不可接受 |
 | 半安装态 | **世代 + 单事务指针翻转** | 边下边写 —— row 的"装了一半"可被查出，用户读到残缺数据且无从发现 |
 | 续传粒度 | **仅字节水位，落地整代重做** | 行级续传 —— 引入无法校验的中间态，与 P3 冲突 |
 | 资源库位置 | **独立 `ResourceDatasetDatabase`** | 进主库 —— 与 S1b(v7) 争抢 schemaVersion；且资源无主而主库 scoped |

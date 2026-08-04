@@ -154,5 +154,65 @@ void main() {
       expect(specText.contains('换本地存储'), isTrue);
       expect(specText.contains('加一种载体形态'), isTrue);
     });
+
+    test('dartdoc 交叉引用不得悬空 —— [Xxx] 必须指向真实存在的符号', () {
+      // 【为什么需要这条】改字段名时 dartdoc 里的 [旧名] 不会报错，
+      // 而上面两条门禁只校验「文档↔类型名」，看不见注释���部的引用。
+      // 实际发生过：minimumAppSchemaRevision 改名后
+      // dataset_manifest.dart 仍写着 [schemaRevision]，无人发现。
+
+      // 已知的外部符号（S1a 契约、Dart 内置、《总纲》端口）不在本目录定义，
+      // 属正常引用，列入白名单。
+      const externalOk = {
+        'Carrier', 'Source', 'StoragePolicy', 'DataVisibility', 'Publisher',
+        'CancellationToken', 'StorageError', 'ScopedRecordStore',
+        'LocalBlobStore', 'BlobReadResult', 'BlobHandle', 'BlobStatus',
+        'StoragePolicyRegistry',
+        'Stream', 'Future', 'Set', 'List', 'Map', 'String', 'int', 'bool',
+      };
+
+      final refPattern = RegExp(r'///.*?\[([A-Z]\w*)(?:\.\w+)?\]');
+      final dangling = <String>[];
+
+      for (final f in Directory(_contractDir).listSync().whereType<File>()) {
+        if (!f.path.endsWith('.dart')) continue;
+        final lines = f.readAsLinesSync();
+        for (var i = 0; i < lines.length; i++) {
+          for (final m in refPattern.allMatches(lines[i])) {
+            final name = m.group(1)!;
+            if (externalOk.contains(name)) continue;
+            if (declaredTypes.containsKey(name)) continue;
+            dangling.add('${f.path}:${i + 1} → [$name]');
+          }
+        }
+      }
+
+      expect(
+        dangling,
+        isEmpty,
+        reason: '以下 dartdoc 引用指向不存在的符号（多半是改名后忘了同步）：\n'
+            '  ${dangling.join('\n  ')}',
+      );
+    });
+
+    test('悬空引用门禁自身有效性 —— 白名单不得吞掉本目录应有的类型', () {
+      // 防止有人往 externalOk 里塞本目录的类型名来「修复」失败。
+      // 若某个协议类型被误列入白名单，删掉它的定义也不会变红 —— 那门禁就废了。
+      const externalOk = {
+        'Carrier', 'Source', 'StoragePolicy', 'DataVisibility', 'Publisher',
+        'CancellationToken', 'StorageError', 'ScopedRecordStore',
+        'LocalBlobStore', 'BlobReadResult', 'BlobHandle', 'BlobStatus',
+        'StoragePolicyRegistry',
+        'Stream', 'Future', 'Set', 'List', 'Map', 'String', 'int', 'bool',
+      };
+      final leaked =
+          declaredTypes.keys.where(externalOk.contains).toList();
+      expect(
+        leaked,
+        isEmpty,
+        reason: '以下类型在本目录有定义，却被列入外部白名单，'
+            '会让悬空引用门禁对它们失效：${leaked.join(', ')}',
+      );
+    });
   });
 }

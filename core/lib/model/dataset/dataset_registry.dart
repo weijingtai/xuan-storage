@@ -2,67 +2,16 @@
 ///
 /// 【本文件是协议的入口】—— 一个模块「接入 XRAP」的全部动作，
 /// 就是在装配期构造一个 [DatasetDescriptor] 并调用 [DatasetRegistry.register]。
+///
+/// [DatasetDescriptor] 本身定义在 dataset_descriptor.dart。
 library;
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import '../storage_classification.dart';
-import '../storage_policy.dart';
+import 'dataset_descriptor.dart';
 import 'dataset_error.dart';
 import 'dataset_manifest.dart';
-import 'dataset_materializer.dart';
-
-/// 一个数据集的装配期声明。
-///
-/// 这是【消费方（app 代码）的编译期事实】：本 app 能处理哪些结构版本、
-/// 内置了哪个世代、用什么落地。与 [DatasetManifest]（发布方的事实）配对，
-/// 二者比对产出安装判定（协议 §2.4）。
-final class DatasetDescriptor {
-  /// 数据集稳定标识。必须与 [bundledManifest] 的 datasetId 一致。
-  final String datasetId;
-
-  /// **本 app 代码能消费的 schemaRevision 集合**（协议 §2.4）。
-  ///
-  /// 判定方向是「消费方声明能力」而非「发布方声明兼容」：
-  /// manifest 的 schemaRevision 不在本集合内 → 拒绝安装、沿用现有世代
-  /// （fail closed，协议 P6）。这使得服务端一次误发布不会让老客户端崩溃。
-  ///
-  /// 【不得为空集】—— 空集意味着永远装不进任何世代，注册期抛异常。
-  final Set<int> supportedSchemaRevisions;
-
-  /// 存储策略。必须是 `StoragePolicy.resource` 且 publisher 为 official
-  /// （协议不变式 I9）。策略的 carriers 是 manifest carriers 的上界（I8）。
-  final StoragePolicy policy;
-
-  /// 内置世代的清单。**恒存在** —— 内置资源是永久兜底（协议 P5）。
-  ///
-  /// 内置世代作为 generation 0 参与统一机制（协议 §4.2 / D3），
-  /// 因此它也要有 payloadSha256 与 declaredRowCount，走同一套校验。
-  final DatasetManifest bundledManifest;
-
-  /// 落地器工厂。**唯一的可插拔点**（协议 §3.3）。
-  ///
-  /// 用工厂而非实例：落地器可能持有数据库连接等资源，
-  /// 由安装器在需要时创建、用完释放。
-  final DatasetMaterializer Function() materializer;
-
-  /// 构造一个数据集声明。
-  ///
-  /// 【不在构造器校验】—— 校验发生在 [DatasetRegistry.register]，
-  /// 与 S1a 的 StoragePolicyRegistry 保持同一形制：
-  /// 结构性约束靠参数表，语义约束靠注册期抛异常（《总纲》§2.3.0）。
-  const DatasetDescriptor({
-    required this.datasetId,
-    required this.supportedSchemaRevisions,
-    required this.policy,
-    required this.bundledManifest,
-    required this.materializer,
-  });
-
-  /// 本 app 是否能消费给定清单的结构版本。
-  bool supports(DatasetManifest m) =>
-      supportedSchemaRevisions.contains(m.schemaRevision);
-}
 
 /// 全局数据集注册表（协议 §3）。
 ///
@@ -126,20 +75,24 @@ abstract final class DatasetRegistry {
         fix: '清单声明的载体不得超出策略允许的载体（协议不变式 I8）。',
       );
     }
-    if (d.supportedSchemaRevisions.isEmpty) {
+    if (d.bundledManifest.payloadFormat != DatasetPayloadFormat.prebuilt) {
       throw DatasetRegistrationError(
         datasetId: d.datasetId,
-        violation: 'supportedSchemaRevisions 为空集',
-        fix: '空集意味着永远装不进任何世代；至少列出内置世代的 schemaRevision。',
+        violation:
+            '内置世代的 payloadFormat 是 ${d.bundledManifest.payloadFormat.name}，'
+            '不是 prebuilt',
+        fix: '内置载荷必须是构建期做好的落地形态，设备上零解析（协议 §4.2）。'
+            '把原始 JSON/CSV 的解析移到构建期脚本里。',
       );
     }
     if (!d.supports(d.bundledManifest)) {
       throw DatasetRegistrationError(
         datasetId: d.datasetId,
         violation:
-            '内置世代的 schemaRevision ${d.bundledManifest.schemaRevision} '
-            '不在 supportedSchemaRevisions ${d.supportedSchemaRevisions} 内',
-        fix: '本 app 连自己的内置世代都装不进，属装配错误。',
+            '内置世代要求 app 结构版本 >= '
+            '${d.bundledManifest.minimumAppSchemaRevision}，'
+            '但本 app 声明为 ${d.appSchemaRevision}',
+        fix: '本 app 连自己的内置世代都读不了，属装配错误。',
       );
     }
     if (d.bundledManifest.requiresRowCountCheck &&

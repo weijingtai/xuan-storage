@@ -15,7 +15,8 @@ import 'package:persistence_core/persistence_core.dart';
 DatasetManifest _manifest({
   String datasetId = 'geo.admin_division',
   String contentVersion = '2026.08',
-  int schemaRevision = 1,
+  int minimumAppSchemaRevision = 1,
+  DatasetPayloadFormat payloadFormat = DatasetPayloadFormat.prebuilt,
   Set<Carrier> carriers = const {Carrier.row},
   String payloadSha256 = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
       'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
@@ -26,7 +27,8 @@ DatasetManifest _manifest({
     DatasetManifest(
       datasetId: datasetId,
       contentVersion: contentVersion,
-      schemaRevision: schemaRevision,
+      minimumAppSchemaRevision: minimumAppSchemaRevision,
+      payloadFormat: payloadFormat,
       carriers: carriers,
       payloadSha256: payloadSha256,
       payloadBytes: payloadBytes,
@@ -64,13 +66,13 @@ final class _SpyMaterializer implements DatasetMaterializer {
 
 DatasetDescriptor _descriptor({
   String datasetId = 'geo.admin_division',
-  Set<int> supported = const {1},
+  int appRevision = 1,
   StoragePolicy? policy,
   DatasetManifest? bundled,
 }) =>
     DatasetDescriptor(
       datasetId: datasetId,
-      supportedSchemaRevisions: supported,
+      appSchemaRevision: appRevision,
       policy: policy ??
           const StoragePolicy.resource(
             carriers: {Carrier.row},
@@ -90,7 +92,7 @@ void main() {
       final found = DatasetRegistry.lookup('geo.admin_division');
       expect(found, isNotNull);
       expect(found!.datasetId, 'geo.admin_division');
-      expect(found.supportedSchemaRevisions, {1});
+      expect(found.appSchemaRevision, 1);
       // 驱动行为而非同义反复：工厂必须真的能造出落地器。
       expect(found.materializer().datasetId, 'geo.admin_division');
     });
@@ -174,23 +176,27 @@ void main() {
       );
     });
 
-    test('supportedSchemaRevisions 为空集时拒绝 —— 空集永远装不进任何世代', () {
+    test('D3：内置载荷非预构建时拒绝 —— 设备上零解析是硬要求', () {
       expect(
-        () => DatasetRegistry.register(_descriptor(supported: const {})),
+        () => DatasetRegistry.register(
+          _descriptor(
+            bundled: _manifest(payloadFormat: DatasetPayloadFormat.rawText),
+          ),
+        ),
         throwsA(isA<DatasetRegistrationError>().having(
           (e) => e.message,
           'message',
-          contains('空集'),
+          contains('prebuilt'),
         )),
       );
     });
 
-    test('内置世代的 schemaRevision 不在支持集内时拒绝 —— 自己都装不进自己', () {
+    test('D2：app 结构版本低于内置世代要求时拒绝 —— 自己都读不了自己', () {
       expect(
         () => DatasetRegistry.register(
           _descriptor(
-            supported: const {2, 3},
-            bundled: _manifest(schemaRevision: 1),
+            appRevision: 1,
+            bundled: _manifest(minimumAppSchemaRevision: 2),
           ),
         ),
         throwsA(isA<DatasetRegistrationError>()),
@@ -239,14 +245,18 @@ void main() {
       );
     });
 
-    test('supports 只看 schemaRevision，不看 contentVersion（协议 N7）', () {
-      final d = _descriptor(supported: const {1, 2});
-      // contentVersion 完全不同，但结构版本受支持 → 可装。
-      expect(d.supports(_manifest(contentVersion: '9999.12', schemaRevision: 2)),
-          isTrue);
-      // contentVersion 相同，但结构版本不受支持 → 拒装。
-      expect(d.supports(_manifest(contentVersion: '2026.08', schemaRevision: 3)),
-          isFalse);
+    test('supports 是比大小，不看 contentVersion（协议 §2.4 方向 B / N7）', () {
+      final d = _descriptor(appRevision: 3);
+      // app(3) >= 要求(2) → 可装；contentVersion 完全不参与判定。
+      expect(
+        d.supports(_manifest(
+            contentVersion: '9999.12', minimumAppSchemaRevision: 2)),
+        isTrue,
+      );
+      // app(3) >= 要求(3) → 边界相等，可装。
+      expect(d.supports(_manifest(minimumAppSchemaRevision: 3)), isTrue);
+      // app(3) < 要求(4) → 拒装。
+      expect(d.supports(_manifest(minimumAppSchemaRevision: 4)), isFalse);
     });
   });
 
@@ -274,7 +284,7 @@ void main() {
       expect(
         describe(InstallOutcome.rejectedSchema(
           requiredRevision: 3,
-          supportedRevisions: {1, 2},
+          appRevision: 1,
           current: bundled,
         )),
         'rejected',
@@ -298,7 +308,7 @@ void main() {
     test('三个非成功态都携带 current —— 兑现 P5「失败沿用现存，永不空手」', () {
       final rejected = InstallOutcome.rejectedSchema(
         requiredRevision: 3,
-        supportedRevisions: {1},
+        appRevision: 1,
         current: bundled,
       );
       expect((rejected as InstallRejectedSchema).current?.isUsable, isTrue);

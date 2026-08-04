@@ -6,6 +6,20 @@ library;
 
 import '../storage_classification.dart';
 
+/// 载荷格式（协议 §4.2）。决定 [DatasetMaterializer] 怎么处理字节。
+enum DatasetPayloadFormat {
+  /// 构建期做好的落地形态（.sqlite 等）。设备上只落位，**零解析**。
+  ///
+  /// 内置世代**必须**是这种 —— 3515 行的 JSON 解析加建索引会让首访卡顿。
+  prebuilt,
+
+  /// 原始文本（JSON / CSV），需在设备上解析。
+  ///
+  /// 仅允许用于远端世代：解析发生在用户显式触发更新之后（协议 §5.6），
+  /// 不在启动或首访路径上。
+  rawText,
+}
+
 /// 数据集清单：描述某个数据集某个版本的全部元数据。
 ///
 /// 【值对象】同值相等。不含任何行为，判定逻辑全在 [DatasetInstaller]。
@@ -19,15 +33,26 @@ final class DatasetManifest {
 
   /// 内容版本。人可读，用于展示与诊断。
   ///
-  /// 【不参与兼容判定】—— 判定只看 [schemaRevision]（协议 §2.3）。
+  /// 【不参与兼容判定】—— 判定只看 [minimumAppSchemaRevision]（协议 §2.3）。
   /// 不要在此写 semver 并期望被比较：协议明确禁止字符串比较做判定（N7）。
   final String contentVersion;
 
-  /// 结构版本。**机械兼容判定的唯一依据**（协议 §2.4）。
+  /// 读取本数据集所要求的**最低 app 结构版本**（协议 §2.4，D2 方向 B）。
   ///
-  /// 安装侧规则：不在 [DatasetDescriptor.supportedSchemaRevisions] 内
-  /// 即拒绝安装，沿用现有世代，且【不下载载荷】以省带宽（不变式 I5）。
-  final int schemaRevision;
+  /// minSdkVersion 模型：发布方判断「这次结构改动要求消费方具备什么能力」
+  /// 并写入本字段；消费方【不做兼容性推理】，只做一次整数比较：
+  /// `app.appSchemaRevision >= manifest.minimumAppSchemaRevision` 即可安装。
+  ///
+  /// 不满足时拒绝安装、沿用现有世代，且【不下载载荷】以省带宽（不变式 I5）。
+  ///
+  /// 【发布方责任】只加可选字段时本值不变（老 app 忽略新字段照常工作）；
+  /// 只有「老 app 读了会出错或读出错误结果」时才递增。
+  final int minimumAppSchemaRevision;
+
+  /// 载荷格式（协议 §4.2）。
+  ///
+  /// 内置世代恒为 [DatasetPayloadFormat.prebuilt] —— 设备上零解析是硬要求。
+  final DatasetPayloadFormat payloadFormat;
 
   /// 落地载体（协议 §2.2）。复用 S1a 的 [Carrier]，不新造形态枚举。
   ///
@@ -59,7 +84,8 @@ final class DatasetManifest {
   const DatasetManifest({
     required this.datasetId,
     required this.contentVersion,
-    required this.schemaRevision,
+    required this.minimumAppSchemaRevision,
+    required this.payloadFormat,
     required this.carriers,
     required this.payloadSha256,
     required this.payloadBytes,
@@ -75,5 +101,6 @@ final class DatasetManifest {
   @override
   String toString() =>
       'DatasetManifest($datasetId, content=$contentVersion, '
-      'schema=$schemaRevision, bytes=$payloadBytes)';
+      'minApp=$minimumAppSchemaRevision, format=${payloadFormat.name}, '
+      'bytes=$payloadBytes)';
 }

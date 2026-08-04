@@ -91,13 +91,17 @@ sealed class InstallOutcome {
   const factory InstallOutcome.installed(InstalledDataset installed) =
       InstallInstalled;
 
-  /// 结构版本不受支持，已拒绝（协议 §2.4 / 不变式 I5）。
+  /// app 结构版本不足，已拒绝（协议 §2.4 / 不变式 I5）。
   ///
-  /// **这不是错误** —— 老 app 遇到新数据集的正常反应。
+  /// **这不是错误** —— 老 app 遇到要求更高的数据集的正常反应。
   /// 已在【下载载荷之前】拒绝，未消耗带宽。
+  ///
+  /// 两个数值都记录下来，是 D2 方向 B 的留痕要求：发布方若判断失误
+  /// （该升 minimumAppSchemaRevision 却没升），据此可一眼定位是哪次发布、
+  /// 哪个 app 版本区间受影响。
   const factory InstallOutcome.rejectedSchema({
     required int requiredRevision,
-    required Set<int> supportedRevisions,
+    required int appRevision,
     required InstalledDataset? current,
   }) = InstallRejectedSchema;
 
@@ -134,13 +138,13 @@ final class InstallInstalled extends InstallOutcome {
   const InstallInstalled(this.installed) : super._();
 }
 
-/// 结构版本不受支持，已拒绝。
+/// app 结构版本不足，已拒绝。
 final class InstallRejectedSchema extends InstallOutcome {
-  /// 清单要求的结构版本。
+  /// 清单要求的最低 app 结构版本。
   final int requiredRevision;
 
-  /// 本 app 支持的结构版本集合。
-  final Set<int> supportedRevisions;
+  /// 本 app 声明的结构版本。
+  final int appRevision;
 
   /// 仍在使用的现有世代；从未装成功过则为 null。
   final InstalledDataset? current;
@@ -148,7 +152,7 @@ final class InstallRejectedSchema extends InstallOutcome {
   /// 构造 [InstallRejectedSchema]。
   const InstallRejectedSchema({
     required this.requiredRevision,
-    required this.supportedRevisions,
+    required this.appRevision,
     required this.current,
   }) : super._();
 }
