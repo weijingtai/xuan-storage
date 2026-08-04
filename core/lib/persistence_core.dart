@@ -35,6 +35,7 @@ export 'model/local_blob_store.dart';
 export 'model/record_blob_unit_of_work.dart';
 export 'model/blob_gateway.dart';
 export 'model/transport.dart';
+export 'model/signaling.dart';
 export 'model/export_bundle.dart';
 
 // ── XRAP 资源资产协议（docs/superpowers/specs/2026-08-02-resource-asset-protocol.md）──

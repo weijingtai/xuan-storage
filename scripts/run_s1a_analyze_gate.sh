@@ -98,7 +98,7 @@ EOF
 dart analyze --fatal-infos --suppress-analytics $SCOPED >/tmp/s1a_scoped.log 2>&1
 SCOPED_EC=$?
 if [ "$SCOPED_EC" -ne 0 ]; then
-  echo "❌ [检查1] S1a 自有 $S1A_COUNT 个文件存在 issue（退出码 $SCOPED_EC），必须全部为零："
+  echo "❌ [检查1] S1a 自有 $S1A_COUNT 个文件存在 issue（退出码 ${SCOPED_EC}），必须全部为零："
   cat /tmp/s1a_scoped.log
   exit 1
 fi

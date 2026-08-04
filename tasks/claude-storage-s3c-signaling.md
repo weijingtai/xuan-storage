@@ -37,12 +37,14 @@
 验收命令: bash scripts/run_s1a_analyze_gate.sh && (cd core && flutter test) && bash scripts/run_policy_negative_check.sh
 
 ## 当前状态
-刚完成: P1–P7 全部完成，A1–A9 全部通过。契约层已交付。
-半成品位置: 无。工作树干净（唯一未跟踪文件是 P7 的自检脚本 tmp_mutation_check.sh）。
-下一步: 等人类验收。下一轮是 S3c-b（LocalSignaling，新建 p2p 包）。
+刚完成: 验收返工两件事已闭环 —— ① 合并 main（原分叉于 6ae98d5，落后 44 个 commit，
+零冲突）；② 补 barrel export 并加门禁。另修了 3 处 shell 变量名被中文标点吞字节的 bug。
+半成品位置: 无。工作树干净。
+下一步: 等人类合并。下一轮 S3c-b（LocalSignaling + 新建 p2p 包，「谁先开工谁建」→ 大概率我建）。
 微观意图: 无在途编辑。
-验证方法: 验收命令三条全绿（A7 ✅ / 121 条测试全绿 / A9 ✅）；
-P7 变红自检 12/12 全部变红。
+验证方法: 四条门禁全绿（S1a ✅ / S1b 三包 ✅ / monorepo ✅ / policy 负测试 ✅），
+core 全量 **187 条全绿**（合并前 121 条是在没有 S1b 的 core 上跑的，该数字已作废）。
+barrel 两条新测试各自做过变红自检（M13/M14）。
 
 ## 三个真正的难点（不是填模板，本任务的价值全在这里）
 
@@ -136,7 +138,29 @@ SDP + ICE candidate，连上后即失效。所以信令后端的隐私敏感度�
 改为只在 dartdoc 里注入 `UnimplementedError` 文字（不改接口形状）后，A1 断言才真正
 变红。教训：变红自检要确认**红在预期的那条断言上**，不能只看「是不是红了」。
 
+### 验收返工新增的两条测试及其变红自检（M13/M14）
+
+补 barrel export 后新增「barrel 可消费」测试组两条，各自做过变红自检：
+
+| # | 注入了什么 | 该抓它的测试 | 红在哪 |
+|---|---|---|---|
+| M13 | 从 barrel 抽掉 `export 'model/signaling.dart';` | barrel 导出的类型与深路径是同一个 | 编译失败：`'SignalingChannel' isn't a type` |
+| M14 | 把 export 改成 `show ...` 长列表形式（**编译仍过**，但字面量匹配不上） | barrel 里全部 S1a 契约文件无一遗漏 | `Actual: ['signaling.dart']`「未在 barrel 中 export，消费方从包入口拿不到」 |
+
+**M14 是刻意设计的**：M13 抽掉 export 会导致编译失败，第二条断言根本没机会跑 ——
+那正是 M10 踩过的陷阱（红在编译失败而非目标断言）。M14 让编译**通过**，
+从而把机械扫描断言单独暴露出来检验。
+
 ## 踩坑墓地
+- 2026-08-04（**本任务的真实交付缺陷，验收时被人类抓出**）: `signaling.dart` 交付完整、
+  27 条测试全绿，却漏了 `core/lib/persistence_core.dart` 一行 `export` →
+  消费方 `import 'package:persistence_core/persistence_core.dart'` **根本拿不到
+  `SignalingChannel`**。model/ 下 28 个文件有 25 个在 barrel 里，只有我这个是例外。
+  **根因：我的契约测试全部用深路径 import**（`package:persistence_core/model/signaling.dart`），
+  于是「从包入口消费不到」这件事没有任何测试会红。**契约交付了但消费不到，与没交付等价。**
+  结论：① 已补 export；② 已加「barrel 可消费」测试组做门禁（含机械扫描 13 个 S1a 契约
+  文件逐个在 barrel 中），下一个加契约文件的人忘了补 export 会立刻红；
+  ③ **教训：契约测试至少要有一条走 barrel import**，否则包入口是盲区
 - 2026-08-04（前车之鉴，非本任务失败）: 契约测试把断言写在**未 await 的 `.then()` /
   `.listen()` 回调**里 → 回调在测试结束后才跑，不参与判定 → **恒绿**。已实证：写入
   `expect(1, 999)` 必假断言，`dart test` 依然输出 `All tests passed!`。
@@ -148,6 +172,20 @@ SDP + ICE candidate，连上后即失效。所以信令后端的隐私敏感度�
 - 2026-08-04（P7 自检脚本）: bash 里写 `"注入「$desc」"`，中文右引号 `」` 的首字节被
   当成变量名的一部分，`set -u` 下报 `desc\xe3: unbound variable`。结论：**变量后面
   紧跟中文标点时必须写 `${desc}`**，不能裸写 `$desc`
+- 2026-08-04（**同一个坑我自己又踩了一次，且发现它在 main 上也存在**）: 合并 main 后跑
+  `run_s1b_analyze_gate.sh` 崩在 `baseline_total（: unbound variable` —— 与上一条完全
+  同源。全仓扫描 `\$[a-z_]+[中文标点]` 命中 **3 处**：`run_s1b_analyze_gate.sh:186,244`
+  （**main 上原样存在，我未碰过该文件**）与 `run_s1a_analyze_gate.sh:101`（**我自己
+  上一轮写的** —— 我把这条教训写进墓地，转头又犯）。三处已一并修为 `${var}`，
+  纯加花括号零语义变化。
+  ⚠ 它平时不显形：`:244` 只在「issue 总数 **<** 基线」这条分支触发，而 drift 包正好
+  命中（S1b 修好若干 issue 后基线未同步下调）。**写进墓地 ≠ 不会再犯，得有机械门禁。**
+  建议下一轮加一条 shell 静态检查
+- 2026-08-04（环境坑，墓地既有条目的扩展）: 新建 worktree 只在 `core/` 跑了
+  `flutter pub get`，`drift/` 与 `firebase/` 没跑 → S1b 门禁产出 **1649 条假 issue**
+  （基线 20），看着像严重回归，实为环境未装好。S1b 门禁的前置断言**只检查 core/**，
+  没拦住。结论：**新建 worktree 要对 core / drift / firebase 三个包各跑一次 pub get**；
+  另建议 S1b 门禁的前置断言扩展到它实际分析的全部包
 - 2026-08-04（P7 自检脚本）: `cd core && ...` 在本会话的 Bash 工具里会因工作目录已被
   重置而失败，导致**注入没生效、测试跑的是原文件**，自检假绿一次。结论：变红自检里
   必须先 `grep -c MUTATION` 确认注入真的落盘，再跑测试

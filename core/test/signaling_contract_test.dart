@@ -2,8 +2,12 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+// 本组测试刻意走深路径 import，与下方「barrel 可消费」组的 barrel import
+// 形成对照 —— 只用深路径是发现不了 barrel 缺口的（本任务初版正是如此：
+// signaling.dart 漏进 barrel，而全部测试照样全绿）。
 import 'package:persistence_core/model/cancellation_token.dart';
 import 'package:persistence_core/model/signaling.dart';
+import 'package:persistence_core/persistence_core.dart' as barrel;
 
 /// S3c-a 信令契约测试。
 ///
@@ -403,6 +407,73 @@ void main() {
           reason: 'awaiting 与 departed 必须分开：前者该等，后者该放弃');
     });
   });
+
+  // ── barrel 可消费 ──
+  //
+  // 【这组测试为什么存在】本任务初版把 signaling.dart 交付完整、27 条测试
+  // 全绿，却漏掉了 core/lib/persistence_core.dart 的一行 export ——
+  // 于是消费方 `import 'package:persistence_core/persistence_core.dart'`
+  // 根本拿不到 SignalingChannel。
+  //
+  // 全部测试用深路径 import，所以谁也没红。**契约交付了但消费不到，
+  // 与没交付等价。** 这组测试是那个缺口的门禁。
+  group('barrel 可消费（契约必须能从包入口拿到）', () {
+    test('barrel 导出的信令类型与深路径导出的是同一个', () {
+      // 类型别名在编译期解析：若 barrel 未 export signaling.dart，
+      // 这些 barrel.XXX 引用会直接编译失败。
+      expect(barrel.SdpKind.offer, same(SdpKind.offer));
+      expect(barrel.PeerPresence.departed, same(PeerPresence.departed));
+
+      const viaBarrel = barrel.ByeEnvelope();
+      expect(viaBarrel, isA<SignalingEnvelope>(),
+          reason: 'barrel 与深路径必须导出同一个 SignalingEnvelope 类型；'
+              '若两者不同，消费方拿到的会是不兼容的类型');
+
+      // 端口类型本身也必须可从 barrel 拿到（消费方要 implements 它们）。
+      expect(_BarrelTypeProbe.channel, isNull);
+      expect(_BarrelTypeProbe.session, isNull);
+    });
+
+    test('barrel 里全部 S1a 契约文件无一遗漏', () {
+      // 机械扫描：model/ 下 S1a 交付的契约文件必须逐个出现在 barrel 里。
+      // 下一个加契约文件的人若忘了补 export，这里立刻红 ——
+      // 这正是本任务栽过的那个跟头。
+      final barrelSrc = File('lib/persistence_core.dart').readAsStringSync();
+      const s1aContracts = [
+        'storage_classification.dart',
+        'cancellation_token.dart',
+        'blob_error.dart',
+        'storage_policy.dart',
+        'storage_policy_registry.dart',
+        'blob_types.dart',
+        'blob_cipher.dart',
+        'local_blob_store.dart',
+        'record_blob_unit_of_work.dart',
+        'blob_gateway.dart',
+        'transport.dart',
+        'export_bundle.dart',
+        'signaling.dart',
+      ];
+      final missing = s1aContracts
+          .where((f) => !barrelSrc.contains("export 'model/$f';"))
+          .toList();
+      expect(missing, isEmpty,
+          reason: '以下契约文件未在 barrel 中 export，消费方从包入口拿不到：'
+              '$missing');
+    });
+  });
+}
+
+/// 探针：确认端口类型能从 barrel 拿到。
+///
+/// 字段类型写成 `barrel.XXX?`，若 barrel 未导出该类型则编译失败 ——
+/// 这比运行期断言更早、更硬。
+final class _BarrelTypeProbe {
+  /// 信令通道端口（经 barrel 引用）。
+  static const barrel.SignalingChannel? channel = null;
+
+  /// 信令会话（经 barrel 引用）。
+  static const barrel.SignalingSession? session = null;
 }
 
 /// 把信封序列化成文本，供隐私断言扫描。
