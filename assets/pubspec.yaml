@@ -11,9 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   persistence_core:
-    git:
-      url: http://192.168.0.165:3000/xuan/xuan-storage.git
-      path: core
+    path: ../core
   repository_interface_qimendunjia:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-qimendunjia.git
@@ -48,9 +46,7 @@ dependency_overrides:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-daliuren.git
   persistence_core:
-    git:
-      url: http://192.168.0.165:3000/xuan/xuan-storage.git
-      path: core
+    path: ../core
   metaphysics_core:
     git:
       url: http://192.168.0.165:3000/xuan/metaphysics-core.git
@@ -63,3 +59,4 @@ flutter:
     - lib/tiebanshenshu/assets/kao_ke/
     - lib/tiebanshenshu/assets/formulas/
     - lib/tiebanshenshu/assets/all_tiao_wen_v1.csv
+    - lib/geo/

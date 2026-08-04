@@ -1062,7 +1062,13 @@ abstract interface class PeerFanoutPusher {
 ### 6.3 WebRTC 的成本与安全事实
 
 - **NAT 穿透成功率不低**：STUN 直连约 80–90%（对称型 NAT 打不通），TURN 兜底后接近 99%。
-- **信令零新增基础设施**：复用现有 Firestore，一个 collection 交换 SDP / ICE candidate。
+- **信令走接口，不直接依赖某个 SaaS**（裁定 C3，2026-08-04）：定义 `SignalingChannel` 端口，
+  **RTDB 是它的第一个实现**，后续可平滑换成其他实时数据库或自建服务，与本仓「Repository +
+  可切换 RemoteDataSource」的既有风格一致。**不得让 WebRTC 实现直接 import `firebase_database`。**
+  选 RTDB 作首实现的理由：它有 `onDisconnect()`，客户端掉线时服务端自动摘除其信令节点，
+  Firestore 无原生等价物 —— 信令节点是短命的，设备断线就该消失，否则对端会去连一个
+  已不存在的候选并白白超时。且 SDP/ICE 是高频短写入，RTDB 按流量计费比 Firestore 按
+  文档读写次数计费更合适。`firebase_database` 已在 `firebase/pubspec.yaml` 中，零新增依赖。
 - **STUN 免费**：公共服务即可。
 - **TURN 用托管服务**（Cloudflare / Twilio / Xirsys）：DTLS 握手在两个 peer 之间完成，TURN 只转发已加密的 UDP 包，**连密钥交换都参与不了**。因此托管 TURN 在隐私上不是降级，与自建 coturn 安全性相同。唯一成本是带宽账单。
 
@@ -1071,7 +1077,26 @@ abstract interface class PeerFanoutPusher {
 1. **TURN 可见元数据** —— IP 地址、包大小、传输时序。看不到内容，但知道「这两个 IP 在某时刻传了 200MB」。
 2. **信令通道完整性是前提** —— 被攻破的信令通道理论上可替换 DTLS 指纹实施中间人。防护手段是设备配对时的**带外验证**：两台设备各自显示公钥指纹，用户肉眼比对或扫二维码。此项归入 S6，本就必须做。
 
-**WebRTC 只为 blob 而建。** row（oplog，KB 级）数据量小到不值得为它做 P2P，走云端更省事更可靠。
+### 6.3.1 裁定 C1（2026-08-04）：oplog 与 blob 共用同一条连接
+
+**上一版本此处写着「WebRTC 只为 blob 而建。row（oplog，KB 级）数据量小到不值得为它做 P2P，
+走云端更省事更可靠」。该判断已被推翻。**
+
+推翻的决定性理由不是成本，是那条链**不自洽**：若 oplog 只走云端，则在完全离线的局域网里，
+两台设备能传完 500MB 的照片，却传不了「这张照片属于哪次占卦」的那条记录 ——
+**搬运了 blob，却搬不动指向它的引用。**
+
+另有三条：
+
+1. **`StreamKind.oplog` 会成为死代码。** §3.5 的「层级更正」整段论证建立在「一条连接上有
+   两个消费者（`SyncPeer` 的 oplog 流 + `BlobGateway` 的 chunk 流）」之上。oplog 不走 P2P，
+   连接上只剩一个消费者，多路复用与 `PeerSession.incomingStreams` 失去存在理由。
+2. **边际成本近零。** 连接已为 blob 建好，oplog 是搭便车，不需要「为它做 P2P」。
+3. **元数据隐私。** 即使内容 E2EE，oplog 走云端意味着云端始终知道「哪条记录存在、何时改的、
+   改过几次」。对占卜记录这类数据，这个泄露面是真实的。
+
+**结论：§6.2 的三级降级（局域网 > WebRTC > 云端 E2EE）对 oplog 与 blob 一致适用。**
+云端仍是兜底（两端不同时在线时必须有它），但不再是 oplog 的唯一路径。
 
 ### 6.4 生命周期
 
@@ -1498,8 +1523,8 @@ S1a 分类契约 + 端口签名  ←── 地基，全员依赖
 | **S6** | E2EE 密钥管理 + 设备配对 | S1a | 第二块地基，含带外指纹验证。私有数据的任何跨设备能力都卡在这 |
 | **S1c** | 全量对齐（首次同步 / 新设备 / 数据丢失 / 久未上线） | S1a+S1b+S6 | 清单比对（建在 `t_entity_stamp` 上）+ 触发判定（无游标 / 游标龄 > 90 天 / 对端否决）+ 墓碑 + 分片续传。**S3 实现 oplog compaction 前必须完成** —— 否则久未上线的设备会静默丢失被压缩区间的变更。见 `2026-08-03-s1c-full-reconciliation-design.md` |
 | **S3a** | 手动导出导入 | S1a+S1b+S6 | `ExportBundleWriter/Reader`（§3.5），不经 `Transport`。零基础设施，全链路可单进程自动化验证，**首个垂直切片**（§9.3） |
-| **S3b** | 局域网直连 | S1a+S1b+S6 | mDNS + socket，Dart 生态成熟 |
-| **S3c** | WebRTC | S1a+S1b+S6 | **只为 blob 而建**；信令复用 Firestore，TURN 用托管服务 |
+| ~~**S3b**~~ | ~~局域网直连~~ | — | **裁定 C2（2026-08-04）：作为独立子系统取消**，降级为 S3c 的一个信令实现（`LocalSignaling`）。理由见 §9.4 |
+| **S3c** | P2P 传输（含局域网与跨网段） | S1a+S1b+S6 | 一个 `Transport` 实现（WebRTC），两个 `SignalingChannel` 实现；oplog 与 blob 共用连接（§6.3.1）；TURN 用托管服务或自建 coturn |
 | **S2** | 云端公开分享（含帖子媒体） | S1a | 复用现有 `firebase/lib/playground/`，主要工作是降级为 RemoteDataSource + 加缓存层。**媒体主路径（入口 B）不依赖 S6**，可提前开工；入口 A（从私有档案发布）依赖 S6 |
 | **S5a** | 样式资源分发 | S1a + S5c | 主题包下载安装；来源链 `bundled → officialRemote`。官方与用户主题**同构**，同一套仓库 |
 | **S5b** | 数据资源按需下载 | S1a + S5c | 拆书内容按需取；**下载后落 drift 可检索**。可显著降低 app 体积 |
@@ -1562,6 +1587,49 @@ cd core && dart analyze --fatal-infos && flutter test
 | `core/test/model/policy_channel_filter_test.dart` | 两个 fake `SyncPeer`（cloud / lan），断言 lan peer 收到的记录中无 `shared` entityType |
 
 第四项是「防混用」的真正验收项 —— 前三项都通过而第四项失败，说明契约只是装饰。
+
+### 9.5 裁定 C2（2026-08-04）：S3b 并入 S3c，降级为一个信令实现
+
+S3b（局域网直连）**唯一独有的能力**是「完全没有外网的局域网也能同步」——因为 WebRTC 建连
+需要信令，而信令若走云端，断网即不可用。
+
+但这个能力不需要一个独立子系统来提供。三个方案：
+
+| 方案 | 代价 |
+|---|---|
+| A. S3b 独立（mDNS + 裸 TCP/TLS socket） | 帧协议、心跳、多路复用、拥塞控制、分片重组**全部手写** |
+| B. 取消 S3b，只留 WebRTC + 云端信令 | 完全离线场景直接不支持 |
+| **C. 合并（采纳）** | **零手搓，且完全离线可用** |
+
+**方案 C 的关键点：信令不必走云。** SDP 与 ICE candidate 合计仅数 KB 文本。
+用 bonsoir 发现对端的 `IP:port` 之后，直接连过去把这几 KB 交换掉，再建 WebRTC DataChannel——
+**全程零外网**。而 DataChannel 免费提供多路复用、拥塞控制、DTLS 加密、分片重组，
+走裸 socket 则这些全要自己实现。
+
+**最终结构：一个 `Transport` 实现（WebRTC），两个 `SignalingChannel` 实现：**
+
+```
+Transport（WebRTC 实现，flutter_webrtc；NAT 打洞即其内建的 ICE 层，不手搓）
+  ├── LocalSignaling  —— bonsoir 发现 + 局域网内直连交换 SDP，零云端依赖
+  └── CloudSignaling  —— SignalingChannel 接口的远端实现，首版落 RTDB（§6.3）
+```
+
+`SignalingChannel` 必须是接口（裁定 C3）：信令后端可换，不得让 `Transport` 实现
+直接依赖任何具体 SaaS SDK。
+
+**第三方选型（一律不手搓）：**
+
+| 卡点 | 方案 | 版本（2026-08-04 实查 pub.dev） |
+|---|---|---|
+| 局域网设备发现与广播 | `bonsoir` | `7.1.4` |
+| **NAT 打洞 / 内网穿透** | **`flutter_webrtc` 内建 ICE**（STUN 探映射 → 候选对打洞 → TURN 兜底） | `1.6.0` |
+| E2EE / 签名 / 哈希 | `cryptography` + `cryptography_flutter`（平台原生加速） | `2.9.0` / `2.3.4` |
+| 设备私钥存储 | `flutter_secure_storage`（仅存身份私钥，不用于业务数据落盘） | `10.3.1` |
+| STUN | 公共免费服务器 | 零成本 |
+| TURN | 自建 coturn，或托管（Cloudflare Calls / Metered / Twilio / Xirsys） | 仅 10–20% 连接走到 |
+
+**注意 `multicast_dns` 只能查询不能广播**（其源码留有 `// TODO(dnfield): Support queries
+coming in for published entries.`），不可用于本场景，必须用 `bonsoir` 或 `nsd`。
 
 ---
 
