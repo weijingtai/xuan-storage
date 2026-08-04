@@ -9,10 +9,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
+import 'package:drift/drift.dart' as dr;
+import 'package:persistence_core/persistence_core.dart';
 import 'package:persistence_core/persistence_core.dart';
 import 'package:persistence_drift/blob/blob_metadata_repository.dart';
 import 'package:persistence_drift/blob/identity_blob_cipher.dart';
 import 'package:persistence_drift/blob/native.dart';
+import 'package:persistence_drift/persistence_drift.dart';
 
 const int blobChunkSize = 16384;
 
@@ -23,13 +26,16 @@ final class DriftLocalBlobStore implements LocalBlobStore {
     required BlobMetadataRepository metadataRepository,
     required BlobCipherResolver cipherResolver,
     required String rootDir,
+    required PersistenceDriftDatabase db,
   })  : _metadata = metadataRepository,
         _cipherResolver = cipherResolver,
-        _backend = FileSystemBlobByteBackend(rootDir: rootDir);
+        _backend = FileSystemBlobByteBackend(rootDir: rootDir),
+        _db = db;
 
   final BlobMetadataRepository _metadata;
   final BlobCipherResolver _cipherResolver;
   final FileSystemBlobByteBackend _backend;
+  final PersistenceDriftDatabase _db;
 
   @override
   final String scopeUid;
@@ -272,7 +278,35 @@ final class DriftLocalBlobStore implements LocalBlobStore {
     required String ownerRecordUuid,
     required Set<BlobHandle> handles,
   }) async {
-    // TODO: implement in Task 8
+    // 1. Delete existing refs for this owner
+    await (_db.delete(_db.blobRefs)
+          ..where((t) => t.ownerRecordUuid.equals(ownerRecordUuid)))
+        .go();
+
+    // 2. Insert new refs
+    for (final handle in handles) {
+      await _db.into(_db.blobRefs).insert(
+            BlobRefsCompanion.insert(
+              ownerRecordUuid: ownerRecordUuid,
+              cipherManifestId: handle.cipherManifestId,
+            ),
+          );
+    }
+
+    // 3. Promote all referenced blobs from staged(0) to committed(1)
+    for (final handle in handles) {
+      final existing = await (_db.select(_db.blobMetas)
+            ..where((t) => t.cipherManifestId.equals(handle.cipherManifestId)))
+          .get();
+      for (final meta in existing) {
+        if (meta.status == 0) {
+          await (_db.update(_db.blobMetas)
+                ..where((t) =>
+                    t.cipherManifestId.equals(handle.cipherManifestId)))
+              .write(BlobMetasCompanion(status: dr.Value(1)));
+        }
+      }
+    }
   }
 
   @override

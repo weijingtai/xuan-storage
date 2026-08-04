@@ -56,6 +56,7 @@ void main() {
       metadataRepository: metaRepo,
       cipherResolver: cipherResolver,
       rootDir: tmpDir.path,
+      db: db,
     );
   });
 
