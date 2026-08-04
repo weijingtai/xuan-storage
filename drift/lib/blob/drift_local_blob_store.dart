@@ -2,10 +2,15 @@
 ///
 /// Orchestrates byte backend, metadata repository, and cipher resolver
 /// to implement the full LocalBlobStore contract.
+///
+/// 写路径采用有界流式（阶段 1）：逐块 16 KiB 处理，不累积整段明文。
+/// 读路径采用惰性校验（阶段 2）：逐块校验 SHA-256，不预先全量哈希。
 library;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart' as dr;
@@ -47,9 +52,15 @@ final class DriftLocalBlobStore implements LocalBlobStore {
     void Function(int sent, int total)? onProgress,
   }) async {
     final file = File(path);
-    final bytes = await file.readAsBytes();
-    cancel?.throwIfCancelled();
-    return _putBytes(bytes, mimeType: mimeType, tier: tier, cancel: cancel);
+    final totalBytes = await file.length();
+    return _putStream(
+      file.openRead(),
+      expectedBytes: totalBytes,
+      mimeType: mimeType,
+      tier: tier,
+      cancel: cancel,
+      onProgress: onProgress,
+    );
   }
 
   @override
@@ -60,69 +71,156 @@ final class DriftLocalBlobStore implements LocalBlobStore {
     required int expectedBytes,
     CancellationToken? cancel,
   }) async {
-    final data = <int>[];
-    await for (final part in bytes) {
-      cancel?.throwIfCancelled();
-      data.addAll(part);
-    }
-    return _putBytes(data, mimeType: mimeType, tier: tier, cancel: cancel);
+    return _putStream(
+      bytes,
+      expectedBytes: expectedBytes,
+      mimeType: mimeType,
+      tier: tier,
+      cancel: cancel,
+    );
   }
 
-  Future<BlobHandle> _putBytes(
-    List<int> plaintext, {
+  /// 流式写入核心函数。
+  ///
+  /// 从输入流逐块累积到恰好 16 KiB 后处理一块，不累积整段明文。
+  /// 使用增量哈希（sha256 chunked conversion），收尾取 digest。
+  /// cipherManifestId 一律随机 UUID（方案 B），去重由收尾查重承担。
+  Future<BlobHandle> _putStream(
+    Stream<List<int>> inputStream, {
+    required int expectedBytes,
     required String mimeType,
     required BlobTier tier,
     CancellationToken? cancel,
     void Function(int sent, int total)? onProgress,
   }) async {
-    final plaintextSha256 = sha256.convert(plaintext).toString();
     final cipher = await _cipherResolver.resolve(
       scopeUid: scopeUid,
       v: _tierToVisibility(tier),
     );
 
-    // Chunk and encrypt
-    final chunkCount = (plaintext.length + blobChunkSize - 1) ~/ blobChunkSize;
-    final cipherManifestId = (cipher is IdentityBlobCipher)
-        ? plaintextSha256
-        : _randomUuid();
+    // 一律随机 UUID（方案 B）
+    final cipherManifestId = _randomUuid();
+
+    // 增量哈希
+    final digestAccumulator = DigestAccumulator();
+    final shaSink = sha256.startChunkedConversion(digestAccumulator);
+    // shaSink 是 Sink<List<int>> 包装器，digestAccumulator 独立持有
+    var totalBytes = 0;
+    var chunkCount = 0;
+    var pendingBytes = <int>[];
+
+    // 逐块处理
+    await for (final part in inputStream) {
+      cancel?.throwIfCancelled();
+      pendingBytes.addAll(part);
+
+      // 累积到 >= blobChunkSize 时吐出一块
+      while (pendingBytes.length >= blobChunkSize) {
+        final chunk = pendingBytes.take(blobChunkSize);
+        final chunkBytes = Uint8List.fromList(chunk.toList());
+        pendingBytes = pendingBytes.skip(blobChunkSize).toList();
+
+        // 增量喂入哈希
+        shaSink.add(chunkBytes);
+
+        // 加密 → 写盘 → 更新元数据
+        final cipherChunk = await cipher.encryptChunk(
+          chunkBytes.toList(),
+          chunkIndex: chunkCount,
+        );
+        final chunkSha256 = sha256.convert(cipherChunk).toString();
+
+        await _backend.writeChunk(
+          '$scopeUid/$cipherManifestId',
+          chunkCount,
+          cipherChunk,
+        );
+        await _metadata.upsertChunk(
+          cipherManifestId: cipherManifestId,
+          chunkIndex: chunkCount,
+          cipherBytesLen: cipherChunk.length,
+          chunkSha256: chunkSha256,
+        );
+
+        chunkCount++;
+        totalBytes += chunkBytes.length;
+        onProgress?.call(chunkCount, (expectedBytes + blobChunkSize - 1) ~/ blobChunkSize);
+      }
+    }
+
+    // 处理最后不足一块的残余
+    if (pendingBytes.isNotEmpty) {
+      final chunkBytes = Uint8List.fromList(pendingBytes.toList());
+      pendingBytes = [];
+      shaSink.add(chunkBytes);
+
+      final cipherChunk = await cipher.encryptChunk(
+        chunkBytes.toList(),
+        chunkIndex: chunkCount,
+      );
+      final chunkSha256 = sha256.convert(cipherChunk).toString();
+
+      await _backend.writeChunk(
+        '$scopeUid/$cipherManifestId',
+        chunkCount,
+        cipherChunk,
+      );
+      await _metadata.upsertChunk(
+        cipherManifestId: cipherManifestId,
+        chunkIndex: chunkCount,
+        cipherBytesLen: cipherChunk.length,
+        chunkSha256: chunkSha256,
+      );
+
+      chunkCount++;
+      totalBytes += chunkBytes.length;
+      onProgress?.call(chunkCount, chunkCount);
+    }
+
+    // 收尾哈希
+    shaSink.close();
+    final plaintextSha256 = digestAccumulator.hexDigest;
+
+    // 校验 expectedBytes
+    if (totalBytes != expectedBytes) {
+      // 清理已写文件
+      await _backend.deleteManifest('$scopeUid/$cipherManifestId');
+      throw ArgumentError(
+        'Expected $expectedBytes bytes but received $totalBytes',
+      );
+    }
+
+    // 收尾去重：如果已有相同 plaintextSha256 的 blob，删除刚写入的
+    final existing = await (_db.select(_db.blobMetas)
+          ..where((t) =>
+              t.plaintextSha256.equals(plaintextSha256) &
+              t.scopeUid.equals(scopeUid)))
+        .get();
+    if (existing.isNotEmpty) {
+      // 内容已存在，删除本次写入的 chunk 文件，复用已有
+      await _backend.deleteManifest('$scopeUid/$cipherManifestId');
+      return BlobHandle(
+        plaintextSha256: plaintextSha256,
+        cipherManifestId: existing.first.cipherManifestId,
+        cipherId: cipher.id,
+        keyVersion: cipher.currentKeyVersion,
+        totalBytes: totalBytes,
+        chunkCount: chunkCount,
+        mimeType: mimeType,
+      );
+    }
 
     final handle = BlobHandle(
       plaintextSha256: plaintextSha256,
       cipherManifestId: cipherManifestId,
       cipherId: cipher.id,
       keyVersion: cipher.currentKeyVersion,
-      totalBytes: plaintext.length,
+      totalBytes: totalBytes,
       chunkCount: chunkCount,
       mimeType: mimeType,
     );
 
-    // Write chunks
-    for (var i = 0; i < chunkCount; i++) {
-      cancel?.throwIfCancelled();
-      final start = i * blobChunkSize;
-      final end = (start + blobChunkSize > plaintext.length)
-          ? plaintext.length
-          : start + blobChunkSize;
-      final chunk = plaintext.sublist(start, end);
-      final cipherChunk = await cipher.encryptChunk(chunk, chunkIndex: i);
-      final chunkSha256 = sha256.convert(cipherChunk).toString();
-
-      await _backend.writeChunk(
-        '$scopeUid/$cipherManifestId',
-        i,
-        cipherChunk,
-      );
-      await _metadata.upsertChunk(
-        cipherManifestId: cipherManifestId,
-        chunkIndex: i,
-        cipherBytesLen: cipherChunk.length,
-        chunkSha256: chunkSha256,
-      );
-      onProgress?.call(i + 1, chunkCount);
-    }
-
-    // Insert blob meta (staged by default) — 本地 put 直接插入，不走 stageIncomingManifest
+    // 插入 blob meta（staged 状态）
     await _db.into(_db.blobMetas).insert(
           BlobMetasCompanion.insert(
             cipherManifestId: handle.cipherManifestId,
@@ -173,9 +271,8 @@ final class DriftLocalBlobStore implements LocalBlobStore {
     final meta = await _metadata.getMeta(handle.cipherManifestId);
     if (meta == null) return const BlobReadResult.absent();
 
-    // Staged blobs are not visible to openRead
+    // Staged blobs are not visible to consumers
     if (meta.status == 0) {
-      // staged — not visible to consumers
       return const BlobReadResult.absent();
     }
 
@@ -185,40 +282,24 @@ final class DriftLocalBlobStore implements LocalBlobStore {
       return BlobReadResult.partial(present);
     }
 
-    // Verify all chunks against stored SHA-256
-    final badChunks = <int>{};
-    for (final i in present) {
-      cancel?.throwIfCancelled();
-      try {
-        final bytes = await _backend.readChunk(
-          '$scopeUid/${handle.cipherManifestId}',
-          i,
-        );
-        final actualSha = sha256.convert(bytes).toString();
-        // 从元数据中读取预期的 chunkSha256
-        final chunkRows = await (_db.select(_db.blobChunks)
-              ..where((t) =>
-                  t.cipherManifestId.equals(handle.cipherManifestId) &
-                  t.chunkIndex.equals(i)))
-            .get();
-        if (chunkRows.isNotEmpty) {
-          if (actualSha != chunkRows.single.chunkSha256) {
-            badChunks.add(i);
-          }
-        }
-      } catch (_) {
-        badChunks.add(i);
-      }
+    // 阶段 2：惰性校验 —— 一次性批量取出所有 chunk 元数据，逐块流式校验
+    final chunkMetaRows = await (_db.select(_db.blobChunks)
+          ..where((t) => t.cipherManifestId.equals(handle.cipherManifestId))
+          ..orderBy([(t) => dr.OrderingTerm.asc(t.chunkIndex)]))
+        .get();
+    // 构建索引：index → expectedSha256
+    final expectedShaMap = <int, String>{};
+    for (final row in chunkMetaRows) {
+      expectedShaMap[row.chunkIndex] = row.chunkSha256;
     }
-    if (badChunks.isNotEmpty) return BlobReadResult.corrupt(badChunks);
 
-    // Read all chunks, decrypt, and stream
     final cipher = await _cipherResolver.resolve(
       scopeUid: scopeUid,
       v: _tierToVisibility(BlobTier.values[meta.tier]),
     );
 
     final controller = StreamController<List<int>>();
+    // 异步流式读取、校验、解密
     Future(() async {
       try {
         for (var i = 0; i < handle.chunkCount; i++) {
@@ -227,6 +308,13 @@ final class DriftLocalBlobStore implements LocalBlobStore {
             '$scopeUid/${handle.cipherManifestId}',
             i,
           );
+          // 校验 SHA-256（惰性逐块）
+          final actualSha = sha256.convert(cipherBytes).toString();
+          if (actualSha != expectedShaMap[i]) {
+            controller.addError(BlobCorruptError());
+            await controller.close();
+            return;
+          }
           final plain = await cipher.decryptChunk(
             cipherBytes,
             chunkIndex: i,
@@ -236,7 +324,9 @@ final class DriftLocalBlobStore implements LocalBlobStore {
         }
         await controller.close();
       } catch (e) {
-        controller.addError(e);
+        if (!controller.isClosed) {
+          controller.addError(e);
+        }
       }
     });
     return BlobReadResult.ok(controller.stream);
@@ -246,7 +336,6 @@ final class DriftLocalBlobStore implements LocalBlobStore {
   Future<BlobStatus> statusOf(BlobHandle handle) async {
     final meta = await _metadata.getMeta(handle.cipherManifestId);
     if (meta == null) return BlobStatus.absent;
-    // Staged blobs appear as absent to consumers
     if (meta.status == 0) return BlobStatus.absent;
 
     final present = await _metadata.presentChunks(handle.cipherManifestId);
@@ -264,7 +353,6 @@ final class DriftLocalBlobStore implements LocalBlobStore {
   Future<int?> sizeOf(BlobHandle handle) async {
     final meta = await _metadata.getMeta(handle.cipherManifestId);
     if (meta == null) return null;
-    // Staged blobs are not visible to consumers
     if (meta.status == 0) return null;
     return handle.totalBytes;
   }
@@ -273,7 +361,6 @@ final class DriftLocalBlobStore implements LocalBlobStore {
   Stream<BlobEntry> list({required BlobTier tier}) async* {
     final metas = await _metadata.listByTier(tier);
     for (final meta in metas) {
-      // Don't expose staged blobs
       if (meta.status == 0) continue;
       yield BlobEntry(
         handle: BlobHandle(
@@ -287,7 +374,7 @@ final class DriftLocalBlobStore implements LocalBlobStore {
         ),
         tier: tier,
         lastAccessAtUtc: meta.lastAccessAtUtc,
-        refCount: 0, // Placeholder
+        refCount: 0,
       );
     }
   }
@@ -297,12 +384,10 @@ final class DriftLocalBlobStore implements LocalBlobStore {
     required String ownerRecordUuid,
     required Set<BlobHandle> handles,
   }) async {
-    // 1. Delete existing refs for this owner
     await (_db.delete(_db.blobRefs)
           ..where((t) => t.ownerRecordUuid.equals(ownerRecordUuid)))
         .go();
 
-    // 2. Insert new refs
     for (final handle in handles) {
       await _db.into(_db.blobRefs).insert(
             BlobRefsCompanion.insert(
@@ -312,7 +397,6 @@ final class DriftLocalBlobStore implements LocalBlobStore {
           );
     }
 
-    // 3. Promote all referenced blobs from staged(0) to committed(1)
     for (final handle in handles) {
       final existing = await (_db.select(_db.blobMetas)
             ..where((t) => t.cipherManifestId.equals(handle.cipherManifestId)))
@@ -330,7 +414,6 @@ final class DriftLocalBlobStore implements LocalBlobStore {
 
   @override
   Future<void> evictByExternalId(String externalId) async {
-    // 查找所有匹配 externalId 的 blob 元数据，删除文件系统和元数据
     final metas = await (_db.select(_db.blobMetas)
           ..where((t) => t.externalId.equals(externalId)))
         .get();
@@ -344,7 +427,6 @@ final class DriftLocalBlobStore implements LocalBlobStore {
   Future<({int freed, int unreclaimable})> evictCache({
     required int targetFreeBytes,
   }) async {
-    // 只清理 cache tier 且零引用的 blob
     final cacheMetas = await (_db.select(_db.blobMetas)
           ..where((t) =>
               t.scopeUid.equals(scopeUid) & t.tier.equals(BlobTier.cache.index)))
@@ -353,14 +435,12 @@ final class DriftLocalBlobStore implements LocalBlobStore {
     var freed = 0;
     var unreclaimable = 0;
 
-    // 按最近访问时间升序排序（LRU）
     final sorted = List.of(cacheMetas)
       ..sort((a, b) => a.lastAccessAtUtc.compareTo(b.lastAccessAtUtc));
 
     for (final meta in sorted) {
       if (freed >= targetFreeBytes) break;
 
-      // 检查引用计数
       final refCountResult = await _db.customSelect(
         'SELECT COUNT(*) AS cnt FROM t_blob_ref '
         'WHERE cipher_manifest_id = ?',
@@ -373,7 +453,6 @@ final class DriftLocalBlobStore implements LocalBlobStore {
         continue;
       }
 
-      // 删除文件系统和元数据
       await _backend.deleteManifest('$scopeUid/${meta.cipherManifestId}');
       await _metadata.deleteMeta(meta.cipherManifestId);
       freed += meta.totalBytes;
@@ -393,4 +472,19 @@ final class DriftLocalBlobStore implements LocalBlobStore {
     final bytes = List<int>.generate(16, (_) => DateTime.now().microsecondsSinceEpoch & 0xFF);
     return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
   }
+}
+
+/// 收集增量哈希的最终 digest。
+class DigestAccumulator implements Sink<Digest> {
+  Digest? _digest;
+
+  @override
+  void add(Digest data) {
+    _digest = data;
+  }
+
+  @override
+  void close() {}
+
+  String get hexDigest => _digest!.toString();
 }
