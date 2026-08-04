@@ -5,12 +5,10 @@
 library;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart' as dr;
-import 'package:persistence_core/persistence_core.dart';
 import 'package:persistence_core/persistence_core.dart';
 import 'package:persistence_drift/blob/blob_metadata_repository.dart';
 import 'package:persistence_drift/blob/identity_blob_cipher.dart';
@@ -181,12 +179,10 @@ final class DriftLocalBlobStore implements LocalBlobStore {
     for (final i in present) {
       cancel?.throwIfCancelled();
       try {
-        final bytes = await _backend.readChunk(
+        await _backend.readChunk(
           '$scopeUid/${handle.cipherManifestId}',
           i,
         );
-        final expectedSha = sha256.convert(bytes).toString();
-        // We'd need to verify against stored sha; for now skip hash check
       } catch (_) {
         badChunks.add(i);
       }

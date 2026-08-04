@@ -1,9 +1,8 @@
 /// 内存实现的 RecordBlobUnitOfWork fake。
 ///
-/// 用于测试，不依赖 Drift 数据库。使用简单锁保证原子性。
+/// 用于测试，不依赖 Drift 数据库。
 library;
 
-import 'dart:collection';
 import 'package:persistence_core/persistence_core.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
 
