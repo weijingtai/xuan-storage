@@ -33,3 +33,24 @@
 - **Observed**: 1/6 tests failed:
   - `blob cipher resolution unavailable private key maps to BlobUndecryptableError` — expected exception but got identity cipher
 - **Restored**: Private unavailable returns `BlobUndecryptableError` — all 6 tests pass.
+
+## Task 6: Metadata Repository
+
+### Mutation 4: Remove scopeUid filter from getMeta
+- **File**: `drift/lib/blob/blob_metadata_repository.dart`
+- **Injected violation**: Removed `t.scopeUid.equals(scopeUid)` from `getMeta` query.
+- **Expected failure**: Scope isolation test must fail because scope-b can see scope-a's blob.
+- **Command**: `flutter test test/blob/blob_metadata_repository_test.dart`
+- **Observed**: 1/7 tests failed:
+  - `scope isolation meta queries are constrained by scopeUid` — scope-b found scope-a's blob
+- **Restored**: scopeUid filter — all 7 tests pass.
+
+### Mutation 5: Trust peer visibility instead of registry
+- **File**: `drift/lib/blob/blob_metadata_repository.dart`
+- **Injected violation**: Used `peerVisibility`/`peerTier` instead of deriving from registry.
+- **Expected failure**: Forged private→resource/cache rejection tests must fail.
+- **Command**: `flutter test test/blob/blob_metadata_repository_test.dart`
+- **Observed**: 2/7 tests failed:
+  - `incoming staging rejects forged private→resource declaration`
+  - `incoming staging rejects forged private→cache declaration`
+- **Restored**: Registry-derived visibility/tier — all 7 tests pass.
