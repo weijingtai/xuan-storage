@@ -101,7 +101,10 @@ void main() {
     // 覆盖下限自检：member 正则被改窄后此处立即变红，防止静默漏检。
     // 实测值 133（2026-08-01 字段分支补入后），下限取 123 留余量 ——
     // 低于 123 即说明有人把通用正则改窄成白名单式了。
-    const minMemberDeclarations = 123;
+    // 2026-08-04 Transport 被动侧补丁后实测 142（原 133）：新增
+    // DeviceKeyStore 3 项、AdvertisementHandle 4 项、advertise /
+    // stopAdvertising / incoming / incomingStreams 4 项。下限按 ~10 余量上调。
+    const minMemberDeclarations = 132;
     expect(memberCount, greaterThanOrEqualTo(minMemberDeclarations),
         reason: 'member 正则覆盖的声明总数 $memberCount 低于下限 '
             '$minMemberDeclarations，正则可能被改窄了');
