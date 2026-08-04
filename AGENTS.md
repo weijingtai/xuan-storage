@@ -27,6 +27,68 @@
     25|    18|- 只读操作（git log、git diff、cat、grep）允许在任何分支
     26|    19|- git pull / git fetch 等同步操作允许
 
+## 铁律：依赖解析（本仓最高频的"假故障"来源）
+
+本仓是多包工作区 + 多 worktree 并行开发，`pubspec.lock` 与 `pubspec_overrides.yaml`
+都被 gitignore。**这意味着同一个 commit 在不同目录里可以有完全不同的依赖解析结果。**
+
+**下面三条已各自咬过人，其中第 2 条在 2026-08-04 一天内出现三次。**
+遇到"测试/分析报错但代码看着没问题"，先按此表排查，不要先怀疑代码。
+
+### 1. 新 worktree 必须先 `flutter pub get`
+
+| | |
+|---|---|
+| **症状** | `dart analyze` 报 500+ 条 `uri_does_not_exist`，每条 `package:` import 都红 |
+| **误判** | "合并引入了大规模回归" |
+| **真因** | 新建 worktree 不自带 `.dart_tool/`，analyzer 解析不了任何包 |
+| **处置** | 进 worktree 第一件事就是对**每个用到的包**跑 `flutter pub get`（core / drift / firebase / assets 都要，漏一个就红一片） |
+
+`scripts/run_s1a_analyze_gate.sh` 已加前置断言会拦下（exit 2），照它给的命令做即可。
+
+### 2. 陈旧 `pubspec.lock` —— 同一份代码一边红一边绿
+
+| | |
+|---|---|
+| **症状** | 报错指向 `.pub-cache` 里某个包的**类型不匹配 / 同名类重复定义 / 方法签名对不上**，而不是你自己的代码。典型如 `X/*1*/ can't be assigned to X/*2*/`、`Y is imported from both ... and ...` |
+| **误判** | "这次合并把依赖弄坏了" |
+| **真因** | lock 被 gitignore，各工作区独立解析。旧 lock 会把某个包钉在不兼容的旧版本 / 旧 git commit 上 |
+| **处置** | **`rm pubspec.lock && flutter pub get`** |
+
+> ⚠ **`flutter pub get` 和 `flutter pub upgrade <单个包>` 都顶不掉陈旧 lock** ——
+> 前者会尽量沿用现有 lock，后者受其余约束牵制常常回一句 "No dependencies changed"。
+> **必须删掉 lock 整体重解析。**
+
+实测案例（2026-08-04，三次）：
+
+- `firebase`：main 钉在 `fake_cloud_firestore 4.1.1`（与 `cloud_firestore 6.8.0` 不兼容），
+  另一 worktree 是 4.2.0 → main 7 条编译失败、worktree 114 条全绿
+- `assets`：main 与 worktree 解析到两个不同 commit 的 `metaphysics_core`
+  → `EnumDatetimeType` 被从两个包同时导入
+- 判据：**只要"同一 commit 在两个目录里结果不同"，就是这一条**
+
+### 3. 入库的 pubspec 相对路径一律以 **main 的位置** 为准
+
+worktree 比主目录深两层，同一条相对路径在两处指向不同地方。
+
+**禁止**为了让 worktree 能跑而把入库的 `pubspec.yaml` 改深：
+
+```yaml
+# ❌ 在 worktree 里数着对，合进 main 就指到仓库外面去了
+path: ../../../../repository-interface-xiang
+# ✅ 以 main 的位置为准
+path: ../../repository-interface-xiang
+```
+
+**worktree 的深度差由 gitignored 的 `pubspec_overrides.yaml` 承担，不许改入库文件。**
+
+> ⚠ `pubspec_overrides.yaml` 会**整体取代** `pubspec.yaml` 的 `dependency_overrides` 段，
+> 不是合并。新建该文件时必须把原有条目一并抄来，只改需要改的那几条，
+> 否则会静默丢掉其余覆盖（典型表现：`... depends on X from git ... version solving failed`）。
+
+另：仓内子包互相引用一律 `path: ../<子包>`，不得用 git URL 指回本仓
+（`scripts/run_monorepo_convention_check.sh` 会拦）。
+
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
