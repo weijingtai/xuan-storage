@@ -996,6 +996,7 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
       }
       if (from < 9) {
         // schema v9：blob 元数据、分块持有集合与记录引用表。
+        // 必须放在 `if (from < 9)` 分支，不能放 `< 8` 分支（S1b 已占 v8）。
         await m.createTable(blobMetas);
         await m.createTable(blobChunks);
         await m.createTable(blobRefs);
