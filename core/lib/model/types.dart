@@ -3,6 +3,10 @@
 /// 用途：
 /// - 对外稳定的错误分类，用于：outbox 状态回写、诊断统计、重试策略选择。
 /// - 具体实现（Firestore/HTTP）应尽量映射到这些枚举值。
+library;
+
+import 'sync_peer.dart';
+
 enum SyncErrorCode {
   /// Network is unavailable or request timed out.
   network,
@@ -484,6 +488,35 @@ class OutboxPushRunResult {
   final SyncError? lastError;
 
   /// True when [lastError] is not null.
+  bool get hasError => lastError != null;
+}
+
+/// 一轮推送中【单个对端】的结果。
+///
+/// 取代把 N 个对端压成一个 [OutboxPushRunResult] 的做法 ——
+/// 压扁之后 runtime 无从知道该给谁记失败、该跳过谁（§5.2.2）。
+class PeerPushOutcome {
+  /// 创建一个 [PeerPushOutcome]。
+  const PeerPushOutcome({
+    required this.peerId,
+    required this.succeeded,
+    required this.failed,
+    this.lastError,
+  });
+
+  /// 对端标识。
+  final PeerId peerId;
+
+  /// 本轮成功推送的条数。
+  final int succeeded;
+
+  /// 本轮失败的条数。
+  final int failed;
+
+  /// 最后一个错误，用于退避决策与诊断。
+  final SyncError? lastError;
+
+  /// 该对端本轮是否有失败。
   bool get hasError => lastError != null;
 }
 

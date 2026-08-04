@@ -122,9 +122,9 @@ void main() {
     );
 
     final r1 = await coordinator.pushOnce(scopeUid: scopeUid);
-    expect(r1.processed, equals(1));
-    expect(r1.failed, equals(1));
-    expect(r1.dead, equals(0));
+    expect(r1, hasLength(1));
+    expect(r1.single.failed, equals(1));
+    expect(r1.single.succeeded, equals(0));
     expect(
       await outbox.backlogCount(
         scopeUid: scopeUid,
@@ -135,9 +135,8 @@ void main() {
     );
 
     final r2 = await coordinator.pushOnce(scopeUid: scopeUid);
-    expect(r2.processed, equals(1));
-    expect(r2.failed, equals(1));
-    expect(r2.dead, equals(1));
+    expect(r2, hasLength(1));
+    expect(r2.single.failed, equals(1));
     expect(
       await outbox.backlogCount(
         scopeUid: scopeUid,
@@ -260,7 +259,7 @@ void main() {
     );
 
     final r =
-        await coordinator.pullOnce(scopeUid: scopeUid, entityType: entityType);
+        await coordinator.pullOnce(scopeUid: scopeUid, peerId: const PeerId('firestore'), entityType: entityType);
     expect(r.advanced, isTrue);
     expect(coordinator.status.state, equals(SyncRunState.idle));
 
@@ -326,7 +325,7 @@ void main() {
     );
 
     final r =
-        await coordinator.pullOnce(scopeUid: scopeUid, entityType: entityType);
+        await coordinator.pullOnce(scopeUid: scopeUid, peerId: const PeerId('firestore'), entityType: entityType);
     expect(r.advanced, isFalse);
     expect(r.lastError, isNotNull);
     expect(coordinator.status.state, equals(SyncRunState.error));

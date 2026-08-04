@@ -1,11 +1,14 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
+
 import 'package:persistence_core/core/sync_coordinator.dart';
 import 'package:persistence_core/logging/sync_logger.dart';
 import 'package:persistence_core/model/ports.dart';
 import 'package:persistence_core/model/storage_classification.dart';
 import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/model/types.dart';
+import 'package:persistence_core/sync/peer_registry.dart';
 
 /// A pure-Dart runtime wrapper around [SyncCoordinator].
 ///
@@ -36,6 +39,8 @@ class SyncRuntime {
   /// - [nowUtc]: Clock source used for scheduling/backoff decisions.
   /// - [peerId]: 本对端标识（默认 firestore/cloud）。
   /// - [channel]: 本对端所在通道（§5.4 第一道锁）。默认 cloud。
+  /// - [peerRegistry]: 对端集合入口。提供时，runtime 订阅其变更流，
+  ///   在 peer 被移除时清理该 peer 的退避分片（§5.2.2）。
   SyncRuntime({
     required SyncCoordinator coordinator,
     AuthScopeProvider? authScopeProvider,
@@ -48,6 +53,7 @@ class SyncRuntime {
     DateTime Function()? nowUtc,
     PeerId peerId = const PeerId('firestore'),
     Channel channel = Channel.cloud,
+    PeerRegistry? peerRegistry,
     SyncLogger? logger,
   })  : _coordinator = coordinator,
         _authScopeProvider = authScopeProvider,
@@ -60,7 +66,8 @@ class SyncRuntime {
         _logger = logger ?? SyncLogger.noop(),
         _nowUtc = nowUtc ?? DateTime.now().toUtc,
         _peerId = peerId,
-        _channel = channel;
+        _channel = channel,
+        _peerRegistry = peerRegistry;
 
   final SyncCoordinator _coordinator;
   final AuthScopeProvider? _authScopeProvider;
@@ -84,7 +91,6 @@ class SyncRuntime {
   DateTime? _pushBackoffFireAtUtc;
 
   StreamSubscription<int>? _pushBacklogSub;
-  int? _observedBacklogCount;
 
   Future<void> _serial = Future<void>.value();
 
@@ -95,12 +101,27 @@ class SyncRuntime {
   String? _scopeUid;
   List<String> _pullEntityTypes = const <String>[];
 
-  DateTime? _nextPushNotBeforeUtc;
-  int _pushFailureCount = 0;
+  /// 每个对端下次允许 push 的时刻。键为对端标识。
+  ///
+  /// 【per-peer】：某个对端退避【不得】影响其他对端 —— 否则一个不可达的
+  /// LAN peer 会把云端 push 一起拖进退避窗口（§5.2.2）。
+  final Map<PeerId, DateTime?> _nextPushNotBeforeUtc = <PeerId, DateTime?>{};
 
-  final Map<String, DateTime?> _nextPullNotBeforeUtcByEntityType =
-      <String, DateTime?>{};
-  final Map<String, int> _pullFailureCountByEntityType = <String, int>{};
+  /// 每个对端的连续失败次数。键为对端标识。
+  final Map<PeerId, int> _pushFailureCount = <PeerId, int>{};
+
+  /// 每个 (对端, entityType) 的拉取退避时刻。键用 Dart record。
+  ///
+  /// 【为什么用 record 而非字符串拼接】：peerId 含分隔符时拼字符串会串键。
+  final Map<(PeerId, String), DateTime?> _nextPullNotBeforeByEntityType =
+      <(PeerId, String), DateTime?>{};
+
+  /// 每个 (对端, entityType) 的拉取连续失败次数。
+  final Map<(PeerId, String), int> _pullFailureCountByEntityType =
+      <(PeerId, String), int>{};
+
+  final PeerRegistry? _peerRegistry;
+  StreamSubscription<Set<PeerId>>? _peerRegistrySub;
 
   /// A broadcast stream of the latest [SyncStatus].
   ///
@@ -169,6 +190,7 @@ class SyncRuntime {
         }
       }
 
+      _armPeerRegistryWatcher();
       _armTimers();
       _emitStatus(_coordinator.status);
 
@@ -230,6 +252,8 @@ class SyncRuntime {
       if (_disposed) return;
 
       _cancelTimers();
+      unawaited(_peerRegistrySub?.cancel());
+      _peerRegistrySub = null;
       _disposed = true;
       await _statusController.close();
     });
@@ -344,16 +368,21 @@ class SyncRuntime {
         entityTypes.where((e) => e.trim().isNotEmpty).toSet().toList()..sort(),
       );
 
-      _nextPullNotBeforeUtcByEntityType.removeWhere(
-        (k, _) => !_pullEntityTypes.contains(k),
+      // 键从 entityType 变成 (peerId, entityType)：先清掉不再订阅的 entityType，
+      // 再为【每个已知对端】补上新的 (peerId, entityType) 占位。
+      _nextPullNotBeforeByEntityType.removeWhere(
+        (k, _) => !_pullEntityTypes.contains(k.$2),
       );
       _pullFailureCountByEntityType.removeWhere(
-        (k, _) => !_pullEntityTypes.contains(k),
+        (k, _) => !_pullEntityTypes.contains(k.$2),
       );
 
-      for (final t in _pullEntityTypes) {
-        _nextPullNotBeforeUtcByEntityType.putIfAbsent(t, () => null);
-        _pullFailureCountByEntityType.putIfAbsent(t, () => 0);
+      final knownPeers = _peerRegistry?.peerIds ?? {_peerId};
+      for (final peerId in knownPeers) {
+        for (final t in _pullEntityTypes) {
+          _nextPullNotBeforeByEntityType.putIfAbsent((peerId, t), () => null);
+          _pullFailureCountByEntityType.putIfAbsent((peerId, t), () => 0);
+        }
       }
 
       if (triggerImmediately && _started && _online && _scopeUid != null) {
@@ -427,7 +456,6 @@ class SyncRuntime {
     _pushBackoffTimer = null;
     _pushBackoffFireAtUtc = null;
 
-    _observedBacklogCount = null;
     unawaited(_pushBacklogSub?.cancel());
     _pushBacklogSub = null;
   }
@@ -435,7 +463,6 @@ class SyncRuntime {
   void _armPushBacklogWatcher() {
     unawaited(_pushBacklogSub?.cancel());
     _pushBacklogSub = null;
-    _observedBacklogCount = null;
 
     if (!_started) return;
     if (!_pushEnabled) return;
@@ -453,7 +480,6 @@ class SyncRuntime {
             if (!_started || !_online) return;
             if (_scopeUid != uid) return;
 
-            _observedBacklogCount = count;
 
             if (count <= 0) {
               _cancelPushBackoffTimer();
@@ -492,7 +518,12 @@ class SyncRuntime {
       return;
     }
 
-    final fireAt = _nextPushNotBeforeUtc;
+    final fireAt = _nextPushNotBeforeUtc.values
+        .whereType<DateTime>()
+        .fold<DateTime?>(null, (earliest, t) {
+      if (earliest == null || t.isBefore(earliest)) return t;
+      return earliest;
+    });
     if (fireAt == null) {
       _cancelPushBackoffTimer();
       return;
@@ -539,9 +570,18 @@ class SyncRuntime {
       return;
     }
 
-    final notBefore = _nextPushNotBeforeUtc;
     final now = _nowUtc();
-    if (notBefore != null && now.isBefore(notBefore)) {
+
+    // 逐 peer 判定「是否到点可推」：退避中的 peer 本轮跳过，其余照推（§5.2.2）。
+    final knownPeers = _peerRegistry?.peerIds ?? {_peerId};
+    final pushable = <PeerId>{};
+    for (final peerId in knownPeers) {
+      final notBefore = _nextPushNotBeforeUtc[peerId];
+      if (notBefore == null || !now.isBefore(notBefore)) {
+        pushable.add(peerId);
+      }
+    }
+    if (pushable.isEmpty) {
       _schedulePushBackoffTimer();
       return;
     }
@@ -551,41 +591,58 @@ class SyncRuntime {
       data: <String, Object?>{
         'reason': reason,
         'scopeUid': uid,
+        'pushablePeers': pushable.map((p) => p.value).toList(),
       },
     );
 
-    final result = await _coordinator.pushOnce(scopeUid: uid);
+    final outcomes = await _coordinator.pushOnce(
+      scopeUid: uid,
+      onlyPeers: pushable,
+    );
 
-    if (result.hasError) {
-      _pushFailureCount += 1;
-      _nextPushNotBeforeUtc = now.add(_computeBackoff(_pushFailureCount));
+    var anyFailure = false;
+    for (final outcome in outcomes) {
+      if (outcome.hasError) {
+        anyFailure = true;
+        final peerId = outcome.peerId;
+        final failures = (_pushFailureCount[peerId] ?? 0) + 1;
+        _pushFailureCount[peerId] = failures;
+        _nextPushNotBeforeUtc[peerId] =
+            now.add(_computeBackoff(failures));
+        _schedulePushBackoffTimer();
+        _logger.warn(
+          'sync_runtime_push_backoff',
+          data: <String, Object?>{
+            'reason': reason,
+            'scopeUid': uid,
+            'peerId': peerId.value,
+            'failures': failures,
+            'notBeforeUtc': _nextPushNotBeforeUtc[peerId]?.toIso8601String(),
+            'errorCode': outcome.lastError?.code.name,
+          },
+          error: outcome.lastError,
+        );
+      } else {
+        final peerId = outcome.peerId;
+        _pushFailureCount[peerId] = 0;
+        _nextPushNotBeforeUtc[peerId] = null;
+        _logger.info(
+          'sync_runtime_push_done',
+          data: <String, Object?>{
+            'reason': reason,
+            'scopeUid': uid,
+            'peerId': peerId.value,
+            'succeeded': outcome.succeeded,
+            'failed': outcome.failed,
+          },
+        );
+      }
+    }
+
+    if (anyFailure) {
       _schedulePushBackoffTimer();
-      _logger.warn(
-        'sync_runtime_push_backoff',
-        data: <String, Object?>{
-          'reason': reason,
-          'scopeUid': uid,
-          'failures': _pushFailureCount,
-          'notBeforeUtc': _nextPushNotBeforeUtc?.toIso8601String(),
-          'errorCode': result.lastError?.code.name,
-        },
-        error: result.lastError,
-      );
     } else {
-      _pushFailureCount = 0;
-      _nextPushNotBeforeUtc = null;
       _cancelPushBackoffTimer();
-      _logger.info(
-        'sync_runtime_push_done',
-        data: <String, Object?>{
-          'reason': reason,
-          'scopeUid': uid,
-          'processed': result.processed,
-          'succeeded': result.succeeded,
-          'failed': result.failed,
-          'dead': result.dead,
-        },
-      );
     }
 
     _emitStatus(_coordinator.status);
@@ -635,81 +692,92 @@ class SyncRuntime {
     if (normalized.isEmpty) return;
 
     final now = _nowUtc();
-    final notBefore = _nextPullNotBeforeUtcByEntityType[normalized];
-    if (notBefore != null && now.isBefore(notBefore)) return;
 
-    PullRunResult? result;
-    SyncError? error;
+    // 逐 peer 判定拉取退避（§5.2.2）：(peerId, entityType) 在退避窗口内就
+    // 跳过该对端，其余照拉。键用 record，不用字符串拼接。
+    final knownPeers = _peerRegistry?.peerIds ?? {_peerId};
+    for (final peerId in knownPeers) {
+      final key = (peerId, normalized);
+      final notBefore = _nextPullNotBeforeByEntityType[(peerId, normalized)];
+      if (notBefore != null && now.isBefore(notBefore)) continue;
 
-    _logger.debug(
-      'sync_runtime_pull_attempt',
-      data: <String, Object?>{
-        'reason': reason,
-        'scopeUid': uid,
-        'entityType': normalized,
-      },
-    );
+      PullRunResult? result;
+      SyncError? error;
 
-    try {
-      result = await _coordinator.pullOnce(
-        scopeUid: uid,
-        entityType: normalized,
-      );
-      error = result.lastError;
-    } on Object catch (e, st) {
-      _logger.error(
-        'sync_runtime_pull_throw',
+      _logger.debug(
+        'sync_runtime_pull_attempt',
         data: <String, Object?>{
           'reason': reason,
           'scopeUid': uid,
+          'peerId': peerId.value,
           'entityType': normalized,
         },
-        error: e,
-        stackTrace: st,
       );
-      if (e is SyncError) {
-        error = e;
-      } else {
-        error = SyncError(code: SyncErrorCode.unknown, message: '$e');
+
+      try {
+        result = await _coordinator.pullOnce(
+          scopeUid: uid,
+          peerId: peerId,
+          entityType: normalized,
+        );
+        error = result.lastError;
+      } on Object catch (e, st) {
+        _logger.error(
+          'sync_runtime_pull_throw',
+          data: <String, Object?>{
+            'reason': reason,
+            'scopeUid': uid,
+            'peerId': peerId.value,
+            'entityType': normalized,
+          },
+          error: e,
+          stackTrace: st,
+        );
+        if (e is SyncError) {
+          error = e;
+        } else {
+          error = SyncError(code: SyncErrorCode.unknown, message: '$e');
+        }
       }
-    }
 
-    if (error != null) {
-      final failures = (_pullFailureCountByEntityType[normalized] ?? 0) + 1;
-      _pullFailureCountByEntityType[normalized] = failures;
-      _nextPullNotBeforeUtcByEntityType[normalized] =
-          now.add(_computeBackoff(failures));
+      if (error != null) {
+        final failures = (_pullFailureCountByEntityType[key] ?? 0) + 1;
+        _pullFailureCountByEntityType[key] = failures;
+        _nextPullNotBeforeByEntityType[(peerId, normalized)] = now.add(_computeBackoff(failures));
 
-      _logger.warn(
-        'sync_runtime_pull_backoff',
-        data: <String, Object?>{
-          'reason': reason,
-          'scopeUid': uid,
-          'entityType': normalized,
-          'failures': failures,
-          'notBeforeUtc':
-              _nextPullNotBeforeUtcByEntityType[normalized]?.toIso8601String(),
-          'errorCode': error.code.name,
-        },
-        error: error,
-      );
-    } else {
-      _pullFailureCountByEntityType[normalized] = 0;
-      _nextPullNotBeforeUtcByEntityType[normalized] = null;
+        _logger.warn(
+          'sync_runtime_pull_backoff',
+          data: <String, Object?>{
+            'reason': reason,
+            'scopeUid': uid,
+            'peerId': peerId.value,
+            'entityType': normalized,
+            'failures': failures,
+            'notBeforeUtc':
+                _nextPullNotBeforeByEntityType[(peerId, normalized)]?.toIso8601String(),
+            'errorCode': error.code.name,
+          },
+          error: error,
+        );
+      } else {
+        _pullFailureCountByEntityType[key] = 0;
+        _nextPullNotBeforeByEntityType[(peerId, normalized)] = null;
 
-      _logger.info(
-        'sync_runtime_pull_done',
-        data: <String, Object?>{
-          'reason': reason,
-          'scopeUid': uid,
-          'entityType': normalized,
-          'pages': result?.pages,
-          'fetched': result?.fetched,
-          'applied': result?.applied,
-          'skipped': result?.skipped,
-          'advanced': result?.advanced,
-        },
-      );
+        _logger.info(
+          'sync_runtime_pull_done',
+          data: <String, Object?>{
+            'reason': reason,
+            'scopeUid': uid,
+            'peerId': peerId.value,
+            'entityType': normalized,
+            'pages': result?.pages,
+            'fetched': result?.fetched,
+            'applied': result?.applied,
+            'skipped': result?.skipped,
+            'advanced': result?.advanced,
+          },
+        );
+      }
     }
 
     _emitStatus(_coordinator.status);
@@ -735,16 +803,44 @@ class SyncRuntime {
 
   /// Clears internal backoff state.
   void _resetBackoff() {
-    _pushFailureCount = 0;
-    _nextPushNotBeforeUtc = null;
+    _pushFailureCount.clear();
+    _nextPushNotBeforeUtc.clear();
 
-    _nextPullNotBeforeUtcByEntityType.clear();
+    _nextPullNotBeforeByEntityType.clear();
     _pullFailureCountByEntityType.clear();
 
-    for (final t in _pullEntityTypes) {
-      _nextPullNotBeforeUtcByEntityType[t] = null;
-      _pullFailureCountByEntityType[t] = 0;
+    final knownPeers = _peerRegistry?.peerIds ?? {_peerId};
+    for (final peerId in knownPeers) {
+      _nextPushNotBeforeUtc[peerId] = null;
+      _pushFailureCount[peerId] = 0;
+      for (final t in _pullEntityTypes) {
+        _nextPullNotBeforeByEntityType[(peerId, t)] = null;
+        _pullFailureCountByEntityType[(peerId, t)] = 0;
+      }
     }
+  }
+
+  /// 订阅 PeerRegistry 的变更流：对端被移除时清理该对端的退避分片。
+  void _armPeerRegistryWatcher() {
+    final registry = _peerRegistry;
+    if (registry == null) return;
+
+    _peerRegistrySub?.cancel();
+    _peerRegistrySub = registry.changes.listen((currentIds) {
+      _purgeBackoffForMissingPeers(currentIds);
+    });
+  }
+
+  /// 清理【已不在 registry 中】的对端留下的退避键（防僵尸键泄漏）。
+  void _purgeBackoffForMissingPeers(Set<PeerId> currentIds) {
+    _nextPushNotBeforeUtc.removeWhere((k, _) => !currentIds.contains(k));
+    _pushFailureCount.removeWhere((k, _) => !currentIds.contains(k));
+    _nextPullNotBeforeByEntityType.removeWhere(
+      (k, _) => !currentIds.contains(k.$1),
+    );
+    _pullFailureCountByEntityType.removeWhere(
+      (k, _) => !currentIds.contains(k.$1),
+    );
   }
 
   /// Serializes public operations to avoid overlapping start/stop/trigger calls.
@@ -759,6 +855,23 @@ class SyncRuntime {
     if (_statusController.isClosed) return;
     _statusController.add(status);
   }
+
+  /// 仅供测试观测的只读退避视图：每个对端下次允许 push 的时刻。
+  ///
+  /// 只读，不可写 —— 写退避状态必须走真实推送路径，否则测试会绕过时序机。
+  @visibleForTesting
+  Map<PeerId, DateTime?> get debugNextPushNotBefore =>
+      Map.unmodifiable(_nextPushNotBeforeUtc);
+
+  /// 仅供测试观测的只读退避视图：每个对端的连续失败次数。
+  @visibleForTesting
+  Map<PeerId, int> get debugPushFailureCount =>
+      Map.unmodifiable(_pushFailureCount);
+
+  /// 仅供测试观测的只读退避视图：(peerId, entityType) 的拉取退避时刻。
+  @visibleForTesting
+  Map<(PeerId, String), DateTime?> get debugNextPullNotBefore =>
+      Map.unmodifiable(_nextPullNotBeforeByEntityType);
 
   /// Throws if the runtime has been disposed.
   void _ensureNotDisposed() {
