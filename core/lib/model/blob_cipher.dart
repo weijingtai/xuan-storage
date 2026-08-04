@@ -63,5 +63,13 @@ abstract interface class BlobCipherResolver {
   /// 参数说明：
   /// - [scopeUid]: 作用域 uid（通常为用户 uid），密钥按 scope 隔离。
   /// - [v]: blob 可见性。private 返回真加密 cipher，public 返回 identity。
-  BlobCipher resolve({required String scopeUid, required BlobVisibility v});
+  ///
+  /// 约定：
+  /// - **返回 [Future]**（2026-08-03 决议 D7）：真实现取密钥需读安全存储
+  ///   （Keychain / KeyStore），那是异步操作，同步签名塞不进去。
+  ///   identity cipher 虽无需取密钥，也照此签名返回已完成的 Future。
+  Future<BlobCipher> resolve({
+    required String scopeUid,
+    required BlobVisibility v,
+  });
 }
