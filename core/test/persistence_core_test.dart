@@ -128,7 +128,7 @@ void main() {
     expect(
       await outbox.backlogCount(
         scopeUid: scopeUid,
-        peerId: const PeerId('firestore'),
+        peerId: const PeerId('fake'),
         channel: Channel.cloud,
       ),
       equals(1),
@@ -141,7 +141,7 @@ void main() {
     expect(
       await outbox.backlogCount(
         scopeUid: scopeUid,
-        peerId: const PeerId('firestore'),
+        peerId: const PeerId('fake'),
         channel: Channel.cloud,
       ),
       equals(0),

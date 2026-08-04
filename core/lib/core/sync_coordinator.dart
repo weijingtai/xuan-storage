@@ -1,129 +1,11 @@
 import 'package:persistence_core/logging/sync_logger.dart';
+import 'package:persistence_core/model/peer_eligibility.dart';
 import 'package:persistence_core/model/ports.dart';
 import 'package:persistence_core/model/storage_classification.dart';
 import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/model/types.dart';
+import 'package:persistence_core/routing/peer_fanout_pusher.dart';
 
-/// Pushes local outbox records to a remote gateway.
-///
-/// 功能说明：
-/// - 从 [OutboxStore] 按时间顺序取出一批待同步的 [OutboxRecord]
-/// - 逐条调用 [SyncPeer.push] 推送到远端
-/// - 根据推送结果回写 outbox 状态：成功标记 success；失败标记 failed；超过阈值标记 dead
-///
-/// 设计要点：
-/// - 该类只负责“推送 outbox”的最小闭环，不处理 pull、不做定时调度。
-/// - 失败次数阈值由构造参数 [maxAttemptsBeforeDead] 控制。
-/// - 所有时间戳通过注入的 [nowUtc] 获取，便于测试与确定性。
-class OutboxPusher {
-  /// Creates an [OutboxPusher].
-  ///
-  /// 参数说明：
-  /// - [outboxStore]: 本地 outbox 存储，负责取数与状态回写。
-  /// - [remoteGateway]: 远端网关，负责把单条 [OutboxRecord] 推送到远端。
-  /// - [nowUtc]: 统一的 UTC 时钟函数，用于生成状态回写时间。
-  /// - [batchSize]: 单次 run 的最大处理条数。
-  /// - [maxAttemptsBeforeDead]: 单条记录最大允许尝试次数，达到阈值将标记 dead。
-  /// - [peerId]: 本对端标识。
-  /// - [channel]: 本对端所在通道（§5.4 第一道锁的过滤维度）。
-  OutboxPusher({
-    required OutboxStore outboxStore,
-    required SyncPeer remoteGateway,
-    required DateTime Function() nowUtc,
-    int batchSize = 50,
-    int maxAttemptsBeforeDead = 10,
-    PeerId peerId = const PeerId('firestore'),
-    Channel channel = Channel.cloud,
-  })  : _outboxStore = outboxStore,
-        _remoteGateway = remoteGateway,
-        _nowUtc = nowUtc,
-        _batchSize = batchSize,
-        _maxAttemptsBeforeDead = maxAttemptsBeforeDead,
-        _peerId = peerId,
-        _channel = channel;
-
-  final OutboxStore _outboxStore;
-  final SyncPeer _remoteGateway;
-  final DateTime Function() _nowUtc;
-  final int _batchSize;
-  final int _maxAttemptsBeforeDead;
-  final PeerId _peerId;
-  final Channel _channel;
-
-  /// Runs a single push pass.
-  ///
-  /// 参数说明：
-  /// - [scopeUid]: outbox 的逻辑分区 key（通常为用户 uid），只处理该 scope 下的记录。
-  ///
-  /// 返回值：
-  /// - [OutboxPushRunResult]：包含处理条数、成功/失败/死信计数，以及最后一个错误。
-  ///
-  /// 行为细节：
-  /// - 取数：通过 [OutboxStore.peekBatch] 获取 pending/failed 的一批记录。
-  /// - 推送：对每条记录调用 [SyncPeer.push]。
-  /// - 成功：调用 [OutboxStore.markSuccess]。
-  /// - 失败：尝试次数 +1，并调用 [OutboxStore.markFailed]；若超过阈值则 isDead=true。
-  Future<OutboxPushRunResult> runOnce({required String scopeUid}) async {
-    final batch = await _outboxStore.peekBatch(
-      scopeUid: scopeUid,
-      peerId: _peerId,
-      channel: _channel,
-      limit: _batchSize,
-    );
-
-    var processed = 0;
-    var succeeded = 0;
-    var failed = 0;
-    var dead = 0;
-    SyncError? lastError;
-
-    for (final record in batch) {
-      final atUtc = _nowUtc();
-      final error = await _remoteGateway.push(record);
-
-      if (error == null) {
-        await _outboxStore.markSuccess(
-          operationId: record.operationId,
-          peerId: _peerId,
-          atUtc: atUtc,
-        );
-        succeeded += 1;
-      } else {
-        lastError = error;
-        failed += 1;
-
-        final nextAttempt =
-            await _outboxStore.attemptFor(
-              operationId: record.operationId,
-              peerId: _peerId,
-            ) +
-            1;
-        final isDead = nextAttempt >= _maxAttemptsBeforeDead;
-        if (isDead) dead += 1;
-
-        await _outboxStore.markFailed(
-          operationId: record.operationId,
-          peerId: _peerId,
-          attempt: nextAttempt,
-          errorCode: error.code.name,
-          errorMessage: error.message,
-          atUtc: atUtc,
-          isDead: isDead,
-        );
-      }
-
-      processed += 1;
-    }
-
-    return OutboxPushRunResult(
-      processed: processed,
-      succeeded: succeeded,
-      failed: failed,
-      dead: dead,
-      lastError: lastError,
-    );
-  }
-}
 
 /// Coordinates one-off push and pull sync runs.
 ///
@@ -150,6 +32,8 @@ class SyncCoordinator {
   /// - [maxAttemptsBeforeDead]: outbox 单条记录最大尝试次数，超过会标记为 dead。
   /// - [peerId]: 本对端标识。
   /// - [channel]: 本对端所在通道（§5.4 第一道锁）。默认 cloud。
+  /// - [peers]: 参与扇出的全部对端（§5.2）。默认 `[remoteGateway]`（单对端回退）。
+  ///   [remoteGateway] 仍单独保留，供 pull 与 getCapabilities 使用。
   SyncCoordinator({
     required OutboxStore outboxStore,
     required SyncPeer remoteGateway,
@@ -161,6 +45,7 @@ class SyncCoordinator {
     int maxAttemptsBeforeDead = 10,
     PeerId peerId = const PeerId('firestore'),
     Channel channel = Channel.cloud,
+    List<SyncPeer>? peers,
     SyncLogger? logger,
   })  : _outboxStore = outboxStore,
         _syncStateStore = syncStateStore,
@@ -168,18 +53,12 @@ class SyncCoordinator {
         _localApplier = localApplier,
         _nowUtc = nowUtc,
         _pullBatchSize = pullBatchSize,
+        _pushBatchSize = pushBatchSize,
+        _maxAttemptsBeforeDead = maxAttemptsBeforeDead,
         _logger = logger ?? SyncLogger.noop(),
         _peerId = peerId,
         _channel = channel,
-        _pusher = OutboxPusher(
-          outboxStore: outboxStore,
-          remoteGateway: remoteGateway,
-          nowUtc: nowUtc,
-          batchSize: pushBatchSize,
-          maxAttemptsBeforeDead: maxAttemptsBeforeDead,
-          peerId: peerId,
-          channel: channel,
-        ),
+        _peers = peers ?? <SyncPeer>[remoteGateway],
         _status = const SyncStatus(
           state: SyncRunState.stopped,
           scopeUid: null,
@@ -195,11 +74,16 @@ class SyncCoordinator {
   final LocalApplier? _localApplier;
   final DateTime Function() _nowUtc;
   final int _pullBatchSize;
+  final int _pushBatchSize;
+  final int _maxAttemptsBeforeDead;
   final SyncLogger _logger;
   final PeerId _peerId;
   final Channel _channel;
-  final OutboxPusher _pusher;
+  final List<SyncPeer> _peers;
   SyncStatus _status;
+
+  /// 当前参与扇出的对端。
+  List<SyncPeer> get peers => List.unmodifiable(_peers);
 
   /// Returns the latest sync status snapshot.
   ///
@@ -260,7 +144,7 @@ class SyncCoordinator {
       lastError: null,
     );
 
-    final result = await _pusher.runOnce(scopeUid: scopeUid);
+    final result = await _runPushPass(scopeUid: scopeUid);
 
     final backlog = await _outboxStore.backlogCount(scopeUid: scopeUid, peerId: _peerId, channel: _channel);
     final deadCount = await _outboxStore.deadCount(scopeUid: scopeUid, peerId: _peerId, channel: _channel);
@@ -316,6 +200,98 @@ class SyncCoordinator {
     }
 
     return result;
+  }
+
+  /// 执行一次扇出推送（§5.2.1 阻断点 4/5 拆除后的核心路径）。
+  ///
+  /// 流程：
+  /// 1. 对每个对端分别 peekBatch（该对端尚未 ack 的记录），按 operationId
+  ///    合并去重 —— 某条记录对 cloud 已成功但对 lan 仍 pending 时，第二轮
+  ///    peekBatch(cloud) 为空、peekBatch(lan) 仍含它，必须并集才不漏推。
+  /// 2. 对每条记录用 ACT 05 的单一判定源算合格对端，[PeerFanoutPusher.pushToAll]
+  ///    并发推给合格对端。
+  /// 3. 逐对端回写 ack：成功 markSuccess，失败 markFailed。
+  ///
+  /// 规则：
+  /// - 合格对端集合用 ACT 05 的单一判定源计算，【不要】在这里重写
+  ///   `lookup(...).channels.contains(...)`（ACT 05 有门禁数该表达式次数）。
+  /// - markFailed 的 attempt 用 ACT 04 的读取端口（按 operationId + peerId 读）
+  ///   读该对端当前的尝试次数再 +1 —— 【不要】用 record.attempt（t_outbox
+  ///   全局字段，ACT 04 已明确它不再被更新）。
+  Future<OutboxPushRunResult> _runPushPass({required String scopeUid}) async {
+    final byOperationId = <String, OutboxRecord>{};
+    for (final peer in _peers) {
+      final batch = await _outboxStore.peekBatch(
+        scopeUid: scopeUid,
+        peerId: peer.peerId,
+        channel: peer.channel,
+        limit: _pushBatchSize,
+      );
+      for (final r in batch) {
+        byOperationId[r.operationId] = r;
+      }
+    }
+
+    var processed = 0;
+    var succeeded = 0;
+    var failed = 0;
+    var dead = 0;
+    SyncError? lastError;
+
+    for (final record in byOperationId.values) {
+      final eligible =
+          PeerEligibility.eligiblePeers(record.entityType, _peers);
+      final results =
+          await DefaultPeerFanoutPusher(peers: _peers)
+              .pushToAll(record, eligiblePeers: eligible);
+
+      for (final entry in results.entries) {
+        final peerId = entry.key;
+        final error = entry.value;
+        final atUtc = _nowUtc();
+
+        if (error == null) {
+          await _outboxStore.markSuccess(
+            operationId: record.operationId,
+            peerId: peerId,
+            atUtc: atUtc,
+          );
+          succeeded += 1;
+        } else {
+          lastError = error;
+          failed += 1;
+
+          final nextAttempt =
+              await _outboxStore.attemptFor(
+                operationId: record.operationId,
+                peerId: peerId,
+              ) +
+              1;
+          final isDead = nextAttempt >= _maxAttemptsBeforeDead;
+          if (isDead) dead += 1;
+
+          await _outboxStore.markFailed(
+            operationId: record.operationId,
+            peerId: peerId,
+            attempt: nextAttempt,
+            errorCode: error.code.name,
+            errorMessage: error.message,
+            atUtc: atUtc,
+            isDead: isDead,
+          );
+        }
+      }
+
+      processed += 1;
+    }
+
+    return OutboxPushRunResult(
+      processed: processed,
+      succeeded: succeeded,
+      failed: failed,
+      dead: dead,
+      lastError: lastError,
+    );
   }
 
   /// Counts how many outcomes are [ChangeApplyDecision.skipped].

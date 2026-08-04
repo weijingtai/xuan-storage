@@ -18,6 +18,7 @@ export 'sync/sync_runtime.dart';
 export 'tag/tag_extractor_registry.dart';
 export 'routing/region.dart';
 export 'routing/remote_gateway_router.dart';
+export 'routing/peer_fanout_pusher.dart';
 export 'ipc/anon_identity_provider.dart';
 export 'ipc/anon_identity_local.dart';
 export 'store/datetime_details/jieqi_entry_strategy_store.dart';
