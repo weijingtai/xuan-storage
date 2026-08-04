@@ -15,15 +15,15 @@
 - [x] T7 上调 A10 dartdoc 覆盖下限（133→142 实测，下限 123→132）
 
 ## 验收标准
-- [ ] A1 `bash scripts/run_s1a_analyze_gate.sh` 退出码 0
-- [ ] A2 `cd core && flutter test` 全绿
-- [ ] A3 `bash scripts/run_policy_negative_check.sh` 退出码 0
-- [ ] A4 零实现：`transport.dart` 内无任何 `Impl` 类、无 `UnimplementedError`
-- [ ] A5 `Transport` 的主动侧与被动侧成对存在（discover↔advertise、connect↔incoming）
-- [ ] A6 契约里不得出现 `privateKey`，不得残留 `DeviceKeyPair`
-- [ ] A7 六条新增契约测试**每条都做过变异自检**（注入违规→变红→复原）
+- [x] A1 `bash scripts/run_s1a_analyze_gate.sh` 退出码 0
+- [x] A2 `cd core && flutter test` 全绿
+- [x] A3 `bash scripts/run_policy_negative_check.sh` 退出码 0
+- [x] A4 零实现：`transport.dart` 内无任何 `Impl` 类、无 `UnimplementedError`
+- [x] A5 `Transport` 的主动侧与被动侧成对存在（discover↔advertise、connect↔incoming）
+- [x] A6 契约里不得出现 `privateKey`，不得残留 `DeviceKeyPair`
+- [x] A7 六条新增契约测试**每条都做过变异自检**（注入违规→变红→复原）
 
-验收命令: `bash scripts/run_s1a_analyze_gate.sh && (cd core && flutter test) && bash scripts/run_policy_negative_check.sh`
+验收命令: bash scripts/run_s1a_analyze_gate.sh && (cd core && flutter test) && bash scripts/run_policy_negative_check.sh
 
 ## 当前状态
 - [x] 全部 7 项完成，三条门禁全绿：analyze 门禁 ✅ / core 70 测试全绿 / 负测试 8 行 ✅
