@@ -60,7 +60,7 @@ void main() {
         mimeType: 'x/test',
         tier: tier,
         visibility: 0,
-        status: const Value(status),
+        status: Value(status),
         stagedAtUtc: stagedAtUtc,
         lastAccessAtUtc: frozenNow,
       ),

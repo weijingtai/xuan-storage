@@ -54,3 +54,14 @@
   - `incoming staging rejects forged private→resource declaration`
   - `incoming staging rejects forged private→cache declaration`
 - **Restored**: Registry-derived visibility/tier — all 7 tests pass.
+
+## Task 8: Garbage Collection
+
+### Mutation 6: Delete sourceOfTruth instead of orphaning
+- **File**: `drift/lib/blob/blob_garbage_collector.dart`
+- **Injected violation**: Changed sourceOfTruth handling to actually delete the blob and metadata instead of marking as orphaned.
+- **Expected failure**: The "sourceOfTruth zero refs is orphaned but NOT deleted" test must fail.
+- **Command**: `flutter test test/blob/blob_lifecycle_gc_test.dart`
+- **Observed**: 1/5 tests failed:
+  - `garbage collection sourceOfTruth zero refs is orphaned but NOT deleted` — meta was null (deleted)
+- **Restored**: sourceOfTruth zero refs → orphaned(status=2) but NOT deleted — all 5 tests pass.
