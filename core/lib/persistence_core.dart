@@ -35,6 +35,7 @@ export 'model/local_blob_store.dart';
 export 'model/record_blob_unit_of_work.dart';
 export 'model/blob_gateway.dart';
 export 'model/transport.dart';
+export 'model/signaling.dart';
 export 'model/export_bundle.dart';
 
 // ── XRAP 资源资产协议（docs/superpowers/specs/2026-08-02-resource-asset-protocol.md）──
@@ -45,6 +46,9 @@ export 'model/dataset/dataset_materializer.dart';
 export 'model/dataset/dataset_descriptor.dart';
 export 'model/dataset/dataset_registry.dart';
 export 'model/dataset/dataset_installer.dart';
+export 'model/dataset/dataset_generation_store.dart';
+export 'model/dataset/bundled_dataset_source.dart';
+export 'model/dataset/in_memory_dataset_installer.dart';
 
 // ── S1b 多 peer 同步（ACT 01/05/06/07/08/09）──
 export 'model/sync_peer.dart';            // ACT 01

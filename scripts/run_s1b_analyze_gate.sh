@@ -183,7 +183,7 @@ check_scoped() {
   local ec
   ec=$?
   if [ "$ec" -ne 0 ]; then
-    echo "❌ [检查1/$pkg] S1b 文件存在 issue（退出码 $ec），必须全部为零："
+    echo "❌ [检查1/$pkg] S1b 文件存在 issue（退出码 ${ec}），必须全部为零："
     cat /tmp/s1b_scoped.log
     fail=1
   else
@@ -241,7 +241,7 @@ EOF
     echo "❌ [检查3/$pkg] 全包 issue 总数 $total 超过冻结基线 $baseline_total"
     pkg_fail=1
   elif [ "$total" -lt "$baseline_total" ]; then
-    echo "✅ [检查3/$pkg] 全包 issue 总数 $total < 基线 $baseline_total（请同步下调基线）"
+    echo "✅ [检查3/$pkg] 全包 issue 总数 $total < 基线 ${baseline_total}（请同步下调基线）"
   else
     echo "✅ [检查3/$pkg] 全包 issue 总数 $total = 基线 $baseline_total"
   fi

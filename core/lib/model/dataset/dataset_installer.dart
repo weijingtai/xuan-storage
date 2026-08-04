@@ -69,6 +69,23 @@ final class InstalledDataset {
 
   /// 是否可被读路径使用。
   bool get isUsable => status == DatasetGenerationStatus.ready;
+
+  /// 复制并覆盖部分字段。用于回滚/GC 等状态变更。
+  InstalledDataset copyWith({
+    DatasetGenerationStatus? status,
+    int? actualRowCount,
+    DateTime? installedAtUtc,
+  }) {
+    return InstalledDataset(
+      datasetId: datasetId,
+      generation: generation,
+      manifest: manifest,
+      status: status ?? this.status,
+      sourceId: sourceId,
+      actualRowCount: actualRowCount ?? this.actualRowCount,
+      installedAtUtc: installedAtUtc ?? this.installedAtUtc,
+    );
+  }
 }
 
 /// 安装结果。
