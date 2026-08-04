@@ -22,3 +22,14 @@
 - **Observed**: 1/6 tests failed:
   - `atomic chunk files concurrent different-index writes are safe` — PathNotFoundException on rename
 - **Restored**: `$index` in targetPath — all 6 tests pass.
+
+## Task 5: Cipher Resolution
+
+### Mutation 3: Route private unavailable to identity instead of undecryptable error
+- **File**: `drift/lib/blob/blob_cipher_registry.dart`
+- **Injected violation**: Changed private fallback to return `IdentityBlobCipher` instead of throwing `BlobUndecryptableError`.
+- **Expected failure**: The "unavailable private key maps to BlobUndecryptableError" test must fail.
+- **Command**: `flutter test test/blob/blob_cipher_test.dart`
+- **Observed**: 1/6 tests failed:
+  - `blob cipher resolution unavailable private key maps to BlobUndecryptableError` — expected exception but got identity cipher
+- **Restored**: Private unavailable returns `BlobUndecryptableError` — all 6 tests pass.
