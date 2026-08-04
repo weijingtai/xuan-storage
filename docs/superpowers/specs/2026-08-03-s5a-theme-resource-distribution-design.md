@@ -1,11 +1,12 @@
 # S5a 样式资源分发 · 详细设计
 
-- 日期：2026-08-03
+- 日期：2026-08-03（v2，2026-08-03 按 Codex gStack `plan-eng-review` 的 REVISE-FIRST 判定修订）
 - 状态：讨论完成，待转译为 ACT
 - 范围：主题资源的分发、安装、读取与用户覆盖；跨 `xuan-storage` / `xuan_config` / `theme` / `xuan-shell` 四个仓库的职责边界
+- **交付形态：契约 + reference 实现**（人类拍板走方案 B，理由见 §0.1）
 - 上游文档：
   - [2026-07-31 Storage 分层隔离存储架构 · 设计总纲](2026-07-31-storage-architecture-design.md)（下称"总纲"，引用格式 `总纲 §x.y:行号`）
-  - `xuan-storage/tasks/mimo-storage-s1a-contracts.md`（S1a 契约层，已交付）
+  - `xuan-storage/tasks/mimo-storage-s1a-contracts.md`（S1a 契约层，��交付并已合入本仓库 `main`）
   - `xuan_config/tasks/mimo-config-s5c-remote-source.md`（S5c 控制下发，已交付，最新提交 `a324902`）
   - `/xuan-migration/openspec/changes/theme-token-customization-contract/`（在途 OpenSpec change，含 4 轮评审）
 
@@ -20,10 +21,34 @@
 1. 主题资源的分发形态（整包 vs 分半）与包格式；
 2. 四个仓库各自的职责边界，以及为什么 `theme` 包不该改；
 3. 主题资源读写契约的端口签名（读合并结果 / 写用户覆盖层）；
-4. 三层合并模型与用户覆盖的语义；
+4. 三层合并模型与用户覆盖的语义，**以及合并算法的完整规格**（§6.6）；
 5. 启动路径的性能预算与可验证判据。
 
-**本文档中的 Dart 代码块是端口签名，不是实现。** S5a 的交付物形态参照 S1a：契约先行，实现随后。
+### 0.1 交付形态：契约 + reference 实现（方案 B）
+
+**S5a 交付两层**：
+
+| 层 | 内容 | 位置 |
+|---|---|---|
+| **契约层** | 端口签名 + 值类型 + 策略声明（零实现） | `core/lib/model/theme_*.dart` |
+| **reference 实现层** | `InMemoryThemeResourceStore` —— 纯内存、无 IO、无网络的完整行为实现 | `core/lib/reference/in_memory_theme_resource_store.dart` |
+
+**为什么需要 reference 实现（否决"纯契约"的理由）**：
+
+三层合并、差量写入、缓存 identical、启动零网络 —— 这些是 S5a 的**核心价值**，而抽象接口产生不了行为，无法验证。若砍掉这些验收，S5a 只剩一堆没人用过的接口。
+
+**反面教训就在本仓库**：S1a 交付了纯契约，结果 `StoragePolicyRegistry` **至今零生产调用点**（§1.6 实查），没有任何证据表明它好不好用。S5c 走的是"契约 + 一个真实现"，交付质量明显更高（A1–A13 全过 + 5 条返工均能定位到具体失守门禁）。
+
+**reference 实现的定位与边界**：
+
+1. **它是行为规格的可执行形式**，不是生产实现。生产实现（drift + blob + 下载器）是后续子任务；
+2. **它必须零 IO**：不碰文件系统、不发网络、不依赖 drift。全部状态在内存 Map 里；
+3. **它是后续生产实现的对照基准** —— 同一套契约测试必须能同时跑通 reference 实现与将来的 drift 实现（���试对端口编程，不对实现编程）；
+4. **它承载 §6.6 的合并算法**。合并算法必须只有一份权威定义，生产实现复用它而非重写。
+
+**因此本文档中的 Dart 代码块分两类，各自标注**：
+- 标 `【契约】` 的是端口签名，零实现；
+- 标 `【reference】` 的是必须实现的行为，其算法在 §6.6 有完整规格。
 
 ---
 
@@ -48,7 +73,7 @@
 
 ### 1.2 `theme` 包是纯内存映射层，零 IO
 
-`theme/lib/` 共 19 个 dart 文件。搜 `SharedPreferences|dart:io|File(|drift|sqlite|http` **零命中**。
+`theme/lib/` 共 **20** 个 dart 文件。搜 `SharedPreferences|dart:io|File(|drift|sqlite|http` **零命中**。
 
 `theme/lib/src/loader/token_loader.dart:11` 的注释自陈边界：
 
@@ -63,7 +88,7 @@
 - `xuan-shell/lib/theme/shell_theme_controller.dart` 是真正的 Controller（`ChangeNotifier`，持有 `XuanThemeSet` + `ThemeMode`）。
 - 它的 `initialize()` 调 `ShellThemeLoader.loadAndValidate(...)` 两次，但该方法签名是 `Future<void>`（`shell_theme_loader.dart` 末），**只做校验不产出主题**，返回值无从接收。
 - 因此 `_themeSet` 始终是构造器里的 `DefaultXuanThemeData.themeSet`（代码内置默认）。
-- `xuan-shell/assets/themes/default.yaml` 全文 **197 字节**，`light`/`dark` 下的 `semantic`/`components`/`chart` 全是空 Map；与 `theme/config/presets/default.yaml`（9.1K，`version: 2`）**不是同一份**，shell 侧是 `version: 1` 的空壳。
+- `xuan-shell/assets/themes/default.yaml` 全文 **203 字节**（`dark.yaml` 为 197 字节），`light`/`dark` 下的 `semantic`/`components`/`chart` 全是空 Map；与 `theme/config/presets/default.yaml`（9.1K，`version: 2`）**不是同一份**，shell 侧是 `version: 1` 的空壳。
 
 **结论：当前 app 渲染的是代码内置默认主题，YAML 链路接通但空转。**
 
@@ -151,9 +176,17 @@ persistence_* ──X──>  theme       禁止
 2. 它实质是"用户的创作"，将来 Marketplace 开放时是 UGC 主题的雏形，塞进 JSON string 无法直接取出；
 3. 它有 schema、需要校验与版本迁移，string blob 不适合承载。
 
-**归为 `private` 类后自动获得**：E2EE、cloud + 三条 P2P 通道、跨设备同步、导出导入。**不需要为它新建任何同步机制。**
+**归为 `private` 类的意义与边界（诚实分类，勿过度推导）**：
 
-> ✅ **不依赖 S1b**：现有同步引擎已能同步到云端单 peer，足以满足"换设备能带走"。S1b 解决的是多 peer fan-out，S5a 不等它。
+| 说法 | 是否成立 |
+|---|---|
+| 归 `private` 后**自动**获得同步 / E2EE / 导出 | ❌ **不成立** —— 标策略不会自动创建 drift 表、mapper、outbox enqueue、remote apply |
+| `private` 类**有资格**走这些能力，且策略层不构成阻碍 | ✅ 成立 |
+| 能力真正落地需要后续 `persistence_drift` 适配（建表 + codec + outbox 接入） | ✅ 这是后续子任务，不在 S5a |
+
+> ✅ **S5a 契约层与 reference 实现不依赖 S1b**：reference 实现是纯内存的，不涉及任何同步。
+> ⚠️ **但"可跨设备同步"这个产品目标依赖后续的 drift + outbox 集成**（单 peer 即可，仍不需要 S1b 的多 peer fan-out）。
+> 两句话必须分开说 —— 混为一谈会让执行��以为 S5a 交付完就自动有跨设备能力。
 
 ### 2.4 决定四：存差量，不存拷贝
 
@@ -553,7 +586,6 @@ abstract interface class ThemeResourceStore {
 ```
 
 ### 5.4 配套值类型
-
 ```dart
 /// 已安装主题的元数据（drift row）。
 final class InstalledTheme {
@@ -675,35 +707,281 @@ final class OverrideOrigin {
 > 这是总纲 §6.4:1080 选择"内容寻址 + 引用计数"而非"blob 生命周期跟随 record"的直接兑现。
 > **当前无资产，此路径不在 S5a 首批实现范围，但端口形状必须容纳它。**
 
-### 5.5 存储策略声明与注册
+### 5.5 reference 实现的注入面与测试探针【reference】
+
+> **本节关闭 Codex R2 的四条 P1。** 原版在验收标准里写了 `_CountingHttpClient`、`localTokenReadCount`、
+> "永不完成的 install"、"验签钩子"、"bundled 权威源"，却没在任何地方定义它们的类型与注入点 ——
+> 机械执行者只能自己发明 API。以下写死。
+
+#### 5.5.1 设计原则：reference 零 IO，但**注入面**必须存在
+
+reference 实现本身不碰网络、文件、drift（§0.1）。但 P3/P4/P6 要验证的正是"**没有**发生 IO"，
+而"没有发生"只能通过**可观测的抽象边界**证明 —— 若边界不存在，测试无从下手，也无法证明
+将来的生产实现会遵守同一约束。
+
+因此 reference store 的构造器接收四个**窄端口**。生产实现注入真实现，测试注入计数式 spy，
+reference 的默认值是"什么都不做"的空实现（保持零 IO）。
+
+#### 5.5.2 四个注入端口【契约】
+
+文件：`core/lib/model/theme_source_ports.dart`
 
 ```dart
-// 主题包：resource 类，row 元数据 + blob 资产
+/// 本地已就绪 token 的读取端口（bundled / 已装包）。
+///
+/// 【为什么需要它】P1-4：bundled 权威源是 `theme` 仓库的文件，但 S5a **不得**跨仓库
+/// 读取或拷贝（§11.4 stop condition #2）。因此 reference 不自己找 bundled，
+/// 而是由调用方**注入已解析的 Map** —— 跨仓库的源迁移明确在 ACT 范围之外。
+///
+/// 【实现方】生产：drift / asset 读取器（后续子任务）。测试：内存 fixture。
+abstract interface class ThemeLocalReader {
+  /// 读取 bundled 默认主题的**已解析、已扁平化**token。
+  ///
+  /// 返回值不得为 null —— bundled 是最后兜底层，必须永远存在（§6.1）。
+  Future<Map<String, dynamic>> readBundledTokens();
+
+  /// 读取指定已安装主题包的已解析 token；未安装返回 null。
+  Future<Map<String, dynamic>?> readPackageTokens(String themeId);
+
+  /// 读取用户覆盖差量。
+  Future<Map<String, OverrideEntry>> readOverrides();
+}
+
+/// 远端拉取端口。**reference 的默认实现恒抛 `StateError`**
+/// —— 因为 reference 声明零网络，任何调用都是契约违反，必须炸而不是静默。
+///
+/// 【为什么不是 http.Client】依赖方向：`persistence_core` 不得依赖 http 包。
+/// 这是一个窄端口，生产实现在 firebase / 自建适配层。
+abstract interface class ThemeRemoteFetcher {
+  /// 拉取可安装主题清单。
+  Future<List<AvailableTheme>> fetchCatalog({CancellationToken? cancel});
+
+  /// 下载主题包字节。
+  Future<List<int>> downloadPackage(String themeId, {
+    CancellationToken? cancel,
+    void Function(int received, int total)? onProgress,
+  });
+}
+
+/// 主题包字节的落盘端口。reference 默认实现恒抛 `StateError`（零 IO）。
+abstract interface class ThemePackageStore {
+  /// 写入并解包主题包，返回其已解析 token。
+  Future<Map<String, dynamic>> installBytes(String themeId, List<int> bytes);
+
+  /// 删除已安装包。
+  Future<void> removePackage(String themeId);
+}
+
+/// 主题包验签适配器。
+///
+/// 【P1-3 的处置】§9.1 决定复用 S5c 的 ed25519 体系，但 `persistence_core`
+/// **不得依赖 `xuan_config`**（SHALL :69–74，验收 A5b）。因此 S5a 自持这个
+/// 窄接口，由装配层用 `xuan_config` 的 `ConfigSignatureVerifier` 适配实现。
+/// 依赖方向：装配层 → (persistence_core 的本接口, xuan_config 的实现)，
+/// 两个包之间无直接依赖。
+///
+/// 【reference 不实现验签】reference 零 IO 拿不到 `.sig` 文件；其默认实现
+/// 返回 [ThemeSignatureVerdict.skipped]，且 `install()` 在 skipped 时
+/// **仅在 reference 场景放行**，生产实现必须拒绝 skipped。
+abstract interface class ThemeSignatureVerifier {
+  /// 验证主题包字节的分离签名。
+  Future<ThemeSignatureVerdict> verify({
+    required List<int> packageBytes,
+    required String? signatureBase64,
+  });
+}
+
+/// 验签结论。与 S5c 的 `SignatureVerdict` 形状对齐但**不复用其类型**
+/// （避免 persistence_core 依赖 xuan_config）。
+enum ThemeSignatureVerdict {
+  /// 验签通过。
+  valid,
+
+  /// 缺少签名文件。
+  missingSignature,
+
+  /// 签名格式错误（base64 解码失败 / 长度不符）。
+  malformed,
+
+  /// 签名与内容不匹配 —— **安全事件**，必须告警。
+  mismatch,
+
+  /// 无可用公钥。fail-closed，不得当作"跳过验签"。
+  noPublicKey,
+
+  /// 未执行验签（仅 reference 实现返回）。生产实现**不得**返回此值。
+  skipped,
+}
+```
+
+#### 5.5.3 reference store 的精确构造器【reference】
+
+文件：`core/lib/reference/in_memory_theme_resource_store.dart`
+
+```dart
+final class InMemoryThemeResourceStore implements ThemeResourceStore {
+  /// 构造 reference store。
+  ///
+  /// 参数说明：
+  /// - [scopeUid]: 作用域 uid。
+  /// - [localReader]: **必需**。bundled / package / override 的来源。
+  ///   测试注入内存 fixture（§7.5 的 ThemeBenchFixture）。
+  /// - [remoteFetcher]: 可选。默认 [_ThrowingRemoteFetcher]（任何调用抛
+  ///   StateError）—— 兑现"reference 零网络"。P3 注入计数式 spy。
+  /// - [packageStore]: 可选。默认 [_ThrowingPackageStore]。P4 注入计数式 spy。
+  /// - [signatureVerifier]: 可选。默认返回 skipped。
+  InMemoryThemeResourceStore({
+    required this.scopeUid,
+    required ThemeLocalReader localReader,
+    ThemeRemoteFetcher? remoteFetcher,
+    ThemePackageStore? packageStore,
+    ThemeSignatureVerifier? signatureVerifier,
+  });
+}
+```
+
+#### 5.5.4 测试探针的精确定义与计数语义
+
+文件：`core/test/support/theme_probes.dart`
+
+| 探针 | 实现端口 | 计数字段 | **何时 +1** |
+|---|---|---|---|
+| `CountingLocalReader` | `ThemeLocalReader` | `bundledReadCount` | 每次 `readBundledTokens()` 返回 |
+| | | `packageReadCount` | 每次 `readPackageTokens()` 返回 |
+| | | `overrideReadCount` | 每次 `readOverrides()` 返回 |
+| `CountingRemoteFetcher` | `ThemeRemoteFetcher` | `callCount` | 每次 `fetchCatalog()` **或** `downloadPackage()` 被**进入**（不等返回） |
+| | | `calledMethods` | 同上，记录方法名列表 |
+| `CountingPackageStore` | `ThemePackageStore` | `readCount` | 每次 `installBytes()` 或 `removePackage()` 被进入 |
+| `PendingInstallFetcher` | `ThemeRemoteFetcher` | — | `downloadPackage()` 返回一个**永不完成的 `Completer.future`**；`fetchCatalog()` 正常返回空列表 |
+
+**P3 的完整断言（正向控制在此闭合）**：
+
+```
+1. store = InMemoryThemeResourceStore(
+     localReader: CountingLocalReader(fixture),
+     remoteFetcher: CountingRemoteFetcher(),
+   )
+2. await store.resolve()
+3. 断言 remoteFetcher.callCount == 0            ← 零网络
+4. 断言 localReader.bundledReadCount    >  0    ← 正向控制：确实走了路径
+   且   localReader.overrideReadCount   >  0
+```
+
+第 4 步是关键 —— 没有它，一个 `resolve()` 直接返回空对象的实现也能让第 3 步通过。
+
+**P4 同构**：`CountingPackageStore.readCount == 0` + `localReader.bundledReadCount > 0`。
+
+**P6 的状态转换（原版未定义，R2 P1-2 指出）**：
+
+```
+1. store = InMemoryThemeResourceStore(
+     localReader: CountingLocalReader(fixture 含已装包 A),
+     remoteFetcher: PendingInstallFetcher(),
+   )
+2. before = await store.resolve()               // activeThemeId == 'A'
+3. final pending = store.install('B');          // 不 await —— 永不完成
+4. sw = Stopwatch()..start()
+5. during = await store.resolve()
+6. 断言 sw.elapsedMilliseconds < 50
+7. 断言 during.resolution.activeThemeId == 'A'  // 仍是旧主题
+8. 断言 identical(before, during)                // 缓存键未变，同一实例
+9. 清理：pending 不 await，测试结束（避免 pending future 泄漏告警时
+   用 unawaited() 显式标注）
+```
+
+第 8 条顺带证明"进行中的安装不污染缓存键" —— 这是 §6.6 缓存键三元组
+`(activeThemeId, packageVersion, overridesRevision)` **不含 in-flight 状态**的直接后果。
+
+#### 5.5.5 A14 的归属裁决（R2 P1-1）
+
+R2 指出 A14b/A14d/A14e 无法在 reference 表面执行 —— **判断成立**，处置如下：
+
+| 验收 | 内容 | 归属 |
+|---|---|---|
+| **A14a** | 未知字段静默忽略 | ✅ **留在 S5a**。合并算法第 1 步扁平化时天然处理：未知 key 只是普通 key，照常参与三层取值，不抛异常。测试用 fixture 加一个 `light.components.btn.unknown_field` 断言不抛且值透传 |
+| **A14c** | 缺失字段保持 legacy fallback | ✅ **留在 S5a**。这是 §6.6 第 4 步原子组补全的直接验收，输入输出都是 Map，可执行 |
+| **A14b** | `package_format_version` / `min_app_version` 过高拒装 | ⬜ **移交后续 installer 任务**。理由：它需要解析 manifest、比对 app 版本，而 §6.6 的 reference 算法输入是**已解析的扁平 Map**，不含 manifest；`install()` 在 reference 中是端口签名而非完整实现 |
+| **A14d** | 数值非法透传给解析层 | ⬜ **移交后续 parser/installer 任务**。理由：S5a 不实现数值解析（复用 `token_loader.dart:88`），而 reference 的输入已是 Map，"透传"在 Map→Map 的合并里不产生可观测行为 |
+| **A14e** | 单字段非法只回退该字段 | ⬜ **移交后续 parser 任务**。同 A14d：非法值的识别发生在 YAML→Map 的解析阶段，不在 Map→Map 的合并阶段 |
+
+**S5a 对 A14b/d/e 的责任降为"不破坏"**：合并层**不得吞掉**任何值（包括非法值），必须原样透传给下游解析层。
+这一条本身可验收 —— 见新增 **A19**：注入一个值为 `"8px"` 的非法 radius，断言它**原样出现在**
+`resolve()` 结果中（证明合并层没有偷偷过滤或修正），非法值的处置由下游解析层负责。
+
+> 📌 这样 A14 从"五条都在 S5a"收窄为"a/c 在 S5a，b/d/e 移交"，并新增 A19 守住边界。
+> 移交项需在后续 installer/parser 任务的纪要中承接，不得丢失。
+
+### 5.6 存储策略声明与注册
+
+#### 策略声明【契约】
+
+文件：`core/lib/model/theme_storage_policies.dart`
+
+```dart
+/// 主题包：resource 类，row 元数据 + blob 资产。
 const officialThemePolicy = StoragePolicy.resource(
   carriers: {Carrier.row, Carrier.blob},
   sources: {Source.bundled, Source.officialRemote},
 );   // publisher 默认 official
 
-// 用户覆盖层：private 类，当前仅 row
+/// 用户覆盖层：private 类，当前仅 row。
 const themeOverridePolicy = StoragePolicy.private(
   carriers: {Carrier.row},
 );
 
-// 用户主题选择：private 类
+/// 用户主题选择：private 类。
 const themeSelectionPolicy = StoragePolicy.private(
   carriers: {Carrier.row},
 );
 ```
 
-装配期注册（总纲 §2.4:416「声明之后必须注册，否则推送侧 fail closed」）：
+#### 注册落点（精确到文件、函数、时机、幂等策略）
+
+> Codex gStack 评审 P0：原设计只给三行裸 `register(...)`，没说放哪个文件、何时调用、重复注册怎么办，机械执行者无法判断。以下写死。
+
+**文件**：`core/lib/model/theme_module_registry.dart`（新建）
+
+**形态**：
 
 ```dart
-StoragePolicyRegistry.register('theme_package', officialThemePolicy);
-StoragePolicyRegistry.register('theme_override', themeOverridePolicy);
-StoragePolicyRegistry.register('theme_selection', themeSelectionPolicy);
+/// 主题模块的策略注册入口。
+///
+/// 【调用时机】由装配层（xuan-shell 的 DI bootstrap）在**构造任何
+/// ThemeResourceStore 之前**调用一次。
+///
+/// 【幂等】StoragePolicyRegistry.register 对重复 entityType 抛 StateError
+/// （storage_policy_registry.dart:38-42），而热重启 / 测试会重复进入装配期。
+/// 因此本函数用 [_registered] 标志保证「只注册一次」，重复调用直接返回。
+///
+/// 【为何不用 try-catch 吞 StateError】那会掩盖「别的模块抢注了同名
+/// entityType」这一真实错误。标志位只防自己重入，不防冲突。
+abstract final class ThemeModuleRegistry {
+  static bool _registered = false;
+
+  /// 注册主题模块的三条存储策略。幂等。
+  static void register() {
+    if (_registered) return;
+    StoragePolicyRegistry.register(themePackageEntityType, officialThemePolicy);
+    StoragePolicyRegistry.register(themeOverrideEntityType, themeOverridePolicy);
+    StoragePolicyRegistry.register(themeSelectionEntityType, themeSelectionPolicy);
+    _registered = true;
+  }
+
+  /// 仅测试用：重置标志，配合 StoragePolicyRegistry.clearForTesting()。
+  @visibleForTesting
+  static void resetForTesting() => _registered = false;
+}
+
+/// entityType 常量。**不得内联字符串字面量** —— 测试与生产必须引用同一常量，
+/// 否则拼写漂移不会被编译器发现。
+const themePackageEntityType = 'theme_package';
+const themeOverrideEntityType = 'theme_override';
+const themeSelectionEntityType = 'theme_selection';
 ```
 
-⚠️ **这将是 `StoragePolicyRegistry` 的首个生产调用点**（§1.6 已核实当前零调用）。注册期的两条不变式（总纲 §2.3.2 #4 resource 必须 official、#5 sources 非空性）**第一次被真实驱动**，可能炸出 S1a 未预见的问题。ACT 需为此准备验证。
+**调用点**：`xuan-shell` 的 DI bootstrap（**由 shell 侧调用，不在 S5a 交付范围**；S5a 交付 `ThemeModuleRegistry.register()` 这个可调用入口，并在纪要中记录 shell 侧的接线要求）。
+
+⚠️ **这将是 `StoragePolicyRegistry` 的首个生产调用点**（§1.6 已核实当前零调用）。注册期两条不变式（总纲 §2.3.2 #4 resource 必须 official、#5 sources 非空性）**第一次被真实驱动**。验收 A8 必须真实调用 `ThemeModuleRegistry.register()` 并断言三条策略进入 `StoragePolicyRegistry.all`，而非仅检查声明存在。
 
 ---
 
@@ -731,41 +1009,136 @@ bundled 默认主题（编译进包）        ← 兜底，永远存在
 
 ### 6.2 覆盖的最小单位
 
-**采纳：叶子字段**（如 `light.components.four_zhu_card.shadow.color`）。
+**已拍板：叶子字段 + 属性组补全。**（2026-08-03 人类授权按倾向拍板）
 
-理由：粒度最细，用户只改颜色时，主题包对 `blur_radius` 的定义仍然生效。
+覆盖以**叶子标量**为存储单位，例如 `light.components.four_zhu_card.shadow.color`。
 
-⚠️ **已知摩擦（必须在实现期解决）**：`token_loader.dart` 的 `_parseShadow`（:289）是**整组解析**的 —— `color` 为 null 直接返回 null（:292），`_parseBorder`（:303）同理。意味着 shadow / border 这类属性组在解析层是"要么全有要么全无"。
+**已知摩擦**：`token_loader.dart` 的 `_parseShadow`（:289）是整组解析 —— `color` 为 null 直接返回 null（:292），`_parseBorder`（:303）同理。故 shadow / border 这类属性组在解析层是"要么全有要么全无"。
 
-**处置**：合并层在输出前**补全属性组** —— 若某组内有任一叶子被覆盖，则该组的其余叶子从下层补齐后整组输出。这样叶子粒度的存储 + 整组形态的输出，两边都满足。
+**处置（属性组补全，算法见 §6.6 第 4 步）**：合并层输出前，若某个"原子组"内有任一叶子来自较高层，则该组其余叶子从较低层补齐后**整组输出**。
 
-> 📌 此项人类未明确拍板，按倾向采纳并标注。**转 ACT 前建议复核。**
+**原子组清单（写死，不得由执行者自行推断）**：
+
+| 组路径后缀 | 成员叶子 | 依据 |
+|---|---|---|
+| `.shadow` | `color` / `blur_radius` / `offset_x` / `offset_y` | `token_loader.dart:289-301` |
+| `.border` | `color` / `width` | `token_loader.dart:303-311` |
+| `.text.text_shadow` | `color` / `blur_radius` / `offset_x` / `offset_y` | `token_loader.dart:197-209` |
+| `.padding` / `.margin` | `top` / `bottom` / `left` / `right` / `all` | `token_loader.dart:157-182`（也接受单标量，见下） |
+
+**非原子组**（逐叶子独立覆盖，无需补全）：`.text` 的其余字段、`.icon`、以及 `radius` / `gap` / `opacity` / `min_width` / `min_height` / `max_width` / `max_height` 等标量。
+
+**`padding` / `margin` 的双形态**：`token_loader.dart:160` 接受单个数值（`EdgeInsets.all`），:164 接受四方向 Map。**规则**：若较高层给的是标量，则整体替换较低层的值（不做补全）；若较高层给的是 Map 的某几个方向，则按原子组补全其余方向。
 
 ### 6.3 light / dark 的处理
 
-**采纳：token key 内含 brightness 前缀，两份完全独立。**
+**已拍板：token key 内含 brightness 前缀，两份完全独立。**（2026-08-03 人类授权按倾向拍板）
 
 `light.components.xxx` 与 `dark.components.xxx` 是两条独立记录。用户改 light 不影响 dark。
 
-理由：简单、无歧义。代价是用户要分别调两次 —— 这属于编辑器 UI 的便利问题（可提供"同步到暗色"按钮），不是存储层该解决的。
-
-> 📌 人类未明确拍板，按倾向采纳并标注。
+理由：简单、无歧义。代价是用户要分别调两次 —— 属编辑器 UI 的便利问题（可提供"同步到暗色"按钮），不是存储层该解决的。
 
 ### 6.4 悬空覆盖（orphan）
 
-用户覆盖了 `four_zhu_card.shadow.color`，主题包升级后该 key 不存在了（重构/改名）。
+**已拍板：保留 + 标记 orphan + 诊断暴露，不静默丢弃。**（2026-08-03 人类授权按倾向拍板）
 
-**采纳：保留但标记 orphan，不参与合并，经 `ThemeResolution.orphanedOverrideKeys` 暴露给 UI。**
+用户覆盖了 `four_zhu_card.shadow.color`，主题包升级后该 key 不存在了（重构 / 改名）。
 
-被否决：静默丢弃 —— **静默丢弃用户的创作是最坏选择**，与 S5c 的 A11 诊断链精神一致（任何值都要能回答来龙去脉）。
+**判定规则（机械可判，供 §6.6 第 5 步使用）**：一条覆盖是 orphan **当且仅当**：其 token 路径在"已装主题包层"与"bundled 层"**都不存在同路径的叶子**。
 
-> 📌 人类未明确拍板，按倾向采纳并标注。
+**处置**：
+1. 该覆盖**不参与合并输出**；
+2. 其 key 出现在 `ThemeResolution.orphanedOverrideKeys`；
+3. **数据不删除** —— 用户可能换回原主题包，届时自动恢复生效。
+
+被否决：静默丢弃 —— **静默丢弃用户的创作是最坏选择**，与 S5c 的 A11 诊断链精神一致。
 
 ### 6.5 覆盖数量上限
 
 不设硬上限；设**软上限 + 诊断告警**。理由：无上限时失控的编辑器可写入数万条，合并时逐 key 查找会拖慢启动。
 
-**具体阈值不在本设计决定** —— 参照总纲 §10:1581 对缓存容量上限的处理（"S1a 定接口，S2 定阈值"）。本设计只要求端口能暴露当前覆盖条数。
+**本设计只要求端口能暴露当前覆盖条数**（`listOverrides().length`）。具体阈值参照总纲 §10:1581 对缓存容量上限的处理方式（"S1a 定接口，S2 定阈值"），不在本设计决定。
+
+### 6.6 合并算法完整规格（reference 实现的权威定义）
+
+> **本节是 §0.1 reference 实现的行为规格。** 算法只有这一份权威定义，将来的 drift 生产实现必须复用它，不得重写。
+> 机械执行者按本节逐步实现即可，无需推断。
+
+#### 输入
+
+| 名称 | 类型 | 说明 |
+|---|---|---|
+| `bundledTokens` | `Map<String, dynamic>` | bundled 默认主题的**扁平化** token（key 形如 `light.components.btn.radius`） |
+| `packageTokens` | `Map<String, dynamic>?` | 已安装主题包的扁平化 token；无已装包时为 null |
+| `overrides` | `Map<String, OverrideEntry>` | 用户覆盖差量 |
+
+#### 步骤
+
+**第 1 步 · 扁平化（flatten）**
+
+主题 YAML 是嵌套 Map，合并在**扁平 key 空间**进行。
+
+- 扁平 key = 从根到叶子的路径，以 `.` 连接，形如 `light.components.four_zhu_card.shadow.color`；
+- 递归下降，遇到**非 Map 值**即停止（该值是叶子）；
+- **List 视为叶子**，不再下降（颜色数组等整体替换）；
+- 空 Map `{}` 不产生任何 key。
+
+**第 2 步 · 逐 key 三层取值**
+
+对全体 key 的并集（`bundled ∪ package ∪ override` 的 key 集合），逐 key 按优先级取第一个命中：
+
+```
+override（非 orphan）  >  package  >  bundled
+```
+
+- "命中"= 该层存在此 key（**注意：值为 `null` 也算命中**，不可用 `?? `写，须用 `containsKey`）；
+- 三层都无 → 该 key 不出现在结果里。
+
+**第 3 步 · 记录每层贡献数**
+
+统计每层实际被采用的 key 数，写入 `ThemeLayerInfo.contributedKeyCount`（诊断用，A15 验收）。
+
+**第 4 步 · 原子组补全**
+
+对 §6.2 表中列出的每个原子组后缀：
+
+1. 找出结果中属于该组的全部叶子 key；
+2. 若该组**至少一个**叶子来自较高层（override 或 package），而组内**其他**成员叶子在结果中缺失；
+3. 则从较低层按同样的优先级顺序补齐缺失成员；
+4. 若较低层也没有，则该成员保持缺失（由 `token_loader` 的字段默认值兜底，如 `_parseShadow:293` 的 `blurRadius ?? 4.0`）。
+
+**第 5 步 · 识别 orphan**
+
+对 `overrides` 中的每个 key：若 `packageTokens` 与 `bundledTokens` **都不含**该 key（`containsKey` 为 false），则：
+
+- 该 key 从第 2 步的结果中**移除**（它不该凭空创造 token）；
+- 该 key 加入 `orphanedOverrideKeys`。
+
+> ⚠️ 顺序要求：第 5 步的判定必须在第 2 步之后、第 4 步之前完成，否则 orphan 会参与原子组补全并污染结果。
+> **实现顺序：1 → 5（判定）→ 2 → 4 → 3 → 6。** 本节按逻辑分组编号，实现顺序以此行为准。
+
+**第 6 步 · 反扁平化（unflatten）与稳定排序**
+
+- 把扁平 key 还原成嵌套 `ThemeTokenSection`（`components` / `chart` / `semantic` 三个分区）；
+- **所有层级的 Map 必须按 key 字典序插入**（`SplayTreeMap` 或先排序后插入），保证 P7 的顺序稳定性；
+- 顶层按 brightness 前缀拆成 `light` / `dark` 两个 `ThemeTokenSection`。
+
+#### 缓存（P2 的实现要求）
+
+reference 实现须持有一个**单条缓存**：
+
+- 缓存键 = `(activeThemeId, packageVersion, overridesRevision)` 三元组；
+- `overridesRevision` 是一个单调递增计数器，每次 `applyOverrides` / `removeOverrides` 成功后 +1；
+- 缓存键相同 → **返回同一个实例**（`identical` 为真），不重新计算；
+- 缓存键变化 → 重算并替换。
+
+#### 不可变性（Codex P2 finding 的处置）
+
+合并产出的 `ThemeTokenSection.components` / `chart` / `semantic` 必须是**不可修改视图**（`Map.unmodifiable`），且内部嵌套 Map 逐层 unmodifiable。
+
+**理由**：若调用方能修改返回的 Map，会就地污染缓存实例，使 P2（identical）与 P7（顺序稳定）失效，且 bug 极难定位。
+
+**验收**：A16 —— 对 `resolve()` 结果的任意层级 Map 执行写操作必须抛 `UnsupportedError`。
 
 ---
 
@@ -783,7 +1156,7 @@ bundled 默认主题（编译进包）        ← 兜底，永远存在
 
 ### 7.2 真实风险一：`updateShouldNotify` 的深比较
 
-§1.5 核实：`XuanThemeScope.updateShouldNotify`（`xuan_theme_scope.dart:25`）用 `themeData != oldWidget.themeData`，`XuanThemeData` 是 Equatable，一次 `!=` 要比较 16 个组件 × 每个约 15 字段 + variants 嵌套 —— 数百次字段比较。
+§1.5 核实：`XuanThemeScope.updateShouldNotify`（`xuan_theme_scope.dart:25`）用 `themeData != oldWidget.themeData`，`XuanThemeData` 是 Equatable，一次 `!=` 要比较 16 个组件 × 每个 16 个字段（`component_style.dart:102-106` 的 `props`）+ variants 嵌套 —— 数百次字段比较。
 
 单次仍是微秒级，**但它在每次 InheritedWidget 重建时都跑**。
 
@@ -829,40 +1202,70 @@ bundled 默认主题（编译进包）        ← 兜底，永远存在
 
 > 不可验证的性能承诺等于没有承诺。以下每条都必须可测。
 > 门禁写法遵循 S1a / S5c 的血泪纪律：用**计数式 spy**，不用 `fail()`（调用方 catch-all 会吞掉 `TestFailure`）。
+>
+> ⚠️ Codex gStack 评审指出原版三处缺陷，已在下表修正：P1 无 fixture/warm-up 定义会假通过且 CI 抖动；
+> P3/P4 的 spy 未绑定真实启动入口，测试可绕过生产调用链直接调 fake；P6 的「X ms」是自然语言占位符。
 
-| # | 判据 | 验证方式 |
+#### 共同 fixture（写死，供 P1/P2/P7 使用）
+
+**`ThemeBenchFixture`**（`core/test/support/theme_bench_fixture.dart`）：
+
+- bundled 层：**16 个 components**，每个含 §6.2 全部原子组（shadow 4 叶子 + border 2 叶子 + padding 4 叶子）+ 8 个标量字段 ⇒ 每组件 18 个叶子；
+- 其中 6 个组件各带 1 个 variant（对齐 `default.yaml` 实测的 variants=6）；
+- package 层：覆盖其中 8 个组件的各 3 个叶子；
+- override 层：**50 条**（含 5 条 orphan，用于同时驱动第 5 步）；
+- light / dark 各一份 ⇒ 全量约 **(16×18 + 6×18) × 2 ≈ 792 个叶子 key**。
+
+**禁止用空 Map 或极小输入跑 P1** —— 那是假通过。fixture 的叶子总数须有下限断言（`>= 700`），防止 fixture 被悄悄改小。
+
+| # | 判据 | 验证方式（已具体化） |
 |---|---|---|
-| **P1** | 三层合并（16 组件 × light/dark）耗时 < 1 ms | 基准测试，100 次取中位数 |
-| **P2** | 相同输入连续两次 `resolve()` 返回 `identical` 实例 | 单测断言 `identical(a, b) == true` |
-| **P3** | 启动路径**零网络请求** | **计数式 spy**：注入 fake HTTP client，断言 `callCount == 0` |
-| **P4** | 启动路径**零解压、零 blob 读取** | **计数式 spy**：fake `LocalBlobStore`，断言读取次数 == 0 |
-| **P5** | `component(id)` 保持 O(1)，无逐层回退 | 静态检查：合并产出的结构不持有任何"下一层"引用 |
-| **P6** | 下载未完成时 `resolve()` 仍立刻返回旧主题 | 单测：注入永不完成的下载，断言 `resolve()` 在 X ms 内返回 |
-| **P7** | 合并输出的 Map key 顺序稳定 | 单测：同一输入多次合并，逐 key 序列比对 |
+| **P1** | 三层合并 `ThemeBenchFixture` **< 5 ms** | 独立 benchmark 测试（`@Tags(['benchmark'])`）：**先 warm-up 20 次**（触发 JIT），再测 100 次取**中位数**。断言中位数 < 5 ms。<br>⚠️ **不进 CI 阻塞门禁**（Flutter debug VM 抖动大），标记为趋势观测；CI 只跑一次冒烟确认不超时（< 100 ms）。<br>⚠️ fixture 叶子数须 `>= 700`，防止用空输入假通过 |
+| **P2** | 相同输入连续两次 `resolve()` 返回 `identical` 实例 | 单测断言 `identical(a, b) == true`；**再改一次 override 后断言 `identical` 为 false**（证明缓存键真的参与判定，不是恒返回同一实例） |
+| **P3** | 启动路径**零网络请求** | 探针与完整断言见 **§5.5.4**：注入 `CountingRemoteFetcher`，调 `resolve()`，断言 `callCount == 0`；**正向控制**断言 `localReader.bundledReadCount > 0` 且 `overrideReadCount > 0` |
+| **P4** | 启动路径**零解压、零 blob 读取** | 同 P3：注入 `CountingPackageStore`，断言 `readCount == 0` + 正向控制 |
+| **P5** | 合并产出不持有"下一层"引用 | 结构断言：`ThemeTokenSection` 的字段类型中不出现 `ThemeResourceStore` / 任何 layer 引用；且 `resolve()` 返回后**销毁 store 实例**，结果仍可正常读取（证明无回指） |
+| **P6** | 下载未完成时 `resolve()` **50 ms 内**返回旧主题 | 状态转换的完整 9 步见 **§5.5.4**：注入 `PendingInstallFetcher`（`downloadPackage` 返回永不完成的 future），`Stopwatch` 计时，断言 < 50 ms + `activeThemeId` 仍是旧值 + `identical(before, during)` |
+| **P7** | 合并输出的 Map key 顺序稳定 | 同一 fixture 合并 **10 次**，逐层 `keys.toList()` 序列**逐元素**比对全部相等；且断言顺序为**字典序**（`keys.toList()` == `keys.toList()..sort()`） |
+| **A16** | 结果不可变 | 对 `resolve()` 结果的 `components` / 嵌套 Map 执行 `[]=` 与 `remove()`，断言抛 `UnsupportedError`（§6.6 不可变性要求） |
 
 ---
 
 ## 8. 与外部契约的对齐
 
-### 8.1 必须遵守的在途 OpenSpec change
+### 8.1 必须遵守的在途 OpenSpec change（逐条 SHALL 映射）
 
-`/xuan-migration/openspec/changes/theme-token-customization-contract/` 已过 4 轮评审并签署。其 `specs/theme-token-system/spec.md` 中与 S5a 相关的 SHALL 条款：
+`/xuan-migration/openspec/changes/theme-token-customization-contract/` 已过 4 轮评审并签署。下表**逐条**映射其 `specs/theme-token-system/spec.md` 的 SHALL 条款，每条给出 S5a 的处置与**对应验收标准编号**（无验收标准 = 未闭合，不得进 ACT）。
 
-| 条款 | 对 S5a 的约束 |
-|---|---|
-| **No Direct YAML Parsing In Widgets Or Drawing Packages** | S5a 的输出必须是 typed / 已解析结构，**不得把 raw YAML 递给 Widget**；Widget 不得 import `xuan_config` |
-| **Additive YAML Schema Evolution** | 主题包 token schema 演进必须 additive；未知字段静默忽略，渲染不得失败（已落入 §4.3） |
-| **Token Field Fallback** | 每个字段有确定性降级；数值字段必须 checked 解析（`token_loader.dart:88` 的 `_parseCheckedDouble` 已实现） |
-| **降级分粒度**（第二轮评审 finding #5） | 整体形状非法 → `DefaultXuanThemeData`；单字段非法 → 该字段默认。**一个坏的 `shadow.color` 不得让整个主题失效** |
-| **Tier 3 隔离** | marketplace / cloud sync / uploaded assets **MUST NOT** 在 Tier 1 theme-token 工作下实现 —— 它们要独立 change。**S5a 正是那个独立 change** |
+| spec.md 位置 | SHALL 条款 | S5a 的处置 | 验收 |
+|---|---|---|---|
+| :54 | **缺失字段保持 legacy fallback** —— widget 消费的字段在主题中缺失时，保留既有视觉回退或文档化默认 | 合并算法第 4 步的原子组补全 + 缺失时由 `token_loader` 字段默认兜底（§6.6） | **A14c** |
+| :60 | **数值非法须 caught error + 诊断**，不得抛未捕获 `TypeError` | S5a 不重新实现数值解析（复用 `token_loader.dart:88` 的 `_parseCheckedDouble`）；但**合并层不得吞掉诊断**，非法值须原样透传给解析层处理 | **A14d** |
+| :69–74 | **Widget / 绘图包不得直接解析 YAML**，不得 import `xuan_config` | S5a 输出 `ThemeTokenSet`（已解析结构），**不传 raw YAML**；`persistence_core` 亦不依赖 `xuan_config` | **A5b** |
+| :86 | **Additive schema 演进**：未知字段忽略，渲染不得失败 | §4.3 版本兼容规则第 4 条 | **A14a** |
+| :116 | **Canvas 文件所有权**：不得编辑 `lib/painter/**` 等 | §8.3 声明不碰；S5a 全部产出在 `xuan-storage/core/` 内 | **A17** |
+| :123 | **API 未稳定时停止**：绘图包 API 未稳定前不得集成 chart | `chart` 段仅透传不解析（§8.3） | **A17** |
+| :134 | **可执行计划门禁**：实施前须列精确文件 / 测试 / fallback 断言 / 验证命令 / stop condition | 本文档 §11 交付物清单 + 纪要 A1–A18/P1–P7 逐条给命令 | **纪要整体** |
+| Tier 3 隔离 | marketplace / cloud sync / uploaded assets **MUST NOT** 在 Tier 1 theme-token 工作下实现，须独立 change | **S5a 即是那个独立 change**（design.md:108 明写这些 require separate OpenSpec changes） | — |
+| 第二轮评审 #5 | **降级分粒度**：整体形状非法 → `DefaultXuanThemeData`；单字段非法 → 该字段默认 | §4.3 版本兼容规则第 5 条 | **A14e** |
 
-### 8.2 一条被澄清的归属问题
+### 8.2 一条归属判断（架构决定，非源码已证实）
 
-`xuan_config/lib/src/config_repository.dart:8` 写着「Phase 0a 不做 `$ref` 解析、**override 合并**、schema 校验」。
+`xuan_config/lib/src/config_repository.dart:8` 写着「Phase 0a 不做 `$ref` 解析、**override 合并**、schema 校验（Phase 0+）」。
 
-**该处的 "override 合并" 指 YAML 文件内部的合并**（与 `$ref` 并列），**不是**"用户覆盖主题包"。二者同名不同物。
+**本设计的判断**：该处的 "override 合并" **不指** 本文档所说的"用户覆盖主题包"，故用户覆盖层的合并不归 `xuan_config`。
 
-佐证：在途 change 第三轮评审 finding E3 明确指出 —— `TokenLoader.fromConfigResult` 消费的是**已解析的 `ConfigResult`，永远看不到 raw YAML**，因此 raw 顶层键（如 `version`）的归属只能判给 `xuan_config`。同理，**用户覆盖层合并的是已解析的 token 结构，不是 raw YAML，故不归 `xuan_config`**，应在 storage / 装配层。
+**证据强度的诚实说明**（按 Codex gStack 评审的指正降调）：
+
+| 证据 | 能证明什么 | 不能证明什么 |
+|---|---|---|
+| `config_repository.dart:8` 与 `$ref` 并列出现 | 支持"配置解析阶段的合并"这一解释 | **不能**证明它特指 YAML 内部 merge |
+| 该行只有一句 Phase 0a TODO，未定义 override 的对象、算法或层级 | —— | 无法据此推断任何具体语义 |
+| `TokenLoader.fromConfigResult` 消费已解析的 `ConfigResult`，看不到 raw YAML（在途 change 第三轮评审 E3） | 证明**用户覆盖不应放在 `TokenLoader`** | **不能**单独证明它应归 storage |
+
+**结论**：这是一条**架构决定**（用户覆盖层的合并归 storage / 装配层），理由是数据在 storage、合并的是已解析 token 结构、且 `xuan_config` 的 `ConfigSource.loadRaw → String` 签名要求源差异挡在字符串边界外。**但它不是"源码已证实"的事实**，本设计此前的表述过强，已修正。
+
+> 📌 若将来 `xuan_config` 明确了它那句 override 的语义，本条需复核。
 
 ### 8.3 必须避让的并行工作
 
@@ -874,17 +1277,86 @@ bundled 默认主题（编译进包）        ← 兜底，永远存在
 
 ## 9. 待决事项
 
+> Codex gStack 评审 P0：原版有 5 项标"转 ACT 前确认"，其中前三项已被 A9–A14 当作既定行为在测 —— 未定的东西不能进验收标准。
+> 现已全部关闭（人类 2026-08-03 授权按倾向拍板 + 本次补充决定）。
+
+### 9.1 已关闭（本轮拍板）
+
+| 事项 | 决定 | 位置 |
+|---|---|---|
+| 覆盖最小单位 | ✅ **叶子字段 + 原子组补全**，原子组清单写死 | §6.2 |
+| light/dark | ✅ **key 内含 brightness 前缀，两份完全独立** | §6.3 |
+| 悬空覆盖 | ✅ **保留 + 标记 orphan + 诊断暴露**，判定规则机械可判 | §6.4 |
+| 主题包签名 | ✅ **复用 S5c 的 ed25519 体系**：`<package>.sig` 分离传输，验签在解包前对原始字节进行。**S5a 交付 `ThemeSignatureVerifier` 窄接口 + `ThemeSignatureVerdict` 六态**（`core/lib/model/theme_source_ports.dart`），由装配层用 `xuan_config` 的 `ConfigSignatureVerifier` 适配 —— `persistence_core` **不依赖** `xuan_config`（A5b）。reference 实现返回 `skipped`（零 IO 拿不到 `.sig`），**生产实现不得返回 skipped** | §5.5.2 |
+| bundled 默认主题物理位置 | ✅ **`theme` 包的 `config/presets/default.yaml` 为唯一权威源**；shell 的 `assets/themes/*.yaml`（203 字节空壳）应废弃。<br>⚠️ **跨仓库源迁移明确在 ACT 范围之外**：S5a 不读取、不拷贝 `theme` 仓库的任何文件（stop condition #2）。reference 通过 `ThemeLocalReader.readBundledTokens()` 接收**已解析的 Map**，来源由装配层决定 | §5.5.2, §11.4 |
+
+### 9.2 仍开放（不阻塞 ACT）
+
 | 事项 | 状态 | 归属 |
 |---|---|---|
-| **`ConfigBootstrap` 三个真值**（`endpoints` / `allowedHostSuffixes` / `l0PublicKeyBase64`）仍为占位符 | 🔴 **阻塞真实下载** | 人类填入 |
-| 覆盖最小单位 = 叶子字段 + 属性组补全 | 按倾向采纳，未拍板 | 转 ACT 前复核 |
-| light/dark key 内含 brightness、两份独立 | 按倾向采纳，未拍板 | 转 ACT 前复核 |
-| 悬空覆盖保留 + 标记 orphan | 按倾向采纳，未拍板 | 转 ACT 前复核 |
-| 覆盖数量软上限的具体阈值 | 本设计只定接口 | 后续（参照总纲 §10:1581 的处理方式） |
-| **下载字体的运行时注册（`FontLoader`）与失败降级** | ⚠️ **未查证** | 资产引入时深挖 |
-| 主题包的加密与签名（是否复用 S5c 的 ed25519） | 未讨论 | 转 ACT 前需定 |
-| shell 侧 `version: 1` 空壳与 theme 侧 `version: 2` 预设的统一 | 未讨论 | 主题内容就绪时处理 |
-| bundled 默认主题的物理位置（shell assets / theme 包 / storage assets 包） | 未讨论 | 转 ACT 前需定 |
+| **`ConfigBootstrap` 三个真值**（`endpoints` / `allowedHostSuffixes` / `l0PublicKeyBase64`）仍为占位符 | 🔴 **阻塞真实下载联调**，**不阻塞** S5a 契约层与 reference 实现 | 人类填入 |
+| 覆盖数量软上限的具体阈值 | 本设计只定接口（`listOverrides().length` 可查） | 后续（参照总纲 §10:1581） |
+| **下载字体的运行时注册（`FontLoader`）与失败降级** | ⚠️ **未查证** | 资产引入时深挖（S5a 无资产） |
+| shell 侧 `version: 1` 空壳的废弃 | 已定方向（§9.1），执行不在 S5a | 主题内容就绪时 |
+
+---
+
+## 11. 交付物清单（精确到文件）
+
+> Codex gStack 评审：可执行计划门禁要求「列精确文件 / 测试 / fallback 断言 / 验证命令 / stop condition」。以下为文件级清单，ACT 转译时逐文件展开。
+
+### 11.1 契约层（零实现）
+
+| 文件 | 内容 | 验收 |
+|---|---|---|
+| `core/lib/model/theme_token_types.dart` | `ThemeTokenSet` / `ThemeTokenSection` | A6, A16 |
+| `core/lib/model/theme_resolution.dart` | `ThemeResolution` / `ThemeLayerInfo` / `ThemeSelectionOrigin` / `ThemeLayerKind` | A15 |
+| `core/lib/model/theme_resource_store.dart` | `ThemeResourceStore` 端口 | A3, A6, A7 |
+| `core/lib/model/theme_value_types.dart` | `InstalledTheme` / `AvailableTheme` / `OverrideEntry` / `OverrideOrigin` | A6 |
+| `core/lib/model/theme_source_ports.dart` | **四个注入端口**：`ThemeLocalReader` / `ThemeRemoteFetcher` / `ThemePackageStore` / `ThemeSignatureVerifier` + `ThemeSignatureVerdict`（§5.5.2） | A3, A6, P3, P4 |
+| `core/lib/model/theme_storage_policies.dart` | 三条 `StoragePolicy` const 声明 + 三个 entityType 常量 | A8 |
+| `core/lib/model/theme_module_registry.dart` | `ThemeModuleRegistry.register()`（幂等） | A8 |
+
+⚠️ 契约层共 **7 个文件**（A3 的覆盖下限相应为 7，非 6）。
+
+### 11.2 reference 实现层
+
+| 文件 | 内容 | 验收 |
+|---|---|---|
+| `core/lib/reference/theme_token_merger.dart` | §6.6 合并算法的权威实现（纯函数，无状态） | A9–A14a/c, A19, P1, P7 |
+| `core/lib/reference/in_memory_theme_resource_store.dart` | `InMemoryThemeResourceStore`（构造器见 §5.5.3）+ 缓存 + 两个 `_Throwing*` 默认实现 | P2, P3, P4, P5, P6 |
+
+⚠️ **`core/lib/reference/` 是新目录**。A3 的零实现扫描须**排除**此目录，扫描范围限定 `core/lib/model/theme_*`。
+
+### 11.3 测试与支撑
+
+| 文件 | 内容 |
+|---|---|
+| `core/test/support/theme_bench_fixture.dart` | §7.5 共同 fixture（叶子数 >= 700）+ `ThemeLocalReader` 的 fixture 实现 |
+| `core/test/support/theme_probes.dart` | §5.5.4 四个计数式探针 |
+| `core/test/theme_token_merger_test.dart` | A9–A14a/c、A19 合并语义 |
+| `core/test/theme_resource_store_contract_test.dart` | A6/A7/A15/A16 契约形状 + 溯源 |
+| `core/test/theme_module_registry_test.dart` | A8 注册与幂等 |
+| `core/test/theme_startup_path_test.dart` | P3/P4/P5/P6 计数式 spy 与状态转换 |
+| `core/test/theme_merge_bench_test.dart` | P1（标 `@Tags(['benchmark'])`） |
+
+### 11.4 Stop conditions（触发即停，报人类）
+
+1. **S1a 契约不在当前分支基线** —— 开工第一步须验证 `core/lib/model/storage_policy.dart` 等文件存在（本次即栽在这里，见踩坑墓地）；
+2. **需要读取或拷贝 `theme` 仓库的任何文件** —— 跨仓库源迁移在 ACT 范围外（§9.1 bundled 决定）。bundled token 由 `ThemeLocalReader` 注入，不由 S5a 去别的仓库找；
+3. **`theme` 包出现任何改动** —— A4 门禁触发即停；
+4. **需要触碰 `xuan-qizhengsiyu/lib/painter/**`** —— Canvas 提取工作所有权，须先握手；
+5. **需要真实网络下载** —— `ConfigBootstrap` 三真值仍是占位符，联调须等人类填入。
+
+### 11.5 移交后续任务的项（不得丢失）
+
+| 项 | 移交去向 | 理由 |
+|---|---|---|
+| A14b：`package_format_version` / `min_app_version` 拒装 | installer 任务 | 需解析 manifest，reference 输入是已解析 Map |
+| A14d：数值非法透传诊断 | parser / installer 任务 | 解析发生在 YAML→Map，不在 Map→Map |
+| A14e：单字段非法只回退该字段 | parser 任务 | 同上 |
+| 真实签名验证（`ThemeSignatureVerifier` 的生产实现） | installer 任务 | reference 零 IO 拿不到 `.sig` |
+| bundled 权威源从 shell 迁到 theme 包 | 主题内容就绪任务 | 跨仓库，ACT 范围外 |
 
 ---
 
