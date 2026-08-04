@@ -190,6 +190,60 @@ class OutboxRecords extends Table {
       ];
 }
 
+@DataClassName('OutboxPeerAckRow')
+class OutboxPeerAcks extends Table {
+  @override
+  String get tableName => 't_outbox_peer_ack';
+
+  /// per-peer ack 水位表（§5.2.2 第 1 条）。
+  ///
+  /// 一条 outbox 记录对 N 个对端各有一行 ack —— 记录本身只存一份，
+  /// 「推没推成功」是 (operationId, peerId) 二元组的属性。
+  ///
+  /// 本表【同时】是 §5.3 oplog compaction 的水位表：
+  /// 「所有已知 peer 均已 success 的 operationId 可被压缩」这一判定直接查本表。
+  /// 因此 compaction 的数据模型不是待决项，它就是这张表。
+  ///
+  /// ⚠ 但本表提供的是压缩的【判据】，不是压缩的【许可】。
+  /// compaction 的前置条件是「游标落在 oplog 保留窗口外 → 强制全量对齐」，
+  /// 该能力归 S1c（见 specs/2026-08-03-s1c-full-reconciliation-design.md）。
+  /// 缺了它而实现压缩，久未上线的设备会静默丢失被压缩区间的变更：
+  /// 对端只能给出保留窗口内的增量，而该设备收下后照常把游标推进到"现在"
+  /// ——【零报错、零测试变红】。
+  /// 【S1b 内不得实现 compaction】。
+  TextColumn get operationId => text().named('operation_id')();
+  TextColumn get peerId => text().named('peer_id')();
+
+  /// pending / success / failed / dead。与 t_outbox.status 同一套取值。
+  TextColumn get status =>
+      text().withDefault(const Constant('pending')).named('status')();
+
+  /// 该对端的重试次数。per-peer —— 一个对端推成 dead 不影响其他对端。
+  IntColumn get attempt =>
+      integer().withDefault(const Constant(0)).named('attempt')();
+
+  TextColumn get lastErrorCode => text().nullable().named('last_error_code')();
+  TextColumn get lastErrorMessage =>
+      text().nullable().named('last_error_message')();
+  DateTimeColumn get ackedAtUtc => dateTime().nullable().named('acked_at_utc')();
+
+  @override
+  Set<Column> get primaryKey => {operationId, peerId};
+
+  List<Index> get indexes => [
+        Index(
+          'idx_outbox_peer_ack_peer_status',
+          'CREATE INDEX idx_outbox_peer_ack_peer_status '
+          'ON t_outbox_peer_ack (peer_id, status);',
+        ),
+        Index(
+          'idx_outbox_peer_ack_operation',
+          'CREATE INDEX idx_outbox_peer_ack_operation '
+          'ON t_outbox_peer_ack (operation_id);',
+        ),
+      ];
+}
+
 @DataClassName('SyncStateRow')
 class SyncStates extends Table {
   @override
@@ -197,6 +251,12 @@ class SyncStates extends Table {
 
   TextColumn get scopeUid => text().named('scope_uid')();
   TextColumn get entityType => text().named('entity_type')();
+
+  /// 该游标所属的对端。游标是 per-(scope, peer, entityType) 的 ——
+  /// 云端游标推进到 T，不代表 LAN peer 也同步到了 T。
+  /// 带默认值 'firestore'，使既有行升级后自动回填且既有 DAO 代码无需改动即可编译。
+  TextColumn get peerId =>
+      text().withDefault(const Constant('firestore')).named('peer_id')();
 
   TextColumn get cursorType => text().named('cursor_type')();
   IntColumn get revision => integer().nullable().named('revision')();
@@ -212,7 +272,7 @@ class SyncStates extends Table {
       dateTime().nullable().named('last_pushed_at_utc')();
 
   @override
-  Set<Column> get primaryKey => {scopeUid, entityType};
+  Set<Column> get primaryKey => {scopeUid, peerId, entityType};
 
   List<Index> get indexes => [
         Index(
@@ -510,6 +570,7 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
     PanelRefs,
     WorkItemPanelRefs,
     CreationAuditLogs,
+    OutboxPeerAcks,
     TRecordMeta,
     TRecordSearchIndex,
     TScopeAlias,
@@ -538,7 +599,7 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
   PersistenceDriftDatabase(super.executor);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -546,6 +607,7 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
       await m.createAll();
       await _createRecordIndices();
       await _createAuditLogIndices();
+      await _createOutboxPeerAckIndices();
     },
     onUpgrade: (m, from, to) async {
       if (from < 2) {
@@ -575,6 +637,25 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
         await m.createTable(creationAuditLogs);
         await _createAuditLogIndices();
       }
+      if (from < 7) {
+        // schema v7：per-peer ack 水位表 + t_sync_state 加 peer_id 列（默认 'firestore'）
+        // + 主键切到 {scopeUid, peerId, entityType}。
+        // 顺序不能换：先加列再切主键 —— TableMigration 建新表时 peer_id 必须已有值。
+        await m.createTable(outboxPeerAcks);
+        final hasSyncState = (await customSelect(
+          "SELECT 1 AS x FROM sqlite_master "
+          "WHERE type = 'table' AND name = 't_sync_state'",
+        ).get()).isNotEmpty;
+        if (hasSyncState) {
+          await m.addColumn(syncStates, syncStates.peerId);
+          await m.alterTable(TableMigration(syncStates));
+        } else {
+          // 兜底：极早期库（或历史迁移测试手搓的最小旧库）没有 t_sync_state，
+          // 直接按 v7 全量定义建表，避免 addColumn 因缺表而抛异常。
+          await m.createTable(syncStates);
+        }
+        await _createOutboxPeerAckIndices();
+      }
     },
   );
 
@@ -603,6 +684,17 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_audit_audited_at '
       'ON t_creation_audit_logs(audited_at DESC)');
+  }
+
+  Future<void> _createOutboxPeerAckIndices() async {
+    // 升级路径专用：m.createTable 不会创建表声明里的索引（createAll 才会），
+    // 因此 from<7 分支必须手动建这两条索引；fresh 库由 indexes getter 经 createAll 建。
+    await customStatement(
+      'CREATE INDEX idx_outbox_peer_ack_peer_status '
+      'ON t_outbox_peer_ack (peer_id, status)');
+    await customStatement(
+      'CREATE INDEX idx_outbox_peer_ack_operation '
+      'ON t_outbox_peer_ack (operation_id)');
   }
 }
 
