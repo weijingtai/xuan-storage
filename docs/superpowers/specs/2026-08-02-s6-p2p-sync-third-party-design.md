@@ -1281,6 +1281,104 @@ grep -rln "LocalBlobStore|BlobGateway|RecordBlobUnitOfWork" core/lib drift/lib f
 | **P2** | iOS `Info.plist` 加 `NSLocalNetworkUsageDescription` + `NSBonjourServices` | **未达标**（实查，§4.3 缺口 2）。不修则 iOS LAN 发现静默失败 |
 | **P3** | macOS 两个 entitlements 加 `keychain-access-groups` | 未配（§5.3.3 第 2 条）。不修则桌面端密钥「看似写入实际未写」 |
 | **P4** | `persistence_core` 的 2 处 `dart:io` 条件导入 | 未修（§1.3）。阻断 Web 编译 |
+| **P5** | **macOS `Release.entitlements` 加 `network.client` + `network.server`** | **未达标**（Codex 验收发现，2026-08-04 实查确认）。**不修则正式构建完全无法联网** |
+
+> **⚠ P5 是本轮验收发现的最严重配置缺口，且是我前一轮的判断失误。**
+>
+> | 文件 | app-sandbox | network.client | network.server |
+> |---|---|---|---|
+> | `DebugProfile.entitlements` | ✅ | ✅ | ✅ |
+> | `Release.entitlements` | ✅ | **❌ 缺失** | **❌ 缺失** |
+>
+> **后果：开发调试一切正常，正式构建（Release）连不上网、也无法接受入站连接。**
+> 对 S6 而言，macOS 端的 LAN 直连（需 `network.server` 监听）与
+> WebRTC（需 `network.client`）在正式包中**全部失效**。
+>
+> **这是典型的「测试期看不出、上线才炸」**，与 §5.3.3 第 2 条的 Keychain entitlement 陷阱同类。
+>
+> **我在前一轮把它记成了达标项** —— §4.3 曾写「`DebugProfile` 另有 network.client/server，
+> 正是 S6 所需」，**只读了 Debug 没读 Release**。这与我自己在 §5.3.3 写下的
+> 「只配一个是最常见的漏法」是同一个错误，已记入 §9.1。
+
+#### 7.1c ⚠ S1a 契约缺口（Codex 验收发现，2026-08-04）
+
+**以下三项不是文档措辞问题，是 `core/lib/model/transport.dart` 的契约本身不完整。
+S6 无法自行绕过，必须走 S1a 契约变更评审（与 D7 合并处理）。**
+
+##### C1：`Transport` 只有主动侧，两端永远连不上（**最致命**）
+
+实读 `core/lib/model/transport.dart:143-172`，`Transport` 只有两个动作方法：
+
+```dart
+Stream<DiscoveredPeer> discover({Duration? timeout});
+Future<PeerSession> connect(DiscoveredPeer peer, {...});
+```
+
+**没有 `advertise` / `listen` / `accept`。**
+
+**后果：两台设备都只能主动拨号，没有任何一端在监听，连接永远建立不起来。**
+LAN 直连尤其明显 —— `bonsoir` 能广播服务、能发现对端，
+但发现之后**没有一端持有 `ServerSocket` 等待接入**。
+
+**建议补充的契约形状**（需评审）：
+
+```dart
+/// 开始广播本端可被连接（LAN 走 mDNS 注册服务 + 监听端口）。
+Future<void> advertise({required DeviceKeyPair localKeys});
+
+/// 入站会话流。对端主动连入时产出已完成认证的 PeerSession。
+Stream<PeerSession> get incoming;
+
+/// 停止广播与监听。
+Future<void> stopAdvertising();
+```
+
+##### C2：`PeerSession` 没有接收对端新流的入口
+
+实读 `:118-136`，`PeerSession` 只有 `openStream(StreamKind)`（**主动开流**），
+**没有「对端开了一条新流」的通知**。
+
+**后果：即使连接建立，也只有发起方能开流。**
+被动侧无法感知对端开了 `blobChunk` 流，无法接收数据。
+
+**建议补充**：
+
+```dart
+/// 对端开启的逻辑流。被动侧据此接收数据。
+Stream<PeerStream> get incomingStreams;
+```
+
+##### C3：`DeviceKeyPair` 是单字段占位壳，无法支撑 Ed25519 挑战-应答
+
+实读 `:65-72`：
+
+```dart
+/// 设备密钥对。仅占位形状，实现属 S6。
+final class DeviceKeyPair {
+  /// 公钥（PEM）。
+  final String publicKeyPem;
+  const DeviceKeyPair({required this.publicKeyPem});
+}
+```
+
+**只有公钥，没有私钥、没有签名能力、没有设备 id。**
+而 `connect()` 强制要求传入它，`transport.dart:157-158` 又要求
+「握手必须完成认证密钥交换并绑定指纹到会话（channel binding）」——
+**用一个只有公钥的对象无法产生签名**，契约自相矛盾。
+
+**需要在 S1a 评审中定死的形状**（S6 给出建议，最终由契约评审裁决）：
+
+- 私钥的持有形式（`SimpleKeyPair` 句柄？还是只暴露 `sign()` 方法？）
+- 设备 id 字段
+- 密钥的生成、持久化与轮换责任归属
+- channel binding 的签名消息格式（`nonce ‖ 通道指纹` 的确切编码，
+  且**通道指纹随路径而变** —— 路径 A 是 TLS 证书指纹，路径 B 是 DTLS 指纹，见 §3.1）
+
+> **⚠ 注意 C3 与 D16 的张力**：D16 定了「移动端不做应用层落盘加密」，
+> 但**设备私钥必须持久化**（否则每次重启都是新设备身份，配对全部失效）。
+> **设备私钥的存储与 blob 落盘加密是两件不同的事，前者不受 D16 约束。**
+> 这一点必须在契约评审中明确，否则移动端会因「不引入 `flutter_secure_storage`」
+> 而无处存放设备私钥 —— 那将导致 S6 在移动端根本无法工作。
 
 **P1/P2 的共同特征是「静默失败」** —— 不报错、不崩溃，只是行为与设计意图相反。
 这类缺口无法靠功能测试发现，只能靠门禁静态检查（已列入 §7.4 第 3、5 项）。
