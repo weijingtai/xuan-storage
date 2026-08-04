@@ -5,3 +5,4 @@
 | feature/bazi-record-production-cutover | /Users/jingtaiwei/Git/Public/xuan-migration/xuan-migration-worktrees/xuan-storage-bazi-cutover | ? | 🚧 进行中 | 0 |
 | agent/mimo/storage-s1a-contracts | .worktrees/mimo-storage-s1a-contracts | 蓝图 | 🚧 进行中 | 0 |
 | storage-s1b-multipeer | mimo | agent/mimo/storage-s1b-multipeer | 🚧 进行中 | 2026-08-02 |
+| storage-s1a-transport-passive | claude | agent/claude/storage-s1a-transport-passive | 🚧 进行中 | 2026-08-03 |
