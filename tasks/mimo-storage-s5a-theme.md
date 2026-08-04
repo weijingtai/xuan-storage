@@ -14,7 +14,7 @@
 
 ## 规格来源
 
-- 详细设计：`docs/superpowers/specs/2026-08-03-s5a-theme-resource-distribution-design.md`（v2，本任务唯一真相源）
+- 详细设计：`docs/superpowers/specs/2026-08-03-s5a-theme-resource-distribution-design.md`（v4，本任务唯一真相源）
 - 上游总纲：`docs/superpowers/specs/2026-07-31-storage-architecture-design.md`
 - 外部契约：`/xuan-migration/openspec/changes/theme-token-customization-contract/`（4 轮评审已签署，其 spec 的 SHALL 条款约束本任务，逐条映射见设计 §8.1）
 
@@ -34,7 +34,7 @@
 
 ### 做
 
-- 契约层 9 个文件（设计 §11.1）—— 含 `ThemeMaterializer` 与 XRAP `DatasetDescriptor` 声明
+- 契约层 8 个文件（设计 §11.1）—— 含 XRAP `DatasetDescriptor` 声明（`theme_dataset.dart`）
 - reference 实现 3 个文件（设计 §11.2）：合并算法 + 内存 store + 内存 materializer
 - 测试 8 个文件（设计 §11.3）
 - 合并算法完整规格已在设计 §6.6 写死，**执行者按步骤实现，无需推断**
@@ -44,7 +44,7 @@
 - ❌ **下载 / 校验 / 世代管理 / 活跃指针翻转 / 回滚 / GC / 幂等** —— 全归 XRAP `DatasetInstaller`
   （`dataset_installer.dart:188-192`「唯一实现，数据集无关」，再写一个主题专用安装器直接违反它）
 - ❌ **主题包 zip ���式 / manifest.yaml 定义 / 版本兼容规则 / 签名验证** —— 归 XRAP `DatasetManifest`
-- ❌ `install` / `uninstall` / `refreshCatalog` / `listInstalled` 方法
+- ❌ 任何安装类方法与安装态值类型（S5a 端口只有：读合并结果 / 写覆盖层 / 主题选择）
 - ❌ 生产实现（drift 表 / 真实 materializer）—— 后续子任务
 - ❌ `theme` 包的任何改动（设计 §2.2，零 IO 边界必须保住）
 - ❌ `xuan-shell` 的接线（S5a 交付 `ThemeModuleRegistry.register()` 入口，shell 侧接线属下游）
@@ -87,11 +87,11 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
       ①S5a 自有文件 `--fatal-infos` 零 issue；②有 issue 的文件集合是冻结白名单子集；
       ③全包 issue 总数 ≤ 冻结基线。
       **脚本须在开工时重新测定基线并写死**（S1a 的基线 58 是它自己那次的，不可直接沿用）
-- [ ] **A2** `cd core && flutter test` 全绿，且设计 §11.3 的 **6 个测试文件全部存在且被执行**。
-      判定：`flutter test --reporter json` 输出中这 6 个文件各自的测试数 `> 0`（不是只看文件存在）
+- [ ] **A2** `cd core && flutter test` 全绿，且设计 §11.3 的 **8 个测试文件全部存在且被执行**。
+      判定：`flutter test --reporter json` 输出中这 8 个文件各自的测试数 `> 0`（不是只看文件存在）
 - [ ] **A3** 契约层零实现：
       `grep -rnE "class .*Impl|UnimplementedError" core/lib/model/theme_*.dart` → EXPECT_EXIT:1 + EXPECT_STDOUT:""
-      **覆盖下限**：`ls core/lib/model/theme_*.dart | wc -l` 必须 `== 9`（防 glob 扫到 0 个文件假绿）
+      **覆盖下限**：`ls core/lib/model/theme_*.dart | wc -l` 必须 `== 8`（防 glob 扫到 0 个文件假绿）
       ⚠️ 扫描范围**仅限 `core/lib/model/theme_*`**，`core/lib/reference/` 是方案 B 的实现层，不在此列
 - [ ] **A4** `theme` 包零改动：
       `cd /Users/jingtaiwei/Git/Public/xuan-migration/theme && git status --porcelain` → EXPECT_STDOUT:""
@@ -132,7 +132,7 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
 - [ ] **A19** 合并层**不吞值**（S5a 对 A14d/e 的"不破坏"责任，设计 §5.5.5）：
       注入值为 `"8px"` 的非法 radius，断言它**原样出现在** `resolve()` 结果中
       （证明合并层没有偷偷过滤或修正；非法值的处置由下游解析层负责）
-- [ ] **A20** `ThemeMaterializer` 遵守 XRAP 契约（设计 §4.1 八条事实）：
+- [ ] **A20** `InMemoryThemeMaterializer`（`implements DatasetMaterializer`）遵守 XRAP 契约（设计 §4.1 八条事实）：
       ①只写入参给定的 generation，不触碰其它世代（注入两代数据，断言互不干扰）
       ②`dropGeneration` 幂等（删不存在的世代不抛）
       ③返回真实 `rowCount`（与 fixture 的 token 条数一致，防填假数）
@@ -171,7 +171,13 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
 - [ ] **P7** key 顺序稳定：同 fixture 合并 10 次，逐层 `keys.toList()` 逐元素相等，
       且等于其字典序排序结果
 
-验收命令: `bash scripts/run_s5a_analyze_gate.sh && (cd core && flutter test --exclude-tags benchmark)`
+验收命令: `bash scripts/run_s5a_analyze_gate.sh && bash scripts/run_s5a_residue_gate.sh && (cd core && flutter test --exclude-tags benchmark)`
+
+> **残留门禁 `run_s5a_residue_gate.sh`（设计 §11.6）**：扫已裁定移除的标识符
+> （InstalledTheme / AvailableTheme / ThemeRemoteFetcher / ThemePackageStore /
+> ThemeSignatureVerifier / ThemeSignatureVerdict / refreshCatalog / listInstalled），
+> 出现即 exit 1 + 覆盖下限 8 文件。**转 ACT 时须做变红自检**。
+> 起因: R3 的 P0 正是我正则替换后未验证导致 InstalledTheme 类定义残留 —— 此门禁防它重演。
 
 ## 门禁写作纪律（S1a / S5c 返工换来，转 ACT 时必须遵守）
 
@@ -208,12 +214,44 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
 - [x] **按 R2 四条 P1 修订 → v3**（2026-08-03）
 - [x] **rebase 到 main** —— 基线问题解除，S1a 与 XRAP 契约均已就位
 - [x] **v4：按人类四条裁定并入 XRAP**（2026-08-04），范围大幅收窄
+- [x] **Codex gStack `plan-eng-review` R3 → REVISE-FIRST**（6 条 P1/P0 + 3 条 P2）
+      报告：`docs/reviews/2026-08-04-s5a-theme-plan-eng-review-r3.md`
+- [x] **按 R3 全面修订 → v5**（2026-08-04，明细见决定记录）
+- [ ] Codex 复审（R4）
 - [ ] 转译为 ACT（`wjt-act`）
 - [ ] 跨模型闸门（`wjt-react`，≤2 轮）
 - [ ] 下发执行
 - [ ] 人类验收
 
 ## 决定记录
+
+### v5 修订（2026-08-04，按 Codex gStack R3 的六条 P1/P0 + P2）
+
+- 2026-08-04 【R3-P0】**残留清零**。R3 抓到 `InstalledTheme` 的完整类定义（设计 §5.4，40 行）
+  根本没删 —— v4 我只改了引用它的表格，漏了本体。根因: 正则批量替换后**未独立验证**。
+  处置: 删 `InstalledTheme` 类定义；`AvailableTheme` 重写为 `LocalTheme`（去安装态字段，
+  加 `generation` 对齐 XRAP 世代）；历史叙述改中性措辞。**新增 §11.6 残留门禁脚本
+  `run_s5a_residue_gate.sh`** 写进验收命令，扫 8 个禁用标识符 + 覆盖下限 8 文件 + 变红自检。
+- 2026-08-04 【R3-P1】**扁平化与预构建矛盾**。§6.6 第 1 步改「输入校验（不做扁平化）」，
+  扁平化规则保留但标注为构建脚本职责（两边必须对同一套 key 空间达成一致）。
+- 2026-08-04 【R3-P1】**载荷格式含糊**。定死 **JSON Lines（UTF-8/LF）**，行 schema 四字段
+  `{k,v,t,g}`；否决 *.sql；`rowCount` = jsonl 行数；reference 落地结构写死
+  `Map<int, Map<String,dynamic>>`；补 `InMemoryThemeMaterializer` 完整签名。
+- 2026-08-04 【R3-P1】**P3/P4 不可测**。P3 拆 P3-a（静态文本扫描，限定构造器参数区内数
+  `required` + 子串长度下限防假绿）+ P3-b（行为正向控制）；**新增
+  `core/lib/reference/theme_assembly.dart` 装配入口**让 P4 的 `CountingDatasetInstaller`
+  有注入点；补探针定义。
+- 2026-08-04 【R3-P1】**A14 归属未闭合 + 引用已删章节**。纪要验收只留 A14c + A19；
+  a/d/e 在 §8.1 标承接方 **BUILD-THEME**（新建任务 ID）；重建 §8.1 映射删失效引用；
+  §11.5 给 BUILD-THEME / THEME-DRIFT 唯一 ID。
+- 2026-08-04 【R3-P1】**ConfigBootstrap 仍有 🔴**。设计 §9.2 与纪要「阻塞项」段全改
+  「已知非阻塞背景」，删红标与 stop gate 语义。
+- 2026-08-04 【R3-P1】**stop condition #2 与构建脚本矛盾**。澄清构建脚本不在本 ACT 文件范围
+  （属 BUILD-THEME），本 ACT 交付文件均不得出现 `theme/` 路径，测试 bundled 用 fixture 内联。
+- 2026-08-04 【R3-P2】**删冗余空接口**。删 `ThemeMaterializer` 空子接口（无唯一消费者），
+  S5a 直接实现 `DatasetMaterializer`。**连带契约层 9 → 8 文件**，A3 下限 / A2 计数同步改。
+- 2026-08-04 【R3 正向核实】**「首个生产调用点」需限定**。XRAP 合入后 `StoragePolicyRegistry`
+  已有测试调用点，§1.6/§5.6.3 的表述应理解为「首个**生产**调用点（测试不算）」。
 
 ### v4 修订（2026-08-04，按人类四条裁定并入 XRAP）
 
@@ -226,8 +264,8 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
 - 2026-08-04 【裁定 3】**边界在"谁发布"，不在"是不是主题"**。
   `dataset_installer.dart:188-192` 写死"唯一实现，数据集无关，差异由各自的
   `DatasetMaterializer` 承担"。故删除 v3 的全部安装机制：`install` / `uninstall` /
-  `refreshCatalog` / `listInstalled` / 主题包 zip 格式 / manifest 定义 / 版本兼容规则 /
-  `ThemeSignatureVerifier` + `ThemeSignatureVerdict` / `ThemeRemoteFetcher` / `ThemePackageStore`。
+  安装类方法与安装态类型、主题包 zip 格式与 manifest 定义、版本兼容规则、
+  验签端口、远端拉取端口、包落盘端口，全部不由 S5a 定义。
   **新增** `ThemeMaterializer`（唯一可插拔点）+ `themeDatasetDescriptor()`。
 - 2026-08-04 【裁定 4】**`ConfigBootstrap` 三占位符不是 S5a 阻塞项**：
   `dataset_source.dart:61` 明写"未配置返回 null（此时只用内置世代）"，`bundledManifest`
@@ -244,8 +282,9 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
   v4 改测"活跃世代落地物读取挂起时，`resolve()` 仍在 50ms 内返回 bundled 兜底且不抛异常"
   —— 这才是 S5a 侧真实存在的降级路径。
 - 2026-08-04 【连带 4】契约层 7 → **9 个文件**（新增 `theme_materializer.dart`、
-  `theme_dataset.dart`；删 `InstalledTheme`），A3 覆盖下限同步改 `== 9`；
+  `theme_dataset.dart`；安装态值类型改为只保留本地可用主题 `LocalTheme`），A3 覆盖下限同步改 `== 8`；
   reference 层 2 → 3（新增内存 materializer）；测试 7 → 8（新增 A20 的 materializer 测试）。
+  （注：v4 初稿曾定 9 文件含 `theme_materializer.dart` 空接口，R3 后删除该冗余接口，回落到 8。）
 - 2026-08-04 【记录】`assets/pubspec.yaml` 的 `dependency_overrides.persistence_core`
   从 git URL 改为 `path:../core` **已随 T1 落到 main**，保留。理由（人类给出）：
   `dependency_overrides` 只在该包作为根包时生效，外部仓库消费 assets 时会忽略；
@@ -262,16 +301,14 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
   `_CountingHttpClient` / `localTokenReadCount` / "永不完成的 install" 在 §5/§11 都不是
   真实类型，机械执行者无法知道它们是构造器参数、回调还是测试端口。
   处置: 新增 `core/lib/model/theme_source_ports.dart` 定义四个窄端口
-  （`ThemeLocalReader` / `ThemeRemoteFetcher` / `ThemePackageStore` / `ThemeSignatureVerifier`），
+  （当时为四个，v4 收窄为一个 `ThemeLocalReader`），
   写死 `InMemoryThemeResourceStore` 构造器签名、四个探针的**计数时机**（何时 +1）、
   P3 的四步断言与 P6 的九步状态转换。
   **reference 的 remote/package 默认实现恒抛 `StateError`** —— 兑现零 IO 且违反即炸。
 - 2026-08-03 【R2-P1-3】**签名钩子落成真实类型**。起因: Codex 指出 §9.1 说"契约须留
   verifySignature 钩子"，但 §11 的八个文件里没有任何验签类型，唯一的验签器在外部
-  `xuan_config` 仓库。处置: S5a 自持 `ThemeSignatureVerifier` 窄接口 +
-  `ThemeSignatureVerdict` 六态（比 S5c 多一个 `skipped`），由**装配层**用 S5c 的
-  `ConfigSignatureVerifier` 适配 —— `persistence_core` 不依赖 `xuan_config`（A5b 守住）。
-  reference 返回 `skipped`，**生产实现不得返回 skipped**。
+  `xuan_config` 仓库。处置: 当时为 S5a 自持验签窄接口。**v4 已整体移交 XRAP**，
+  S5a 不再定义任何验签类型。
 - 2026-08-03 【R2-P1-4】**bundled 来源改为注入，跨仓库迁移明确出范围**。起因: Codex 指出
   "bundled 权威源是 theme 仓库的文件"与"ACT 不得动 theme 仓库"矛盾，执行者可能去跨仓库
   拷文件。处置: reference 通过 `ThemeLocalReader.readBundledTokens()` 接收**已解析的 Map**，
@@ -353,9 +390,15 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
 
 ## 阻塞项
 
-- 🔴 `ConfigBootstrap.endpoints` / `allowedHostSuffixes` / `l0PublicKeyBase64`
-  仍为占位符（`'config.invalid'` / `'invalid'` / 含"占位"字样），**待人类填入真值**。
-  **不阻塞本任务**（契约层 + reference 实现均无真实网络），阻塞后续下载联调。
+**无。** 本任务当前无阻塞项。
+
+### 已知非阻塞背景（记录，不构成 stop gate）
+
+- `ConfigBootstrap.endpoints` / `allowedHostSuffixes` / `l0PublicKeyBase64` 仍为占位符。
+  **与 S5a 无关**（人类 2026-08-04 裁定 4）：`dataset_source.dart:61` 明写"未配置返回
+  null（此时只用内置世代）"，`bundledManifest` 恒存在、冷启动零网络。
+  实证：T1 已交付完整 XRAP 接入样板（main `6cd7a66`），全程 generation 0，
+  未用到任何域名或公钥。由 XRAP 远端源任务承接，**不得写入 S5a 的 stop conditions**。
 
 ## 踩坑墓地
 

@@ -2,7 +2,7 @@
 
 - 日期：2026-08-03（**v4**，2026-08-04 按人类四条裁定并入 XRAP，范围大幅收窄）
 - 状态：范围已裁定，待转译为 ACT
-- 范围：**主题包的落地形态（ThemeMaterializer）+ 用户覆盖层**。下载 / 校验 / 世代 / 指针翻转 / 回滚 / GC / 幂等**全部归 XRAP**，S5a 不再自建
+- 范围：**主题包的 XRAP Materializer 实现 + 用户覆盖层**。下载 / 校验 / 世代 / 指针翻转 / 回滚 / GC / 幂等**全部归 XRAP**，S5a 不再自建
 - **交付形态：契约 + reference 实现**（方案 B）
 - 上游文档：
   - [2026-07-31 Storage 分层隔离存储架构 · 设计总纲](2026-07-31-storage-architecture-design.md)（下称"总纲"，引用格式 `总纲 §x.y:行号`）
@@ -35,8 +35,8 @@
 
 | 能力 | 归属 | S5a 的动作 |
 |---|---|---|
-| 下载 / 校验 / 世代管理 / 活跃指针翻转 / 回滚 / GC / 幂等 | **XRAP** | ❌ **全部删除**（v3 的 `install` / `uninstall` / `refreshCatalog` / `listAvailable` / `listInstalled` / 主题包格式 §4 / 签名验证 / 版本兼容规则） |
-| 主题包字节 → 落地形态 | **S5a** | ✅ 写 `ThemeMaterializer implements DatasetMaterializer` —— **唯一可插拔点** |
+| 下载 / 校验 / 世代管理 / 活跃指针翻转 / 回滚 / GC / 幂等 | **XRAP** | ❌ S5a 不提供任何安装类方法与安装态类型；主题包格式、签名、版本兼容规则一律不由本设计定义 |
+| 主题包字节 → 落地形态 | **S5a** | ✅ 写 `InMemoryThemeMaterializer implements DatasetMaterializer` —— **唯一可插拔点**（不另包 `ThemeMaterializer` 子接口，见 §4.2） |
 | override > package > bundled 三层合并 | **S5a** | ✅ 保留（XRAP 完全没有） |
 | `applyOverrides` / `removeOverrides` / orphan 判定 / 读写不对称 | **S5a** | ✅ 保留（XRAP 硬拒非 official publisher） |
 
@@ -46,7 +46,7 @@
 
 ### 0.1 本文档要确定的
 
-1. `ThemeMaterializer` 的落地形态与它对 XRAP 契约的遵守；
+1. S5a 在 XRAP 中的落地器（`DatasetMaterializer` 实现）及其对协议的遵守；
 2. 用户覆盖层的存储、合并语义与读写契约；
 3. 四个仓库的职责边界，以及为什么 `theme` 包不该改；
 4. 三层合并算法的完整规格（§6.6）；
@@ -310,7 +310,7 @@ S5a 现在必须满足的三条前瞻约束（总纲 §9.1:1513「S5a 的主题�
 
 ---
 
-## 4. `ThemeMaterializer` —— S5a 在 XRAP 中的唯一可插拔点
+## 4. S5a 在 XRAP 中的 Materializer —— 唯一可插拔点
 
 > **v4 重写**。v3 的「主题包格式（zip + manifest.yaml + 版本兼容规则 + 签名）」整章删除 ——
 > 那是 XRAP 的 `DatasetManifest` + `DatasetInstaller` 的职责（§0.0 裁定 3）。
@@ -329,61 +329,124 @@ S5a 现在必须满足的三条前瞻约束（总纲 §9.1:1513「S5a 的主题�
 | `MaterializeOutcome.rowCount` 会与 `DatasetManifest.declaredRowCount` 比对，不符则**不进入 ready** | `dataset_materializer.dart:13-15`（不变式 I4） | S5a 必须返回真实行数 |
 | 纯 blob 数据集 `rowCount` 返回 0 | `dataset_materializer.dart:12` | 主题当前是 token（row 形态），返回真实 token 条数 |
 
-### 4.2 `ThemeMaterializer` 契约【契约】
+### 4.2 S5a 不定义主题专属的 Materializer 接口
 
-文件：`core/lib/model/theme_materializer.dart`
+**S5a 直接实现 XRAP 的 `DatasetMaterializer`，不再包一层 `ThemeMaterializer`。**
+
+> 📌 **v5 修正**（Codex R3 P2）：v4 曾定义
+> `abstract interface class ThemeMaterializer implements DatasetMaterializer {}`
+> 且明确"不新增任何方法" —— 那是一个类型别名级的空接口，**没有唯一消费者**：
+> XRAP 的 `DatasetDescriptor.materializer` 字段类型是
+> `DatasetMaterializer Function()`（`dataset_descriptor.dart:44`），它既不认识也不需要
+> 这个子接口。保留它只会多一个文件、多一层间接。**已删除。**
+
+因此 S5a 侧的落地器就是一个普通实现类：
 
 ```dart
-/// 主题数据集的 XRAP 落地器。
-///
-/// 【职责边界】只做一件事：把已校验的主题载荷解析成扁平 token 并写入
-/// 指定世代。下载、校验、世代管理、指针翻转、回滚、GC 全部由
-/// [DatasetInstaller] 负责（XRAP 协议 N1）——【不要】在这里做任何一样。
-abstract interface class ThemeMaterializer implements DatasetMaterializer {
-  // 继承 DatasetMaterializer 的 datasetId / materialize / dropGeneration。
-  // 不新增方法 —— 新增即意味着 XRAP 的抽象不够用，应先改协议而非绕过。
-}
+// core/lib/reference/in_memory_theme_materializer.dart
+final class InMemoryThemeMaterializer implements DatasetMaterializer { ... }
 ```
 
-⚠️ **本接口不新增任何方法**。若实现时发现需要新增，说明 XRAP 协议有缺口，
-应走协议变更流程，不得在 S5a 侧绕过（否则违反"唯一实现，数据集无关"）。
+其精确签名见 §4.4 末尾。**必须遵守 §4.1 那八条 XRAP 事实**，尤其：
+只写入参给定的 generation、不改活跃指针、不重复校验 sha256、`dropGeneration` 幂等。
 
-### 4.3 载荷形态：预构建扁平 token
+⚠️ **若实现时发现需要在 `DatasetMaterializer` 之外新增扩展点**，说明 XRAP 协议有缺口，
+应走协议变更流程，不得在 S5a 侧绕过（否则违反"唯一实现，数据集无关"）——
+这是 stop condition #4。
+
+### 4.3 载荷格式（唯一答案，不留选择）
 
 XRAP 要求内置世代的 `payloadFormat` **必须**是 `DatasetPayloadFormat.prebuilt`
 （`dataset_descriptor.dart:33-37`，注册期强制，设备上零解析是硬要求）。
 
-因此主题载荷**不是** YAML 原文，而是**构建期预处理好的扁平 token**：
+**格式定为 JSON Lines（`.jsonl`），UTF-8，LF 换行，每行一个扁平 token。**
+
+> 否决 `*.sql`（T1 用的形态）：主题 token 的落地结构在 S5a 阶段是内存 Map
+> （reference 实现），生产实现才进 drift。用 SQL 会把落地结构过早绑死在 SQLite 上，
+> 且 reference 实现要为了消费 SQL 而引入解析器 —— 违反"零 IO、零依赖"。
+> JSON Lines 可逐行流式消费，与 `Stream<List<int>>` 入参天然契合。
+
+#### 行 schema（每行一个 JSON 对象，字段固定四个）
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `k` | string | 扁平 token key，形如 `light.components.four_zhu_card.shadow.color` |
+| `v` | any | token 值（string / num / bool / List / null）。**不得是 Map** —— 嵌套已在构建期展平 |
+| `t` | string | 值类型标记：`s`/`n`/`b`/`a`/`z`（string/number/bool/array/null），供落地层做类型校验 |
+| `g` | int | 该行所属世代号。**必须等于 `materialize` 的 `generation` 入参**，不符即抛 |
+
+示例（三行）：
 
 ```
-构建期（脚本，非设备）：
-  theme/config/presets/*.yaml
-      → 解析 + 扁平化（§6.6 第 1 步的算法）
-      → 预构建载荷（形如 T1 的 *.sql，或 JSON Lines）
-      → 算 sha256 / bytes / rowCount 真值写进 DatasetManifest
-
-设备上（ThemeMaterializer.materialize）：
-  预构建载荷 → 直接写入落地结构，零 YAML 解析
+{"k":"light.components.btn.radius","v":8,"t":"n","g":3}
+{"k":"light.components.btn.shadow.color","v":"#8B0000","t":"s","g":3}
+{"k":"dark.semantic.luck.daji","v":"#22C55E","t":"s","g":3}
 ```
 
-**参照 T1 样板**：`assets/tool/build_geo_sql.py` 做 JSON → SQLite → `*.sql`（幂等），
-`BUILD-REPORT.md` 记产物 sha256/bytes。S5a 照此形制写主题的构建脚本。
+#### 构建期产出（不在 S5a ACT 范围，见 §11.5）
 
-> 📌 **这条改变了 v3 的一个假设**：v3 以为设备上要解析 YAML，故设计了 `token_loader`
-> 透传路径。实际上设备只消费预构建产物，YAML 解析**发生在构建期**。
-> 相应地，v3 的 A14a/A14c/A19（未知字段忽略、缺失字段回退、非法值透传）
-> 从"合并层的责任"变为"**构建脚本的责任**"—— 见 §5.5.5 的归属调整。
+```
+theme/config/presets/*.yaml
+    → 构建脚本：解析 + 扁平化（§6.6 第 1 步的构造规则）
+    → *.jsonl 载荷
+    → 算 sha256 / bytes / rowCount 真值写进 DatasetManifest
+```
 
-### 4.4 落地结构要求
+`rowCount` = **jsonl 的行数**（每行一个 token），这是 `MaterializeOutcome.rowCount`
+必须返回的真值，XRAP 会与 `declaredRowCount` 比对（不变式 I4）。
 
-| 要求 | 理由 |
-|---|---|
-| 必须有**世代判别列** | `materialize` 只写入参给定的 generation，不得触碰其它世代 |
-| 必须能按 `(generation, tokenKey)` 查询 | `resolve()` 要读活跃世代的全部 token |
-| `dropGeneration` 按世代整体删除 | 回滚 / 取消清理 / GC 三处调用 |
+### 4.4 落地结构（reference 实现的唯一形态）
 
-**具体表结构不在本设计决定** —— reference 实现用内存 Map，
-drift 生产实现的建表属后续任务（与 S1d/S5b 协调 schema 版本号，见 §12 冲突预警）。
+**reference 实现的落地结构写死为**：
+
+```dart
+/// 世代号 → (扁平 key → 值) 的两级内存 Map。
+Map<int, Map<String, dynamic>> _byGeneration;
+```
+
+- **世代隔离**：`materialize(generation: g)` 只写 `_byGeneration[g]`，不触碰其它键；
+- **`dropGeneration(g)`**：`_byGeneration.remove(g)`，不存在时静默返回（幂等）；
+- **读取**：`ThemeLocalReader.readActiveThemeTokens()` 从活跃世代号取那一层 Map。
+
+> ⚠️ **生产实现（drift 表）不在本设计决定** —— 它属后续 drift 任务，需与 S1d/S5b
+> 协调 schema 版本号。但**行 schema 与世代隔离语义已在此定死**，生产实现必须遵守，
+> 且必须能通过同一套 A20 契约测试。
+
+#### `InMemoryThemeMaterializer` 实现的精确签名【reference】
+
+文件：`core/lib/reference/in_memory_theme_materializer.dart`
+
+```dart
+final class InMemoryThemeMaterializer implements DatasetMaterializer {
+  /// 构造。落地物存在实例内，供 ThemeLocalReader 读取。
+  InMemoryThemeMaterializer();
+
+  @override
+  String get datasetId => themeDatasetId;
+
+  /// 消费 JSON Lines 载荷（§4.3），逐行写入 [generation] 那一层。
+  ///
+  /// 实现要点：
+  /// - 逐行解析，遇到 `g != generation` 的行立即抛 `StorageError`（世代混淆）；
+  /// - 遇到 `v` 为 Map 的行立即抛（契约违反，嵌套应在构建期展平）；
+  /// - 返回 `MaterializeOutcome(rowCount: 实际写入行数, bytesOnDisk: 载荷字节数)`；
+  /// - **不重复校验 sha256**（XRAP 已校验，`dataset_materializer.dart:43-45`）。
+  @override
+  Future<MaterializeOutcome> materialize({
+    required DatasetManifest manifest,
+    required Stream<List<int>> payload,
+    required int generation,
+    CancellationToken? cancel,
+  });
+
+  @override
+  Future<void> dropGeneration(int generation);
+
+  /// 仅供 reference 的 ThemeLocalReader 读取落地物。生产实现改为查表。
+  @visibleForTesting
+  Map<String, dynamic>? tokensOf(int generation);
+}
+```
 
 ---
 
@@ -567,7 +630,7 @@ abstract interface class ThemeResourceStore {
   ///
   /// 【数据来源】XRAP 的活跃世代落地物 + bundled 世代（generation 0）。
   /// **不含"可下载但未安装"的主题** —— 那是 XRAP catalog 的职责，不在本端口。
-  Future<List<AvailableTheme>> listLocalThemes();
+  Future<List<LocalTheme>> listLocalThemes();
 
   // ── 写 · 主题选择 ──
 
@@ -614,8 +677,7 @@ abstract interface class ThemeResourceStore {
 }
 ```
 
-> ⚠️ **v4 已删除的方法（归 XRAP，见 §0.0 裁定 3）**：
-> `install()` / `uninstall()` / `refreshCatalog()` / `listInstalled()`。
+> ⚠️ **本端口不提供安装类方法**（归 XRAP，见 §0.0 裁定 3）。
 > 主题包的下载、校验、世代管理、活跃指针翻转、回滚、GC、幂等**全部由
 > `DatasetInstaller` 统一负责** —— `dataset_installer.dart:188-192` 写死
 > 「唯一实现，数据集无关」，S5a 再写一个主题专用安装器是直接违反它。
@@ -625,14 +687,18 @@ abstract interface class ThemeResourceStore {
 > 推送新的合并结果。两者通过**活跃世代号**衔接，不直接互调。
 
 ### 5.4 配套值类型
+
 ```dart
-/// 已安装主题的元数据（drift row）。
-final class InstalledTheme {
-  /// 主题 id。
+/// 本地可用的主题（XRAP 活跃世代落地物 + generation 0 内置世代）。
+///
+/// 【S5a 不定义安装态类型】安装态（安装时刻 / 占用字节 / 是否内置 /
+/// publisher）全部归 XRAP —— 它由 DatasetInstaller 维护世代与状态机
+/// （`dataset_installer.dart:188-192`）。S5a 只需要「本地有哪些主题可选」。
+///
+/// 【不含"可下载但未安装"的主题】那是 XRAP catalog 的职责，不在本端口。
+final class LocalTheme {
+  /// 主题 id（对应 defaultThemeId 的取值）。
   final String id;
-
-  /// 主题内容版本。
-  final String version;
 
   /// 展示名。
   final String displayName;
@@ -640,57 +706,15 @@ final class InstalledTheme {
   /// 作者。
   final String author;
 
-  /// 发布者身份。当前恒为 official，字段为将来 UGC 预留（§3.3 约束 2）。
-  final Publisher publisher;
+  /// 该主题落地物所在的 XRAP 世代号。generation 0 即 bundled 内置世代。
+  final int generation;
 
-  /// 是否为 bundled 内置主题（内置主题不可卸载）。
-  final bool isBundled;
-
-  /// 安装时刻（UTC）。
-  final DateTime installedAtUtc;
-
-  /// 占用字节数（含资产），用于存储管理 UI。
-  final int sizeBytes;
-
-  const InstalledTheme({
+  /// 构造一条本地可用主题。
+  const LocalTheme({
     required this.id,
-    required this.version,
     required this.displayName,
     required this.author,
-    required this.publisher,
-    required this.isBundled,
-    required this.installedAtUtc,
-    required this.sizeBytes,
-  });
-}
-
-/// 可安装主题（来自下发的 catalog，尚未安装）。
-final class AvailableTheme {
-  /// 主题 id。
-  final String id;
-
-  /// 最新版本。
-  final String version;
-
-  /// 展示名。
-  final String displayName;
-
-  /// 作者。
-  final String author;
-
-  /// 预计下载字节数，供 UI 提示。
-  final int downloadBytes;
-
-  /// 是否已安装（已安装则可比较版本决定是否可更新）。
-  final bool isInstalled;
-
-  const AvailableTheme({
-    required this.id,
-    required this.version,
-    required this.displayName,
-    required this.author,
-    required this.downloadBytes,
-    required this.isInstalled,
+    required this.generation,
   });
 }
 
@@ -763,9 +787,7 @@ reference 的默认值是"什么都不做"的空实现（保持零 IO）。
 
 #### 5.5.2 注入端口【契约】
 
-> **v4 已删除三个端口**：`ThemeRemoteFetcher`（下载归 XRAP `DatasetSource`）、
-> `ThemePackageStore`（落盘归 XRAP `DatasetInstaller` + `ThemeMaterializer`）、
-> `ThemeSignatureVerifier` + `ThemeSignatureVerdict`（验签归 XRAP 安装流程）。
+> **S5a 不持有远端拉取、包落盘、验签三类端口** —— 它们是 XRAP 安装流程的一部分。
 > 依据 §0.0 裁定 3：`dataset_installer.dart:188-192`「唯一实现，数据集无关」。
 
 S5a 只保留**一个**注入端口。
@@ -837,23 +859,67 @@ final class InMemoryThemeResourceStore implements ThemeResourceStore {
 | | | `activeThemeReadCount` | 每次 `readActiveThemeTokens()` 返回 |
 | | | `overrideReadCount` | 每次 `readOverrides()` 返回 |
 | `SlowLocalReader` | `ThemeLocalReader` | — | `readActiveThemeTokens()` 返回**永不完成的 `Completer.future`**；另两个方法正常返回（用于 P6） |
+| `CountingDatasetInstaller` | `DatasetInstaller`（XRAP） | `installCallCount` | 每次 `install(...)` 被**进入**（不等返回，用于 P4） |
+| | | `calledDatasetIds` | 同上，追加被请求的 datasetId |
 
-**P3 的完整断言（正向控制在此闭合）**：
+**P3 的可执行 oracle（Dart 无实用反射，故用静态扫描 + 行为断言双保险）**：
+
+Dart 的 `dart:mirrors` 在 Flutter 下不可用，**无法在运行时读构造器参数表**。
+因此 P3 拆成两条各自可执行的断言：
 
 ```
-1. store = InMemoryThemeResourceStore(localReader: CountingLocalReader(fixture))
-2. await store.resolve()
-3. 断言 store 的依赖图中【不存在】任何网络端口          ← 结构性零网络（§5.5.3）
-4. 断言 localReader.bundledReadCount  > 0              ← 正向控制：确实走了路径
-   且   localReader.overrideReadCount > 0
+P3-a 静态扫描（架构守卫测试内以纯文本读源码）
+  读 core/lib/reference/in_memory_theme_resource_store.dart 全文，断言：
+    (1) 'ThemeLocalReader' 命中次数 == 1                    唯一注入端口
+    (2) 正则 'http|Http|Socket|Uri|DatasetInstaller|DatasetSource' 命中 == 0
+    (3) 构造器参数区内 'required ' 出现次数 == 2             scopeUid + localReader
+  三条任一失败即红。(2) 是关键 —— 证明该类连发起 IO 的符号都没引用到。
+
+P3-b 行为断言（正向控制）
+  store = InMemoryThemeResourceStore(
+      scopeUid: 'u1', localReader: CountingLocalReader(fixture))
+  await store.resolve()
+  断言 localReader.bundledReadCount  > 0     确实走了启动路径
+  断言 localReader.overrideReadCount > 0
 ```
 
-第 3 步在 v4 变成**编译期事实**而非运行时断言 —— `InMemoryThemeResourceStore`
-的构造器里没有网络端口可传。测试用一条架构守卫断言该构造器参数表只有两项。
+> ⚠️ **P3-a 第 (3) 条的防假绿要求**：必须先从 `InMemoryThemeResourceStore({`
+> 切到配对的 `})` 得到参数区子串，再在**子串内**计数 —— 全文计数会被值类型的
+> `required` 污染。且须对子串加长度下限断言（`length > 50`），
+> 否则正则失配切出空串时 `0 == 0` 会静默通过。
 
-**P4（原"零解压/零 blob 读取"）在 v4 改为**：断言 `resolve()` 期间
-**不调用任何 XRAP 安装接口**。做法：把 `DatasetInstaller` 的 fake 传给装配层，
-断言其 `install` 调用次数为 0，同时 `localReader.bundledReadCount > 0`。
+**P4 的装配入口（v4 原缺，此处补全）**：
+
+P4 要验证 `resolve()` 不触发 XRAP 安装。但 `ThemeResourceStore` 本身**不持有**
+`DatasetInstaller`（那是 XRAP 的东西），所以注入点不在 store 上，**在装配函数上**：
+
+```dart
+// core/lib/reference/theme_assembly.dart —— reference 装配入口
+//
+// 【为什么需要它】P4 要断言「启动路径不触发安装」，就必须有一个能同时看到
+// store 与 installer 的位置。生产装配在 xuan-shell 的 DI bootstrap，
+// reference 装配在这里，二者形状一致 —— 测试对装配函数编程，不对实现编程。
+Future<ThemeResourceStore> assembleThemeStore({
+  required String scopeUid,
+  required ThemeLocalReader localReader,
+  required DatasetInstaller installer,   // 只服务安装流程；resolve 路径不得触碰
+});
+```
+
+```
+P4 的断言：
+  installerSpy = CountingDatasetInstaller()
+  store = await assembleThemeStore(
+      scopeUid: 'u1',
+      localReader: CountingLocalReader(fixture),
+      installer: installerSpy)
+  await store.resolve()
+  断言 installerSpy.installCallCount == 0     零安装
+  断言 localReader.bundledReadCount  > 0      正向控制：确实走了启动路径
+```
+
+第二条正向控制不可省 —— 没有它，一个 `assembleThemeStore` 什么都不做的实现
+也能让第一条通过（门禁纪律第 9 条）。
 
 **P6 的状态转换**：
 
@@ -934,7 +1000,7 @@ DatasetDescriptor themeDatasetDescriptor() => DatasetDescriptor(
       appSchemaRevision: kThemeAppSchemaRevision, // 本 app 的落地结构版本
       policy: officialThemePolicy,
       bundledManifest: kThemeBundledManifest,     // generation 0，恒存在
-      materializer: () => ThemeMaterializerImpl(),
+      materializer: () => InMemoryThemeMaterializer(),
     );
 
 /// 数据集稳定标识。**不得内联字面量**（同 entityType 常量的理由）。
@@ -1093,14 +1159,27 @@ bundled 默认主题（编译进包）        ← 兜底，永远存在
 
 #### 步骤
 
-**第 1 步 · 扁平化（flatten）**
+**第 1 步 · 输入校验（不做扁平化）**
 
-主题 YAML 是嵌套 Map，合并在**扁平 key 空间**进行。
+⚠️ **合并算法的三个输入已经是扁平 Map**（`Map<String, dynamic>`，key 形如
+`light.components.four_zhu_card.shadow.color`）。**运行时不做扁平化** ——
+YAML → 扁平 key 的转换发生在**构建期**（§4.3），设备上零 YAML 解析。
 
-- 扁平 key = 从根到叶子的路径，以 `.` 连接，形如 `light.components.four_zhu_card.shadow.color`；
+本步只做两条断言（reference 实现中为 `assert`，生产实现中为诊断日志）：
+
+- 每个 key 均不含空段（`a..b` 非法）且不以 `.` 开头或结尾；
+- 每个 value 均**非 Map**（若出现 Map 说明上游传了嵌套结构，是契约违反）。
+
+**扁平 key 的构造规则（构建脚本遵守，此处仅为规格定义）**：
+
+- 扁平 key = 从根到叶子的路径，以 `.` 连接；
 - 递归下降，遇到**非 Map 值**即停止（该值是叶子）；
 - **List 视为叶子**，不再下降（颜色数组等整体替换）；
 - 空 Map `{}` 不产生任何 key。
+
+> 📌 **本规则由构建脚本实现，不由 S5a 的 reference 合并器实现。**
+> 写在这里是因为它定义了合并算法的输入契约 —— 构建脚本与合并器必须对同一套
+> key 空间达成一致，否则两边各扁平各的会产生对不上的 key。
 
 **第 2 步 · 逐 key 三层取值**
 
@@ -1256,17 +1335,24 @@ reference 实现须持有一个**单条缓存**：
 
 `/xuan-migration/openspec/changes/theme-token-customization-contract/` 已过 4 轮评审并签署。下表**逐条**映射其 `specs/theme-token-system/spec.md` 的 SHALL 条款，每条给出 S5a 的处置与**对应验收标准编号**（无验收标准 = 未闭合，不得进 ACT）。
 
-| spec.md 位置 | SHALL 条款 | S5a 的处置 | 验收 |
+| spec.md 位置 | SHALL 条款 | S5a 的处置 | 验收 / 承接方 |
 |---|---|---|---|
-| :54 | **缺失字段保持 legacy fallback** —— widget 消费的字段在主题中缺失时，保留既有视觉回退或文档化默认 | 合并算法第 4 步的原子组补全 + 缺失时由 `token_loader` 字段默认兜底（§6.6） | **A14c** |
-| :60 | **数值非法须 caught error + 诊断**，不得抛未捕获 `TypeError` | S5a 不重新实现数值解析（复用 `token_loader.dart:88` 的 `_parseCheckedDouble`）；但**合并层不得吞掉诊断**，非法值须原样透传给解析层处理 | **A14d** |
-| :69–74 | **Widget / 绘图包不得直接解析 YAML**，不得 import `xuan_config` | S5a 输出 `ThemeTokenSet`（已解析结构），**不传 raw YAML**；`persistence_core` 亦不依赖 `xuan_config` | **A5b** |
-| :86 | **Additive schema 演进**：未知字段忽略，渲染不得失败 | §4.3 版本兼容规则第 4 条 | **A14a** |
-| :116 | **Canvas 文件所有权**：不得编辑 `lib/painter/**` 等 | §8.3 声明不碰；S5a 全部产出在 `xuan-storage/core/` 内 | **A17** |
-| :123 | **API 未稳定时停止**：绘图包 API 未稳定前不得集成 chart | `chart` 段仅透传不解析（§8.3） | **A17** |
-| :134 | **可执行计划门禁**：实施前须列精确文件 / 测试 / fallback 断言 / 验证命令 / stop condition | 本文档 §11 交付物清单 + 纪要 A1–A18/P1–P7 逐条给命令 | **纪要整体** |
+| :54 | **缺失字段保持 legacy fallback** —— widget 消费的字段在主题中缺失时，保留既有视觉回退或文档化默认 | 合并算法第 4 步的原子组补全；补不齐时由既有 `token_loader` 的字段默认兜底（§6.6） | ✅ **A14c**（S5a 内） |
+| :60 | **数值非法须 caught error + 诊断**，不得抛未捕获 `TypeError` | **不在 S5a**：非法值在**构建期**就该被拒绝出包（§4.3）；设备侧由既有 `token_loader.dart:88` 的 `_parseCheckedDouble` 兜底，S5a 未新增数值解析。S5a 的责任仅为**不吞值**（原样透传） | ⬜ 承接方 **BUILD-THEME**；S5a 侧 ✅ **A19** |
+| :69–74 | **Widget / 绘图包不得直接解析 YAML**，不得 import `xuan_config` | S5a 输出 `ThemeTokenSet`（已解析结构），不传 raw YAML；`persistence_core` 亦不依赖 `xuan_config` | ✅ **A5b**（S5a 内） |
+| :86 | **Additive schema 演进**：未知字段忽略，渲染不得失败 | **不在 S5a**：未知字段的取舍在构建期扁平化时决定（§4.3）。S5a 的责任是**对任何 key 一视同仁、不做白名单过滤**，故未知 key 天然透传、不会导致渲染失败 | ⬜ 承接方 **BUILD-THEME**；S5a 侧 ✅ **A19** |
+| :116 | **Canvas 文件所有权**：不得编辑 `lib/painter/**` 等 | §8.3 声明不碰；S5a 全部产出在 `xuan-storage/core/` 内 | ✅ **A17**（S5a 内） |
+| :123 | **API 未稳定时停止**：绘图包 API 未稳定前不得集成 chart | `chart` 段仅透传不解析（§8.3） | ✅ **A17**（S5a 内） |
+| :134 | **可执行计划门禁**：实施前须列精确文件 / 测试 / fallback 断言 / 验证命令 / stop condition | 本文档 §11 交付物清单 + 纪要 A1–A20/P1–P7 逐条给命令 | ✅ **纪要整体** |
 | Tier 3 隔离 | marketplace / cloud sync / uploaded assets **MUST NOT** 在 Tier 1 theme-token 工作下实现，须独立 change | **S5a 即是那个独立 change**（design.md:108 明写这些 require separate OpenSpec changes） | — |
-| 第二轮评审 #5 | **降级分粒度**：整体形状非法 → `DefaultXuanThemeData`；单字段非法 → 该字段默认 | §4.3 版本兼容规则第 5 条 | **A14e** |
+| 第二轮评审 #5 | **降级分粒度**：整体形状非法 → `DefaultXuanThemeData`；单字段非法 → 该字段默认 | **不在 S5a**：整体形状非法在构建期即拒绝出包；单字段降级由既有 `token_loader` 承担（S5a 未改动它） | ⬜ 承接方 **BUILD-THEME** + 既有 `token_loader` |
+
+> ⚠️ **承接方 `BUILD-THEME` 是一个尚未立项的任务**（主题构建脚本：YAML → `.jsonl` 载荷 +
+> sha256/rowCount 真值）。上表三条 ⬜ 必须写进它的验收标准，**S5a 转 ACT 时须同时创建
+> 该任务的占位纪要**，否则这三条 SHALL 会在移交中丢失（§11.5 已登记）。
+>
+> 📌 **v4 的「版本兼容规则」引用已失效** —— 那套规则随主题包格式一并移交 XRAP，
+> 本表已改为直接指向构建期与既有 `token_loader`，不再引用已删章节。
 
 ### 8.2 一条归属判断（架构决定，非源码已证实）
 
@@ -1306,14 +1392,14 @@ reference 实现须持有一个**单条缓存**：
 | 覆盖最小单位 | ✅ **叶子字段 + 原子组补全**，原子组清单写死 | §6.2 |
 | light/dark | ✅ **key 内含 brightness 前缀，两份完全独立** | §6.3 |
 | 悬空覆盖 | ✅ **保留 + 标记 orphan + 诊断暴露**，判定规则机械可判 | §6.4 |
-| 主题包签名 | ⬜ **v4 移交 XRAP** —— 验签是安装流程的一环，归 `DatasetInstaller`。S5a 不再持有 `ThemeSignatureVerifier`（§0.0 裁定 3） |
+| 主题包签名 | ⬜ **归 XRAP** —— 验签是安装流程的一环，由 `DatasetInstaller` 负责，本设计不定义任何验签类型（§0.0 裁定 3） |
 | bundled 默认主题物理位置 | ✅ **XRAP generation 0**（`bundledManifest` 恒存在，`dataset_descriptor.dart:33-37`）。构建脚本从 `theme/config/presets/default.yaml` 预构建产出载荷；**S5a 不跨仓库读取**，token 由 `ThemeLocalReader` 注入（stop condition #2） |
 
 ### 9.2 仍开放（不阻塞 ACT）
 
 | 事项 | 状态 | 归属 |
 |---|---|---|
-| **`ConfigBootstrap` 三个真值**（`endpoints` / `allowedHostSuffixes` / `l0PublicKeyBase64`）仍为占位符 | 🔴 **阻塞真实下载联调**，**不阻塞** S5a 契约层与 reference 实现 | 人类填入 |
+| **`ConfigBootstrap` 三个真值**（`endpoints` / `allowedHostSuffixes` / `l0PublicKeyBase64`）仍为占位符 | ⬜ **已知非阻塞背景**（裁定 4）：`dataset_source.dart:61` 未配置返回 null，此时只用内置世代；`bundledManifest` 恒存在、冷启动零网络。实证 T1 全程 generation 0 未用到域名或公钥。**不构成 S5a 的 stop gate** | 与 S5a 无关，由 XRAP 远端源任务承接 |
 | 覆盖数量软上限的具体阈值 | 本设计只定接口（`listOverrides().length` 可查） | 后续（参照总纲 §10:1581） |
 | **下载字体的运行时注册（`FontLoader`）与失败降级** | ⚠️ **未查证** | 资产引入时深挖（S5a 无资产） |
 | shell 侧 `version: 1` 空壳的废弃 | 已定方向（§9.1），执行不在 S5a | 主题内容就绪时 |
@@ -1322,7 +1408,7 @@ reference 实现须持有一个**单条缓存**：
 
 ## 11. 交付物清单（精确到文件）
 
-> **v4 已大幅收窄**：删掉安装机制相关文件，新增 `ThemeMaterializer` 与 XRAP 数据集声明。
+> **v4 已大幅收窄**：删掉安装机制相关文件，新增 `InMemoryThemeMaterializer`（XRAP Materializer 实现）与数据集声明。
 
 ### 11.1 契约层（零实现）
 
@@ -1330,15 +1416,14 @@ reference 实现须持有一个**单条缓存**：
 |---|---|---|
 | `core/lib/model/theme_token_types.dart` | `ThemeTokenSet` / `ThemeTokenSection` | A6, A16 |
 | `core/lib/model/theme_resolution.dart` | `ThemeResolution` / `ThemeLayerInfo` / `ThemeSelectionOrigin` / `ThemeLayerKind` | A15 |
-| `core/lib/model/theme_resource_store.dart` | `ThemeResourceStore` 端口（**v4：无 install/uninstall/refreshCatalog**） | A3, A6, A7 |
-| `core/lib/model/theme_value_types.dart` | `AvailableTheme` / `OverrideEntry` / `OverrideOrigin`（**v4：删 `InstalledTheme`**，安装态归 XRAP） | A6 |
+| `core/lib/model/theme_resource_store.dart` | `ThemeResourceStore` 端口（读合并结果 + 写覆盖层 + 主题选择，无安装类方法） | A3, A6, A7 |
+| `core/lib/model/theme_value_types.dart` | `LocalTheme` / `OverrideEntry` / `OverrideOrigin` | A6 |
 | `core/lib/model/theme_source_ports.dart` | **一个**注入端口 `ThemeLocalReader`（§5.5.2） | A3, A6, P3 |
-| `core/lib/model/theme_materializer.dart` | `ThemeMaterializer implements DatasetMaterializer`（§4.2） | A20 |
 | `core/lib/model/theme_storage_policies.dart` | 三条 `StoragePolicy` const + 三个 entityType 常量 | A8 |
 | `core/lib/model/theme_dataset.dart` | `themeDatasetDescriptor()` + `themeDatasetId` + `kThemeAppSchemaRevision`（§5.6.2） | A8, A20 |
 | `core/lib/model/theme_module_registry.dart` | `ThemeModuleRegistry.register()`（策略 + XRAP 数据集，幂等） | A8 |
 
-⚠️ 契约层共 **9 个文件**（A3 覆盖下限相应为 9）。
+⚠️ 契约层共 **8 个文件**（A3 覆盖下限相应为 8）。
 
 ### 11.2 reference 实现层
 
@@ -1346,7 +1431,7 @@ reference 实现须持有一个**单条缓存**：
 |---|---|---|
 | `core/lib/reference/theme_token_merger.dart` | §6.6 合并算法的权威实现（纯函数，无状态） | A9–A13, A14c, A19, P1, P7 |
 | `core/lib/reference/in_memory_theme_resource_store.dart` | `InMemoryThemeResourceStore`（构造器只收 `ThemeLocalReader`，§5.5.3）+ 缓存 | P2, P3, P4, P5, P6 |
-| `core/lib/reference/in_memory_theme_materializer.dart` | `ThemeMaterializer` 的内存实现：消费预构建载荷 → 内存 Map，含世代判别 | A20 |
+| `core/lib/reference/in_memory_theme_materializer.dart` | `InMemoryThemeMaterializer implements DatasetMaterializer`：消费 jsonl 载荷 → 内存 Map，含世代隔离（§4.4） | A20 |
 
 ⚠️ **`core/lib/reference/` 是新目录**。A3 的零实现扫描须**排除**此目录，扫描范围限定 `core/lib/model/theme_*`。
 
@@ -1366,21 +1451,54 @@ reference 实现须持有一个**单条缓存**：
 ### 11.4 Stop conditions（触发即停，报人类）
 
 1. **S1a 契约或 XRAP 契约不在当前分支基线** —— 开工第一步验证 `core/lib/model/storage_policy.dart` 与 `core/lib/model/dataset/dataset_materializer.dart` 均存在；
-2. **需要读取或拷贝 `theme` 仓库的任何文件** —— 跨仓库源迁移在 ACT 范围外。bundled token 由 `ThemeLocalReader` 注入；
+2. **本 ACT 的任何文件读取 `theme` 仓库** —— 跨仓库读取在 S5a ACT 范围外。
+   ⚠️ **澄清（Codex R3 P1-6）**：构建脚本**确实**要读 `theme/config/presets/*.yaml`，
+   但**构建脚本不属于本 ACT**（它是独立任务 `BUILD-THEME`，见 §11.5）。
+   本 ACT 交付的全部文件（`core/lib/model/theme_*`、`core/lib/reference/*`、
+   `core/test/*`）**均不得**出现 `theme/` 路径引用；测试用的 bundled token 由
+   **fixture 内联常量**提供，不从任何外部文件读取。执行者若发现需要读 theme 仓库，
+   说明范围理解错了，即停。
 3. **`theme` 包出现任何改动** —— A4 门禁触发即停；
-4. **发现需要在 `ThemeMaterializer` 之外新增 XRAP 扩展点** —— 说明协议有缺口，须走协议变更，不得在 S5a 侧绕过（§4.2）；
+4. **发现需要在 XRAP 的 `DatasetMaterializer` 之外新增扩展点** —— 说明协议有缺口，须走协议变更，不得在 S5a 侧绕过（§4.2）；
 5. **需要触碰 `xuan-qizhengsiyu/lib/painter/**`** —— Canvas 提取工作所有权，须先握手。
 
-### 11.5 移交后续任务的项（不得丢失）
+### 11.5 移交后续任务的项（每项有唯一承接 ID，不得丢失）
 
-| 项 | 移交去向 | 理由 |
-|---|---|---|
-| 主题包下载 / 校验 / 世代 / 指针翻转 / 回滚 / GC / 幂等 | **XRAP `DatasetInstaller`** | §0.0 裁定 3：唯一实现，数据集无关 |
-| 主题包验签 | **XRAP 安装流程** | 同上 |
-| manifest 版本拒装（A14b） | **XRAP** | `DatasetDescriptor.supports()` 已实现 |
-| 未知字段处理（A14a）/ 数值非法（A14d）/ 单字段回退（A14e） | **构建脚本 + 既有 `token_loader`** | §4.3：YAML 解析在构建期，不在设备上 |
-| 主题构建脚本（YAML → 预构建载荷 + sha256/rowCount 真值） | **新建构建任务**（照 T1 的 `assets/tool/build_geo_sql.py`） | 构建期产物，不属运行时契约 |
-| drift 落地表与 schema 版本 | **后续 drift 任务**（与 S1d/S5b 协调版本号） | §12 冲突预警 |
+| 承接 ID | 项 | 移交去向 | 该任务须承接的 SHALL |
+|---|---|---|---|
+| — | 主题包下载 / 校验 / 世代 / 指针翻转 / 回滚 / GC / 幂等 | **XRAP `DatasetInstaller`**（已实现） | — |
+| — | 主题包验签 | **XRAP 安装流程**（已实现） | — |
+| — | manifest 版本拒装（原 A14b） | **XRAP** `DatasetDescriptor.supports()`（已实现） | — |
+| **BUILD-THEME** | **主题构建脚本**：`theme/config/presets/*.yaml` → `.jsonl` 载荷（§4.3 行 schema）+ sha256 / bytes / rowCount 真值 → 写进 `DatasetManifest` | **新建任务，尚未立项**。照 T1 的 `assets/tool/build_geo_sql.py` + `BUILD-REPORT.md` 形制 | **spec.md :60**（数值非法在构建期拒绝出包）<br>**spec.md :86**（未知字段取舍）<br>**第二轮评审 #5**（整体形状非法即拒绝出包） |
+| **THEME-DRIFT** | 主题落地的 drift 表与 schema 版本（reference 用内存 Map，生产需建表） | **新建任务**，与 S1d / S5b 协调 `schemaVersion` 号 | — |
+
+> ⚠️ **`BUILD-THEME` 是 S5a 转 ACT 的伴生前提**：三条 SHALL 挂在它名下。
+> **转 ACT 时须同时创建它的占位纪要**（哪怕只有目标 + 那三条 SHALL），
+> 否则这三条会在移交中悄悄丢失 —— 这正是 Codex R3 P1-4 指出的风险。
+
+### 11.6 残留门禁（防止本轮的失守重演）
+
+> Codex R3 的 P0 是「已裁定删除的类型仍有残留」，根因是我用正则批量替换后**未独立验证**。
+> 以下门禁写进 ACT 的 VERIFICATION，每次执行都跑，不依赖人的自觉。
+
+```bash
+# scripts/run_s5a_residue_gate.sh
+# 已裁定移出 S5a 的标识符，出现即失败
+FORBIDDEN='InstalledTheme|AvailableTheme|ThemeRemoteFetcher|ThemePackageStore|ThemeSignatureVerifier|ThemeSignatureVerdict|refreshCatalog|listInstalled'
+HITS=$(grep -rnE "$FORBIDDEN" core/lib/model/theme_*.dart core/lib/reference/ core/test/theme_*.dart 2>/dev/null | wc -l | tr -d ' ')
+[ "$HITS" = "0" ] || { echo "RESIDUE_FOUND: $HITS"; exit 1; }
+# 覆盖下限：防止 glob 失配扫到 0 个文件而假绿
+FILES=$(ls core/lib/model/theme_*.dart 2>/dev/null | wc -l | tr -d ' ')
+[ "$FILES" -ge 8 ] || { echo "SCAN_TOO_NARROW: only $FILES files"; exit 2; }
+echo "RESIDUE_GATE_OK (scanned $FILES contract files)"
+```
+
+**必须做变红自检**：临时在任一 `theme_*.dart` 里写一行 `// InstalledTheme`，
+确认脚本 `exit 1`；删掉后回到 `exit 0`。一个绿的门禁若证明不了自己能红，它就是假的。
+
+> 📌 **门禁扫代码文件，不扫文档**。本节的 `FORBIDDEN` 变量与上面这行自检示例
+> 是门禁的**定义**，本身含这些标识符属正当。评审若做全文 grep，请排除
+> 设计 §11.6 与纪要的门禁说明段 —— 那里出现是必需的，不是残留。
 
 ---
 
