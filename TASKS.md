@@ -9,3 +9,4 @@
 | storage-c1c2-transport-rulings | claude | agent/claude/storage-c1c2-transport-rulings | 🚧 进行中 | 2026-08-03 |
 | storage-s3c-signaling | claude | agent/claude/storage-s3c-signaling | 🚧 进行中 | 2026-08-03 |
 | storage-s1d-blobstore | codex | agent/codex/storage-s1d-blobstore | 🚧 进行中 | 2026-08-04 |
+| storage-s3c-local-signaling | claude | agent/claude/storage-s3c-local-signaling | 🚧 进行中 | 2026-08-04 |
