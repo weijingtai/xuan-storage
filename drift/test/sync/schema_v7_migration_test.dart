@@ -68,8 +68,20 @@ void main() {
     expect(pk, ['scope_uid', 'peer_id', 'entity_type'],
         reason: '主键未切到三元组，实际为 $pk');
 
-    // 5. user_version 为 7
-    expect(sqliteDb.userVersion, 7);
+    // 5. user_version 为 8（v7 之上又经 ACT 08 升到 v8）
+    expect(sqliteDb.userVersion, 8);
+
+    // 6. v8 的两张新表存在（t_entity_stamp + t_hlc_clock_state）
+    final v8Tables = sqliteDb
+        .select(
+          "SELECT name FROM sqlite_master WHERE type='table' "
+          "AND name IN ('t_entity_stamp', 't_hlc_clock_state')",
+        )
+        .toList()
+        .map((r) => r[0])
+        .toSet();
+    expect(v8Tables, containsAll(['t_entity_stamp', 't_hlc_clock_state']),
+        reason: 'v8 迁移必须建出 t_entity_stamp 与 t_hlc_clock_state，实际: $v8Tables');
   });
 
   test('backfilled_peer_id_matches_firestore_gateway_literal', () async {
@@ -125,7 +137,19 @@ void main() {
     expect(idx, contains('idx_outbox_peer_ack_peer_status'));
     expect(idx, contains('idx_outbox_peer_ack_operation'));
 
-    expect(sqliteDb.userVersion, 7);
+    expect(sqliteDb.userVersion, 8);
+
+    // v8 表已建（fresh 库直接建到 v8）
+    final v8Tables = sqliteDb
+        .select(
+          "SELECT name FROM sqlite_master WHERE type='table' "
+          "AND name IN ('t_entity_stamp', 't_hlc_clock_state')",
+        )
+        .toList()
+        .map((r) => r[0])
+        .toSet();
+    expect(v8Tables, containsAll(['t_entity_stamp', 't_hlc_clock_state']),
+        reason: 'fresh 库必须建出 v8 两张表，实际: $v8Tables');
   });
 
   test('sync_state_pk_allows_same_entity_for_two_peers', () async {

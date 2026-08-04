@@ -251,6 +251,8 @@ class RemoteChange {
     required this.cursor,
     required this.payloadJson,
     required this.serverTimeUtc,
+    this.hlcPacked,
+    this.deviceId,
   });
 
   final String operationId;
@@ -260,6 +262,20 @@ class RemoteChange {
   final PullCursor cursor;
   final String payloadJson;
   final DateTime? serverTimeUtc;
+
+  /// 产生该变更的 HLC 戳（因果序，§5.2.3）。
+  ///
+  /// 线上格式见 ACT 08 TASK_DETAIL.hlc_wire_format_spec（钉死，
+  /// 与 docs/storage-s1b-multipeer/HLC-WIRE-FORMAT.md（ACT 11 产出）同一规格）：
+  /// 48 位 l + 16 位 c 打包成 int64，`(l << 16) | c`（l = UTC 毫秒，c = Hlc.counter）。
+  /// 可空：历史 oplog 条目没有这个字段。
+  final int? hlcPacked;
+
+  /// 产生该变更的设备标识（HLC 相等时的决胜位，= Hlc.nodeId）。
+  ///
+  /// 【2026-08-03 换库】crdt 的 Hlc 内建 nodeId，nodeId 一律取本字段值
+  /// （= DeviceIdentity.deviceId）。可空：历史 oplog 条目没有这个字段。
+  final String? deviceId;
 }
 
 /// One page of remote changes.

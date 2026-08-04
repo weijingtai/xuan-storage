@@ -245,11 +245,74 @@ class OutboxPeerAcks extends Table {
       ];
 }
 
+/// 每个实体当前版本的 HLC 戳（边表）。
+///
+/// 【为什么用边表而不是往 RecordMeta 加字段】：RecordMeta 在
+/// repository-interface-record 仓库，改它要连带下游 12 个业务仓库。
+/// 边表让 S1b 完全留在 xuan-storage 内，所有 Data class 零改动。
+///
+/// 代价：戳与记录不在同一行，【必须同事务写入】（A13 门禁守着）。
+@DataClassName('EntityStampRow')
+class EntityStamps extends Table {
+  @override
+  String get tableName => 't_entity_stamp';
+
+  /// 所属账号作用域。
+  ///
+  /// ⚠ **主键里必须有它**（Codex R2）。本库里所有同步侧的表
+  /// （t_outbox / t_sync_state）都以 scope_uid 分片；戳表少了这一维，
+  /// 两个账号下 entityId 相同的实体会【共用同一行戳】——
+  /// 切换账号后仲裁读到的是另一个账号的版本坐标，于是要么无脑覆盖、
+  /// 要么无脑丢弃，而且不报错。
+  TextColumn get scopeUid => text().named('scope_uid')();
+
+  TextColumn get entityType => text().named('entity_type')();
+  TextColumn get entityId => text().named('entity_id')();
+
+  /// HLC 打包值 `(l << 16) | c`。有效范围与溢出行为见 ACT 08 的
+  /// TASK_DETAIL.hlc_wire_format_spec ②（int64 位布局）。
+  IntColumn get hlcPacked => integer().named('hlc_packed')();
+
+  /// 写入该版本的设备。HLC 相等时的决胜位（= crdt Hlc 的 nodeId）。
+  TextColumn get deviceId => text().named('device_id')();
+
+  @override
+  Set<Column> get primaryKey => {scopeUid, entityType, entityId};
+}
+
+/// 本设备 HLC 时钟的持久化状态（单行表）。
+///
+/// 【为什么是单行表而不是 key-value】：时钟是设备级的唯一状态，
+/// 用固定主键的单行表，读写各一条语句，且不可能出现"存了两份钟"。
+@DataClassName('HlcClockStateRow')
+class HlcClockStates extends Table {
+  @override
+  String get tableName => 't_hlc_clock_state';
+
+  /// 固定为 0。单行表的哨兵主键 —— 有 CHECK 约束保证只可能有一行。
+  IntColumn get id =>
+      integer().withDefault(const Constant(0)).named('id')();
+
+  /// 上次退出/上次 tick 时的 HLC 打包值（int64，见 hlc_wire_format_spec ②）。
+  IntColumn get hlcPacked => integer().named('hlc_packed')();
+
+  /// 本设备标识。与 [DeviceIdentity.deviceId] 一致（= crdt Hlc 的 nodeId）。
+  TextColumn get deviceId => text().named('device_id')();
+
+  /// 最后一次落盘时间，仅供诊断，【不参与定序】。
+  DateTimeColumn get savedAtUtc => dateTime().named('saved_at_utc')();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  @override
+  List<String> get customConstraints => const ['CHECK (id = 0)'];
+}
+
 @DataClassName('SyncStateRow')
 class SyncStates extends Table {
   @override
   String get tableName => 't_sync_state';
-
   TextColumn get scopeUid => text().named('scope_uid')();
   TextColumn get entityType => text().named('entity_type')();
 
@@ -715,6 +778,95 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
   }
 }
 
+/// 实体 HLC 戳边表 + 本设备时钟单行表的管理（ACT 08）。
+///
+/// 【applyWithStamp 是本 ACT 的核心生产接口】：在【同一个 drift 事务】里
+/// 写业务记录并更新它的 HLC 戳 —— 戳与记录一起落盘或一起回滚（A13）。
+/// 调用方【不得】自己开事务再调本方法。
+@DriftAccessor(tables: [EntityStamps, HlcClockStates])
+class EntityStampDao extends DatabaseAccessor<PersistenceDriftDatabase>
+    with _$EntityStampDaoMixin {
+  EntityStampDao(this.db) : super(db);
+
+  final PersistenceDriftDatabase db;
+
+  /// 在【同一个 drift 事务】里写业务记录并更新它的 HLC 戳。
+  ///
+  /// [write] 是业务写入回调，在事务内执行；它抛出时整个事务回滚，
+  /// 戳与记录【一起】不落盘。调用方【不得】自己开事务再调本方法。
+  ///
+  /// ACT 10 的 applier 必须走这个方法，不许自己 `transaction(() { ... })`
+  /// 里分别调两次 —— 那样写法上看着也在一个事务里，但戳的更新会散落在
+  /// applier 的多个分支中，漏掉一个分支不报错。
+  Future<void> applyWithStamp({
+    required String scopeUid,
+    required String entityType,
+    required String entityId,
+    required int hlcPacked,
+    required String deviceId,
+    required Future<void> Function() write,
+  }) async {
+    await db.transaction(() async {
+      await write();
+      await into(db.entityStamps).insertOnConflictUpdate(
+        EntityStampsCompanion.insert(
+          scopeUid: scopeUid,
+          entityType: entityType,
+          entityId: entityId,
+          hlcPacked: hlcPacked,
+          deviceId: deviceId,
+        ),
+      );
+    });
+  }
+
+  /// 读取某个实体当前的 HLC 戳；边表里没有该行时返回 null。
+  ///
+  /// 【ACT 10 的 applier 靠它拿"本地版本"参与仲裁】。
+  ///
+  /// 返回 null 有【两种现实】且本方法【区分不了】：
+  ///   ① 本地压根没有这个实体
+  ///   ② 本地有实体，但边表还没有它的戳（v8 迁移前写入的历史数据）
+  /// 这个区分【必须由调用方做】—— ACT 10 的 applier 结合
+  /// 本地实体是否存在来判定。
+  Future<EntityStampRow?> getEntityStamp({
+    required String scopeUid,
+    required String entityType,
+    required String entityId,
+  }) {
+    return (select(db.entityStamps)
+          ..where(
+            (t) =>
+                t.scopeUid.equals(scopeUid) &
+                t.entityType.equals(entityType) &
+                t.entityId.equals(entityId),
+          ))
+        .getSingleOrNull();
+  }
+
+  /// 读回本设备上次退出时的时钟；从未存过返回 null。
+  Future<HlcClockStateRow?> loadClock() {
+    return (select(db.hlcClockStates)..where((t) => t.id.equals(0)))
+        .getSingleOrNull();
+  }
+
+  /// 落盘本设备时钟（单行表，固定 id = 0）。
+  Future<void> saveClock({
+    required int hlcPacked,
+    required String deviceId,
+    required DateTime savedAtUtc,
+  }) async {
+    await into(db.hlcClockStates).insertOnConflictUpdate(
+      HlcClockStatesCompanion.insert(
+        id: const Value(0),
+        hlcPacked: hlcPacked,
+        deviceId: deviceId,
+        savedAtUtc: savedAtUtc,
+      ),
+    );
+  }
+}
+
 @DriftDatabase(
   tables: [
     OutboxRecords,
@@ -744,6 +896,8 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
     WorkItemPanelRefs,
     CreationAuditLogs,
     OutboxPeerAcks,
+    EntityStamps,
+    HlcClockStates,
     TRecordMeta,
     TRecordSearchIndex,
     TScopeAlias,
@@ -766,13 +920,14 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
     DaYunRecordsDao,
     TaiYuanRecordsDao,
     CreationAuditLogsDao,
+    EntityStampDao,
   ],
 )
 class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
   PersistenceDriftDatabase(super.executor);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -828,6 +983,13 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
           await m.createTable(syncStates);
         }
         await _createOutboxPeerAckIndices();
+      }
+      if (from < 8) {
+        // schema v8：HLC 戳边表 + 时钟单行表（ACT 08）。
+        // t_entity_stamp 存每个实体当前版本的 HLC 戳；
+        // t_hlc_clock_state 存本设备时钟（单行表，CHECK (id = 0)）。
+        await m.createTable(entityStamps);
+        await m.createTable(hlcClockStates);
       }
     },
   );

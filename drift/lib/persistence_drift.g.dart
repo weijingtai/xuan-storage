@@ -27,6 +27,24 @@ class SyncStatesDaoManager {
       $$SyncStatesTableTableManager(_db.attachedDatabase, _db.syncStates);
 }
 
+mixin _$EntityStampDaoMixin on DatabaseAccessor<PersistenceDriftDatabase> {
+  $EntityStampsTable get entityStamps => attachedDatabase.entityStamps;
+  $HlcClockStatesTable get hlcClockStates => attachedDatabase.hlcClockStates;
+  EntityStampDaoManager get managers => EntityStampDaoManager(this);
+}
+
+class EntityStampDaoManager {
+  final _$EntityStampDaoMixin _db;
+  EntityStampDaoManager(this._db);
+  $$EntityStampsTableTableManager get entityStamps =>
+      $$EntityStampsTableTableManager(_db.attachedDatabase, _db.entityStamps);
+  $$HlcClockStatesTableTableManager get hlcClockStates =>
+      $$HlcClockStatesTableTableManager(
+        _db.attachedDatabase,
+        _db.hlcClockStates,
+      );
+}
+
 class $OutboxRecordsTable extends OutboxRecords
     with TableInfo<$OutboxRecordsTable, OutboxRecordRow> {
   @override
@@ -13998,6 +14016,698 @@ class OutboxPeerAcksCompanion extends UpdateCompanion<OutboxPeerAckRow> {
   }
 }
 
+class $EntityStampsTable extends EntityStamps
+    with TableInfo<$EntityStampsTable, EntityStampRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EntityStampsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _entityTypeMeta = const VerificationMeta(
+    'entityType',
+  );
+  @override
+  late final GeneratedColumn<String> entityType = GeneratedColumn<String>(
+    'entity_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _entityIdMeta = const VerificationMeta(
+    'entityId',
+  );
+  @override
+  late final GeneratedColumn<String> entityId = GeneratedColumn<String>(
+    'entity_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _hlcPackedMeta = const VerificationMeta(
+    'hlcPacked',
+  );
+  @override
+  late final GeneratedColumn<int> hlcPacked = GeneratedColumn<int>(
+    'hlc_packed',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deviceIdMeta = const VerificationMeta(
+    'deviceId',
+  );
+  @override
+  late final GeneratedColumn<String> deviceId = GeneratedColumn<String>(
+    'device_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    scopeUid,
+    entityType,
+    entityId,
+    hlcPacked,
+    deviceId,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_entity_stamp';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<EntityStampRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scopeUidMeta);
+    }
+    if (data.containsKey('entity_type')) {
+      context.handle(
+        _entityTypeMeta,
+        entityType.isAcceptableOrUnknown(data['entity_type']!, _entityTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityTypeMeta);
+    }
+    if (data.containsKey('entity_id')) {
+      context.handle(
+        _entityIdMeta,
+        entityId.isAcceptableOrUnknown(data['entity_id']!, _entityIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityIdMeta);
+    }
+    if (data.containsKey('hlc_packed')) {
+      context.handle(
+        _hlcPackedMeta,
+        hlcPacked.isAcceptableOrUnknown(data['hlc_packed']!, _hlcPackedMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_hlcPackedMeta);
+    }
+    if (data.containsKey('device_id')) {
+      context.handle(
+        _deviceIdMeta,
+        deviceId.isAcceptableOrUnknown(data['device_id']!, _deviceIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_deviceIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {scopeUid, entityType, entityId};
+  @override
+  EntityStampRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EntityStampRow(
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      )!,
+      entityType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entity_type'],
+      )!,
+      entityId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entity_id'],
+      )!,
+      hlcPacked: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}hlc_packed'],
+      )!,
+      deviceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}device_id'],
+      )!,
+    );
+  }
+
+  @override
+  $EntityStampsTable createAlias(String alias) {
+    return $EntityStampsTable(attachedDatabase, alias);
+  }
+}
+
+class EntityStampRow extends DataClass implements Insertable<EntityStampRow> {
+  /// 所属账号作用域。
+  ///
+  /// ⚠ **主键里必须有它**（Codex R2）。本库里所有同步侧的表
+  /// （t_outbox / t_sync_state）都以 scope_uid 分片；戳表少了这一维，
+  /// 两个账号下 entityId 相同的实体会【共用同一行戳】——
+  /// 切换账号后仲裁读到的是另一个账号的版本坐标，于是要么无脑覆盖、
+  /// 要么无脑丢弃，而且不报错。
+  final String scopeUid;
+  final String entityType;
+  final String entityId;
+
+  /// HLC 打包值 `(l << 16) | c`。有效范围与溢出行为见 ACT 08 的
+  /// TASK_DETAIL.hlc_wire_format_spec ②（int64 位布局）。
+  final int hlcPacked;
+
+  /// 写入该版本的设备。HLC 相等时的决胜位（= crdt Hlc 的 nodeId）。
+  final String deviceId;
+  const EntityStampRow({
+    required this.scopeUid,
+    required this.entityType,
+    required this.entityId,
+    required this.hlcPacked,
+    required this.deviceId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['scope_uid'] = Variable<String>(scopeUid);
+    map['entity_type'] = Variable<String>(entityType);
+    map['entity_id'] = Variable<String>(entityId);
+    map['hlc_packed'] = Variable<int>(hlcPacked);
+    map['device_id'] = Variable<String>(deviceId);
+    return map;
+  }
+
+  EntityStampsCompanion toCompanion(bool nullToAbsent) {
+    return EntityStampsCompanion(
+      scopeUid: Value(scopeUid),
+      entityType: Value(entityType),
+      entityId: Value(entityId),
+      hlcPacked: Value(hlcPacked),
+      deviceId: Value(deviceId),
+    );
+  }
+
+  factory EntityStampRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EntityStampRow(
+      scopeUid: serializer.fromJson<String>(json['scopeUid']),
+      entityType: serializer.fromJson<String>(json['entityType']),
+      entityId: serializer.fromJson<String>(json['entityId']),
+      hlcPacked: serializer.fromJson<int>(json['hlcPacked']),
+      deviceId: serializer.fromJson<String>(json['deviceId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'scopeUid': serializer.toJson<String>(scopeUid),
+      'entityType': serializer.toJson<String>(entityType),
+      'entityId': serializer.toJson<String>(entityId),
+      'hlcPacked': serializer.toJson<int>(hlcPacked),
+      'deviceId': serializer.toJson<String>(deviceId),
+    };
+  }
+
+  EntityStampRow copyWith({
+    String? scopeUid,
+    String? entityType,
+    String? entityId,
+    int? hlcPacked,
+    String? deviceId,
+  }) => EntityStampRow(
+    scopeUid: scopeUid ?? this.scopeUid,
+    entityType: entityType ?? this.entityType,
+    entityId: entityId ?? this.entityId,
+    hlcPacked: hlcPacked ?? this.hlcPacked,
+    deviceId: deviceId ?? this.deviceId,
+  );
+  EntityStampRow copyWithCompanion(EntityStampsCompanion data) {
+    return EntityStampRow(
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
+      entityType: data.entityType.present
+          ? data.entityType.value
+          : this.entityType,
+      entityId: data.entityId.present ? data.entityId.value : this.entityId,
+      hlcPacked: data.hlcPacked.present ? data.hlcPacked.value : this.hlcPacked,
+      deviceId: data.deviceId.present ? data.deviceId.value : this.deviceId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EntityStampRow(')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('entityType: $entityType, ')
+          ..write('entityId: $entityId, ')
+          ..write('hlcPacked: $hlcPacked, ')
+          ..write('deviceId: $deviceId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(scopeUid, entityType, entityId, hlcPacked, deviceId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EntityStampRow &&
+          other.scopeUid == this.scopeUid &&
+          other.entityType == this.entityType &&
+          other.entityId == this.entityId &&
+          other.hlcPacked == this.hlcPacked &&
+          other.deviceId == this.deviceId);
+}
+
+class EntityStampsCompanion extends UpdateCompanion<EntityStampRow> {
+  final Value<String> scopeUid;
+  final Value<String> entityType;
+  final Value<String> entityId;
+  final Value<int> hlcPacked;
+  final Value<String> deviceId;
+  final Value<int> rowid;
+  const EntityStampsCompanion({
+    this.scopeUid = const Value.absent(),
+    this.entityType = const Value.absent(),
+    this.entityId = const Value.absent(),
+    this.hlcPacked = const Value.absent(),
+    this.deviceId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EntityStampsCompanion.insert({
+    required String scopeUid,
+    required String entityType,
+    required String entityId,
+    required int hlcPacked,
+    required String deviceId,
+    this.rowid = const Value.absent(),
+  }) : scopeUid = Value(scopeUid),
+       entityType = Value(entityType),
+       entityId = Value(entityId),
+       hlcPacked = Value(hlcPacked),
+       deviceId = Value(deviceId);
+  static Insertable<EntityStampRow> custom({
+    Expression<String>? scopeUid,
+    Expression<String>? entityType,
+    Expression<String>? entityId,
+    Expression<int>? hlcPacked,
+    Expression<String>? deviceId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (scopeUid != null) 'scope_uid': scopeUid,
+      if (entityType != null) 'entity_type': entityType,
+      if (entityId != null) 'entity_id': entityId,
+      if (hlcPacked != null) 'hlc_packed': hlcPacked,
+      if (deviceId != null) 'device_id': deviceId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EntityStampsCompanion copyWith({
+    Value<String>? scopeUid,
+    Value<String>? entityType,
+    Value<String>? entityId,
+    Value<int>? hlcPacked,
+    Value<String>? deviceId,
+    Value<int>? rowid,
+  }) {
+    return EntityStampsCompanion(
+      scopeUid: scopeUid ?? this.scopeUid,
+      entityType: entityType ?? this.entityType,
+      entityId: entityId ?? this.entityId,
+      hlcPacked: hlcPacked ?? this.hlcPacked,
+      deviceId: deviceId ?? this.deviceId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
+    }
+    if (entityType.present) {
+      map['entity_type'] = Variable<String>(entityType.value);
+    }
+    if (entityId.present) {
+      map['entity_id'] = Variable<String>(entityId.value);
+    }
+    if (hlcPacked.present) {
+      map['hlc_packed'] = Variable<int>(hlcPacked.value);
+    }
+    if (deviceId.present) {
+      map['device_id'] = Variable<String>(deviceId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EntityStampsCompanion(')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('entityType: $entityType, ')
+          ..write('entityId: $entityId, ')
+          ..write('hlcPacked: $hlcPacked, ')
+          ..write('deviceId: $deviceId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $HlcClockStatesTable extends HlcClockStates
+    with TableInfo<$HlcClockStatesTable, HlcClockStateRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HlcClockStatesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _hlcPackedMeta = const VerificationMeta(
+    'hlcPacked',
+  );
+  @override
+  late final GeneratedColumn<int> hlcPacked = GeneratedColumn<int>(
+    'hlc_packed',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deviceIdMeta = const VerificationMeta(
+    'deviceId',
+  );
+  @override
+  late final GeneratedColumn<String> deviceId = GeneratedColumn<String>(
+    'device_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _savedAtUtcMeta = const VerificationMeta(
+    'savedAtUtc',
+  );
+  @override
+  late final GeneratedColumn<DateTime> savedAtUtc = GeneratedColumn<DateTime>(
+    'saved_at_utc',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, hlcPacked, deviceId, savedAtUtc];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_hlc_clock_state';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<HlcClockStateRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('hlc_packed')) {
+      context.handle(
+        _hlcPackedMeta,
+        hlcPacked.isAcceptableOrUnknown(data['hlc_packed']!, _hlcPackedMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_hlcPackedMeta);
+    }
+    if (data.containsKey('device_id')) {
+      context.handle(
+        _deviceIdMeta,
+        deviceId.isAcceptableOrUnknown(data['device_id']!, _deviceIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_deviceIdMeta);
+    }
+    if (data.containsKey('saved_at_utc')) {
+      context.handle(
+        _savedAtUtcMeta,
+        savedAtUtc.isAcceptableOrUnknown(
+          data['saved_at_utc']!,
+          _savedAtUtcMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_savedAtUtcMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  HlcClockStateRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return HlcClockStateRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      hlcPacked: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}hlc_packed'],
+      )!,
+      deviceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}device_id'],
+      )!,
+      savedAtUtc: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}saved_at_utc'],
+      )!,
+    );
+  }
+
+  @override
+  $HlcClockStatesTable createAlias(String alias) {
+    return $HlcClockStatesTable(attachedDatabase, alias);
+  }
+}
+
+class HlcClockStateRow extends DataClass
+    implements Insertable<HlcClockStateRow> {
+  /// 固定为 0。单行表的哨兵主键 —— 有 CHECK 约束保证只可能有一行。
+  final int id;
+
+  /// 上次退出/上次 tick 时的 HLC 打包值（int64，见 hlc_wire_format_spec ②）。
+  final int hlcPacked;
+
+  /// 本设备标识。与 [DeviceIdentity.deviceId] 一致（= crdt Hlc 的 nodeId）。
+  final String deviceId;
+
+  /// 最后一次落盘时间，仅供诊断，【不参与定序】。
+  final DateTime savedAtUtc;
+  const HlcClockStateRow({
+    required this.id,
+    required this.hlcPacked,
+    required this.deviceId,
+    required this.savedAtUtc,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['hlc_packed'] = Variable<int>(hlcPacked);
+    map['device_id'] = Variable<String>(deviceId);
+    map['saved_at_utc'] = Variable<DateTime>(savedAtUtc);
+    return map;
+  }
+
+  HlcClockStatesCompanion toCompanion(bool nullToAbsent) {
+    return HlcClockStatesCompanion(
+      id: Value(id),
+      hlcPacked: Value(hlcPacked),
+      deviceId: Value(deviceId),
+      savedAtUtc: Value(savedAtUtc),
+    );
+  }
+
+  factory HlcClockStateRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HlcClockStateRow(
+      id: serializer.fromJson<int>(json['id']),
+      hlcPacked: serializer.fromJson<int>(json['hlcPacked']),
+      deviceId: serializer.fromJson<String>(json['deviceId']),
+      savedAtUtc: serializer.fromJson<DateTime>(json['savedAtUtc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'hlcPacked': serializer.toJson<int>(hlcPacked),
+      'deviceId': serializer.toJson<String>(deviceId),
+      'savedAtUtc': serializer.toJson<DateTime>(savedAtUtc),
+    };
+  }
+
+  HlcClockStateRow copyWith({
+    int? id,
+    int? hlcPacked,
+    String? deviceId,
+    DateTime? savedAtUtc,
+  }) => HlcClockStateRow(
+    id: id ?? this.id,
+    hlcPacked: hlcPacked ?? this.hlcPacked,
+    deviceId: deviceId ?? this.deviceId,
+    savedAtUtc: savedAtUtc ?? this.savedAtUtc,
+  );
+  HlcClockStateRow copyWithCompanion(HlcClockStatesCompanion data) {
+    return HlcClockStateRow(
+      id: data.id.present ? data.id.value : this.id,
+      hlcPacked: data.hlcPacked.present ? data.hlcPacked.value : this.hlcPacked,
+      deviceId: data.deviceId.present ? data.deviceId.value : this.deviceId,
+      savedAtUtc: data.savedAtUtc.present
+          ? data.savedAtUtc.value
+          : this.savedAtUtc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HlcClockStateRow(')
+          ..write('id: $id, ')
+          ..write('hlcPacked: $hlcPacked, ')
+          ..write('deviceId: $deviceId, ')
+          ..write('savedAtUtc: $savedAtUtc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, hlcPacked, deviceId, savedAtUtc);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HlcClockStateRow &&
+          other.id == this.id &&
+          other.hlcPacked == this.hlcPacked &&
+          other.deviceId == this.deviceId &&
+          other.savedAtUtc == this.savedAtUtc);
+}
+
+class HlcClockStatesCompanion extends UpdateCompanion<HlcClockStateRow> {
+  final Value<int> id;
+  final Value<int> hlcPacked;
+  final Value<String> deviceId;
+  final Value<DateTime> savedAtUtc;
+  const HlcClockStatesCompanion({
+    this.id = const Value.absent(),
+    this.hlcPacked = const Value.absent(),
+    this.deviceId = const Value.absent(),
+    this.savedAtUtc = const Value.absent(),
+  });
+  HlcClockStatesCompanion.insert({
+    this.id = const Value.absent(),
+    required int hlcPacked,
+    required String deviceId,
+    required DateTime savedAtUtc,
+  }) : hlcPacked = Value(hlcPacked),
+       deviceId = Value(deviceId),
+       savedAtUtc = Value(savedAtUtc);
+  static Insertable<HlcClockStateRow> custom({
+    Expression<int>? id,
+    Expression<int>? hlcPacked,
+    Expression<String>? deviceId,
+    Expression<DateTime>? savedAtUtc,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (hlcPacked != null) 'hlc_packed': hlcPacked,
+      if (deviceId != null) 'device_id': deviceId,
+      if (savedAtUtc != null) 'saved_at_utc': savedAtUtc,
+    });
+  }
+
+  HlcClockStatesCompanion copyWith({
+    Value<int>? id,
+    Value<int>? hlcPacked,
+    Value<String>? deviceId,
+    Value<DateTime>? savedAtUtc,
+  }) {
+    return HlcClockStatesCompanion(
+      id: id ?? this.id,
+      hlcPacked: hlcPacked ?? this.hlcPacked,
+      deviceId: deviceId ?? this.deviceId,
+      savedAtUtc: savedAtUtc ?? this.savedAtUtc,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (hlcPacked.present) {
+      map['hlc_packed'] = Variable<int>(hlcPacked.value);
+    }
+    if (deviceId.present) {
+      map['device_id'] = Variable<String>(deviceId.value);
+    }
+    if (savedAtUtc.present) {
+      map['saved_at_utc'] = Variable<DateTime>(savedAtUtc.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HlcClockStatesCompanion(')
+          ..write('id: $id, ')
+          ..write('hlcPacked: $hlcPacked, ')
+          ..write('deviceId: $deviceId, ')
+          ..write('savedAtUtc: $savedAtUtc')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $TRecordMetaTable extends TRecordMeta
     with TableInfo<$TRecordMetaTable, TRecordMetaData> {
   @override
@@ -16342,6 +17052,8 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
   late final $CreationAuditLogsTable creationAuditLogs =
       $CreationAuditLogsTable(this);
   late final $OutboxPeerAcksTable outboxPeerAcks = $OutboxPeerAcksTable(this);
+  late final $EntityStampsTable entityStamps = $EntityStampsTable(this);
+  late final $HlcClockStatesTable hlcClockStates = $HlcClockStatesTable(this);
   late final $TRecordMetaTable tRecordMeta = $TRecordMetaTable(this);
   late final $TRecordSearchIndexTable tRecordSearchIndex =
       $TRecordSearchIndexTable(this);
@@ -16392,6 +17104,9 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
   late final CreationAuditLogsDao creationAuditLogsDao = CreationAuditLogsDao(
     this as PersistenceDriftDatabase,
   );
+  late final EntityStampDao entityStampDao = EntityStampDao(
+    this as PersistenceDriftDatabase,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -16424,6 +17139,8 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
     workItemPanelRefs,
     creationAuditLogs,
     outboxPeerAcks,
+    entityStamps,
+    hlcClockStates,
     tRecordMeta,
     tRecordSearchIndex,
     tScopeAlias,
@@ -24220,6 +24937,405 @@ typedef $$OutboxPeerAcksTableProcessedTableManager =
       OutboxPeerAckRow,
       PrefetchHooks Function()
     >;
+typedef $$EntityStampsTableCreateCompanionBuilder =
+    EntityStampsCompanion Function({
+      required String scopeUid,
+      required String entityType,
+      required String entityId,
+      required int hlcPacked,
+      required String deviceId,
+      Value<int> rowid,
+    });
+typedef $$EntityStampsTableUpdateCompanionBuilder =
+    EntityStampsCompanion Function({
+      Value<String> scopeUid,
+      Value<String> entityType,
+      Value<String> entityId,
+      Value<int> hlcPacked,
+      Value<String> deviceId,
+      Value<int> rowid,
+    });
+
+class $$EntityStampsTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $EntityStampsTable> {
+  $$EntityStampsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get entityId => $composableBuilder(
+    column: $table.entityId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get hlcPacked => $composableBuilder(
+    column: $table.hlcPacked,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get deviceId => $composableBuilder(
+    column: $table.deviceId,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$EntityStampsTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $EntityStampsTable> {
+  $$EntityStampsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entityId => $composableBuilder(
+    column: $table.entityId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get hlcPacked => $composableBuilder(
+    column: $table.hlcPacked,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get deviceId => $composableBuilder(
+    column: $table.deviceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$EntityStampsTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $EntityStampsTable> {
+  $$EntityStampsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
+
+  GeneratedColumn<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get entityId =>
+      $composableBuilder(column: $table.entityId, builder: (column) => column);
+
+  GeneratedColumn<int> get hlcPacked =>
+      $composableBuilder(column: $table.hlcPacked, builder: (column) => column);
+
+  GeneratedColumn<String> get deviceId =>
+      $composableBuilder(column: $table.deviceId, builder: (column) => column);
+}
+
+class $$EntityStampsTableTableManager
+    extends
+        RootTableManager<
+          _$PersistenceDriftDatabase,
+          $EntityStampsTable,
+          EntityStampRow,
+          $$EntityStampsTableFilterComposer,
+          $$EntityStampsTableOrderingComposer,
+          $$EntityStampsTableAnnotationComposer,
+          $$EntityStampsTableCreateCompanionBuilder,
+          $$EntityStampsTableUpdateCompanionBuilder,
+          (
+            EntityStampRow,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $EntityStampsTable,
+              EntityStampRow
+            >,
+          ),
+          EntityStampRow,
+          PrefetchHooks Function()
+        > {
+  $$EntityStampsTableTableManager(
+    _$PersistenceDriftDatabase db,
+    $EntityStampsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$EntityStampsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$EntityStampsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$EntityStampsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> scopeUid = const Value.absent(),
+                Value<String> entityType = const Value.absent(),
+                Value<String> entityId = const Value.absent(),
+                Value<int> hlcPacked = const Value.absent(),
+                Value<String> deviceId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => EntityStampsCompanion(
+                scopeUid: scopeUid,
+                entityType: entityType,
+                entityId: entityId,
+                hlcPacked: hlcPacked,
+                deviceId: deviceId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String scopeUid,
+                required String entityType,
+                required String entityId,
+                required int hlcPacked,
+                required String deviceId,
+                Value<int> rowid = const Value.absent(),
+              }) => EntityStampsCompanion.insert(
+                scopeUid: scopeUid,
+                entityType: entityType,
+                entityId: entityId,
+                hlcPacked: hlcPacked,
+                deviceId: deviceId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$EntityStampsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PersistenceDriftDatabase,
+      $EntityStampsTable,
+      EntityStampRow,
+      $$EntityStampsTableFilterComposer,
+      $$EntityStampsTableOrderingComposer,
+      $$EntityStampsTableAnnotationComposer,
+      $$EntityStampsTableCreateCompanionBuilder,
+      $$EntityStampsTableUpdateCompanionBuilder,
+      (
+        EntityStampRow,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $EntityStampsTable,
+          EntityStampRow
+        >,
+      ),
+      EntityStampRow,
+      PrefetchHooks Function()
+    >;
+typedef $$HlcClockStatesTableCreateCompanionBuilder =
+    HlcClockStatesCompanion Function({
+      Value<int> id,
+      required int hlcPacked,
+      required String deviceId,
+      required DateTime savedAtUtc,
+    });
+typedef $$HlcClockStatesTableUpdateCompanionBuilder =
+    HlcClockStatesCompanion Function({
+      Value<int> id,
+      Value<int> hlcPacked,
+      Value<String> deviceId,
+      Value<DateTime> savedAtUtc,
+    });
+
+class $$HlcClockStatesTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $HlcClockStatesTable> {
+  $$HlcClockStatesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get hlcPacked => $composableBuilder(
+    column: $table.hlcPacked,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get deviceId => $composableBuilder(
+    column: $table.deviceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get savedAtUtc => $composableBuilder(
+    column: $table.savedAtUtc,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$HlcClockStatesTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $HlcClockStatesTable> {
+  $$HlcClockStatesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get hlcPacked => $composableBuilder(
+    column: $table.hlcPacked,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get deviceId => $composableBuilder(
+    column: $table.deviceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get savedAtUtc => $composableBuilder(
+    column: $table.savedAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$HlcClockStatesTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $HlcClockStatesTable> {
+  $$HlcClockStatesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get hlcPacked =>
+      $composableBuilder(column: $table.hlcPacked, builder: (column) => column);
+
+  GeneratedColumn<String> get deviceId =>
+      $composableBuilder(column: $table.deviceId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get savedAtUtc => $composableBuilder(
+    column: $table.savedAtUtc,
+    builder: (column) => column,
+  );
+}
+
+class $$HlcClockStatesTableTableManager
+    extends
+        RootTableManager<
+          _$PersistenceDriftDatabase,
+          $HlcClockStatesTable,
+          HlcClockStateRow,
+          $$HlcClockStatesTableFilterComposer,
+          $$HlcClockStatesTableOrderingComposer,
+          $$HlcClockStatesTableAnnotationComposer,
+          $$HlcClockStatesTableCreateCompanionBuilder,
+          $$HlcClockStatesTableUpdateCompanionBuilder,
+          (
+            HlcClockStateRow,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $HlcClockStatesTable,
+              HlcClockStateRow
+            >,
+          ),
+          HlcClockStateRow,
+          PrefetchHooks Function()
+        > {
+  $$HlcClockStatesTableTableManager(
+    _$PersistenceDriftDatabase db,
+    $HlcClockStatesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$HlcClockStatesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$HlcClockStatesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$HlcClockStatesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> hlcPacked = const Value.absent(),
+                Value<String> deviceId = const Value.absent(),
+                Value<DateTime> savedAtUtc = const Value.absent(),
+              }) => HlcClockStatesCompanion(
+                id: id,
+                hlcPacked: hlcPacked,
+                deviceId: deviceId,
+                savedAtUtc: savedAtUtc,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int hlcPacked,
+                required String deviceId,
+                required DateTime savedAtUtc,
+              }) => HlcClockStatesCompanion.insert(
+                id: id,
+                hlcPacked: hlcPacked,
+                deviceId: deviceId,
+                savedAtUtc: savedAtUtc,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$HlcClockStatesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PersistenceDriftDatabase,
+      $HlcClockStatesTable,
+      HlcClockStateRow,
+      $$HlcClockStatesTableFilterComposer,
+      $$HlcClockStatesTableOrderingComposer,
+      $$HlcClockStatesTableAnnotationComposer,
+      $$HlcClockStatesTableCreateCompanionBuilder,
+      $$HlcClockStatesTableUpdateCompanionBuilder,
+      (
+        HlcClockStateRow,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $HlcClockStatesTable,
+          HlcClockStateRow
+        >,
+      ),
+      HlcClockStateRow,
+      PrefetchHooks Function()
+    >;
 typedef $$TRecordMetaTableCreateCompanionBuilder =
     TRecordMetaCompanion Function({
       required String uuid,
@@ -25391,6 +26507,10 @@ class $PersistenceDriftDatabaseManager {
       $$CreationAuditLogsTableTableManager(_db, _db.creationAuditLogs);
   $$OutboxPeerAcksTableTableManager get outboxPeerAcks =>
       $$OutboxPeerAcksTableTableManager(_db, _db.outboxPeerAcks);
+  $$EntityStampsTableTableManager get entityStamps =>
+      $$EntityStampsTableTableManager(_db, _db.entityStamps);
+  $$HlcClockStatesTableTableManager get hlcClockStates =>
+      $$HlcClockStatesTableTableManager(_db, _db.hlcClockStates);
   $$TRecordMetaTableTableManager get tRecordMeta =>
       $$TRecordMetaTableTableManager(_db, _db.tRecordMeta);
   $$TRecordSearchIndexTableTableManager get tRecordSearchIndex =>
