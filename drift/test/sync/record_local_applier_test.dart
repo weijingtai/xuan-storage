@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:persistence_core/model/storage_classification.dart';
+import 'package:persistence_core/model/storage_policy.dart';
+import 'package:persistence_core/model/storage_policy_registry.dart';
 import 'package:persistence_core/persistence_core.dart';
 import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_drift/persistence_drift.dart';
@@ -21,6 +24,12 @@ void main() {
   late DriftOutboxStore outboxStore;
 
   setUp(() {
+    // ACT 05：peekBatch 按 channel 过滤且 fail closed。本文件用 record_meta。
+    StoragePolicyRegistry.clearForTesting();
+    StoragePolicyRegistry.register(
+      'record_meta',
+      StoragePolicy.private(carriers: const {}),
+    );
     db = PersistenceDriftDatabase(NativeDatabase.memory());
     ds = DriftRecordDataSource(db, scopeUid: 's1');
     outboxDao = OutboxRecordsDao(db);
@@ -37,7 +46,7 @@ void main() {
       expect(found, isNotNull);
       expect(found!.uuid, 'r1');
 
-      final outboxRows = await outboxStore.peekBatch(scopeUid: 's1', peerId: _peer, limit: 100);
+      final outboxRows = await outboxStore.peekBatch(scopeUid: 's1', peerId: _peer, channel: Channel.cloud, limit: 100);
       expect(outboxRows, isEmpty);
     });
 
@@ -169,7 +178,7 @@ void main() {
         changes: [change],
       );
 
-      final outboxRows = await outboxStore.peekBatch(scopeUid: 's1', peerId: _peer, limit: 100);
+      final outboxRows = await outboxStore.peekBatch(scopeUid: 's1', peerId: _peer, channel: Channel.cloud, limit: 100);
       expect(outboxRows, isEmpty);
     });
 

@@ -1,5 +1,8 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:persistence_core/model/storage_classification.dart';
+import 'package:persistence_core/model/storage_policy.dart';
+import 'package:persistence_core/model/storage_policy_registry.dart';
 import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
@@ -32,6 +35,13 @@ void main() {
   late LocalRecordRepository repo;
 
   setUp(() {
+    // ACT 05：peekBatch 按 channel 过滤且 fail closed。本文件用 record_meta，
+    // 期望 cloud 能取到，须注册策略否则全被过滤。
+    StoragePolicyRegistry.clearForTesting();
+    StoragePolicyRegistry.register(
+      'record_meta',
+      StoragePolicy.private(carriers: const {}),
+    );
     db = PersistenceDriftDatabase(NativeDatabase.memory());
     ds = DriftRecordDataSource(db, scopeUid: 'test-scope-c2');
     dao = OutboxRecordsDao(db);
@@ -50,7 +60,7 @@ void main() {
     );
     await repo.saveRecord(meta);
 
-    final rows = await outboxStore.peekBatch(scopeUid: 'test-scope-c2', peerId: _peer, limit: 100);
+    final rows = await outboxStore.peekBatch(scopeUid: 'test-scope-c2', peerId: _peer, channel: Channel.cloud, limit: 100);
     expect(rows, hasLength(1));
     expect(rows.single.entityType, 'record_meta');
     expect(rows.single.entityId, meta.uuid);
@@ -65,7 +75,7 @@ void main() {
     );
     await repo.saveRecord(meta);
 
-    final rows = await outboxStore.peekBatch(scopeUid: 'test-scope-c2', peerId: _peer, limit: 100);
+    final rows = await outboxStore.peekBatch(scopeUid: 'test-scope-c2', peerId: _peer, channel: Channel.cloud, limit: 100);
     expect(rows.single.payloadJson, contains(meta.uuid));
     expect(rows.single.payloadJson, contains('出门吉否？'));
   });
@@ -78,7 +88,7 @@ void main() {
     );
     await repo.saveRecord(meta);
 
-    final rows = await outboxStore.peekBatch(scopeUid: 'test-scope-c2', peerId: _peer, limit: 100);
+    final rows = await outboxStore.peekBatch(scopeUid: 'test-scope-c2', peerId: _peer, channel: Channel.cloud, limit: 100);
     expect(rows.single.attempt, 0);
   });
 
@@ -107,7 +117,7 @@ void main() {
     await repo.saveRecord(meta);
     await repo.softDeleteRecord('c6-del-uuid', module: 'meihua');
 
-    final rows = await outboxStore.peekBatch(scopeUid: 'test-scope-c2', peerId: _peer, limit: 100);
+    final rows = await outboxStore.peekBatch(scopeUid: 'test-scope-c2', peerId: _peer, channel: Channel.cloud, limit: 100);
     final deleteRows = rows.where((r) => r.opType == 'DELETE').toList();
     expect(deleteRows, hasLength(1));
     expect(deleteRows.single.entityId, 'c6-del-uuid');
@@ -122,7 +132,7 @@ void main() {
     await repo.saveRecord(meta);
     await repo.softDeleteRecord('c6-del2-uuid', module: 'meihua');
 
-    final rows = await outboxStore.peekBatch(scopeUid: 'test-scope-c2', peerId: _peer, limit: 100);
+    final rows = await outboxStore.peekBatch(scopeUid: 'test-scope-c2', peerId: _peer, channel: Channel.cloud, limit: 100);
     final deleteRows = rows.where((r) => r.opType == 'DELETE').toList();
     expect(deleteRows.single.opType, 'DELETE');
     expect(deleteRows.single.entityType, 'record_meta');

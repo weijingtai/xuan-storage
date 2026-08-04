@@ -29,6 +29,7 @@ export 'model/cancellation_token.dart';
 export 'model/blob_error.dart';
 export 'model/storage_policy.dart';
 export 'model/storage_policy_registry.dart';
+export 'model/peer_eligibility.dart';
 export 'model/blob_types.dart';
 export 'model/blob_cipher.dart';
 export 'model/local_blob_store.dart';

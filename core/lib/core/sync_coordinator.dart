@@ -1,5 +1,6 @@
 import 'package:persistence_core/logging/sync_logger.dart';
 import 'package:persistence_core/model/ports.dart';
+import 'package:persistence_core/model/storage_classification.dart';
 import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/model/types.dart';
 
@@ -23,6 +24,8 @@ class OutboxPusher {
   /// - [nowUtc]: 统一的 UTC 时钟函数，用于生成状态回写时间。
   /// - [batchSize]: 单次 run 的最大处理条数。
   /// - [maxAttemptsBeforeDead]: 单条记录最大允许尝试次数，达到阈值将标记 dead。
+  /// - [peerId]: 本对端标识。
+  /// - [channel]: 本对端所在通道（§5.4 第一道锁的过滤维度）。
   OutboxPusher({
     required OutboxStore outboxStore,
     required SyncPeer remoteGateway,
@@ -30,12 +33,14 @@ class OutboxPusher {
     int batchSize = 50,
     int maxAttemptsBeforeDead = 10,
     PeerId peerId = const PeerId('firestore'),
+    Channel channel = Channel.cloud,
   })  : _outboxStore = outboxStore,
         _remoteGateway = remoteGateway,
         _nowUtc = nowUtc,
         _batchSize = batchSize,
         _maxAttemptsBeforeDead = maxAttemptsBeforeDead,
-        _peerId = peerId;
+        _peerId = peerId,
+        _channel = channel;
 
   final OutboxStore _outboxStore;
   final SyncPeer _remoteGateway;
@@ -43,6 +48,7 @@ class OutboxPusher {
   final int _batchSize;
   final int _maxAttemptsBeforeDead;
   final PeerId _peerId;
+  final Channel _channel;
 
   /// Runs a single push pass.
   ///
@@ -61,6 +67,7 @@ class OutboxPusher {
     final batch = await _outboxStore.peekBatch(
       scopeUid: scopeUid,
       peerId: _peerId,
+      channel: _channel,
       limit: _batchSize,
     );
 
@@ -141,6 +148,8 @@ class SyncCoordinator {
   /// - [pushBatchSize]: 单次 push 的最大 outbox 处理条数。
   /// - [pullBatchSize]: 单次 pull 请求的默认 page size。
   /// - [maxAttemptsBeforeDead]: outbox 单条记录最大尝试次数，超过会标记为 dead。
+  /// - [peerId]: 本对端标识。
+  /// - [channel]: 本对端所在通道（§5.4 第一道锁）。默认 cloud。
   SyncCoordinator({
     required OutboxStore outboxStore,
     required SyncPeer remoteGateway,
@@ -151,6 +160,7 @@ class SyncCoordinator {
     int pullBatchSize = 50,
     int maxAttemptsBeforeDead = 10,
     PeerId peerId = const PeerId('firestore'),
+    Channel channel = Channel.cloud,
     SyncLogger? logger,
   })  : _outboxStore = outboxStore,
         _syncStateStore = syncStateStore,
@@ -160,6 +170,7 @@ class SyncCoordinator {
         _pullBatchSize = pullBatchSize,
         _logger = logger ?? SyncLogger.noop(),
         _peerId = peerId,
+        _channel = channel,
         _pusher = OutboxPusher(
           outboxStore: outboxStore,
           remoteGateway: remoteGateway,
@@ -167,6 +178,7 @@ class SyncCoordinator {
           batchSize: pushBatchSize,
           maxAttemptsBeforeDead: maxAttemptsBeforeDead,
           peerId: peerId,
+          channel: channel,
         ),
         _status = const SyncStatus(
           state: SyncRunState.stopped,
@@ -185,6 +197,7 @@ class SyncCoordinator {
   final int _pullBatchSize;
   final SyncLogger _logger;
   final PeerId _peerId;
+  final Channel _channel;
   final OutboxPusher _pusher;
   SyncStatus _status;
 
@@ -202,10 +215,12 @@ class SyncCoordinator {
   Stream<int> watchBacklogCount(
     String scopeUid, {
     required PeerId peerId,
+    required Channel channel,
   }) {
     return _outboxStore.watchBacklogCount(
       scopeUid: scopeUid,
       peerId: peerId,
+      channel: channel,
     );
   }
 
@@ -225,8 +240,8 @@ class SyncCoordinator {
   Future<OutboxPushRunResult> pushOnce({required String scopeUid}) async {
     final sw = Stopwatch()..start();
 
-    final backlogBefore = await _outboxStore.backlogCount(scopeUid: scopeUid, peerId: _peerId);
-    final deadBefore = await _outboxStore.deadCount(scopeUid: scopeUid, peerId: _peerId);
+    final backlogBefore = await _outboxStore.backlogCount(scopeUid: scopeUid, peerId: _peerId, channel: _channel);
+    final deadBefore = await _outboxStore.deadCount(scopeUid: scopeUid, peerId: _peerId, channel: _channel);
 
     _logger.debug(
       'sync_push_start',
@@ -247,8 +262,8 @@ class SyncCoordinator {
 
     final result = await _pusher.runOnce(scopeUid: scopeUid);
 
-    final backlog = await _outboxStore.backlogCount(scopeUid: scopeUid, peerId: _peerId);
-    final deadCount = await _outboxStore.deadCount(scopeUid: scopeUid, peerId: _peerId);
+    final backlog = await _outboxStore.backlogCount(scopeUid: scopeUid, peerId: _peerId, channel: _channel);
+    final deadCount = await _outboxStore.deadCount(scopeUid: scopeUid, peerId: _peerId, channel: _channel);
     final atUtc = _nowUtc();
 
     if (!result.hasError) {
@@ -364,8 +379,8 @@ class SyncCoordinator {
     _status = _status.copyWith(
       state: SyncRunState.syncing,
       scopeUid: scopeUid,
-      backlogCount: await _outboxStore.backlogCount(scopeUid: scopeUid, peerId: _peerId),
-      deadCount: await _outboxStore.deadCount(scopeUid: scopeUid, peerId: _peerId),
+      backlogCount: await _outboxStore.backlogCount(scopeUid: scopeUid, peerId: _peerId, channel: _channel),
+      deadCount: await _outboxStore.deadCount(scopeUid: scopeUid, peerId: _peerId, channel: _channel),
       lastPullEntityType: entityType,
       lastPullOutcomes: const <ChangeApplyOutcome>[],
       lastError: null,
@@ -479,8 +494,8 @@ class SyncCoordinator {
 
     _status = _status.copyWith(
       state: lastError == null ? SyncRunState.idle : SyncRunState.error,
-      backlogCount: await _outboxStore.backlogCount(scopeUid: scopeUid, peerId: _peerId),
-      deadCount: await _outboxStore.deadCount(scopeUid: scopeUid, peerId: _peerId),
+      backlogCount: await _outboxStore.backlogCount(scopeUid: scopeUid, peerId: _peerId, channel: _channel),
+      deadCount: await _outboxStore.deadCount(scopeUid: scopeUid, peerId: _peerId, channel: _channel),
       lastSuccessAtUtc:
           lastError == null ? _nowUtc() : _status.lastSuccessAtUtc,
       lastPullAtUtc: lastError == null ? _nowUtc() : _status.lastPullAtUtc,

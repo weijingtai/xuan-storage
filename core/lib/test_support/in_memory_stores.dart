@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:persistence_core/model/peer_eligibility.dart';
 import 'package:persistence_core/model/ports.dart';
+import 'package:persistence_core/model/storage_classification.dart';
 import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/model/types.dart';
 
@@ -24,33 +26,53 @@ final class InMemoryOutboxStore implements OutboxStore {
   String _ackKey(String operationId, PeerId peerId) =>
       '$operationId|${peerId.value}';
 
-  String _backlogKey(String scopeUid, PeerId peerId) =>
-      '$scopeUid|${peerId.value}';
+  String _backlogKey(String scopeUid, PeerId peerId, Channel channel) =>
+      '$scopeUid|${peerId.value}|${channel.name}';
 
-  StreamController<int> _controllerFor(String scopeUid, PeerId peerId) {
-    final key = _backlogKey(scopeUid, peerId);
+  StreamController<int> _controllerFor(
+    String scopeUid,
+    PeerId peerId,
+    Channel channel,
+  ) {
+    final key = _backlogKey(scopeUid, peerId, channel);
     return _backlogControllersByKey.putIfAbsent(
       key,
       () => StreamController<int>.broadcast(),
     );
   }
 
-  Future<void> _emitBacklog(String scopeUid, PeerId peerId) async {
-    if (!_backlogControllersByKey.containsKey(_backlogKey(scopeUid, peerId))) {
+  Future<void> _emitBacklog(
+    String scopeUid,
+    PeerId peerId,
+    Channel channel,
+  ) async {
+    if (!_backlogControllersByKey
+        .containsKey(_backlogKey(scopeUid, peerId, channel))) {
       return;
     }
-    _controllerFor(scopeUid, peerId)
-        .add(await backlogCount(scopeUid: scopeUid, peerId: peerId));
+    _controllerFor(scopeUid, peerId, channel).add(
+      await backlogCount(
+        scopeUid: scopeUid,
+        peerId: peerId,
+        channel: channel,
+      ),
+    );
   }
 
   /// enqueue 不知道对端集合，只能通知该 scope 下所有已订阅的对端。
   Future<void> _emitBacklogForScope(String scopeUid) async {
     for (final key in _backlogControllersByKey.keys.toList()) {
-      final sep = key.indexOf('|');
-      final scope = sep < 0 ? key : key.substring(0, sep);
-      final peerValue = sep < 0 ? key : key.substring(sep + 1);
+      final parts = key.split('|');
+      if (parts.length != 3) continue;
+      final scope = parts[0];
       if (scope != scopeUid) continue;
-      await _emitBacklog(scope, PeerId(peerValue));
+      final peerValue = parts[1];
+      final channelName = parts[2];
+      final channel = Channel.values.firstWhere(
+        (c) => c.name == channelName,
+        orElse: () => Channel.cloud,
+      );
+      await _emitBacklog(scope, PeerId(peerValue), channel);
     }
   }
 
@@ -70,11 +92,13 @@ final class InMemoryOutboxStore implements OutboxStore {
   Future<List<OutboxRecord>> peekBatch({
     required String scopeUid,
     required PeerId peerId,
+    required Channel channel,
     required int limit,
   }) async {
     final batch = _recordsById.values
         .where((r) => r.scopeUid == scopeUid)
         .where((r) => _isPeekable(r.operationId, peerId))
+        .where((r) => PeerEligibility.allows(r.entityType, channel))
         .toList(growable: false)
           ..sort((a, b) => a.createdAtUtc.compareTo(b.createdAtUtc));
 
@@ -93,7 +117,7 @@ final class InMemoryOutboxStore implements OutboxStore {
       atUtc: atUtc,
     );
     final r = _recordsById[operationId];
-    if (r != null) await _emitBacklog(r.scopeUid, peerId);
+    if (r != null) await _emitBacklogForPeerScope(r.scopeUid, peerId);
   }
 
   @override
@@ -114,7 +138,22 @@ final class InMemoryOutboxStore implements OutboxStore {
       atUtc: atUtc,
     );
     final r = _recordsById[operationId];
-    if (r != null) await _emitBacklog(r.scopeUid, peerId);
+    if (r != null) await _emitBacklogForPeerScope(r.scopeUid, peerId);
+  }
+
+  /// ack 状态变化只影响单个 peer，但该 peer 可能被多个 channel 订阅过
+  /// （比如同一对端同时订阅了它的不同通道视角）。逐个 channel 通知。
+  Future<void> _emitBacklogForPeerScope(String scopeUid, PeerId peerId) async {
+    for (final key in _backlogControllersByKey.keys.toList()) {
+      final parts = key.split('|');
+      if (parts.length != 3) continue;
+      if (parts[0] != scopeUid || parts[1] != peerId.value) continue;
+      final channel = Channel.values.firstWhere(
+        (c) => c.name == parts[2],
+        orElse: () => Channel.cloud,
+      );
+      await _emitBacklog(scopeUid, peerId, channel);
+    }
   }
 
   @override
@@ -130,11 +169,14 @@ final class InMemoryOutboxStore implements OutboxStore {
   Future<int> backlogCount({
     required String scopeUid,
     required PeerId peerId,
+    required Channel channel,
   }) async {
     var count = 0;
     for (final r in _recordsById.values) {
       if (r.scopeUid != scopeUid) continue;
-      if (_isPeekable(r.operationId, peerId)) count += 1;
+      if (!_isPeekable(r.operationId, peerId)) continue;
+      if (!PeerEligibility.allows(r.entityType, channel)) continue;
+      count += 1;
     }
     return count;
   }
@@ -143,10 +185,15 @@ final class InMemoryOutboxStore implements OutboxStore {
   Stream<int> watchBacklogCount({
     required String scopeUid,
     required PeerId peerId,
+    required Channel channel,
   }) {
     return (() async* {
-      yield await backlogCount(scopeUid: scopeUid, peerId: peerId);
-      yield* _controllerFor(scopeUid, peerId).stream;
+      yield await backlogCount(
+        scopeUid: scopeUid,
+        peerId: peerId,
+        channel: channel,
+      );
+      yield* _controllerFor(scopeUid, peerId, channel).stream;
     })()
         .distinct();
   }
@@ -155,10 +202,12 @@ final class InMemoryOutboxStore implements OutboxStore {
   Future<int> deadCount({
     required String scopeUid,
     required PeerId peerId,
+    required Channel channel,
   }) async {
     var count = 0;
     for (final r in _recordsById.values) {
       if (r.scopeUid != scopeUid) continue;
+      if (!PeerEligibility.allows(r.entityType, channel)) continue;
       final ack = _acksByKey[_ackKey(r.operationId, peerId)];
       if (ack != null && ack.status == 'dead') count += 1;
     }

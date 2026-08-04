@@ -1,6 +1,9 @@
 import 'dart:io';
 
 import 'package:persistence_core/model/ports.dart';
+import 'package:persistence_core/model/storage_classification.dart';
+import 'package:persistence_core/model/storage_policy.dart';
+import 'package:persistence_core/model/storage_policy_registry.dart';
 import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/model/types.dart';
 import 'package:persistence_core/test_support/in_memory_stores.dart';
@@ -23,6 +26,16 @@ OutboxRecord _record(String operationId) => OutboxRecord(
 int? _last(List<int> values) => values.isEmpty ? null : values.last;
 
 void main() {
+  setUp(() {
+    // ACT 05：peekBatch/计数按 channel 过滤且 fail closed。
+    // 本文件期望 cloud 与 lan 都能取到 layout_template，须注册 private 策略。
+    StoragePolicyRegistry.clearForTesting();
+    StoragePolicyRegistry.register(
+      'layout_template',
+      StoragePolicy.private(carriers: const {}),
+    );
+  });
+
   group('S1b per-peer ports（InMemoryOutboxStore 可执行规格）', () {
     test('ack_for_one_peer_does_not_hide_record_from_another', () async {
       final store = InMemoryOutboxStore();
@@ -39,6 +52,7 @@ void main() {
       final cloudBatch = await store.peekBatch(
         scopeUid: _scopeUid,
         peerId: cloud,
+        channel: Channel.cloud,
         limit: 100,
       );
       expect(cloudBatch, isEmpty);
@@ -46,6 +60,7 @@ void main() {
       final lanBatch = await store.peekBatch(
         scopeUid: _scopeUid,
         peerId: lan,
+        channel: Channel.lan,
         limit: 100,
       );
       expect(lanBatch.map((r) => r.operationId), contains('op1'));
@@ -69,12 +84,27 @@ void main() {
         );
       }
 
-      expect(await store.deadCount(scopeUid: _scopeUid, peerId: lan), 1);
-      expect(await store.deadCount(scopeUid: _scopeUid, peerId: cloud), 0);
+      expect(
+        await store.deadCount(
+          scopeUid: _scopeUid,
+          peerId: lan,
+          channel: Channel.lan,
+        ),
+        1,
+      );
+      expect(
+        await store.deadCount(
+          scopeUid: _scopeUid,
+          peerId: cloud,
+          channel: Channel.cloud,
+        ),
+        0,
+      );
 
       final cloudBatch = await store.peekBatch(
         scopeUid: _scopeUid,
         peerId: cloud,
+        channel: Channel.cloud,
         limit: 100,
       );
       expect(cloudBatch.map((r) => r.operationId), contains('op1'));
@@ -177,10 +207,18 @@ void main() {
       final cloudEvents = <int>[];
       final lanEvents = <int>[];
       final cloudSub = store
-          .watchBacklogCount(scopeUid: _scopeUid, peerId: cloud)
+          .watchBacklogCount(
+            scopeUid: _scopeUid,
+            peerId: cloud,
+            channel: Channel.cloud,
+          )
           .listen(cloudEvents.add);
       final lanSub = store
-          .watchBacklogCount(scopeUid: _scopeUid, peerId: lan)
+          .watchBacklogCount(
+            scopeUid: _scopeUid,
+            peerId: lan,
+            channel: Channel.lan,
+          )
           .listen(lanEvents.add);
 
       await store.enqueue(_record('op1'));

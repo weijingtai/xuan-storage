@@ -1,12 +1,25 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:persistence_core/model/storage_classification.dart';
+import 'package:persistence_core/model/storage_policy.dart';
+import 'package:persistence_core/model/storage_policy_registry.dart';
 import 'package:persistence_core/persistence_core.dart';
 import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 
 void main() {
   const _peer = PeerId('firestore');
+  setUp(() {
+    // ACT 05：peekBatch/计数按 channel 过滤且 fail closed。
+    // 本文件用 layout_template 且期望 cloud 能取到，须注册 private 策略。
+    StoragePolicyRegistry.clearForTesting();
+    StoragePolicyRegistry.register(
+      'layout_template',
+      StoragePolicy.private(carriers: const {}),
+    );
+  });
+
   test('OutboxRecordsDao listRetryable/deleteByScope', () async {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
@@ -86,9 +99,9 @@ void main() {
       ),
     );
 
-    expect(await store.backlogCount(scopeUid: scopeUid, peerId: _peer), equals(1));
+    expect(await store.backlogCount(scopeUid: scopeUid, peerId: _peer, channel: Channel.cloud), equals(1));
 
-    final batch1 = await store.peekBatch(scopeUid: scopeUid, peerId: _peer, limit: 10);
+    final batch1 = await store.peekBatch(scopeUid: scopeUid, peerId: _peer, channel: Channel.cloud, limit: 10);
     expect(batch1, hasLength(1));
     expect(batch1.single.attempt, equals(0));
 
@@ -101,7 +114,7 @@ void main() {
       isDead: false,
     );
 
-    final batch2 = await store.peekBatch(scopeUid: scopeUid, peerId: _peer, limit: 10);
+    final batch2 = await store.peekBatch(scopeUid: scopeUid, peerId: _peer, channel: Channel.cloud, limit: 10);
     expect(batch2, hasLength(1));
     // ACT 04：attempt 真相在 ack 表，peekBatch 行的 t_outbox.attempt 不再被更新。
     expect(batch2.single.attempt, equals(0));
@@ -116,10 +129,10 @@ void main() {
       isDead: true,
     );
 
-    expect(await store.backlogCount(scopeUid: scopeUid, peerId: _peer), equals(0));
-    expect(await store.deadCount(scopeUid: scopeUid, peerId: _peer), equals(1));
+    expect(await store.backlogCount(scopeUid: scopeUid, peerId: _peer, channel: Channel.cloud), equals(0));
+    expect(await store.deadCount(scopeUid: scopeUid, peerId: _peer, channel: Channel.cloud), equals(1));
 
-    final batch3 = await store.peekBatch(scopeUid: scopeUid, peerId: _peer, limit: 10);
+    final batch3 = await store.peekBatch(scopeUid: scopeUid, peerId: _peer, channel: Channel.cloud, limit: 10);
     expect(batch3, isEmpty);
 
     expect(

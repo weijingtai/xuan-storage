@@ -1,6 +1,9 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:persistence_core/model/ports.dart';
+import 'package:persistence_core/model/storage_classification.dart';
+import 'package:persistence_core/model/storage_policy.dart';
+import 'package:persistence_core/model/storage_policy_registry.dart';
 import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/model/types.dart';
 import 'package:persistence_core/test_support/in_memory_stores.dart';
@@ -28,17 +31,35 @@ OutboxRecord _record(String operationId) => OutboxRecord(
 /// 两套实现跑同一组断言，差异立刻显形 —— 内存 fake 与 drift 各自绿但行为
 /// 不一致，是这类改造最典型的漏。
 void runOutboxParityAssertions(OutboxStore Function() createStore) {
+  setUp(() {
+    // ACT 05：peekBatch/计数按 channel 过滤且 fail closed。
+    // 本 parity 套件期望 cloud 与 lan 都能取到 layout_template，须注册 private 策略。
+    StoragePolicyRegistry.clearForTesting();
+    StoragePolicyRegistry.register(
+      'layout_template',
+      StoragePolicy.private(carriers: const {}),
+    );
+  });
+
   test('ack_for_one_peer_does_not_hide_record_from_another', () async {
     final store = createStore();
     await store.enqueue(_record('op1'));
     await store.markSuccess(operationId: 'op1', peerId: _cloud, atUtc: _now);
 
-    final cloudBatch =
-        await store.peekBatch(scopeUid: _scopeUid, peerId: _cloud, limit: 100);
+    final cloudBatch = await store.peekBatch(
+      scopeUid: _scopeUid,
+      peerId: _cloud,
+      channel: Channel.cloud,
+      limit: 100,
+    );
     expect(cloudBatch, isEmpty);
 
-    final lanBatch =
-        await store.peekBatch(scopeUid: _scopeUid, peerId: _lan, limit: 100);
+    final lanBatch = await store.peekBatch(
+      scopeUid: _scopeUid,
+      peerId: _lan,
+      channel: Channel.lan,
+      limit: 100,
+    );
     expect(lanBatch.map((r) => r.operationId), contains('op1'));
   });
 
@@ -57,11 +78,29 @@ void runOutboxParityAssertions(OutboxStore Function() createStore) {
       );
     }
 
-    expect(await store.deadCount(scopeUid: _scopeUid, peerId: _lan), 1);
-    expect(await store.deadCount(scopeUid: _scopeUid, peerId: _cloud), 0);
+    expect(
+      await store.deadCount(
+        scopeUid: _scopeUid,
+        peerId: _lan,
+        channel: Channel.lan,
+      ),
+      1,
+    );
+    expect(
+      await store.deadCount(
+        scopeUid: _scopeUid,
+        peerId: _cloud,
+        channel: Channel.cloud,
+      ),
+      0,
+    );
 
-    final cloudBatch =
-        await store.peekBatch(scopeUid: _scopeUid, peerId: _cloud, limit: 100);
+    final cloudBatch = await store.peekBatch(
+      scopeUid: _scopeUid,
+      peerId: _cloud,
+      channel: Channel.cloud,
+      limit: 100,
+    );
     expect(cloudBatch.map((r) => r.operationId), contains('op1'));
   });
 
@@ -100,10 +139,18 @@ void runOutboxParityAssertions(OutboxStore Function() createStore) {
     final cloudEvents = <int>[];
     final lanEvents = <int>[];
     final cloudSub = store
-        .watchBacklogCount(scopeUid: _scopeUid, peerId: _cloud)
+        .watchBacklogCount(
+          scopeUid: _scopeUid,
+          peerId: _cloud,
+          channel: Channel.cloud,
+        )
         .listen(cloudEvents.add);
     final lanSub = store
-        .watchBacklogCount(scopeUid: _scopeUid, peerId: _lan)
+        .watchBacklogCount(
+          scopeUid: _scopeUid,
+          peerId: _lan,
+          channel: Channel.lan,
+        )
         .listen(lanEvents.add);
 
     await store.enqueue(_record('op1'));
@@ -238,10 +285,18 @@ void main() {
       final batch = await store.peekBatch(
         scopeUid: _scopeUid,
         peerId: _lan,
+        channel: Channel.lan,
         limit: 100,
       );
       expect(batch.map((r) => r.operationId), contains('op1'));
-      expect(await store.backlogCount(scopeUid: _scopeUid, peerId: _lan), 1);
+      expect(
+        await store.backlogCount(
+          scopeUid: _scopeUid,
+          peerId: _lan,
+          channel: Channel.lan,
+        ),
+        1,
+      );
       expect(await store.attemptFor(operationId: 'op1', peerId: _lan), 0);
     });
 
@@ -270,11 +325,21 @@ void main() {
       );
 
       expect(
-        await store.peekBatch(scopeUid: _scopeUid, peerId: _firestore, limit: 100),
+        await store.peekBatch(
+          scopeUid: _scopeUid,
+          peerId: _firestore,
+          channel: Channel.cloud,
+          limit: 100,
+        ),
         isEmpty,
       );
       expect(
-        (await store.peekBatch(scopeUid: _scopeUid, peerId: _lan, limit: 100))
+        (await store.peekBatch(
+          scopeUid: _scopeUid,
+          peerId: _lan,
+          channel: Channel.lan,
+          limit: 100,
+        ))
             .map((r) => r.operationId),
         contains('op1'),
       );
@@ -302,14 +367,38 @@ void main() {
         );
       }
 
-      expect(await store.deadCount(scopeUid: _scopeUid, peerId: _lan), 1);
       expect(
-        await store.peekBatch(scopeUid: _scopeUid, peerId: _lan, limit: 100),
+        await store.deadCount(
+          scopeUid: _scopeUid,
+          peerId: _lan,
+          channel: Channel.lan,
+        ),
+        1,
+      );
+      expect(
+        await store.peekBatch(
+          scopeUid: _scopeUid,
+          peerId: _lan,
+          channel: Channel.lan,
+          limit: 100,
+        ),
         isEmpty,
       );
-      expect(await store.deadCount(scopeUid: _scopeUid, peerId: _firestore), 0);
       expect(
-        (await store.peekBatch(scopeUid: _scopeUid, peerId: _firestore, limit: 100))
+        await store.deadCount(
+          scopeUid: _scopeUid,
+          peerId: _firestore,
+          channel: Channel.cloud,
+        ),
+        0,
+      );
+      expect(
+        (await store.peekBatch(
+          scopeUid: _scopeUid,
+          peerId: _firestore,
+          channel: Channel.cloud,
+          limit: 100,
+        ))
             .map((r) => r.operationId),
         contains('op1'),
       );

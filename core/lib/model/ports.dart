@@ -1,3 +1,4 @@
+import 'package:persistence_core/model/storage_classification.dart';
 import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/model/types.dart';
 
@@ -36,17 +37,23 @@ abstract class OutboxStore {
   /// - [scopeUid]: 作用域 uid（通常为用户 uid）。
   /// - [peerId]: 只返回【该对端尚未 ack】的记录。这是多 peer 的核心 ——
   ///   同一条 operationId 对 cloud 已成功、对 lan 仍 pending 是常态。
+  /// - [channel]: 该对端所在通道。只返回【策略允许走该通道】的记录（§5.4 第一道锁）。
   /// - [limit]: 最大返回条数。
   ///
   /// 返回值：
   /// - 待推送的 outbox 记录列表（对 [peerId] 而言可推的：无 ack 行 + pending/failed）。
   ///
   /// 约束：
+  /// - [peerId] 决定"推没推过"，[channel] 决定"该不该推"。两者故意分开：
+  ///   合并会让"换了个同通道的新对端"需要重新推导策略，也会让 fail-closed
+  ///   的判定点从两处变成一处。
   /// - 返回的记录应当是“可重试”的集合：pending + failed（不包含 dead/success）。
-  /// - 推荐排序稳定（createdAtUtc 升序），便于重试公平与测试确定性。
+  /// - 过滤必须发生在 peekBatch 【内部】，且先过滤再截断到 [limit]（防静默饥饿）。
+  /// - 推荐排序稳定（createdAtUtc 升序），便于并发拉取与测试确定性。
   Future<List<OutboxRecord>> peekBatch({
     required String scopeUid,
     required PeerId peerId,
+    required Channel channel,
     required int limit,
   });
 
@@ -111,16 +118,28 @@ abstract class OutboxStore {
   });
 
   /// 该对端的待推送积压数（含 ack 行不存在的记录）。
-  Future<int> backlogCount({required String scopeUid, required PeerId peerId});
+  ///
+  /// [channel]: 与 [peekBatch] 用同一套过滤 —— 否则 SyncRuntime 会看到
+  /// "还有 N 条待推"但 peekBatch 返回空，无限空转唤醒。
+  Future<int> backlogCount({
+    required String scopeUid,
+    required PeerId peerId,
+    required Channel channel,
+  });
 
   /// 订阅该对端的待推送积压数。
   Stream<int> watchBacklogCount({
     required String scopeUid,
     required PeerId peerId,
+    required Channel channel,
   });
 
   /// 该对端的死信数（该对端 ack 行 status = 'dead' 的条数）。
-  Future<int> deadCount({required String scopeUid, required PeerId peerId});
+  Future<int> deadCount({
+    required String scopeUid,
+    required PeerId peerId,
+    required Channel channel,
+  });
 }
 
 /// Storage for per-scope, per-entityType pull cursors and sync markers.

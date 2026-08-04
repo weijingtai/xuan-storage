@@ -300,28 +300,49 @@ class OutboxRecordsDao extends DatabaseAccessor<PersistenceDriftDatabase>
   /// t_outbox_peer_ack 中【不存在】（首次推送）或 status 为 pending/failed。
   /// 必须 LEFT JOIN —— 用 INNER JOIN 会漏掉所有从未推送过的记录，
   /// 线上表现是「新记录永远推不出去」，且只在新增对端时才暴露。
+  ///
+  /// ⚠ 过滤语义（§5.4 第一道锁）：策略在 Dart 的 StoragePolicyRegistry，
+  /// 不在库里，SQL 无法过滤。做法：SQL 分页取候选（每页 page 条），
+  /// 在 Dart 层用 [PeerEligibility.allows] 过滤，**先过滤再截断到 [limit]**。
+  /// 先按 limit 截断再过滤会得到少于 limit 的结果，调用方看到"不足一批"
+  /// 通常理解为"推完了"，于是 shared 记录多时后面的记录永远轮不上 —— 静默饥饿。
   Future<List<OutboxRecordRow>> peekBatch({
     required String scopeUid,
     required PeerId peerId,
+    required Channel channel,
     required int limit,
-  }) {
-    final o = db.outboxRecords;
-    final a = db.outboxPeerAcks;
-    final q = select(o).join([
-      leftOuterJoin(
-        a,
-        o.operationId.equalsExp(a.operationId) & a.peerId.equals(peerId.value),
-      ),
-    ]);
-    q.where(
-      o.scopeUid.equals(scopeUid) &
-          (a.status.isNull() |
-              a.status.equals('pending') |
-              a.status.equals('failed')),
-    );
-    q.orderBy([OrderingTerm.asc(o.createdAtUtc)]);
-    q.limit(limit);
-    return q.map((row) => row.readTable(o)).get();
+  }) async {
+    const page = 50;
+    var offset = 0;
+    final out = <OutboxRecordRow>[];
+    while (out.length < limit) {
+      final o = db.outboxRecords;
+      final a = db.outboxPeerAcks;
+      final q = select(o).join([
+        leftOuterJoin(
+          a,
+          o.operationId.equalsExp(a.operationId) &
+              a.peerId.equals(peerId.value),
+        ),
+      ]);
+      q.where(
+        o.scopeUid.equals(scopeUid) &
+            (a.status.isNull() |
+                a.status.equals('pending') |
+                a.status.equals('failed')),
+      );
+      q.orderBy([OrderingTerm.asc(o.createdAtUtc)]);
+      q.limit(page, offset: offset);
+      final rows = await q.map((row) => row.readTable(o)).get();
+      if (rows.isEmpty) break;
+      offset += page;
+      for (final r in rows) {
+        if (!PeerEligibility.allows(r.entityType, channel)) continue;
+        out.add(r);
+        if (out.length >= limit) break;
+      }
+    }
+    return out;
   }
 
   Future<List<OutboxRecordRow>> listRetryable({required String scopeUid}) {
@@ -348,15 +369,20 @@ class OutboxRecordsDao extends DatabaseAccessor<PersistenceDriftDatabase>
   }
 
   /// 该对端的待推送积压数（含 ack 行不存在的记录）。
+  ///
+  /// ⚠ 与 peekBatch 用【同一套过滤】（§5.4 + ACT 05 转译推导）：
+  /// 计数与 peekBatch 不同语义时，SyncRuntime 会看到"还有 N 条待推"但
+  /// peekBatch 返回空 —— 无限空转唤醒。过滤同样在 Dart 层做。
   Future<int> backlogCount({
     required String scopeUid,
     required PeerId peerId,
+    required Channel channel,
   }) async {
     final countExp = db.outboxRecords.operationId.count();
     final o = db.outboxRecords;
     final a = db.outboxPeerAcks;
-    final row = await (selectOnly(o)
-          ..addColumns([countExp])
+    final rows = await (selectOnly(o)
+          ..addColumns([o.scopeUid, o.entityType, countExp])
           ..join([
             leftOuterJoin(
               a,
@@ -369,9 +395,15 @@ class OutboxRecordsDao extends DatabaseAccessor<PersistenceDriftDatabase>
                 (a.status.isNull() |
                     a.status.equals('pending') |
                     a.status.equals('failed')),
-          ))
-        .getSingle();
-    return row.read(countExp) ?? 0;
+          )
+          ..groupBy([o.entityType]))
+        .get();
+    var count = 0;
+    for (final row in rows) {
+      if (!PeerEligibility.allows(row.read(o.entityType)!, channel)) continue;
+      count += row.read(countExp) ?? 0;
+    }
+    return count;
   }
 
   /// 订阅该对端的待推送积压数。
@@ -379,15 +411,19 @@ class OutboxRecordsDao extends DatabaseAccessor<PersistenceDriftDatabase>
   /// 必须 JOIN t_outbox_peer_ack —— `.watchSingle()` 会自动跟踪被查询的表，
   /// 该对端的 ack 行变化（例如 markSuccess）时 stream 才重新发射；
   /// 若只查 t_outbox 再在 Dart 里过滤，云端推完后 LAN 的 backlog 数字不会更新。
+  ///
+  /// ⚠ 与 peekBatch 用【同一套过滤】：按 entityType 分组后，仅累加
+  /// [PeerEligibility.allows] 通过的实体类型（ACT 05 推导，见 backlogCount）。
   Stream<int> watchBacklogCount({
     required String scopeUid,
     required PeerId peerId,
+    required Channel channel,
   }) {
     final countExp = db.outboxRecords.operationId.count();
     final o = db.outboxRecords;
     final a = db.outboxPeerAcks;
     return (selectOnly(o)
-          ..addColumns([countExp])
+          ..addColumns([o.entityType, countExp])
           ..join([
             leftOuterJoin(
               a,
@@ -400,21 +436,33 @@ class OutboxRecordsDao extends DatabaseAccessor<PersistenceDriftDatabase>
                 (a.status.isNull() |
                     a.status.equals('pending') |
                     a.status.equals('failed')),
-          ))
-        .watchSingle()
-        .map((row) => row.read(countExp) ?? 0);
+          )
+          ..groupBy([o.entityType]))
+        .watch()
+        .map((rows) {
+      var count = 0;
+      for (final row in rows) {
+        if (!PeerEligibility.allows(row.read(o.entityType)!, channel)) continue;
+        count += row.read(countExp) ?? 0;
+      }
+      return count;
+    });
   }
 
   /// 该对端的死信数（该对端 ack 行 status = 'dead' 的条数）。
+  ///
+  /// ⚠ 与 backlogCount 用【同一套 channel 过滤】：死信数用于观测/告警，
+  /// 若不过滤会与 backlogCount 的语义错位（ACT 05 推导，见 backlogCount）。
   Future<int> deadCount({
     required String scopeUid,
     required PeerId peerId,
+    required Channel channel,
   }) async {
     final countExp = db.outboxRecords.operationId.count();
     final o = db.outboxRecords;
     final a = db.outboxPeerAcks;
-    final row = await (selectOnly(o)
-          ..addColumns([countExp])
+    final rows = await (selectOnly(o)
+          ..addColumns([o.entityType, countExp])
           ..join([
             leftOuterJoin(
               a,
@@ -422,9 +470,15 @@ class OutboxRecordsDao extends DatabaseAccessor<PersistenceDriftDatabase>
                   a.peerId.equals(peerId.value),
             ),
           ])
-          ..where(o.scopeUid.equals(scopeUid) & a.status.equals('dead')))
-        .getSingle();
-    return row.read(countExp) ?? 0;
+          ..where(o.scopeUid.equals(scopeUid) & a.status.equals('dead'))
+          ..groupBy([o.entityType]))
+        .get();
+    var count = 0;
+    for (final row in rows) {
+      if (!PeerEligibility.allows(row.read(o.entityType)!, channel)) continue;
+      count += row.read(countExp) ?? 0;
+    }
+    return count;
   }
 
   /// 标记【某一条记录对某一个对端】推送成功。
@@ -962,6 +1016,7 @@ class DriftOutboxStore implements OutboxStore {
   Future<List<OutboxRecord>> peekBatch({
     required String scopeUid,
     required PeerId peerId,
+    required Channel channel,
     required int limit,
   }) async {
     final sw = Stopwatch()..start();
@@ -970,19 +1025,25 @@ class DriftOutboxStore implements OutboxStore {
       data: <String, Object?>{
         'scopeUid': _redactId(scopeUid),
         'peerId': peerId.value,
+        'channel': channel.name,
         'limit': limit,
       },
     );
 
     try {
-      final rows =
-          await _dao.peekBatch(scopeUid: scopeUid, peerId: peerId, limit: limit);
+      final rows = await _dao.peekBatch(
+        scopeUid: scopeUid,
+        peerId: peerId,
+        channel: channel,
+        limit: limit,
+      );
       final out = rows.map(_mapRow).toList(growable: false);
       _logger.trace(
         'drift_outbox_peek_batch_success',
         data: <String, Object?>{
           'scopeUid': _redactId(scopeUid),
           'peerId': peerId.value,
+          'channel': channel.name,
           'requested': limit,
           'returned': out.length,
           'durationMs': sw.elapsedMilliseconds,
@@ -995,6 +1056,7 @@ class DriftOutboxStore implements OutboxStore {
         data: <String, Object?>{
           'scopeUid': _redactId(scopeUid),
           'peerId': peerId.value,
+          'channel': channel.name,
           'limit': limit,
           'durationMs': sw.elapsedMilliseconds,
         },
@@ -1106,6 +1168,7 @@ class DriftOutboxStore implements OutboxStore {
   /// 参数说明：
   /// - [scopeUid]：同步作用域。
   /// - [peerId]：对端。
+  /// - [channel]：对端所在通道（与 peekBatch 同套过滤）。
   ///
   /// 返回值：
   /// - backlog 数量。
@@ -1113,24 +1176,44 @@ class DriftOutboxStore implements OutboxStore {
   Future<int> backlogCount({
     required String scopeUid,
     required PeerId peerId,
+    required Channel channel,
   }) {
     _logger.trace(
       'drift_outbox_backlog_count',
-      data: <String, Object?>{'scopeUid': _redactId(scopeUid), 'peerId': peerId.value},
+      data: <String, Object?>{
+        'scopeUid': _redactId(scopeUid),
+        'peerId': peerId.value,
+        'channel': channel.name,
+      },
     );
-    return _dao.backlogCount(scopeUid: scopeUid, peerId: peerId);
+    return _dao.backlogCount(
+      scopeUid: scopeUid,
+      peerId: peerId,
+      channel: channel,
+    );
   }
 
   @override
   Stream<int> watchBacklogCount({
     required String scopeUid,
     required PeerId peerId,
+    required Channel channel,
   }) {
     _logger.trace(
       'drift_outbox_watch_backlog_count',
-      data: <String, Object?>{'scopeUid': _redactId(scopeUid), 'peerId': peerId.value},
+      data: <String, Object?>{
+        'scopeUid': _redactId(scopeUid),
+        'peerId': peerId.value,
+        'channel': channel.name,
+      },
     );
-    return _dao.watchBacklogCount(scopeUid: scopeUid, peerId: peerId).distinct();
+    return _dao
+        .watchBacklogCount(
+          scopeUid: scopeUid,
+          peerId: peerId,
+          channel: channel,
+        )
+        .distinct();
   }
 
   /// Returns count of dead-letter records for a scope.
@@ -1141,6 +1224,7 @@ class DriftOutboxStore implements OutboxStore {
   /// 参数说明：
   /// - [scopeUid]：同步作用域。
   /// - [peerId]：对端。
+  /// - [channel]：对端所在通道（与 backlogCount 同套过滤）。
   ///
   /// 返回值：
   /// - dead 数量。
@@ -1148,12 +1232,21 @@ class DriftOutboxStore implements OutboxStore {
   Future<int> deadCount({
     required String scopeUid,
     required PeerId peerId,
+    required Channel channel,
   }) {
     _logger.trace(
       'drift_outbox_dead_count',
-      data: <String, Object?>{'scopeUid': _redactId(scopeUid), 'peerId': peerId.value},
+      data: <String, Object?>{
+        'scopeUid': _redactId(scopeUid),
+        'peerId': peerId.value,
+        'channel': channel.name,
+      },
     );
-    return _dao.deadCount(scopeUid: scopeUid, peerId: peerId);
+    return _dao.deadCount(
+      scopeUid: scopeUid,
+      peerId: peerId,
+      channel: channel,
+    );
   }
 }
 

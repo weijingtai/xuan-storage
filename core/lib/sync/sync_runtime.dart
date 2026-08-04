@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:persistence_core/core/sync_coordinator.dart';
 import 'package:persistence_core/logging/sync_logger.dart';
 import 'package:persistence_core/model/ports.dart';
+import 'package:persistence_core/model/storage_classification.dart';
 import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/model/types.dart';
 
@@ -33,10 +34,8 @@ class SyncRuntime {
   /// - [minBackoff]: Base delay used after failures before the next attempt.
   /// - [maxBackoff]: Maximum delay cap used after repeated failures.
   /// - [nowUtc]: Clock source used for scheduling/backoff decisions.
-  ///
-  /// Notes:
-  /// - This class does not perform network detection itself. Use [setOnline].
-  /// - This class does not infer entity types. Use [setPullEntityTypes].
+  /// - [peerId]: 本对端标识（默认 firestore/cloud）。
+  /// - [channel]: 本对端所在通道（§5.4 第一道锁）。默认 cloud。
   SyncRuntime({
     required SyncCoordinator coordinator,
     AuthScopeProvider? authScopeProvider,
@@ -48,6 +47,7 @@ class SyncRuntime {
     Duration maxBackoff = const Duration(minutes: 2),
     DateTime Function()? nowUtc,
     PeerId peerId = const PeerId('firestore'),
+    Channel channel = Channel.cloud,
     SyncLogger? logger,
   })  : _coordinator = coordinator,
         _authScopeProvider = authScopeProvider,
@@ -59,7 +59,8 @@ class SyncRuntime {
         _maxBackoff = maxBackoff,
         _logger = logger ?? SyncLogger.noop(),
         _nowUtc = nowUtc ?? DateTime.now().toUtc,
-        _peerId = peerId;
+        _peerId = peerId,
+        _channel = channel;
 
   final SyncCoordinator _coordinator;
   final AuthScopeProvider? _authScopeProvider;
@@ -72,6 +73,7 @@ class SyncRuntime {
   final SyncLogger _logger;
   final DateTime Function() _nowUtc;
   final PeerId _peerId;
+  final Channel _channel;
 
   final StreamController<SyncStatus> _statusController =
       StreamController<SyncStatus>.broadcast();
@@ -443,7 +445,7 @@ class SyncRuntime {
     if (uid == null || uid.isEmpty) return;
 
     _pushBacklogSub = _coordinator
-        .watchBacklogCount(uid, peerId: _peerId)
+        .watchBacklogCount(uid, peerId: _peerId, channel: _channel)
         .distinct()
         .listen((count) {
           _serial = _serial.then((_) async {

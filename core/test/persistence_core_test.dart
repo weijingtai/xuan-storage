@@ -80,6 +80,16 @@ class _FakeLocalApplier implements LocalApplier {
 }
 
 void main() {
+  setUp(() {
+    // ACT 05：peekBatch/backlogCount 按 channel 过滤且 fail closed。
+    // 本文件用 layout_template 且期望 cloud 通道能取到，须注册策略否则全被过滤。
+    StoragePolicyRegistry.clearForTesting();
+    StoragePolicyRegistry.register(
+      'layout_template',
+      StoragePolicy.private(carriers: const {}),
+    );
+  });
+
   test('pushOnce marks record dead after max attempts', () async {
     const scopeUid = 'u1';
     final now = DateTime.utc(2026, 1, 10, 9, 0, 0);
@@ -119,6 +129,7 @@ void main() {
       await outbox.backlogCount(
         scopeUid: scopeUid,
         peerId: const PeerId('firestore'),
+        channel: Channel.cloud,
       ),
       equals(1),
     );
@@ -131,6 +142,7 @@ void main() {
       await outbox.backlogCount(
         scopeUid: scopeUid,
         peerId: const PeerId('firestore'),
+        channel: Channel.cloud,
       ),
       equals(0),
     );
