@@ -5,6 +5,13 @@
 > 本文是人类下发的原始派工书，**逐字留存**。蒸馏后的可执行版本见
 > `tasks/claude-storage-s3c-local-signaling.md`；二者冲突时以任务纪要的
 > 「决定记录」为准（那里记了偏离原文的理由）。
+>
+> ⚠ **2026-08-04 人类追加裁定，修订了本文以下三处，读本文时务必对照任务纪要**：
+> - **§5** 的套件签名 `makeChannel` → 实为 `makePair` + 注入 `simulateAbruptDisconnect`（D1）
+> - **§8 A1**「提取无损」口径放宽：不再要求逐字保留原写法，只要求两个内存 fake 仍全绿（D5b）
+> - **§9 纪律第 3 条**「新增公开 API 必须进 barrel」**只约束产品 API，不约束 test_support**（D3）
+>
+> 另新增两条验收：A10（`flutter_test` 围栏）、A11（套件内禁用 `pumpEventQueue`）。
 
 ---
 
