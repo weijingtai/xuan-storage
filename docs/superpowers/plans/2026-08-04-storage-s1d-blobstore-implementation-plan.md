@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Implement the four frozen core blob contracts with drift/filesystem/Firebase adapters, schema v9, resumable verified chunks, atomic references, and tier-safe GC.
+**Goal:** Implement local blob persistence, cipher resolution, atomic record/blob writes and a contract-complete in-memory BlobGateway fake, with schema v9, resumable verified chunks and tier-safe GC.
 
-**Architecture:** Native bytes live in app-support files while drift owns scoped metadata, chunk manifests, references, and lifecycle state. Public data uses identity cipher; private cipher keys are injected. Record/blob writes share one drift transaction. Firebase is an adapter over a separately approved server upload-ticket protocol.
+**Architecture:** Native bytes live in app-support files while drift owns scoped metadata, chunk manifests, references, and lifecycle state. Incoming manifests are staged through a drift-only API whose policy is derived from local `StoragePolicyRegistry`, never from peer declarations. Public data uses identity cipher; private cipher keys are injected. Record/blob writes share one drift transaction. Real cloud object storage is deferred to S2-blob.
 
-**Tech Stack:** Dart 3.11, Flutter, Drift/SQLite, `dart:io` behind conditional exports, `crypto`, Firebase client SDK plus the D2-approved server client, `flutter_test`.
+**Tech Stack:** Dart 3.11, Flutter, Drift/SQLite, `dart:io` behind conditional exports, `crypto`, `flutter_test`.
 
 ---
 
@@ -22,22 +22,24 @@
 - `drift/lib/blob/drift_record_blob_unit_of_work.dart`: atomic record/ref adapter.
 - `drift/lib/record/drift_record_data_source.dart`: extract transaction-aware record primitive without changing public semantics.
 - `drift/test/blob/`: schema, byte backend, store, lifecycle, GC, cipher and UoW tests.
-- `firebase/lib/blob/firebase_blob_gateway.dart`: core BlobGateway adapter.
-- `firebase/lib/blob/blob_gateway_client.dart`: D2-approved server protocol boundary.
-- `firebase/test/blob/`: fake-client contract, timeout, ticket and resume tests.
+- `drift/test/support/in_memory_blob_gateway.dart`: contract-complete BlobGateway fake.
+- `drift/test/blob/in_memory_blob_gateway_test.dart`: ticket, resume, complete gating and cancellation tests.
 - `docs/superpowers/specs/2026-08-03-s1d-blob-store-design.md`: decision record updated for v9, UTC scope and residual risks.
 
-## Task 0: Resolve Blocking Decisions
+## Task 0: Lock Human Decisions Into Tests
 
 **Files:**
 - Modify: `openspec/changes/storage-s1d-blobstore/design.md`
 - Modify: `tasks/codex-storage-s1d-blobstore.md`
 
-- [ ] Record human answer D1: the legal precondition that registers `tier` and `visibility` before first incoming `putChunk`. Recommended: an internal transfer orchestrator calls `stageIncomingManifest()` on the concrete drift adapter; do not modify core unless explicitly approved.
-- [ ] Record human answer D2: exact callable/REST server client methods for begin, put chunk, remote chunks, complete, download ticket and delete, including auth, object path and TTL.
+- [ ] Record D1 as final: transfer orchestration calls drift concrete `stageIncomingManifest`; core remains unchanged.
+- [ ] Specify `stageIncomingManifest` inputs as trusted local `entityType`, handle and untrusted peer declaration. Derive actual visibility/tier/encryption from `StoragePolicyRegistry.lookup(entityType)` and require `Carrier.blob`.
+- [ ] Add mandatory negative scenario: local private policy + peer resource/cache declaration is rejected before any DB/file write.
+- [ ] Add mandatory isolation scenario: incomplete staged blobs are invisible to `openRead`, `statusOf`, `sizeOf` and `list`; only transfer recovery may call `presentChunks`.
+- [ ] Record D2 as deferred: remove Firebase implementation from this change; S2-blob owns cloud storage and resumable SDK/protocol selection.
 - [ ] Run `openspec validate storage-s1d-blobstore` after updating artifacts. Expected: exit 0.
 - [ ] Commit: `git commit -am "docs: resolve S1d blob protocol decisions"`.
-- [ ] **STOP:** Tasks 6 and 10 may not start until D1/D2 are resolved.
+- [ ] Commit: `git commit -am "docs: lock S1d local-only scope"`.
 
 ## Task 1: Restore a Clean Generated-Code Baseline
 
@@ -113,17 +115,15 @@
 
 ## Task 6: Implement Metadata Repository and Incoming Registration
 
-**Blocked by:** D1.
-
 **Files:**
 - Create: `drift/lib/blob/blob_metadata_repository.dart`
 - Test: `drift/test/blob/blob_metadata_repository_test.dart`
 
-- [ ] RED tests: scope isolation; D1-approved manifest staging; chunk upsert; present set; invalid index rejection; duplicate content lookup constrained by scope/visibility/cipher/key/tier; last-access UTC.
+- [ ] RED tests: scope isolation; registry-derived manifest staging; unregistered/non-blob policy rejection; forged private→resource/cache declaration rejection with zero side effects; chunk upsert; present set; invalid index rejection; duplicate lookup constrained by scope/visibility/cipher/key/tier; last-access UTC.
 - [ ] Run the test. Expected: FAIL because repository is absent.
 - [ ] Implement transaction-aware CRUD methods with every query constrained by `scopeUid`.
 - [ ] GREEN: rerun. Expected: PASS.
-- [ ] Mutation: remove one scope predicate; cross-scope test MUST fail. Restore.
+- [ ] Mutations: remove one scope predicate; trust peer visibility instead of registry. Cross-scope and forged-declaration tests MUST fail. Restore.
 - [ ] Commit: `git commit -m "feat: persist scoped blob metadata"`.
 
 ## Task 7: Implement DriftLocalBlobStore
@@ -132,12 +132,13 @@
 - Create: `drift/lib/blob/drift_local_blob_store.dart`
 - Test: `drift/test/blob/drift_local_blob_store_test.dart`
 
-- [ ] RED tests for all LocalBlobStore methods: `putFile`, `put`, `putChunk`, `readCipherChunk`, five `openRead` outcomes, `statusOf`, `presentChunks`, `sizeOf`, `list`, `reconcileRefs`, `evictByExternalId`, `evictCache`.
+- [ ] RED tests for all LocalBlobStore methods: `putFile`, `put`, `putChunk`, `readCipherChunk`, five completed-blob `openRead` outcomes, `statusOf`, `presentChunks`, `sizeOf`, `list`, `reconcileRefs`, `evictByExternalId`, `evictCache`.
+- [ ] Add staged isolation tests: before complete, `openRead/statusOf/sizeOf/list` expose no consumable blob while `presentChunks` reports recovery progress; after complete the same handle becomes visible.
 - [ ] Include exact round trip, cross-write dedup, 60% cancel/resume, progress, corrupt length/hash, final plaintext hash, undecryptable mapping and concurrent chunk writes.
 - [ ] Run `flutter test test/blob/drift_local_blob_store_test.dart`. Expected: FAIL because adapter is absent.
 - [ ] Implement orchestration using byte backend, metadata repository and resolver. Hash/encrypt/decrypt work MUST use `Isolate.run` per chunk/batch.
 - [ ] GREEN: rerun. Expected: PASS.
-- [ ] Mutations: skip one resumed chunk; return complete for partial; map undecryptable to corrupt. Each targeted test MUST fail, then restore.
+- [ ] Mutations: skip one resumed chunk; expose staged blob to openRead; return complete for partial; map undecryptable to corrupt. Each targeted test MUST fail, then restore.
 - [ ] Commit: `git commit -m "feat: implement local blob store"`.
 
 ## Task 8: Implement Lifecycle and Garbage Collection
@@ -169,22 +170,18 @@
 - [ ] Mutation: remove outer transaction; rollback test MUST fail. Restore.
 - [ ] Commit: `git commit -m "feat: commit records and blob refs atomically"`.
 
-## Task 10: Implement Firebase BlobGateway
-
-**Blocked by:** D2.
+## Task 10: Implement In-Memory BlobGateway Fake
 
 **Files:**
-- Create: `firebase/lib/blob/blob_gateway_client.dart`
-- Create: `firebase/lib/blob/firebase_blob_gateway.dart`
-- Modify: `firebase/lib/persistence_firebase.dart`
-- Test: `firebase/test/blob/firebase_blob_gateway_test.dart`
+- Create: `drift/test/support/in_memory_blob_gateway.dart`
+- Test: `drift/test/blob/in_memory_blob_gateway_test.dart`
 
-- [ ] RED tests against a fake server client: private random object name, public hash object name, ticket expiry UTC, out-of-order/retry chunks, remoteChunks resume, complete validation, fresh download ticket every call, delete, cancellation and per-method timeout.
-- [ ] Run `flutter test test/blob/firebase_blob_gateway_test.dart`. Expected: FAIL.
-- [ ] Implement the D2-approved adapter; use `Future.timeout(capabilities.requestTimeout)` and map server errors to StorageError subclasses.
+- [ ] RED tests: begin ticket, random private/public hash object naming, UTC expiry,乱序/repeated chunk writes, `remoteChunks`, complete gating, incomplete upload not downloadable, fresh download ticket per call, delete, cancellation and capabilities.
+- [ ] Run `flutter test test/blob/in_memory_blob_gateway_test.dart`. Expected: FAIL because fake is absent.
+- [ ] Implement a deterministic in-memory fake with injectable clock/UUID and copied byte lists; no Firebase imports or server simulation beyond the frozen contract.
 - [ ] GREEN: rerun. Expected: PASS.
-- [ ] Mutations: cache download ticket and ignore timeout; the respective tests MUST fail. Restore.
-- [ ] Commit: `git commit -m "feat: add firebase blob gateway"`.
+- [ ] Mutations: allow download before complete and cache download tickets; respective tests MUST fail. Restore.
+- [ ] Commit: `git commit -m "test: add in-memory blob gateway fake"`.
 
 ## Task 11: Mutation Ledger and Documentation
 
@@ -195,7 +192,7 @@
 
 - [ ] Record every test mutation with test name, injected violation, command, observed red assertion and restored green command.
 - [ ] Record UTC scope limitation, Android Auto Backup and macOS entitlement residual risks.
-- [ ] Confirm no assertion is inside an un-awaited `.then()` or `.listen()` callback: `rg -n "\.then\(|\.listen\(" core/test drift/test firebase/test` and manually inspect blob matches.
+- [ ] Confirm no assertion is inside an un-awaited `.then()` or `.listen()` callback: `rg -n "\.then\(|\.listen\(" core/test drift/test` and manually inspect blob matches.
 - [ ] Commit: `git commit -m "test: document blob mutation evidence"`.
 
 ## Task 12: Final Verification
@@ -203,10 +200,9 @@
 **Files:**
 - Modify only if a gate exposes a scoped defect.
 
-- [ ] Run `flutter pub get` in `core/`, `drift/`, and `firebase/`. If pub-cache type errors occur, remove only the ignored package lock for that package and resolve again.
+- [ ] Run `flutter pub get` in `core/` and `drift/`. If pub-cache type errors occur, remove only the ignored package lock for that package and resolve again.
 - [ ] Run `(cd core && dart analyze --fatal-infos && flutter test)`.
 - [ ] Run `(cd drift && dart analyze --fatal-infos && flutter test)`.
-- [ ] Run `(cd firebase && dart analyze --fatal-infos && flutter test)`.
 - [ ] Run the repository acceptance command exactly as recorded in the task memo.
 - [ ] Run `git diff main -- '*.g.dart' | rg '^-.+REFERENCES'`. Expected: no output.
 - [ ] Run `git diff --check`. Expected: exit 0.
@@ -215,7 +211,7 @@
 
 ## Coverage Map
 
-- A1: Tasks 5, 7, 9, 10, 12
+- A1: Tasks 5, 7, 9, 10, 12; BlobGateway acceptance is satisfied by the explicit in-memory fake, not Firebase production storage.
 - A2–A4: Tasks 1–2
 - A5: Tasks 1 and 12
 - A6: Tasks 3–7

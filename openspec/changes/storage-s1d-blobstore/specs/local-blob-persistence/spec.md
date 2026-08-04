@@ -14,6 +14,20 @@
 - **WHEN** 部分 chunk 落盘后操作取消并再次恢复
 - **THEN** 已完成 chunk 保留且只需补齐缺失 chunk
 
+### Requirement: Incoming manifests are policy derived
+`stageIncomingManifest` SHALL 根据本地可信 entityType 查询 `StoragePolicyRegistry` 派生 visibility、tier 和 encryption，并 SHALL 拒绝未注册策略、非 blob carrier 或与对端声明不一致的请求。
+
+#### Scenario: Forged private-to-resource declaration is rejected
+- **WHEN** 本地策略为 private blob，但对端声明 visibility/tier 为 resource/cache
+- **THEN** staging 被拒绝且数据库与文件系统均不产生新记录
+
+### Requirement: Incomplete staged blobs are not readable
+未完成的 staged blob SHALL 对普通读取、状态、大小和列表查询不可见，仅续传内部查询可以看到已持有 chunk。
+
+#### Scenario: Staged partial bytes are hidden
+- **WHEN** manifest 已 staged 且只有部分 chunk 落盘但尚未 complete
+- **THEN** 普通 openRead/statusOf/sizeOf/list 不暴露可消费 blob，presentChunks 仍可供续传使用
+
 ### Requirement: Safe lifecycle and GC
 系统 SHALL 只通过引用对账将 staged 转 committed；sourceOfTruth 零引用 SHALL 转 orphaned 且保留字节，cache 零引用才可删除。
 

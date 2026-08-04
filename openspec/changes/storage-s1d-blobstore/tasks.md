@@ -1,7 +1,8 @@
-## 0. Decision Gates
+## 0. Locked Scope
 
-- [ ] 0.1 Resolve D1 incoming manifest registration before first `putChunk`
-- [ ] 0.2 Resolve D2 Firebase upload-ticket server protocol
+- [ ] 0.1 Implement drift `stageIncomingManifest` without modifying core
+- [ ] 0.2 Enforce StoragePolicyRegistry-derived policy and staged read isolation
+- [ ] 0.3 Exclude Firebase real gateway and defer cloud selection to S2-blob
 
 ## 1. Database Safety
 
@@ -28,14 +29,13 @@
 - [ ] 4.2 Implement drift RecordBlobUnitOfWork and contract-equivalent fake
 - [ ] 4.3 Prove rollback and idempotency with injected failures
 
-## 5. Remote Gateway
+## 5. In-Memory Gateway
 
-- [ ] 5.1 Define D2-approved BlobGateway server client
-- [ ] 5.2 Implement Firebase adapter, timeout, cancellation and error mapping
-- [ ] 5.3 Prove resume, complete, fresh download tickets and deletion
+- [ ] 5.1 Implement contract-complete in-memory BlobGateway fake
+- [ ] 5.2 Prove resume, complete gating, fresh tickets, cancellation and deletion
 
 ## 6. Evidence and Gates
 
 - [ ] 6.1 Complete per-test mutation ledger
-- [ ] 6.2 Run core, drift and firebase fatal analysis/tests
+- [ ] 6.2 Run core and drift fatal analysis/tests
 - [ ] 6.3 Run repository gates and generated foreign-key protection check
