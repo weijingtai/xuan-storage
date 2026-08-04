@@ -12,7 +12,7 @@
 - [ ] 实现 BlobCipher/BlobCipherResolver（异步 resolve）、RecordBlobUnitOfWork drift 与内存 fake。
 - [ ] 实现 firebase BlobGateway，并补齐 GC：sourceOfTruth 归零转 orphaned、cache 才删除字节。
 - [ ] 编写/修正迁移与契约测试，逐条完成变异自检并记录红灯证据。
-- [ ] 运行 analyze、core/drift 测试及四条门禁；执行 GitNexus detect_changes 后提交全部改动。
+- [ ] 运行 analyze、core/drift 测试及四条门禁，检查 diff 后提交全部改动。
 
 ## 验收标准
 - [ ] 四个契约均有可运行实现，新增文件 `dart analyze --fatal-infos` 零 issue。
@@ -26,9 +26,9 @@
 验收命令: bash scripts/run_s1a_analyze_gate.sh && bash scripts/run_s1b_analyze_gate.sh && bash scripts/run_monorepo_convention_check.sh && (cd core && flutter test) && (cd drift && flutter test)
 
 ## 当前状态
-<每完成一个子任务【覆盖重写】本节, ≤12行:
-刚完成 / 半成品位置(文件:行) / 下一步 / 微观意图(接下来2-3步的打算,
-含"顺手要改的东西") / 验证方法>
+已暂停编码，当前保留 WIP：v9 三表迁移与 UTC converter 已提交；identity cipher 与内存 LocalBlobStore 位于 `drift/lib/blob/`，对应测试位于 `drift/test/blob/`。
+下一步（恢复编码时第一件事）：先审查并完善内存 fake 的错误语义与 staged/committed/GC 测试，再实现文件系统 LocalBlobStore。
+验证：v9 迁移 4/4 通过；identity cipher 与内存 fake 测试通过；完整门禁尚未运行。
 
 ## 决定记录
 2026-08-04: schema 使用 v9，v8 及以前迁移保持不变，因为 S1b 已占用 v8。
@@ -37,6 +37,7 @@
 2026-08-04: GC 中 sourceOfTruth refCount 归零转 orphaned 但不删字节，只有 cache tier 真删，遵循收紧裁定。
 2026-08-04: 不修改 core/lib/model 契约；实现全部放在具体后端与 fake 层，保持 core 零后端依赖。
 2026-08-04: 旧 worktree 的 blob v8 产物仅作参考，不直接沿用，因为其缺少 main 上 D7 异步签名与 S1b v8。
+2026-08-04: 用户要求本轮只制定 coding 计划并暂停编码；已将未完成实现作为 WIP 落盘，不宣称 S1d 已完成。
 
 ## 踩坑墓地
 <只追加不删改。每次失败的尝试必须入墓, 一行一条:
