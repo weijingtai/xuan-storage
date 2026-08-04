@@ -1,11 +1,15 @@
 # S5a 样式资源分发 · 详细设计
 
-- 日期：2026-08-03（v2，2026-08-03 按 Codex gStack `plan-eng-review` 的 REVISE-FIRST 判定修订）
-- 状态：讨论完成，待转译为 ACT
-- 范围：主题资源的分发、安装、读取与用户覆盖；跨 `xuan-storage` / `xuan_config` / `theme` / `xuan-shell` 四个仓库的职责边界
-- **交付形态：契约 + reference 实现**（人类拍板走方案 B，理由见 §0.1）
+- 日期：2026-08-03（**v4**，2026-08-04 按人类四条裁定并入 XRAP，范围大幅收窄）
+- 状态：范围已裁定，待转译为 ACT
+- 范围：**主题包的落地形态（ThemeMaterializer）+ 用户覆盖层**。下载 / 校验 / 世代 / 指针翻转 / 回滚 / GC / 幂等**全部归 XRAP**，S5a 不再自建
+- **交付形态：契约 + reference 实现**（方案 B）
 - 上游文档：
   - [2026-07-31 Storage 分层隔离存储架构 · 设计总纲](2026-07-31-storage-architecture-design.md)（下称"总纲"，引用格式 `总纲 §x.y:行号`）
+  - **XRAP 资源资产协议**（S5b 交付，已合入 `main`）：`core/lib/model/dataset/` 七个契约文件
+  - `xuan-storage/tasks/mimo-storage-s1a-contracts.md`（S1a 契约层，已交付并已合入本仓库 `main`）
+  - `xuan_config/tasks/mimo-config-s5c-remote-source.md`（S5c 控制下发，已交付，最新提交 `a324902`）
+  - `/xuan-migration/openspec/changes/theme-token-customization-contract/`（在途 OpenSpec change，含 4 轮评审）
   - `xuan-storage/tasks/mimo-storage-s1a-contracts.md`（S1a 契约层，��交付并已合入本仓库 `main`）
   - `xuan_config/tasks/mimo-config-s5c-remote-source.md`（S5c 控制下发，已交付，最新提交 `a324902`）
   - `/xuan-migration/openspec/changes/theme-token-customization-contract/`（在途 OpenSpec change，含 4 轮评审）
@@ -16,15 +20,39 @@
 
 本文档是 **S5a 的详细设计**，不是 ACT。下游流程是 `wjt-act` 转译 → `wjt-react` 跨模型闸门 → 下发执行。
 
-它要确定的是：
+### 0.0 ⚠️ v4 范围裁定：S5a = XRAP 的一个 Materializer + 一层 XRAP 拒收的用户覆盖
 
-1. 主题资源的分发形态（整包 vs 分半）与包格式；
-2. 四个仓库各自的职责边界，以及为什么 `theme` 包不该改；
-3. 主题资源读写契约的端口签名（读合并结果 / 写用户覆盖层）；
-4. 三层合并模型与用户覆盖的语义，**以及合并算法的完整规格**（§6.6）；
+**2026-08-04 人类四条裁定**（均有代码依据，不再重新论证）：
+
+| # | 裁定 | 代码依据 |
+|---|---|---|
+| 1 | **XRAP 能承载主题包**。v3 担心的"blob 资产 XRAP 装不下"是误判 | `Carrier` 枚举本就是 `{row, blob}`；`DatasetManifest.declaredRowCount` 注释明写"纯 blob 数据集为 null" |
+| 2 | **XRAP 承载不了用户覆盖层，且是硬拒** | `dataset_registry.dart:62-68` 要求 `publisher == official`，否则注册期抛 `DatasetRegistrationError`（不变式 I9）。用户覆盖的 publisher 不可能是 official |
+| 3 | **边界不在"是不是主题"，在"谁发布"** | `dataset_installer.dart:188-192` 写死"唯一实现，数据集无关，差异由各自的 `DatasetMaterializer` 承担"。再写一个主题专用安装器直接违反它 |
+| 4 | **`ConfigBootstrap` 三个占位符不是 S5a 的阻塞项** | `dataset_source.dart:61` 明写"未配置返回 null（此时只用内置世代）"；`bundledManifest` 恒存在、冷启动零网络。实证：T1 已交付完整接入样板（main `6cd7a66`，geo 三数据集），全程 generation 0，未用到任何域名或公钥 |
+
+**由此得出的范围划分**：
+
+| 能力 | 归属 | S5a 的动作 |
+|---|---|---|
+| 下载 / 校验 / 世代管理 / 活跃指针翻转 / 回滚 / GC / 幂等 | **XRAP** | ❌ **全部删除**（v3 的 `install` / `uninstall` / `refreshCatalog` / `listAvailable` / `listInstalled` / 主题包格式 §4 / 签名验证 / 版本兼容规则） |
+| 主题包字节 → 落地形态 | **S5a** | ✅ 写 `ThemeMaterializer implements DatasetMaterializer` —— **唯一可插拔点** |
+| override > package > bundled 三层合并 | **S5a** | ✅ 保留（XRAP 完全没有） |
+| `applyOverrides` / `removeOverrides` / orphan 判定 / 读写不对称 | **S5a** | ✅ 保留（XRAP 硬拒非 official publisher） |
+
+> **一句话：S5a = XRAP 的一个 Materializer + 一层 XRAP 拒收的用户覆盖。**
+
+**接入样板**：T1 的 `assets/lib/geo/geo_datasets.dart`（main `6cd7a66`）是首个 XRAP 接入实例 —— 3 个 `DatasetDescriptor` + `DatasetManifest`（sha256/bytes/rowCount 真值）+ 一个最小 `Materializer`。S5a 照此形制写。
+
+### 0.1 本文档要确定的
+
+1. `ThemeMaterializer` 的落地形态与它对 XRAP 契约的遵守；
+2. 用户覆盖层的存储、合并语义与读写契约；
+3. 四个仓库的职责边界，以及为什么 `theme` 包不该改；
+4. 三层合并算法的完整规格（§6.6）；
 5. 启动路径的性能预算与可验证判据。
 
-### 0.1 交付形态：契约 + reference 实现（方案 B）
+### 0.2 交付形态：契约 + reference 实现（方案 B）
 
 **S5a 交付两层**：
 
@@ -282,57 +310,80 @@ S5a 现在必须满足的三条前瞻约束（总纲 §9.1:1513「S5a 的主题�
 
 ---
 
-## 4. 主题包格式
+## 4. `ThemeMaterializer` —— S5a 在 XRAP 中的唯一可插拔点
 
-### 4.1 包结构
+> **v4 重写**。v3 的「主题包格式（zip + manifest.yaml + 版本兼容规则 + 签名）」整章删除 ——
+> 那是 XRAP 的 `DatasetManifest` + `DatasetInstaller` 的职责（§0.0 裁定 3）。
+> 本章只写 S5a 真正要写的东西：把已校验的载荷落成主题 token。
 
-```
-theme-package.zip
-├── manifest.yaml          必需。包的身份、版本、内容清单
-├── tokens/
-│   ├── theme.yaml         必需。token 主体（light/dark × components/chart/semantic）
-│   └── components/*.yaml  可选。按组件拆分（对应 theme/config/components/ 的现状）
-└── assets/                可选。当前为空，为将来预留
-    ├── fonts/*.ttf
-    ├── icons/*.png|*.svg
-    └── animations/*.json  Lottie
-```
+### 4.1 XRAP 侧的事实（S5a 只消费，不重定义）
 
-### 4.2 `manifest.yaml` 字段
-
-| 字段 | 必需 | 说明 |
+| 事实 | 出处 | 对 S5a 的含义 |
 |---|---|---|
-| `package_format_version` | ✅ | **包格式**版本（不是主题内容版本）。决定解包器如何理解这个包 |
-| `id` | ✅ | 主题唯一标识，对应 `defaultThemeId` 的取值 |
-| `version` | ✅ | 主题内容版本（语义化版本） |
-| `display_name` | ✅ | 展示名 |
-| `author` | ✅ | 作者 |
-| `publisher` | ✅ | `official` / `user`（当前恒为 `official`，字段现在就要有） |
-| `token_schema_version` | ✅ | token 遵循的 schema 版本，对应现有 YAML 的 `version:` 键 |
-| `min_app_version` | ✅ | 最低兼容 app 版本。低于此版本的 app 拒绝安装 |
-| `assets` | ⬜ | 资产清单：每项含 `path` / `sha256` / `size` / `type` |
-| `preview` | ⬜ | 预览图路径（Marketplace 用，当前可空） |
+| `DatasetMaterializer` 是**唯一可插拔点**，取载荷/校验/状态机/世代/指针翻转/GC 一律由协议实现统一负责 | `dataset_materializer.dart:1-5`（协议 N1） | S5a 只实现 `materialize` 与 `dropGeneration` 两个方法 |
+| 调用 `materialize` 时**已完成 sha256 校验** | `dataset_materializer.dart:43-45` | S5a **不再校验完整性**，只管解析与写入 |
+| 实现**只写入入参给定的 generation，不得触碰其它世代** | `dataset_materializer.dart:34-35` | 主题落地结构必须有世代判别列 |
+| 实现**不得改动活跃指针** —— 翻转由安装器在独立事务内完成 | `dataset_materializer.dart:35-36`（协议 P3） | S5a 不实现"切换到新主题"的原子性，那是 XRAP 的 |
+| `dropGeneration` **必须幂等** | `dataset_materializer.dart:62` | 删不存在的世代是正常调用，不是错误 |
+| 长耗时解析应在独立 isolate 内完成 | `dataset_materializer.dart:37` | YAML 解析走 isolate |
+| `MaterializeOutcome.rowCount` 会与 `DatasetManifest.declaredRowCount` 比对，不符则**不进入 ready** | `dataset_materializer.dart:13-15`（不变式 I4） | S5a 必须返回真实行数 |
+| 纯 blob 数据集 `rowCount` 返回 0 | `dataset_materializer.dart:12` | 主题当前是 token（row 形态），返回真实 token 条数 |
 
-### 4.3 版本兼容规则
+### 4.2 `ThemeMaterializer` 契约【契约】
 
-总纲 §10:1583 把"版本兼容"判给 S5a。规则如下，**与在途 OpenSpec change 的 "Additive YAML Schema Evolution" 要求一致**：
+文件：`core/lib/model/theme_materializer.dart`
 
-| 情形 | 行为 |
+```dart
+/// 主题数据集的 XRAP 落地器。
+///
+/// 【职责边界】只做一件事：把已校验的主题载荷解析成扁平 token 并写入
+/// 指定世代。下载、校验、世代管理、指针翻转、回滚、GC 全部由
+/// [DatasetInstaller] 负责（XRAP 协议 N1）——【不要】在这里做任何一样。
+abstract interface class ThemeMaterializer implements DatasetMaterializer {
+  // 继承 DatasetMaterializer 的 datasetId / materialize / dropGeneration。
+  // 不新增方法 —— 新增即意味着 XRAP 的抽象不够用，应先改协议而非绕过。
+}
+```
+
+⚠️ **本接口不新增任何方法**。若实现时发现需要新增，说明 XRAP 协议有缺口，
+应走协议变更流程，不得在 S5a 侧绕过（否则违反"唯一实现，数据集无关"）。
+
+### 4.3 载荷形态：预构建扁平 token
+
+XRAP 要求内置世代的 `payloadFormat` **必须**是 `DatasetPayloadFormat.prebuilt`
+（`dataset_descriptor.dart:33-37`，注册期强制，设备上零解析是硬要求）。
+
+因此主题载荷**不是** YAML 原文，而是**构建期预处理好的扁平 token**：
+
+```
+构建期（脚本，非设备）：
+  theme/config/presets/*.yaml
+      → 解析 + 扁平化（§6.6 第 1 步的算法）
+      → 预构建载荷（形如 T1 的 *.sql，或 JSON Lines）
+      → 算 sha256 / bytes / rowCount 真值写进 DatasetManifest
+
+设备上（ThemeMaterializer.materialize）：
+  预构建载荷 → 直接写入落地结构，零 YAML 解析
+```
+
+**参照 T1 样板**：`assets/tool/build_geo_sql.py` 做 JSON → SQLite → `*.sql`（幂等），
+`BUILD-REPORT.md` 记产物 sha256/bytes。S5a 照此形制写主题的构建脚本。
+
+> 📌 **这条改变了 v3 的一个假设**：v3 以为设备上要解析 YAML，故设计了 `token_loader`
+> 透传路径。实际上设备只消费预构建产物，YAML 解析**发生在构建期**。
+> 相应地，v3 的 A14a/A14c/A19（未知字段忽略、缺失字段回退、非法值透传）
+> 从"合并层的责任"变为"**构建脚本的责任**"—— 见 §5.5.5 的归属调整。
+
+### 4.4 落地结构要求
+
+| 要求 | 理由 |
 |---|---|
-| `package_format_version` 高于本 app 支持的最高版本 | **拒绝安装**，提示升级 app |
-| `min_app_version` 高于当前 app 版本 | **拒绝安装**，提示升级 app |
-| `token_schema_version` 高于 app 认识的 | **安装但降级解析**：未知字段静默忽略（不得崩溃） |
-| token 中出现未知字段 | **静默忽略**，不影响渲染 |
-| token 中某字段值非法 | 该字段回退其默认值；若整体结构非法则整包回退 `DefaultXuanThemeData` |
+| 必须有**世代判别列** | `materialize` 只写入参给定的 generation，不得触碰其它世代 |
+| 必须能按 `(generation, tokenKey)` 查询 | `resolve()` 要读活跃世代的全部 token |
+| `dropGeneration` 按世代整体删除 | 回滚 / 取消清理 / GC 三处调用 |
 
-> 最后两条直接来自在途 change 的 spec：「unknown fields → loader SHALL ignore」「widget rendering SHALL not fail」。
-> 倒数第二条的粒度要求来自该 change 第二轮评审 finding #5：**一个坏的 `shadow.color` 不得让整个主题失效**。
-
-### 4.4 完整性校验
-
-主题包按公开缓存类 blob 处理（`BlobVisibility.public` + `BlobTier.cache`），**内容寻址天然提供完整性校验**（总纲 §6.1:1046 每 chunk 独立 sha256）。资产逐项的 `sha256` 另在 manifest 内声明，解包后校验。
-
-**由此免费获得**：分块下载、断点续传、缓存 LRU 清理、紧急下架黑名单清除（`LocalBlobStore.evictByExternalId`，总纲 §7.5.1 第 3 层）。
+**具体表结构不在本设计决定** —— reference 实现用内存 Map，
+drift 生产实现的建表属后续任务（与 S1d/S5b 协调 schema 版本号，见 §12 冲突预警）。
 
 ---
 
@@ -496,28 +547,27 @@ abstract interface class ThemeResourceStore {
 
   /// 解析当前生效主题：三层合并（override > 已装包 > bundled），逐 key 取第一命中。
   ///
-  /// 【性能硬约束】本方法**不得发起任何网络请求、不得解压主题包**。
-  /// 它只读本地已就绪的数据。远端刷新走 [refreshCatalog]，下载走 [install]。
+  /// 【性能硬约束】本方法**不得发起任何网络请求、不得触发 XRAP 安装流程**。
+  /// 它只读本地已就绪的数据（XRAP 已翻转到活跃世代的落地物 + 用户覆盖层）。
   /// 详见 §7 启动路径预算。
   ///
-  /// 【幂等与缓存】相同输入（主题 id + 覆盖层版本）连续调用必须返回
+  /// 【幂等与缓存】相同输入（活跃世代号 + 覆盖层版本）连续调用必须返回
   /// `identical` 的实例，以便 `XuanThemeScope.updateShouldNotify` 的深比较
   /// 被 identical 短路（§7.2）。
   Future<ThemeTokenSet> resolve({CancellationToken? cancel});
 
-  /// 当前生效主题的解析结果流。覆盖层变更、主题切换、安装完成时推送新值。
+  /// 当前生效主题的解析结果流。覆盖层变更、主题切换、
+  /// **XRAP 活跃指针翻转**时推送新值。
   ///
-  /// 【为什么是 Stream】主题下载完成是异步事件，UI 需要被通知而非轮询
-  /// —— 这是"下载不阻塞启动"（§7.3）的落地形式。
+  /// 【为什么是 Stream】XRAP 安装完成后翻转活跃指针是异步事件，
+  /// UI 需要被通知而非轮询 —— 这是"安装不阻塞启动"（§7.3）的落地形式。
   Stream<ThemeTokenSet> watchResolved();
 
-  /// 已安装主题清单（含 bundled 默认）。
-  Future<List<InstalledTheme>> listInstalled();
-
-  /// 可安装主题清单（来自 xuan_config 下发的 catalog）。
+  /// 本地可用的主题清单。
   ///
-  /// 【离线可用】返回上次缓存的清单；无缓存时返回空列表，**不抛异常、不等网络**。
-  Future<List<AvailableTheme>> listAvailable();
+  /// 【数据来源】XRAP 的活跃世代落地物 + bundled 世代（generation 0）。
+  /// **不含"可下载但未安装"的主题** —— 那是 XRAP catalog 的职责，不在本端口。
+  Future<List<AvailableTheme>> listLocalThemes();
 
   // ── 写 · 主题选择 ──
 
@@ -526,7 +576,8 @@ abstract interface class ThemeResourceStore {
   /// 选择后 [ThemeResolution.selectionOrigin] 变为 userSelected，
   /// 此后 xuan_config 下发的 defaultThemeId **不再覆盖**用户的选择。
   ///
-  /// [themeId] 必须已安装，否则抛 StorageError（调用方应先 [install]）。
+  /// [themeId] 必须在 [listLocalThemes] 中，否则抛 StorageError
+  /// （调用方应先经 XRAP 的 `DatasetInstaller` 安装）。
   Future<void> selectTheme(String themeId);
 
   /// 清除用户的主题选择，回到跟随官方下发。
@@ -560,30 +611,18 @@ abstract interface class ThemeResourceStore {
 
   /// 当前全部用户覆盖（诊断与"恢复默认"UI 用）。
   Future<Map<String, OverrideEntry>> listOverrides();
-
-  // ── 写 · 主题包生命周期 ──
-
-  /// 安装主题包。下载 → 校验 → 解包 → 落 blob + row。
-  ///
-  /// 【不阻塞 UI】本方法耗时可达秒级，调用方不得在启动路径上 await 它。
-  /// 安装完成后经 [watchResolved] 通知。
-  Future<void> install(String themeId, {
-    CancellationToken? cancel,
-    void Function(int received, int total)? onProgress,
-  });
-
-  /// 卸载主题包。**不影响用户覆盖层**（§2.4：覆盖层独立于包）。
-  ///
-  /// 若卸载的是当前生效主题，自动回退 bundled 默认。
-  Future<void> uninstall(String themeId);
-
-  /// 后台刷新可安装主题清单。**结果下次 [resolve] 生效**，
-  /// 与 S5c 的 RuntimeConfigRepository.refresh 同语义（offline-first）。
-  ///
-  /// 失败返回 false，不抛 —— 后台刷新失败不是致命错误。
-  Future<bool> refreshCatalog({CancellationToken? cancel});
 }
 ```
+
+> ⚠️ **v4 已删除的方法（归 XRAP，见 §0.0 裁定 3）**：
+> `install()` / `uninstall()` / `refreshCatalog()` / `listInstalled()`。
+> 主题包的下载、校验、世代管理、活跃指针翻转、回滚、GC、幂等**全部由
+> `DatasetInstaller` 统一负责** —— `dataset_installer.dart:188-192` 写死
+> 「唯一实现，数据集无关」，S5a 再写一个主题专用安装器是直接违反它。
+>
+> **调用方视角**：安装主题 = 调 XRAP 的 `DatasetInstaller`（传入 `theme.package` 这个
+> datasetId）；安装完成后 XRAP 翻转活跃指针，`ThemeResourceStore.watchResolved()`
+> 推送新的合并结果。两者通过**活跃世代号**衔接，不直接互调。
 
 ### 5.4 配套值类型
 ```dart
@@ -722,95 +761,42 @@ reference 实现本身不碰网络、文件、drift（§0.1）。但 P3/P4/P6 �
 因此 reference store 的构造器接收四个**窄端口**。生产实现注入真实现，测试注入计数式 spy，
 reference 的默认值是"什么都不做"的空实现（保持零 IO）。
 
-#### 5.5.2 四个注入端口【契约】
+#### 5.5.2 注入端口【契约】
+
+> **v4 已删除三个端口**：`ThemeRemoteFetcher`（下载归 XRAP `DatasetSource`）、
+> `ThemePackageStore`（落盘归 XRAP `DatasetInstaller` + `ThemeMaterializer`）、
+> `ThemeSignatureVerifier` + `ThemeSignatureVerdict`（验签归 XRAP 安装流程）。
+> 依据 §0.0 裁定 3：`dataset_installer.dart:188-192`「唯一实现，数据集无关」。
+
+S5a 只保留**一个**注入端口。
 
 文件：`core/lib/model/theme_source_ports.dart`
 
 ```dart
-/// 本地已就绪 token 的读取端口（bundled / 已装包）。
+/// 主题 token 与用户覆盖的本地读取端口。
 ///
-/// 【为什么需要它】P1-4：bundled 权威源是 `theme` 仓库的文件，但 S5a **不得**跨仓库
-/// 读取或拷贝（§11.4 stop condition #2）。因此 reference 不自己找 bundled，
-/// 而是由调用方**注入已解析的 Map** —— 跨仓库的源迁移明确在 ACT 范围之外。
+/// 【为什么需要它】P3/P4 要验证的正是"启动路径**没有**发生 IO"，
+/// 而"没有发生"只能通过可观测的抽象边界证明。生产实现读 XRAP 活跃世代
+/// 的落地物 + drift 覆盖表；测试注入内存 fixture。
 ///
-/// 【实现方】生产：drift / asset 读取器（后续子任务）。测试：内存 fixture。
+/// 【bundled 的来源】v4 裁定 4：`bundledManifest` 恒存在、冷启动零网络
+/// （`dataset_source.dart:61`）。bundled token 由装配层从 XRAP 的
+/// generation 0 落地物读出后注入，**S5a 不跨仓库去 theme 包找文件**
+/// （stop condition #2）。
 abstract interface class ThemeLocalReader {
-  /// 读取 bundled 默认主题的**已解析、已扁平化**token。
+  /// 读取 bundled（XRAP generation 0）的**已解析、已扁平化** token。
   ///
-  /// 返回值不得为 null —— bundled 是最后兜底层，必须永远存在（§6.1）。
+  /// 返回值不得为 null —— bundled 是最后兜底层，恒存在（XRAP 协议 P5）。
   Future<Map<String, dynamic>> readBundledTokens();
 
-  /// 读取指定已安装主题包的已解析 token；未安装返回 null。
-  Future<Map<String, dynamic>?> readPackageTokens(String themeId);
+  /// 读取 XRAP **当前活跃世代**的主题 token；无已装主题时返回 null。
+  ///
+  /// 【不触发安装】本方法只读已翻转到活跃指针的落地物。
+  /// 安装与指针翻转由 `DatasetInstaller` 负责，S5a 不介入。
+  Future<Map<String, dynamic>?> readActiveThemeTokens(String themeId);
 
-  /// 读取用户覆盖差量。
+  /// 读取用户覆盖差量（private 层，XRAP 硬拒的那部分）。
   Future<Map<String, OverrideEntry>> readOverrides();
-}
-
-/// 远端拉取端口。**reference 的默认实现恒抛 `StateError`**
-/// —— 因为 reference 声明零网络，任何调用都是契约违反，必须炸而不是静默。
-///
-/// 【为什么不是 http.Client】依赖方向：`persistence_core` 不得依赖 http 包。
-/// 这是一个窄端口，生产实现在 firebase / 自建适配层。
-abstract interface class ThemeRemoteFetcher {
-  /// 拉取可安装主题清单。
-  Future<List<AvailableTheme>> fetchCatalog({CancellationToken? cancel});
-
-  /// 下载主题包字节。
-  Future<List<int>> downloadPackage(String themeId, {
-    CancellationToken? cancel,
-    void Function(int received, int total)? onProgress,
-  });
-}
-
-/// 主题包字节的落盘端口。reference 默认实现恒抛 `StateError`（零 IO）。
-abstract interface class ThemePackageStore {
-  /// 写入并解包主题包，返回其已解析 token。
-  Future<Map<String, dynamic>> installBytes(String themeId, List<int> bytes);
-
-  /// 删除已安装包。
-  Future<void> removePackage(String themeId);
-}
-
-/// 主题包验签适配器。
-///
-/// 【P1-3 的处置】§9.1 决定复用 S5c 的 ed25519 体系，但 `persistence_core`
-/// **不得依赖 `xuan_config`**（SHALL :69–74，验收 A5b）。因此 S5a 自持这个
-/// 窄接口，由装配层用 `xuan_config` 的 `ConfigSignatureVerifier` 适配实现。
-/// 依赖方向：装配层 → (persistence_core 的本接口, xuan_config 的实现)，
-/// 两个包之间无直接依赖。
-///
-/// 【reference 不实现验签】reference 零 IO 拿不到 `.sig` 文件；其默认实现
-/// 返回 [ThemeSignatureVerdict.skipped]，且 `install()` 在 skipped 时
-/// **仅在 reference 场景放行**，生产实现必须拒绝 skipped。
-abstract interface class ThemeSignatureVerifier {
-  /// 验证主题包字节的分离签名。
-  Future<ThemeSignatureVerdict> verify({
-    required List<int> packageBytes,
-    required String? signatureBase64,
-  });
-}
-
-/// 验签结论。与 S5c 的 `SignatureVerdict` 形状对齐但**不复用其类型**
-/// （避免 persistence_core 依赖 xuan_config）。
-enum ThemeSignatureVerdict {
-  /// 验签通过。
-  valid,
-
-  /// 缺少签名文件。
-  missingSignature,
-
-  /// 签名格式错误（base64 解码失败 / 长度不符）。
-  malformed,
-
-  /// 签名与内容不匹配 —— **安全事件**，必须告警。
-  mismatch,
-
-  /// 无可用公钥。fail-closed，不得当作"跳过验签"。
-  noPublicKey,
-
-  /// 未执行验签（仅 reference 实现返回）。生产实现**不得**返回此值。
-  skipped,
 }
 ```
 
@@ -824,21 +810,22 @@ final class InMemoryThemeResourceStore implements ThemeResourceStore {
   ///
   /// 参数说明：
   /// - [scopeUid]: 作用域 uid。
-  /// - [localReader]: **必需**。bundled / package / override 的来源。
+  /// - [localReader]: **必需**。bundled / 活跃世代 / override 的唯一来源。
   ///   测试注入内存 fixture（§7.5 的 ThemeBenchFixture）。
-  /// - [remoteFetcher]: 可选。默认 [_ThrowingRemoteFetcher]（任何调用抛
-  ///   StateError）—— 兑现"reference 零网络"。P3 注入计数式 spy。
-  /// - [packageStore]: 可选。默认 [_ThrowingPackageStore]。P4 注入计数式 spy。
-  /// - [signatureVerifier]: 可选。默认返回 skipped。
+  ///
+  /// 【v4：不再接收 remoteFetcher / packageStore / signatureVerifier】
+  /// 那三样归 XRAP。reference 的零 IO 由「只有一个本地读取端口」这一
+  /// 结构事实保证 —— 它连发起网络的能力都没有，比"默认实现抛异常"更强。
   InMemoryThemeResourceStore({
     required this.scopeUid,
     required ThemeLocalReader localReader,
-    ThemeRemoteFetcher? remoteFetcher,
-    ThemePackageStore? packageStore,
-    ThemeSignatureVerifier? signatureVerifier,
   });
 }
 ```
+
+> 📌 **v4 的一个结构性改进**：v3 靠"默认实现恒抛 `StateError`"来兑现零 IO；
+> v4 直接**移除了发起 IO 的能力**（没有 remote/package 端口可注入）。
+> 不可表达优于运行时拦截 —— 与 S1a §2.3 的「把非法值从参数表移除」同一手法。
 
 #### 5.5.4 测试探针的精确定义与计数语义
 
@@ -847,95 +834,122 @@ final class InMemoryThemeResourceStore implements ThemeResourceStore {
 | 探针 | 实现端口 | 计数字段 | **何时 +1** |
 |---|---|---|---|
 | `CountingLocalReader` | `ThemeLocalReader` | `bundledReadCount` | 每次 `readBundledTokens()` 返回 |
-| | | `packageReadCount` | 每次 `readPackageTokens()` 返回 |
+| | | `activeThemeReadCount` | 每次 `readActiveThemeTokens()` 返回 |
 | | | `overrideReadCount` | 每次 `readOverrides()` 返回 |
-| `CountingRemoteFetcher` | `ThemeRemoteFetcher` | `callCount` | 每次 `fetchCatalog()` **或** `downloadPackage()` 被**进入**（不等返回） |
-| | | `calledMethods` | 同上，记录方法名列表 |
-| `CountingPackageStore` | `ThemePackageStore` | `readCount` | 每次 `installBytes()` 或 `removePackage()` 被进入 |
-| `PendingInstallFetcher` | `ThemeRemoteFetcher` | — | `downloadPackage()` 返回一个**永不完成的 `Completer.future`**；`fetchCatalog()` 正常返回空列表 |
+| `SlowLocalReader` | `ThemeLocalReader` | — | `readActiveThemeTokens()` 返回**永不完成的 `Completer.future`**；另两个方法正常返回（用于 P6） |
 
 **P3 的完整断言（正向控制在此闭合）**：
 
 ```
-1. store = InMemoryThemeResourceStore(
-     localReader: CountingLocalReader(fixture),
-     remoteFetcher: CountingRemoteFetcher(),
-   )
+1. store = InMemoryThemeResourceStore(localReader: CountingLocalReader(fixture))
 2. await store.resolve()
-3. 断言 remoteFetcher.callCount == 0            ← 零网络
-4. 断言 localReader.bundledReadCount    >  0    ← 正向控制：确实走了路径
-   且   localReader.overrideReadCount   >  0
+3. 断言 store 的依赖图中【不存在】任何网络端口          ← 结构性零网络（§5.5.3）
+4. 断言 localReader.bundledReadCount  > 0              ← 正向控制：确实走了路径
+   且   localReader.overrideReadCount > 0
 ```
 
-第 4 步是关键 —— 没有它，一个 `resolve()` 直接返回空对象的实现也能让第 3 步通过。
+第 3 步在 v4 变成**编译期事实**而非运行时断言 —— `InMemoryThemeResourceStore`
+的构造器里没有网络端口可传。测试用一条架构守卫断言该构造器参数表只有两项。
 
-**P4 同构**：`CountingPackageStore.readCount == 0` + `localReader.bundledReadCount > 0`。
+**P4（原"零解压/零 blob 读取"）在 v4 改为**：断言 `resolve()` 期间
+**不调用任何 XRAP 安装接口**。做法：把 `DatasetInstaller` 的 fake 传给装配层，
+断言其 `install` 调用次数为 0，同时 `localReader.bundledReadCount > 0`。
 
-**P6 的状态转换（原版未定义，R2 P1-2 指出）**：
+**P6 的状态转换**：
 
 ```
-1. store = InMemoryThemeResourceStore(
-     localReader: CountingLocalReader(fixture 含已装包 A),
-     remoteFetcher: PendingInstallFetcher(),
-   )
-2. before = await store.resolve()               // activeThemeId == 'A'
-3. final pending = store.install('B');          // 不 await —— 永不完成
-4. sw = Stopwatch()..start()
-5. during = await store.resolve()
-6. 断言 sw.elapsedMilliseconds < 50
-7. 断言 during.resolution.activeThemeId == 'A'  // 仍是旧主题
-8. 断言 identical(before, during)                // 缓存键未变，同一实例
-9. 清理：pending 不 await，测试结束（避免 pending future 泄漏告警时
-   用 unawaited() 显式标注）
+1. store = InMemoryThemeResourceStore(localReader: SlowLocalReader(fixture, 活跃世代读取挂起))
+2. sw = Stopwatch()..start()
+3. result = await store.resolve()
+4. 断言 sw.elapsedMilliseconds < 50
+5. 断言 result 来自 bundled 层（activeThemeId == null 或 bundled 兜底生效）
+6. 断言不抛异常 —— 活跃世代读不到时优雅降级到 bundled，不是失败
 ```
 
-第 8 条顺带证明"进行中的安装不污染缓存键" —— 这是 §6.6 缓存键三元组
-`(activeThemeId, packageVersion, overridesRevision)` **不含 in-flight 状态**的直接后果。
+> 📌 **P6 语义在 v4 变了**：v3 测的是"下载未完成时返回旧主题"，但下载已归 XRAP。
+> v4 测的是"**活跃世代落地物读取挂起时，resolve 仍在 50ms 内返回 bundled 兜底**"
+> —— 这才是 S5a 侧真实存在的降级路径。
 
-#### 5.5.5 A14 的归属裁决（R2 P1-1）
+#### 5.5.5 A14 / A19 的归属裁决（v4 重新划分）
 
-R2 指出 A14b/A14d/A14e 无法在 reference 表面执行 —— **判断成立**，处置如下：
+v3 已把 A14b/d/e 移交 installer/parser。**v4 进一步收窄** —— 依据 §4.3：
+设备上消费的是**预构建载荷**，YAML 解析发生在**构建期**，不在设备上。
 
-| 验收 | 内容 | 归属 |
-|---|---|---|
-| **A14a** | 未知字段静默忽略 | ✅ **留在 S5a**。合并算法第 1 步扁平化时天然处理：未知 key 只是普通 key，照常参与三层取值，不抛异常。测试用 fixture 加一个 `light.components.btn.unknown_field` 断言不抛且值透传 |
-| **A14c** | 缺失字段保持 legacy fallback | ✅ **留在 S5a**。这是 §6.6 第 4 步原子组补全的直接验收，输入输出都是 Map，可执行 |
-| **A14b** | `package_format_version` / `min_app_version` 过高拒装 | ⬜ **移交后续 installer 任务**。理由：它需要解析 manifest、比对 app 版本，而 §6.6 的 reference 算法输入是**已解析的扁平 Map**，不含 manifest；`install()` 在 reference 中是端口签名而非完整实现 |
-| **A14d** | 数值非法透传给解析层 | ⬜ **移交后续 parser/installer 任务**。理由：S5a 不实现数值解析（复用 `token_loader.dart:88`），而 reference 的输入已是 Map，"透传"在 Map→Map 的合并里不产生可观测行为 |
-| **A14e** | 单字段非法只回退该字段 | ⬜ **移交后续 parser 任务**。同 A14d：非法值的识别发生在 YAML→Map 的解析阶段，不在 Map→Map 的合并阶段 |
+| 验收 | 内容 | v3 归属 | **v4 归属** |
+|---|---|---|---|
+| A14a | 未知字段静默忽略 | S5a 合并层 | ⬜ **构建脚本**（扁平化时决定收不收未知 key）+ S5a 保底：合并层对任何 key 一视同仁，不做白名单过滤 |
+| A14c | 缺失字段保持 legacy fallback | S5a 合并层 | ✅ **留在 S5a** —— 这是 §6.6 第 4 步原子组补全的直接验收，输入输出都是 Map |
+| A14b | manifest 版本拒装 | installer | ⬜ **XRAP**（`DatasetDescriptor.supports()` 已实现「只比大小」判定，`dataset_descriptor.dart:59-61`） |
+| A14d | 数值非法透传诊断 | parser | ⬜ **构建脚本**（非法值在构建期就该被发现并拒绝出包） |
+| A14e | 单字段非法只回退该字段 | parser | ⬜ **构建脚本 + `token_loader`**（设备侧由既有 `_parseCheckedDouble` 兜底） |
+| **A19** | 合并层不吞值 | S5a | ✅ **留在 S5a**，语义不变：注入一个值为 `"8px"` 的 radius，断言它**原样出现在** `resolve()` 结果中 —— 证明合并层没有偷偷过滤或修正 |
 
-**S5a 对 A14b/d/e 的责任降为"不破坏"**：合并层**不得吞掉**任何值（包括非法值），必须原样透传给下游解析层。
-这一条本身可验收 —— 见新增 **A19**：注入一个值为 `"8px"` 的非法 radius，断言它**原样出现在**
-`resolve()` 结果中（证明合并层没有偷偷过滤或修正），非法值的处置由下游解析层负责。
+**S5a 在此的责任降为两条，都可验收**：
+1. **不吞值**（A19）—— 任何 key/value 原样透传，不做白名单、不做修正；
+2. **原子组补全**（A14c）—— §6.6 第 4 步。
 
-> 📌 这样 A14 从"五条都在 S5a"收窄为"a/c 在 S5a，b/d/e 移交"，并新增 A19 守住边界。
-> 移交项需在后续 installer/parser 任务的纪要中承接，不得丢失。
+> 📌 移交项须在 XRAP 侧与构建脚本任务的纪要中承接，不得丢失（§11.5 已登记）。
 
-### 5.6 存储策略声明与注册
+### 5.6 存储策略与 XRAP 数据集声明
 
-#### 策略声明【契约】
+#### 5.6.1 策略声明【契约】
 
 文件：`core/lib/model/theme_storage_policies.dart`
 
 ```dart
-/// 主题包：resource 类，row 元数据 + blob 资产。
+/// 主题数据集：resource 类。**给 XRAP 的 DatasetDescriptor 用**。
+///
+/// XRAP 注册期强制 publisher == official（`dataset_registry.dart:62-68`，
+/// 不变式 I9），且策略的 carriers 是 manifest carriers 的上界（I8）。
 const officialThemePolicy = StoragePolicy.resource(
   carriers: {Carrier.row, Carrier.blob},
   sources: {Source.bundled, Source.officialRemote},
 );   // publisher 默认 official
 
 /// 用户覆盖层：private 类，当前仅 row。
+/// **XRAP 装不下这个** —— publisher 非 official，注册期会被硬拒（§0.0 裁定 2）。
 const themeOverridePolicy = StoragePolicy.private(
   carriers: {Carrier.row},
 );
 
-/// 用户主题选择：private 类。
+/// 用户主题选择：private 类。同样不进 XRAP。
 const themeSelectionPolicy = StoragePolicy.private(
   carriers: {Carrier.row},
 );
 ```
 
-#### 注册落点（精确到文件、函数、时机、幂等策略）
+#### 5.6.2 XRAP 数据集声明【契约】
+
+文件：`core/lib/model/theme_dataset.dart`
+
+照 T1 样板（`assets/lib/geo/geo_datasets.dart`，main `6cd7a66`）的形制：
+
+```dart
+/// 主题数据集的 XRAP 声明。
+///
+/// 【接入 XRAP 的全部动作】构造 DatasetDescriptor 并调 DatasetRegistry.register
+/// （`dataset_descriptor.dart:3-4`）。
+DatasetDescriptor themeDatasetDescriptor() => DatasetDescriptor(
+      datasetId: themeDatasetId,                 // 'theme.package'
+      appSchemaRevision: kThemeAppSchemaRevision, // 本 app 的落地结构版本
+      policy: officialThemePolicy,
+      bundledManifest: kThemeBundledManifest,     // generation 0，恒存在
+      materializer: () => ThemeMaterializerImpl(),
+    );
+
+/// 数据集稳定标识。**不得内联字面量**（同 entityType 常量的理由）。
+const themeDatasetId = 'theme.package';
+
+/// 本 app 的主题落地结构版本。落地逻辑升级到能读更高结构时递增
+/// （`dataset_descriptor.dart:20-27` 的 minSdkVersion 模型）。
+const kThemeAppSchemaRevision = 1;
+```
+
+⚠️ `kThemeBundledManifest` 的 `sha256` / `bytes` / `rowCount` 必须是**构建脚本产出的真值**，
+不得手写占位 —— XRAP 安装器会比对，不符则不进 ready（不变式 I4）。
+T1 的做法是构建脚本输出 `BUILD-REPORT.md` 记录真值。
+
+#### 5.6.3 注册落点（精确到文件、函数、时机、幂等策略）
 
 > Codex gStack 评审 P0：原设计只给三行裸 `register(...)`，没说放哪个文件、何时调用、重复注册怎么办，机械执行者无法判断。以下写死。
 
@@ -958,16 +972,21 @@ const themeSelectionPolicy = StoragePolicy.private(
 abstract final class ThemeModuleRegistry {
   static bool _registered = false;
 
-  /// 注册主题模块的三条存储策略。幂等。
+  /// 注册主题模块：三条存储策略 + 一个 XRAP 数据集。幂等。
   static void register() {
     if (_registered) return;
+    // 1) S1a 策略注册
     StoragePolicyRegistry.register(themePackageEntityType, officialThemePolicy);
     StoragePolicyRegistry.register(themeOverrideEntityType, themeOverridePolicy);
     StoragePolicyRegistry.register(themeSelectionEntityType, themeSelectionPolicy);
+    // 2) XRAP 数据集注册（§5.6.2）。注册期会校验 publisher == official 等
+    //    不变式，失败抛 DatasetRegistrationError。
+    DatasetRegistry.register(themeDatasetDescriptor());
     _registered = true;
   }
 
-  /// 仅测试用：重置标志，配合 StoragePolicyRegistry.clearForTesting()。
+  /// 仅测试用：重置标志，配合 StoragePolicyRegistry.clearForTesting()
+  /// 与 DatasetRegistry 的对应清理方法。
   @visibleForTesting
   static void resetForTesting() => _registered = false;
 }
@@ -981,7 +1000,7 @@ const themeSelectionEntityType = 'theme_selection';
 
 **调用点**：`xuan-shell` 的 DI bootstrap（**由 shell 侧调用，不在 S5a 交付范围**；S5a 交付 `ThemeModuleRegistry.register()` 这个可调用入口，并在纪要中记录 shell 侧的接线要求）。
 
-⚠️ **这将是 `StoragePolicyRegistry` 的首个生产调用点**（§1.6 已核实当前零调用）。注册期两条不变式（总纲 §2.3.2 #4 resource 必须 official、#5 sources 非空性）**第一次被真实驱动**。验收 A8 必须真实调用 `ThemeModuleRegistry.register()` 并断言三条策略进入 `StoragePolicyRegistry.all`，而非仅检查声明存在。
+⚠️ **这将是 `StoragePolicyRegistry` 的首个生产调用点**（§1.6 已核实当前零调用）。注册期两条不变式（总纲 §2.3.2 #4 resource 必须 official、#5 sources 非空性）**第一次被真实驱动**。验收 A8 必须真实调用 `ThemeModuleRegistry.register()` 并断言三条策略进入 `StoragePolicyRegistry.all` **且主题数据集进入 `DatasetRegistry`**，而非仅检查声明存在。
 
 ---
 
@@ -1222,10 +1241,10 @@ reference 实现须持有一个**单条缓存**：
 |---|---|---|
 | **P1** | 三层合并 `ThemeBenchFixture` **< 5 ms** | 独立 benchmark 测试（`@Tags(['benchmark'])`）：**先 warm-up 20 次**（触发 JIT），再测 100 次取**中位数**。断言中位数 < 5 ms。<br>⚠️ **不进 CI 阻塞门禁**（Flutter debug VM 抖动大），标记为趋势观测；CI 只跑一次冒烟确认不超时（< 100 ms）。<br>⚠️ fixture 叶子数须 `>= 700`，防止用空输入假通过 |
 | **P2** | 相同输入连续两次 `resolve()` 返回 `identical` 实例 | 单测断言 `identical(a, b) == true`；**再改一次 override 后断言 `identical` 为 false**（证明缓存键真的参与判定，不是恒返回同一实例） |
-| **P3** | 启动路径**零网络请求** | 探针与完整断言见 **§5.5.4**：注入 `CountingRemoteFetcher`，调 `resolve()`，断言 `callCount == 0`；**正向控制**断言 `localReader.bundledReadCount > 0` 且 `overrideReadCount > 0` |
-| **P4** | 启动路径**零解压、零 blob 读取** | 同 P3：注入 `CountingPackageStore`，断言 `readCount == 0` + 正向控制 |
+| **P3** | 启动路径**零网络请求** | **v4：结构性保证** —— `InMemoryThemeResourceStore` 构造器只接收 `ThemeLocalReader`，没有网络端口可传（§5.5.3）。架构守卫断言其参数表仅两项；**正向控制**断言 `localReader.bundledReadCount > 0` 且 `overrideReadCount > 0` |
+| **P4** | 启动路径**不触发 XRAP 安装** | 把 `DatasetInstaller` 的 fake 传给装配层，断言 `resolve()` 期间其 `install` 调用次数 == 0 + 正向控制 `localReader.bundledReadCount > 0` |
 | **P5** | 合并产出不持有"下一层"引用 | 结构断言：`ThemeTokenSection` 的字段类型中不出现 `ThemeResourceStore` / 任何 layer 引用；且 `resolve()` 返回后**销毁 store 实例**，结果仍可正常读取（证明无回指） |
-| **P6** | 下载未完成时 `resolve()` **50 ms 内**返回旧主题 | 状态转换的完整 9 步见 **§5.5.4**：注入 `PendingInstallFetcher`（`downloadPackage` 返回永不完成的 future），`Stopwatch` 计时，断言 < 50 ms + `activeThemeId` 仍是旧值 + `identical(before, during)` |
+| **P6** | 活跃世代读取挂起时 `resolve()` **50 ms 内**返回 bundled 兜底 | 六步见 **§5.5.4**：注入 `SlowLocalReader`（`readActiveThemeTokens` 永不完成），`Stopwatch` 计时，断言 < 50 ms + 结果来自 bundled + **不抛异常** |
 | **P7** | 合并输出的 Map key 顺序稳定 | 同一 fixture 合并 **10 次**，逐层 `keys.toList()` 序列**逐元素**比对全部相等；且断言顺序为**字典序**（`keys.toList()` == `keys.toList()..sort()`） |
 | **A16** | 结果不可变 | 对 `resolve()` 结果的 `components` / 嵌套 Map 执行 `[]=` 与 `remove()`，断言抛 `UnsupportedError`（§6.6 不可变性要求） |
 
@@ -1287,8 +1306,8 @@ reference 实现须持有一个**单条缓存**：
 | 覆盖最小单位 | ✅ **叶子字段 + 原子组补全**，原子组清单写死 | §6.2 |
 | light/dark | ✅ **key 内含 brightness 前缀，两份完全独立** | §6.3 |
 | 悬空覆盖 | ✅ **保留 + 标记 orphan + 诊断暴露**，判定规则机械可判 | §6.4 |
-| 主题包签名 | ✅ **复用 S5c 的 ed25519 体系**：`<package>.sig` 分离传输，验签在解包前对原始字节进行。**S5a 交付 `ThemeSignatureVerifier` 窄接口 + `ThemeSignatureVerdict` 六态**（`core/lib/model/theme_source_ports.dart`），由装配层用 `xuan_config` 的 `ConfigSignatureVerifier` 适配 —— `persistence_core` **不依赖** `xuan_config`（A5b）。reference 实现返回 `skipped`（零 IO 拿不到 `.sig`），**生产实现不得返回 skipped** | §5.5.2 |
-| bundled 默认主题物理位置 | ✅ **`theme` 包的 `config/presets/default.yaml` 为唯一权威源**；shell 的 `assets/themes/*.yaml`（203 字节空壳）应废弃。<br>⚠️ **跨仓库源迁移明确在 ACT 范围之外**：S5a 不读取、不拷贝 `theme` 仓库的任何文件（stop condition #2）。reference 通过 `ThemeLocalReader.readBundledTokens()` 接收**已解析的 Map**，来源由装配层决定 | §5.5.2, §11.4 |
+| 主题包签名 | ⬜ **v4 移交 XRAP** —— 验签是安装流程的一环，归 `DatasetInstaller`。S5a 不再持有 `ThemeSignatureVerifier`（§0.0 裁定 3） |
+| bundled 默认主题物理位置 | ✅ **XRAP generation 0**（`bundledManifest` 恒存在，`dataset_descriptor.dart:33-37`）。构建脚本从 `theme/config/presets/default.yaml` 预构建产出载荷；**S5a 不跨仓库读取**，token 由 `ThemeLocalReader` 注入（stop condition #2） |
 
 ### 9.2 仍开放（不阻塞 ACT）
 
@@ -1303,7 +1322,7 @@ reference 实现须持有一个**单条缓存**：
 
 ## 11. 交付物清单（精确到文件）
 
-> Codex gStack 评审：可执行计划门禁要求「列精确文件 / 测试 / fallback 断言 / 验证命令 / stop condition」。以下为文件级清单，ACT 转译时逐文件展开。
+> **v4 已大幅收窄**：删掉安装机制相关文件，新增 `ThemeMaterializer` 与 XRAP 数据集声明。
 
 ### 11.1 契约层（零实现）
 
@@ -1311,20 +1330,23 @@ reference 实现须持有一个**单条缓存**：
 |---|---|---|
 | `core/lib/model/theme_token_types.dart` | `ThemeTokenSet` / `ThemeTokenSection` | A6, A16 |
 | `core/lib/model/theme_resolution.dart` | `ThemeResolution` / `ThemeLayerInfo` / `ThemeSelectionOrigin` / `ThemeLayerKind` | A15 |
-| `core/lib/model/theme_resource_store.dart` | `ThemeResourceStore` 端口 | A3, A6, A7 |
-| `core/lib/model/theme_value_types.dart` | `InstalledTheme` / `AvailableTheme` / `OverrideEntry` / `OverrideOrigin` | A6 |
-| `core/lib/model/theme_source_ports.dart` | **四个注入端口**：`ThemeLocalReader` / `ThemeRemoteFetcher` / `ThemePackageStore` / `ThemeSignatureVerifier` + `ThemeSignatureVerdict`（§5.5.2） | A3, A6, P3, P4 |
-| `core/lib/model/theme_storage_policies.dart` | 三条 `StoragePolicy` const 声明 + 三个 entityType 常量 | A8 |
-| `core/lib/model/theme_module_registry.dart` | `ThemeModuleRegistry.register()`（幂等） | A8 |
+| `core/lib/model/theme_resource_store.dart` | `ThemeResourceStore` 端口（**v4：无 install/uninstall/refreshCatalog**） | A3, A6, A7 |
+| `core/lib/model/theme_value_types.dart` | `AvailableTheme` / `OverrideEntry` / `OverrideOrigin`（**v4：删 `InstalledTheme`**，安装态归 XRAP） | A6 |
+| `core/lib/model/theme_source_ports.dart` | **一个**注入端口 `ThemeLocalReader`（§5.5.2） | A3, A6, P3 |
+| `core/lib/model/theme_materializer.dart` | `ThemeMaterializer implements DatasetMaterializer`（§4.2） | A20 |
+| `core/lib/model/theme_storage_policies.dart` | 三条 `StoragePolicy` const + 三个 entityType 常量 | A8 |
+| `core/lib/model/theme_dataset.dart` | `themeDatasetDescriptor()` + `themeDatasetId` + `kThemeAppSchemaRevision`（§5.6.2） | A8, A20 |
+| `core/lib/model/theme_module_registry.dart` | `ThemeModuleRegistry.register()`（策略 + XRAP 数据集，幂等） | A8 |
 
-⚠️ 契约层共 **7 个文件**（A3 的覆盖下限相应为 7，非 6）。
+⚠️ 契约层共 **9 个文件**（A3 覆盖下限相应为 9）。
 
 ### 11.2 reference 实现层
 
 | 文件 | 内容 | 验收 |
 |---|---|---|
-| `core/lib/reference/theme_token_merger.dart` | §6.6 合并算法的权威实现（纯函数，无状态） | A9–A14a/c, A19, P1, P7 |
-| `core/lib/reference/in_memory_theme_resource_store.dart` | `InMemoryThemeResourceStore`（构造器见 §5.5.3）+ 缓存 + 两个 `_Throwing*` 默认实现 | P2, P3, P4, P5, P6 |
+| `core/lib/reference/theme_token_merger.dart` | §6.6 合并算法的权威实现（纯函数，无状态） | A9–A13, A14c, A19, P1, P7 |
+| `core/lib/reference/in_memory_theme_resource_store.dart` | `InMemoryThemeResourceStore`（构造器只收 `ThemeLocalReader`，§5.5.3）+ 缓存 | P2, P3, P4, P5, P6 |
+| `core/lib/reference/in_memory_theme_materializer.dart` | `ThemeMaterializer` 的内存实现：消费预构建载荷 → 内存 Map，含世代判别 | A20 |
 
 ⚠️ **`core/lib/reference/` 是新目录**。A3 的零实现扫描须**排除**此目录，扫描范围限定 `core/lib/model/theme_*`。
 
@@ -1333,30 +1355,32 @@ reference 实现须持有一个**单条缓存**：
 | 文件 | 内容 |
 |---|---|
 | `core/test/support/theme_bench_fixture.dart` | §7.5 共同 fixture（叶子数 >= 700）+ `ThemeLocalReader` 的 fixture 实现 |
-| `core/test/support/theme_probes.dart` | §5.5.4 四个计数式探针 |
-| `core/test/theme_token_merger_test.dart` | A9–A14a/c、A19 合并语义 |
+| `core/test/support/theme_probes.dart` | §5.5.4 的 `CountingLocalReader` / `SlowLocalReader` |
+| `core/test/theme_token_merger_test.dart` | A9–A13、A14c、A19 合并语义 |
 | `core/test/theme_resource_store_contract_test.dart` | A6/A7/A15/A16 契约形状 + 溯源 |
-| `core/test/theme_module_registry_test.dart` | A8 注册与幂等 |
-| `core/test/theme_startup_path_test.dart` | P3/P4/P5/P6 计数式 spy 与状态转换 |
+| `core/test/theme_module_registry_test.dart` | A8 注册与幂等（策略 + XRAP 数据集） |
+| `core/test/theme_materializer_test.dart` | A20：世代隔离 / dropGeneration 幂等 / rowCount 真实性 |
+| `core/test/theme_startup_path_test.dart` | P3/P4/P5/P6 |
 | `core/test/theme_merge_bench_test.dart` | P1（标 `@Tags(['benchmark'])`） |
 
 ### 11.4 Stop conditions（触发即停，报人类）
 
-1. **S1a 契约不在当前分支基线** —— 开工第一步须验证 `core/lib/model/storage_policy.dart` 等文件存在（本次即栽在这里，见踩坑墓地）；
-2. **需要读取或拷贝 `theme` 仓库的任何文件** —— 跨仓库源迁移在 ACT 范围外（§9.1 bundled 决定）。bundled token 由 `ThemeLocalReader` 注入，不由 S5a 去别的仓库找；
+1. **S1a 契约或 XRAP 契约不在当前分支基线** —— 开工第一步验证 `core/lib/model/storage_policy.dart` 与 `core/lib/model/dataset/dataset_materializer.dart` 均存在；
+2. **需要读取或拷贝 `theme` 仓库的任何文件** —— 跨仓库源迁移在 ACT 范围外。bundled token 由 `ThemeLocalReader` 注入；
 3. **`theme` 包出现任何改动** —— A4 门禁触发即停；
-4. **需要触碰 `xuan-qizhengsiyu/lib/painter/**`** —— Canvas 提取工作所有权，须先握手；
-5. **需要真实网络下载** —— `ConfigBootstrap` 三真值仍是占位符，联调须等人类填入。
+4. **发现需要在 `ThemeMaterializer` 之外新增 XRAP 扩展点** —— 说明协议有缺口，须走协议变更，不得在 S5a 侧绕过（§4.2）；
+5. **需要触碰 `xuan-qizhengsiyu/lib/painter/**`** —— Canvas 提取工作所有权，须先握手。
 
 ### 11.5 移交后续任务的项（不得丢失）
 
 | 项 | 移交去向 | 理由 |
 |---|---|---|
-| A14b：`package_format_version` / `min_app_version` 拒装 | installer 任务 | 需解析 manifest，reference 输入是已解析 Map |
-| A14d：数值非法透传诊断 | parser / installer 任务 | 解析发生在 YAML→Map，不在 Map→Map |
-| A14e：单字段非法只回退该字段 | parser 任务 | 同上 |
-| 真实签名验证（`ThemeSignatureVerifier` 的生产实现） | installer 任务 | reference 零 IO 拿不到 `.sig` |
-| bundled 权威源从 shell 迁到 theme 包 | 主题内容就绪任务 | 跨仓库，ACT 范围外 |
+| 主题包下载 / 校验 / 世代 / 指针翻转 / 回滚 / GC / 幂等 | **XRAP `DatasetInstaller`** | §0.0 裁定 3：唯一实现，数据集无关 |
+| 主题包验签 | **XRAP 安装流程** | 同上 |
+| manifest 版本拒装（A14b） | **XRAP** | `DatasetDescriptor.supports()` 已实现 |
+| 未知字段处理（A14a）/ 数值非法（A14d）/ 单字段回退（A14e） | **构建脚本 + 既有 `token_loader`** | §4.3：YAML 解析在构建期，不在设备上 |
+| 主题构建脚本（YAML → 预构建载荷 + sha256/rowCount 真值） | **新建构建任务**（照 T1 的 `assets/tool/build_geo_sql.py`） | 构建期产物，不属运行时契约 |
+| drift 落地表与 schema 版本 | **后续 drift 任务**（与 S1d/S5b 协调版本号） | §12 冲突预警 |
 
 ---
 
