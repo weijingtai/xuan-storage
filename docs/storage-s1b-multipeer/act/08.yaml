@@ -1,0 +1,712 @@
+REVISION: >
+  2026-08-03: HLC 实现库由 hlc_dart 1.1.0+2 更换为 crdt: ^5.1.3（作者 cachapa），
+  仅使用其 Hlc 类。理由：hlc_dart 的 HLC 只有 (l, c)、没有 nodeId，同毫秒并发写
+  判 isConcurrentWith == true，与 S1b 设计裁定「冲突定序改用 HLC + deviceId」
+  （commit cd064c6）相悖 —— 用一个没有 nodeId 的库实现带 nodeId 的全序，
+  等于要在包外面再自己包一层，而那层正是本 ACT 标 STRONG_MODEL_ONLY 的原因：
+  因果时钟的退化路径全部是静默的，写错了测试照样绿。crdt 的 Hlc 内建 nodeId
+  且 compareTo 全序内建（先比 dateTime、再比 counter、再比 nodeId）。
+  架构不变：仍是 HLC + deviceId 全序 + LWW，不引入 CRDT 数据结构、不改 drift
+  表模型、不换 record/oplog 语义。nodeId 一律取 DeviceIdentity.deviceId。
+  Hlc.parse / toString 串格式已在本 ACT 写死成规格（见
+  TASK_DETAIL.hlc_wire_format_spec），ACT 11 的线上格式 golden 测试照此断言。
+  （依据：hlc_dart 发布于 2026-07-19 只有两周大；crdt 是 sqlite_crdt 的底座，
+  生产验证过。）
+
+ACT_VERSION: 1
+TASK_ID: mimo-storage-s1b-multipeer/08
+TITLE: HLC 接线 —— crdt·Hlc 引入 + 时钟持久化 + 戳边表 + 三节点属性测试
+TYPE: implementation
+ORDER: 8
+DEPENDS_ON: [mimo-storage-s1b-multipeer/07]
+DISPATCH_STATUS: ready
+STRONG_MODEL_ONLY: true    # 因果时钟：退化路径【全部是静默的】，测试照样绿
+
+OBJECTIVE: >
+  给冲突仲裁准备一个【不依赖墙上时钟的正确排序】。
+  本 ACT 交付：crdt ^5.1.3 依赖（仅用其 Hlc 类）、跨重启持久化的本地时钟、
+  存戳的 drift 边表、RemoteChange 上的可空 hlc/deviceId，以及三节点仿真属性测试。
+  仲裁逻辑本身是 ACT 09，本 ACT 只负责"戳是对的、戳存得住、戳传得到"。
+
+WHY_STRONG_MODEL: >
+  ⚠ HLC 的每一条退化路径都【不报错】：
+  · 只调 localEvent 不调 receiveEvent → 因果性整个消失，退化成墙上时钟，所有单测照样绿
+  · 时钟不持久化 → 重启后从物理时间重来，单调性断裂，看不出来
+  · 戳与记录分事务写 → 偶发失准，重现不了
+  这就是为什么本 ACT 的核心交付不是"调用 crdt 的 Hlc"，而是【属性测试】——
+  它是唯一能自动生成上千个反例的裁判。
+
+BACKGROUND: >
+  人类 2026-08-02 设计裁定（见纪要「决定记录」），经四个候选实测比选：
+    drift_crdt   —— 装不上（依赖 sql_crdt/sqlite_crdt ^4.0.0，pub.dev 最高 3.x）
+    Ditto        —— 闭源商业，初始化要 Portal 账号，纯离线 SharedKey 需申请许可
+    sql_crdt     —— 抽象层可用 drift 后端，但 200 个写调用点要改裸 SQL + 全局软删
+    crdt_lf      —— 质量最高（160/160）但为协同文档编辑而生，需双写 + 升 drift 到 2.34
+
+  **2026-08-03 换库裁定（REVISION）**：曾选 hlc_dart 1.1.0+2（零第三方依赖，
+  160/160），但它的 HLC 没有 nodeId —— 只有 (l, c) 两个字段，两台设备同毫秒写
+  会判 `isConcurrentWith == true`。而 S1b 的设计裁定是「冲突定序改用 HLC + deviceId」，
+  用一个没有 nodeId 的库去实现带 nodeId 的全序，等于要在包外面再自己包一层 ——
+  而那一层正是本 ACT/ACT 09 标 STRONG_MODEL_ONLY 的原因：因果时钟的退化路径
+  全部是静默的，写错了测试照样绿。故改选 **crdt: ^5.1.3**（作者 cachapa，
+  内建 HLC，是 sqlite_crdt 的底座、生产验证过）。只用它的 Hlc 类，
+  nodeId 内建、compareTo 全序内建。
+
+  ⚠ 关键澄清：**crdt 的 Hlc 本身携带 nodeId 且是全序的**。`Hlc.compareTo`
+  先比 dateTime、再比 counter、再比 nodeId —— 两台设备即使同一物理毫秒写，
+  也能比出确定胜负（nodeId 决胜）。这与"墙上时钟"有本质区别：
+  Hlc 是因果时钟（B 收到过 A ⇒ B 必 > A），消灭【因果倒置】，把"随机丢数据"
+  降级为"并发时按固定规则选一个"。nodeId 一律取 `DeviceIdentity.deviceId`
+  （core/lib/model/ports.dart:240），不另造 id 体系。
+  真并发谁更晚物理上不可判定，由 §5.3 冲突可见化兜底（ACT 09/10）。
+
+ACT_BASE:
+  说明: >
+    本 ACT 的若干 VERIFICATION 需要界定"本 ACT 改了什么"。
+    【开工第一件事】记下不可变基线：
+
+      git rev-parse HEAD > .act-base && cat .act-base
+
+    之后所有 no-touch 检查【逐字】这样写（`$(cat .act-base)` 是可执行的
+    shell 命令替换，不是占位符 —— 直接复制粘贴就能跑）：
+
+      git diff --exit-code "$(cat .act-base)"..HEAD -- <路径>
+
+    【不要】用 `HEAD~1` —— 它假设"每个 ACT 恰好一个提交"，
+    一旦你分了两次小提交，守卫就只覆盖最后一次，前面的改动无人看管
+    （Codex R1 · P1-20）。
+    .act-base 是临时文件，收工前删掉，不要提交。
+
+SCOPE:
+  READ:
+    - docs/superpowers/specs/2026-07-31-storage-architecture-design.md
+      # §5.2.3 为何墙上时钟不可用；§5.3 会话式同步的静默丢数据
+    - core/lib/model/types.dart          # RemoteChange:232（七个既有字段）
+    - core/lib/model/ports.dart          # DeviceIdentity:240 / DeviceIdentityProvider:269
+    - drift/lib/persistence_drift.dart   # schemaVersion / onUpgrade（ACT 03 已升到 7）
+    - drift/lib/sync/record_local_applier.dart   # 消费 RemoteChange 的地方（本 ACT 不改逻辑）
+  WRITE:
+    - core/lib/sync/hlc_clock.dart
+    - core/lib/test_support/frozen_stamps.dart
+      # generateFrozenStamps —— 供 ACT 09 收敛性测试复用的确定性戳生成器
+      # （与 ACT 04 抽出的内存 fake 同在 test_support/ 下）
+    - core/test/s1b_hlc_property_test.dart
+    - drift/test/sync/hlc_stamp_store_test.dart
+  MODIFY:
+    - core/pubspec.yaml                  # 仅追加 crdt（^5.1.3）
+    - core/lib/model/types.dart          # RemoteChange 加两个可空字段
+    - drift/lib/persistence_drift.dart   # 新增 t_entity_stamp 边表 + 时钟单行表 + v8 迁移
+
+DEPENDENCY:
+  ADD:
+    - crdt: ^5.1.3          # 【2026-08-03 换库】仅用其 Hlc 类（作者 cachapa）。
+                            # Hlc 内建 nodeId，compareTo 全序内建。
+                            # 是 sqlite_crdt 的底座，生产验证过。
+                            # 不允许 import 该包的 Crdt / MapCrdt / LWW 等数据结构，
+                            # 只允许 Hlc 相关符号。
+  FORBID:
+    - hlc_dart              # 1.1.0+2 的 HLC 没有 nodeId，(l, c) 同毫秒并发判
+                            # isConcurrentWith == true，与"冲突定序用 HLC + deviceId"
+                            # 的设计裁定相悖。换包理由见 REVISION 与 BACKGROUND。
+    - sql_crdt / sqlite_crdt / drift_crdt / crdt_lf / ditto_live
+                            # 四个方案均已比选否决，理由见 BACKGROUND 与纪要决定记录。
+                            # 不要"顺手也装一个试试"。
+    - crdt 包内的 CRDT 数据结构（Crdt / MapCrdt / LWWMapCrdt / Changeset 等）
+      —— 本 ACT 只引入 crdt 的 Hlc 类，架构不变（HLC + deviceId 全序 + LWW），
+      不引入任何 CRDT 数据结构。
+
+SIGNATURE:
+  hlc_clock.dart: |
+    import 'package:crdt/crdt.dart' show Hlc;
+    // 只 import Hlc（crdt 主库通过 src/hlc.dart 导出，实测 `lib/crdt.dart`）。
+    // 本包内的 Crdt / MapCrdt / LWWMapCrdt / Changeset 一律不碰（见 FORBID）。
+
+    /// 本设备的 HLC 时钟。跨重启持久化，单调不回退。
+    ///
+    /// 【两条规则】（crdt 的 Hlc 已实现，本类只负责持久化与调用纪律）：
+    /// · 本地写入 [tick]：Hlc.increment() —— l = max(旧 l, 物理时间)；l 未变则 c++，变大则 c = 0
+    /// · 收到远端 [observe]：Hlc.merge(remote) —— l = max(本地 l, 远端 l, 物理时间)
+    ///   ——【收一次别人的东西，自己的钟就被顶上去一次】，这是因果性的全部来源
+    ///
+    /// ⚠ crdt 的 Hlc 是【不可变】的（increment / merge 都返回新实例），
+    /// 本类的实现必须把合并结果存回内部状态，不能只调用不保存。
+    abstract interface class HlcClock {
+      /// 本地发生一次写入，返回新的戳。
+      ///
+      /// nodeId 一律取 [deviceId]（= DeviceIdentity.deviceId），不许另造 id 体系。
+      Future<Hlc> tick();
+
+      /// 观测到一个远端戳，把本地时钟顶上去（内部走 Hlc.merge）。
+      ///
+      /// 【必须在每一条入站变更上调用】。漏调不会报错，
+      /// 只会让因果性静默消失 —— 属性测试的第 ② 条就是守这个的。
+      ///
+      /// ⚠ crdt 的 merge 在遇到相同 nodeId 时会抛 DuplicateNodeException；
+      /// 真实网络里 nodeId 即 deviceId，不会相同。测试若构造相同 nodeId
+      /// 的时钟，属预期报错，不是 bug。
+      Future<void> observe(Hlc remote);
+
+      /// 当前戳（只读，不推进）。
+      Hlc get current;
+
+      /// 本设备标识，作为 Hlc.nodeId（也是 HLC 相等时的决胜位，crdt 内建）。
+      String get deviceId;
+    }
+
+    /// 时钟状态的持久化端口。实现由 drift 提供（与 t_entity_stamp 同一次 v8 迁移）。
+    ///
+    /// 不持久化的后果：重启后 l 从物理时间重来，若期间时钟被回拨，
+    /// 新写入的戳会小于重启前的戳 —— 单调性断裂，且没有任何报错。
+    ///
+    /// 存储时把 Hlc 转成【规格化串】落库（见 TASK_DETAIL.hlc_wire_format_spec），
+    /// 读回时用 Hlc.parse 还原 —— 禁止把 Hlc 对象本身或自定义字段布局落库。
+    abstract interface class HlcClockStore {
+      /// 读回上次退出时的时钟；从未存过返回 null。
+      Future<Hlc?> load();
+
+      /// 落盘当前时钟（以规格化串格式）。
+      Future<void> save(Hlc clock);
+    }
+
+  types.dart RemoteChange 增加: |
+    /// 产生该变更的 HLC 戳（因果序，§5.2.3）。
+    ///
+    /// 线上格式见 TASK_DETAIL.hlc_wire_format_spec（ACT 08 钉死，
+    /// 与 docs/storage-s1b-multipeer/HLC-WIRE-FORMAT.md（ACT 11 产出）同一规格）：
+    /// 48 位 l + 16 位 c 打包成 int64，`(l << 16) | c`（l = UTC 毫秒，c = Hlc.counter）。
+    /// 可空：历史 oplog 条目没有这个字段。
+    final int? hlcPacked;
+
+    /// 产生该变更的设备标识（HLC 相等时的决胜位，= Hlc.nodeId）。
+    ///
+    /// 【2026-08-03 换库】crdt 的 Hlc 内建 nodeId，nodeId 一律取本字段值
+    /// （= DeviceIdentity.deviceId）。可空：历史 oplog 条目没有这个字段。
+    final String? deviceId;
+
+  persistence_drift.dart 新增: |
+    /// 每个实体当前版本的 HLC 戳（边表）。
+    ///
+    /// 【为什么用边表而不是往 RecordMeta 加字段】：RecordMeta 在
+    /// repository-interface-record 仓库，改它要连带下游 12 个业务仓库。
+    /// 边表让 S1b 完全留在 xuan-storage 内，所有 Data class 零改动。
+    ///
+    /// 代价：戳与记录不在同一行，【必须同事务写入】（A13 门禁守着）。
+    @DataClassName('EntityStampRow')
+    class EntityStamps extends Table {
+      @override
+      String get tableName => 't_entity_stamp';
+
+      /// 所属账号作用域。
+      ///
+      /// ⚠ **主键里必须有它**（Codex R2）。本库里所有同步侧的表
+      /// （t_outbox / t_sync_state）都以 scope_uid 分片；戳表少了这一维，
+      /// 两个账号下 entityId 相同的实体会【共用同一行戳】——
+      /// 切换账号后仲裁读到的是另一个账号的版本坐标，于是要么无脑覆盖、
+      /// 要么无脑丢弃，而且不报错。
+      TextColumn get scopeUid => text().named('scope_uid')();
+
+      TextColumn get entityType => text().named('entity_type')();
+      TextColumn get entityId => text().named('entity_id')();
+
+      /// HLC 打包值 `(l << 16) | c`。有效范围与溢出行为见 ACT 11 的线上格式规格。
+      IntColumn get hlcPacked => integer().named('hlc_packed')();
+
+      /// 写入该版本的设备。HLC 相等时的决胜位。
+      TextColumn get deviceId => text().named('device_id')();
+
+      @override
+      Set<Column> get primaryKey => {scopeUid, entityType, entityId};
+    }
+
+    /// 本设备 HLC 时钟的持久化状态（单行表）。
+    ///
+    /// 【为什么是单行表而不是 key-value】：时钟是设备级的唯一状态，
+    /// 用固定主键的单行表，读写各一条语句，且不可能出现"存了两份钟"。
+    @DataClassName('HlcClockStateRow')
+    class HlcClockStates extends Table {
+      @override
+      String get tableName => 't_hlc_clock_state';
+
+      /// 固定为 0。单行表的哨兵主键 —— 有 CHECK 约束保证只可能有一行。
+      IntColumn get id =>
+          integer().withDefault(const Constant(0)).named('id')();
+
+      /// 上次退出/上次 tick 时的 HLC 打包值。
+      IntColumn get hlcPacked => integer().named('hlc_packed')();
+
+      /// 本设备标识。与 [DeviceIdentity.deviceId] 一致。
+      TextColumn get deviceId => text().named('device_id')();
+
+      /// 最后一次落盘时间，仅供诊断，【不参与定序】。
+      DateTimeColumn get savedAtUtc => dateTime().named('saved_at_utc')();
+
+      @override
+      Set<Column> get primaryKey => {id};
+
+      @override
+      List<String> get customConstraints => const ['CHECK (id = 0)'];
+    }
+
+  persistence_drift.dart 同事务写入接口: |
+    /// 在【同一个 drift 事务】里写业务记录并更新它的 HLC 戳。
+    ///
+    /// 【A13 的生产落地点】（Codex R2：v2 只有测试意图，没有可调用的接口，
+    /// 于是"同事务"这个要求在生产代码里没有任何着力点）。
+    ///
+    /// [write] 是业务写入回调，在事务内执行；它抛出时整个事务回滚，
+    /// 戳与记录【一起】不落盘。调用方【不得】自己开事务再调本方法。
+    ///
+    /// ACT 10 的 applier 必须走这个方法，不许自己 `transaction(() { ... })`
+    /// 里分别调两次 —— 那样写法上看着也在一个事务里，但戳的更新会散落在
+    /// applier 的多个分支中，漏掉一个分支不报错。
+    Future<void> applyWithStamp({
+      required String scopeUid,
+      required String entityType,
+      required String entityId,
+      required int hlcPacked,
+      required String deviceId,
+      required Future<void> Function() write,
+    });
+
+  persistence_drift.dart 戳读取接口: |
+    /// 读取某个实体当前的 HLC 戳；边表里没有该行时返回 null。
+    ///
+    /// 【ACT 10 的 applier 靠它拿"本地版本"参与仲裁】（Codex R3 · P0-1：
+    /// v3 只给了写入接口 applyWithStamp，没有读取接口，
+    /// 于是 ACT 10 要求的"读本地 stamp 再仲裁"在生产代码里没有通道，
+    /// 执行者只能自己去测试里裸查表 —— 那不是生产接线）。
+    ///
+    /// 返回 null 有【两种现实】且本方法【区分不了】：
+    ///   ① 本地压根没有这个实体
+    ///   ② 本地有实体，但边表还没有它的戳（v8 迁移前写入的历史数据）
+    /// 这个区分【必须由调用方做】—— ACT 10 的 applier 结合
+    /// 本地实体是否存在来判定，见 ACT 09 的
+    /// TASK_DETAIL.local_null_is_ambiguous_by_design 与 ACT 10 的对应用例。
+    Future<EntityStampRow?> getEntityStamp({
+      required String scopeUid,
+      required String entityType,
+      required String entityId,
+    });
+
+TASK_DETAIL:
+  frozen_stamps_for_act09: >
+    【本 ACT 与 ACT 09 的数据交接点】（Codex R5 · P0-1）。
+    收敛性测试**不在本 ACT**（本 ACT 没有生产仲裁器，测了只能是
+    测试辅助代码自证），但它需要的【一组冻结的 (hlc, deviceId) 版本】
+    是本 ACT 的 3 节点仿真产物。所以本 ACT 负责把生成器**做成可复用的**：
+
+    在 `core/test/s1b_hlc_property_test.dart` 里把仿真产出提取为
+    一个**可被其它测试文件 import 的顶层函数**（放
+    `core/lib/test_support/` 下，与 ACT 04 抽出的内存 fake 同一位置）：
+
+      /// 用 3 节点 HLC 仿真生成一组【确定性的】版本戳，供收敛性测试复用。
+      /// [seed] 固定时输出完全一致，便于失败复现。
+      List<({String entityId, int hlcPacked, String deviceId})>
+          generateFrozenStamps({required int seed, int count = 50});
+
+    要求：
+      · 至少 50 条，且**必须含若干并发对**（【2026-08-03 换库修订】：
+        crdt 下 Hlc 内建 nodeId，"hlc 相等 deviceId 不同"不再可能；
+        并发对改为【同一物理毫秒、nodeId（deviceId）不同】的戳对，
+        胜负完全由 nodeId 决出 —— 这仍是"物理上无法判定先后"的真并发。
+        没有并发对，收敛性测试就退化成"排个序"，什么都证明不了）
+      · 覆盖【多个 entityId】（收敛性是"每个实体各自收敛"）
+      · 同一 seed 两次调用输出逐字节相同 —— 本 ACT 有测试守这条
+
+    ⚠ 【不要】在本 ACT 里写任何"归并"逻辑。归并规则属于 ACT 09 的
+    `HlcConflictArbiter`，本 ACT 只产数据。
+
+  no_data_class_changes: >
+    【本 ACT 不动任何 Data class】。RecordMeta、各模块的 record 类型、
+    repository-interface-* 的任何仓库 —— 一个字段都不加。
+    戳全部存在 drift 的 t_entity_stamp 边表里，键 (scopeUid, entityType, entityId)。
+    这是人类 2026-08-02 的放置决定，理由见纪要决定记录。
+
+  wire_format_is_int64: >
+    RemoteChange 上存的是 `hlcPacked`（int64），不是 Hlc 对象，也不是字符串。理由：
+    · int64 能直接落进 drift 的 IntColumn 与 Firestore/RTDB 的数字字段；
+    · 【将来 Rust / Web 客户端只需实现同一个位布局】——
+      这是 A14 要求产出语言中立规格的原因，规格文档在 ACT 11 写。
+    · crdt Hlc 的 counter 上限恰为 0xFFFF（16 位，`_maxCounter`），
+      与打包位布局 `(l << 16) | c` 天然吻合，不浪费任何一位。
+    【不要】用 `hlc.toString()` / "l.c" 字符串格式上线 —— 那会把线上格式绑死在
+    crdt 的格式化选择上，换库或换语言时会咬人（字符串只在本地时钟持久化时用，
+    见 hlc_wire_format_spec）。
+
+  hlc_wire_format_spec: >
+    【2026-08-03 换库后新增。ACT 09 的 VersionStamp / toPacked 与 ACT 11 的
+    线上格式 golden 测试都必须照本段规格断言，不许各自猜。】
+    与 crdt Hlc 相关的一切序列化格式，在本 ACT 【钉死】如下：
+
+    ① **Hlc 串格式**（`Hlc.toString` / `Hlc.parse` 必须逐字符可逆，crdt 源码实测）：
+       `${dateTime.toIso8601String()}-${counter.toRadixString(16).toUpperCase().padLeft(4, '0')}-$nodeId`
+       · dateTime 恒为 UTC（crdt 构造时即 toUtc），ISO8601 毫秒级；
+       · counter 为 4 位大写十六进制（0x0000..0xFFFF）；
+       · nodeId 即 deviceId（本 ACT 的裁决，见 CONSTRAINTS）。
+       例：`2026-08-03T12:34:56.789Z-000F-device-abc123`
+
+    ② **int64 打包**（`hlcPacked`，ACT 09 的 `VersionStamp.fromPacked` / `toPacked` 照此）：
+       `hlcPacked = (dateTime.millisecondsSinceEpoch << 16) | counter`
+       · l = UTC 毫秒时间戳（≤ 48 位，千年内不溢出）；
+       · c = Hlc.counter（0..0xFFFF，16 位，恰好与 `_maxCounter` 一致）；
+       · 线上/库内一律用 int64，字符串只在 ① 里出现（本地时钟持久化 + 日志）。
+
+    ③ **持久化**：t_hlc_clock_state 落库用 ① 的串格式（HlcClockStore.save/load 的契约），
+       边表 t_entity_stamp.hlcPacked 用 ② 的 int64。两者从不同时混淆。
+
+    ⚠ ACT 11 的 golden 用例必须同时钉 ① 与 ② 的正反转换
+    （Hlc.parse(Hlc(...).toString()) 恒等；fromPacked/toPacked 位级可逆）。
+
+  migration_is_v8: >
+    ACT 03 已把 schema 升到 7（ack 表 + peer_id 列 + t_sync_state 三元组主键）。
+    本 ACT 升到 **8**，onUpgrade 新增且仅新增 `if (from < 8)` 一段：
+      await m.createTable(entityStamps);
+      await m.createTable(hlcClockStates);   // 时钟持久化，单行表
+    【不要】动 from<2..7 的六段历史迁移。
+
+  clock_persistence_timing: >
+    时钟落盘时机：**每次 tick / observe 之后立刻 save**。
+    不要"退出时再存" —— app 被系统杀掉不会走退出路径，那正是最常见的场景。
+    单行表（固定主键），写入代价可忽略。
+
+  observe_is_mandatory: >
+    【本 ACT 最容易漏、且漏了不报错的一条】：
+    每一条入站的 RemoteChange，只要它带了 hlcPacked，
+    就【必须】在应用之前调 `clock.observe(remote)`。
+    漏掉的后果：本地时钟不会被顶上去，下次本地写入的戳可能小于刚收到的远端戳，
+    因果关系倒置。所有功能测试仍会绿。
+    属性测试的第 ② 条（因果性）是唯一能抓到它的东西。
+
+  no_arbitration_here: >
+    【本 ACT 不做任何比较判断】。不写 ConflictArbiter，不改 applier 的决策逻辑。
+    本 ACT 交付"戳"，ACT 09 交付"怎么比"，ACT 10 交付"比完怎么处置"。
+    混在一起会让"戳错了"和"比错了"在同一个 diff 里无法区分。
+
+CONSTRAINTS:
+  - 【只换 HLC 实现库，架构一个字不动】。仍然是 HLC + deviceId 全序 + LWW，
+    不引入 CRDT 数据结构、不改 drift 表模型、不换 record/oplog 语义。
+    若你在本 ACT 里看到任何要求改表或改同步模型的措辞，那是理解错了，停下上报。
+  - 【nodeId 一律取 DeviceIdentity.deviceId】（core/lib/model/ports.dart:240），
+    不许另造一套 id 体系。crdt 的 Hlc 构造必须传 deviceId 作为 nodeId。
+  - 【Hlc.parse / toString 串格式已写死成规格】。见 TASK_DETAIL.hlc_wire_format_spec。
+    ACT 09 的 VersionStamp/toPacked 与 ACT 11 的线上格式 golden 测试都照此断言，
+    不许各自猜、不许在实现里偏离。
+  - 【不要】往任何 Data class 或 repository-interface-* 仓库加字段。见 no_data_class_changes。
+  - 【不要】用字符串格式上线 HLC。见 wire_format_is_int64。
+  - 【不要】把 observe 写成"可选优化"。见 observe_is_mandatory。
+  - 【不要】等退出时才保存时钟。见 clock_persistence_timing。
+  - 【不要】在本 ACT 写比较逻辑。见 no_arbitration_here。
+  - 【不要】动 onUpgrade 的 from<2..7 六段。
+  - 【不要】引入 hlc_dart，也不要引入 crdt 包内除 Hlc 之外的任何符号
+    （Crdt / MapCrdt / LWWMapCrdt / Changeset / ReplicatedMap 等全部 FORBID）。
+    见 DEPENDENCY。
+  - 每个公开声明必须有中文 dartdoc（A12）。
+
+TESTS_FIRST:
+  CASES:
+    - NAME: property_three_node_simulation
+      FILE: core/test/s1b_hlc_property_test.dart
+      BEHAVIOR: >
+        【本 ACT 的生死线，也是整个 HLC 方案能不能自己维护的根据】。
+        构造 3 个节点，各自给一个【随机且不同】的物理时钟偏移（±60 秒），
+        用一个可注入的假时钟源驱动。随机顺序产生【至少 1000 次】事件：
+          · 本地写入（tick）
+          · 把某节点的当前戳发给另一节点（对方 observe）
+        全程记录每个事件的 (nodeId, hlc)。跑完断言【两条】不变式：
+
+        ① 单调性：同一节点的连续 tick 严格递增（用 compareTo > 0）
+        ② **因果性：若节点 B 在时刻 T observe 过节点 A 的戳 S，
+           则 B 在 T 之后产生的每一个戳都 > S**（这是 HLC 的全部价值）
+
+        ⚠ 【收敛性不在本用例里】（Codex R3 · P0-2）：
+        HLC 的逻辑计数 c 【本身就受 observe 到达顺序影响】——
+        同一组事件按不同顺序重放，生成的戳可以合法地不同。
+        要求"不同顺序重放后戳相同或胜负相同"是在断言 HLC 【没有承诺】的性质，
+        实现正确也可能红，那是个假门禁。
+        收敛性改由 **ACT 09 的 `convergence_over_fixed_stamps`** 覆盖：
+        它把【本 ACT 生成并冻结的】一组戳，喂给两个独立状态容器 +
+        真实的 `HlcConflictArbiter`，以不同到达顺序归并 ——
+        那才是收敛性真正的战场（Codex R5 · P0-1：
+        v3.2 曾试图在本 ACT 内"收缩职责为数学结构命题"，但那没有
+        生产被测对象，测试辅助代码自证不约束实现，已废弃）。
+
+        用固定 seed 的伪随机数，失败时打印 seed 以便复现。
+        ② 是抓"漏调 observe"的唯一手段 —— 那个 bug 让①照样绿。
+      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
+      RED_EXPECT: 编译失败（HlcClock 不存在），退出码非 0
+      COVERS: [A8]
+
+    - NAME: causality_survives_clock_skew
+      FILE: core/test/s1b_hlc_property_test.dart
+      BEHAVIOR: >
+        定向版本，直接复现设计稿 §5.2.3 那个场景：
+        节点 A 时钟准，节点 B 时钟【慢 30 秒】。
+        - A 写一次 → 戳 Sa
+        - B observe(Sa)，然后 B 写一次 → 戳 Sb
+        断言 `Sb > Sa`，即使 B 的物理时钟读数比 A 小 30 秒。
+        用墙上时钟的实现这条必红 —— 这就是那个"用户在手机上改的东西
+        被平板上更早的版本盖掉且不知情"的 bug。
+      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A8]
+
+    - NAME: hlc_alone_is_not_a_total_order
+      FILE: core/test/s1b_hlc_property_test.dart
+      BEHAVIOR: >
+        【反向断言，防止误以为"墙上时钟/简单计数器"就够了】。
+        【2026-08-03 换库修订】：hlc_dart 里同毫秒并发戳 `compareTo == 0` 是
+        "HLC 没有 nodeId 所以不是全序"的体现；crdt 的 Hlc 内建 nodeId，
+        `compareTo` 先比 dateTime、再比 counter、最后比 nodeId —— 全序内建。
+        本用例在新库下改为断言：
+        构造两个节点（nodeId 不同，= 各自的 deviceId）在【同一物理毫秒】
+        各自 tick 且互不知情，断言：
+          · 两个戳 `compareTo != 0`（nodeId 决胜：dateTime/counter 相同
+            也能比出胜负，且胜负是【确定的】）；
+          · 反对称性：`a.compareTo(b)` 与 `b.compareTo(a)` 符号相反；
+          · 互换提问顺序结论不变（可传递）。
+        这条把"crdt Hlc 全序内建、nodeId 即决胜位"钉成可执行事实 ——
+        没有它，后人会误以为还要在包外面再包一层决胜逻辑（那正是
+        STRONG_MODEL_ONLY 要防的静默退化），或在 ACT 09 里重复实现定序。
+        【用例名保留】：ACT 09 的收敛性用例引用"ACT 08 的 hlc_alone_is_not_a_total_order
+        造出的那种并发戳"（同一物理毫秒、互不知情的两个戳），本用例仍是它的产地。
+      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A8]
+
+    - NAME: clock_survives_restart
+      FILE: core/test/s1b_hlc_property_test.dart
+      BEHAVIOR: >
+        用 fake HlcClockStore：tick 若干次到戳 S，模拟重启
+        （丢弃 HlcClock 实例，用同一个 store 新建一个），
+        断言新实例的第一个 tick 【严格大于】 S。
+        再把物理时钟【回拨 1 小时】后重启，断言仍然严格大于 S ——
+        持久化的意义正在于抗时钟回拨。
+        不持久化的实现这条必红，而线上表现是"重启后写入的戳变小了"，
+        没有任何日志会提到它。
+      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A13]
+
+    - NAME: clock_saved_on_every_tick_not_on_exit
+      FILE: core/test/s1b_hlc_property_test.dart
+      BEHAVIOR: >
+        非 happy-path。用记录调用次数的 fake store，tick 5 次，
+        断言 `save` 被调用了 【5 次】（不是 0 次、不是 1 次）。
+        再对 observe 做同样断言。
+        写成"退出时统一保存"时这条会红 —— 而 app 被系统杀掉不会走退出路径，
+        那正是移动端最常见的终止方式。
+      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A13]
+
+    - NAME: apply_with_stamp_rolls_back_both_on_write_failure
+      FILE: drift/test/sync/hlc_stamp_store_test.dart
+      BEHAVIOR: >
+        【边表方案的核心风险守卫，走【生产接口】而非测试内自拼事务】。
+        调 `applyWithStamp(...)`，传一个【抛异常】的 write 回调。断言：
+        - 异常向外传播（不被吞掉）；
+        - t_entity_stamp 里查不到该 (scopeUid, entityType, entityId)；
+        - write 回调里那一步本应写入的业务行也不在。
+        再调一次 write 正常返回的，断言两者【都】写进去了。
+        ⚠ 【必须调 applyWithStamp】，不许在测试里自己写
+        `db.transaction(() { ... })` 然后分别插两张表 —— 那样测的是
+        "drift 的事务能回滚"（drift 自己保证的事），不是"生产代码走了同一个事务"
+        （Codex R2）。
+        戳与记录分事务写的后果是"记录更新了但戳没更新"，
+        下次同步该记录会被误判为旧版本而被覆盖。
+      RED_COMMAND: cd drift && flutter test test/sync/hlc_stamp_store_test.dart
+      RED_EXPECT: 编译失败（applyWithStamp / t_entity_stamp 不存在），退出码非 0
+      COVERS: [A13]
+
+    - NAME: stamp_is_scoped_by_scope_uid
+      FILE: drift/test/sync/hlc_stamp_store_test.dart
+      BEHAVIOR: >
+        【对应 Codex R2 指出的主键缺 scopeUid】。
+        对 ('scope-a', 'record', 'entity-1') 与 ('scope-b', 'record', 'entity-1')
+        各写一个【不同的】戳，断言：
+        - 两行【都在】（主键少了 scopeUid 时第二次写会覆盖第一次，这条会红）；
+        - 各自读回的 hlcPacked / deviceId 是自己写进去的那个。
+        两个账号下 entityId 相同的实体共用一行戳时，切换账号后仲裁读到的是
+        另一个账号的版本坐标 —— 要么无脑覆盖、要么无脑丢弃，且不报错。
+      RED_COMMAND: cd drift && flutter test test/sync/hlc_stamp_store_test.dart
+      RED_EXPECT: 断言失败（第二次写覆盖了第一次），退出码非 0
+      COVERS: [A13]
+
+    - NAME: clock_state_table_holds_at_most_one_row
+      FILE: drift/test/sync/hlc_stamp_store_test.dart
+      BEHAVIOR: >
+        往 t_hlc_clock_state 插入 id = 0 的一行，再试图插入 id = 1 —— 断言【被拒】
+        （CHECK (id = 0) 生效）。再对 id = 0 做 upsert，断言表里【仍只有一行】
+        且值已更新。
+        单行表若退化成可存多行，"当前时钟是哪个"会变成一个需要 ORDER BY 才能
+        回答的问题，而任何一次读错都让单调性静默断裂。
+      RED_COMMAND: cd drift && flutter test test/sync/hlc_stamp_store_test.dart
+      RED_EXPECT: 断言失败或表不存在，退出码非 0
+      COVERS: [A13]
+
+    - NAME: v7_upgrade_to_v8_preserves_existing_tables
+      FILE: drift/test/sync/hlc_stamp_store_test.dart
+      BEHAVIOR: >
+        造一个 v7 库（含 ACT 03 建的 t_outbox_peer_ack 与切过主键的 t_sync_state），
+        各插入若干可辨识行，升级到 v8 后断言：
+        - t_entity_stamp 与时钟单行表已建立；
+        - **v7 那两张表的每一行逐字段未变**；
+        - `PRAGMA user_version` 为 8。
+        只断言"新表存在"是不够的 —— 那种写法漏搬旧数据也会绿。
+      RED_COMMAND: cd drift && flutter test test/sync/hlc_stamp_store_test.dart
+      RED_EXPECT: 断言失败（schemaVersion 仍是 7），退出码非 0
+      COVERS: [A3, A13]
+
+    - NAME: remote_change_hlc_fields_are_nullable
+      FILE: core/test/s1b_hlc_property_test.dart
+      BEHAVIOR: >
+        构造一个【不传】 hlcPacked 与 deviceId 的 RemoteChange，
+        断言能编译且两者为 null；再构造传了值的，断言读回正确，
+        且既有七个字段逐个未受影响。
+        加 required 会让两个 firebase gateway、core 的 fake、
+        drift 的多处测试同时编译失败 —— 计划外的破坏。
+      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A8]
+
+    - NAME: frozen_stamps_are_deterministic_and_contain_concurrent_pairs
+      FILE: core/test/s1b_hlc_property_test.dart
+      BEHAVIOR: >
+        【守住 ACT 09 收敛性测试的前提】（Codex R5 · P0-1 的交接点）。
+        对 generateFrozenStamps（见 TASK_DETAIL.frozen_stamps_for_act09）断言：
+          ① **确定性**：同一 seed 调用两次，输出逐条相同
+             （字段级比较，不是 length 相等就算过）
+          ② **含并发对**：存在至少一对【同一物理毫秒、不同 nodeId】的戳 ——
+             【2026-08-03 换库修订】：crdt 下 Hlc 内建 nodeId，
+             不再可能"hlc 相等而 deviceId 不同"（Hlc 相等 = 三个字段全等 =
+             nodeId 也相等）。并发对的判据相应改为：dateTime 相同（同一毫秒）、
+             nodeId（deviceId）不同，胜负完全由 nodeId 决出 —— 这仍能
+             制造"物理上无法判定先后"的真并发，是收敛性测试的命根子。
+             没有并发对，ACT 09 那条就退化成"给一列全序值排序"，什么都证明不了
+          ③ **多实体**：entityId 的去重数 >= 3（收敛性是"每个实体各自收敛"）
+          ④ 数量 >= 50
+        用 Random(seed) 而非 Random()；② 若因 seed 不巧不成立，
+        **换 seed 直到成立并把该 seed 写死**，不要放宽断言。
+      RED_COMMAND: cd core && flutter test test/s1b_hlc_property_test.dart
+      RED_EXPECT: 编译失败（generateFrozenStamps 不存在），先红
+      COVERS: [A8]
+
+VERIFICATION:
+  - CMD: cd core && dart analyze --fatal-infos lib/sync/hlc_clock.dart lib/model/types.dart
+    EXPECT_EXIT: 0
+  - CMD: cd core && flutter test test/s1b_hlc_property_test.dart
+    EXPECT_EXIT: 0
+  - CMD: cd drift && flutter test test/sync/hlc_stamp_store_test.dart
+    EXPECT_EXIT: 0
+  - CMD: cd core && flutter test
+    EXPECT_EXIT: 0
+  - CMD: cd drift && flutter test
+    EXPECT_EXIT: 0
+  # 只引入 crdt（^5.1.3），hlc_dart 与其余被否决的包一个都不许进
+  - CMD: 'grep -c "crdt: \^5.1.3" core/pubspec.yaml'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  - CMD: 'grep -nE "^\s+(hlc_dart|sql_crdt|sqlite_crdt|drift_crdt|crdt_lf|crdt_lf_drift|ditto_live):" core/pubspec.yaml drift/pubspec.yaml'
+    EXPECT_EXIT: 1
+  - CMD: 'grep -rn "hlc_dart" core/lib drift/lib core/pubspec.yaml drift/pubspec.yaml'
+    EXPECT_EXIT: 1
+  # 只允许 crdt 的 Hlc 类，包内其它符号（Crdt / MapCrdt / LWWMapCrdt / Changeset）不得进入
+  # 守卫 1：所有 crdt import 必须只来自 crdt.dart（grep 有非 crdt.dart 匹配即退出 1）
+  - CMD: 'grep -rn "package:crdt/" core/lib drift/lib core/test drift/test | grep -v "package:crdt/crdt.dart"'
+    EXPECT_EXIT: 1
+  # 守卫 2：至少存在一个 crdt.dart 的 import（证明真的用上了 crdt）
+  - CMD: 'grep -rn "package:crdt/crdt.dart" core/lib drift/lib core/test drift/test > /dev/null && echo CRDT_HLC_OK'
+    EXPECT_STDOUT: "CRDT_HLC_OK"
+    EXPECT_EXIT: 0
+  # 线上格式必须是 int64，不得用字符串
+  - CMD: 'grep -c "final int? hlcPacked;" core/lib/model/types.dart'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  - CMD: 'grep -nE "hlc\.toString\(\)|\.toHlc\b" core/lib/model/types.dart core/lib/sync/hlc_clock.dart'
+    EXPECT_EXIT: 1
+  # Hlc 串格式 / int64 打包规格存在（ACT 11 golden 照此断言）
+  - CMD: 'grep -q "Hlc.parse" docs/storage-s1b-multipeer/act/08.yaml && echo SPEC_OK'
+    EXPECT_STDOUT: "SPEC_OK"
+    EXPECT_EXIT: 0
+  # 不得往 Data class / 外部仓库加字段
+  - CMD: git diff --exit-code main.. -- core/lib/model/repository.dart
+    EXPECT_EXIT: 0
+  - CMD: 'grep -rn "class RecordMeta" core/lib drift/lib'
+    EXPECT_EXIT: 1
+  # v8 迁移：新增且仅新增 from<8，前六段未动
+  - CMD: 'grep -c "int get schemaVersion => 8;" drift/lib/persistence_drift.dart'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  - CMD: 'for n in 2 3 4 5 6 7; do grep -q "if (from < $n)" drift/lib/persistence_drift.dart || { echo "LOST:$n"; exit 1; }; done; echo OLD_SIX_OK'
+    EXPECT_STDOUT: "OLD_SIX_OK"
+    EXPECT_EXIT: 0
+  # 戳表主键必须含 scope_uid（Codex R2）
+  - CMD: 'grep -c "Set<Column> get primaryKey => {scopeUid, entityType, entityId};" drift/lib/persistence_drift.dart'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  # 时钟单行表存在且有 CHECK 约束
+  - CMD: "grep -c \"CHECK (id = 0)\" drift/lib/persistence_drift.dart"
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  # 同事务写入接口存在（A13 的生产落地点）
+  - CMD: 'grep -c "Future<void> applyWithStamp(" drift/lib/persistence_drift.dart'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  # 本 ACT 不写比较逻辑
+  - CMD: 'grep -nE "ConflictArbiter|arbitrate|compareTo" core/lib/sync/hlc_clock.dart'
+    EXPECT_EXIT: 1
+  # 本 ACT 不改 applier
+  - CMD: git diff --exit-code "$(cat .act-base)"..HEAD -- drift/lib/sync/record_local_applier.dart
+    EXPECT_EXIT: 0
+
+SELF_CHECK:
+  - 【最关键的一条】把 `observe` 的实现体临时清空（变成空函数）→
+    `property_three_node_simulation` 的 ② 因果性 与 `causality_survives_clock_skew`
+    必须【同时】变红，而 ① 单调性【仍然绿】→ 改回。
+    这一步同时证明两件事：属性测试抓得到漏调 observe，
+    且只靠单调性是抓不到的
+  - 把 `HlcClockStore.load()` 临时改成恒返回 null（模拟不持久化）→
+    `clock_survives_restart` 必须变红 → 改回
+  - 把 save 临时改成"只在第一次 tick 时存"→
+    `clock_saved_on_every_tick_not_on_exit` 必须变红 → 改回
+  - 把 applyWithStamp 里的戳更新临时挪到事务【外面】→
+    `apply_with_stamp_rolls_back_both_on_write_failure` 必须变红 → 改回
+  - 把 EntityStamps 主键临时改回 {entityType, entityId}（去掉 scopeUid）→
+    `stamp_is_scoped_by_scope_uid` 必须变红 → 改回
+  - 把 `hlcPacked` 临时改成字符串格式 → grep 门禁必须变红 → 改回
+  - 【换库相关】把 Hlc 的串格式 / int64 打包临时偏离 hlc_wire_format_spec
+    （如 counter 不用 4 位大写十六进制、打包不用 `(l << 16) | c`）→
+    相关规格测试必须变红 → 改回
+  - 七次自检后 `git status --porcelain` 必须为空
+
+ON_FAIL:
+  - RED 阶段测试没红（写完实现前就绿）→ 说明测试没真正依赖新类型，
+    停下重写测试，不要继续
+  - 属性测试偶发失败（换 seed 就绿）→ **这是真 bug 不是 flaky**，
+    HLC 的单调性与因果性在任何事件序列下都必须成立。记下失败 seed 并定位，
+    【不要】加重试、不要放宽断言
+  - 用例偶发失败 → 同上，单调性与因果性对任意事件序列都必须成立
+  - v7→v8 迁移测试失败 → 优先怀疑漏建表而非漏搬数据（本 ACT 是纯建表），
+    逐字段比对旧行
+  - core / drift 既有测试变红 → 立即停下。本 ACT 只加不改，
+    既有测试变红说明动到了不该动的地方
+  - 【换库相关】crdt 依赖装不上 / API 对不上（如 Hlc 没有预期的构造或方法）
+    → 以本 ACT 的 SIGNATURE 与实测源码为准核对，不要退回 hlc_dart
+  - 连续两次修不好同一条 → 在纪要「决定记录」写下现象与已排除的可能，停下上报
+
+DONE_WHEN:
+  - crdt ^5.1.3 已加入 core/pubspec.yaml（仅其 Hlc 类），hlc_dart 与其余被否决的
+    包一个都没进，crdt 包内非 Hlc 符号零引入
+  - HlcClock / HlcClockStore 交付，时钟每次 tick/observe 都落盘（规格化串格式）
+  - Hlc 的串格式 / int64 打包严格符合 TASK_DETAIL.hlc_wire_format_spec
+    （ACT 11 的 golden 测试照此断言）
+  - t_entity_stamp 边表（主键含 scope_uid）+ t_hlc_clock_state 单行表建立，
+    schemaVersion 为 8，前六段迁移未动
+  - applyWithStamp 生产接口存在，戳与记录在同一事务内落盘
+  - getEntityStamp 读取接口存在（ACT 10 的 applier 靠它拿本地戳）
+  - RemoteChange 有可空 hlcPacked / deviceId，既有七字段未变
+  - 所有 Data class 与 repository-interface-* 仓库【零改动】
+  - 十一个测试用例全部存在且通过，属性测试跑满 ≥1000 事件
+  - 六条 SELF_CHECK 已实做并确认能变红，尤其第一条（清空 observe 只红 ②）
+  - 已**导出供 ACT 09 复用的冻结戳生成器** `generateFrozenStamps`
+    （见 TASK_DETAIL.frozen_stamps_for_act09），确定性与含并发对有测试守着

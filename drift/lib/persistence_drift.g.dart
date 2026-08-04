@@ -27,6 +27,24 @@ class SyncStatesDaoManager {
       $$SyncStatesTableTableManager(_db.attachedDatabase, _db.syncStates);
 }
 
+mixin _$EntityStampDaoMixin on DatabaseAccessor<PersistenceDriftDatabase> {
+  $EntityStampsTable get entityStamps => attachedDatabase.entityStamps;
+  $HlcClockStatesTable get hlcClockStates => attachedDatabase.hlcClockStates;
+  EntityStampDaoManager get managers => EntityStampDaoManager(this);
+}
+
+class EntityStampDaoManager {
+  final _$EntityStampDaoMixin _db;
+  EntityStampDaoManager(this._db);
+  $$EntityStampsTableTableManager get entityStamps =>
+      $$EntityStampsTableTableManager(_db.attachedDatabase, _db.entityStamps);
+  $$HlcClockStatesTableTableManager get hlcClockStates =>
+      $$HlcClockStatesTableTableManager(
+        _db.attachedDatabase,
+        _db.hlcClockStates,
+      );
+}
+
 class $OutboxRecordsTable extends OutboxRecords
     with TableInfo<$OutboxRecordsTable, OutboxRecordRow> {
   @override
@@ -967,6 +985,16 @@ class $SyncStatesTable extends SyncStates
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _peerIdMeta = const VerificationMeta('peerId');
+  @override
+  late final GeneratedColumn<String> peerId = GeneratedColumn<String>(
+    'peer_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('firestore'),
+  );
   static const VerificationMeta _cursorTypeMeta = const VerificationMeta(
     'cursorType',
   );
@@ -1050,6 +1078,7 @@ class $SyncStatesTable extends SyncStates
   List<GeneratedColumn> get $columns => [
     scopeUid,
     entityType,
+    peerId,
     cursorType,
     revision,
     serverUpdatedAtUtc,
@@ -1085,6 +1114,12 @@ class $SyncStatesTable extends SyncStates
       );
     } else if (isInserting) {
       context.missing(_entityTypeMeta);
+    }
+    if (data.containsKey('peer_id')) {
+      context.handle(
+        _peerIdMeta,
+        peerId.isAcceptableOrUnknown(data['peer_id']!, _peerIdMeta),
+      );
     }
     if (data.containsKey('cursor_type')) {
       context.handle(
@@ -1148,7 +1183,7 @@ class $SyncStatesTable extends SyncStates
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {scopeUid, entityType};
+  Set<GeneratedColumn> get $primaryKey => {scopeUid, peerId, entityType};
   @override
   SyncStateRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
@@ -1160,6 +1195,10 @@ class $SyncStatesTable extends SyncStates
       entityType: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}entity_type'],
+      )!,
+      peerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}peer_id'],
       )!,
       cursorType: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -1201,6 +1240,11 @@ class $SyncStatesTable extends SyncStates
 class SyncStateRow extends DataClass implements Insertable<SyncStateRow> {
   final String scopeUid;
   final String entityType;
+
+  /// 该游标所属的对端。游标是 per-(scope, peer, entityType) 的 ——
+  /// 云端游标推进到 T，不代表 LAN peer 也同步到了 T。
+  /// 带默认值 'firestore'，使既有行升级后自动回填且既有 DAO 代码无需改动即可编译。
+  final String peerId;
   final String cursorType;
   final int? revision;
   final DateTime? serverUpdatedAtUtc;
@@ -1211,6 +1255,7 @@ class SyncStateRow extends DataClass implements Insertable<SyncStateRow> {
   const SyncStateRow({
     required this.scopeUid,
     required this.entityType,
+    required this.peerId,
     required this.cursorType,
     this.revision,
     this.serverUpdatedAtUtc,
@@ -1224,6 +1269,7 @@ class SyncStateRow extends DataClass implements Insertable<SyncStateRow> {
     final map = <String, Expression>{};
     map['scope_uid'] = Variable<String>(scopeUid);
     map['entity_type'] = Variable<String>(entityType);
+    map['peer_id'] = Variable<String>(peerId);
     map['cursor_type'] = Variable<String>(cursorType);
     if (!nullToAbsent || revision != null) {
       map['revision'] = Variable<int>(revision);
@@ -1248,6 +1294,7 @@ class SyncStateRow extends DataClass implements Insertable<SyncStateRow> {
     return SyncStatesCompanion(
       scopeUid: Value(scopeUid),
       entityType: Value(entityType),
+      peerId: Value(peerId),
       cursorType: Value(cursorType),
       revision: revision == null && nullToAbsent
           ? const Value.absent()
@@ -1276,6 +1323,7 @@ class SyncStateRow extends DataClass implements Insertable<SyncStateRow> {
     return SyncStateRow(
       scopeUid: serializer.fromJson<String>(json['scopeUid']),
       entityType: serializer.fromJson<String>(json['entityType']),
+      peerId: serializer.fromJson<String>(json['peerId']),
       cursorType: serializer.fromJson<String>(json['cursorType']),
       revision: serializer.fromJson<int?>(json['revision']),
       serverUpdatedAtUtc: serializer.fromJson<DateTime?>(
@@ -1295,6 +1343,7 @@ class SyncStateRow extends DataClass implements Insertable<SyncStateRow> {
     return <String, dynamic>{
       'scopeUid': serializer.toJson<String>(scopeUid),
       'entityType': serializer.toJson<String>(entityType),
+      'peerId': serializer.toJson<String>(peerId),
       'cursorType': serializer.toJson<String>(cursorType),
       'revision': serializer.toJson<int?>(revision),
       'serverUpdatedAtUtc': serializer.toJson<DateTime?>(serverUpdatedAtUtc),
@@ -1308,6 +1357,7 @@ class SyncStateRow extends DataClass implements Insertable<SyncStateRow> {
   SyncStateRow copyWith({
     String? scopeUid,
     String? entityType,
+    String? peerId,
     String? cursorType,
     Value<int?> revision = const Value.absent(),
     Value<DateTime?> serverUpdatedAtUtc = const Value.absent(),
@@ -1318,6 +1368,7 @@ class SyncStateRow extends DataClass implements Insertable<SyncStateRow> {
   }) => SyncStateRow(
     scopeUid: scopeUid ?? this.scopeUid,
     entityType: entityType ?? this.entityType,
+    peerId: peerId ?? this.peerId,
     cursorType: cursorType ?? this.cursorType,
     revision: revision.present ? revision.value : this.revision,
     serverUpdatedAtUtc: serverUpdatedAtUtc.present
@@ -1338,6 +1389,7 @@ class SyncStateRow extends DataClass implements Insertable<SyncStateRow> {
       entityType: data.entityType.present
           ? data.entityType.value
           : this.entityType,
+      peerId: data.peerId.present ? data.peerId.value : this.peerId,
       cursorType: data.cursorType.present
           ? data.cursorType.value
           : this.cursorType,
@@ -1365,6 +1417,7 @@ class SyncStateRow extends DataClass implements Insertable<SyncStateRow> {
     return (StringBuffer('SyncStateRow(')
           ..write('scopeUid: $scopeUid, ')
           ..write('entityType: $entityType, ')
+          ..write('peerId: $peerId, ')
           ..write('cursorType: $cursorType, ')
           ..write('revision: $revision, ')
           ..write('serverUpdatedAtUtc: $serverUpdatedAtUtc, ')
@@ -1380,6 +1433,7 @@ class SyncStateRow extends DataClass implements Insertable<SyncStateRow> {
   int get hashCode => Object.hash(
     scopeUid,
     entityType,
+    peerId,
     cursorType,
     revision,
     serverUpdatedAtUtc,
@@ -1394,6 +1448,7 @@ class SyncStateRow extends DataClass implements Insertable<SyncStateRow> {
       (other is SyncStateRow &&
           other.scopeUid == this.scopeUid &&
           other.entityType == this.entityType &&
+          other.peerId == this.peerId &&
           other.cursorType == this.cursorType &&
           other.revision == this.revision &&
           other.serverUpdatedAtUtc == this.serverUpdatedAtUtc &&
@@ -1406,6 +1461,7 @@ class SyncStateRow extends DataClass implements Insertable<SyncStateRow> {
 class SyncStatesCompanion extends UpdateCompanion<SyncStateRow> {
   final Value<String> scopeUid;
   final Value<String> entityType;
+  final Value<String> peerId;
   final Value<String> cursorType;
   final Value<int?> revision;
   final Value<DateTime?> serverUpdatedAtUtc;
@@ -1417,6 +1473,7 @@ class SyncStatesCompanion extends UpdateCompanion<SyncStateRow> {
   const SyncStatesCompanion({
     this.scopeUid = const Value.absent(),
     this.entityType = const Value.absent(),
+    this.peerId = const Value.absent(),
     this.cursorType = const Value.absent(),
     this.revision = const Value.absent(),
     this.serverUpdatedAtUtc = const Value.absent(),
@@ -1429,6 +1486,7 @@ class SyncStatesCompanion extends UpdateCompanion<SyncStateRow> {
   SyncStatesCompanion.insert({
     required String scopeUid,
     required String entityType,
+    this.peerId = const Value.absent(),
     required String cursorType,
     this.revision = const Value.absent(),
     this.serverUpdatedAtUtc = const Value.absent(),
@@ -1444,6 +1502,7 @@ class SyncStatesCompanion extends UpdateCompanion<SyncStateRow> {
   static Insertable<SyncStateRow> custom({
     Expression<String>? scopeUid,
     Expression<String>? entityType,
+    Expression<String>? peerId,
     Expression<String>? cursorType,
     Expression<int>? revision,
     Expression<DateTime>? serverUpdatedAtUtc,
@@ -1456,6 +1515,7 @@ class SyncStatesCompanion extends UpdateCompanion<SyncStateRow> {
     return RawValuesInsertable({
       if (scopeUid != null) 'scope_uid': scopeUid,
       if (entityType != null) 'entity_type': entityType,
+      if (peerId != null) 'peer_id': peerId,
       if (cursorType != null) 'cursor_type': cursorType,
       if (revision != null) 'revision': revision,
       if (serverUpdatedAtUtc != null)
@@ -1472,6 +1532,7 @@ class SyncStatesCompanion extends UpdateCompanion<SyncStateRow> {
   SyncStatesCompanion copyWith({
     Value<String>? scopeUid,
     Value<String>? entityType,
+    Value<String>? peerId,
     Value<String>? cursorType,
     Value<int?>? revision,
     Value<DateTime?>? serverUpdatedAtUtc,
@@ -1484,6 +1545,7 @@ class SyncStatesCompanion extends UpdateCompanion<SyncStateRow> {
     return SyncStatesCompanion(
       scopeUid: scopeUid ?? this.scopeUid,
       entityType: entityType ?? this.entityType,
+      peerId: peerId ?? this.peerId,
       cursorType: cursorType ?? this.cursorType,
       revision: revision ?? this.revision,
       serverUpdatedAtUtc: serverUpdatedAtUtc ?? this.serverUpdatedAtUtc,
@@ -1503,6 +1565,9 @@ class SyncStatesCompanion extends UpdateCompanion<SyncStateRow> {
     }
     if (entityType.present) {
       map['entity_type'] = Variable<String>(entityType.value);
+    }
+    if (peerId.present) {
+      map['peer_id'] = Variable<String>(peerId.value);
     }
     if (cursorType.present) {
       map['cursor_type'] = Variable<String>(cursorType.value);
@@ -1540,6 +1605,7 @@ class SyncStatesCompanion extends UpdateCompanion<SyncStateRow> {
     return (StringBuffer('SyncStatesCompanion(')
           ..write('scopeUid: $scopeUid, ')
           ..write('entityType: $entityType, ')
+          ..write('peerId: $peerId, ')
           ..write('cursorType: $cursorType, ')
           ..write('revision: $revision, ')
           ..write('serverUpdatedAtUtc: $serverUpdatedAtUtc, ')
@@ -2466,9 +2532,6 @@ class $DivinationsTable extends Divinations
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_seekers (uuid)',
-    ),
   );
   @override
   late final GeneratedColumnWithTypeConverter<Gender?, String> gender =
@@ -2970,9 +3033,6 @@ class $SeekerDivinationMappersTable extends SeekerDivinationMappers
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_divinations (uuid)',
-    ),
   );
   static const VerificationMeta _seekerUuidMeta = const VerificationMeta(
     'seekerUuid',
@@ -2984,9 +3044,6 @@ class $SeekerDivinationMappersTable extends SeekerDivinationMappers
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_seekers (uuid)',
-    ),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -3406,9 +3463,6 @@ class $CombinedDivinationsTable extends CombinedDivinations
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_divinations (uuid)',
-    ),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -5826,9 +5880,6 @@ class $DivinationSubDivinationTypeMappersTable
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_divination_types (uuid)',
-    ),
   );
   static const VerificationMeta _subTypeUuidMeta = const VerificationMeta(
     'subTypeUuid',
@@ -5840,9 +5891,6 @@ class $DivinationSubDivinationTypeMappersTable
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_sub_divination_types (uuid)',
-    ),
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
@@ -13459,6 +13507,1207 @@ class CreationAuditLogsCompanion extends UpdateCompanion<CreationAuditLog> {
   }
 }
 
+class $OutboxPeerAcksTable extends OutboxPeerAcks
+    with TableInfo<$OutboxPeerAcksTable, OutboxPeerAckRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $OutboxPeerAcksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _operationIdMeta = const VerificationMeta(
+    'operationId',
+  );
+  @override
+  late final GeneratedColumn<String> operationId = GeneratedColumn<String>(
+    'operation_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _peerIdMeta = const VerificationMeta('peerId');
+  @override
+  late final GeneratedColumn<String> peerId = GeneratedColumn<String>(
+    'peer_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  static const VerificationMeta _attemptMeta = const VerificationMeta(
+    'attempt',
+  );
+  @override
+  late final GeneratedColumn<int> attempt = GeneratedColumn<int>(
+    'attempt',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _lastErrorCodeMeta = const VerificationMeta(
+    'lastErrorCode',
+  );
+  @override
+  late final GeneratedColumn<String> lastErrorCode = GeneratedColumn<String>(
+    'last_error_code',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastErrorMessageMeta = const VerificationMeta(
+    'lastErrorMessage',
+  );
+  @override
+  late final GeneratedColumn<String> lastErrorMessage = GeneratedColumn<String>(
+    'last_error_message',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _ackedAtUtcMeta = const VerificationMeta(
+    'ackedAtUtc',
+  );
+  @override
+  late final GeneratedColumn<DateTime> ackedAtUtc = GeneratedColumn<DateTime>(
+    'acked_at_utc',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    operationId,
+    peerId,
+    status,
+    attempt,
+    lastErrorCode,
+    lastErrorMessage,
+    ackedAtUtc,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_outbox_peer_ack';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<OutboxPeerAckRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('operation_id')) {
+      context.handle(
+        _operationIdMeta,
+        operationId.isAcceptableOrUnknown(
+          data['operation_id']!,
+          _operationIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_operationIdMeta);
+    }
+    if (data.containsKey('peer_id')) {
+      context.handle(
+        _peerIdMeta,
+        peerId.isAcceptableOrUnknown(data['peer_id']!, _peerIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_peerIdMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('attempt')) {
+      context.handle(
+        _attemptMeta,
+        attempt.isAcceptableOrUnknown(data['attempt']!, _attemptMeta),
+      );
+    }
+    if (data.containsKey('last_error_code')) {
+      context.handle(
+        _lastErrorCodeMeta,
+        lastErrorCode.isAcceptableOrUnknown(
+          data['last_error_code']!,
+          _lastErrorCodeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_error_message')) {
+      context.handle(
+        _lastErrorMessageMeta,
+        lastErrorMessage.isAcceptableOrUnknown(
+          data['last_error_message']!,
+          _lastErrorMessageMeta,
+        ),
+      );
+    }
+    if (data.containsKey('acked_at_utc')) {
+      context.handle(
+        _ackedAtUtcMeta,
+        ackedAtUtc.isAcceptableOrUnknown(
+          data['acked_at_utc']!,
+          _ackedAtUtcMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {operationId, peerId};
+  @override
+  OutboxPeerAckRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OutboxPeerAckRow(
+      operationId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}operation_id'],
+      )!,
+      peerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}peer_id'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      attempt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}attempt'],
+      )!,
+      lastErrorCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_error_code'],
+      ),
+      lastErrorMessage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_error_message'],
+      ),
+      ackedAtUtc: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}acked_at_utc'],
+      ),
+    );
+  }
+
+  @override
+  $OutboxPeerAcksTable createAlias(String alias) {
+    return $OutboxPeerAcksTable(attachedDatabase, alias);
+  }
+}
+
+class OutboxPeerAckRow extends DataClass
+    implements Insertable<OutboxPeerAckRow> {
+  /// per-peer ack 水位表（§5.2.2 第 1 条）。
+  ///
+  /// 一条 outbox 记录对 N 个对端各有一行 ack —— 记录本身只存一份，
+  /// 「推没推成功」是 (operationId, peerId) 二元组的属性。
+  ///
+  /// 本表【同时】是 §5.3 oplog compaction 的水位表：
+  /// 「所有已知 peer 均已 success 的 operationId 可被压缩」这一判定直接查本表。
+  /// 因此 compaction 的数据模型不是待决项，它就是这张表。
+  ///
+  /// ⚠ 但本表提供的是压缩的【判据】，不是压缩的【许可】。
+  /// compaction 的前置条件是「游标落在 oplog 保留窗口外 → 强制全量对齐」，
+  /// 该能力归 S1c（见 specs/2026-08-03-s1c-full-reconciliation-design.md）。
+  /// 缺了它而实现压缩，久未上线的设备会静默丢失被压缩区间的变更：
+  /// 对端只能给出保留窗口内的增量，而该设备收下后照常把游标推进到"现在"
+  /// ——【零报错、零测试变红】。
+  /// 【S1b 内不得实现 compaction】。
+  final String operationId;
+  final String peerId;
+
+  /// pending / success / failed / dead。与 t_outbox.status 同一套取值。
+  final String status;
+
+  /// 该对端的重试次数。per-peer —— 一个对端推成 dead 不影响其他对端。
+  final int attempt;
+  final String? lastErrorCode;
+  final String? lastErrorMessage;
+  final DateTime? ackedAtUtc;
+  const OutboxPeerAckRow({
+    required this.operationId,
+    required this.peerId,
+    required this.status,
+    required this.attempt,
+    this.lastErrorCode,
+    this.lastErrorMessage,
+    this.ackedAtUtc,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['operation_id'] = Variable<String>(operationId);
+    map['peer_id'] = Variable<String>(peerId);
+    map['status'] = Variable<String>(status);
+    map['attempt'] = Variable<int>(attempt);
+    if (!nullToAbsent || lastErrorCode != null) {
+      map['last_error_code'] = Variable<String>(lastErrorCode);
+    }
+    if (!nullToAbsent || lastErrorMessage != null) {
+      map['last_error_message'] = Variable<String>(lastErrorMessage);
+    }
+    if (!nullToAbsent || ackedAtUtc != null) {
+      map['acked_at_utc'] = Variable<DateTime>(ackedAtUtc);
+    }
+    return map;
+  }
+
+  OutboxPeerAcksCompanion toCompanion(bool nullToAbsent) {
+    return OutboxPeerAcksCompanion(
+      operationId: Value(operationId),
+      peerId: Value(peerId),
+      status: Value(status),
+      attempt: Value(attempt),
+      lastErrorCode: lastErrorCode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastErrorCode),
+      lastErrorMessage: lastErrorMessage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastErrorMessage),
+      ackedAtUtc: ackedAtUtc == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ackedAtUtc),
+    );
+  }
+
+  factory OutboxPeerAckRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OutboxPeerAckRow(
+      operationId: serializer.fromJson<String>(json['operationId']),
+      peerId: serializer.fromJson<String>(json['peerId']),
+      status: serializer.fromJson<String>(json['status']),
+      attempt: serializer.fromJson<int>(json['attempt']),
+      lastErrorCode: serializer.fromJson<String?>(json['lastErrorCode']),
+      lastErrorMessage: serializer.fromJson<String?>(json['lastErrorMessage']),
+      ackedAtUtc: serializer.fromJson<DateTime?>(json['ackedAtUtc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'operationId': serializer.toJson<String>(operationId),
+      'peerId': serializer.toJson<String>(peerId),
+      'status': serializer.toJson<String>(status),
+      'attempt': serializer.toJson<int>(attempt),
+      'lastErrorCode': serializer.toJson<String?>(lastErrorCode),
+      'lastErrorMessage': serializer.toJson<String?>(lastErrorMessage),
+      'ackedAtUtc': serializer.toJson<DateTime?>(ackedAtUtc),
+    };
+  }
+
+  OutboxPeerAckRow copyWith({
+    String? operationId,
+    String? peerId,
+    String? status,
+    int? attempt,
+    Value<String?> lastErrorCode = const Value.absent(),
+    Value<String?> lastErrorMessage = const Value.absent(),
+    Value<DateTime?> ackedAtUtc = const Value.absent(),
+  }) => OutboxPeerAckRow(
+    operationId: operationId ?? this.operationId,
+    peerId: peerId ?? this.peerId,
+    status: status ?? this.status,
+    attempt: attempt ?? this.attempt,
+    lastErrorCode: lastErrorCode.present
+        ? lastErrorCode.value
+        : this.lastErrorCode,
+    lastErrorMessage: lastErrorMessage.present
+        ? lastErrorMessage.value
+        : this.lastErrorMessage,
+    ackedAtUtc: ackedAtUtc.present ? ackedAtUtc.value : this.ackedAtUtc,
+  );
+  OutboxPeerAckRow copyWithCompanion(OutboxPeerAcksCompanion data) {
+    return OutboxPeerAckRow(
+      operationId: data.operationId.present
+          ? data.operationId.value
+          : this.operationId,
+      peerId: data.peerId.present ? data.peerId.value : this.peerId,
+      status: data.status.present ? data.status.value : this.status,
+      attempt: data.attempt.present ? data.attempt.value : this.attempt,
+      lastErrorCode: data.lastErrorCode.present
+          ? data.lastErrorCode.value
+          : this.lastErrorCode,
+      lastErrorMessage: data.lastErrorMessage.present
+          ? data.lastErrorMessage.value
+          : this.lastErrorMessage,
+      ackedAtUtc: data.ackedAtUtc.present
+          ? data.ackedAtUtc.value
+          : this.ackedAtUtc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OutboxPeerAckRow(')
+          ..write('operationId: $operationId, ')
+          ..write('peerId: $peerId, ')
+          ..write('status: $status, ')
+          ..write('attempt: $attempt, ')
+          ..write('lastErrorCode: $lastErrorCode, ')
+          ..write('lastErrorMessage: $lastErrorMessage, ')
+          ..write('ackedAtUtc: $ackedAtUtc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    operationId,
+    peerId,
+    status,
+    attempt,
+    lastErrorCode,
+    lastErrorMessage,
+    ackedAtUtc,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OutboxPeerAckRow &&
+          other.operationId == this.operationId &&
+          other.peerId == this.peerId &&
+          other.status == this.status &&
+          other.attempt == this.attempt &&
+          other.lastErrorCode == this.lastErrorCode &&
+          other.lastErrorMessage == this.lastErrorMessage &&
+          other.ackedAtUtc == this.ackedAtUtc);
+}
+
+class OutboxPeerAcksCompanion extends UpdateCompanion<OutboxPeerAckRow> {
+  final Value<String> operationId;
+  final Value<String> peerId;
+  final Value<String> status;
+  final Value<int> attempt;
+  final Value<String?> lastErrorCode;
+  final Value<String?> lastErrorMessage;
+  final Value<DateTime?> ackedAtUtc;
+  final Value<int> rowid;
+  const OutboxPeerAcksCompanion({
+    this.operationId = const Value.absent(),
+    this.peerId = const Value.absent(),
+    this.status = const Value.absent(),
+    this.attempt = const Value.absent(),
+    this.lastErrorCode = const Value.absent(),
+    this.lastErrorMessage = const Value.absent(),
+    this.ackedAtUtc = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  OutboxPeerAcksCompanion.insert({
+    required String operationId,
+    required String peerId,
+    this.status = const Value.absent(),
+    this.attempt = const Value.absent(),
+    this.lastErrorCode = const Value.absent(),
+    this.lastErrorMessage = const Value.absent(),
+    this.ackedAtUtc = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : operationId = Value(operationId),
+       peerId = Value(peerId);
+  static Insertable<OutboxPeerAckRow> custom({
+    Expression<String>? operationId,
+    Expression<String>? peerId,
+    Expression<String>? status,
+    Expression<int>? attempt,
+    Expression<String>? lastErrorCode,
+    Expression<String>? lastErrorMessage,
+    Expression<DateTime>? ackedAtUtc,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (operationId != null) 'operation_id': operationId,
+      if (peerId != null) 'peer_id': peerId,
+      if (status != null) 'status': status,
+      if (attempt != null) 'attempt': attempt,
+      if (lastErrorCode != null) 'last_error_code': lastErrorCode,
+      if (lastErrorMessage != null) 'last_error_message': lastErrorMessage,
+      if (ackedAtUtc != null) 'acked_at_utc': ackedAtUtc,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  OutboxPeerAcksCompanion copyWith({
+    Value<String>? operationId,
+    Value<String>? peerId,
+    Value<String>? status,
+    Value<int>? attempt,
+    Value<String?>? lastErrorCode,
+    Value<String?>? lastErrorMessage,
+    Value<DateTime?>? ackedAtUtc,
+    Value<int>? rowid,
+  }) {
+    return OutboxPeerAcksCompanion(
+      operationId: operationId ?? this.operationId,
+      peerId: peerId ?? this.peerId,
+      status: status ?? this.status,
+      attempt: attempt ?? this.attempt,
+      lastErrorCode: lastErrorCode ?? this.lastErrorCode,
+      lastErrorMessage: lastErrorMessage ?? this.lastErrorMessage,
+      ackedAtUtc: ackedAtUtc ?? this.ackedAtUtc,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (operationId.present) {
+      map['operation_id'] = Variable<String>(operationId.value);
+    }
+    if (peerId.present) {
+      map['peer_id'] = Variable<String>(peerId.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (attempt.present) {
+      map['attempt'] = Variable<int>(attempt.value);
+    }
+    if (lastErrorCode.present) {
+      map['last_error_code'] = Variable<String>(lastErrorCode.value);
+    }
+    if (lastErrorMessage.present) {
+      map['last_error_message'] = Variable<String>(lastErrorMessage.value);
+    }
+    if (ackedAtUtc.present) {
+      map['acked_at_utc'] = Variable<DateTime>(ackedAtUtc.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OutboxPeerAcksCompanion(')
+          ..write('operationId: $operationId, ')
+          ..write('peerId: $peerId, ')
+          ..write('status: $status, ')
+          ..write('attempt: $attempt, ')
+          ..write('lastErrorCode: $lastErrorCode, ')
+          ..write('lastErrorMessage: $lastErrorMessage, ')
+          ..write('ackedAtUtc: $ackedAtUtc, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $EntityStampsTable extends EntityStamps
+    with TableInfo<$EntityStampsTable, EntityStampRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EntityStampsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _entityTypeMeta = const VerificationMeta(
+    'entityType',
+  );
+  @override
+  late final GeneratedColumn<String> entityType = GeneratedColumn<String>(
+    'entity_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _entityIdMeta = const VerificationMeta(
+    'entityId',
+  );
+  @override
+  late final GeneratedColumn<String> entityId = GeneratedColumn<String>(
+    'entity_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _hlcPackedMeta = const VerificationMeta(
+    'hlcPacked',
+  );
+  @override
+  late final GeneratedColumn<int> hlcPacked = GeneratedColumn<int>(
+    'hlc_packed',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deviceIdMeta = const VerificationMeta(
+    'deviceId',
+  );
+  @override
+  late final GeneratedColumn<String> deviceId = GeneratedColumn<String>(
+    'device_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    scopeUid,
+    entityType,
+    entityId,
+    hlcPacked,
+    deviceId,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_entity_stamp';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<EntityStampRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scopeUidMeta);
+    }
+    if (data.containsKey('entity_type')) {
+      context.handle(
+        _entityTypeMeta,
+        entityType.isAcceptableOrUnknown(data['entity_type']!, _entityTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityTypeMeta);
+    }
+    if (data.containsKey('entity_id')) {
+      context.handle(
+        _entityIdMeta,
+        entityId.isAcceptableOrUnknown(data['entity_id']!, _entityIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityIdMeta);
+    }
+    if (data.containsKey('hlc_packed')) {
+      context.handle(
+        _hlcPackedMeta,
+        hlcPacked.isAcceptableOrUnknown(data['hlc_packed']!, _hlcPackedMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_hlcPackedMeta);
+    }
+    if (data.containsKey('device_id')) {
+      context.handle(
+        _deviceIdMeta,
+        deviceId.isAcceptableOrUnknown(data['device_id']!, _deviceIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_deviceIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {scopeUid, entityType, entityId};
+  @override
+  EntityStampRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EntityStampRow(
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      )!,
+      entityType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entity_type'],
+      )!,
+      entityId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entity_id'],
+      )!,
+      hlcPacked: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}hlc_packed'],
+      )!,
+      deviceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}device_id'],
+      )!,
+    );
+  }
+
+  @override
+  $EntityStampsTable createAlias(String alias) {
+    return $EntityStampsTable(attachedDatabase, alias);
+  }
+}
+
+class EntityStampRow extends DataClass implements Insertable<EntityStampRow> {
+  /// 所属账号作用域。
+  ///
+  /// ⚠ **主键里必须有它**（Codex R2）。本库里所有同步侧的表
+  /// （t_outbox / t_sync_state）都以 scope_uid 分片；戳表少了这一维，
+  /// 两个账号下 entityId 相同的实体会【共用同一行戳】——
+  /// 切换账号后仲裁读到的是另一个账号的版本坐标，于是要么无脑覆盖、
+  /// 要么无脑丢弃，而且不报错。
+  final String scopeUid;
+  final String entityType;
+  final String entityId;
+
+  /// HLC 打包值 `(l << 16) | c`。有效范围与溢出行为见 ACT 08 的
+  /// TASK_DETAIL.hlc_wire_format_spec ②（int64 位布局）。
+  final int hlcPacked;
+
+  /// 写入该版本的设备。HLC 相等时的决胜位（= crdt Hlc 的 nodeId）。
+  final String deviceId;
+  const EntityStampRow({
+    required this.scopeUid,
+    required this.entityType,
+    required this.entityId,
+    required this.hlcPacked,
+    required this.deviceId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['scope_uid'] = Variable<String>(scopeUid);
+    map['entity_type'] = Variable<String>(entityType);
+    map['entity_id'] = Variable<String>(entityId);
+    map['hlc_packed'] = Variable<int>(hlcPacked);
+    map['device_id'] = Variable<String>(deviceId);
+    return map;
+  }
+
+  EntityStampsCompanion toCompanion(bool nullToAbsent) {
+    return EntityStampsCompanion(
+      scopeUid: Value(scopeUid),
+      entityType: Value(entityType),
+      entityId: Value(entityId),
+      hlcPacked: Value(hlcPacked),
+      deviceId: Value(deviceId),
+    );
+  }
+
+  factory EntityStampRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EntityStampRow(
+      scopeUid: serializer.fromJson<String>(json['scopeUid']),
+      entityType: serializer.fromJson<String>(json['entityType']),
+      entityId: serializer.fromJson<String>(json['entityId']),
+      hlcPacked: serializer.fromJson<int>(json['hlcPacked']),
+      deviceId: serializer.fromJson<String>(json['deviceId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'scopeUid': serializer.toJson<String>(scopeUid),
+      'entityType': serializer.toJson<String>(entityType),
+      'entityId': serializer.toJson<String>(entityId),
+      'hlcPacked': serializer.toJson<int>(hlcPacked),
+      'deviceId': serializer.toJson<String>(deviceId),
+    };
+  }
+
+  EntityStampRow copyWith({
+    String? scopeUid,
+    String? entityType,
+    String? entityId,
+    int? hlcPacked,
+    String? deviceId,
+  }) => EntityStampRow(
+    scopeUid: scopeUid ?? this.scopeUid,
+    entityType: entityType ?? this.entityType,
+    entityId: entityId ?? this.entityId,
+    hlcPacked: hlcPacked ?? this.hlcPacked,
+    deviceId: deviceId ?? this.deviceId,
+  );
+  EntityStampRow copyWithCompanion(EntityStampsCompanion data) {
+    return EntityStampRow(
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
+      entityType: data.entityType.present
+          ? data.entityType.value
+          : this.entityType,
+      entityId: data.entityId.present ? data.entityId.value : this.entityId,
+      hlcPacked: data.hlcPacked.present ? data.hlcPacked.value : this.hlcPacked,
+      deviceId: data.deviceId.present ? data.deviceId.value : this.deviceId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EntityStampRow(')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('entityType: $entityType, ')
+          ..write('entityId: $entityId, ')
+          ..write('hlcPacked: $hlcPacked, ')
+          ..write('deviceId: $deviceId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(scopeUid, entityType, entityId, hlcPacked, deviceId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EntityStampRow &&
+          other.scopeUid == this.scopeUid &&
+          other.entityType == this.entityType &&
+          other.entityId == this.entityId &&
+          other.hlcPacked == this.hlcPacked &&
+          other.deviceId == this.deviceId);
+}
+
+class EntityStampsCompanion extends UpdateCompanion<EntityStampRow> {
+  final Value<String> scopeUid;
+  final Value<String> entityType;
+  final Value<String> entityId;
+  final Value<int> hlcPacked;
+  final Value<String> deviceId;
+  final Value<int> rowid;
+  const EntityStampsCompanion({
+    this.scopeUid = const Value.absent(),
+    this.entityType = const Value.absent(),
+    this.entityId = const Value.absent(),
+    this.hlcPacked = const Value.absent(),
+    this.deviceId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EntityStampsCompanion.insert({
+    required String scopeUid,
+    required String entityType,
+    required String entityId,
+    required int hlcPacked,
+    required String deviceId,
+    this.rowid = const Value.absent(),
+  }) : scopeUid = Value(scopeUid),
+       entityType = Value(entityType),
+       entityId = Value(entityId),
+       hlcPacked = Value(hlcPacked),
+       deviceId = Value(deviceId);
+  static Insertable<EntityStampRow> custom({
+    Expression<String>? scopeUid,
+    Expression<String>? entityType,
+    Expression<String>? entityId,
+    Expression<int>? hlcPacked,
+    Expression<String>? deviceId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (scopeUid != null) 'scope_uid': scopeUid,
+      if (entityType != null) 'entity_type': entityType,
+      if (entityId != null) 'entity_id': entityId,
+      if (hlcPacked != null) 'hlc_packed': hlcPacked,
+      if (deviceId != null) 'device_id': deviceId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EntityStampsCompanion copyWith({
+    Value<String>? scopeUid,
+    Value<String>? entityType,
+    Value<String>? entityId,
+    Value<int>? hlcPacked,
+    Value<String>? deviceId,
+    Value<int>? rowid,
+  }) {
+    return EntityStampsCompanion(
+      scopeUid: scopeUid ?? this.scopeUid,
+      entityType: entityType ?? this.entityType,
+      entityId: entityId ?? this.entityId,
+      hlcPacked: hlcPacked ?? this.hlcPacked,
+      deviceId: deviceId ?? this.deviceId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
+    }
+    if (entityType.present) {
+      map['entity_type'] = Variable<String>(entityType.value);
+    }
+    if (entityId.present) {
+      map['entity_id'] = Variable<String>(entityId.value);
+    }
+    if (hlcPacked.present) {
+      map['hlc_packed'] = Variable<int>(hlcPacked.value);
+    }
+    if (deviceId.present) {
+      map['device_id'] = Variable<String>(deviceId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EntityStampsCompanion(')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('entityType: $entityType, ')
+          ..write('entityId: $entityId, ')
+          ..write('hlcPacked: $hlcPacked, ')
+          ..write('deviceId: $deviceId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $HlcClockStatesTable extends HlcClockStates
+    with TableInfo<$HlcClockStatesTable, HlcClockStateRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HlcClockStatesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _hlcPackedMeta = const VerificationMeta(
+    'hlcPacked',
+  );
+  @override
+  late final GeneratedColumn<int> hlcPacked = GeneratedColumn<int>(
+    'hlc_packed',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deviceIdMeta = const VerificationMeta(
+    'deviceId',
+  );
+  @override
+  late final GeneratedColumn<String> deviceId = GeneratedColumn<String>(
+    'device_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _savedAtUtcMeta = const VerificationMeta(
+    'savedAtUtc',
+  );
+  @override
+  late final GeneratedColumn<DateTime> savedAtUtc = GeneratedColumn<DateTime>(
+    'saved_at_utc',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, hlcPacked, deviceId, savedAtUtc];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_hlc_clock_state';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<HlcClockStateRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('hlc_packed')) {
+      context.handle(
+        _hlcPackedMeta,
+        hlcPacked.isAcceptableOrUnknown(data['hlc_packed']!, _hlcPackedMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_hlcPackedMeta);
+    }
+    if (data.containsKey('device_id')) {
+      context.handle(
+        _deviceIdMeta,
+        deviceId.isAcceptableOrUnknown(data['device_id']!, _deviceIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_deviceIdMeta);
+    }
+    if (data.containsKey('saved_at_utc')) {
+      context.handle(
+        _savedAtUtcMeta,
+        savedAtUtc.isAcceptableOrUnknown(
+          data['saved_at_utc']!,
+          _savedAtUtcMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_savedAtUtcMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  HlcClockStateRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return HlcClockStateRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      hlcPacked: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}hlc_packed'],
+      )!,
+      deviceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}device_id'],
+      )!,
+      savedAtUtc: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}saved_at_utc'],
+      )!,
+    );
+  }
+
+  @override
+  $HlcClockStatesTable createAlias(String alias) {
+    return $HlcClockStatesTable(attachedDatabase, alias);
+  }
+}
+
+class HlcClockStateRow extends DataClass
+    implements Insertable<HlcClockStateRow> {
+  /// 固定为 0。单行表的哨兵主键 —— 有 CHECK 约束保证只可能有一行。
+  final int id;
+
+  /// 上次退出/上次 tick 时的 HLC 打包值（int64，见 hlc_wire_format_spec ②）。
+  final int hlcPacked;
+
+  /// 本设备标识。与 [DeviceIdentity.deviceId] 一致（= crdt Hlc 的 nodeId）。
+  final String deviceId;
+
+  /// 最后一次落盘时间，仅供诊断，【不参与定序】。
+  final DateTime savedAtUtc;
+  const HlcClockStateRow({
+    required this.id,
+    required this.hlcPacked,
+    required this.deviceId,
+    required this.savedAtUtc,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['hlc_packed'] = Variable<int>(hlcPacked);
+    map['device_id'] = Variable<String>(deviceId);
+    map['saved_at_utc'] = Variable<DateTime>(savedAtUtc);
+    return map;
+  }
+
+  HlcClockStatesCompanion toCompanion(bool nullToAbsent) {
+    return HlcClockStatesCompanion(
+      id: Value(id),
+      hlcPacked: Value(hlcPacked),
+      deviceId: Value(deviceId),
+      savedAtUtc: Value(savedAtUtc),
+    );
+  }
+
+  factory HlcClockStateRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HlcClockStateRow(
+      id: serializer.fromJson<int>(json['id']),
+      hlcPacked: serializer.fromJson<int>(json['hlcPacked']),
+      deviceId: serializer.fromJson<String>(json['deviceId']),
+      savedAtUtc: serializer.fromJson<DateTime>(json['savedAtUtc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'hlcPacked': serializer.toJson<int>(hlcPacked),
+      'deviceId': serializer.toJson<String>(deviceId),
+      'savedAtUtc': serializer.toJson<DateTime>(savedAtUtc),
+    };
+  }
+
+  HlcClockStateRow copyWith({
+    int? id,
+    int? hlcPacked,
+    String? deviceId,
+    DateTime? savedAtUtc,
+  }) => HlcClockStateRow(
+    id: id ?? this.id,
+    hlcPacked: hlcPacked ?? this.hlcPacked,
+    deviceId: deviceId ?? this.deviceId,
+    savedAtUtc: savedAtUtc ?? this.savedAtUtc,
+  );
+  HlcClockStateRow copyWithCompanion(HlcClockStatesCompanion data) {
+    return HlcClockStateRow(
+      id: data.id.present ? data.id.value : this.id,
+      hlcPacked: data.hlcPacked.present ? data.hlcPacked.value : this.hlcPacked,
+      deviceId: data.deviceId.present ? data.deviceId.value : this.deviceId,
+      savedAtUtc: data.savedAtUtc.present
+          ? data.savedAtUtc.value
+          : this.savedAtUtc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HlcClockStateRow(')
+          ..write('id: $id, ')
+          ..write('hlcPacked: $hlcPacked, ')
+          ..write('deviceId: $deviceId, ')
+          ..write('savedAtUtc: $savedAtUtc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, hlcPacked, deviceId, savedAtUtc);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HlcClockStateRow &&
+          other.id == this.id &&
+          other.hlcPacked == this.hlcPacked &&
+          other.deviceId == this.deviceId &&
+          other.savedAtUtc == this.savedAtUtc);
+}
+
+class HlcClockStatesCompanion extends UpdateCompanion<HlcClockStateRow> {
+  final Value<int> id;
+  final Value<int> hlcPacked;
+  final Value<String> deviceId;
+  final Value<DateTime> savedAtUtc;
+  const HlcClockStatesCompanion({
+    this.id = const Value.absent(),
+    this.hlcPacked = const Value.absent(),
+    this.deviceId = const Value.absent(),
+    this.savedAtUtc = const Value.absent(),
+  });
+  HlcClockStatesCompanion.insert({
+    this.id = const Value.absent(),
+    required int hlcPacked,
+    required String deviceId,
+    required DateTime savedAtUtc,
+  }) : hlcPacked = Value(hlcPacked),
+       deviceId = Value(deviceId),
+       savedAtUtc = Value(savedAtUtc);
+  static Insertable<HlcClockStateRow> custom({
+    Expression<int>? id,
+    Expression<int>? hlcPacked,
+    Expression<String>? deviceId,
+    Expression<DateTime>? savedAtUtc,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (hlcPacked != null) 'hlc_packed': hlcPacked,
+      if (deviceId != null) 'device_id': deviceId,
+      if (savedAtUtc != null) 'saved_at_utc': savedAtUtc,
+    });
+  }
+
+  HlcClockStatesCompanion copyWith({
+    Value<int>? id,
+    Value<int>? hlcPacked,
+    Value<String>? deviceId,
+    Value<DateTime>? savedAtUtc,
+  }) {
+    return HlcClockStatesCompanion(
+      id: id ?? this.id,
+      hlcPacked: hlcPacked ?? this.hlcPacked,
+      deviceId: deviceId ?? this.deviceId,
+      savedAtUtc: savedAtUtc ?? this.savedAtUtc,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (hlcPacked.present) {
+      map['hlc_packed'] = Variable<int>(hlcPacked.value);
+    }
+    if (deviceId.present) {
+      map['device_id'] = Variable<String>(deviceId.value);
+    }
+    if (savedAtUtc.present) {
+      map['saved_at_utc'] = Variable<DateTime>(savedAtUtc.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HlcClockStatesCompanion(')
+          ..write('id: $id, ')
+          ..write('hlcPacked: $hlcPacked, ')
+          ..write('deviceId: $deviceId, ')
+          ..write('savedAtUtc: $savedAtUtc')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $TRecordMetaTable extends TRecordMeta
     with TableInfo<$TRecordMetaTable, TRecordMetaData> {
   @override
@@ -15802,6 +17051,9 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
       $WorkItemPanelRefsTable(this);
   late final $CreationAuditLogsTable creationAuditLogs =
       $CreationAuditLogsTable(this);
+  late final $OutboxPeerAcksTable outboxPeerAcks = $OutboxPeerAcksTable(this);
+  late final $EntityStampsTable entityStamps = $EntityStampsTable(this);
+  late final $HlcClockStatesTable hlcClockStates = $HlcClockStatesTable(this);
   late final $TRecordMetaTable tRecordMeta = $TRecordMetaTable(this);
   late final $TRecordSearchIndexTable tRecordSearchIndex =
       $TRecordSearchIndexTable(this);
@@ -15852,6 +17104,9 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
   late final CreationAuditLogsDao creationAuditLogsDao = CreationAuditLogsDao(
     this as PersistenceDriftDatabase,
   );
+  late final EntityStampDao entityStampDao = EntityStampDao(
+    this as PersistenceDriftDatabase,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -15883,6 +17138,9 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
     panelRefs,
     workItemPanelRefs,
     creationAuditLogs,
+    outboxPeerAcks,
+    entityStamps,
+    hlcClockStates,
     tRecordMeta,
     tRecordSearchIndex,
     tScopeAlias,
@@ -16313,6 +17571,7 @@ typedef $$SyncStatesTableCreateCompanionBuilder =
     SyncStatesCompanion Function({
       required String scopeUid,
       required String entityType,
+      Value<String> peerId,
       required String cursorType,
       Value<int?> revision,
       Value<DateTime?> serverUpdatedAtUtc,
@@ -16326,6 +17585,7 @@ typedef $$SyncStatesTableUpdateCompanionBuilder =
     SyncStatesCompanion Function({
       Value<String> scopeUid,
       Value<String> entityType,
+      Value<String> peerId,
       Value<String> cursorType,
       Value<int?> revision,
       Value<DateTime?> serverUpdatedAtUtc,
@@ -16352,6 +17612,11 @@ class $$SyncStatesTableFilterComposer
 
   ColumnFilters<String> get entityType => $composableBuilder(
     column: $table.entityType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get peerId => $composableBuilder(
+    column: $table.peerId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -16410,6 +17675,11 @@ class $$SyncStatesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get peerId => $composableBuilder(
+    column: $table.peerId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get cursorType => $composableBuilder(
     column: $table.cursorType,
     builder: (column) => ColumnOrderings(column),
@@ -16462,6 +17732,9 @@ class $$SyncStatesTableAnnotationComposer
     column: $table.entityType,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get peerId =>
+      $composableBuilder(column: $table.peerId, builder: (column) => column);
 
   GeneratedColumn<String> get cursorType => $composableBuilder(
     column: $table.cursorType,
@@ -16536,6 +17809,7 @@ class $$SyncStatesTableTableManager
               ({
                 Value<String> scopeUid = const Value.absent(),
                 Value<String> entityType = const Value.absent(),
+                Value<String> peerId = const Value.absent(),
                 Value<String> cursorType = const Value.absent(),
                 Value<int?> revision = const Value.absent(),
                 Value<DateTime?> serverUpdatedAtUtc = const Value.absent(),
@@ -16547,6 +17821,7 @@ class $$SyncStatesTableTableManager
               }) => SyncStatesCompanion(
                 scopeUid: scopeUid,
                 entityType: entityType,
+                peerId: peerId,
                 cursorType: cursorType,
                 revision: revision,
                 serverUpdatedAtUtc: serverUpdatedAtUtc,
@@ -16560,6 +17835,7 @@ class $$SyncStatesTableTableManager
               ({
                 required String scopeUid,
                 required String entityType,
+                Value<String> peerId = const Value.absent(),
                 required String cursorType,
                 Value<int?> revision = const Value.absent(),
                 Value<DateTime?> serverUpdatedAtUtc = const Value.absent(),
@@ -16571,6 +17847,7 @@ class $$SyncStatesTableTableManager
               }) => SyncStatesCompanion.insert(
                 scopeUid: scopeUid,
                 entityType: entityType,
+                peerId: peerId,
                 cursorType: cursorType,
                 revision: revision,
                 serverUpdatedAtUtc: serverUpdatedAtUtc,
@@ -16659,66 +17936,6 @@ typedef $$SeekersTableUpdateCompanionBuilder =
       Value<String?> currentCalendarUuid,
       Value<int> rowid,
     });
-
-final class $$SeekersTableReferences
-    extends
-        BaseReferences<_$PersistenceDriftDatabase, $SeekersTable, SeekerModel> {
-  $$SeekersTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static MultiTypedResultKey<
-    $DivinationsTable,
-    List<DivinationRequestInfoDataModel>
-  >
-  _divinationsRefsTable(_$PersistenceDriftDatabase db) =>
-      MultiTypedResultKey.fromTable(
-        db.divinations,
-        aliasName: $_aliasNameGenerator(
-          db.seekers.uuid,
-          db.divinations.ownerSeekerUuid,
-        ),
-      );
-
-  $$DivinationsTableProcessedTableManager get divinationsRefs {
-    final manager = $$DivinationsTableTableManager($_db, $_db.divinations)
-        .filter(
-          (f) =>
-              f.ownerSeekerUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
-
-    final cache = $_typedResult.readTableOrNull(_divinationsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
-  static MultiTypedResultKey<
-    $SeekerDivinationMappersTable,
-    List<SeekerDivinationMapper>
-  >
-  _seekerDivinationMappersRefsTable(_$PersistenceDriftDatabase db) =>
-      MultiTypedResultKey.fromTable(
-        db.seekerDivinationMappers,
-        aliasName: $_aliasNameGenerator(
-          db.seekers.uuid,
-          db.seekerDivinationMappers.seekerUuid,
-        ),
-      );
-
-  $$SeekerDivinationMappersTableProcessedTableManager
-  get seekerDivinationMappersRefs {
-    final manager = $$SeekerDivinationMappersTableTableManager(
-      $_db,
-      $_db.seekerDivinationMappers,
-    ).filter((f) => f.seekerUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
-
-    final cache = $_typedResult.readTableOrNull(
-      _seekerDivinationMappersRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
 
 class $$SeekersTableFilterComposer
     extends Composer<_$PersistenceDriftDatabase, $SeekersTable> {
@@ -16845,57 +18062,6 @@ class $$SeekersTableFilterComposer
     column: $table.currentCalendarUuid,
     builder: (column) => ColumnFilters(column),
   );
-
-  Expression<bool> divinationsRefs(
-    Expression<bool> Function($$DivinationsTableFilterComposer f) f,
-  ) {
-    final $$DivinationsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.divinations,
-      getReferencedColumn: (t) => t.ownerSeekerUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$DivinationsTableFilterComposer(
-            $db: $db,
-            $table: $db.divinations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<bool> seekerDivinationMappersRefs(
-    Expression<bool> Function($$SeekerDivinationMappersTableFilterComposer f) f,
-  ) {
-    final $$SeekerDivinationMappersTableFilterComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.uuid,
-          referencedTable: $db.seekerDivinationMappers,
-          getReferencedColumn: (t) => t.seekerUuid,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$SeekerDivinationMappersTableFilterComposer(
-                $db: $db,
-                $table: $db.seekerDivinationMappers,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
-  }
 }
 
 class $$SeekersTableOrderingComposer
@@ -17111,58 +18277,6 @@ class $$SeekersTableAnnotationComposer
     column: $table.currentCalendarUuid,
     builder: (column) => column,
   );
-
-  Expression<T> divinationsRefs<T extends Object>(
-    Expression<T> Function($$DivinationsTableAnnotationComposer a) f,
-  ) {
-    final $$DivinationsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.divinations,
-      getReferencedColumn: (t) => t.ownerSeekerUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$DivinationsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.divinations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<T> seekerDivinationMappersRefs<T extends Object>(
-    Expression<T> Function($$SeekerDivinationMappersTableAnnotationComposer a)
-    f,
-  ) {
-    final $$SeekerDivinationMappersTableAnnotationComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.uuid,
-          referencedTable: $db.seekerDivinationMappers,
-          getReferencedColumn: (t) => t.seekerUuid,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$SeekerDivinationMappersTableAnnotationComposer(
-                $db: $db,
-                $table: $db.seekerDivinationMappers,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
-  }
 }
 
 class $$SeekersTableTableManager
@@ -17176,12 +18290,16 @@ class $$SeekersTableTableManager
           $$SeekersTableAnnotationComposer,
           $$SeekersTableCreateCompanionBuilder,
           $$SeekersTableUpdateCompanionBuilder,
-          (SeekerModel, $$SeekersTableReferences),
+          (
+            SeekerModel,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $SeekersTable,
+              SeekerModel
+            >,
+          ),
           SeekerModel,
-          PrefetchHooks Function({
-            bool divinationsRefs,
-            bool seekerDivinationMappersRefs,
-          })
+          PrefetchHooks Function()
         > {
   $$SeekersTableTableManager(_$PersistenceDriftDatabase db, $SeekersTable table)
     : super(
@@ -17293,70 +18411,9 @@ class $$SeekersTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$SeekersTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback:
-              ({divinationsRefs = false, seekerDivinationMappersRefs = false}) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [
-                    if (divinationsRefs) db.divinations,
-                    if (seekerDivinationMappersRefs) db.seekerDivinationMappers,
-                  ],
-                  addJoins: null,
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (divinationsRefs)
-                        await $_getPrefetchedData<
-                          SeekerModel,
-                          $SeekersTable,
-                          DivinationRequestInfoDataModel
-                        >(
-                          currentTable: table,
-                          referencedTable: $$SeekersTableReferences
-                              ._divinationsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$SeekersTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).divinationsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.ownerSeekerUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (seekerDivinationMappersRefs)
-                        await $_getPrefetchedData<
-                          SeekerModel,
-                          $SeekersTable,
-                          SeekerDivinationMapper
-                        >(
-                          currentTable: table,
-                          referencedTable: $$SeekersTableReferences
-                              ._seekerDivinationMappersRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$SeekersTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).seekerDivinationMappersRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.seekerUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
-              },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -17371,12 +18428,12 @@ typedef $$SeekersTableProcessedTableManager =
       $$SeekersTableAnnotationComposer,
       $$SeekersTableCreateCompanionBuilder,
       $$SeekersTableUpdateCompanionBuilder,
-      (SeekerModel, $$SeekersTableReferences),
+      (
+        SeekerModel,
+        BaseReferences<_$PersistenceDriftDatabase, $SeekersTable, SeekerModel>,
+      ),
       SeekerModel,
-      PrefetchHooks Function({
-        bool divinationsRefs,
-        bool seekerDivinationMappersRefs,
-      })
+      PrefetchHooks Function()
     >;
 typedef $$DivinationsTableCreateCompanionBuilder =
     DivinationsCompanion Function({
@@ -17412,96 +18469,6 @@ typedef $$DivinationsTableUpdateCompanionBuilder =
       Value<String?> directlyPredict,
       Value<int> rowid,
     });
-
-final class $$DivinationsTableReferences
-    extends
-        BaseReferences<
-          _$PersistenceDriftDatabase,
-          $DivinationsTable,
-          DivinationRequestInfoDataModel
-        > {
-  $$DivinationsTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static $SeekersTable _ownerSeekerUuidTable(_$PersistenceDriftDatabase db) =>
-      db.seekers.createAlias(
-        $_aliasNameGenerator(db.divinations.ownerSeekerUuid, db.seekers.uuid),
-      );
-
-  $$SeekersTableProcessedTableManager? get ownerSeekerUuid {
-    final $_column = $_itemColumn<String>('seeker_uuid');
-    if ($_column == null) return null;
-    final manager = $$SeekersTableTableManager(
-      $_db,
-      $_db.seekers,
-    ).filter((f) => f.uuid.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_ownerSeekerUuidTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static MultiTypedResultKey<
-    $SeekerDivinationMappersTable,
-    List<SeekerDivinationMapper>
-  >
-  _seekerDivinationMappersRefsTable(_$PersistenceDriftDatabase db) =>
-      MultiTypedResultKey.fromTable(
-        db.seekerDivinationMappers,
-        aliasName: $_aliasNameGenerator(
-          db.divinations.uuid,
-          db.seekerDivinationMappers.divinationUuid,
-        ),
-      );
-
-  $$SeekerDivinationMappersTableProcessedTableManager
-  get seekerDivinationMappersRefs {
-    final manager =
-        $$SeekerDivinationMappersTableTableManager(
-          $_db,
-          $_db.seekerDivinationMappers,
-        ).filter(
-          (f) => f.divinationUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
-
-    final cache = $_typedResult.readTableOrNull(
-      _seekerDivinationMappersRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
-  static MultiTypedResultKey<
-    $CombinedDivinationsTable,
-    List<CombinedDivination>
-  >
-  _combinedDivinationsRefsTable(_$PersistenceDriftDatabase db) =>
-      MultiTypedResultKey.fromTable(
-        db.combinedDivinations,
-        aliasName: $_aliasNameGenerator(
-          db.divinations.uuid,
-          db.combinedDivinations.divinationUuid,
-        ),
-      );
-
-  $$CombinedDivinationsTableProcessedTableManager get combinedDivinationsRefs {
-    final manager =
-        $$CombinedDivinationsTableTableManager(
-          $_db,
-          $_db.combinedDivinations,
-        ).filter(
-          (f) => f.divinationUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
-
-    final cache = $_typedResult.readTableOrNull(
-      _combinedDivinationsRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
 
 class $$DivinationsTableFilterComposer
     extends Composer<_$PersistenceDriftDatabase, $DivinationsTable> {
@@ -17552,6 +18519,11 @@ class $$DivinationsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get ownerSeekerUuid => $composableBuilder(
+    column: $table.ownerSeekerUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnWithTypeConverterFilters<Gender?, Gender, String> get gender =>
       $composableBuilder(
         column: $table.gender,
@@ -17572,80 +18544,6 @@ class $$DivinationsTableFilterComposer
     column: $table.directlyPredict,
     builder: (column) => ColumnFilters(column),
   );
-
-  $$SeekersTableFilterComposer get ownerSeekerUuid {
-    final $$SeekersTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.ownerSeekerUuid,
-      referencedTable: $db.seekers,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$SeekersTableFilterComposer(
-            $db: $db,
-            $table: $db.seekers,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  Expression<bool> seekerDivinationMappersRefs(
-    Expression<bool> Function($$SeekerDivinationMappersTableFilterComposer f) f,
-  ) {
-    final $$SeekerDivinationMappersTableFilterComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.uuid,
-          referencedTable: $db.seekerDivinationMappers,
-          getReferencedColumn: (t) => t.divinationUuid,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$SeekerDivinationMappersTableFilterComposer(
-                $db: $db,
-                $table: $db.seekerDivinationMappers,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
-  }
-
-  Expression<bool> combinedDivinationsRefs(
-    Expression<bool> Function($$CombinedDivinationsTableFilterComposer f) f,
-  ) {
-    final $$CombinedDivinationsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.combinedDivinations,
-      getReferencedColumn: (t) => t.divinationUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$CombinedDivinationsTableFilterComposer(
-            $db: $db,
-            $table: $db.combinedDivinations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$DivinationsTableOrderingComposer
@@ -17697,6 +18595,11 @@ class $$DivinationsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get ownerSeekerUuid => $composableBuilder(
+    column: $table.ownerSeekerUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get gender => $composableBuilder(
     column: $table.gender,
     builder: (column) => ColumnOrderings(column),
@@ -17716,29 +18619,6 @@ class $$DivinationsTableOrderingComposer
     column: $table.directlyPredict,
     builder: (column) => ColumnOrderings(column),
   );
-
-  $$SeekersTableOrderingComposer get ownerSeekerUuid {
-    final $$SeekersTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.ownerSeekerUuid,
-      referencedTable: $db.seekers,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$SeekersTableOrderingComposer(
-            $db: $db,
-            $table: $db.seekers,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$DivinationsTableAnnotationComposer
@@ -17778,6 +18658,11 @@ class $$DivinationsTableAnnotationComposer
   GeneratedColumn<String> get detail =>
       $composableBuilder(column: $table.detail, builder: (column) => column);
 
+  GeneratedColumn<String> get ownerSeekerUuid => $composableBuilder(
+    column: $table.ownerSeekerUuid,
+    builder: (column) => column,
+  );
+
   GeneratedColumnWithTypeConverter<Gender?, String> get gender =>
       $composableBuilder(column: $table.gender, builder: (column) => column);
 
@@ -17795,82 +18680,6 @@ class $$DivinationsTableAnnotationComposer
     column: $table.directlyPredict,
     builder: (column) => column,
   );
-
-  $$SeekersTableAnnotationComposer get ownerSeekerUuid {
-    final $$SeekersTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.ownerSeekerUuid,
-      referencedTable: $db.seekers,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$SeekersTableAnnotationComposer(
-            $db: $db,
-            $table: $db.seekers,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  Expression<T> seekerDivinationMappersRefs<T extends Object>(
-    Expression<T> Function($$SeekerDivinationMappersTableAnnotationComposer a)
-    f,
-  ) {
-    final $$SeekerDivinationMappersTableAnnotationComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.uuid,
-          referencedTable: $db.seekerDivinationMappers,
-          getReferencedColumn: (t) => t.divinationUuid,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$SeekerDivinationMappersTableAnnotationComposer(
-                $db: $db,
-                $table: $db.seekerDivinationMappers,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
-  }
-
-  Expression<T> combinedDivinationsRefs<T extends Object>(
-    Expression<T> Function($$CombinedDivinationsTableAnnotationComposer a) f,
-  ) {
-    final $$CombinedDivinationsTableAnnotationComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.uuid,
-          referencedTable: $db.combinedDivinations,
-          getReferencedColumn: (t) => t.divinationUuid,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$CombinedDivinationsTableAnnotationComposer(
-                $db: $db,
-                $table: $db.combinedDivinations,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
-  }
 }
 
 class $$DivinationsTableTableManager
@@ -17884,13 +18693,16 @@ class $$DivinationsTableTableManager
           $$DivinationsTableAnnotationComposer,
           $$DivinationsTableCreateCompanionBuilder,
           $$DivinationsTableUpdateCompanionBuilder,
-          (DivinationRequestInfoDataModel, $$DivinationsTableReferences),
+          (
+            DivinationRequestInfoDataModel,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $DivinationsTable,
+              DivinationRequestInfoDataModel
+            >,
+          ),
           DivinationRequestInfoDataModel,
-          PrefetchHooks Function({
-            bool ownerSeekerUuid,
-            bool seekerDivinationMappersRefs,
-            bool combinedDivinationsRefs,
-          })
+          PrefetchHooks Function()
         > {
   $$DivinationsTableTableManager(
     _$PersistenceDriftDatabase db,
@@ -17970,107 +18782,9 @@ class $$DivinationsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$DivinationsTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback:
-              ({
-                ownerSeekerUuid = false,
-                seekerDivinationMappersRefs = false,
-                combinedDivinationsRefs = false,
-              }) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [
-                    if (seekerDivinationMappersRefs) db.seekerDivinationMappers,
-                    if (combinedDivinationsRefs) db.combinedDivinations,
-                  ],
-                  addJoins:
-                      <
-                        T extends TableManagerState<
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic
-                        >
-                      >(state) {
-                        if (ownerSeekerUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.ownerSeekerUuid,
-                                    referencedTable:
-                                        $$DivinationsTableReferences
-                                            ._ownerSeekerUuidTable(db),
-                                    referencedColumn:
-                                        $$DivinationsTableReferences
-                                            ._ownerSeekerUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
-
-                        return state;
-                      },
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (seekerDivinationMappersRefs)
-                        await $_getPrefetchedData<
-                          DivinationRequestInfoDataModel,
-                          $DivinationsTable,
-                          SeekerDivinationMapper
-                        >(
-                          currentTable: table,
-                          referencedTable: $$DivinationsTableReferences
-                              ._seekerDivinationMappersRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$DivinationsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).seekerDivinationMappersRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.divinationUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (combinedDivinationsRefs)
-                        await $_getPrefetchedData<
-                          DivinationRequestInfoDataModel,
-                          $DivinationsTable,
-                          CombinedDivination
-                        >(
-                          currentTable: table,
-                          referencedTable: $$DivinationsTableReferences
-                              ._combinedDivinationsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$DivinationsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).combinedDivinationsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.divinationUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
-              },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -18085,13 +18799,16 @@ typedef $$DivinationsTableProcessedTableManager =
       $$DivinationsTableAnnotationComposer,
       $$DivinationsTableCreateCompanionBuilder,
       $$DivinationsTableUpdateCompanionBuilder,
-      (DivinationRequestInfoDataModel, $$DivinationsTableReferences),
+      (
+        DivinationRequestInfoDataModel,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $DivinationsTable,
+          DivinationRequestInfoDataModel
+        >,
+      ),
       DivinationRequestInfoDataModel,
-      PrefetchHooks Function({
-        bool ownerSeekerUuid,
-        bool seekerDivinationMappersRefs,
-        bool combinedDivinationsRefs,
-      })
+      PrefetchHooks Function()
     >;
 typedef $$SeekerDivinationMappersTableCreateCompanionBuilder =
     SeekerDivinationMappersCompanion Function({
@@ -18111,65 +18828,6 @@ typedef $$SeekerDivinationMappersTableUpdateCompanionBuilder =
       Value<String> divinationUuid,
       Value<String> seekerUuid,
     });
-
-final class $$SeekerDivinationMappersTableReferences
-    extends
-        BaseReferences<
-          _$PersistenceDriftDatabase,
-          $SeekerDivinationMappersTable,
-          SeekerDivinationMapper
-        > {
-  $$SeekerDivinationMappersTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static $DivinationsTable _divinationUuidTable(
-    _$PersistenceDriftDatabase db,
-  ) => db.divinations.createAlias(
-    $_aliasNameGenerator(
-      db.seekerDivinationMappers.divinationUuid,
-      db.divinations.uuid,
-    ),
-  );
-
-  $$DivinationsTableProcessedTableManager get divinationUuid {
-    final $_column = $_itemColumn<String>('divination_uuid')!;
-
-    final manager = $$DivinationsTableTableManager(
-      $_db,
-      $_db.divinations,
-    ).filter((f) => f.uuid.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_divinationUuidTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static $SeekersTable _seekerUuidTable(_$PersistenceDriftDatabase db) =>
-      db.seekers.createAlias(
-        $_aliasNameGenerator(
-          db.seekerDivinationMappers.seekerUuid,
-          db.seekers.uuid,
-        ),
-      );
-
-  $$SeekersTableProcessedTableManager get seekerUuid {
-    final $_column = $_itemColumn<String>('seeker_uuid')!;
-
-    final manager = $$SeekersTableTableManager(
-      $_db,
-      $_db.seekers,
-    ).filter((f) => f.uuid.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_seekerUuidTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
 
 class $$SeekerDivinationMappersTableFilterComposer
     extends
@@ -18201,51 +18859,15 @@ class $$SeekerDivinationMappersTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  $$DivinationsTableFilterComposer get divinationUuid {
-    final $$DivinationsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.divinationUuid,
-      referencedTable: $db.divinations,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$DivinationsTableFilterComposer(
-            $db: $db,
-            $table: $db.divinations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
+  ColumnFilters<String> get divinationUuid => $composableBuilder(
+    column: $table.divinationUuid,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  $$SeekersTableFilterComposer get seekerUuid {
-    final $$SeekersTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.seekerUuid,
-      referencedTable: $db.seekers,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$SeekersTableFilterComposer(
-            $db: $db,
-            $table: $db.seekers,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
+  ColumnFilters<String> get seekerUuid => $composableBuilder(
+    column: $table.seekerUuid,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$SeekerDivinationMappersTableOrderingComposer
@@ -18278,51 +18900,15 @@ class $$SeekerDivinationMappersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  $$DivinationsTableOrderingComposer get divinationUuid {
-    final $$DivinationsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.divinationUuid,
-      referencedTable: $db.divinations,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$DivinationsTableOrderingComposer(
-            $db: $db,
-            $table: $db.divinations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
+  ColumnOrderings<String> get divinationUuid => $composableBuilder(
+    column: $table.divinationUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  $$SeekersTableOrderingComposer get seekerUuid {
-    final $$SeekersTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.seekerUuid,
-      referencedTable: $db.seekers,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$SeekersTableOrderingComposer(
-            $db: $db,
-            $table: $db.seekers,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
+  ColumnOrderings<String> get seekerUuid => $composableBuilder(
+    column: $table.seekerUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$SeekerDivinationMappersTableAnnotationComposer
@@ -18349,51 +18935,15 @@ class $$SeekerDivinationMappersTableAnnotationComposer
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 
-  $$DivinationsTableAnnotationComposer get divinationUuid {
-    final $$DivinationsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.divinationUuid,
-      referencedTable: $db.divinations,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$DivinationsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.divinations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
+  GeneratedColumn<String> get divinationUuid => $composableBuilder(
+    column: $table.divinationUuid,
+    builder: (column) => column,
+  );
 
-  $$SeekersTableAnnotationComposer get seekerUuid {
-    final $$SeekersTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.seekerUuid,
-      referencedTable: $db.seekers,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$SeekersTableAnnotationComposer(
-            $db: $db,
-            $table: $db.seekers,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
+  GeneratedColumn<String> get seekerUuid => $composableBuilder(
+    column: $table.seekerUuid,
+    builder: (column) => column,
+  );
 }
 
 class $$SeekerDivinationMappersTableTableManager
@@ -18407,9 +18957,16 @@ class $$SeekerDivinationMappersTableTableManager
           $$SeekerDivinationMappersTableAnnotationComposer,
           $$SeekerDivinationMappersTableCreateCompanionBuilder,
           $$SeekerDivinationMappersTableUpdateCompanionBuilder,
-          (SeekerDivinationMapper, $$SeekerDivinationMappersTableReferences),
+          (
+            SeekerDivinationMapper,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $SeekerDivinationMappersTable,
+              SeekerDivinationMapper
+            >,
+          ),
           SeekerDivinationMapper,
-          PrefetchHooks Function({bool divinationUuid, bool seekerUuid})
+          PrefetchHooks Function()
         > {
   $$SeekerDivinationMappersTableTableManager(
     _$PersistenceDriftDatabase db,
@@ -18466,72 +19023,9 @@ class $$SeekerDivinationMappersTableTableManager
                 seekerUuid: seekerUuid,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$SeekerDivinationMappersTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback:
-              ({divinationUuid = false, seekerUuid = false}) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [],
-                  addJoins:
-                      <
-                        T extends TableManagerState<
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic
-                        >
-                      >(state) {
-                        if (divinationUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.divinationUuid,
-                                    referencedTable:
-                                        $$SeekerDivinationMappersTableReferences
-                                            ._divinationUuidTable(db),
-                                    referencedColumn:
-                                        $$SeekerDivinationMappersTableReferences
-                                            ._divinationUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
-                        if (seekerUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.seekerUuid,
-                                    referencedTable:
-                                        $$SeekerDivinationMappersTableReferences
-                                            ._seekerUuidTable(db),
-                                    referencedColumn:
-                                        $$SeekerDivinationMappersTableReferences
-                                            ._seekerUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
-
-                        return state;
-                      },
-                  getPrefetchedDataCallback: (items) async {
-                    return [];
-                  },
-                );
-              },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -18546,9 +19040,16 @@ typedef $$SeekerDivinationMappersTableProcessedTableManager =
       $$SeekerDivinationMappersTableAnnotationComposer,
       $$SeekerDivinationMappersTableCreateCompanionBuilder,
       $$SeekerDivinationMappersTableUpdateCompanionBuilder,
-      (SeekerDivinationMapper, $$SeekerDivinationMappersTableReferences),
+      (
+        SeekerDivinationMapper,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $SeekerDivinationMappersTable,
+          SeekerDivinationMapper
+        >,
+      ),
       SeekerDivinationMapper,
-      PrefetchHooks Function({bool divinationUuid, bool seekerUuid})
+      PrefetchHooks Function()
     >;
 typedef $$CombinedDivinationsTableCreateCompanionBuilder =
     CombinedDivinationsCompanion Function({
@@ -18570,43 +19071,6 @@ typedef $$CombinedDivinationsTableUpdateCompanionBuilder =
       Value<String> divinationUuid,
       Value<int> rowid,
     });
-
-final class $$CombinedDivinationsTableReferences
-    extends
-        BaseReferences<
-          _$PersistenceDriftDatabase,
-          $CombinedDivinationsTable,
-          CombinedDivination
-        > {
-  $$CombinedDivinationsTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static $DivinationsTable _divinationUuidTable(
-    _$PersistenceDriftDatabase db,
-  ) => db.divinations.createAlias(
-    $_aliasNameGenerator(
-      db.combinedDivinations.divinationUuid,
-      db.divinations.uuid,
-    ),
-  );
-
-  $$DivinationsTableProcessedTableManager get divinationUuid {
-    final $_column = $_itemColumn<String>('divination_uuid')!;
-
-    final manager = $$DivinationsTableTableManager(
-      $_db,
-      $_db.divinations,
-    ).filter((f) => f.uuid.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_divinationUuidTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
 
 class $$CombinedDivinationsTableFilterComposer
     extends Composer<_$PersistenceDriftDatabase, $CombinedDivinationsTable> {
@@ -18642,28 +19106,10 @@ class $$CombinedDivinationsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  $$DivinationsTableFilterComposer get divinationUuid {
-    final $$DivinationsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.divinationUuid,
-      referencedTable: $db.divinations,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$DivinationsTableFilterComposer(
-            $db: $db,
-            $table: $db.divinations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
+  ColumnFilters<String> get divinationUuid => $composableBuilder(
+    column: $table.divinationUuid,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$CombinedDivinationsTableOrderingComposer
@@ -18700,28 +19146,10 @@ class $$CombinedDivinationsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  $$DivinationsTableOrderingComposer get divinationUuid {
-    final $$DivinationsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.divinationUuid,
-      referencedTable: $db.divinations,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$DivinationsTableOrderingComposer(
-            $db: $db,
-            $table: $db.divinations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
+  ColumnOrderings<String> get divinationUuid => $composableBuilder(
+    column: $table.divinationUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$CombinedDivinationsTableAnnotationComposer
@@ -18750,28 +19178,10 @@ class $$CombinedDivinationsTableAnnotationComposer
   GeneratedColumn<int> get order =>
       $composableBuilder(column: $table.order, builder: (column) => column);
 
-  $$DivinationsTableAnnotationComposer get divinationUuid {
-    final $$DivinationsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.divinationUuid,
-      referencedTable: $db.divinations,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$DivinationsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.divinations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
+  GeneratedColumn<String> get divinationUuid => $composableBuilder(
+    column: $table.divinationUuid,
+    builder: (column) => column,
+  );
 }
 
 class $$CombinedDivinationsTableTableManager
@@ -18785,9 +19195,16 @@ class $$CombinedDivinationsTableTableManager
           $$CombinedDivinationsTableAnnotationComposer,
           $$CombinedDivinationsTableCreateCompanionBuilder,
           $$CombinedDivinationsTableUpdateCompanionBuilder,
-          (CombinedDivination, $$CombinedDivinationsTableReferences),
+          (
+            CombinedDivination,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $CombinedDivinationsTable,
+              CombinedDivination
+            >,
+          ),
           CombinedDivination,
-          PrefetchHooks Function({bool divinationUuid})
+          PrefetchHooks Function()
         > {
   $$CombinedDivinationsTableTableManager(
     _$PersistenceDriftDatabase db,
@@ -18845,56 +19262,9 @@ class $$CombinedDivinationsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$CombinedDivinationsTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({divinationUuid = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (divinationUuid) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.divinationUuid,
-                                referencedTable:
-                                    $$CombinedDivinationsTableReferences
-                                        ._divinationUuidTable(db),
-                                referencedColumn:
-                                    $$CombinedDivinationsTableReferences
-                                        ._divinationUuidTable(db)
-                                        .uuid,
-                              )
-                              as T;
-                    }
-
-                    return state;
-                  },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -18909,9 +19279,16 @@ typedef $$CombinedDivinationsTableProcessedTableManager =
       $$CombinedDivinationsTableAnnotationComposer,
       $$CombinedDivinationsTableCreateCompanionBuilder,
       $$CombinedDivinationsTableUpdateCompanionBuilder,
-      (CombinedDivination, $$CombinedDivinationsTableReferences),
+      (
+        CombinedDivination,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $CombinedDivinationsTable,
+          CombinedDivination
+        >,
+      ),
       CombinedDivination,
-      PrefetchHooks Function({bool divinationUuid})
+      PrefetchHooks Function()
     >;
 typedef $$DecisionLinksTableCreateCompanionBuilder =
     DecisionLinksCompanion Function({
@@ -19570,48 +19947,6 @@ typedef $$DivinationTypesTableUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
-final class $$DivinationTypesTableReferences
-    extends
-        BaseReferences<
-          _$PersistenceDriftDatabase,
-          $DivinationTypesTable,
-          DivinationTypeDataModel
-        > {
-  $$DivinationTypesTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static MultiTypedResultKey<
-    $DivinationSubDivinationTypeMappersTable,
-    List<DivinationSubDivinationTypeMapper>
-  >
-  _divinationSubDivinationTypeMappersRefsTable(_$PersistenceDriftDatabase db) =>
-      MultiTypedResultKey.fromTable(
-        db.divinationSubDivinationTypeMappers,
-        aliasName: $_aliasNameGenerator(
-          db.divinationTypes.uuid,
-          db.divinationSubDivinationTypeMappers.typeUuid,
-        ),
-      );
-
-  $$DivinationSubDivinationTypeMappersTableProcessedTableManager
-  get divinationSubDivinationTypeMappersRefs {
-    final manager = $$DivinationSubDivinationTypeMappersTableTableManager(
-      $_db,
-      $_db.divinationSubDivinationTypeMappers,
-    ).filter((f) => f.typeUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
-
-    final cache = $_typedResult.readTableOrNull(
-      _divinationSubDivinationTypeMappersRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
-
 class $$DivinationTypesTableFilterComposer
     extends Composer<_$PersistenceDriftDatabase, $DivinationTypesTable> {
   $$DivinationTypesTableFilterComposer({
@@ -19660,35 +19995,6 @@ class $$DivinationTypesTableFilterComposer
     column: $table.isAvailable,
     builder: (column) => ColumnFilters(column),
   );
-
-  Expression<bool> divinationSubDivinationTypeMappersRefs(
-    Expression<bool> Function(
-      $$DivinationSubDivinationTypeMappersTableFilterComposer f,
-    )
-    f,
-  ) {
-    final $$DivinationSubDivinationTypeMappersTableFilterComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.uuid,
-          referencedTable: $db.divinationSubDivinationTypeMappers,
-          getReferencedColumn: (t) => t.typeUuid,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$DivinationSubDivinationTypeMappersTableFilterComposer(
-                $db: $db,
-                $table: $db.divinationSubDivinationTypeMappers,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
-  }
 }
 
 class $$DivinationTypesTableOrderingComposer
@@ -19781,35 +20087,6 @@ class $$DivinationTypesTableAnnotationComposer
     column: $table.isAvailable,
     builder: (column) => column,
   );
-
-  Expression<T> divinationSubDivinationTypeMappersRefs<T extends Object>(
-    Expression<T> Function(
-      $$DivinationSubDivinationTypeMappersTableAnnotationComposer a,
-    )
-    f,
-  ) {
-    final $$DivinationSubDivinationTypeMappersTableAnnotationComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.uuid,
-          referencedTable: $db.divinationSubDivinationTypeMappers,
-          getReferencedColumn: (t) => t.typeUuid,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$DivinationSubDivinationTypeMappersTableAnnotationComposer(
-                $db: $db,
-                $table: $db.divinationSubDivinationTypeMappers,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
-  }
 }
 
 class $$DivinationTypesTableTableManager
@@ -19823,9 +20100,16 @@ class $$DivinationTypesTableTableManager
           $$DivinationTypesTableAnnotationComposer,
           $$DivinationTypesTableCreateCompanionBuilder,
           $$DivinationTypesTableUpdateCompanionBuilder,
-          (DivinationTypeDataModel, $$DivinationTypesTableReferences),
+          (
+            DivinationTypeDataModel,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $DivinationTypesTable,
+              DivinationTypeDataModel
+            >,
+          ),
           DivinationTypeDataModel,
-          PrefetchHooks Function({bool divinationSubDivinationTypeMappersRefs})
+          PrefetchHooks Function()
         > {
   $$DivinationTypesTableTableManager(
     _$PersistenceDriftDatabase db,
@@ -19885,49 +20169,9 @@ class $$DivinationTypesTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$DivinationTypesTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback:
-              ({divinationSubDivinationTypeMappersRefs = false}) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [
-                    if (divinationSubDivinationTypeMappersRefs)
-                      db.divinationSubDivinationTypeMappers,
-                  ],
-                  addJoins: null,
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (divinationSubDivinationTypeMappersRefs)
-                        await $_getPrefetchedData<
-                          DivinationTypeDataModel,
-                          $DivinationTypesTable,
-                          DivinationSubDivinationTypeMapper
-                        >(
-                          currentTable: table,
-                          referencedTable: $$DivinationTypesTableReferences
-                              ._divinationSubDivinationTypeMappersRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$DivinationTypesTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).divinationSubDivinationTypeMappersRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.typeUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
-              },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -19942,9 +20186,16 @@ typedef $$DivinationTypesTableProcessedTableManager =
       $$DivinationTypesTableAnnotationComposer,
       $$DivinationTypesTableCreateCompanionBuilder,
       $$DivinationTypesTableUpdateCompanionBuilder,
-      (DivinationTypeDataModel, $$DivinationTypesTableReferences),
+      (
+        DivinationTypeDataModel,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $DivinationTypesTable,
+          DivinationTypeDataModel
+        >,
+      ),
       DivinationTypeDataModel,
-      PrefetchHooks Function({bool divinationSubDivinationTypeMappersRefs})
+      PrefetchHooks Function()
     >;
 typedef $$SubDivinationTypesTableCreateCompanionBuilder =
     SubDivinationTypesCompanion Function({
@@ -19968,51 +20219,6 @@ typedef $$SubDivinationTypesTableUpdateCompanionBuilder =
       Value<bool> isAvailable,
       Value<int> rowid,
     });
-
-final class $$SubDivinationTypesTableReferences
-    extends
-        BaseReferences<
-          _$PersistenceDriftDatabase,
-          $SubDivinationTypesTable,
-          SubDivinationTypeDataModel
-        > {
-  $$SubDivinationTypesTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static MultiTypedResultKey<
-    $DivinationSubDivinationTypeMappersTable,
-    List<DivinationSubDivinationTypeMapper>
-  >
-  _divinationSubDivinationTypeMappersRefsTable(_$PersistenceDriftDatabase db) =>
-      MultiTypedResultKey.fromTable(
-        db.divinationSubDivinationTypeMappers,
-        aliasName: $_aliasNameGenerator(
-          db.subDivinationTypes.uuid,
-          db.divinationSubDivinationTypeMappers.subTypeUuid,
-        ),
-      );
-
-  $$DivinationSubDivinationTypeMappersTableProcessedTableManager
-  get divinationSubDivinationTypeMappersRefs {
-    final manager =
-        $$DivinationSubDivinationTypeMappersTableTableManager(
-          $_db,
-          $_db.divinationSubDivinationTypeMappers,
-        ).filter(
-          (f) => f.subTypeUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
-
-    final cache = $_typedResult.readTableOrNull(
-      _divinationSubDivinationTypeMappersRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
 
 class $$SubDivinationTypesTableFilterComposer
     extends Composer<_$PersistenceDriftDatabase, $SubDivinationTypesTable> {
@@ -20057,35 +20263,6 @@ class $$SubDivinationTypesTableFilterComposer
     column: $table.isAvailable,
     builder: (column) => ColumnFilters(column),
   );
-
-  Expression<bool> divinationSubDivinationTypeMappersRefs(
-    Expression<bool> Function(
-      $$DivinationSubDivinationTypeMappersTableFilterComposer f,
-    )
-    f,
-  ) {
-    final $$DivinationSubDivinationTypeMappersTableFilterComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.uuid,
-          referencedTable: $db.divinationSubDivinationTypeMappers,
-          getReferencedColumn: (t) => t.subTypeUuid,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$DivinationSubDivinationTypeMappersTableFilterComposer(
-                $db: $db,
-                $table: $db.divinationSubDivinationTypeMappers,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
-  }
 }
 
 class $$SubDivinationTypesTableOrderingComposer
@@ -20168,35 +20345,6 @@ class $$SubDivinationTypesTableAnnotationComposer
     column: $table.isAvailable,
     builder: (column) => column,
   );
-
-  Expression<T> divinationSubDivinationTypeMappersRefs<T extends Object>(
-    Expression<T> Function(
-      $$DivinationSubDivinationTypeMappersTableAnnotationComposer a,
-    )
-    f,
-  ) {
-    final $$DivinationSubDivinationTypeMappersTableAnnotationComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.uuid,
-          referencedTable: $db.divinationSubDivinationTypeMappers,
-          getReferencedColumn: (t) => t.subTypeUuid,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$DivinationSubDivinationTypeMappersTableAnnotationComposer(
-                $db: $db,
-                $table: $db.divinationSubDivinationTypeMappers,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
-  }
 }
 
 class $$SubDivinationTypesTableTableManager
@@ -20210,9 +20358,16 @@ class $$SubDivinationTypesTableTableManager
           $$SubDivinationTypesTableAnnotationComposer,
           $$SubDivinationTypesTableCreateCompanionBuilder,
           $$SubDivinationTypesTableUpdateCompanionBuilder,
-          (SubDivinationTypeDataModel, $$SubDivinationTypesTableReferences),
+          (
+            SubDivinationTypeDataModel,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $SubDivinationTypesTable,
+              SubDivinationTypeDataModel
+            >,
+          ),
           SubDivinationTypeDataModel,
-          PrefetchHooks Function({bool divinationSubDivinationTypeMappersRefs})
+          PrefetchHooks Function()
         > {
   $$SubDivinationTypesTableTableManager(
     _$PersistenceDriftDatabase db,
@@ -20271,49 +20426,9 @@ class $$SubDivinationTypesTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$SubDivinationTypesTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback:
-              ({divinationSubDivinationTypeMappersRefs = false}) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [
-                    if (divinationSubDivinationTypeMappersRefs)
-                      db.divinationSubDivinationTypeMappers,
-                  ],
-                  addJoins: null,
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (divinationSubDivinationTypeMappersRefs)
-                        await $_getPrefetchedData<
-                          SubDivinationTypeDataModel,
-                          $SubDivinationTypesTable,
-                          DivinationSubDivinationTypeMapper
-                        >(
-                          currentTable: table,
-                          referencedTable: $$SubDivinationTypesTableReferences
-                              ._divinationSubDivinationTypeMappersRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$SubDivinationTypesTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).divinationSubDivinationTypeMappersRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.subTypeUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
-              },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -20328,9 +20443,16 @@ typedef $$SubDivinationTypesTableProcessedTableManager =
       $$SubDivinationTypesTableAnnotationComposer,
       $$SubDivinationTypesTableCreateCompanionBuilder,
       $$SubDivinationTypesTableUpdateCompanionBuilder,
-      (SubDivinationTypeDataModel, $$SubDivinationTypesTableReferences),
+      (
+        SubDivinationTypeDataModel,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $SubDivinationTypesTable,
+          SubDivinationTypeDataModel
+        >,
+      ),
       SubDivinationTypeDataModel,
-      PrefetchHooks Function({bool divinationSubDivinationTypeMappersRefs})
+      PrefetchHooks Function()
     >;
 typedef $$DivinationSubDivinationTypeMappersTableCreateCompanionBuilder =
     DivinationSubDivinationTypeMappersCompanion Function({
@@ -20348,65 +20470,6 @@ typedef $$DivinationSubDivinationTypeMappersTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime?> deletedAt,
     });
-
-final class $$DivinationSubDivinationTypeMappersTableReferences
-    extends
-        BaseReferences<
-          _$PersistenceDriftDatabase,
-          $DivinationSubDivinationTypeMappersTable,
-          DivinationSubDivinationTypeMapper
-        > {
-  $$DivinationSubDivinationTypeMappersTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static $DivinationTypesTable _typeUuidTable(_$PersistenceDriftDatabase db) =>
-      db.divinationTypes.createAlias(
-        $_aliasNameGenerator(
-          db.divinationSubDivinationTypeMappers.typeUuid,
-          db.divinationTypes.uuid,
-        ),
-      );
-
-  $$DivinationTypesTableProcessedTableManager get typeUuid {
-    final $_column = $_itemColumn<String>('divination_type_uuid')!;
-
-    final manager = $$DivinationTypesTableTableManager(
-      $_db,
-      $_db.divinationTypes,
-    ).filter((f) => f.uuid.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_typeUuidTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static $SubDivinationTypesTable _subTypeUuidTable(
-    _$PersistenceDriftDatabase db,
-  ) => db.subDivinationTypes.createAlias(
-    $_aliasNameGenerator(
-      db.divinationSubDivinationTypeMappers.subTypeUuid,
-      db.subDivinationTypes.uuid,
-    ),
-  );
-
-  $$SubDivinationTypesTableProcessedTableManager get subTypeUuid {
-    final $_column = $_itemColumn<String>('sub_divination_type_uuid')!;
-
-    final manager = $$SubDivinationTypesTableTableManager(
-      $_db,
-      $_db.subDivinationTypes,
-    ).filter((f) => f.uuid.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_subTypeUuidTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
 
 class $$DivinationSubDivinationTypeMappersTableFilterComposer
     extends
@@ -20426,6 +20489,16 @@ class $$DivinationSubDivinationTypeMappersTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get typeUuid => $composableBuilder(
+    column: $table.typeUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get subTypeUuid => $composableBuilder(
+    column: $table.subTypeUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
@@ -20435,52 +20508,6 @@ class $$DivinationSubDivinationTypeMappersTableFilterComposer
     column: $table.deletedAt,
     builder: (column) => ColumnFilters(column),
   );
-
-  $$DivinationTypesTableFilterComposer get typeUuid {
-    final $$DivinationTypesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.typeUuid,
-      referencedTable: $db.divinationTypes,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$DivinationTypesTableFilterComposer(
-            $db: $db,
-            $table: $db.divinationTypes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$SubDivinationTypesTableFilterComposer get subTypeUuid {
-    final $$SubDivinationTypesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.subTypeUuid,
-      referencedTable: $db.subDivinationTypes,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$SubDivinationTypesTableFilterComposer(
-            $db: $db,
-            $table: $db.subDivinationTypes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$DivinationSubDivinationTypeMappersTableOrderingComposer
@@ -20501,6 +20528,16 @@ class $$DivinationSubDivinationTypeMappersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get typeUuid => $composableBuilder(
+    column: $table.typeUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get subTypeUuid => $composableBuilder(
+    column: $table.subTypeUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -20510,52 +20547,6 @@ class $$DivinationSubDivinationTypeMappersTableOrderingComposer
     column: $table.deletedAt,
     builder: (column) => ColumnOrderings(column),
   );
-
-  $$DivinationTypesTableOrderingComposer get typeUuid {
-    final $$DivinationTypesTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.typeUuid,
-      referencedTable: $db.divinationTypes,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$DivinationTypesTableOrderingComposer(
-            $db: $db,
-            $table: $db.divinationTypes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$SubDivinationTypesTableOrderingComposer get subTypeUuid {
-    final $$SubDivinationTypesTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.subTypeUuid,
-      referencedTable: $db.subDivinationTypes,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$SubDivinationTypesTableOrderingComposer(
-            $db: $db,
-            $table: $db.subDivinationTypes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$DivinationSubDivinationTypeMappersTableAnnotationComposer
@@ -20574,58 +20565,19 @@ class $$DivinationSubDivinationTypeMappersTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
+  GeneratedColumn<String> get typeUuid =>
+      $composableBuilder(column: $table.typeUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get subTypeUuid => $composableBuilder(
+    column: $table.subTypeUuid,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
-
-  $$DivinationTypesTableAnnotationComposer get typeUuid {
-    final $$DivinationTypesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.typeUuid,
-      referencedTable: $db.divinationTypes,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$DivinationTypesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.divinationTypes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$SubDivinationTypesTableAnnotationComposer get subTypeUuid {
-    final $$SubDivinationTypesTableAnnotationComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.subTypeUuid,
-          referencedTable: $db.subDivinationTypes,
-          getReferencedColumn: (t) => t.uuid,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$SubDivinationTypesTableAnnotationComposer(
-                $db: $db,
-                $table: $db.subDivinationTypes,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return composer;
-  }
 }
 
 class $$DivinationSubDivinationTypeMappersTableTableManager
@@ -20641,10 +20593,14 @@ class $$DivinationSubDivinationTypeMappersTableTableManager
           $$DivinationSubDivinationTypeMappersTableUpdateCompanionBuilder,
           (
             DivinationSubDivinationTypeMapper,
-            $$DivinationSubDivinationTypeMappersTableReferences,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $DivinationSubDivinationTypeMappersTable,
+              DivinationSubDivinationTypeMapper
+            >,
           ),
           DivinationSubDivinationTypeMapper,
-          PrefetchHooks Function({bool typeUuid, bool subTypeUuid})
+          PrefetchHooks Function()
         > {
   $$DivinationSubDivinationTypeMappersTableTableManager(
     _$PersistenceDriftDatabase db,
@@ -20697,75 +20653,9 @@ class $$DivinationSubDivinationTypeMappersTableTableManager
                 deletedAt: deletedAt,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$DivinationSubDivinationTypeMappersTableReferences(
-                    db,
-                    table,
-                    e,
-                  ),
-                ),
-              )
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({typeUuid = false, subTypeUuid = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (typeUuid) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.typeUuid,
-                                referencedTable:
-                                    $$DivinationSubDivinationTypeMappersTableReferences
-                                        ._typeUuidTable(db),
-                                referencedColumn:
-                                    $$DivinationSubDivinationTypeMappersTableReferences
-                                        ._typeUuidTable(db)
-                                        .uuid,
-                              )
-                              as T;
-                    }
-                    if (subTypeUuid) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.subTypeUuid,
-                                referencedTable:
-                                    $$DivinationSubDivinationTypeMappersTableReferences
-                                        ._subTypeUuidTable(db),
-                                referencedColumn:
-                                    $$DivinationSubDivinationTypeMappersTableReferences
-                                        ._subTypeUuidTable(db)
-                                        .uuid,
-                              )
-                              as T;
-                    }
-
-                    return state;
-                  },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -20782,10 +20672,14 @@ typedef $$DivinationSubDivinationTypeMappersTableProcessedTableManager =
       $$DivinationSubDivinationTypeMappersTableUpdateCompanionBuilder,
       (
         DivinationSubDivinationTypeMapper,
-        $$DivinationSubDivinationTypeMappersTableReferences,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $DivinationSubDivinationTypeMappersTable,
+          DivinationSubDivinationTypeMapper
+        >,
       ),
       DivinationSubDivinationTypeMapper,
-      PrefetchHooks Function({bool typeUuid, bool subTypeUuid})
+      PrefetchHooks Function()
     >;
 typedef $$DivinationCalendarsTableCreateCompanionBuilder =
     DivinationCalendarsCompanion Function({
@@ -24787,6 +24681,661 @@ typedef $$CreationAuditLogsTableProcessedTableManager =
       CreationAuditLog,
       PrefetchHooks Function()
     >;
+typedef $$OutboxPeerAcksTableCreateCompanionBuilder =
+    OutboxPeerAcksCompanion Function({
+      required String operationId,
+      required String peerId,
+      Value<String> status,
+      Value<int> attempt,
+      Value<String?> lastErrorCode,
+      Value<String?> lastErrorMessage,
+      Value<DateTime?> ackedAtUtc,
+      Value<int> rowid,
+    });
+typedef $$OutboxPeerAcksTableUpdateCompanionBuilder =
+    OutboxPeerAcksCompanion Function({
+      Value<String> operationId,
+      Value<String> peerId,
+      Value<String> status,
+      Value<int> attempt,
+      Value<String?> lastErrorCode,
+      Value<String?> lastErrorMessage,
+      Value<DateTime?> ackedAtUtc,
+      Value<int> rowid,
+    });
+
+class $$OutboxPeerAcksTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $OutboxPeerAcksTable> {
+  $$OutboxPeerAcksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get operationId => $composableBuilder(
+    column: $table.operationId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get peerId => $composableBuilder(
+    column: $table.peerId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get attempt => $composableBuilder(
+    column: $table.attempt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastErrorCode => $composableBuilder(
+    column: $table.lastErrorCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastErrorMessage => $composableBuilder(
+    column: $table.lastErrorMessage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get ackedAtUtc => $composableBuilder(
+    column: $table.ackedAtUtc,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$OutboxPeerAcksTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $OutboxPeerAcksTable> {
+  $$OutboxPeerAcksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get operationId => $composableBuilder(
+    column: $table.operationId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get peerId => $composableBuilder(
+    column: $table.peerId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get attempt => $composableBuilder(
+    column: $table.attempt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastErrorCode => $composableBuilder(
+    column: $table.lastErrorCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastErrorMessage => $composableBuilder(
+    column: $table.lastErrorMessage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get ackedAtUtc => $composableBuilder(
+    column: $table.ackedAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$OutboxPeerAcksTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $OutboxPeerAcksTable> {
+  $$OutboxPeerAcksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get operationId => $composableBuilder(
+    column: $table.operationId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get peerId =>
+      $composableBuilder(column: $table.peerId, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<int> get attempt =>
+      $composableBuilder(column: $table.attempt, builder: (column) => column);
+
+  GeneratedColumn<String> get lastErrorCode => $composableBuilder(
+    column: $table.lastErrorCode,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lastErrorMessage => $composableBuilder(
+    column: $table.lastErrorMessage,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get ackedAtUtc => $composableBuilder(
+    column: $table.ackedAtUtc,
+    builder: (column) => column,
+  );
+}
+
+class $$OutboxPeerAcksTableTableManager
+    extends
+        RootTableManager<
+          _$PersistenceDriftDatabase,
+          $OutboxPeerAcksTable,
+          OutboxPeerAckRow,
+          $$OutboxPeerAcksTableFilterComposer,
+          $$OutboxPeerAcksTableOrderingComposer,
+          $$OutboxPeerAcksTableAnnotationComposer,
+          $$OutboxPeerAcksTableCreateCompanionBuilder,
+          $$OutboxPeerAcksTableUpdateCompanionBuilder,
+          (
+            OutboxPeerAckRow,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $OutboxPeerAcksTable,
+              OutboxPeerAckRow
+            >,
+          ),
+          OutboxPeerAckRow,
+          PrefetchHooks Function()
+        > {
+  $$OutboxPeerAcksTableTableManager(
+    _$PersistenceDriftDatabase db,
+    $OutboxPeerAcksTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$OutboxPeerAcksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$OutboxPeerAcksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$OutboxPeerAcksTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> operationId = const Value.absent(),
+                Value<String> peerId = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<int> attempt = const Value.absent(),
+                Value<String?> lastErrorCode = const Value.absent(),
+                Value<String?> lastErrorMessage = const Value.absent(),
+                Value<DateTime?> ackedAtUtc = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => OutboxPeerAcksCompanion(
+                operationId: operationId,
+                peerId: peerId,
+                status: status,
+                attempt: attempt,
+                lastErrorCode: lastErrorCode,
+                lastErrorMessage: lastErrorMessage,
+                ackedAtUtc: ackedAtUtc,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String operationId,
+                required String peerId,
+                Value<String> status = const Value.absent(),
+                Value<int> attempt = const Value.absent(),
+                Value<String?> lastErrorCode = const Value.absent(),
+                Value<String?> lastErrorMessage = const Value.absent(),
+                Value<DateTime?> ackedAtUtc = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => OutboxPeerAcksCompanion.insert(
+                operationId: operationId,
+                peerId: peerId,
+                status: status,
+                attempt: attempt,
+                lastErrorCode: lastErrorCode,
+                lastErrorMessage: lastErrorMessage,
+                ackedAtUtc: ackedAtUtc,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$OutboxPeerAcksTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PersistenceDriftDatabase,
+      $OutboxPeerAcksTable,
+      OutboxPeerAckRow,
+      $$OutboxPeerAcksTableFilterComposer,
+      $$OutboxPeerAcksTableOrderingComposer,
+      $$OutboxPeerAcksTableAnnotationComposer,
+      $$OutboxPeerAcksTableCreateCompanionBuilder,
+      $$OutboxPeerAcksTableUpdateCompanionBuilder,
+      (
+        OutboxPeerAckRow,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $OutboxPeerAcksTable,
+          OutboxPeerAckRow
+        >,
+      ),
+      OutboxPeerAckRow,
+      PrefetchHooks Function()
+    >;
+typedef $$EntityStampsTableCreateCompanionBuilder =
+    EntityStampsCompanion Function({
+      required String scopeUid,
+      required String entityType,
+      required String entityId,
+      required int hlcPacked,
+      required String deviceId,
+      Value<int> rowid,
+    });
+typedef $$EntityStampsTableUpdateCompanionBuilder =
+    EntityStampsCompanion Function({
+      Value<String> scopeUid,
+      Value<String> entityType,
+      Value<String> entityId,
+      Value<int> hlcPacked,
+      Value<String> deviceId,
+      Value<int> rowid,
+    });
+
+class $$EntityStampsTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $EntityStampsTable> {
+  $$EntityStampsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get entityId => $composableBuilder(
+    column: $table.entityId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get hlcPacked => $composableBuilder(
+    column: $table.hlcPacked,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get deviceId => $composableBuilder(
+    column: $table.deviceId,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$EntityStampsTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $EntityStampsTable> {
+  $$EntityStampsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entityId => $composableBuilder(
+    column: $table.entityId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get hlcPacked => $composableBuilder(
+    column: $table.hlcPacked,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get deviceId => $composableBuilder(
+    column: $table.deviceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$EntityStampsTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $EntityStampsTable> {
+  $$EntityStampsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
+
+  GeneratedColumn<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get entityId =>
+      $composableBuilder(column: $table.entityId, builder: (column) => column);
+
+  GeneratedColumn<int> get hlcPacked =>
+      $composableBuilder(column: $table.hlcPacked, builder: (column) => column);
+
+  GeneratedColumn<String> get deviceId =>
+      $composableBuilder(column: $table.deviceId, builder: (column) => column);
+}
+
+class $$EntityStampsTableTableManager
+    extends
+        RootTableManager<
+          _$PersistenceDriftDatabase,
+          $EntityStampsTable,
+          EntityStampRow,
+          $$EntityStampsTableFilterComposer,
+          $$EntityStampsTableOrderingComposer,
+          $$EntityStampsTableAnnotationComposer,
+          $$EntityStampsTableCreateCompanionBuilder,
+          $$EntityStampsTableUpdateCompanionBuilder,
+          (
+            EntityStampRow,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $EntityStampsTable,
+              EntityStampRow
+            >,
+          ),
+          EntityStampRow,
+          PrefetchHooks Function()
+        > {
+  $$EntityStampsTableTableManager(
+    _$PersistenceDriftDatabase db,
+    $EntityStampsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$EntityStampsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$EntityStampsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$EntityStampsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> scopeUid = const Value.absent(),
+                Value<String> entityType = const Value.absent(),
+                Value<String> entityId = const Value.absent(),
+                Value<int> hlcPacked = const Value.absent(),
+                Value<String> deviceId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => EntityStampsCompanion(
+                scopeUid: scopeUid,
+                entityType: entityType,
+                entityId: entityId,
+                hlcPacked: hlcPacked,
+                deviceId: deviceId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String scopeUid,
+                required String entityType,
+                required String entityId,
+                required int hlcPacked,
+                required String deviceId,
+                Value<int> rowid = const Value.absent(),
+              }) => EntityStampsCompanion.insert(
+                scopeUid: scopeUid,
+                entityType: entityType,
+                entityId: entityId,
+                hlcPacked: hlcPacked,
+                deviceId: deviceId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$EntityStampsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PersistenceDriftDatabase,
+      $EntityStampsTable,
+      EntityStampRow,
+      $$EntityStampsTableFilterComposer,
+      $$EntityStampsTableOrderingComposer,
+      $$EntityStampsTableAnnotationComposer,
+      $$EntityStampsTableCreateCompanionBuilder,
+      $$EntityStampsTableUpdateCompanionBuilder,
+      (
+        EntityStampRow,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $EntityStampsTable,
+          EntityStampRow
+        >,
+      ),
+      EntityStampRow,
+      PrefetchHooks Function()
+    >;
+typedef $$HlcClockStatesTableCreateCompanionBuilder =
+    HlcClockStatesCompanion Function({
+      Value<int> id,
+      required int hlcPacked,
+      required String deviceId,
+      required DateTime savedAtUtc,
+    });
+typedef $$HlcClockStatesTableUpdateCompanionBuilder =
+    HlcClockStatesCompanion Function({
+      Value<int> id,
+      Value<int> hlcPacked,
+      Value<String> deviceId,
+      Value<DateTime> savedAtUtc,
+    });
+
+class $$HlcClockStatesTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $HlcClockStatesTable> {
+  $$HlcClockStatesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get hlcPacked => $composableBuilder(
+    column: $table.hlcPacked,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get deviceId => $composableBuilder(
+    column: $table.deviceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get savedAtUtc => $composableBuilder(
+    column: $table.savedAtUtc,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$HlcClockStatesTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $HlcClockStatesTable> {
+  $$HlcClockStatesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get hlcPacked => $composableBuilder(
+    column: $table.hlcPacked,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get deviceId => $composableBuilder(
+    column: $table.deviceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get savedAtUtc => $composableBuilder(
+    column: $table.savedAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$HlcClockStatesTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $HlcClockStatesTable> {
+  $$HlcClockStatesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get hlcPacked =>
+      $composableBuilder(column: $table.hlcPacked, builder: (column) => column);
+
+  GeneratedColumn<String> get deviceId =>
+      $composableBuilder(column: $table.deviceId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get savedAtUtc => $composableBuilder(
+    column: $table.savedAtUtc,
+    builder: (column) => column,
+  );
+}
+
+class $$HlcClockStatesTableTableManager
+    extends
+        RootTableManager<
+          _$PersistenceDriftDatabase,
+          $HlcClockStatesTable,
+          HlcClockStateRow,
+          $$HlcClockStatesTableFilterComposer,
+          $$HlcClockStatesTableOrderingComposer,
+          $$HlcClockStatesTableAnnotationComposer,
+          $$HlcClockStatesTableCreateCompanionBuilder,
+          $$HlcClockStatesTableUpdateCompanionBuilder,
+          (
+            HlcClockStateRow,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $HlcClockStatesTable,
+              HlcClockStateRow
+            >,
+          ),
+          HlcClockStateRow,
+          PrefetchHooks Function()
+        > {
+  $$HlcClockStatesTableTableManager(
+    _$PersistenceDriftDatabase db,
+    $HlcClockStatesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$HlcClockStatesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$HlcClockStatesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$HlcClockStatesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> hlcPacked = const Value.absent(),
+                Value<String> deviceId = const Value.absent(),
+                Value<DateTime> savedAtUtc = const Value.absent(),
+              }) => HlcClockStatesCompanion(
+                id: id,
+                hlcPacked: hlcPacked,
+                deviceId: deviceId,
+                savedAtUtc: savedAtUtc,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int hlcPacked,
+                required String deviceId,
+                required DateTime savedAtUtc,
+              }) => HlcClockStatesCompanion.insert(
+                id: id,
+                hlcPacked: hlcPacked,
+                deviceId: deviceId,
+                savedAtUtc: savedAtUtc,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$HlcClockStatesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PersistenceDriftDatabase,
+      $HlcClockStatesTable,
+      HlcClockStateRow,
+      $$HlcClockStatesTableFilterComposer,
+      $$HlcClockStatesTableOrderingComposer,
+      $$HlcClockStatesTableAnnotationComposer,
+      $$HlcClockStatesTableCreateCompanionBuilder,
+      $$HlcClockStatesTableUpdateCompanionBuilder,
+      (
+        HlcClockStateRow,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $HlcClockStatesTable,
+          HlcClockStateRow
+        >,
+      ),
+      HlcClockStateRow,
+      PrefetchHooks Function()
+    >;
 typedef $$TRecordMetaTableCreateCompanionBuilder =
     TRecordMetaCompanion Function({
       required String uuid,
@@ -25956,6 +26505,12 @@ class $PersistenceDriftDatabaseManager {
       $$WorkItemPanelRefsTableTableManager(_db, _db.workItemPanelRefs);
   $$CreationAuditLogsTableTableManager get creationAuditLogs =>
       $$CreationAuditLogsTableTableManager(_db, _db.creationAuditLogs);
+  $$OutboxPeerAcksTableTableManager get outboxPeerAcks =>
+      $$OutboxPeerAcksTableTableManager(_db, _db.outboxPeerAcks);
+  $$EntityStampsTableTableManager get entityStamps =>
+      $$EntityStampsTableTableManager(_db, _db.entityStamps);
+  $$HlcClockStatesTableTableManager get hlcClockStates =>
+      $$HlcClockStatesTableTableManager(_db, _db.hlcClockStates);
   $$TRecordMetaTableTableManager get tRecordMeta =>
       $$TRecordMetaTableTableManager(_db, _db.tRecordMeta);
   $$TRecordSearchIndexTableTableManager get tRecordSearchIndex =>

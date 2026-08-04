@@ -3,6 +3,11 @@
 /// 用途：
 /// - 对外稳定的错误分类，用于：outbox 状态回写、诊断统计、重试策略选择。
 /// - 具体实现（Firestore/HTTP）应尽量映射到这些枚举值。
+library;
+
+import 'conflict_arbiter.dart';
+import 'sync_peer.dart';
+
 enum SyncErrorCode {
   /// Network is unavailable or request timed out.
   network,
@@ -247,6 +252,8 @@ class RemoteChange {
     required this.cursor,
     required this.payloadJson,
     required this.serverTimeUtc,
+    this.hlcPacked,
+    this.deviceId,
   });
 
   final String operationId;
@@ -256,12 +263,26 @@ class RemoteChange {
   final PullCursor cursor;
   final String payloadJson;
   final DateTime? serverTimeUtc;
+
+  /// 产生该变更的 HLC 戳（因果序，§5.2.3）。
+  ///
+  /// 线上格式见 ACT 08 TASK_DETAIL.hlc_wire_format_spec（钉死，
+  /// 与 docs/storage-s1b-multipeer/HLC-WIRE-FORMAT.md（ACT 11 产出）同一规格）：
+  /// 48 位 l + 16 位 c 打包成 int64，`(l << 16) | c`（l = UTC 毫秒，c = Hlc.counter）。
+  /// 可空：历史 oplog 条目没有这个字段。
+  final int? hlcPacked;
+
+  /// 产生该变更的设备标识（HLC 相等时的决胜位，= Hlc.nodeId）。
+  ///
+  /// 【2026-08-03 换库】crdt 的 Hlc 内建 nodeId，nodeId 一律取本字段值
+  /// （= DeviceIdentity.deviceId）。可空：历史 oplog 条目没有这个字段。
+  final String? deviceId;
 }
 
 /// One page of remote changes.
 ///
 /// 功能说明：
-/// - 由 [RemoteGateway.listChanges] 返回，用于分页拉取。
+/// - 由 [SyncPeer.listChanges] 返回，用于分页拉取。
 /// - 当 [hasMore] 为 true 时，上层可继续请求下一页。
 class RemoteChangesPage {
   /// Creates a [RemoteChangesPage].
@@ -335,6 +356,9 @@ class ChangeApplyOutcome {
     required this.decision,
     required this.reason,
     required this.message,
+    this.discardedPayloadJson,
+    this.discardedStamp,
+    this.discardedSide,
   });
 
   final String operationId;
@@ -343,6 +367,31 @@ class ChangeApplyOutcome {
   final ChangeApplyDecision decision;
   final SkipReasonCode? reason;
   final String? message;
+
+  /// 本次冲突中【被丢弃的那一方】的 payload（§5.3 冲突可见化）。
+  ///
+  /// · decision 为 applied 且发生覆盖 → 这里是【被覆盖的本地版本】
+  /// · decision 为 skipped 且原因是仲裁判 keepLocal → 这里是【被丢弃的远端版本】
+  ///
+  /// 两个方向都要留档。只留前者是不够的：远端 loser 被丢弃后游标照常推进
+  /// （skipped 不阻止推进，见 ACT 10），那条远端变更【再也不会被拉到】。
+  /// 会话式同步可能两周才跑一次，用户丢的是"这两周里对方改的东西"。
+  final String? discardedPayloadJson;
+
+  /// 被丢弃那一方的版本坐标，用于向用户展示"你丢的是哪个版本、来自哪台设备"。
+  final VersionStamp? discardedStamp;
+
+  /// 被丢弃的是哪一侧。null 表示本次没有冲突。
+  final ConflictSide? discardedSide;
+}
+
+/// 冲突中被丢弃的一侧。
+enum ConflictSide {
+  /// 本地版本被覆盖（takeRemote）。
+  local,
+
+  /// 远端版本被丢弃（keepLocal）。
+  remote,
 }
 
 /// Result of applying a batch of remote changes.
@@ -439,8 +488,10 @@ class OutboxRecord {
 /// Capabilities reported by a region's remote backend.
 ///
 /// 功能说明：
-/// - 由 [RemoteGateway.getCapabilities] 返回。
+/// - 由 [SyncPeer.getCapabilities] 返回。
 /// - SyncRuntime 可根据 capabilities 做动态 feature gating。
+///
+/// 注意：S1b 后由 [PeerCapabilities] 取代，保留待清理。
 class RegionCapabilities {
   /// Creates a [RegionCapabilities].
   ///
@@ -482,6 +533,35 @@ class OutboxPushRunResult {
   final SyncError? lastError;
 
   /// True when [lastError] is not null.
+  bool get hasError => lastError != null;
+}
+
+/// 一轮推送中【单个对端】的结果。
+///
+/// 取代把 N 个对端压成一个 [OutboxPushRunResult] 的做法 ——
+/// 压扁之后 runtime 无从知道该给谁记失败、该跳过谁（§5.2.2）。
+class PeerPushOutcome {
+  /// 创建一个 [PeerPushOutcome]。
+  const PeerPushOutcome({
+    required this.peerId,
+    required this.succeeded,
+    required this.failed,
+    this.lastError,
+  });
+
+  /// 对端标识。
+  final PeerId peerId;
+
+  /// 本轮成功推送的条数。
+  final int succeeded;
+
+  /// 本轮失败的条数。
+  final int failed;
+
+  /// 最后一个错误，用于退避决策与诊断。
+  final SyncError? lastError;
+
+  /// 该对端本轮是否有失败。
   bool get hasError => lastError != null;
 }
 

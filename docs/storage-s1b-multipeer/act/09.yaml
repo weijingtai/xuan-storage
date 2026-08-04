@@ -1,0 +1,550 @@
+ACT_VERSION: 1
+TASK_ID: mimo-storage-s1b-multipeer/09
+TITLE: ConflictArbiter —— (hlc, deviceId) 全序仲裁 + 冲突双向可回溯
+TYPE: implementation
+ORDER: 9
+DEPENDS_ON: [mimo-storage-s1b-multipeer/08]
+DISPATCH_STATUS: ready
+STRONG_MODEL_ONLY: true    # 定序判断写错不报错
+
+OBJECTIVE: >
+  §5.2.3：record 主线【没有 LWW，是 RWW】（远端无条件覆盖本地），全文件对
+  updatedAt/rev 只有解析、无比较逻辑。本 ACT 交付 `ConflictArbiter` 端口与
+  `(hlc, deviceId)` 全序实现，并让 `ChangeApplyOutcome` 能承载
+  【被丢弃的那一方】—— 无论丢的是本地还是远端（§5.3 冲突可见化）。
+
+  仲裁纯计算、无 IO。接进 applier 是 ACT 10。
+
+ACT_BASE:
+  说明: >
+    本 ACT 的若干 VERIFICATION 需要界定"本 ACT 改了什么"。
+    【开工第一件事】记下不可变基线：
+
+      git rev-parse HEAD > .act-base && cat .act-base
+
+    之后所有 no-touch 检查【逐字】这样写（`$(cat .act-base)` 是可执行的
+    shell 命令替换，不是占位符 —— 直接复制粘贴就能跑）：
+
+      git diff --exit-code "$(cat .act-base)"..HEAD -- <路径>
+
+    【不要】用 `HEAD~1` —— 它假设"每个 ACT 恰好一个提交"，
+    一旦你分了两次小提交，守卫就只覆盖最后一次，前面的改动无人看管
+    （Codex R1 · P1-20）。
+    .act-base 是临时文件，收工前删掉，不要提交。
+
+SCOPE:
+  READ:
+    - docs/superpowers/specs/2026-07-31-storage-architecture-design.md
+      # §5.2.3 全节；§5.3「冲突可见化」：必须保留被覆盖的版本并使其可回溯
+    - core/lib/sync/hlc_clock.dart       # ACT 08 的 HlcClock / 戳语义
+    - core/lib/test_support/frozen_stamps.dart
+      # ACT 08 交付的 generateFrozenStamps —— 收敛性用例的测试数据来源
+    - core/lib/model/types.dart
+      # ChangeApplyDecision:285 / SkipReasonCode:301 / ChangeApplyOutcome:322
+      # RemoteChange —— ACT 08 已加可空 hlcPacked / deviceId
+    - core/lib/model/ports.dart          # DeviceIdentity:240（复用，不新建）
+    - docs/storage-s1b-multipeer/act/08.yaml
+      # 08 的 BACKGROUND：HLC 单独不构成全序，故必须 (hlc, deviceId)
+  WRITE:
+    - core/lib/model/conflict_arbiter.dart
+    - core/test/s1b_conflict_arbiter_test.dart
+  MODIFY:
+    - core/lib/model/types.dart          # ChangeApplyOutcome 增加冲突可回溯字段
+
+SIGNATURE:
+  conflict_arbiter.dart: |
+    /// 版本坐标：(hlc, deviceId)。
+    ///
+    /// 【为什么需要 deviceId】：`HybridLogicalClock` 只有 (l, c)，没有 nodeId。
+    /// 两台设备在同一物理毫秒各写一次且互不知情时 `isConcurrentWith == true`、
+    /// `compareTo == 0` —— HLC 给的是【因果序（偏序）】，不是全序。
+    /// deviceId 作为决胜位把它补成全序，保证任意两台设备对同一对版本
+    /// 得出【同一个】结论。
+    ///
+    /// 比较规则：先比 hlc；hlc 相等（并发）时比 deviceId 的
+    /// **UTF-8 字节序**（无符号逐字节字典序），大者胜。
+    ///
+    /// ⚠⚠ 【deviceId 必须按 UTF-8 字节比，不许直接用 `String.compareTo`】
+    /// （Codex R3 · P0-3）。Dart 的 `String.compareTo` 走的是 **UTF-16 code unit**
+    /// 序，与 UTF-8 字节序【在非 ASCII 上结论相反】：
+    ///   · U+10000（𐀀，UTF-8 = F0 90 80 80；UTF-16 = D800 DC00 代理对）
+    ///   · U+E000（，UTF-8 = EE 80 80；UTF-16 = E000）
+    ///   UTF-8 序：EE < F0 ⇒ U+E000 < U+10000
+    ///   UTF-16 序：D800 < E000 ⇒ U+10000 < U+E000   ←【结论相反】
+    /// 两端若一端用 UTF-8 一端用 UTF-16，对同一对并发版本会选出【不同的赢家】，
+    /// 那正是 A14「跨语言客户端可对表」要防的事，且不报错、只是静默分叉。
+    /// 实现方式：`utf8.encode(deviceId)` 后逐字节比无符号值，
+    /// 短的是长的前缀时短者小。ASCII 范围内两种序一致，所以【纯 ASCII 测试抓不到这个 bug】。
+    final class VersionStamp implements Comparable<VersionStamp> {
+      /// HLC 戳。打包形式见 ACT 11 的线上格式规格。
+      final HybridLogicalClock hlc;
+
+      /// 写入该版本的设备标识。取自 [DeviceIdentity.deviceId]。
+      final String deviceId;
+
+      /// 构造一个 [VersionStamp]。
+      const VersionStamp({required this.hlc, required this.deviceId});
+
+      /// 从线上打包值还原。[packed] 为 `(l << 16) | c`。
+      factory VersionStamp.fromPacked(int packed, String deviceId);
+
+      /// 打包成线上格式 int64。
+      int toPacked();
+
+      @override
+      int compareTo(VersionStamp other);
+    }
+
+    /// 一次冲突的裁决。
+    enum ArbitrationDecision {
+      /// 远端版本胜出，应覆盖本地。被覆盖的【本地】版本要留档。
+      takeRemote,
+
+      /// 本地版本胜出，远端变更应被丢弃。被丢弃的【远端】版本【同样】要留档。
+      keepLocal,
+
+      /// 两者坐标完全相同 —— 同一版本，无冲突，无需写入。
+      identical,
+    }
+
+    /// 冲突仲裁器。决定"远端来的这条变更该不该覆盖本地"。
+    ///
+    /// 【纯函数，无 IO、无状态】。持久化由调用方（ACT 10 的 applier）负责 ——
+    /// 混进来会让它没法被单元测试穷举，而定序正是最需要穷举的那类代码。
+    abstract interface class ConflictArbiter {
+      /// 比较远端与本地版本，给出裁决。
+      ///
+      /// [remote] 可空：历史 oplog 条目没有戳。降级规则见 TASK_DETAIL。
+      /// [local] 可空：t_entity_stamp 里还没有该实体的戳（首次收到）。
+      ArbitrationDecision arbitrate({
+        required VersionStamp? remote,
+        required VersionStamp? local,
+      });
+    }
+
+    /// 默认实现：严格按 (hlc, deviceId) 全序比较。
+    final class HlcConflictArbiter implements ConflictArbiter {
+      /// 构造一个 [HlcConflictArbiter]。
+      const HlcConflictArbiter();
+    }
+
+  types.dart ChangeApplyOutcome 增加: |
+    /// 本次冲突中【被丢弃的那一方】的 payload（§5.3 冲突可见化）。
+    ///
+    /// · decision 为 applied 且发生覆盖 → 这里是【被覆盖的本地版本】
+    /// · decision 为 skipped 且原因是仲裁判 keepLocal → 这里是【被丢弃的远端版本】
+    ///
+    /// 两个方向都要留档。只留前者是不够的：远端 loser 被丢弃后游标照常推进
+    /// （skipped 不阻止推进，见 ACT 10），那条远端变更【再也不会被拉到】。
+    /// 会话式同步可能两周才跑一次，用户丢的是"这两周里对方改的东西"。
+    final String? discardedPayloadJson;
+
+    /// 被丢弃那一方的版本坐标，用于向用户展示"你丢的是哪个版本、来自哪台设备"。
+    final VersionStamp? discardedStamp;
+
+    /// 被丢弃的是哪一侧。null 表示本次没有冲突。
+    final ConflictSide? discardedSide;
+
+    /// 冲突中被丢弃的一侧。
+    enum ConflictSide { local, remote }
+
+TASK_DETAIL:
+  total_order_requirement: >
+    compareTo 必须是【全序】：
+    · 反对称  a.compareTo(b) == -b.compareTo(a)
+    · 传递性  a<b 且 b<c ⇒ a<c
+    · 自反    a.compareTo(a) == 0
+    · **0 当且仅当 hlc 相等【且】 deviceId 相等**
+
+    最后一条是关键：hlc 相等但 deviceId 不同【不得】返回 0。
+    返回 0 会让两台设备的并发编辑被判为 identical，于是谁都不覆盖谁，
+    两边永久分叉 —— 而且不报错。
+
+  null_degradation: >
+    两个参数都可空，四种组合各有明确语义，【各须一条测试】：
+
+      remote=null, local=null   → identical（都没戳，无从比较，不写入）
+      remote=null, local≠null   → **keepLocal**（远端是无戳的历史条目，不覆盖有戳的本地）
+      remote≠null, local=null   → **takeRemote**（本地【没有可比的版本坐标】，直接采用）
+      remote≠null, local≠null   → 正常比较
+
+    第二条的方向是 fail-safe：丢远端的一次更新，用户下次同步还能拿到；
+    丢本地的编辑不可恢复。
+    【不要】写成"拿不准就 takeRemote" —— 那正是 §5.2.3 判定为缺陷的 RWW 行为，
+    等于本 ACT 白做。
+
+  local_null_is_ambiguous_by_design: >
+    ⚠ **`local == null` 在语义上覆盖了两种不同的现实**（Codex R2）：
+      (a) 本地【根本没有这个实体】—— 首次收到，直接采用是对的；
+      (b) 本地【有这个实体，但 t_entity_stamp 里没有它的戳】——
+          比如实体是 S1b 之前写入的历史数据，从没被打过戳。
+          此时 takeRemote 会【无条件覆盖一份真实存在的本地数据】，
+          而那正是 §5.2.3 判定为缺陷的 RWW 行为。
+
+    本 ACT 的处理：**arbitrate 只看版本坐标，不区分 (a)(b) —— 这是设计选择，
+    不是遗漏。** 理由：ConflictArbiter 是纯函数，它拿不到"本地实体存不存在"
+    这个事实，硬塞进来就要给它 IO 或再加一个参数，两者都会污染它的可穷举性。
+
+    区分的责任在【调用方】，写在 ACT 10 的 applier 里：
+      · applier 查到本地实体不存在 → 直接走 takeRemote，不必仲裁
+      · applier 查到本地实体存在但边表无戳 → **必须留档**
+        （discardedSide = local + 被覆盖的本地 payload），
+        使用户能看到"这条历史数据被远端覆盖了"
+    ACT 10 有一条专门的测试守这个区分，【本 ACT 只负责把语义写清楚，不实现它】。
+
+  no_subtraction_in_compare_to: >
+    ⚠ compareTo 【不许用减法实现】（`a.l - b.l` / `a.hlcPacked - b.hlcPacked`）。
+    减法在普通数值上同样满足反对称/传递/自反，所以 Codex R1 指出的那四条性质
+    【抓不到它】（R2 复核确认此洞仍在）。
+    减法实现的问题不只是溢出：它把"语义比较"降级成"数值相减"，
+    一旦将来打包格式或决胜位（deviceId）的参与方式变化，减法的含义
+    会悄悄漂移而不报错。正确写法是三路比较
+    （`if (a.hlc < b.hlc) return -1; ...` 最后比 deviceId 的 UTF-8 字节序）。
+    ⚠ 【不要声称"减法在极端值上必然溢出所以能测出来"】（Codex R4 · P1-1）：
+    A14 把合法 packed 值限定在 `[0, 2^63)`，该区间内相减不溢出、
+    符号与三路比较一致，数值测试【无法】识别减法实现。
+    权威门禁是 VERIFICATION 里对 compareTo 函数体的【源码文本检查】
+    （禁 `- other`，且必须有 `utf8.encode`），
+    由 SELF_CHECK「临时改成减法 → 文本门禁必红」证明其证明力。
+    对应的行为用例是 `compare_to_orders_extreme_packed_values_correctly`。
+
+  discarded_is_bidirectional: >
+    §5.3 要求"冲突时保留被覆盖的版本并使其对用户可见可回溯"。
+    【两个方向都要】：
+      takeRemote → 留【本地】被覆盖的 payload
+      keepLocal  → 留【远端】被丢弃的 payload
+    只留前者是常见的漏：keepLocal 时游标照常推进（skipped 不阻止推进），
+    那条远端变更再也不会被拉到，用户永远不知道对方改过什么。
+
+  arbiter_is_pure: >
+    ConflictArbiter 【无 IO、无状态、不碰数据库】。它只回答"谁赢"。
+    "被丢弃的 payload 存到哪"是 ACT 10 的事。
+
+  no_applier_changes: >
+    【本 ACT 不改 drift/lib/sync/record_local_applier.dart】。
+    修 canAdvanceCursor 恒真、把仲裁器接进 applier，都是 ACT 10。
+
+CONSTRAINTS:
+  - 【不要】用墙上时钟（DateTime）参与定序。ACT 08 已交付 HLC，用它。
+  - 【不要】在 hlc 相等时返回 0 而不比 deviceId。见 total_order_requirement。
+  - 【不要】把 null 降级写成"拿不准就 takeRemote"。见 null_degradation。
+  - 【不要】只留 takeRemote 方向的被覆盖 payload。见 discarded_is_bidirectional。
+  - 【不要】新建 DeviceIdentity 的替代品。ports.dart:240 已有。
+  - 【不要】给 ChangeApplyOutcome 的新字段加 required（既有构造点会全挂）。
+  - 【不要】让 ConflictArbiter 有 IO 或可变状态。
+  - 【不要】改 record_local_applier.dart。那是 ACT 10。
+  - 每个公开声明必须有中文 dartdoc（A12）。
+
+TESTS_FIRST:
+  CASES:
+    - NAME: later_hlc_wins_regardless_of_device
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        remote 的 hlc 严格大于 local，且 remote.deviceId 字典序【更小】
+        （'aaa' vs 'zzz'）→ takeRemote。
+        反过来 local 的 hlc 更大而 deviceId 更小 → keepLocal。
+        证明 hlc 是第一顺位，deviceId 只在并发时说话 ——
+        写成"先比 deviceId"这条会红。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 编译失败（VersionStamp 不存在），退出码非 0
+      COVERS: [A8]
+
+    - NAME: concurrent_tie_broken_by_device_id_deterministically
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        【本 ACT 最重要的一条】。两个 VersionStamp 的 hlc【完全相等】
+        （用 ACT 08 的 `hlc_alone_is_not_a_total_order` 造出的那种并发戳），
+        deviceId 分别 'device-a' / 'device-b'。
+        - remote='device-b', local='device-a' → takeRemote
+        - 【互换角色】remote='device-a', local='device-b' → keepLocal
+        断言两次的【胜者是同一台设备】—— 这就是"全序且确定"的可执行定义。
+        hlc 相等时直接返回 identical 的实现这条会红，
+        而那种写法让两台设备永久分叉且不报错。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A8]
+
+    - NAME: identical_iff_both_hlc_and_device_equal
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        - hlc 相等 + deviceId 相等 → identical
+        - hlc 相等 + deviceId 不同 → 【不是】identical
+        - hlc 不同 + deviceId 相等 → 【不是】identical
+        identical 语义是"同一个版本，无需写入"，判宽了会漏掉真实冲突。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A8]
+
+    - NAME: comparison_is_a_total_order_exhaustive
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        构造至少 8 个 VersionStamp（跨 hlc 与 deviceId 的组合，
+        含若干 hlc 相等 deviceId 不同的并发对），对所有两两与三三组合断言：
+        - 反对称 `a.compareTo(b) == -b.compareTo(a)`
+        - 传递性 a<b 且 b<c ⇒ a<c（三重循环穷举）
+        - 自反   `a.compareTo(a) == 0`
+        - **0 当且仅当 hlc 与 deviceId 都相等**（这一条是 Codex R1 指出的
+          "只验性质抓不到 `rev - other.rev` 式实现"的补丁）
+        最后一条要显式遍历所有配对逐个断言，不能只靠前三条推。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A8]
+
+    - NAME: convergence_over_fixed_stamps
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        【收敛性：最终状态与到达顺序无关】（§5.3；Codex R5 · P0-1 修正标准）。
+        本用例**必须驱动真实的生产仲裁器** `HlcConflictArbiter`，
+        不许在测试里自造归并规则 —— 自造规则只能证明测试辅助代码，
+        约束不了任何生产实现（v3.2 曾把它放在 ACT 08 并"收缩为数学结构命题"，
+        因为那时还没有生产仲裁器，已废弃）。
+
+        第一步：拿 ACT 08 的 `generateFrozenStamps(seed: <写死>)`
+        取一组【冻结的】版本（≥50 条、含并发对、≥3 个 entityId）。
+        两侧用的是**同一组戳**，本用例【不生成】任何新戳。
+
+        第二步：造两个【互相独立】的状态容器
+        （各是一个 `Map<String, VersionStamp>`，键 entityId），
+        各配一个 `const HlcConflictArbiter()`。把同一组戳
+        以【两种不同的到达顺序】归并进去：
+          · 一侧按列表原顺序
+          · 另一侧用另一个写死 seed 打乱（**允许违反因果先后** ——
+            网络乱序时本来就会这样，收敛结果必须照样一致）
+
+        归并规则（两侧完全相同，都走生产仲裁器）：
+          对每条戳 s，取容器里 entityId 的现值 cur（可能为 null）：
+            · cur == null → 直接放入 s
+            · 否则调 `arbiter.arbitrate(remote: s, local: cur)`，
+              按返回的 ArbitrationDecision 决定是否替换
+              （takeRemote → 替换为 s；keepLocal → 保持 cur）
+
+        第三步断言：**两个容器逐 entityId 完全相等**
+        （比 hlc 与 deviceId 两个字段，不是比对象引用）。
+
+        ⚠ 【这条必须能红】：把归并规则临时改成"后到者恒胜"（无条件替换，
+        即退化成 RWW）→ 两侧因到达顺序不同而得出不同的最终状态 → 必红。
+        SELF_CHECK 有一条专门做这个注入。
+        ⚠ 【不许写成"同一个确定性函数自比"】（Codex R2）：
+        拿同一组戳调两次 compareTo 再断言两次结果相同 ——
+        那是在断言"纯函数是纯函数"，任何实现都会绿，证明力为零。
+        两侧必须是两个真正独立的容器、两种真正不同的喂入顺序，
+        且**都经过 `arbiter.arbitrate`**。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 编译失败（HlcConflictArbiter 或 generateFrozenStamps 不存在），先红
+      COVERS: [A8]
+
+    - NAME: compare_to_orders_extreme_packed_values_correctly
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        【纯行为验证：极端合法值上的排序结果必须正确】。
+        构造两个 VersionStamp，打包值取规格允许的两端
+        （l = 2^47-1 与 l = 0，deviceId 相同）。断言：
+        - `big.compareTo(small) > 0`
+        - `small.compareTo(big) < 0`
+        - `big.compareTo(big) == 0`
+        再补一组 c 位取满（`c = 2^16-1`）的相邻值，断言低位不被吃掉。
+
+        ⚠⚠ 【本用例【不能】用来识别"是否用减法实现"】（Codex R4 · P1-1）。
+        A14 把合法 packed 值限定在 `[0, 2^63)`，该区间内任意两值相减
+        **既不溢出、也不符号翻转**，减法给出的比较结果与三路比较**完全一致**。
+        所以：
+          · 不要声称"差值超过 2^62 时减法会绕回，本条会红"——【那是错的】，
+            2^47-1 打包后约 2^63 的量级仍在正数域内，减法照样给出正确符号；
+          · 更不要声称"本条能兜住用减法但没溢出的漏网"——【逻辑正好相反】，
+            没溢出时减法的结果是对的，本用例必然绿。
+        v3.1 曾同时写下这两句互相取消的话，本轮全部删除。
+
+        **禁止减法实现的权威门禁是 VERIFICATION 里的源码文本检查**，
+        由 SELF_CHECK 里"临时改成减法 → 文本门禁必红"那条证明其证明力。
+        本用例的定位仅是：极端合法值上的排序行为正确，不涉及实现手法。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A8, A14]
+
+    - NAME: device_id_compared_as_utf8_bytes_not_utf16
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        【专打"直接用 `String.compareTo` 比 deviceId"的实现】，
+        （Codex R3 · P0-3）。
+        取两个 hlc 完全相等、deviceId 在【非 ASCII】上相反的标识：
+          · `'\u{10000}'`（U+10000）  UTF-8 首字节 F0 ｜ UTF-16 首单元 D800
+          · `'\u{e000}'`  （U+E000）   UTF-8 首字节 EE ｜ UTF-16 首单元 E000
+        UTF-8 字节序：EE < F0 ⇒ U+E000 小、U+10000 大；
+        UTF-16 code unit 序：D800 < E000 ⇒ 结论【相反】。
+        断言按【UTF-8 字节序】：
+          - `a = VersionStamp(hlc: same, deviceId: '\u{e000}')`
+            `b = VersionStamp(hlc: same, deviceId: '\u{10000}')`
+            `b.compareTo(a) > 0`（U+10000 是 UTF-8 序的大者）且 `a.compareTo(b) < 0`
+        ⚠ 【纯 ASCII 测试抓不到这个 bug】—— ASCII 在两种序下完全相同，
+        所以本用例必须用上面两个非 ASCII 标识。
+        这条也是 A14「跨语言客户端对表」的第一道防线：
+        Web/Rust 端按 UTF-8 字节比，Dart 端若按 UTF-16 比，同一对并发版本
+        会选出【不同的赢家】且不报错 —— 那正是本用例要钉死的静默分叉。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A8, A14]
+
+    - NAME: null_degradation_four_combinations
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        非 happy-path，四种 null 组合逐个断言（见 TASK_DETAIL.null_degradation）：
+          (null, null)  → identical
+          (null, 有)    → keepLocal    ← fail-safe 方向
+          (有, null)    → takeRemote
+          (有, 有)      → 正常比较
+        全程【不抛异常】。
+        写成"拿不准就 takeRemote"时第二条会红 —— 那会让所有无戳的历史
+        oplog 条目无条件覆盖本地，等于退回 RWW。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A8]
+
+    - NAME: outcome_carries_discarded_side_both_directions
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        构造两个 ChangeApplyOutcome：
+        ① takeRemote 场景 → discardedSide == ConflictSide.local，
+           discardedPayloadJson 是【本地旧 payload】，discardedStamp 是本地戳
+        ② keepLocal 场景  → discardedSide == ConflictSide.remote，
+           discardedPayloadJson 是【远端 payload】，discardedStamp 是远端戳
+        再构造一个【不传】这三个字段的 outcome，断言能编译且三者为 null
+        （既有构造点未破坏）。
+        只实现方向①的话②会红 —— 而②正是"用户永远不知道对方改过什么"的成因。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A9]
+
+    - NAME: arbiter_has_no_wall_clock_and_no_io
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        以纯文本读取 core/lib/model/conflict_arbiter.dart，断言【不含】
+        `DateTime` / `.now()` / `updatedAt` / `serverTime` / `Future<` / `async`。
+        文本级守卫，故意不依赖类型系统 ——
+        "顺手加个时间戳兜底比较"是这类代码最常见的退化路径，
+        加了之后所有功能测试仍会绿。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 断言失败或文件不存在，先红
+      COVERS: [A8]
+
+    - NAME: packed_round_trips_losslessly
+      FILE: core/test/s1b_conflict_arbiter_test.dart
+      BEHAVIOR: >
+        对一组 VersionStamp（含 l 接近 48 位上限、c 接近 16 位上限的边界值）
+        做 `toPacked()` → `fromPacked()` 往返，断言 hlc 逐字段相等。
+        再断言两个不同 stamp 的 packed 值【不相等】。
+        这条是 A14 线上格式的第一道防线：打包丢位会让远端戳被读成另一个值，
+        而那不会报错，只会让定序悄悄错乱。
+      RED_COMMAND: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A14]
+
+VERIFICATION:
+  - CMD: cd core && dart analyze --fatal-infos lib/model/conflict_arbiter.dart lib/model/types.dart
+    EXPECT_EXIT: 0
+  - CMD: cd core && flutter test test/s1b_conflict_arbiter_test.dart
+    EXPECT_EXIT: 0
+  - CMD: cd core && flutter test
+    EXPECT_EXIT: 0
+  - CMD: cd drift && flutter test
+    EXPECT_EXIT: 0
+  # 仲裁器不得依赖墙上时钟、不得有 IO。
+  # 【2026-08-03 换库修订】：VersionStamp 承载 crdt 的 Hlc（内建 dateTime 作为
+  # HLC 的 l 分量），fromPacked 还原必然碰 DateTime 字面量 —— 故不禁裸 DateTime，
+  # 但严禁 .now() / updatedAt / serverTime（"顺手加个时间戳兜底比较"的退化形态）
+  # 与异步 IO（Codex R3 · P1-1 语义：守卫的是参与定序的墙上时钟，不是 HLC 本体）。
+  - CMD: 'grep -nE "\.now\(\)|updatedAt|serverTime" core/lib/model/conflict_arbiter.dart'
+    EXPECT_EXIT: 1
+  - CMD: 'grep -nE "dart:io|Future<|async" core/lib/model/conflict_arbiter.dart'
+    EXPECT_EXIT: 1
+  # 三个新字段可空、非 required
+  - CMD: 'grep -c "final String? discardedPayloadJson;" core/lib/model/types.dart'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  - CMD: 'grep -c "final ConflictSide? discardedSide;" core/lib/model/types.dart'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  - CMD: 'grep -nE "required this.discarded" core/lib/model/types.dart'
+    EXPECT_EXIT: 1
+  # compareTo 不得用减法（三路比较）—— 文本级守卫，【禁止减法的权威门禁】
+  # （Codex R3 · P1-1：合法值域内减法不溢出，测试用例抓不到，只有这条能抓）
+  - CMD: "sed -n '/int compareTo(VersionStamp other)/,/^  }/p' core/lib/model/conflict_arbiter.dart | grep -nE '[a-zA-Z)\\]] *- *(other|[a-z])'"
+    EXPECT_EXIT: 1
+  # deviceId 必须按 UTF-8 字节比，不许直接用 String.compareTo（Codex R3 · P0-3）
+  - CMD: "sed -n '/int compareTo(VersionStamp other)/,/^  }/p' core/lib/model/conflict_arbiter.dart | grep -nE 'deviceId\\.compareTo|deviceId *\\.compareTo'"
+    EXPECT_EXIT: 1
+  # 且必须真的出现 utf8 编码调用（比较两个字符串各编码一次，共 2 次）
+  - CMD: 'grep -cE "utf8\.encode" core/lib/model/conflict_arbiter.dart'
+    EXPECT_STDOUT: "2"
+    EXPECT_EXIT: 0
+  # UTF-8 分歧用例必须存在（纯 ASCII 测试抓不到 P0-3）
+  - CMD: 'grep -cE "\\\\u\{10000\}|\\\\u\{e000\}" core/test/s1b_conflict_arbiter_test.dart'
+    EXPECT_STDOUT: "2"
+    EXPECT_EXIT: 0
+  # 双向留档：ConflictSide 两个值都要用上
+  - CMD: 'grep -c "ConflictSide.remote" core/test/s1b_conflict_arbiter_test.dart'
+    EXPECT_STDOUT: "2"
+    EXPECT_EXIT: 0
+  # 本 ACT 不改 applier
+  - CMD: git diff --exit-code "$(cat .act-base)"..HEAD -- drift/lib/sync/record_local_applier.dart
+    EXPECT_EXIT: 0
+
+SELF_CHECK:
+  - 把 compareTo 临时改成"只比 hlc，相等返回 0"→
+    `concurrent_tie_broken_by_device_id_deterministically` 与
+    `identical_iff_both_hlc_and_device_equal` 与
+    `comparison_is_a_total_order_exhaustive` 的第四条【三条同时变红】→ 改回。
+    只红一两条说明覆盖不足（Codex R1 就是抓的这个）
+  - 把 (null, 有) 的降级临时改成 takeRemote →
+    `null_degradation_four_combinations` 必须变红 → 改回
+  - 把 keepLocal 分支的 discardedPayloadJson 临时置空 →
+    `outcome_carries_discarded_side_both_directions` 的②必须变红 → 改回
+  - 在 conflict_arbiter.dart 里临时加 `final _ = DateTime.now();` →
+    `arbiter_has_no_wall_clock_and_no_io` 必须变红 → 改回
+  - 把 toPacked 的位移临时从 16 改成 15 →
+    `packed_round_trips_losslessly` 必须变红 → 改回
+  - 把 compareTo 临时改成 `return toPacked() - other.toPacked();`（减法实现）→
+    **文本 grep 门禁必须变红**（那条 sed 管道 grep 减法的命令，
+    其 EXPECT_EXIT 为 1 的期望会失败）→ 改回。
+    ⚠ 【不要声称 `compare_to_orders_extreme_packed_values_correctly` 一定会红】
+    （Codex R3 · P1-1，R4 复核仍在）：A14 把合法 packed 值限定在 `[0, 2^63)`，
+    合法值域内两数相减【不会符号翻转】，所以那条用例在合法值上抓不到减法。
+    **禁止减法的权威门禁是文本 grep，不是那条测试用例。**
+    极端量级用例的定位是兜底（非法/越界值时的第二道网），不是主力。
+  - 把 compareTo 的 deviceId 比较临时改成 `a.deviceId.compareTo(b.deviceId)`
+    （即直接用 Dart 的 UTF-16 序）→
+    `device_id_compared_as_utf8_bytes_not_utf16` 必须变红，
+    而其余所有用例【仍然绿】→ 改回。
+    这一步证明 UTF-8 门禁真的在守 P0-3，且纯 ASCII 用例确实抓不到它
+  - 把 `convergence_over_fixed_stamps` 的归并规则临时改成"后到者恒胜"
+    （无条件替换，即绕开 arbiter 退化成 RWW）→ 该用例必须变红，
+    而其余所有用例【仍然绿】→ 改回。
+    这一步证明收敛性用例真的在考仲裁器，且别的用例管不到这个失效
+  - 把 `convergence_over_fixed_stamps` 的第二个容器临时改成
+    "复用第一个容器的实例"（而非独立实例）→
+    这条【不会变红】，那正说明它退化成了自比；
+    确认现象后改回成两个独立容器（Codex R2 的老教训）
+  - 九次自检后 `git status --porcelain` 必须为空
+
+ON_FAIL:
+  - RED 阶段没红 → 测试没真正依赖新类型，重写测试
+  - 传递性断言失败 → 优先怀疑 compareTo 用了减法（`a.l - b.l`）而非三路比较
+  - 用例 `device_id_compared_as_utf8_bytes_not_utf16` 红 → 几乎必然是直接用了
+    `String.compareTo`；改成 `utf8.encode()` 后逐字节比无符号值
+  - 既有 core/drift 测试变红 → 立即停下，本 ACT 只加不改
+  - 连续两次修不好同一条 → 在纪要「决定记录」写下现象与已排除的可能，停下上报
+
+DONE_WHEN:
+  - conflict_arbiter.dart 与测试文件存在，全部命令按 EXPECT 通过
+  - compareTo 经穷举验证为全序，且 0 当且仅当 hlc 与 deviceId 都相等
+  - deviceId 按 **UTF-8 字节序**比较（不是 `String.compareTo` 的 UTF-16 序），
+    且有能区分两者的非 ASCII 用例守着
+  - 四种 null 组合各有测试，fail-safe 方向正确
+  - 冲突留档【双向】：takeRemote 留本地、keepLocal 留远端
+  - compareTo 用三路比较而非减法，由【文本 grep 门禁】权威守卫
+  - local == null 的两种现实（本地无实体 / 有实体无戳）已在
+    TASK_DETAIL.local_null_is_ambiguous_by_design 写清，区分责任明确划给 ACT 10
+  - 已验证**收敛性**：同一组冻结戳以两种到达顺序、经【真实 HlcConflictArbiter】
+    归并进两个独立容器后，逐 entityId 最终状态完全相同
+    （退化成 RWW 时该用例必红，有 SELF_CHECK 注入证明）
+  - 十一个测试用例全部存在，九条 SELF_CHECK 已实做并确认能变红
+  - applier 与既有 Data class 零改动

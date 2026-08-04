@@ -2,9 +2,10 @@ import 'dart:convert';
 
 import 'package:firebase_core/firebase_core.dart' show FirebaseException;
 import 'package:firebase_database/firebase_database.dart';
+import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/persistence_core.dart';
 
-/// Firebase Realtime Database implementation of [RemoteGateway].
+/// Firebase Realtime Database implementation of [SyncPeer].
 ///
 /// 功能说明：
 /// - 将 [OutboxRecord] push 到 Realtime Database（实体节点 + oplog 节点）。
@@ -23,7 +24,7 @@ import 'package:persistence_core/persistence_core.dart';
 ///
 /// 注意：
 /// - public scope 约定为 pull-only；push 会返回 permission 错误。
-class FirebaseRealtimeRemoteGateway implements RemoteGateway {
+class FirebaseRealtimeRemoteGateway implements SyncPeer {
   /// Creates a Realtime Database based gateway.
   ///
   /// 参数说明：
@@ -49,12 +50,21 @@ class FirebaseRealtimeRemoteGateway implements RemoteGateway {
 
   final FirebaseDatabase _database;
   final DeviceIdentity _device;
+  // ignore: unused_field — 保留构造 API 兼容（nowUtc 参数），内部不再取时
   final DateTime Function() _nowUtc;
   final String _module;
   final int _maxAttemptsBeforeDead;
   final SyncLogger _logger;
 
   static const String _publicScopeUid = 'public';
+
+  /// 本对端标识。钉死为 'firebase_realtime'（ACT 03 的 ack 表行键，勿改）。
+  @override
+  PeerId get peerId => const PeerId('firebase_realtime');
+
+  /// 本对端走云端通道。
+  @override
+  Channel get channel => Channel.cloud;
 
   /// Redacts potentially sensitive identifiers for production logs.
   ///
@@ -128,13 +138,16 @@ class FirebaseRealtimeRemoteGateway implements RemoteGateway {
     if (entityType == 'divination') return 'divinations';
     if (entityType == 'seeker') return 'seekers';
     if (entityType == 'timing_divination') return 'timing_divinations';
-    if (entityType == 'seeker_divination_map')
+    if (entityType == 'seeker_divination_map') {
       return 'seeker_divination_mappers';
-    if (entityType == 'seeker_divination_mapper')
+    }
+    if (entityType == 'seeker_divination_mapper') {
       return 'seeker_divination_mappers';
+    }
     if (entityType == 'divination_panel_map') return 'divination_panel_mappers';
-    if (entityType == 'divination_panel_mapper')
+    if (entityType == 'divination_panel_mapper') {
       return 'divination_panel_mappers';
+    }
     return entityType;
   }
 
@@ -431,8 +444,9 @@ class FirebaseRealtimeRemoteGateway implements RemoteGateway {
       final currentStatus = resultMap['status']?.toString();
       final currentAttempt = resultMap['attempt'];
       var attempt = attemptForWrite;
-      if (currentAttempt is int && currentAttempt > attempt)
+      if (currentAttempt is int && currentAttempt > attempt) {
         attempt = currentAttempt;
+      }
 
       var status = attempt >= _maxAttemptsBeforeDead ? 'dead' : 'failed';
       if (currentStatus == 'dead') status = 'dead';
@@ -476,7 +490,6 @@ class FirebaseRealtimeRemoteGateway implements RemoteGateway {
     }
 
     final sw = Stopwatch()..start();
-    final atUtc = _nowUtc().toUtc();
     final nextAttempt = record.attempt + 1;
 
     _logger.debug(
@@ -561,13 +574,13 @@ class FirebaseRealtimeRemoteGateway implements RemoteGateway {
                 );
               }()
             : _buildGenericUpsertData(
-                record: record, revision: revisionForWrite!),
+                record: record, revision: revisionForWrite),
         'softDelete' => <String, Object?>{
             'deletedAtMs': ServerValue.timestamp,
             'serverUpdatedAtMs': ServerValue.timestamp,
             'lastOperationId': record.operationId,
             'lastDeviceId': _device.deviceId,
-            'revision': revisionForWrite!,
+            'revision': revisionForWrite,
           },
         _ => throw _RemotePayloadInvalid('unknown opType: ${record.opType}'),
       };
@@ -579,7 +592,7 @@ class FirebaseRealtimeRemoteGateway implements RemoteGateway {
           record: record,
           attemptForWrite: attemptForWrite,
           status: 'success',
-          revision: revisionForWrite!,
+          revision: revisionForWrite,
           error: null,
         ),
         if (record.opType == 'upsert')
@@ -612,7 +625,7 @@ class FirebaseRealtimeRemoteGateway implements RemoteGateway {
           ref: oplogRef,
           record: record,
           attemptForWrite: nextAttempt,
-          revision: revisionForWrite!,
+          revision: revisionForWrite,
           error: err,
         );
       }
@@ -635,7 +648,7 @@ class FirebaseRealtimeRemoteGateway implements RemoteGateway {
           ref: oplogRef,
           record: record,
           attemptForWrite: nextAttempt,
-          revision: revisionForWrite!,
+          revision: revisionForWrite,
           error: err,
         );
       }
@@ -660,7 +673,7 @@ class FirebaseRealtimeRemoteGateway implements RemoteGateway {
           ref: oplogRef,
           record: record,
           attemptForWrite: nextAttempt,
-          revision: revisionForWrite!,
+          revision: revisionForWrite,
           error: err,
         );
       }
@@ -900,6 +913,20 @@ class FirebaseRealtimeRemoteGateway implements RemoteGateway {
       );
       rethrow;
     }
+  }
+
+  /// 该对端报告的能力。
+  ///
+  /// 当前为静态值（诚实的最小值），待后端协商接口就绪后改为真实上报。
+  @override
+  Future<PeerCapabilities> getCapabilities() async {
+    return PeerCapabilities(
+      peerId: peerId,
+      channel: channel,
+      entityVersions: const {},
+      supportedFeatures: const {'outbox_v1'},
+      protocolVersion: 1,
+    );
   }
 }
 
