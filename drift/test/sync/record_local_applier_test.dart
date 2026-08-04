@@ -1,15 +1,12 @@
 import 'dart:convert';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:persistence_core/model/storage_classification.dart';
-import 'package:persistence_core/model/storage_policy.dart';
-import 'package:persistence_core/model/storage_policy_registry.dart';
 import 'package:persistence_core/persistence_core.dart';
 import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
-import '../../lib/sync/record_local_applier.dart';
-import '../../lib/sync/record_outbox_mapper.dart';
+import 'package:persistence_drift/sync/record_local_applier.dart';
+import 'package:persistence_drift/sync/record_outbox_mapper.dart';
 
 RecordMeta _meta(String uuid, {String scope = 's1'}) => RecordMeta(
   uuid: uuid, scopeUid: scope, module: 'meihua', category: 'divination',
@@ -17,7 +14,7 @@ RecordMeta _meta(String uuid, {String scope = 's1'}) => RecordMeta(
 );
 
 void main() {
-  const _peer = PeerId('firestore');
+  const peer = PeerId('firestore');
   late PersistenceDriftDatabase db;
   late DriftRecordDataSource ds;
   late OutboxRecordsDao outboxDao;
@@ -46,7 +43,7 @@ void main() {
       expect(found, isNotNull);
       expect(found!.uuid, 'r1');
 
-      final outboxRows = await outboxStore.peekBatch(scopeUid: 's1', peerId: _peer, channel: Channel.cloud, limit: 100);
+      final outboxRows = await outboxStore.peekBatch(scopeUid: 's1', peerId: peer, channel: Channel.cloud, limit: 100);
       expect(outboxRows, isEmpty);
     });
 
@@ -247,7 +244,7 @@ void main() {
         changes: [change],
       );
 
-      final outboxRows = await outboxStore.peekBatch(scopeUid: 's1', peerId: _peer, channel: Channel.cloud, limit: 100);
+      final outboxRows = await outboxStore.peekBatch(scopeUid: 's1', peerId: peer, channel: Channel.cloud, limit: 100);
       expect(outboxRows, isEmpty);
     });
 

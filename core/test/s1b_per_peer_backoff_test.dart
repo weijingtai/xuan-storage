@@ -16,7 +16,7 @@ const _cloud = PeerId('cloud');
 const _lan = PeerId('lan');
 
 class _CountingPeer implements SyncPeer {
-  _CountingPeer(PeerId this._peerId, {Channel channel = Channel.cloud})
+  _CountingPeer(this._peerId, {Channel channel = Channel.cloud})
       : _channel = channel;
 
   final PeerId _peerId;

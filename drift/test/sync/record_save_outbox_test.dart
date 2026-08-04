@@ -26,7 +26,7 @@ class _TagAdapter implements ModuleRecordAdapter {
 }
 
 void main() {
-  const _peer = PeerId('firestore');
+  const peer = PeerId('firestore');
   late PersistenceDriftDatabase db;
   late DriftRecordDataSource ds;
   late OutboxRecordsDao dao;
@@ -60,7 +60,7 @@ void main() {
     );
     await repo.saveRecord(meta);
 
-    final rows = await outboxStore.peekBatch(scopeUid: 'test-scope-c2', peerId: _peer, channel: Channel.cloud, limit: 100);
+    final rows = await outboxStore.peekBatch(scopeUid: 'test-scope-c2', peerId: peer, channel: Channel.cloud, limit: 100);
     expect(rows, hasLength(1));
     expect(rows.single.entityType, 'record_meta');
     expect(rows.single.entityId, meta.uuid);
@@ -75,7 +75,7 @@ void main() {
     );
     await repo.saveRecord(meta);
 
-    final rows = await outboxStore.peekBatch(scopeUid: 'test-scope-c2', peerId: _peer, channel: Channel.cloud, limit: 100);
+    final rows = await outboxStore.peekBatch(scopeUid: 'test-scope-c2', peerId: peer, channel: Channel.cloud, limit: 100);
     expect(rows.single.payloadJson, contains(meta.uuid));
     expect(rows.single.payloadJson, contains('出门吉否？'));
   });
@@ -88,7 +88,7 @@ void main() {
     );
     await repo.saveRecord(meta);
 
-    final rows = await outboxStore.peekBatch(scopeUid: 'test-scope-c2', peerId: _peer, channel: Channel.cloud, limit: 100);
+    final rows = await outboxStore.peekBatch(scopeUid: 'test-scope-c2', peerId: peer, channel: Channel.cloud, limit: 100);
     expect(rows.single.attempt, 0);
   });
 
@@ -117,7 +117,7 @@ void main() {
     await repo.saveRecord(meta);
     await repo.softDeleteRecord('c6-del-uuid', module: 'meihua');
 
-    final rows = await outboxStore.peekBatch(scopeUid: 'test-scope-c2', peerId: _peer, channel: Channel.cloud, limit: 100);
+    final rows = await outboxStore.peekBatch(scopeUid: 'test-scope-c2', peerId: peer, channel: Channel.cloud, limit: 100);
     final deleteRows = rows.where((r) => r.opType == 'DELETE').toList();
     expect(deleteRows, hasLength(1));
     expect(deleteRows.single.entityId, 'c6-del-uuid');
@@ -132,7 +132,7 @@ void main() {
     await repo.saveRecord(meta);
     await repo.softDeleteRecord('c6-del2-uuid', module: 'meihua');
 
-    final rows = await outboxStore.peekBatch(scopeUid: 'test-scope-c2', peerId: _peer, channel: Channel.cloud, limit: 100);
+    final rows = await outboxStore.peekBatch(scopeUid: 'test-scope-c2', peerId: peer, channel: Channel.cloud, limit: 100);
     final deleteRows = rows.where((r) => r.opType == 'DELETE').toList();
     expect(deleteRows.single.opType, 'DELETE');
     expect(deleteRows.single.entityType, 'record_meta');

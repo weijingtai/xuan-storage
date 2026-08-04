@@ -1,16 +1,11 @@
-import 'dart:convert';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:persistence_core/model/storage_classification.dart';
-import 'package:persistence_core/model/storage_policy.dart';
-import 'package:persistence_core/model/storage_policy_registry.dart';
 import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/persistence_core.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
-import '../../lib/sync/record_local_applier.dart';
-import '../../lib/sync/record_outbox_mapper.dart';
-import '../../lib/sync/record_sync_config.dart';
+import 'package:persistence_drift/sync/record_local_applier.dart';
+import 'package:persistence_drift/sync/record_outbox_mapper.dart';
 
 class _TagAdapter implements ModuleRecordAdapter {
   @override String get module => 'meihua';
@@ -98,7 +93,7 @@ class _InMemRemoteGw implements SyncPeer {
 }
 
 void main() {
-  const _peer = PeerId('firestore');
+  const peer = PeerId('firestore');
   setUp(() {
     // ACT 05：peekBatch 按 channel 过滤且 fail closed。本文件用 record_meta。
     StoragePolicyRegistry.clearForTesting();
@@ -131,7 +126,7 @@ void main() {
     ));
 
     // Push from outbox
-    final batch = await outboxA.peekBatch(scopeUid: scope, peerId: _peer, channel: Channel.cloud, limit: 100);
+    final batch = await outboxA.peekBatch(scopeUid: scope, peerId: peer, channel: Channel.cloud, limit: 100);
     expect(batch, hasLength(1));
     for (final record in batch) {
       final err = await gw.push(record);
@@ -214,7 +209,7 @@ void main() {
     expect(deleted, isTrue);
 
     // Push all outbox records
-    final batch = await outboxA.peekBatch(scopeUid: scope, peerId: _peer, channel: Channel.cloud, limit: 100);
+    final batch = await outboxA.peekBatch(scopeUid: scope, peerId: peer, channel: Channel.cloud, limit: 100);
     // We should have 2: one UPSERT, one DELETE
     expect(batch, hasLength(2));
 
@@ -298,7 +293,7 @@ void main() {
         createdAt: DateTime.now(),
       ));
 
-      final batch = await outbox.peekBatch(scopeUid: scope, peerId: _peer, channel: Channel.cloud, limit: 100);
+      final batch = await outbox.peekBatch(scopeUid: scope, peerId: peer, channel: Channel.cloud, limit: 100);
       for (final record in batch) {
         await gw.push(record);
       }

@@ -6,8 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:persistence_core/persistence_core.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
-import '../../lib/sync/record_local_applier.dart';
-import '../../lib/sync/record_outbox_mapper.dart';
+import 'package:persistence_drift/sync/record_local_applier.dart';
+import 'package:persistence_drift/sync/record_outbox_mapper.dart';
 
 RecordMeta _meta(String uuid, {String scope = 's1'}) => RecordMeta(
   uuid: uuid, scopeUid: scope, module: 'meihua', category: 'divination',
@@ -99,7 +99,7 @@ void main() {
 
   tearDown(() async => await db.close());
 
-  RecordLocalApplier _applier({
+  RecordLocalApplier applierHelper({
     ConflictArbiter arbiter = const HlcConflictArbiter(),
     Future<void> Function(RecordMeta, List<SearchTag>)? applyRecord,
     Future<bool> Function(String)? deleteRecord,
@@ -143,7 +143,7 @@ void main() {
     test('failed_change_blocks_cursor_advance', () async {
       // 中间那条 applyRecord 抛异常
       final applyCalls = <String>[];
-      final applier = _applier(
+      final applier = applierHelper(
         applyRecord: (meta, tags) async {
           applyCalls.add(meta.uuid);
           if (meta.uuid == 'r2') {
@@ -184,7 +184,7 @@ void main() {
     });
 
     test('skipped_change_does_not_block_cursor_advance', () async {
-      final applier = _applier(
+      final applier = applierHelper(
         arbiter: const _KeepLocalArbiter(),
         readLocalStamp: (_) async => EntityStampRow(
           scopeUid: 's1',
@@ -216,7 +216,7 @@ void main() {
     });
 
     test('all_success_still_advances_cursor', () async {
-      final applier = _applier();
+      final applier = applierHelper();
       final changes = [
         _change('op-1', 'r1',
             payload: _upsertPayload(_meta('r1')),
@@ -232,7 +232,7 @@ void main() {
     });
 
     test('entity_type_mismatch_still_blocks_advance', () async {
-      final applier = _applier();
+      final applier = applierHelper();
       final result = await applier.applyRemoteChanges(
         scopeUid: 's1',
         entityType: 'wrong_type',
@@ -397,7 +397,6 @@ void main() {
 
   group('畸形 payload 与失败', () {
     test('malformed_payload_is_failed_and_blocks_cursor', () async {
-      final applier = _applier();
       final changes = [
         // ① payloadJson 不是合法 JSON
         _change('op-bad-json', 'r1', payload: null),
@@ -407,8 +406,8 @@ void main() {
             hlcPacked: 200, deviceId: 'device-a'),
       ];
       // 用注入的抛异常 applyRecord 触发③
-      final applierThrow = _applier(
-        applyRecord: (_, __) async => throw StateError('write boom'),
+      final applierThrow = applierHelper(
+        applyRecord: (_, _) async => throw StateError('write boom'),
       );
       final result = await applierThrow.applyRemoteChanges(
         scopeUid: 's1',
@@ -427,7 +426,7 @@ void main() {
 
   group('仲裁留档', () {
     test('keep_local_archives_the_discarded_remote', () async {
-      final applier = _applier(
+      final applier = applierHelper(
         arbiter: const _KeepLocalArbiter(),
         readLocalStamp: (_) async => EntityStampRow(
           scopeUid: 's1',
@@ -460,9 +459,9 @@ void main() {
 
     test('arbiter_keep_local_records_skipped_not_applied', () async {
       var applyCount = 0;
-      final applier = _applier(
+      final applier = applierHelper(
         arbiter: const _KeepLocalArbiter(),
-        applyRecord: (_, __) async => applyCount += 1,
+        applyRecord: (_, _) async => applyCount += 1,
         readLocalStamp: (_) async => EntityStampRow(
           scopeUid: 's1',
           entityType: RecordOutboxMapper.entityType,
@@ -485,7 +484,7 @@ void main() {
     });
 
     test('take_remote_archives_the_overwritten_local', () async {
-      final applier = _applier(
+      final applier = applierHelper(
         arbiter: const _TakeRemoteArbiter(),
         readLocalStamp: (_) async => EntityStampRow(
           scopeUid: 's1',
@@ -520,7 +519,7 @@ void main() {
     test('stampless_existing_local_is_archived_but_absent_local_is_not',
         () async {
       // 场景①：本地无实体 → 不留档
-      final applierAbsent = _applier(arbiter: const _TakeRemoteArbiter());
+      final applierAbsent = applierHelper(arbiter: const _TakeRemoteArbiter());
       final rAbsent = await applierAbsent.applyRemoteChanges(
         scopeUid: 's1',
         entityType: RecordOutboxMapper.entityType,
@@ -536,7 +535,7 @@ void main() {
 
       // 场景②：本地有实体（历史数据）但边表无戳 → 必须留档 local
       await ds.applyRemoteRecord(_meta('r-historic'), const []);
-      final applierHistoric = _applier(arbiter: const _TakeRemoteArbiter());
+      final applierHistoric = applierHelper(arbiter: const _TakeRemoteArbiter());
       final rHistoric = await applierHistoric.applyRemoteChanges(
         scopeUid: 's1',
         entityType: RecordOutboxMapper.entityType,
@@ -556,9 +555,9 @@ void main() {
   group('无戳远端与 observe', () {
     test('missing_hlc_on_remote_change_keeps_local', () async {
       var applyCount = 0;
-      final applier = _applier(
+      final applier = applierHelper(
         arbiter: const HlcConflictArbiter(),
-        applyRecord: (_, __) async => applyCount += 1,
+        applyRecord: (_, _) async => applyCount += 1,
         readLocalStamp: (_) async => EntityStampRow(
           scopeUid: 's1',
           entityType: RecordOutboxMapper.entityType,
@@ -585,7 +584,7 @@ void main() {
 
     test('observe_called_on_every_stamped_inbound_change', () async {
       final clock = _CountingClock();
-      final applier = _applier(clock: clock);
+      final applier = applierHelper(clock: clock);
 
       // 5 条带戳 + 2 条不带
       final changes = [

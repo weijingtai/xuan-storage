@@ -9,7 +9,6 @@ import 'package:metaphysics_core/datamodel/divination_request_info_datamodel.dar
 import 'package:metaphysics_core/datamodel/divination_type_data_model.dart';
 import 'package:metaphysics_core/datamodel/timing_divination_model.dart';
 import 'package:metaphysics_core/datamodel/sub_divination_type_data_model.dart';
-import 'package:metaphysics_core/datamodel/timing_divination_model.dart';
 import 'package:metaphysics_core/datamodel/seeker_model.dart';
 import 'package:persistence_drift/converters/divination_datetime_model_converter.dart';
 import 'package:persistence_drift/converters/nullable_location_converter.dart';
@@ -38,7 +37,6 @@ import 'tables/da_yun_records_table.dart';
 import 'daos/timing_divinations_dao.dart';
 import 'tables/divination_calendars_table.dart';
 import 'tables/timing_divinations_table.dart';
-import 'daos/divination_calendars_dao.dart';
 export 'daos/divination_calendars_dao.dart';
 export 'daos/timing_divinations_dao.dart';
 export 'tables/divination_calendars_table.dart';
@@ -49,8 +47,6 @@ import 'daos/panel_skill_class_mappers_dao.dart';
 import 'tables/panels_table.dart';
 import 'tables/divination_panel_mappers_table.dart';
 import 'tables/panel_skill_class_mappers_table.dart';
-import 'daos/skills_dao.dart';
-import 'daos/skill_classes_dao.dart';
 import 'tables/skills_table.dart';
 import 'tables/skill_classes_table.dart';
 import 'divination_case/divination_cases_table.dart';
@@ -951,6 +947,7 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
         await m.addColumn(decisionLinks, decisionLinks.inferenceMetaJson);
       }
       if (from < 4) {
+        // ignore: experimental_member_use
         await m.alterTable(TableMigration(tRecordMeta));
         await customStatement(
           'CREATE INDEX IF NOT EXISTS idx_record_meta_occurred '
@@ -976,6 +973,7 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
         ).get()).isNotEmpty;
         if (hasSyncState) {
           await m.addColumn(syncStates, syncStates.peerId);
+          // ignore: experimental_member_use
           await m.alterTable(TableMigration(syncStates));
         } else {
           // 兜底：极早期库（或历史迁移测试手搓的最小旧库）没有 t_sync_state，

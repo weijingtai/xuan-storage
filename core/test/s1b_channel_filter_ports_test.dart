@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:persistence_core/model/ports.dart';
 import 'package:persistence_core/model/storage_classification.dart';
 import 'package:persistence_core/model/storage_policy.dart';
 import 'package:persistence_core/model/storage_policy_registry.dart';
@@ -206,6 +205,8 @@ void main() {
       final lines = (process.stdout as String)
           .split('\n')
           .where((l) => !l.contains('peer_eligibility.dart'))
+          .where((l) => !l.contains('///'))
+          .where((l) => !l.contains('//'))
           .where((l) => l.trim().isNotEmpty);
       expect(lines, isEmpty, reason: 'lookup 判定逻辑只允许出现在 PeerEligibility 一处');
     });

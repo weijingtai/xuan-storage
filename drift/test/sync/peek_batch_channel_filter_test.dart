@@ -1,6 +1,5 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:persistence_core/model/ports.dart';
 import 'package:persistence_core/model/storage_classification.dart';
 import 'package:persistence_core/model/storage_policy.dart';
 import 'package:persistence_core/model/storage_policy_registry.dart';

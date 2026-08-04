@@ -26,7 +26,7 @@ class _TagAdapter implements ModuleRecordAdapter {
 }
 
 void main() {
-  const _peer = PeerId('firestore');
+  const peer = PeerId('firestore');
   setUp(() {
     // ACT 05：peekBatch 按 channel 过滤且 fail closed。本文件用 record_meta。
     StoragePolicyRegistry.clearForTesting();
@@ -54,7 +54,7 @@ void main() {
     await repo.saveRecord(meta);
 
     final outboxRows = await outboxStore.peekBatch(
-      scopeUid: 'test-scope-c0', peerId: _peer, channel: Channel.cloud, limit: 100,
+      scopeUid: 'test-scope-c0', peerId: peer, channel: Channel.cloud, limit: 100,
     );
     expect(outboxRows, isNotEmpty,
       reason: 'After C2: saveRecord via LocalRecordRepository with OutboxStore '

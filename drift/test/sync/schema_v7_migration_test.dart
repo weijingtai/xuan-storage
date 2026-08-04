@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:drift/drift.dart' as drift;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:persistence_drift/persistence_drift.dart';
@@ -58,8 +57,8 @@ void main() {
     for (var i = 0; i < rows.length; i++) {
       final actual = rows[i];
       for (var c = 0; c < expected[i].length; c++) {
-        expect(actual[c], expected[i][c],
-            reason: '第 $i 行第 $c 列搬运错误: ${actual[c]} != ${expected[i][c]}');
+        expect(actual.columnAt(c), expected[i][c],
+            reason: '第 $i 行第 $c 列搬运错误: ${actual.columnAt(c)} != ${expected[i][c]}');
       }
     }
 
@@ -78,7 +77,7 @@ void main() {
           "AND name IN ('t_entity_stamp', 't_hlc_clock_state')",
         )
         .toList()
-        .map((r) => r[0])
+        .map((r) => r.columnAt(0))
         .toSet();
     expect(v8Tables, containsAll(['t_entity_stamp', 't_hlc_clock_state']),
         reason: 'v8 迁移必须建出 t_entity_stamp 与 t_hlc_clock_state，实际: $v8Tables');
@@ -132,7 +131,7 @@ void main() {
     final idx = sqliteDb
         .select('PRAGMA index_list("t_outbox_peer_ack")')
         .toList()
-        .map((r) => r[1])
+        .map((r) => r.columnAt(1))
         .toSet();
     expect(idx, contains('idx_outbox_peer_ack_peer_status'));
     expect(idx, contains('idx_outbox_peer_ack_operation'));
@@ -146,7 +145,7 @@ void main() {
           "AND name IN ('t_entity_stamp', 't_hlc_clock_state')",
         )
         .toList()
-        .map((r) => r[0])
+        .map((r) => r.columnAt(0))
         .toSet();
     expect(v8Tables, containsAll(['t_entity_stamp', 't_hlc_clock_state']),
         reason: 'fresh 库必须建出 v8 两张表，实际: $v8Tables');
@@ -254,7 +253,7 @@ void main() {
     final columns = sqliteDb
         .select('PRAGMA table_info("t_outbox")')
         .toList()
-        .map((r) => r[1])
+        .map((r) => r.columnAt(1))
         .toList();
     expect(columns.contains('peer_id'), isFalse,
         reason: 't_outbox 不得加 peer_id 列');
@@ -287,8 +286,8 @@ List<String> _primaryKeyColumns(Database db, String table) {
   final rows = db.select('PRAGMA table_info("$table")').toList();
   final cols = <(int, String)>[];
   for (final r in rows) {
-    final pkOrd = r[5] as int;
-    if (pkOrd > 0) cols.add((pkOrd, r[1] as String));
+    final pkOrd = r.columnAt(5) as int;
+    if (pkOrd > 0) cols.add((pkOrd, r.columnAt(1) as String));
   }
   cols.sort((a, b) => a.$1.compareTo(b.$1));
   return cols.map((c) => c.$2).toList();

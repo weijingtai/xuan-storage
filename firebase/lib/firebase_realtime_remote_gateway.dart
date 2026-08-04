@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:firebase_core/firebase_core.dart' show FirebaseException;
 import 'package:firebase_database/firebase_database.dart';
-import 'package:persistence_core/model/storage_classification.dart';
 import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/persistence_core.dart';
 
@@ -51,6 +50,7 @@ class FirebaseRealtimeRemoteGateway implements SyncPeer {
 
   final FirebaseDatabase _database;
   final DeviceIdentity _device;
+  // ignore: unused_field — 保留构造 API 兼容（nowUtc 参数），内部不再取时
   final DateTime Function() _nowUtc;
   final String _module;
   final int _maxAttemptsBeforeDead;
@@ -138,13 +138,16 @@ class FirebaseRealtimeRemoteGateway implements SyncPeer {
     if (entityType == 'divination') return 'divinations';
     if (entityType == 'seeker') return 'seekers';
     if (entityType == 'timing_divination') return 'timing_divinations';
-    if (entityType == 'seeker_divination_map')
+    if (entityType == 'seeker_divination_map') {
       return 'seeker_divination_mappers';
-    if (entityType == 'seeker_divination_mapper')
+    }
+    if (entityType == 'seeker_divination_mapper') {
       return 'seeker_divination_mappers';
+    }
     if (entityType == 'divination_panel_map') return 'divination_panel_mappers';
-    if (entityType == 'divination_panel_mapper')
+    if (entityType == 'divination_panel_mapper') {
       return 'divination_panel_mappers';
+    }
     return entityType;
   }
 
@@ -441,8 +444,9 @@ class FirebaseRealtimeRemoteGateway implements SyncPeer {
       final currentStatus = resultMap['status']?.toString();
       final currentAttempt = resultMap['attempt'];
       var attempt = attemptForWrite;
-      if (currentAttempt is int && currentAttempt > attempt)
+      if (currentAttempt is int && currentAttempt > attempt) {
         attempt = currentAttempt;
+      }
 
       var status = attempt >= _maxAttemptsBeforeDead ? 'dead' : 'failed';
       if (currentStatus == 'dead') status = 'dead';
@@ -486,7 +490,6 @@ class FirebaseRealtimeRemoteGateway implements SyncPeer {
     }
 
     final sw = Stopwatch()..start();
-    final atUtc = _nowUtc().toUtc();
     final nextAttempt = record.attempt + 1;
 
     _logger.debug(
@@ -571,13 +574,13 @@ class FirebaseRealtimeRemoteGateway implements SyncPeer {
                 );
               }()
             : _buildGenericUpsertData(
-                record: record, revision: revisionForWrite!),
+                record: record, revision: revisionForWrite),
         'softDelete' => <String, Object?>{
             'deletedAtMs': ServerValue.timestamp,
             'serverUpdatedAtMs': ServerValue.timestamp,
             'lastOperationId': record.operationId,
             'lastDeviceId': _device.deviceId,
-            'revision': revisionForWrite!,
+            'revision': revisionForWrite,
           },
         _ => throw _RemotePayloadInvalid('unknown opType: ${record.opType}'),
       };
@@ -589,7 +592,7 @@ class FirebaseRealtimeRemoteGateway implements SyncPeer {
           record: record,
           attemptForWrite: attemptForWrite,
           status: 'success',
-          revision: revisionForWrite!,
+          revision: revisionForWrite,
           error: null,
         ),
         if (record.opType == 'upsert')
@@ -622,7 +625,7 @@ class FirebaseRealtimeRemoteGateway implements SyncPeer {
           ref: oplogRef,
           record: record,
           attemptForWrite: nextAttempt,
-          revision: revisionForWrite!,
+          revision: revisionForWrite,
           error: err,
         );
       }
@@ -645,7 +648,7 @@ class FirebaseRealtimeRemoteGateway implements SyncPeer {
           ref: oplogRef,
           record: record,
           attemptForWrite: nextAttempt,
-          revision: revisionForWrite!,
+          revision: revisionForWrite,
           error: err,
         );
       }
@@ -670,7 +673,7 @@ class FirebaseRealtimeRemoteGateway implements SyncPeer {
           ref: oplogRef,
           record: record,
           attemptForWrite: nextAttempt,
-          revision: revisionForWrite!,
+          revision: revisionForWrite,
           error: err,
         );
       }

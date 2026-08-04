@@ -1,5 +1,4 @@
 import 'package:persistence_core/model/storage_classification.dart';
-import 'package:persistence_core/model/storage_policy.dart';
 import 'package:persistence_core/model/storage_policy_registry.dart';
 import 'package:persistence_core/model/sync_peer.dart';
 

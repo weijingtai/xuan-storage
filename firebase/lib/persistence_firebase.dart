@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:persistence_core/model/storage_classification.dart';
 import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/persistence_core.dart';
 
@@ -646,13 +645,16 @@ class FirestoreRemoteGateway implements SyncPeer {
     if (entityType == 'divination') return 'divinations';
     if (entityType == 'seeker') return 'seekers';
     if (entityType == 'timing_divination') return 'timing_divinations';
-    if (entityType == 'seeker_divination_map')
+    if (entityType == 'seeker_divination_map') {
       return 'seeker_divination_mappers';
-    if (entityType == 'seeker_divination_mapper')
+    }
+    if (entityType == 'seeker_divination_mapper') {
       return 'seeker_divination_mappers';
+    }
     if (entityType == 'divination_panel_map') return 'divination_panel_mappers';
-    if (entityType == 'divination_panel_mapper')
+    if (entityType == 'divination_panel_mapper') {
       return 'divination_panel_mappers';
+    }
     return entityType;
   }
 

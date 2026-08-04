@@ -22,7 +22,7 @@ void main() {
           reason: '扫描到的文件数异常偏少（${scanned.fileCount}），可能 glob 写错');
 
       expect(scanned.violations, isEmpty,
-          reason: '仍存在 ${_banned} 标识符:\n${scanned.violations.join('\n')}');
+          reason: '仍存在 $_banned 标识符:\n${scanned.violations.join('\n')}');
 
       // 三个保留类名必须仍然存在（类名一个都不能改）。
       for (final needle in const [

@@ -1,6 +1,4 @@
 import 'package:persistence_core/core/sync_coordinator.dart';
-import 'package:persistence_core/model/ports.dart';
-import 'package:persistence_core/model/peer_eligibility.dart';
 import 'package:persistence_core/model/storage_classification.dart';
 import 'package:persistence_core/model/storage_policy.dart';
 import 'package:persistence_core/model/storage_policy_registry.dart';
@@ -23,7 +21,7 @@ const _webrtc = PeerId('webrtc');
 /// 【不用 fail()】—— SyncCoordinator 里有 catch-all，TestFailure 会被吞掉，
 /// 用 fail() 断言会静默通过（S5c 教训）。
 class _CountingPeer implements SyncPeer {
-  _CountingPeer(PeerId this._peerId, {Channel channel = Channel.cloud})
+  _CountingPeer(this._peerId, {Channel channel = Channel.cloud})
       : _channel = channel;
 
   final PeerId _peerId;
@@ -67,7 +65,7 @@ class _CountingPeer implements SyncPeer {
 
 /// 立刻抛异常的对端。
 class _ThrowingPeer implements SyncPeer {
-  _ThrowingPeer(PeerId this._peerId, {Channel channel = Channel.cloud})
+  _ThrowingPeer(this._peerId, {Channel channel = Channel.cloud})
       : _channel = channel;
 
   final PeerId _peerId;
@@ -168,13 +166,13 @@ void main() {
     });
 
     test('pushes_are_concurrent_not_serial', () async {
-      Future<SyncError?> _slow(OutboxRecord _) =>
+      Future<SyncError?> slow(OutboxRecord _) =>
           Future.delayed(const Duration(milliseconds: 200), () => null);
 
       final peers = [
-        _CountingPeer(const PeerId('a'))..onPush = _slow,
-        _CountingPeer(const PeerId('b'))..onPush = _slow,
-        _CountingPeer(const PeerId('c'))..onPush = _slow,
+        _CountingPeer(const PeerId('a'))..onPush = slow,
+        _CountingPeer(const PeerId('b'))..onPush = slow,
+        _CountingPeer(const PeerId('c'))..onPush = slow,
       ];
       final pusher = DefaultPeerFanoutPusher(peers: peers);
       final sw = Stopwatch()..start();
