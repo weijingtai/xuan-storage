@@ -9,3 +9,7 @@ pubspec.lock
 pubspec_overrides.yaml
 **/pubspec_overrides.yaml
 build/
+
+# Agent worktree（aiwt 建在仓库内，两种历史路径都要忽略）
+.worktrees/
+.claude/worktrees/

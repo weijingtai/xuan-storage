@@ -20,6 +20,18 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CORE="$ROOT/core"
 
+# ── 前置断言：本 worktree 必须已解析过依赖 ──
+# 新建的 worktree 不会自带 .dart_tool/。缺 package_config.json 时，analyzer 无法解析
+# 任何 package: import，会把每一条 import 都报成 uri_does_not_exist，产出 500+ 条假 issue，
+# 与本门禁的 58 条冻结基线毫无可比性 —— 那不是回归，是环境没装好。
+# 与其让人对着一屏红字找原因，不如在这里直接说清楚。
+if [ ! -f "$CORE/.dart_tool/package_config.json" ]; then
+  echo "❌ 前置失败: 未找到 $CORE/.dart_tool/package_config.json"
+  echo "   本 worktree 还没解析过依赖，此时跑 analyze 得到的全是假 issue。"
+  echo "   先执行: (cd \"$CORE\" && flutter pub get)"
+  exit 2
+fi
+
 # ── 冻结基线（2026-08-01，基线 commit 1fae94c；与 main 上 core 的状态一致）──
 BASELINE_TOTAL=58
 
