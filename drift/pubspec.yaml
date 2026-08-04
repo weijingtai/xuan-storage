@@ -17,9 +17,7 @@ dependencies:
   collection: ^1.19.1
   json_annotation: ^4.10.0
   persistence_core:
-    git:
-      url: http://192.168.0.165:3000/xuan/xuan-storage.git
-      path: core
+    path: ../core
   persistence_domain:
     git:
       url: http://192.168.0.165:3000/xuan/xuan-domain.git
@@ -133,9 +131,7 @@ dependency_overrides:
     git:
       url: http://192.168.0.165:3000/xuan/metaphysics-core.git
   persistence_core:
-    git:
-      url: http://192.168.0.165:3000/xuan/xuan-storage.git
-      path: core
+    path: ../core
   theme:
     git:
       url: http://192.168.0.165:3000/xuan/theme.git

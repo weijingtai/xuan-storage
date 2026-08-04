@@ -11,9 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   persistence_core:
-    git:
-      url: http://192.168.0.165:3000/xuan/xuan-storage.git
-      path: core
+    path: ../core
   enumeration:
     git:
       url: http://192.168.0.165:3000/xuan/enumeration.git
