@@ -62,13 +62,68 @@ final class DiscoveredPeer {
   });
 }
 
-/// 设备密钥对。仅占位形状，实现属 S6。
-final class DeviceKeyPair {
-  /// 公钥（PEM）。
-  final String publicKeyPem;
+/// 本机设备身份密钥的持有者。
+///
+/// **私钥【永远不】以字节形式出现在本契约里。** 只暴露「能签名」这个能力，
+/// 不暴露「取出私钥」。这样实现方可以把私钥锁在 Keychain / Android Keystore，
+/// 后续升级到 Secure Enclave / StrongBox（私钥永不导出、只能被调用）时
+/// **只换实现、接口一个字不改**。
+///
+/// 决议（2026-08-04）：设备私钥走安全存储，与 D16「业务数据不做应用层落盘
+/// 加密」不冲突 —— 私钥不是数据，是身份凭证；它泄露的后果是攻击者可冒充本
+/// 设备加入用户的同步网络，属账户级危害。
+///
+/// 约定（§3.6）：
+/// - 全部方法为异步：读安全存储是异步操作（D7 同因）。
+/// - 失败一律抛 StorageError 子类，不返回 null 表达失败。
+abstract interface class DeviceKeyStore {
+  /// 本机身份：deviceId + 公钥指纹。带外比对指纹时给用户看的就是它。
+  Future<PeerIdentity> get localIdentity;
 
-  /// 构造一个 [DeviceKeyPair]。
-  const DeviceKeyPair({required this.publicKeyPem});
+  /// 用本机私钥对 [payload] 签名。私钥不出实现。
+  ///
+  /// 参数说明：
+  /// - [payload]: 待签名字节。
+  Future<List<int>> sign(List<int> payload);
+
+  /// 用对端公钥验签。
+  ///
+  /// 参数说明：
+  /// - [payload]: 被签名的原始字节。
+  /// - [signature]: 签名字节。
+  /// - [peerPublicKeyPem]: 对端公钥（PEM）。
+  Future<bool> verify({
+    required List<int> payload,
+    required List<int> signature,
+    required String peerPublicKeyPem,
+  });
+}
+
+/// 广播句柄：[Transport.advertise] 的返回值。
+///
+/// **返回它而不是 void，是为了让隐私约定可被机械验证。** 在此之前，
+/// 「广播只含随机 service id」这条约定写在 [Transport.discover]（查询侧）的
+/// 注释里，而真正执行广播的方法根本不存在 —— 约定无处可实现、无测试可验。
+/// 现在契约测试可以直接断言 [transientServiceId] 不含 scopeUid 与设备名。
+final class AdvertisementHandle {
+  /// 随机化的临时 service id。
+  ///
+  /// **不得**含 scopeUid、用户名或设备名（否则同一咖啡厅 WiFi 下任何人
+  /// 都能枚举出设备归属，见 §6.3）。
+  final String transientServiceId;
+
+  /// 广播开始时间（UTC）。
+  final DateTime startedAtUtc;
+
+  /// 轮换周期。到期后 [transientServiceId] 必须换新，防长期追踪。
+  final Duration rotateAfter;
+
+  /// 构造一个 [AdvertisementHandle]。
+  const AdvertisementHandle({
+    required this.transientServiceId,
+    required this.startedAtUtc,
+    required this.rotateAfter,
+  });
 }
 
 /// 会话状态。
@@ -122,14 +177,25 @@ abstract interface class PeerSession {
   /// 会话状态流。
   Stream<PeerSessionState> get state;
 
-  /// 开一条逻辑流。oplog 与 blob chunk 各占一条，互不阻塞。
+  /// 开一条逻辑流（**出站**：本端主动发起）。
   ///
   /// 参数说明：
   /// - [kind]: 逻辑流类型。
   ///
   /// 约定：
   /// - 同一条 session 上不同 kind 的流必须互不阻塞（多路复用）。
+  /// - 每次调用返回**不同实例**；契约测试必须 `await` 后再比实例，
+  ///   直接比较两个 `Future` 恒不相等，那样的断言是恒绿的。
   Future<PeerStream> openStream(StreamKind kind);
+
+  /// 对端主动开流时，这里出一条已就绪的逻辑流（**入站**）。
+  ///
+  /// 与 [openStream] 对称。没有它，双方都只能自己开流、无法接受对方开的流，
+  /// 多路复用只在一个方向上成立。
+  ///
+  /// 约定：
+  /// - 本流只投递**对端发起**的 [PeerStream]，不回显本端 [openStream] 的结果。
+  Stream<PeerStream> get incomingStreams;
 
   /// 关闭会话（含其全部逻辑流）。
   Future<void> close();
@@ -140,33 +206,63 @@ abstract interface class PeerSession {
 ///
 /// 约定（§3.6）：
 /// - 失败一律抛 StorageError 子类，不返回 null 表达失败。
+/// 主动侧（[discover] / [connect]）与被动侧（[advertise] / [incoming]）
+/// **必须成对存在**：只有主动侧时两台装同一 app 的设备都只会拨号，
+/// 没有一方会接听，物理上无法建连。
 abstract interface class Transport {
   /// 本 transport 对应的通道。
   Channel get channel;
 
-  /// 发现可达对端。LAN 走 mDNS；WebRTC 走信令；导出文件走文件选择器。
+  // ── 主动侧 ──────────────────────────────────────────────
+
+  /// 发现可达对端。LAN 走 mDNS（bonsoir 的 discovery 侧）；
+  /// WebRTC 走信令后由 ICE 打洞。
   ///
   /// 参数说明：
   /// - [timeout]: 发现超时（可选）。
-  ///
-  /// 隐私约定：
-  /// - 广播内容只含随机化的临时 service id，**不含 scopeUid 或设备名**
-  ///   （否则同一咖啡厅 WiFi 下任何人都能枚举出设备归属，见 §6.3）。
   Stream<DiscoveredPeer> discover({Duration? timeout});
 
-  /// 建立会话。握手必须完成认证密钥交换并绑定指纹到会话
+  /// 建立会话（**主动拨号**）。握手必须完成认证密钥交换并把指纹绑定到会话
   /// （channel binding），否则带外指纹比对对主动 MITM 无效。规格见 S6。
   ///
   /// 参数说明：
   /// - [peer]: 被发现的对端。
-  /// - [localKeys]: 本端设备密钥对。
+  /// - [keys]: 本端设备身份密钥（私钥不出实现，见 [DeviceKeyStore]）。
   /// - [cancel]: 取消令牌（可选）。
   Future<PeerSession> connect(
     DiscoveredPeer peer, {
-    required DeviceKeyPair localKeys,
+    required DeviceKeyStore keys,
     CancellationToken? cancel,
   });
 
-  /// 释放本 transport 占用的全部资源。
+  // ── 被动侧 ──────────────────────────────────────────────
+
+  /// 开始广播本机存在，使对端的 [discover] 能看见本机。
+  /// LAN 走 mDNS 发布（bonsoir 的 broadcast 侧）；WebRTC 走信令注册。
+  ///
+  /// 参数说明：
+  /// - [keys]: 本端设备身份密钥。
+  /// - [cancel]: 取消令牌（可选）。
+  ///
+  /// 隐私约定（**本方法才是真正执行广播的地方，约定写在这里才可实现可验**）：
+  /// - 广播内容只含 [AdvertisementHandle.transientServiceId]，
+  ///   **不含 scopeUid、用户名或设备名**（见 §6.3）。
+  /// - 该 id 必须在 [AdvertisementHandle.rotateAfter] 后轮换，防长期追踪。
+  Future<AdvertisementHandle> advertise({
+    required DeviceKeyStore keys,
+    CancellationToken? cancel,
+  });
+
+  /// 停止广播。幂等：未在广播时调用不得抛错。
+  Future<void> stopAdvertising();
+
+  /// 对端主动连进来时，这里出一个**已完成认证**的会话（**接听**）。
+  ///
+  /// 与 [connect] 对称。约定：
+  /// - 只投递握手与认证均已通过的会话；认证失败的连接**不得**出现在本流。
+  /// - 未调用 [advertise] 时本流不产出元素（但订阅本身合法，不得抛错）。
+  Stream<PeerSession> get incoming;
+
+  /// 释放本 transport 占用的全部资源（含仍在进行的广播）。
   Future<void> dispose();
 }
