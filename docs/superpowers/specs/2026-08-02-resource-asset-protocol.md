@@ -40,6 +40,7 @@
 | §6 不变式 | `dataset_protocol_test.dart` 契约测试 | `persistence_core/test` |
 | §7 禁止事项 | 架构守卫测试 + grep 门禁 | `persistence_core/test` |
 | §8 错误诊断 | `DatasetRegistrationError` / `DatasetMaterializerContractError` | `persistence_core` |
+| §4 + §5 参考实现 | `BundledDatasetSource`（内置数据源，§4）/ `InMemoryDatasetInstaller`（安装器内存实现，§5）/ `AssetBackedMaterializer`（资产支持的 materializer 契约，供内置载荷读取） | `persistence_core` |
 
 `InstallOutcome` 的五个变体 —— `InstallAlreadyCurrent` / `InstallInstalled` /
 `InstallRejectedSchema` / `InstallIntegrityFailed` / `InstallSourceUnavailable`

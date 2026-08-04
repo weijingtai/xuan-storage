@@ -54,10 +54,9 @@ class $AdminDivisionsTable extends AdminDivisions
   late final GeneratedColumn<double> latitude = GeneratedColumn<double>(
     'latitude',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.double,
     requiredDuringInsert: false,
-    defaultValue: const Constant(null),
   );
   static const VerificationMeta _longitudeMeta = const VerificationMeta(
     'longitude',
@@ -66,10 +65,9 @@ class $AdminDivisionsTable extends AdminDivisions
   late final GeneratedColumn<double> longitude = GeneratedColumn<double>(
     'longitude',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.double,
     requiredDuringInsert: false,
-    defaultValue: const Constant(null),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -164,11 +162,11 @@ class $AdminDivisionsTable extends AdminDivisions
       latitude: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}latitude'],
-      )!,
+      ),
       longitude: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}longitude'],
-      )!,
+      ),
     );
   }
 
@@ -184,15 +182,15 @@ class AdminDivisionEntry extends DataClass
   final String parentCode;
   final int level;
   final String name;
-  final double latitude;
-  final double longitude;
+  final double? latitude;
+  final double? longitude;
   const AdminDivisionEntry({
     required this.code,
     required this.parentCode,
     required this.level,
     required this.name,
-    required this.latitude,
-    required this.longitude,
+    this.latitude,
+    this.longitude,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -201,8 +199,12 @@ class AdminDivisionEntry extends DataClass
     map['parent_code'] = Variable<String>(parentCode);
     map['level'] = Variable<int>(level);
     map['name'] = Variable<String>(name);
-    map['latitude'] = Variable<double>(latitude);
-    map['longitude'] = Variable<double>(longitude);
+    if (!nullToAbsent || latitude != null) {
+      map['latitude'] = Variable<double>(latitude);
+    }
+    if (!nullToAbsent || longitude != null) {
+      map['longitude'] = Variable<double>(longitude);
+    }
     return map;
   }
 
@@ -212,8 +214,12 @@ class AdminDivisionEntry extends DataClass
       parentCode: Value(parentCode),
       level: Value(level),
       name: Value(name),
-      latitude: Value(latitude),
-      longitude: Value(longitude),
+      latitude: latitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(latitude),
+      longitude: longitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(longitude),
     );
   }
 
@@ -227,8 +233,8 @@ class AdminDivisionEntry extends DataClass
       parentCode: serializer.fromJson<String>(json['parentCode']),
       level: serializer.fromJson<int>(json['level']),
       name: serializer.fromJson<String>(json['name']),
-      latitude: serializer.fromJson<double>(json['latitude']),
-      longitude: serializer.fromJson<double>(json['longitude']),
+      latitude: serializer.fromJson<double?>(json['latitude']),
+      longitude: serializer.fromJson<double?>(json['longitude']),
     );
   }
   @override
@@ -239,8 +245,8 @@ class AdminDivisionEntry extends DataClass
       'parentCode': serializer.toJson<String>(parentCode),
       'level': serializer.toJson<int>(level),
       'name': serializer.toJson<String>(name),
-      'latitude': serializer.toJson<double>(latitude),
-      'longitude': serializer.toJson<double>(longitude),
+      'latitude': serializer.toJson<double?>(latitude),
+      'longitude': serializer.toJson<double?>(longitude),
     };
   }
 
@@ -249,15 +255,15 @@ class AdminDivisionEntry extends DataClass
     String? parentCode,
     int? level,
     String? name,
-    double? latitude,
-    double? longitude,
+    Value<double?> latitude = const Value.absent(),
+    Value<double?> longitude = const Value.absent(),
   }) => AdminDivisionEntry(
     code: code ?? this.code,
     parentCode: parentCode ?? this.parentCode,
     level: level ?? this.level,
     name: name ?? this.name,
-    latitude: latitude ?? this.latitude,
-    longitude: longitude ?? this.longitude,
+    latitude: latitude.present ? latitude.value : this.latitude,
+    longitude: longitude.present ? longitude.value : this.longitude,
   );
   AdminDivisionEntry copyWithCompanion(AdminDivisionsCompanion data) {
     return AdminDivisionEntry(
@@ -305,8 +311,8 @@ class AdminDivisionsCompanion extends UpdateCompanion<AdminDivisionEntry> {
   final Value<String> parentCode;
   final Value<int> level;
   final Value<String> name;
-  final Value<double> latitude;
-  final Value<double> longitude;
+  final Value<double?> latitude;
+  final Value<double?> longitude;
   final Value<int> rowid;
   const AdminDivisionsCompanion({
     this.code = const Value.absent(),
@@ -354,8 +360,8 @@ class AdminDivisionsCompanion extends UpdateCompanion<AdminDivisionEntry> {
     Value<String>? parentCode,
     Value<int>? level,
     Value<String>? name,
-    Value<double>? latitude,
-    Value<double>? longitude,
+    Value<double?>? latitude,
+    Value<double?>? longitude,
     Value<int>? rowid,
   }) {
     return AdminDivisionsCompanion(
@@ -452,10 +458,9 @@ class $RegionsTable extends Regions with TableInfo<$RegionsTable, RegionEntry> {
   late final GeneratedColumn<String> wikiDataId = GeneratedColumn<String>(
     'wiki_data_id',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    defaultValue: const Constant(null),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -531,7 +536,7 @@ class $RegionsTable extends Regions with TableInfo<$RegionsTable, RegionEntry> {
       wikiDataId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}wiki_data_id'],
-      )!,
+      ),
     );
   }
 
@@ -545,12 +550,12 @@ class RegionEntry extends DataClass implements Insertable<RegionEntry> {
   final int id;
   final String name;
   final String translationsJson;
-  final String wikiDataId;
+  final String? wikiDataId;
   const RegionEntry({
     required this.id,
     required this.name,
     required this.translationsJson,
-    required this.wikiDataId,
+    this.wikiDataId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -558,7 +563,9 @@ class RegionEntry extends DataClass implements Insertable<RegionEntry> {
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
     map['translations_json'] = Variable<String>(translationsJson);
-    map['wiki_data_id'] = Variable<String>(wikiDataId);
+    if (!nullToAbsent || wikiDataId != null) {
+      map['wiki_data_id'] = Variable<String>(wikiDataId);
+    }
     return map;
   }
 
@@ -567,7 +574,9 @@ class RegionEntry extends DataClass implements Insertable<RegionEntry> {
       id: Value(id),
       name: Value(name),
       translationsJson: Value(translationsJson),
-      wikiDataId: Value(wikiDataId),
+      wikiDataId: wikiDataId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(wikiDataId),
     );
   }
 
@@ -580,7 +589,7 @@ class RegionEntry extends DataClass implements Insertable<RegionEntry> {
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       translationsJson: serializer.fromJson<String>(json['translationsJson']),
-      wikiDataId: serializer.fromJson<String>(json['wikiDataId']),
+      wikiDataId: serializer.fromJson<String?>(json['wikiDataId']),
     );
   }
   @override
@@ -590,7 +599,7 @@ class RegionEntry extends DataClass implements Insertable<RegionEntry> {
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
       'translationsJson': serializer.toJson<String>(translationsJson),
-      'wikiDataId': serializer.toJson<String>(wikiDataId),
+      'wikiDataId': serializer.toJson<String?>(wikiDataId),
     };
   }
 
@@ -598,12 +607,12 @@ class RegionEntry extends DataClass implements Insertable<RegionEntry> {
     int? id,
     String? name,
     String? translationsJson,
-    String? wikiDataId,
+    Value<String?> wikiDataId = const Value.absent(),
   }) => RegionEntry(
     id: id ?? this.id,
     name: name ?? this.name,
     translationsJson: translationsJson ?? this.translationsJson,
-    wikiDataId: wikiDataId ?? this.wikiDataId,
+    wikiDataId: wikiDataId.present ? wikiDataId.value : this.wikiDataId,
   );
   RegionEntry copyWithCompanion(RegionsCompanion data) {
     return RegionEntry(
@@ -645,7 +654,7 @@ class RegionsCompanion extends UpdateCompanion<RegionEntry> {
   final Value<int> id;
   final Value<String> name;
   final Value<String> translationsJson;
-  final Value<String> wikiDataId;
+  final Value<String?> wikiDataId;
   const RegionsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -677,7 +686,7 @@ class RegionsCompanion extends UpdateCompanion<RegionEntry> {
     Value<int>? id,
     Value<String>? name,
     Value<String>? translationsJson,
-    Value<String>? wikiDataId,
+    Value<String?>? wikiDataId,
   }) {
     return RegionsCompanion(
       id: id ?? this.id,
@@ -1055,8 +1064,8 @@ typedef $$AdminDivisionsTableCreateCompanionBuilder =
       required String parentCode,
       required int level,
       required String name,
-      Value<double> latitude,
-      Value<double> longitude,
+      Value<double?> latitude,
+      Value<double?> longitude,
       Value<int> rowid,
     });
 typedef $$AdminDivisionsTableUpdateCompanionBuilder =
@@ -1065,8 +1074,8 @@ typedef $$AdminDivisionsTableUpdateCompanionBuilder =
       Value<String> parentCode,
       Value<int> level,
       Value<String> name,
-      Value<double> latitude,
-      Value<double> longitude,
+      Value<double?> latitude,
+      Value<double?> longitude,
       Value<int> rowid,
     });
 
@@ -1221,8 +1230,8 @@ class $$AdminDivisionsTableTableManager
                 Value<String> parentCode = const Value.absent(),
                 Value<int> level = const Value.absent(),
                 Value<String> name = const Value.absent(),
-                Value<double> latitude = const Value.absent(),
-                Value<double> longitude = const Value.absent(),
+                Value<double?> latitude = const Value.absent(),
+                Value<double?> longitude = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => AdminDivisionsCompanion(
                 code: code,
@@ -1239,8 +1248,8 @@ class $$AdminDivisionsTableTableManager
                 required String parentCode,
                 required int level,
                 required String name,
-                Value<double> latitude = const Value.absent(),
-                Value<double> longitude = const Value.absent(),
+                Value<double?> latitude = const Value.absent(),
+                Value<double?> longitude = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => AdminDivisionsCompanion.insert(
                 code: code,
@@ -1281,14 +1290,14 @@ typedef $$RegionsTableCreateCompanionBuilder =
       Value<int> id,
       required String name,
       required String translationsJson,
-      Value<String> wikiDataId,
+      Value<String?> wikiDataId,
     });
 typedef $$RegionsTableUpdateCompanionBuilder =
     RegionsCompanion Function({
       Value<int> id,
       Value<String> name,
       Value<String> translationsJson,
-      Value<String> wikiDataId,
+      Value<String?> wikiDataId,
     });
 
 class $$RegionsTableFilterComposer
@@ -1411,7 +1420,7 @@ class $$RegionsTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String> translationsJson = const Value.absent(),
-                Value<String> wikiDataId = const Value.absent(),
+                Value<String?> wikiDataId = const Value.absent(),
               }) => RegionsCompanion(
                 id: id,
                 name: name,
@@ -1423,7 +1432,7 @@ class $$RegionsTableTableManager
                 Value<int> id = const Value.absent(),
                 required String name,
                 required String translationsJson,
-                Value<String> wikiDataId = const Value.absent(),
+                Value<String?> wikiDataId = const Value.absent(),
               }) => RegionsCompanion.insert(
                 id: id,
                 name: name,

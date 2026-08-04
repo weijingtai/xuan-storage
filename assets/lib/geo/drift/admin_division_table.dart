@@ -14,8 +14,8 @@ class AdminDivisions extends Table {
   TextColumn get parentCode => text().named('parent_code')();
   IntColumn get level => integer()();
   TextColumn get name => text()();
-  RealColumn get latitude => real().withDefault(const Constant(null))();
-  RealColumn get longitude => real().withDefault(const Constant(null))();
+  RealColumn get latitude => real().nullable()();
+  RealColumn get longitude => real().nullable()();
 
   @override
   Set<Column> get primaryKey => {code};

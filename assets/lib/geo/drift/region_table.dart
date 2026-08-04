@@ -11,7 +11,7 @@ class Regions extends Table {
   IntColumn get id => integer()();
   TextColumn get name => text()();
   TextColumn get translationsJson => text().named('translations_json')();
-  TextColumn get wikiDataId => text().named('wiki_data_id').withDefault(const Constant(null))();
+  TextColumn get wikiDataId => text().named('wiki_data_id').nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

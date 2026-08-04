@@ -14,11 +14,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:persistence_assets/geo/geo_datasets.dart';
+import 'package:persistence_assets/geo/drift/geo_database.dart';
 import 'package:persistence_core/persistence_core.dart';
 
 /// 测试用 asset 路径 -> 真实文件路径 映射。
@@ -45,7 +46,7 @@ void main() {
 
   tearDown(() async {
     await db.close();
-    ServicesBinding.instance.defaultBinaryMessenger
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMessageHandler('flutter/assets', null);
   });
 
@@ -190,15 +191,14 @@ Future<void> _setupMockAssets() async {
     }
   }
 
-  ServicesBinding.instance.defaultBinaryMessenger.setMockMessageHandler(
-    'flutter/assets',
-    (Uint8List? message) async {
-      final key = utf8.decode(message!);
-      final bytes = assetContents[key];
-      if (bytes != null) {
-        return ByteData.sublistView(bytes);
-      }
-      return null; // 未找到，让 rootBundle 抛 expected
-    },
-  );
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMessageHandler('flutter/assets', (ByteData? message) async {
+    final key = utf8.decode(message!.buffer.asUint8List(
+        message.offsetInBytes, message.lengthInBytes));
+    final bytes = assetContents[key];
+    if (bytes != null) {
+      return ByteData.sublistView(bytes);
+    }
+    return null; // 未找到，让 rootBundle 抛 expected
+  });
 }

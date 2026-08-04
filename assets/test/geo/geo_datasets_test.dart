@@ -3,7 +3,7 @@
 /// geo 域 XRAP 接入的注册测试（验收 A1 + A2）。
 ///
 /// 验证两件事：
-/// - A1: `registerGeoDatasets()` 后三个 datasetId 均可 lookup，
+/// - A1: `registerGeoDatasets(db: db)` 后三个 datasetId 均可 lookup，
 ///   manifest 的 sha256/bytes/rowCount 与实际载荷文件一致。
 /// - A2: 载荷 *.sql 在运行期真能被 AssetBundle 加载（不只是 .dart 里写了路径）。
 ///
@@ -14,8 +14,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:persistence_assets/geo/geo_datasets.dart';
+import 'package:persistence_assets/geo/drift/geo_database.dart';
 import 'package:persistence_core/persistence_core.dart';
 
 /// 测试用的真值（必须与 assets/lib/geo/BUILD-REPORT.md 一致）。
@@ -44,13 +47,20 @@ const _kCityAssetPath =
     'packages/persistence_assets/lib/geo/city.sql';
 
 void main() {
+  late GeoDatabase db;
+
   setUp(() {
     DatasetRegistry.clearForTesting();
+    db = GeoDatabase(NativeDatabase.memory());
+  });
+
+  tearDown(() async {
+    await db.close();
   });
 
   group('A1 registerGeoDatasets 注册验证', () {
     test('注册后三个 datasetId 均可 lookup', () {
-      registerGeoDatasets();
+      registerGeoDatasets(db: db);
 
       final admin = DatasetRegistry.lookup('geo.admin_division');
       final region = DatasetRegistry.lookup('geo.region');
@@ -62,12 +72,12 @@ void main() {
     });
 
     test('未注册的 id 返回 null（fail closed，协议 §3）', () {
-      registerGeoDatasets();
+      registerGeoDatasets(db: db);
       expect(DatasetRegistry.lookup('geo.not_exist'), isNull);
     });
 
     test('geo.admin_division manifest 字段与实际载荷一致', () {
-      registerGeoDatasets();
+      registerGeoDatasets(db: db);
       final d = DatasetRegistry.lookup('geo.admin_division')!;
       final m = d.bundledManifest;
 
@@ -88,7 +98,7 @@ void main() {
     });
 
     test('geo.region manifest 字段与实际载荷一致', () {
-      registerGeoDatasets();
+      registerGeoDatasets(db: db);
       final d = DatasetRegistry.lookup('geo.region')!;
       final m = d.bundledManifest;
 
@@ -102,7 +112,7 @@ void main() {
     });
 
     test('geo.city manifest 字段与实际载荷一致', () {
-      registerGeoDatasets();
+      registerGeoDatasets(db: db);
       final d = DatasetRegistry.lookup('geo.city')!;
       final m = d.bundledManifest;
 
@@ -116,17 +126,17 @@ void main() {
     });
 
     test('重复注册同一 datasetId 抛 DatasetRegistrationError（协议注册期校验）', () {
-      registerGeoDatasets();
+      registerGeoDatasets(db: db);
       // 再注册一次应抛
       expect(
-        () => registerGeoDatasets(),
+        () => registerGeoDatasets(db: db),
         throwsA(isA<DatasetRegistrationError>()),
         reason: '同一 datasetId 只能注册一次',
       );
     });
 
     test('全部已注册数据集数量为 3（一致性门禁）', () {
-      registerGeoDatasets();
+      registerGeoDatasets(db: db);
       expect(DatasetRegistry.all.length, 3);
       expect(
         DatasetRegistry.all.keys.toSet(),

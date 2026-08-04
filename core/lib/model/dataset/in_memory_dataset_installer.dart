@@ -151,7 +151,6 @@ class InMemoryDatasetInstaller implements DatasetInstaller {
           .where((r) => r.status == DatasetGenerationStatus.superseded)
           .toList()
         ..sort((a, b) => b.generation.compareTo(a.generation));
-      final active = _activeGeneration[id];
       for (var i = 1; i < superseded.length; i++) {
         final r = superseded[i];
         freed += r.manifest.payloadBytes;
