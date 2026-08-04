@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:persistence_core/core/sync_coordinator.dart';
 import 'package:persistence_core/logging/sync_logger.dart';
 import 'package:persistence_core/model/ports.dart';
+import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/model/types.dart';
 
 /// A pure-Dart runtime wrapper around [SyncCoordinator].
@@ -46,6 +47,7 @@ class SyncRuntime {
     Duration minBackoff = const Duration(seconds: 2),
     Duration maxBackoff = const Duration(minutes: 2),
     DateTime Function()? nowUtc,
+    PeerId peerId = const PeerId('firestore'),
     SyncLogger? logger,
   })  : _coordinator = coordinator,
         _authScopeProvider = authScopeProvider,
@@ -56,7 +58,8 @@ class SyncRuntime {
         _minBackoff = minBackoff,
         _maxBackoff = maxBackoff,
         _logger = logger ?? SyncLogger.noop(),
-        _nowUtc = nowUtc ?? DateTime.now().toUtc;
+        _nowUtc = nowUtc ?? DateTime.now().toUtc,
+        _peerId = peerId;
 
   final SyncCoordinator _coordinator;
   final AuthScopeProvider? _authScopeProvider;
@@ -68,6 +71,7 @@ class SyncRuntime {
   final Duration _maxBackoff;
   final SyncLogger _logger;
   final DateTime Function() _nowUtc;
+  final PeerId _peerId;
 
   final StreamController<SyncStatus> _statusController =
       StreamController<SyncStatus>.broadcast();
@@ -439,7 +443,7 @@ class SyncRuntime {
     if (uid == null || uid.isEmpty) return;
 
     _pushBacklogSub = _coordinator
-        .watchBacklogCount(uid)
+        .watchBacklogCount(uid, peerId: _peerId)
         .distinct()
         .listen((count) {
           _serial = _serial.then((_) async {

@@ -29,17 +29,20 @@ class OutboxPusher {
     required DateTime Function() nowUtc,
     int batchSize = 50,
     int maxAttemptsBeforeDead = 10,
+    PeerId peerId = const PeerId('firestore'),
   })  : _outboxStore = outboxStore,
         _remoteGateway = remoteGateway,
         _nowUtc = nowUtc,
         _batchSize = batchSize,
-        _maxAttemptsBeforeDead = maxAttemptsBeforeDead;
+        _maxAttemptsBeforeDead = maxAttemptsBeforeDead,
+        _peerId = peerId;
 
   final OutboxStore _outboxStore;
   final SyncPeer _remoteGateway;
   final DateTime Function() _nowUtc;
   final int _batchSize;
   final int _maxAttemptsBeforeDead;
+  final PeerId _peerId;
 
   /// Runs a single push pass.
   ///
@@ -57,6 +60,7 @@ class OutboxPusher {
   Future<OutboxPushRunResult> runOnce({required String scopeUid}) async {
     final batch = await _outboxStore.peekBatch(
       scopeUid: scopeUid,
+      peerId: _peerId,
       limit: _batchSize,
     );
 
@@ -67,13 +71,13 @@ class OutboxPusher {
     SyncError? lastError;
 
     for (final record in batch) {
-      final nextAttempt = record.attempt + 1;
       final atUtc = _nowUtc();
       final error = await _remoteGateway.push(record);
 
       if (error == null) {
         await _outboxStore.markSuccess(
           operationId: record.operationId,
+          peerId: _peerId,
           atUtc: atUtc,
         );
         succeeded += 1;
@@ -81,11 +85,18 @@ class OutboxPusher {
         lastError = error;
         failed += 1;
 
+        final nextAttempt =
+            await _outboxStore.attemptFor(
+              operationId: record.operationId,
+              peerId: _peerId,
+            ) +
+            1;
         final isDead = nextAttempt >= _maxAttemptsBeforeDead;
         if (isDead) dead += 1;
 
         await _outboxStore.markFailed(
           operationId: record.operationId,
+          peerId: _peerId,
           attempt: nextAttempt,
           errorCode: error.code.name,
           errorMessage: error.message,
@@ -139,6 +150,7 @@ class SyncCoordinator {
     int pushBatchSize = 50,
     int pullBatchSize = 50,
     int maxAttemptsBeforeDead = 10,
+    PeerId peerId = const PeerId('firestore'),
     SyncLogger? logger,
   })  : _outboxStore = outboxStore,
         _syncStateStore = syncStateStore,
@@ -147,12 +159,14 @@ class SyncCoordinator {
         _nowUtc = nowUtc,
         _pullBatchSize = pullBatchSize,
         _logger = logger ?? SyncLogger.noop(),
+        _peerId = peerId,
         _pusher = OutboxPusher(
           outboxStore: outboxStore,
           remoteGateway: remoteGateway,
           nowUtc: nowUtc,
           batchSize: pushBatchSize,
           maxAttemptsBeforeDead: maxAttemptsBeforeDead,
+          peerId: peerId,
         ),
         _status = const SyncStatus(
           state: SyncRunState.stopped,
@@ -170,6 +184,7 @@ class SyncCoordinator {
   final DateTime Function() _nowUtc;
   final int _pullBatchSize;
   final SyncLogger _logger;
+  final PeerId _peerId;
   final OutboxPusher _pusher;
   SyncStatus _status;
 
@@ -180,12 +195,18 @@ class SyncCoordinator {
   /// - 如果需要响应式订阅，建议由上层（如 SyncRuntime）把状态转成 stream/notifier。
   SyncStatus get status => _status;
 
-  /// Watches outbox backlog count (pending + failed) for [scopeUid].
+  /// Watches outbox backlog count (pending + failed) for [scopeUid] and [peerId].
   ///
   /// 用途：
   /// - 供上层 runtime 订阅，在 outbox 发生变化时触发 push。
-  Stream<int> watchBacklogCount(String scopeUid) {
-    return _outboxStore.watchBacklogCount(scopeUid);
+  Stream<int> watchBacklogCount(
+    String scopeUid, {
+    required PeerId peerId,
+  }) {
+    return _outboxStore.watchBacklogCount(
+      scopeUid: scopeUid,
+      peerId: peerId,
+    );
   }
 
   /// Runs a single push pass from local outbox to remote.
@@ -204,8 +225,8 @@ class SyncCoordinator {
   Future<OutboxPushRunResult> pushOnce({required String scopeUid}) async {
     final sw = Stopwatch()..start();
 
-    final backlogBefore = await _outboxStore.backlogCount(scopeUid);
-    final deadBefore = await _outboxStore.deadCount(scopeUid);
+    final backlogBefore = await _outboxStore.backlogCount(scopeUid: scopeUid, peerId: _peerId);
+    final deadBefore = await _outboxStore.deadCount(scopeUid: scopeUid, peerId: _peerId);
 
     _logger.debug(
       'sync_push_start',
@@ -226,14 +247,18 @@ class SyncCoordinator {
 
     final result = await _pusher.runOnce(scopeUid: scopeUid);
 
-    final backlog = await _outboxStore.backlogCount(scopeUid);
-    final deadCount = await _outboxStore.deadCount(scopeUid);
+    final backlog = await _outboxStore.backlogCount(scopeUid: scopeUid, peerId: _peerId);
+    final deadCount = await _outboxStore.deadCount(scopeUid: scopeUid, peerId: _peerId);
     final atUtc = _nowUtc();
 
     if (!result.hasError) {
       final store = _syncStateStore;
       if (store != null) {
-        await store.markPushedAt(scopeUid: scopeUid, atUtc: atUtc);
+        await store.markPushedAt(
+          scopeUid: scopeUid,
+          peerId: _peerId,
+          atUtc: atUtc,
+        );
       }
     }
 
@@ -339,15 +364,18 @@ class SyncCoordinator {
     _status = _status.copyWith(
       state: SyncRunState.syncing,
       scopeUid: scopeUid,
-      backlogCount: await _outboxStore.backlogCount(scopeUid),
-      deadCount: await _outboxStore.deadCount(scopeUid),
+      backlogCount: await _outboxStore.backlogCount(scopeUid: scopeUid, peerId: _peerId),
+      deadCount: await _outboxStore.deadCount(scopeUid: scopeUid, peerId: _peerId),
       lastPullEntityType: entityType,
       lastPullOutcomes: const <ChangeApplyOutcome>[],
       lastError: null,
     );
 
-    var cursor =
-        await stateStore.getCursor(scopeUid: scopeUid, entityType: entityType);
+    var cursor = await stateStore.getCursor(
+      scopeUid: scopeUid,
+      peerId: _peerId,
+      entityType: entityType,
+    );
 
     var pages = 0;
     var fetched = 0;
@@ -392,6 +420,7 @@ class SyncCoordinator {
       if (page.nextCursor != null) {
         await stateStore.setCursorIfNewer(
           scopeUid: scopeUid,
+          peerId: _peerId,
           entityType: entityType,
           cursor: page.nextCursor!,
           atUtc: _nowUtc(),
@@ -406,6 +435,7 @@ class SyncCoordinator {
     if (lastError == null) {
       await stateStore.markPulledAt(
         scopeUid: scopeUid,
+        peerId: _peerId,
         entityType: entityType,
         atUtc: _nowUtc(),
       );
@@ -449,8 +479,8 @@ class SyncCoordinator {
 
     _status = _status.copyWith(
       state: lastError == null ? SyncRunState.idle : SyncRunState.error,
-      backlogCount: await _outboxStore.backlogCount(scopeUid),
-      deadCount: await _outboxStore.deadCount(scopeUid),
+      backlogCount: await _outboxStore.backlogCount(scopeUid: scopeUid, peerId: _peerId),
+      deadCount: await _outboxStore.deadCount(scopeUid: scopeUid, peerId: _peerId),
       lastSuccessAtUtc:
           lastError == null ? _nowUtc() : _status.lastSuccessAtUtc,
       lastPullAtUtc: lastError == null ? _nowUtc() : _status.lastPullAtUtc,
