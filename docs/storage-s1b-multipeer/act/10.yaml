@@ -575,8 +575,9 @@ VERIFICATION:
   - CMD: 'grep -q "VersionStamp" drift/lib/sync/record_local_applier.dart'
     EXPECT_EXIT: 0
   # 戳与记录必须走 ACT 08 的同事务接口，不许自己开事务分别写
+  # （upsert 与 delete 两个分支各一处，共 2 处调用，均为必要接线）
   - CMD: 'grep -c "applyWithStamp(" drift/lib/sync/record_local_applier.dart'
-    EXPECT_STDOUT: "1"
+    EXPECT_STDOUT: "2"
     EXPECT_EXIT: 0
   - CMD: 'grep -nE "\.transaction\(" drift/lib/sync/record_local_applier.dart'
     EXPECT_EXIT: 1

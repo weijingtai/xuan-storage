@@ -994,6 +994,40 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
     },
   );
 
+  /// 便捷转发：读取某个实体当前的 HLC 戳（边表无行返回 null）。
+  /// 见 [EntityStampDao.getEntityStamp]。
+  Future<EntityStampRow?> getEntityStamp({
+    required String scopeUid,
+    required String entityType,
+    required String entityId,
+  }) {
+    return entityStampDao.getEntityStamp(
+      scopeUid: scopeUid,
+      entityType: entityType,
+      entityId: entityId,
+    );
+  }
+
+  /// 便捷转发：在【同一个事务】里写业务记录并更新它的 HLC 戳。
+  /// 见 [EntityStampDao.applyWithStamp]（A13 的生产落地点）。
+  Future<void> applyWithStamp({
+    required String scopeUid,
+    required String entityType,
+    required String entityId,
+    required int hlcPacked,
+    required String deviceId,
+    required Future<void> Function() write,
+  }) {
+    return entityStampDao.applyWithStamp(
+      scopeUid: scopeUid,
+      entityType: entityType,
+      entityId: entityId,
+      hlcPacked: hlcPacked,
+      deviceId: deviceId,
+      write: write,
+    );
+  }
+
   Future<void> _createRecordIndices() async {
     await customStatement(
       'CREATE INDEX idx_record_meta_scope_created '

@@ -9,6 +9,7 @@ import 'package:persistence_core/persistence_core.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
 import '../../lib/sync/record_local_applier.dart';
+import '../../lib/sync/record_outbox_mapper.dart';
 import '../../lib/sync/record_sync_config.dart';
 
 class _TagAdapter implements ModuleRecordAdapter {
@@ -25,6 +26,7 @@ class _TagAdapter implements ModuleRecordAdapter {
 
 class _InMemRemoteGw implements SyncPeer {
   final _store = <String, List<Map<String, dynamic>>>{};
+  int _clockMillis = 1700000000000;
 
   @override
   PeerId get peerId => const PeerId('in-memory');
@@ -35,6 +37,10 @@ class _InMemRemoteGw implements SyncPeer {
   @override
   Future<SyncError?> push(OutboxRecord record) async {
     _store.putIfAbsent('${record.scopeUid}:${record.entityType}', () => []);
+    // 模拟真实网关：为入站记录分配一个单调递增的 HLC 戳（ACT 08 线上格式）。
+    // 无戳的 change 会被 applier 判 keepLocal（fail-safe），e2e 期望两条都应用，
+    // 因此 push 必须带上戳 —— 这与真实 Firestore/RTDB 网关行为一致。
+    _clockMillis = _clockMillis + 1;
     _store['${record.scopeUid}:${record.entityType}']!.add({
       'operationId': record.operationId,
       'entityType': record.entityType,
@@ -42,6 +48,8 @@ class _InMemRemoteGw implements SyncPeer {
       'opType': record.opType,
       'payloadJson': record.payloadJson,
       'serverTimeUtc': DateTime.now().toUtc().toIso8601String(),
+      'hlcPacked': _clockMillis << 16,
+      'deviceId': 'e2e-gateway-device',
     });
     return null;
   }
@@ -69,6 +77,8 @@ class _InMemRemoteGw implements SyncPeer {
       ),
       payloadJson: r['payloadJson'] as String,
       serverTimeUtc: DateTime.parse(r['serverTimeUtc'] as String),
+      hlcPacked: r['hlcPacked'] as int?,
+      deviceId: r['deviceId'] as String?,
     )).toList();
     return RemoteChangesPage(
       changes: changes.take(limit).toList(),
@@ -131,8 +141,31 @@ void main() {
     // Device B: pull + apply
     final dsB = DriftRecordDataSource(dbB, scopeUid: scope);
     final applierB = RecordLocalApplier(
+      scopeUid: scope,
       applyRecord: dsB.applyRemoteRecord,
       deleteRecord: dsB.softDeleteRecord,
+      readLocalRecord: (uuid) => dsB.getRecord(uuid),
+      readLocalStamp: (entityId) => dbB.getEntityStamp(
+        scopeUid: scope,
+        entityType: RecordOutboxMapper.entityType,
+        entityId: entityId,
+      ),
+      applyWithStamp: ({
+        required entityType,
+        required entityId,
+        required hlcPacked,
+        required deviceId,
+        required write,
+      }) =>
+          dbB.applyWithStamp(
+            scopeUid: scope,
+            entityType: entityType,
+            entityId: entityId,
+            hlcPacked: hlcPacked,
+            deviceId: deviceId,
+            write: write,
+          ),
+      arbiter: const HlcConflictArbiter(),
     );
 
     final page = await gw.listChanges(
@@ -192,8 +225,31 @@ void main() {
     // Device B: pull + apply
     final dsB = DriftRecordDataSource(dbB, scopeUid: scope);
     final applierB = RecordLocalApplier(
+      scopeUid: scope,
       applyRecord: dsB.applyRemoteRecord,
       deleteRecord: dsB.softDeleteRecord,
+      readLocalRecord: (uuid) => dsB.getRecord(uuid),
+      readLocalStamp: (entityId) => dbB.getEntityStamp(
+        scopeUid: scope,
+        entityType: RecordOutboxMapper.entityType,
+        entityId: entityId,
+      ),
+      applyWithStamp: ({
+        required entityType,
+        required entityId,
+        required hlcPacked,
+        required deviceId,
+        required write,
+      }) =>
+          dbB.applyWithStamp(
+            scopeUid: scope,
+            entityType: entityType,
+            entityId: entityId,
+            hlcPacked: hlcPacked,
+            deviceId: deviceId,
+            write: write,
+          ),
+      arbiter: const HlcConflictArbiter(),
     );
 
     // Apply both changes on device B
@@ -251,8 +307,31 @@ void main() {
     // Device B scope-a: should only get scope-a records
     final dsB = DriftRecordDataSource(dbB, scopeUid: 'scope-a');
     final applierB = RecordLocalApplier(
+      scopeUid: 'scope-a',
       applyRecord: dsB.applyRemoteRecord,
       deleteRecord: dsB.softDeleteRecord,
+      readLocalRecord: (uuid) => dsB.getRecord(uuid),
+      readLocalStamp: (entityId) => dbB.getEntityStamp(
+        scopeUid: 'scope-a',
+        entityType: RecordOutboxMapper.entityType,
+        entityId: entityId,
+      ),
+      applyWithStamp: ({
+        required entityType,
+        required entityId,
+        required hlcPacked,
+        required deviceId,
+        required write,
+      }) =>
+          dbB.applyWithStamp(
+            scopeUid: 'scope-a',
+            entityType: entityType,
+            entityId: entityId,
+            hlcPacked: hlcPacked,
+            deviceId: deviceId,
+            write: write,
+          ),
+      arbiter: const HlcConflictArbiter(),
     );
 
     final page = await gw.listChanges(
