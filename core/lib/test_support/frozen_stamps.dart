@@ -27,13 +27,15 @@ List<({String entityId, int hlcPacked, String deviceId})>
 
   final out = <({String entityId, int hlcPacked, String deviceId})>[];
 
-  // 生成 count 条；保证存在同毫秒不同 deviceId 的并发对。
-  // 用分组生成：先造一批"同毫秒不同 deviceId"的并发对，再造普通戳。
+  // 生成 count 条；保证存在【同一 entityId 上的同毫秒不同 deviceId 并发对】。
+  // 收敛性测试要求：某实体存在两条"物理上无法判定先后"的版本，
+  // 以不同顺序归并时仲裁器必须给出同一个赢家 —— 若并发对落在不同 entityId
+  // 上，RWW 注入下每个实体只有一条戳，到达顺序无关，测试会假绿。
   final concurrentPairCount = max(1, count ~/ 4);
   for (var i = 0; i < concurrentPairCount; i += 1) {
     final millis = baseMillis + random.nextInt(1 << 30);
+    // 同一 entityId 上的两个并发版本（同毫秒、不同 deviceId）
     final entityId = '${entityTypes[i % entityTypes.length]}-$i';
-    // 同一毫秒，两个不同 deviceId 的戳（counter 可相同，由 nodeId 决胜负）
     final a = Hlc(
       DateTime.fromMillisecondsSinceEpoch(millis, isUtc: true),
       0,
@@ -45,12 +47,12 @@ List<({String entityId, int hlcPacked, String deviceId})>
       nodeIds[(i + 1) % nodeIds.length],
     );
     out.add((
-      entityId: '$entityId-a',
+      entityId: entityId,
       hlcPacked: _pack(a),
       deviceId: a.nodeId,
     ));
     out.add((
-      entityId: '$entityId-b',
+      entityId: entityId,
       hlcPacked: _pack(b),
       deviceId: b.nodeId,
     ));

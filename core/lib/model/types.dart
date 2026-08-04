@@ -5,6 +5,7 @@
 /// - 具体实现（Firestore/HTTP）应尽量映射到这些枚举值。
 library;
 
+import 'conflict_arbiter.dart';
 import 'sync_peer.dart';
 
 enum SyncErrorCode {
@@ -355,6 +356,9 @@ class ChangeApplyOutcome {
     required this.decision,
     required this.reason,
     required this.message,
+    this.discardedPayloadJson,
+    this.discardedStamp,
+    this.discardedSide,
   });
 
   final String operationId;
@@ -363,6 +367,31 @@ class ChangeApplyOutcome {
   final ChangeApplyDecision decision;
   final SkipReasonCode? reason;
   final String? message;
+
+  /// 本次冲突中【被丢弃的那一方】的 payload（§5.3 冲突可见化）。
+  ///
+  /// · decision 为 applied 且发生覆盖 → 这里是【被覆盖的本地版本】
+  /// · decision 为 skipped 且原因是仲裁判 keepLocal → 这里是【被丢弃的远端版本】
+  ///
+  /// 两个方向都要留档。只留前者是不够的：远端 loser 被丢弃后游标照常推进
+  /// （skipped 不阻止推进，见 ACT 10），那条远端变更【再也不会被拉到】。
+  /// 会话式同步可能两周才跑一次，用户丢的是"这两周里对方改的东西"。
+  final String? discardedPayloadJson;
+
+  /// 被丢弃那一方的版本坐标，用于向用户展示"你丢的是哪个版本、来自哪台设备"。
+  final VersionStamp? discardedStamp;
+
+  /// 被丢弃的是哪一侧。null 表示本次没有冲突。
+  final ConflictSide? discardedSide;
+}
+
+/// 冲突中被丢弃的一侧。
+enum ConflictSide {
+  /// 本地版本被覆盖（takeRemote）。
+  local,
+
+  /// 远端版本被丢弃（keepLocal）。
+  remote,
 }
 
 /// Result of applying a batch of remote changes.

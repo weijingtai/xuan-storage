@@ -447,8 +447,12 @@ VERIFICATION:
     EXPECT_EXIT: 0
   - CMD: cd drift && flutter test
     EXPECT_EXIT: 0
-  # 仲裁器不得依赖墙上时钟、不得有 IO
-  - CMD: 'grep -nE "DateTime|\.now\(\)|updatedAt|serverTime" core/lib/model/conflict_arbiter.dart'
+  # 仲裁器不得依赖墙上时钟、不得有 IO。
+  # 【2026-08-03 换库修订】：VersionStamp 承载 crdt 的 Hlc（内建 dateTime 作为
+  # HLC 的 l 分量），fromPacked 还原必然碰 DateTime 字面量 —— 故不禁裸 DateTime，
+  # 但严禁 .now() / updatedAt / serverTime（"顺手加个时间戳兜底比较"的退化形态）
+  # 与异步 IO（Codex R3 · P1-1 语义：守卫的是参与定序的墙上时钟，不是 HLC 本体）。
+  - CMD: 'grep -nE "\.now\(\)|updatedAt|serverTime" core/lib/model/conflict_arbiter.dart'
     EXPECT_EXIT: 1
   - CMD: 'grep -nE "dart:io|Future<|async" core/lib/model/conflict_arbiter.dart'
     EXPECT_EXIT: 1
@@ -468,9 +472,9 @@ VERIFICATION:
   # deviceId 必须按 UTF-8 字节比，不许直接用 String.compareTo（Codex R3 · P0-3）
   - CMD: "sed -n '/int compareTo(VersionStamp other)/,/^  }/p' core/lib/model/conflict_arbiter.dart | grep -nE 'deviceId\\.compareTo|deviceId *\\.compareTo'"
     EXPECT_EXIT: 1
-  # 且必须真的出现 utf8 编码调用
+  # 且必须真的出现 utf8 编码调用（比较两个字符串各编码一次，共 2 次）
   - CMD: 'grep -cE "utf8\.encode" core/lib/model/conflict_arbiter.dart'
-    EXPECT_STDOUT: "1"
+    EXPECT_STDOUT: "2"
     EXPECT_EXIT: 0
   # UTF-8 分歧用例必须存在（纯 ASCII 测试抓不到 P0-3）
   - CMD: 'grep -cE "\\\\u\{10000\}|\\\\u\{e000\}" core/test/s1b_conflict_arbiter_test.dart'
@@ -478,7 +482,7 @@ VERIFICATION:
     EXPECT_EXIT: 0
   # 双向留档：ConflictSide 两个值都要用上
   - CMD: 'grep -c "ConflictSide.remote" core/test/s1b_conflict_arbiter_test.dart'
-    EXPECT_STDOUT: "1"
+    EXPECT_STDOUT: "2"
     EXPECT_EXIT: 0
   # 本 ACT 不改 applier
   - CMD: git diff --exit-code "$(cat .act-base)"..HEAD -- drift/lib/sync/record_local_applier.dart
