@@ -33,18 +33,22 @@ final class DefaultPeerRegistry implements PeerRegistry {
   final StreamController<Set<PeerId>> _controller =
       StreamController<Set<PeerId>>.broadcast();
 
+  /// 当前全部对端（实现）。
   @override
   Iterable<SyncPeer> get peers => List.unmodifiable(_byId.values);
 
+  /// 对端标识集合（实现）。
   @override
   Set<PeerId> get peerIds => Set.unmodifiable(_byId.keys);
 
+  /// 注册一个对端（实现）。
   @override
   void register(SyncPeer peer) {
     _byId[peer.peerId] = peer;
     _emitChanges();
   }
 
+  /// 移除一个对端并通知监听方（实现）。
   @override
   void remove(PeerId peerId) {
     if (_byId.remove(peerId) != null) {
@@ -52,6 +56,7 @@ final class DefaultPeerRegistry implements PeerRegistry {
     }
   }
 
+  /// 对端集合变化流（实现）。
   @override
   Stream<Set<PeerId>> get changes => _controller.stream;
 

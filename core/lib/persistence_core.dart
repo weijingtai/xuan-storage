@@ -15,12 +15,9 @@ export 'configuration/sync_configuration_manager.dart';
 export 'configuration/yaml_file_loader.dart';
 export 'logging/sync_logger.dart';
 export 'sync/sync_runtime.dart';
-export 'sync/hlc_clock.dart';
-export 'sync/peer_registry.dart';
 export 'tag/tag_extractor_registry.dart';
 export 'routing/region.dart';
 export 'routing/remote_gateway_router.dart';
-export 'routing/peer_fanout_pusher.dart';
 export 'ipc/anon_identity_provider.dart';
 export 'ipc/anon_identity_local.dart';
 export 'store/datetime_details/jieqi_entry_strategy_store.dart';
@@ -32,8 +29,6 @@ export 'model/cancellation_token.dart';
 export 'model/blob_error.dart';
 export 'model/storage_policy.dart';
 export 'model/storage_policy_registry.dart';
-export 'model/peer_eligibility.dart';
-export 'model/conflict_arbiter.dart';
 export 'model/blob_types.dart';
 export 'model/blob_cipher.dart';
 export 'model/local_blob_store.dart';
@@ -50,3 +45,11 @@ export 'model/dataset/dataset_materializer.dart';
 export 'model/dataset/dataset_descriptor.dart';
 export 'model/dataset/dataset_registry.dart';
 export 'model/dataset/dataset_installer.dart';
+
+// ── S1b 多 peer 同步（ACT 01/05/06/07/08/09）──
+export 'model/sync_peer.dart';            // ACT 01
+export 'model/peer_eligibility.dart';     // ACT 05
+export 'routing/peer_fanout_pusher.dart'; // ACT 06
+export 'sync/peer_registry.dart';         // ACT 07
+export 'sync/hlc_clock.dart';             // ACT 08
+export 'model/conflict_arbiter.dart';     // ACT 09

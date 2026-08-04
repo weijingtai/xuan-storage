@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/persistence_core.dart';
 import 'package:persistence_core/test_support/in_memory_stores.dart';
 import 'package:test/test.dart';

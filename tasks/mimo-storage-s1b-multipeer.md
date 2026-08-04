@@ -100,22 +100,24 @@ pushToAll 转头发给所有人（Codex R1 · P0-1）。
 
 ## 当前状态
 
-**执行中：ACT 01/02 已完成并提交，正在推进 ACT 03。**
+**ACT 01b–11 全部完成并提交。** S1b 多 peer 同步任务收口。
 
-- ✅ ACT 01（`6e78fd9`）：SyncPeer/PeerCapabilities/PeerId/PeerFanoutPusher 契约（零实现）。
-  5 个契约用例全绿；三条 SELF_CHECK 注入（typedef 退化 / 只推失败 / watch 方法）均已实做确认能变红。
-- ✅ ACT 02（提交中）：RemoteGateway→SyncPeer 全量迁移（14 文件）+ firebase 两个既有 ERROR 清零 + 4 个既有失败测试清零。
-  5 个守卫用例全绿；五条 SELF_CHECK 注入均已实做确认能变红。
-- 基线：core 73+ 绿 / drift 276 绿 / firebase 114 绿 ~3 跳过；firebase `dart analyze` ERROR 数 0。
-- 11 个 ACT 就位：`docs/storage-s1b-multipeer/act/01..11.yaml`
-- 闸门历史（**问题数在收敛**）：R1 **25** / R2 **10** / R3 **6**（采纳 6 驳回 1）/
-  R4 **5**（全采纳）/ **R5 3（全采纳）** / **R6 通过（封闭式，可进入执行阶段）**。
-  R5 复核与处置全文见 `docs/storage-s1b-multipeer/REACT-R5-REMEDIATION.md`
-- 自检已跑（v3.3）：YAML 严格解析 11/11 · 用例字段完整性 94/94（六项字段全齐）·
-  A1–A14 结构化覆盖 14/14 · `|| true` 恒绿 0 ·
-  VERIFICATION `bash -n` 167 条 0 错 · 验收标准与 cd064c6 逐字一致
-- **冷启动接手请先读 `docs/storage-s1b-multipeer/HANDOFF.md`**（全景 + 环境坑 + 铁律）
-- 遗留风险：本地 `main` 超前 `gitea/main` **27 个提交未推送**，S1b 全部工作建在这批未备份提交上。
+- ✅ ACT 01b/02/03/04：契约 + 迁移 + ack 表 + per-peer 端口（`6e78fd9`…`c6c2150`）
+- ✅ ACT 05（`95e76f5`）：PeerEligibility 单一判定源 + peekBatch/计数按 channel 过滤（fail-closed）
+- ✅ ACT 06（`d4cf03d`）：DefaultPeerFanoutPusher 并发扇出 + coordinator 端到端接线
+- ✅ ACT 07（`9411479`）：PeerRegistry + per-peer 退避改造（不可达对端不拖垮云端）
+- ✅ ACT 08（`5dcedfa`）：HLC 接线 —— crdt ^5.1.3 的 Hlc（换库后）+ 时钟持久化 + 戳边表 + v8 迁移
+- ✅ ACT 09（`2d1f662`）：ConflictArbiter (hlc, deviceId) 全序 + 冲突双向留档
+- ✅ ACT 10（`6560986`）：修 canAdvanceCursor 恒真 + 接入仲裁 + scope 绑定
+- ✅ **合并 main**（`d5d557a`）+ 清理（`5612753`）：S1b 文件零 issue、monorepo 依赖收敛
+- ✅ ACT 11（进行中→提交）：barrel 追加 + 架构守卫 + dartdoc 门禁 + HLC-WIRE-FORMAT.md +
+  run_s1b_analyze_gate.sh 三段式门禁 + 三次注入负测试 + trap 自测
+- 基线（2026-08-04 实测，合并 main 后）：core analyze 57 / drift 151 / firebase 20（ERROR 全 0）；
+  三包测试 core 158 / drift 320 / firebase 114 全绿
+- **monorepo 依赖已收敛**：drift/firebase/supabase/assets 的 persistence_core 全部改为 `path: ../core`
+  （随 main 合并带入，run_monorepo_convention_check.sh 门禁守）
+- 闸门历史：R1–R6 已通过（见下文决定记录），转译 v3.3 定稿，执行期无返工
+
 
 ## 决定记录
 - 2026-08-02: A1 改三段式冻结门禁，基线 core=58 / drift=162。理由: 开工前基线就是红的
@@ -451,6 +453,28 @@ pushToAll 转头发给所有人（Codex R1 · P0-1）。
   被设计来抓的突变」。四类反面教材: `expect(SomeType, isNotNull)` 恒真 / spy 里 `fail()`
   被 catch-all 吞 / 正则手工枚举形态白名单 / happy-path 测试永远走不到失败分支。
   每一条 ACT 的 SELF_CHECK 必须真注入突变并确认变红，不做不算完成。
+
+- 2026-08-04（**合并 main + ACT 11 收口**）: 开工 ACT 11 前先 `git merge main`，
+  因为 ACT 11 要动的 barrel（`persistence_core.dart`）与 A10（`record_local_applier.dart`）
+  正是 main 也动过的文件。合并无冲突（`d5d557a`）。合并带入 `6ae98d5`：四包
+  pubspec 的 persistence_core 从 git URL 改 `path: ../core`，并新增
+  `run_monorepo_convention_check.sh` 门禁。已重跑 pub get 确认 `package_config.json`
+  中 persistence_core rootUri 均为本地 `../../core`。
+- 2026-08-04（**S1b 文件零 issue 清零**）: 合并后对 S1b 新增/重写文件做 lint 清零——
+  删 unused imports、修 `_peer`/`_applier` 下划线、相对路径改 `package:`、
+  schema_v7 的 sqlite3 Row 索引改 `columnAt`、firebase 两个 gateway 的 if 补花括号、
+  `revisionForWrite!` 按流分析保留/删除。firebase 补 `firebase_core` 显式依赖，
+  drift dev_dependencies 补 `crdt`/`sqlite3`。实测基线：core 57 / drift 151 /
+  firebase 20（ERROR 全 0）。
+- 2026-08-04（**ACT 11 门禁基线实测**）: run_s1b_analyze_gate.sh 的三段式基线按
+  合并 main 后的实测写死（core 57 / drift 151 / firebase 20）；drift/firebase 的
+  main 既有 lint 文件共 67+12 个写进白名单。三条注入负测试实做确认能红
+  （unused 变量→检查1 / 白名单外文件 issue→检查2 / 基线改 0→检查3），
+  trap 自测由外层 harness 验子进程以 3 退出且工作树恢复。
+- 2026-08-04（**dartdoc 门禁 8 文件**）: 照抄 s1a_dartdoc_coverage_test 的通用式
+  正则，扫满 8 个 S1b 文件（sync_peer/peer_eligibility/conflict_arbiter/
+  peer_fanout_pusher/peer_registry/hlc_clock/in_memory_stores/ports），
+  为 @override 方法与既有字段补中文 dartdoc。member 覆盖下限取实测留余量。
 
 ## 冷冻快照
 <仅在搁置时由 /hibernate 填写>

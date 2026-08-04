@@ -56,6 +56,7 @@ final class VersionStamp implements Comparable<VersionStamp> {
   int toPacked() =>
       (hlc.dateTime.millisecondsSinceEpoch << 16) | (hlc.counter & 0xffff);
 
+  /// 全序比较：先比 l（UTC 毫秒）、再比 c、最后比 deviceId 的 UTF-8 字节序。
   @override
   int compareTo(VersionStamp other) {
     // 先比 hlc 的 dateTime（UTC 毫秒）
@@ -124,6 +125,7 @@ final class HlcConflictArbiter implements ConflictArbiter {
   /// 构造一个 [HlcConflictArbiter]。
   const HlcConflictArbiter();
 
+  /// 裁决远端与本地版本：比较 [remote] 与 [local]（null 走 fail-safe 降级）。
   @override
   ArbitrationDecision arbitrate({
     required VersionStamp? remote,

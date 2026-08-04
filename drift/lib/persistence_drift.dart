@@ -1,5 +1,4 @@
 import 'package:drift/drift.dart';
-import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/persistence_core.dart';
 
 import 'package:enumeration/enums.dart';

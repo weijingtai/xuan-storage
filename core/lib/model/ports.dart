@@ -191,6 +191,7 @@ abstract class SyncStateStore {
   });
 
   /// Records that pull succeeded for (scopeUid, peerId, entityType) at [atUtc].
+  /// 记录某对端某实体类型的最近拉取时间。
   Future<void> markPulledAt({
     required String scopeUid,
     required PeerId peerId,
@@ -199,6 +200,7 @@ abstract class SyncStateStore {
   });
 
   /// Records that push succeeded for [scopeUid] at [atUtc].
+  /// 记录某对端某实体类型的最近推送时间。
   Future<void> markPushedAt({
     required String scopeUid,
     required PeerId peerId,
@@ -254,11 +256,17 @@ class DeviceIdentity {
     this.appVersion,
   });
 
+  /// 设备唯一标识（稳定且不含敏感信息）。
   final String deviceId;
+  /// 平台标识（ios/android/macos/windows/web）。
   final String platform;
+  /// 设备形态（phone/tablet/desktop）。
   final String formFactor;
+  /// 设备型号（可选诊断信息）。
   final String? model;
+  /// 操作系统版本（可选诊断信息）。
   final String? osVersion;
+  /// 应用版本（可选诊断信息）。
   final String? appVersion;
 }
 
@@ -268,6 +276,7 @@ class DeviceIdentity {
 /// - Flutter 侧通过 platform channel / package_info_plus / device_info_plus 获取。
 abstract class DeviceIdentityProvider {
   /// Returns current device identity.
+  /// 获取当前设备身份标识。
   Future<DeviceIdentity> get();
 }
 

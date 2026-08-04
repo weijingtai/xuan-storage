@@ -76,6 +76,7 @@ final class InMemoryOutboxStore implements OutboxStore {
     }
   }
 
+  /// 入队一条 outbox 记录（内存 fake，可执行规格）。
   @override
   Future<void> enqueue(OutboxRecord record) async {
     _recordsById[record.operationId] = record;
@@ -88,6 +89,7 @@ final class InMemoryOutboxStore implements OutboxStore {
     return ack.status == 'pending' || ack.status == 'failed';
   }
 
+  /// 取一批待推送记录（含 channel 过滤）（内存 fake，可执行规格）。
   @override
   Future<List<OutboxRecord>> peekBatch({
     required String scopeUid,
@@ -106,6 +108,7 @@ final class InMemoryOutboxStore implements OutboxStore {
     return batch.length <= limit ? batch : batch.sublist(0, limit);
   }
 
+  /// 标记某记录对该对端推送成功（内存 fake，可执行规格）。
   @override
   Future<void> markSuccess({
     required String operationId,
@@ -120,6 +123,7 @@ final class InMemoryOutboxStore implements OutboxStore {
     if (r != null) await _emitBacklogForPeerScope(r.scopeUid, peerId);
   }
 
+  /// 标记某记录对该对端推送失败（内存 fake，可执行规格）。
   @override
   Future<void> markFailed({
     required String operationId,
@@ -156,6 +160,7 @@ final class InMemoryOutboxStore implements OutboxStore {
     }
   }
 
+  /// 读某记录对该对端的重试次数（内存 fake，可执行规格）。
   @override
   Future<int> attemptFor({
     required String operationId,
@@ -165,6 +170,7 @@ final class InMemoryOutboxStore implements OutboxStore {
     return ack?.attempt ?? 0;
   }
 
+  /// 该对端的待推送积压数（含 channel 过滤）（内存 fake，可执行规格）。
   @override
   Future<int> backlogCount({
     required String scopeUid,
@@ -181,6 +187,7 @@ final class InMemoryOutboxStore implements OutboxStore {
     return count;
   }
 
+  /// 订阅该对端的待推送积压数（内存 fake，可执行规格）。
   @override
   Stream<int> watchBacklogCount({
     required String scopeUid,
@@ -198,6 +205,7 @@ final class InMemoryOutboxStore implements OutboxStore {
         .distinct();
   }
 
+  /// 该对端的死信数（内存 fake，可执行规格）。
   @override
   Future<int> deadCount({
     required String scopeUid,
@@ -225,10 +233,15 @@ class _PeerAck {
     this.atUtc,
   });
 
+  /// ack 状态（pending/success/failed/dead）。
   final String status;
+  /// 该对端的重试次数。
   final int attempt;
+  /// 最近一次错误的错误码。
   final String? errorCode;
+  /// 最近一次错误的错误信息。
   final String? errorMessage;
+  /// ack 时间。
   final DateTime? atUtc;
 }
 
@@ -249,6 +262,7 @@ final class InMemorySyncStateStore implements SyncStateStore {
     return a.tieBreaker.compareTo(b.tieBreaker);
   }
 
+  /// 读 (scope, peer, entityType) 游标（内存 fake，可执行规格）。
   @override
   Future<PullCursor?> getCursor({
     required String scopeUid,
@@ -258,6 +272,7 @@ final class InMemorySyncStateStore implements SyncStateStore {
     return _cursors[_key(scopeUid, peerId, entityType)];
   }
 
+  /// 写游标（不回退）（内存 fake，可执行规格）。
   @override
   Future<void> setCursorIfNewer({
     required String scopeUid,
@@ -280,6 +295,7 @@ final class InMemorySyncStateStore implements SyncStateStore {
     _cursors[k] = cursor;
   }
 
+  /// 清空游标（内存 fake，可执行规格）。
   @override
   Future<void> clear({
     required String scopeUid,
@@ -289,6 +305,7 @@ final class InMemorySyncStateStore implements SyncStateStore {
     _cursors.remove(_key(scopeUid, peerId, entityType));
   }
 
+  /// 记录拉取时间（内存 fake，可执行规格）。
   @override
   Future<void> markPulledAt({
     required String scopeUid,
@@ -297,6 +314,7 @@ final class InMemorySyncStateStore implements SyncStateStore {
     required DateTime atUtc,
   }) async {}
 
+  /// 记录推送时间（内存 fake，可执行规格）。
   @override
   Future<void> markPushedAt({
     required String scopeUid,
