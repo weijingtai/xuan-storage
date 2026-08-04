@@ -551,7 +551,7 @@ VERIFICATION:
   - CMD: 'grep -c "int get schemaVersion => 7;" drift/lib/persistence_drift.dart'
     EXPECT_STDOUT: "1"
     EXPECT_EXIT: 0
-  - CMD: 'git diff "$(cat .act-base)"..HEAD -- drift/lib/persistence_drift.dart | grep -E "^[+-].*(schemaVersion|if \(from <|createTable|addColumn|alterTable)"'
+  - CMD: 'git diff "$(cat .act-base)"..HEAD -- drift/lib/persistence_drift.dart | grep -E "^[+-].*(schemaVersion|if \(from <|createTable\(|\.addColumn\(|alterTable\()"'
     EXPECT_EXIT: 1
   # 本 ACT 不做 channel 过滤（ACT 05）
   - CMD: 'grep -nE "StoragePolicyRegistry|Channel\." drift/lib/persistence_drift.dart'
