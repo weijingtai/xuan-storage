@@ -15,13 +15,16 @@ final class DriftRecordBlobUnitOfWork implements RecordBlobUnitOfWork {
     required PersistenceDriftDatabase db,
     required String scopeUid,
     required DriftLocalBlobStore blobStore,
+    Future<void> Function()? injectFailureAfterSave,
   })  : _db = db,
         _blobStore = blobStore,
-        _recordDataSource = DriftRecordDataSource(db, scopeUid: scopeUid);
+        _recordDataSource = DriftRecordDataSource(db, scopeUid: scopeUid),
+        _injectFailureAfterSave = injectFailureAfterSave;
 
   final PersistenceDriftDatabase _db;
   final DriftLocalBlobStore _blobStore;
   final DriftRecordDataSource _recordDataSource;
+  final Future<void> Function()? _injectFailureAfterSave;
 
   @override
   Future<void> saveWithBlobs({
@@ -31,6 +34,9 @@ final class DriftRecordBlobUnitOfWork implements RecordBlobUnitOfWork {
     await _db.transaction(() async {
       // 1. Save record (within transaction)
       await _recordDataSource.saveRecord(record, const []);
+
+      // 可选注入点：让测试验证回滚
+      await _injectFailureAfterSave?.call();
 
       // 2. Reconcile blob refs (within same transaction)
       await _blobStore.reconcileRefs(

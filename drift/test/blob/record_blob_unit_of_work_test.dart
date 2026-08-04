@@ -3,6 +3,7 @@
 /// Verifies:
 /// - save record + blob refs atomically
 /// - soft delete + release atomic
+/// - injected failure rolls all back
 /// - fake follows same observable contract
 library;
 
@@ -142,6 +143,69 @@ void main() {
       await uow.deleteWithBlobs('rec-1');
       expect(uow.records, isEmpty);
       expect(uow.refs, isEmpty);
+    });
+  });
+
+  group('rollback', () {
+    test('injected failure after save rolls back record and refs', () async {
+      StoragePolicyRegistry.clearForTesting();
+      StoragePolicyRegistry.register(
+        'xiang_reading',
+        StoragePolicy.private(carriers: {Carrier.row, Carrier.blob}),
+      );
+
+      final db = PersistenceDriftDatabase(NativeDatabase.memory());
+      addTearDown(() {
+        StoragePolicyRegistry.clearForTesting();
+        db.close();
+      });
+
+      final metaRepo = BlobMetadataRepository(db: db, scopeUid: 'scope-a');
+      final cipherResolver = BlobCipherRegistry();
+      cipherResolver.register('scope-a', const IdentityBlobCipher());
+
+      final blobStore = DriftLocalBlobStore(
+        scopeUid: 'scope-a',
+        metadataRepository: metaRepo,
+        cipherResolver: cipherResolver,
+        rootDir: '/tmp',
+        db: db,
+      );
+
+      // 注入一个失败：保存记录后抛异常
+      var injected = false;
+      final uow = DriftRecordBlobUnitOfWork(
+        db: db,
+        scopeUid: 'scope-a',
+        blobStore: blobStore,
+        injectFailureAfterSave: () async {
+          injected = true;
+          throw Exception('Injected failure after save');
+        },
+      );
+
+      final handle = _makeHandle('manifest-rollback');
+      await expectLater(
+        uow.saveWithBlobs(
+          record: _makeRecord('rec-rollback'),
+          referencedBlobs: {handle},
+        ),
+        throwsA(isA<Exception>()),
+        reason: '注入失败后 saveWithBlobs 应抛异常',
+      );
+
+      expect(injected, isTrue, reason: '注入点必须被触发');
+
+      // 验证记录被回滚
+      final recordDs = DriftRecordDataSource(db, scopeUid: 'scope-a');
+      final saved = await recordDs.getRecord('rec-rollback');
+      expect(saved, isNull, reason: '事务回滚后记录应不存在');
+
+      // 验证 blob ref 被回滚
+      final refRows = await (db.select(db.blobRefs)
+            ..where((t) => t.ownerRecordUuid.equals('rec-rollback')))
+          .get();
+      expect(refRows, isEmpty, reason: '事务回滚后 blob ref 应不存在');
     });
   });
 }

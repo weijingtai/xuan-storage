@@ -122,13 +122,24 @@ final class DriftLocalBlobStore implements LocalBlobStore {
       onProgress?.call(i + 1, chunkCount);
     }
 
-    // Insert blob meta (staged by default)
-    await _metadata.stageIncomingManifest(
-      entityType: 'xiang_reading',
-      peerManifest: handle,
-      peerTier: tier,
-      peerVisibility: _tierToVisibility(tier),
-    );
+    // Insert blob meta (staged by default) — 本地 put 直接插入，不走 stageIncomingManifest
+    await _db.into(_db.blobMetas).insert(
+          BlobMetasCompanion.insert(
+            cipherManifestId: handle.cipherManifestId,
+            scopeUid: scopeUid,
+            plaintextSha256: handle.plaintextSha256,
+            cipherId: handle.cipherId,
+            keyVersion: handle.keyVersion,
+            totalBytes: handle.totalBytes,
+            chunkCount: handle.chunkCount,
+            mimeType: handle.mimeType,
+            tier: tier.index,
+            visibility: _tierToVisibility(tier).index,
+            status: const dr.Value(0),
+            stagedAtUtc: DateTime.now().toUtc(),
+            lastAccessAtUtc: DateTime.now().toUtc(),
+          ),
+        );
 
     return handle;
   }
@@ -174,15 +185,27 @@ final class DriftLocalBlobStore implements LocalBlobStore {
       return BlobReadResult.partial(present);
     }
 
-    // Verify all chunks
+    // Verify all chunks against stored SHA-256
     final badChunks = <int>{};
     for (final i in present) {
       cancel?.throwIfCancelled();
       try {
-        await _backend.readChunk(
+        final bytes = await _backend.readChunk(
           '$scopeUid/${handle.cipherManifestId}',
           i,
         );
+        final actualSha = sha256.convert(bytes).toString();
+        // 从元数据中读取预期的 chunkSha256
+        final chunkRows = await (_db.select(_db.blobChunks)
+              ..where((t) =>
+                  t.cipherManifestId.equals(handle.cipherManifestId) &
+                  t.chunkIndex.equals(i)))
+            .get();
+        if (chunkRows.isNotEmpty) {
+          if (actualSha != chunkRows.single.chunkSha256) {
+            badChunks.add(i);
+          }
+        }
       } catch (_) {
         badChunks.add(i);
       }
@@ -307,15 +330,56 @@ final class DriftLocalBlobStore implements LocalBlobStore {
 
   @override
   Future<void> evictByExternalId(String externalId) async {
-    // TODO: implement in Task 8
+    // 查找所有匹配 externalId 的 blob 元数据，删除文件系统和元数据
+    final metas = await (_db.select(_db.blobMetas)
+          ..where((t) => t.externalId.equals(externalId)))
+        .get();
+    for (final meta in metas) {
+      await _backend.deleteManifest('$scopeUid/${meta.cipherManifestId}');
+      await _metadata.deleteMeta(meta.cipherManifestId);
+    }
   }
 
   @override
   Future<({int freed, int unreclaimable})> evictCache({
     required int targetFreeBytes,
   }) async {
-    // TODO: implement in Task 8
-    return (freed: 0, unreclaimable: 0);
+    // 只清理 cache tier 且零引用的 blob
+    final cacheMetas = await (_db.select(_db.blobMetas)
+          ..where((t) =>
+              t.scopeUid.equals(scopeUid) & t.tier.equals(BlobTier.cache.index)))
+        .get();
+
+    var freed = 0;
+    var unreclaimable = 0;
+
+    // 按最近访问时间升序排序（LRU）
+    final sorted = List.of(cacheMetas)
+      ..sort((a, b) => a.lastAccessAtUtc.compareTo(b.lastAccessAtUtc));
+
+    for (final meta in sorted) {
+      if (freed >= targetFreeBytes) break;
+
+      // 检查引用计数
+      final refCountResult = await _db.customSelect(
+        'SELECT COUNT(*) AS cnt FROM t_blob_ref '
+        'WHERE cipher_manifest_id = ?',
+        variables: [dr.Variable.withString(meta.cipherManifestId)],
+      ).get();
+      final refCount = refCountResult.single.read<int>('cnt');
+
+      if (refCount > 0) {
+        unreclaimable += meta.totalBytes;
+        continue;
+      }
+
+      // 删除文件系统和元数据
+      await _backend.deleteManifest('$scopeUid/${meta.cipherManifestId}');
+      await _metadata.deleteMeta(meta.cipherManifestId);
+      freed += meta.totalBytes;
+    }
+
+    return (freed: freed, unreclaimable: unreclaimable);
   }
 
   BlobVisibility _tierToVisibility(BlobTier tier) {

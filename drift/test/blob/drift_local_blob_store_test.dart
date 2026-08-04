@@ -82,7 +82,7 @@ void main() {
       expect(handle.chunkCount, 1);
     });
 
-    test('put writes and reads exact bytes', () async {
+    test('put writes and reads exact bytes (full round-trip)', () async {
       final bytes = List<int>.generate(200, (i) => i % 251);
       final handle = await store.put(
         Stream.value(bytes),
@@ -91,11 +91,16 @@ void main() {
         expectedBytes: bytes.length,
       );
 
-      // now reconcile refs to promote from staged
-      // 注意：reconcileRefs 尚未实现（Task 8），这里跳过完整读回测试
-      // 先通过 chunk 级别验证写入
-      final present = await store.presentChunks(handle);
-      expect(present.length, handle.chunkCount);
+      // reconcileRefs 将 staged 提升为 committed，然后完整读回
+      await store.reconcileRefs(
+        ownerRecordUuid: 'rec-readback',
+        handles: {handle},
+      );
+
+      final result = await store.openRead(handle);
+      expect(result, isA<BlobOk>(), reason: 'committed blob 应可读回');
+      final read = await (result as BlobOk).plaintext.expand((p) => p).toList();
+      expect(read, bytes, reason: '读回字节必须与写入完全一致');
     });
 
     test('putChunk and readCipherChunk round-trip', () async {
