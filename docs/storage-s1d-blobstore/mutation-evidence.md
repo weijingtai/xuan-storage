@@ -65,3 +65,15 @@
 - **Observed**: 1/5 tests failed:
   - `garbage collection sourceOfTruth zero refs is orphaned but NOT deleted` — meta was null (deleted)
 - **Restored**: sourceOfTruth zero refs → orphaned(status=2) but NOT deleted — all 5 tests pass.
+
+## Task 10: In-Memory BlobGateway Fake
+
+### Mutation 7: Remove complete gating from getDownloadTicket
+- **File**: `drift/lib/blob/in_memory_blob_gateway.dart`
+- **Injected violation**: Removed the `_completed.contains()` check from `getDownloadTicket`.
+- **Expected failure**: Incomplete upload download test and delete test must fail.
+- **Command**: `flutter test test/blob/in_memory_blob_gateway_test.dart`
+- **Observed**: 2/9 tests failed:
+  - `complete gating incomplete upload cannot be downloaded` — no exception thrown
+  - `delete deleteObject removes upload` — no exception on deleted download
+- **Restored**: Complete gating check — all 9 tests pass.
