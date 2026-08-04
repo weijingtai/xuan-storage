@@ -198,6 +198,11 @@ pushToAll 转头发给所有人（Codex R1 · P0-1）。
 - 2026-08-02（**验收标准区变更，人类授权**）: A8 由「Lamport (rev, deviceId)」
   改写为「HLC + deviceId + 三条属性测试不变式」；新增 A13（时钟持久化 + 同事务）
   与 A14（线上格式规格）。转译者本无权改验收标准区，本次依人类当次设计裁定执行并留痕。
+- 2026-08-03（**换库裁定**）: ACT 08 的 HLC 实现库由 hlc_dart 1.1.0+2 更换为
+  **crdt: ^5.1.3**（仅用其 Hlc 类）。理由: hlc_dart 的 HLC 没有 nodeId、同毫秒并发
+  判 isConcurrentWith，与「冲突定序用 HLC + deviceId」裁定相悖，包外再包一层正是
+  STRONG_MODEL_ONLY 的静默退化源；crdt 的 Hlc 内建 nodeId 且 compareTo 全序内建，
+  是 sqlite_crdt 底座、生产验证过。已同步更新 ACT 08（含 Hlc 串格式/int64 打包规格）。
 - 2026-08-02（router 职责，人类确认）: `RemoteGatewayRouter` **保持 1-of-N**
   （区域轴：大陆 Supabase / 海外 Firebase，用户 VPN 切换或出国才用，一年可能一次，冷路径），
   它作为「云」这一个对端参与扇出。纪要原计划「router 改造成 fan-out」措辞不精确，
