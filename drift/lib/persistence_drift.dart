@@ -139,6 +139,8 @@ export 'four_zhu_card_templates/layout_template_local_data_source.dart';
 import 'tables/record_meta_table.dart';
 import 'tables/record_search_index_table.dart';
 import 'scope/drift_scope_alias_table.dart';
+import 'blob/blob_tables.dart';
+import 'blob/blob_datetime_converter.dart';
 
 part 'persistence_drift.g.dart';
 
@@ -896,6 +898,9 @@ class EntityStampDao extends DatabaseAccessor<PersistenceDriftDatabase>
     TRecordMeta,
     TRecordSearchIndex,
     TScopeAlias,
+    BlobMetas,
+    BlobChunks,
+    BlobRefs,
   ],
   daos: [
     OutboxRecordsDao,
@@ -922,7 +927,7 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
   PersistenceDriftDatabase(super.executor);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -931,6 +936,7 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
       await _createRecordIndices();
       await _createAuditLogIndices();
       await _createOutboxPeerAckIndices();
+      await _createBlobIndices();
     },
     onUpgrade: (m, from, to) async {
       if (from < 2) {
@@ -987,6 +993,13 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
         // t_hlc_clock_state 存本设备时钟（单行表，CHECK (id = 0)）。
         await m.createTable(entityStamps);
         await m.createTable(hlcClockStates);
+      }
+      if (from < 9) {
+        // schema v9：blob 元数据、分块持有集合与记录引用表。
+        await m.createTable(blobMetas);
+        await m.createTable(blobChunks);
+        await m.createTable(blobRefs);
+        await _createBlobIndices();
       }
     },
   );
@@ -1061,6 +1074,24 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
     await customStatement(
       'CREATE INDEX idx_outbox_peer_ack_operation '
       'ON t_outbox_peer_ack (operation_id)');
+  }
+
+  Future<void> _createBlobIndices() async {
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_blob_scope_tier_access '
+      'ON t_blob_meta(scope_uid, tier, last_access_at_utc DESC)');
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_blob_plaintext_sha '
+      'ON t_blob_meta(plaintext_sha256)');
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_blob_status_staged '
+      'ON t_blob_meta(status, staged_at_utc)');
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_blob_external_id '
+      'ON t_blob_meta(external_id)');
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_blob_ref_manifest '
+      'ON t_blob_ref(cipher_manifest_id)');
   }
 }
 
@@ -1680,4 +1711,3 @@ class DriftSyncStateStore implements SyncStateStore {
     return _dao.markPushedAt(scopeUid: scopeUid, peerId: peerId, atUtc: atUtc);
   }
 }
-
