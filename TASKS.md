@@ -6,3 +6,4 @@
 | agent/mimo/storage-s1a-contracts | .worktrees/mimo-storage-s1a-contracts | 蓝图 | 🚧 进行中 | 0 |
 | storage-s1b-multipeer | mimo | agent/mimo/storage-s1b-multipeer | 🚧 进行中 | 2026-08-02 |
 | storage-s1a-transport-passive | claude | agent/claude/storage-s1a-transport-passive | 🚧 进行中 | 2026-08-03 |
+| storage-c1c2-transport-rulings | claude | agent/claude/storage-c1c2-transport-rulings | 🚧 进行中 | 2026-08-03 |
