@@ -85,6 +85,7 @@ class _InMemRemoteGw implements SyncPeer {
 }
 
 void main() {
+  const _peer = PeerId('firestore');
   test('full sync cycle: save → outbox → push → pull → verify on peer', () async {
     final dbA = PersistenceDriftDatabase(NativeDatabase.memory());
     final dbB = PersistenceDriftDatabase(NativeDatabase.memory());
@@ -108,7 +109,7 @@ void main() {
     ));
 
     // Push from outbox
-    final batch = await outboxA.peekBatch(scopeUid: scope, limit: 100);
+    final batch = await outboxA.peekBatch(scopeUid: scope, peerId: _peer, limit: 100);
     expect(batch, hasLength(1));
     for (final record in batch) {
       final err = await gw.push(record);
@@ -168,7 +169,7 @@ void main() {
     expect(deleted, isTrue);
 
     // Push all outbox records
-    final batch = await outboxA.peekBatch(scopeUid: scope, limit: 100);
+    final batch = await outboxA.peekBatch(scopeUid: scope, peerId: _peer, limit: 100);
     // We should have 2: one UPSERT, one DELETE
     expect(batch, hasLength(2));
 
@@ -229,7 +230,7 @@ void main() {
         createdAt: DateTime.now(),
       ));
 
-      final batch = await outbox.peekBatch(scopeUid: scope, limit: 100);
+      final batch = await outbox.peekBatch(scopeUid: scope, peerId: _peer, limit: 100);
       for (final record in batch) {
         await gw.push(record);
       }

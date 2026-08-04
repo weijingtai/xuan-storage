@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
 
@@ -22,6 +23,7 @@ class _TagAdapter implements ModuleRecordAdapter {
 }
 
 void main() {
+  const _peer = PeerId('firestore');
   test('C0→C2: record save via LocalRecordRepository enqueues outbox (gap closed)', () async {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
@@ -40,7 +42,7 @@ void main() {
     await repo.saveRecord(meta);
 
     final outboxRows = await outboxStore.peekBatch(
-      scopeUid: 'test-scope-c0', limit: 100,
+      scopeUid: 'test-scope-c0', peerId: _peer, limit: 100,
     );
     expect(outboxRows, isNotEmpty,
       reason: 'After C2: saveRecord via LocalRecordRepository with OutboxStore '

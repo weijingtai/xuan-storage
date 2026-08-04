@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/persistence_core.dart';
 
 import 'package:enumeration/enums.dart';
@@ -293,19 +294,34 @@ class OutboxRecordsDao extends DatabaseAccessor<PersistenceDriftDatabase>
     await into(db.outboxRecords).insertOnConflictUpdate(companion);
   }
 
+  /// 取该对端可推的一批记录。
+  ///
+  /// 语义（§5.2.1 阻断点 1/2）：可推 = 该 (operationId, peerId) 在
+  /// t_outbox_peer_ack 中【不存在】（首次推送）或 status 为 pending/failed。
+  /// 必须 LEFT JOIN —— 用 INNER JOIN 会漏掉所有从未推送过的记录，
+  /// 线上表现是「新记录永远推不出去」，且只在新增对端时才暴露。
   Future<List<OutboxRecordRow>> peekBatch({
     required String scopeUid,
+    required PeerId peerId,
     required int limit,
   }) {
-    return (select(db.outboxRecords)
-          ..where(
-            (t) =>
-                t.scopeUid.equals(scopeUid) &
-                (t.status.equals('pending') | t.status.equals('failed')),
-          )
-          ..orderBy([(t) => OrderingTerm.asc(t.createdAtUtc)])
-          ..limit(limit))
-        .get();
+    final o = db.outboxRecords;
+    final a = db.outboxPeerAcks;
+    final q = select(o).join([
+      leftOuterJoin(
+        a,
+        o.operationId.equalsExp(a.operationId) & a.peerId.equals(peerId.value),
+      ),
+    ]);
+    q.where(
+      o.scopeUid.equals(scopeUid) &
+          (a.status.isNull() |
+              a.status.equals('pending') |
+              a.status.equals('failed')),
+    );
+    q.orderBy([OrderingTerm.asc(o.createdAtUtc)]);
+    q.limit(limit);
+    return q.map((row) => row.readTable(o)).get();
   }
 
   Future<List<OutboxRecordRow>> listRetryable({required String scopeUid}) {
@@ -331,78 +347,150 @@ class OutboxRecordsDao extends DatabaseAccessor<PersistenceDriftDatabase>
     });
   }
 
-  Future<int> backlogCount(String scopeUid) async {
+  /// 该对端的待推送积压数（含 ack 行不存在的记录）。
+  Future<int> backlogCount({
+    required String scopeUid,
+    required PeerId peerId,
+  }) async {
     final countExp = db.outboxRecords.operationId.count();
-    final row = await (selectOnly(db.outboxRecords)
+    final o = db.outboxRecords;
+    final a = db.outboxPeerAcks;
+    final row = await (selectOnly(o)
           ..addColumns([countExp])
+          ..join([
+            leftOuterJoin(
+              a,
+              o.operationId.equalsExp(a.operationId) &
+                  a.peerId.equals(peerId.value),
+            ),
+          ])
           ..where(
-            db.outboxRecords.scopeUid.equals(scopeUid) &
-                (db.outboxRecords.status.equals('pending') |
-                    db.outboxRecords.status.equals('failed')),
+            o.scopeUid.equals(scopeUid) &
+                (a.status.isNull() |
+                    a.status.equals('pending') |
+                    a.status.equals('failed')),
           ))
         .getSingle();
     return row.read(countExp) ?? 0;
   }
 
-  Stream<int> watchBacklogCount(String scopeUid) {
+  /// 订阅该对端的待推送积压数。
+  ///
+  /// 必须 JOIN t_outbox_peer_ack —— `.watchSingle()` 会自动跟踪被查询的表，
+  /// 该对端的 ack 行变化（例如 markSuccess）时 stream 才重新发射；
+  /// 若只查 t_outbox 再在 Dart 里过滤，云端推完后 LAN 的 backlog 数字不会更新。
+  Stream<int> watchBacklogCount({
+    required String scopeUid,
+    required PeerId peerId,
+  }) {
     final countExp = db.outboxRecords.operationId.count();
-    return (selectOnly(db.outboxRecords)
+    final o = db.outboxRecords;
+    final a = db.outboxPeerAcks;
+    return (selectOnly(o)
           ..addColumns([countExp])
+          ..join([
+            leftOuterJoin(
+              a,
+              o.operationId.equalsExp(a.operationId) &
+                  a.peerId.equals(peerId.value),
+            ),
+          ])
           ..where(
-            db.outboxRecords.scopeUid.equals(scopeUid) &
-                (db.outboxRecords.status.equals('pending') |
-                    db.outboxRecords.status.equals('failed')),
+            o.scopeUid.equals(scopeUid) &
+                (a.status.isNull() |
+                    a.status.equals('pending') |
+                    a.status.equals('failed')),
           ))
         .watchSingle()
         .map((row) => row.read(countExp) ?? 0);
   }
 
-  Future<int> deadCount(String scopeUid) async {
-    final row = await (selectOnly(db.outboxRecords)
-          ..addColumns([db.outboxRecords.operationId.count()])
-          ..where(
-            db.outboxRecords.scopeUid.equals(scopeUid) &
-                db.outboxRecords.status.equals('dead'),
-          ))
+  /// 该对端的死信数（该对端 ack 行 status = 'dead' 的条数）。
+  Future<int> deadCount({
+    required String scopeUid,
+    required PeerId peerId,
+  }) async {
+    final countExp = db.outboxRecords.operationId.count();
+    final o = db.outboxRecords;
+    final a = db.outboxPeerAcks;
+    final row = await (selectOnly(o)
+          ..addColumns([countExp])
+          ..join([
+            leftOuterJoin(
+              a,
+              o.operationId.equalsExp(a.operationId) &
+                  a.peerId.equals(peerId.value),
+            ),
+          ])
+          ..where(o.scopeUid.equals(scopeUid) & a.status.equals('dead')))
         .getSingle();
-    return row.read(db.outboxRecords.operationId.count()) ?? 0;
+    return row.read(countExp) ?? 0;
   }
 
+  /// 标记【某一条记录对某一个对端】推送成功。
+  ///
+  /// ack 行惰性创建（upsert）：入队时【不】预建 ack 行 —— 对端集合入队时
+  /// 还不确定。success 是 (operationId, peerId) 二元组的属性，
+  /// 【不得】删除 t_outbox 行（删除是 compaction 的事，§5.3）。
   Future<void> markSuccess({
     required String operationId,
+    required PeerId peerId,
     required DateTime atUtc,
   }) async {
-    await (update(db.outboxRecords)
-          ..where((t) => t.operationId.equals(operationId)))
-        .write(
-      OutboxRecordsCompanion(
+    await into(db.outboxPeerAcks).insertOnConflictUpdate(
+      OutboxPeerAcksCompanion(
+        operationId: Value(operationId),
+        peerId: Value(peerId.value),
         status: const Value('success'),
-        succeededAtUtc: Value(atUtc),
+        attempt: const Value(0),
         lastErrorCode: const Value(null),
         lastErrorMessage: const Value(null),
+        ackedAtUtc: Value(atUtc),
       ),
     );
   }
 
+  /// 标记【某一条记录对某一个对端】推送失败。
+  ///
+  /// attempt 与 isDead 归 ack 表管 —— 一个长期离线的 LAN peer 达到 dead
+  /// 阈值【不得】影响该行对 cloud 的可推送性。
   Future<void> markFailed({
     required String operationId,
+    required PeerId peerId,
     required int attempt,
     required String errorCode,
     required String errorMessage,
     required DateTime atUtc,
     required bool isDead,
   }) async {
-    await (update(db.outboxRecords)
-          ..where((t) => t.operationId.equals(operationId)))
-        .write(
-      OutboxRecordsCompanion(
-        attempt: Value(attempt),
+    await into(db.outboxPeerAcks).insertOnConflictUpdate(
+      OutboxPeerAcksCompanion(
+        operationId: Value(operationId),
+        peerId: Value(peerId.value),
         status: Value(isDead ? 'dead' : 'failed'),
+        attempt: Value(attempt),
         lastErrorCode: Value(errorCode),
         lastErrorMessage: Value(errorMessage),
-        lastAttemptAtUtc: Value(atUtc),
+        ackedAtUtc: Value(atUtc),
       ),
     );
+  }
+
+  /// 读取【某一条记录对某一个对端】的当前重试次数。
+  ///
+  /// ack 行不存在（从未推送过）时返回 0，不抛异常。
+  Future<int> attemptFor({
+    required String operationId,
+    required PeerId peerId,
+  }) async {
+    final row = await (select(db.outboxPeerAcks)
+          ..where(
+            (t) =>
+                t.operationId.equals(operationId) &
+                t.peerId.equals(peerId.value),
+          ))
+        .getSingleOrNull();
+    return row?.attempt ?? 0;
   }
 }
 
@@ -424,15 +512,24 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
     return tieBreakerA.compareTo(tieBreakerB);
   }
 
+  /// 写入 (scopeUid, peerId, entityType) 的 timestamp 游标，仅当它更新时覆盖。
+  ///
+  /// 「不回退」判定只在那一行三元组内比较 —— 跨 peer 的游标不可比，
+  /// 云端推进到 T 不代表 LAN peer 也同步到了 T（§5.2.2）。
   Future<void> setTimestampCursorIfNewer({
     required String scopeUid,
+    required PeerId peerId,
     required String entityType,
     required DateTime serverUpdatedAtUtc,
     required String tieBreaker,
     required DateTime atUtc,
   }) async {
     await db.transaction(() async {
-      final existing = await find(scopeUid: scopeUid, entityType: entityType);
+      final existing = await find(
+        scopeUid: scopeUid,
+        peerId: peerId,
+        entityType: entityType,
+      );
       if (existing != null &&
           existing.cursorType == 'timestamp' &&
           existing.serverUpdatedAtUtc != null &&
@@ -449,6 +546,7 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
       await upsert(
         SyncStatesCompanion.insert(
           scopeUid: scopeUid,
+          peerId: Value(peerId.value),
           entityType: entityType,
           cursorType: 'timestamp',
           serverUpdatedAtUtc: Value(serverUpdatedAtUtc),
@@ -464,12 +562,17 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
 
   Future<void> setRevisionCursorIfNewer({
     required String scopeUid,
+    required PeerId peerId,
     required String entityType,
     required int revision,
     required DateTime atUtc,
   }) async {
     await db.transaction(() async {
-      final existing = await find(scopeUid: scopeUid, entityType: entityType);
+      final existing = await find(
+        scopeUid: scopeUid,
+        peerId: peerId,
+        entityType: entityType,
+      );
       if (existing != null &&
           existing.cursorType == 'revision' &&
           existing.revision != null) {
@@ -479,6 +582,7 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
       await upsert(
         SyncStatesCompanion.insert(
           scopeUid: scopeUid,
+          peerId: Value(peerId.value),
           entityType: entityType,
           cursorType: 'revision',
           revision: Value(revision),
@@ -494,12 +598,15 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
 
   Future<SyncStateRow?> find({
     required String scopeUid,
+    required PeerId peerId,
     required String entityType,
   }) {
     return (select(db.syncStates)
           ..where(
             (t) =>
-                t.scopeUid.equals(scopeUid) & t.entityType.equals(entityType),
+                t.scopeUid.equals(scopeUid) &
+                t.peerId.equals(peerId.value) &
+                t.entityType.equals(entityType),
           ))
         .getSingleOrNull();
   }
@@ -510,34 +617,46 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
 
   Future<void> clear({
     required String scopeUid,
+    required PeerId peerId,
     required String entityType,
   }) async {
     await (delete(db.syncStates)
           ..where(
             (t) =>
-                t.scopeUid.equals(scopeUid) & t.entityType.equals(entityType),
+                t.scopeUid.equals(scopeUid) &
+                t.peerId.equals(peerId.value) &
+                t.entityType.equals(entityType),
           ))
         .go();
   }
 
   Future<void> markPulledAt({
     required String scopeUid,
+    required PeerId peerId,
     required String entityType,
     required DateTime atUtc,
   }) async {
     await (update(db.syncStates)
           ..where(
             (t) =>
-                t.scopeUid.equals(scopeUid) & t.entityType.equals(entityType),
+                t.scopeUid.equals(scopeUid) &
+                t.peerId.equals(peerId.value) &
+                t.entityType.equals(entityType),
           ))
         .write(SyncStatesCompanion(lastPulledAtUtc: Value(atUtc)));
   }
 
   Future<void> markPushedAt({
     required String scopeUid,
+    required PeerId peerId,
     required DateTime atUtc,
   }) async {
-    await (update(db.syncStates)..where((t) => t.scopeUid.equals(scopeUid)))
+    await (update(db.syncStates)
+          ..where(
+            (t) =>
+                t.scopeUid.equals(scopeUid) &
+                t.peerId.equals(peerId.value),
+          ))
         .write(SyncStatesCompanion(lastPushedAtUtc: Value(atUtc)));
   }
 }
@@ -842,6 +961,7 @@ class DriftOutboxStore implements OutboxStore {
   @override
   Future<List<OutboxRecord>> peekBatch({
     required String scopeUid,
+    required PeerId peerId,
     required int limit,
   }) async {
     final sw = Stopwatch()..start();
@@ -849,17 +969,20 @@ class DriftOutboxStore implements OutboxStore {
       'drift_outbox_peek_batch_start',
       data: <String, Object?>{
         'scopeUid': _redactId(scopeUid),
+        'peerId': peerId.value,
         'limit': limit,
       },
     );
 
     try {
-      final rows = await _dao.peekBatch(scopeUid: scopeUid, limit: limit);
+      final rows =
+          await _dao.peekBatch(scopeUid: scopeUid, peerId: peerId, limit: limit);
       final out = rows.map(_mapRow).toList(growable: false);
       _logger.trace(
         'drift_outbox_peek_batch_success',
         data: <String, Object?>{
           'scopeUid': _redactId(scopeUid),
+          'peerId': peerId.value,
           'requested': limit,
           'returned': out.length,
           'durationMs': sw.elapsedMilliseconds,
@@ -871,6 +994,7 @@ class DriftOutboxStore implements OutboxStore {
         'drift_outbox_peek_batch_error',
         data: <String, Object?>{
           'scopeUid': _redactId(scopeUid),
+          'peerId': peerId.value,
           'limit': limit,
           'durationMs': sw.elapsedMilliseconds,
         },
@@ -895,16 +1019,18 @@ class DriftOutboxStore implements OutboxStore {
   @override
   Future<void> markSuccess({
     required String operationId,
+    required PeerId peerId,
     required DateTime atUtc,
   }) {
     _logger.debug(
       'drift_outbox_mark_success',
       data: <String, Object?>{
         'operationId': operationId,
+        'peerId': peerId.value,
         'atUtc': atUtc.toUtc().toIso8601String(),
       },
     );
-    return _dao.markSuccess(operationId: operationId, atUtc: atUtc);
+    return _dao.markSuccess(operationId: operationId, peerId: peerId, atUtc: atUtc);
   }
 
   /// Marks one outbox record as failed (or dead).
@@ -925,6 +1051,7 @@ class DriftOutboxStore implements OutboxStore {
   @override
   Future<void> markFailed({
     required String operationId,
+    required PeerId peerId,
     required int attempt,
     required String errorCode,
     required String errorMessage,
@@ -935,6 +1062,7 @@ class DriftOutboxStore implements OutboxStore {
       'drift_outbox_mark_failed',
       data: <String, Object?>{
         'operationId': operationId,
+        'peerId': peerId.value,
         'attempt': attempt,
         'errorCode': errorCode,
         'isDead': isDead,
@@ -943,12 +1071,31 @@ class DriftOutboxStore implements OutboxStore {
     );
     return _dao.markFailed(
       operationId: operationId,
+      peerId: peerId,
       attempt: attempt,
       errorCode: errorCode,
       errorMessage: errorMessage,
       atUtc: atUtc,
       isDead: isDead,
     );
+  }
+
+  /// 读取【某一条记录对某一个对端】的当前重试次数。
+  ///
+  /// ack 行不存在（从未推送过）时返回 0，不抛异常。
+  @override
+  Future<int> attemptFor({
+    required String operationId,
+    required PeerId peerId,
+  }) {
+    _logger.trace(
+      'drift_outbox_attempt_for',
+      data: <String, Object?>{
+        'operationId': operationId,
+        'peerId': peerId.value,
+      },
+    );
+    return _dao.attemptFor(operationId: operationId, peerId: peerId);
   }
 
   /// Returns count of pending/failed (non-dead) records for a scope.
@@ -958,25 +1105,32 @@ class DriftOutboxStore implements OutboxStore {
   ///
   /// 参数说明：
   /// - [scopeUid]：同步作用域。
+  /// - [peerId]：对端。
   ///
   /// 返回值：
   /// - backlog 数量。
   @override
-  Future<int> backlogCount(String scopeUid) {
+  Future<int> backlogCount({
+    required String scopeUid,
+    required PeerId peerId,
+  }) {
     _logger.trace(
       'drift_outbox_backlog_count',
-      data: <String, Object?>{'scopeUid': _redactId(scopeUid)},
+      data: <String, Object?>{'scopeUid': _redactId(scopeUid), 'peerId': peerId.value},
     );
-    return _dao.backlogCount(scopeUid);
+    return _dao.backlogCount(scopeUid: scopeUid, peerId: peerId);
   }
 
   @override
-  Stream<int> watchBacklogCount(String scopeUid) {
+  Stream<int> watchBacklogCount({
+    required String scopeUid,
+    required PeerId peerId,
+  }) {
     _logger.trace(
       'drift_outbox_watch_backlog_count',
-      data: <String, Object?>{'scopeUid': _redactId(scopeUid)},
+      data: <String, Object?>{'scopeUid': _redactId(scopeUid), 'peerId': peerId.value},
     );
-    return _dao.watchBacklogCount(scopeUid).distinct();
+    return _dao.watchBacklogCount(scopeUid: scopeUid, peerId: peerId).distinct();
   }
 
   /// Returns count of dead-letter records for a scope.
@@ -986,16 +1140,20 @@ class DriftOutboxStore implements OutboxStore {
   ///
   /// 参数说明：
   /// - [scopeUid]：同步作用域。
+  /// - [peerId]：对端。
   ///
   /// 返回值：
   /// - dead 数量。
   @override
-  Future<int> deadCount(String scopeUid) {
+  Future<int> deadCount({
+    required String scopeUid,
+    required PeerId peerId,
+  }) {
     _logger.trace(
       'drift_outbox_dead_count',
-      data: <String, Object?>{'scopeUid': _redactId(scopeUid)},
+      data: <String, Object?>{'scopeUid': _redactId(scopeUid), 'peerId': peerId.value},
     );
-    return _dao.deadCount(scopeUid);
+    return _dao.deadCount(scopeUid: scopeUid, peerId: peerId);
   }
 }
 
@@ -1052,10 +1210,12 @@ class DriftSyncStateStore implements SyncStateStore {
   @override
   Future<PullCursor?> getCursor({
     required String scopeUid,
+    required PeerId peerId,
     required String entityType,
   }) async {
     final sw = Stopwatch()..start();
-    final row = await _dao.find(scopeUid: scopeUid, entityType: entityType);
+    final row =
+        await _dao.find(scopeUid: scopeUid, peerId: peerId, entityType: entityType);
     PullCursor? out;
     String cursorType = 'none';
 
@@ -1080,6 +1240,7 @@ class DriftSyncStateStore implements SyncStateStore {
       'drift_sync_state_get_cursor',
       data: <String, Object?>{
         'scopeUid': _redactId(scopeUid),
+        'peerId': peerId.value,
         'entityType': entityType,
         'cursorType': cursorType,
         'returned': out?.runtimeType.toString(),
@@ -1106,6 +1267,7 @@ class DriftSyncStateStore implements SyncStateStore {
   @override
   Future<void> setCursorIfNewer({
     required String scopeUid,
+    required PeerId peerId,
     required String entityType,
     required PullCursor cursor,
     required DateTime atUtc,
@@ -1114,6 +1276,7 @@ class DriftSyncStateStore implements SyncStateStore {
       'drift_sync_state_set_cursor_if_newer',
       data: <String, Object?>{
         'scopeUid': _redactId(scopeUid),
+        'peerId': peerId.value,
         'entityType': entityType,
         'cursorType': cursor.runtimeType.toString(),
         'atUtc': atUtc.toUtc().toIso8601String(),
@@ -1122,6 +1285,7 @@ class DriftSyncStateStore implements SyncStateStore {
     if (cursor is TimestampCursor) {
       return _dao.setTimestampCursorIfNewer(
         scopeUid: scopeUid,
+        peerId: peerId,
         entityType: entityType,
         serverUpdatedAtUtc: cursor.serverUpdatedAtUtc,
         tieBreaker: cursor.tieBreaker,
@@ -1132,6 +1296,7 @@ class DriftSyncStateStore implements SyncStateStore {
     if (cursor is RevisionCursor) {
       return _dao.setRevisionCursorIfNewer(
         scopeUid: scopeUid,
+        peerId: peerId,
         entityType: entityType,
         revision: cursor.revision,
         atUtc: atUtc,
@@ -1155,16 +1320,18 @@ class DriftSyncStateStore implements SyncStateStore {
   @override
   Future<void> clear({
     required String scopeUid,
+    required PeerId peerId,
     required String entityType,
   }) {
     _logger.warn(
       'drift_sync_state_clear',
       data: <String, Object?>{
         'scopeUid': _redactId(scopeUid),
+        'peerId': peerId.value,
         'entityType': entityType,
       },
     );
-    return _dao.clear(scopeUid: scopeUid, entityType: entityType);
+    return _dao.clear(scopeUid: scopeUid, peerId: peerId, entityType: entityType);
   }
 
   /// Marks last pulled timestamp for a scope + entity type.
@@ -1182,6 +1349,7 @@ class DriftSyncStateStore implements SyncStateStore {
   @override
   Future<void> markPulledAt({
     required String scopeUid,
+    required PeerId peerId,
     required String entityType,
     required DateTime atUtc,
   }) {
@@ -1189,12 +1357,13 @@ class DriftSyncStateStore implements SyncStateStore {
       'drift_sync_state_mark_pulled_at',
       data: <String, Object?>{
         'scopeUid': _redactId(scopeUid),
+        'peerId': peerId.value,
         'entityType': entityType,
         'atUtc': atUtc.toUtc().toIso8601String(),
       },
     );
     return _dao.markPulledAt(
-        scopeUid: scopeUid, entityType: entityType, atUtc: atUtc);
+        scopeUid: scopeUid, peerId: peerId, entityType: entityType, atUtc: atUtc);
   }
 
   /// Marks last pushed timestamp for a scope.
@@ -1211,16 +1380,18 @@ class DriftSyncStateStore implements SyncStateStore {
   @override
   Future<void> markPushedAt({
     required String scopeUid,
+    required PeerId peerId,
     required DateTime atUtc,
   }) {
     _logger.debug(
       'drift_sync_state_mark_pushed_at',
       data: <String, Object?>{
         'scopeUid': _redactId(scopeUid),
+        'peerId': peerId.value,
         'atUtc': atUtc.toUtc().toIso8601String(),
       },
     );
-    return _dao.markPushedAt(scopeUid: scopeUid, atUtc: atUtc);
+    return _dao.markPushedAt(scopeUid: scopeUid, peerId: peerId, atUtc: atUtc);
   }
 }
 

@@ -2,9 +2,11 @@ import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:persistence_core/persistence_core.dart';
+import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 
 void main() {
+  const _peer = PeerId('firestore');
   test('OutboxRecordsDao listRetryable/deleteByScope', () async {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
@@ -84,14 +86,14 @@ void main() {
       ),
     );
 
-    expect(await store.backlogCount(scopeUid), equals(1));
+    expect(await store.backlogCount(scopeUid: scopeUid, peerId: _peer), equals(1));
 
-    final batch1 = await store.peekBatch(scopeUid: scopeUid, limit: 10);
+    final batch1 = await store.peekBatch(scopeUid: scopeUid, peerId: _peer, limit: 10);
     expect(batch1, hasLength(1));
     expect(batch1.single.attempt, equals(0));
 
     await store.markFailed(
-      operationId: 'op1',
+      operationId: 'op1', peerId: _peer,
       attempt: 1,
       errorCode: 'network',
       errorMessage: 'timeout',
@@ -99,12 +101,14 @@ void main() {
       isDead: false,
     );
 
-    final batch2 = await store.peekBatch(scopeUid: scopeUid, limit: 10);
+    final batch2 = await store.peekBatch(scopeUid: scopeUid, peerId: _peer, limit: 10);
     expect(batch2, hasLength(1));
-    expect(batch2.single.attempt, equals(1));
+    // ACT 04：attempt 真相在 ack 表，peekBatch 行的 t_outbox.attempt 不再被更新。
+    expect(batch2.single.attempt, equals(0));
+    expect(await store.attemptFor(operationId: 'op1', peerId: _peer), equals(1));
 
     await store.markFailed(
-      operationId: 'op1',
+      operationId: 'op1', peerId: _peer,
       attempt: 2,
       errorCode: 'network',
       errorMessage: 'timeout',
@@ -112,10 +116,10 @@ void main() {
       isDead: true,
     );
 
-    expect(await store.backlogCount(scopeUid), equals(0));
-    expect(await store.deadCount(scopeUid), equals(1));
+    expect(await store.backlogCount(scopeUid: scopeUid, peerId: _peer), equals(0));
+    expect(await store.deadCount(scopeUid: scopeUid, peerId: _peer), equals(1));
 
-    final batch3 = await store.peekBatch(scopeUid: scopeUid, limit: 10);
+    final batch3 = await store.peekBatch(scopeUid: scopeUid, peerId: _peer, limit: 10);
     expect(batch3, isEmpty);
 
     expect(
@@ -144,7 +148,7 @@ void main() {
     const entityType = 'layout_template';
 
     await store.setCursorIfNewer(
-      scopeUid: scopeUid,
+      scopeUid: scopeUid, peerId: _peer,
       entityType: entityType,
       cursor: TimestampCursor(
         serverUpdatedAtUtc: DateTime.utc(2026, 1, 10, 1, 0, 0),
@@ -154,7 +158,7 @@ void main() {
     );
 
     await store.setCursorIfNewer(
-      scopeUid: scopeUid,
+      scopeUid: scopeUid, peerId: _peer,
       entityType: entityType,
       cursor: TimestampCursor(
         serverUpdatedAtUtc: DateTime.utc(2026, 1, 10, 0, 0, 0),
@@ -163,7 +167,7 @@ void main() {
       atUtc: DateTime.utc(2026, 1, 10, 3, 0, 0),
     );
 
-    final cursor = await store.getCursor(scopeUid: scopeUid, entityType: entityType);
+    final cursor = await store.getCursor(scopeUid: scopeUid, peerId: _peer, entityType: entityType);
     expect(cursor, isA<TimestampCursor>());
 
     final ts = cursor as TimestampCursor;
