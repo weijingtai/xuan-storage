@@ -8,323 +8,46 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:persistence_core/model/cancellation_token.dart';
 import 'package:persistence_core/model/signaling.dart';
 import 'package:persistence_core/persistence_core.dart' as barrel;
+// 共享契约套件走深路径消费（决定记录 D3：test_support 不进 barrel）。
+import 'package:persistence_core/test_support/signaling_contract_suite.dart';
 
-/// S3c-a 信令契约测试。
+/// S3c-a 信令契约测试（S3c-b 改造：11 条契约测试已提取进共享套件）。
 ///
-/// 【本文件的核心手法】同一套契约测试跑在**两个形态迥异的 fake** 上：
+/// 11 条契约测试现在住在 `core/lib/test_support/signaling_contract_suite.dart`，
+/// 本文件对两个形态迥异的 fake 各调一次套件：
 /// - `_LanFabricSignaling`：内存"局域网"，先到者登记、后到者直连，**无中间人**
 /// - `_CloudRendezvousSignaling`：内存"会合点"，双方各自连到第三方并在同一
 ///   个键下读写，**有中间人**
 ///
-/// 若 `SignalingChannel` 的抽象漏了什么，这两个 fake 必有一个写不出来 ——
-/// 这正是验收项 A3 的存在理由（见任务纪要「难点一」）。
+/// 留在本地的两组测试（「架构守卫」「barrel 可消费」）读 `lib/` 的相对路径，
+/// 只有 core 包跑得到，不能搬进套件。
 void main() {
-  // ── A3：同一套契约，两种拓扑各跑一遍 ──
-  //
-  // 每个 fake 用一个工厂函数表示。契约测试只依赖 SignalingChannel 接口，
-  // 对两种拓扑一无所知。
-  final topologies = <String, _ChannelPair Function()>{
-    'LAN 直连（无中间人）': () {
+  // ── 同一套契约，两种拓扑各跑一遍 ──
+  runSignalingContractSuite(
+    topologyName: 'LAN 直连（无中间人）',
+    makePair: () {
       final fabric = _LanFabric();
       return (
         alice: _LanFabricSignaling(fabric),
         bob: _LanFabricSignaling(fabric),
       );
     },
-    '云端中转（有中间人）': () {
+    simulateAbruptDisconnect: (session) =>
+        (session as _CrashableSession).simulateAbruptDisconnect(),
+  );
+
+  runSignalingContractSuite(
+    topologyName: '云端中转（有中间人）',
+    makePair: () {
       final hub = _CloudHub();
       return (
         alice: _CloudRendezvousSignaling(hub),
         bob: _CloudRendezvousSignaling(hub),
       );
     },
-  };
-
-  topologies.forEach((topologyName, makePair) {
-    group('契约 · $topologyName', () {
-      test('两端在同一会合标识下相遇并双向收发信封', () async {
-        final pair = makePair();
-        const rv = 'rv-meet';
-
-        final aliceSession = await pair.alice.open(rv);
-        final bobSession = await pair.bob.open(rv);
-
-        final aliceGot = <SignalingEnvelope>[];
-        final bobGot = <SignalingEnvelope>[];
-        final subA = aliceSession.incoming.listen(aliceGot.add);
-        final subB = bobSession.incoming.listen(bobGot.add);
-
-        await aliceSession.send(const SessionDescriptionEnvelope(
-          kind: SdpKind.offer,
-          sdp: 'v=0\r\no=- 1 1 IN IP4 0.0.0.0\r\n',
-        ));
-        await bobSession.send(const SessionDescriptionEnvelope(
-          kind: SdpKind.answer,
-          sdp: 'v=0\r\no=- 2 2 IN IP4 0.0.0.0\r\n',
-        ));
-        await pumpEventQueue();
-
-        expect(bobGot, hasLength(1), reason: 'bob 必须收到 alice 的 offer');
-        expect(aliceGot, hasLength(1), reason: 'alice 必须收到 bob 的 answer');
-        expect(
-          (bobGot.single as SessionDescriptionEnvelope).kind,
-          SdpKind.offer,
-        );
-        expect(
-          (aliceGot.single as SessionDescriptionEnvelope).kind,
-          SdpKind.answer,
-        );
-
-        await subA.cancel();
-        await subB.cancel();
-        await pair.alice.dispose();
-        await pair.bob.dispose();
-      });
-
-      test('incoming 不回显本端自己发出的信封', () async {
-        // 契约原文：「只投递对端发来的信封，不回显本端 send 的内容」。
-        // 云端拓扑最容易违反这条 —— 会合点是共享存储，天然会把自己写的
-        // 也读回来。
-        final pair = makePair();
-        const rv = 'rv-no-echo';
-
-        final aliceSession = await pair.alice.open(rv);
-        await pair.bob.open(rv);
-
-        final aliceGot = <SignalingEnvelope>[];
-        final sub = aliceSession.incoming.listen(aliceGot.add);
-
-        await aliceSession.send(const IceCandidateEnvelope(
-          candidate: 'candidate:1 1 udp 2130706431 192.168.0.2 54321 typ host',
-          sdpMid: '0',
-          sdpMLineIndex: 0,
-        ));
-        await pumpEventQueue();
-
-        expect(aliceGot, isEmpty, reason: '本端发出的信封不得回显给本端');
-
-        await sub.cancel();
-        await pair.alice.dispose();
-        await pair.bob.dispose();
-      });
-
-      test('trickle ICE：多条 candidate 按序全部送达', () async {
-        // SDP 是 offer/answer 各一条，ICE candidate 则陆续到达、条数不定。
-        // 这条测试锁住「多条」这个事实 —— 若实现只留最后一条（例如云端
-        // fake 用单值键覆盖写），这里会红。
-        final pair = makePair();
-        const rv = 'rv-trickle';
-
-        final aliceSession = await pair.alice.open(rv);
-        final bobSession = await pair.bob.open(rv);
-
-        final bobGot = <SignalingEnvelope>[];
-        final sub = bobSession.incoming.listen(bobGot.add);
-
-        for (var i = 0; i < 5; i++) {
-          await aliceSession.send(IceCandidateEnvelope(
-            candidate: 'candidate:$i 1 udp 2130706431 192.168.0.2 5432$i '
-                'typ host',
-            sdpMid: '0',
-            sdpMLineIndex: 0,
-          ));
-        }
-        await pumpEventQueue();
-
-        expect(bobGot, hasLength(5), reason: '5 条 candidate 必须全部送达');
-        expect(
-          bobGot.map((e) => (e as IceCandidateEnvelope).candidate).toList(),
-          [
-            for (var i = 0; i < 5; i++)
-              'candidate:$i 1 udp 2130706431 192.168.0.2 5432$i typ host',
-          ],
-          reason: 'candidate 必须按发送顺序送达',
-        );
-
-        await sub.cancel();
-        await pair.alice.dispose();
-        await pair.bob.dispose();
-      });
-
-      // ── A4：对端掉线可感知 ──
-
-      test('A4 · 对端尚未到场时是 awaiting，到场后转 present', () async {
-        // awaiting 与 departed 必须可区分：前者该继续等，后者该放弃。
-        // 见任务纪要「难点二」。
-        final pair = makePair();
-        const rv = 'rv-presence';
-
-        final aliceSession = await pair.alice.open(rv);
-        final seen = <PeerPresence>[];
-        final sub = aliceSession.peerPresence.listen(seen.add);
-        await pumpEventQueue();
-
-        expect(seen, isNotEmpty,
-            reason: '订阅后应立即得到当前状态，不必等下次变化');
-        expect(seen.first, PeerPresence.awaiting,
-            reason: '对端尚未 open，此刻必须是 awaiting');
-
-        await pair.bob.open(rv);
-        await pumpEventQueue();
-
-        expect(seen.last, PeerPresence.present,
-            reason: '对端到场后必须转 present');
-
-        await sub.cancel();
-        await pair.alice.dispose();
-        await pair.bob.dispose();
-      });
-
-      test('A4 · 对端主动 close 后本端观测到 departed', () async {
-        final pair = makePair();
-        const rv = 'rv-bye';
-
-        final aliceSession = await pair.alice.open(rv);
-        final bobSession = await pair.bob.open(rv);
-
-        final seen = <PeerPresence>[];
-        final sub = aliceSession.peerPresence.listen(seen.add);
-        await pumpEventQueue();
-        expect(seen.last, PeerPresence.present);
-
-        await bobSession.close();
-        await pumpEventQueue();
-
-        expect(seen.last, PeerPresence.departed,
-            reason: '对端 close 后必须观测到 departed，不能停在 present');
-
-        await sub.cancel();
-        await pair.alice.dispose();
-        await pair.bob.dispose();
-      });
-
-      test('A4 · 对端非正常断开（未告别）也必须产出 departed', () async {
-        // 这条才是 onDisconnect() 的真正价值：进程被杀、断网、崩溃时
-        // 对端来不及发 Bye，后端仍须判定其离开。
-        // 契约原文：「不得要求调用方靠超时自行推断」。
-        final pair = makePair();
-        const rv = 'rv-crash';
-
-        final aliceSession = await pair.alice.open(rv);
-        final bobSession = await pair.bob.open(rv);
-
-        final seen = <PeerPresence>[];
-        final sub = aliceSession.peerPresence.listen(seen.add);
-        await pumpEventQueue();
-        expect(seen.last, PeerPresence.present);
-
-        // 模拟非正常断开：不调用 close()，直接让后端判定其失联。
-        (bobSession as _CrashableSession).simulateAbruptDisconnect();
-        await pumpEventQueue();
-
-        expect(seen.last, PeerPresence.departed,
-            reason: '对端崩溃/断网时后端必须判定 departed，'
-                '而不是让调用方靠超时去猜');
-
-        await sub.cancel();
-        await pair.alice.dispose();
-        await pair.bob.dispose();
-      });
-
-      test('A4 · 对端已 departed 时 send 必须抛错，不得静默丢弃', () async {
-        final pair = makePair();
-        const rv = 'rv-send-after-departed';
-
-        final aliceSession = await pair.alice.open(rv);
-        final bobSession = await pair.bob.open(rv);
-        await pumpEventQueue();
-
-        await bobSession.close();
-        await pumpEventQueue();
-
-        expect(
-          () => aliceSession.send(const ByeEnvelope()),
-          throwsA(isA<Object>()),
-          reason: '对端已离开时发送必须抛错；静默丢弃会让调用方以为发出去了',
-        );
-
-        await pair.alice.dispose();
-        await pair.bob.dispose();
-      });
-
-      test('close 幂等：重复调用不得抛错', () async {
-        final pair = makePair();
-        final session = await pair.alice.open('rv-idempotent');
-        await session.close();
-        await session.close();
-        await pair.alice.dispose();
-        await pair.bob.dispose();
-      });
-
-      test('不同会合标识互不串扰', () async {
-        // 会合标识是两种拓扑的唯一公共输入（见「难点一」）。
-        // 若实现把它当摆设，这里会红。
-        final pair = makePair();
-
-        final aliceSession = await pair.alice.open('rv-A');
-        final bobSession = await pair.bob.open('rv-B');
-
-        final bobGot = <SignalingEnvelope>[];
-        final sub = bobSession.incoming.listen(bobGot.add);
-
-        await aliceSession.send(const ByeEnvelope());
-        await pumpEventQueue();
-
-        expect(bobGot, isEmpty, reason: '不同会合标识下的信封不得串到一起');
-
-        await sub.cancel();
-        await pair.alice.dispose();
-        await pair.bob.dispose();
-      });
-
-      test('rendezvous 如实回报打开时用的标识', () async {
-        final pair = makePair();
-        final session = await pair.alice.open('rv-echo-key');
-        expect(session.rendezvous, 'rv-echo-key');
-        await pair.alice.dispose();
-        await pair.bob.dispose();
-      });
-
-      // ── A5 样本层：信封载荷不含身份信息 ──
-
-      test('A5 · 握手全过程的信封载荷不含 scopeUid / 用户名 / 设备名',
-          () async {
-        const scopeUid = 'user-scope-42';
-        const deviceName = "alice-macbook";
-
-        final pair = makePair();
-        final aliceSession = await pair.alice.open('rv-privacy');
-        final bobSession = await pair.bob.open('rv-privacy');
-
-        final captured = <SignalingEnvelope>[];
-        final sub = bobSession.incoming.listen(captured.add);
-
-        await aliceSession.send(const SessionDescriptionEnvelope(
-          kind: SdpKind.offer,
-          sdp: 'v=0\r\na=fingerprint:sha-256 AA:BB\r\n',
-        ));
-        await aliceSession.send(const IceCandidateEnvelope(
-          candidate: 'candidate:1 1 udp 2130706431 192.168.0.2 54321 typ host',
-          sdpMid: '0',
-          sdpMLineIndex: 0,
-        ));
-        await pumpEventQueue();
-
-        expect(captured, hasLength(2));
-        for (final e in captured) {
-          final text = _serializeForPrivacyCheck(e);
-          expect(text, isNot(contains(scopeUid)),
-              reason: '信令载荷不得含 scopeUid');
-          expect(text, isNot(contains(deviceName)),
-              reason: '信令载荷不得含设备名');
-        }
-
-        await sub.cancel();
-        await pair.alice.dispose();
-        await pair.bob.dispose();
-      });
-    });
-  });
+    simulateAbruptDisconnect: (session) =>
+        (session as _CrashableSession).simulateAbruptDisconnect(),
+  );
 
   // ── A1 / A2 / A5 结构层：源码机械扫描 ──
 
@@ -368,7 +91,7 @@ void main() {
 
     test('A5 结构层 · 信封无 Map / dynamic 敞口', () {
       // 这条是 A5 的真正门禁：样本断言只能证明「当前载荷没塞东西」，
-      // 结构断言才能证明「塞不进去」。见任务纪要「难点三」。
+      // 结构断言才能证明「塞不进去」。
       expect(src.contains('dynamic'), isFalse,
           reason: '信封不得有 dynamic 口子，否则可塞任意用户数据');
       expect(RegExp(r'\bMap<').hasMatch(src), isFalse,
@@ -405,6 +128,20 @@ void main() {
       expect(PeerPresence.values.map((e) => e.name),
           ['awaiting', 'present', 'departed'],
           reason: 'awaiting 与 departed 必须分开：前者该等，后者该放弃');
+    });
+  });
+
+  // ── A11：共享套件内零 pumpEventQueue（人类裁定 D5）──
+
+  group('套件守卫（源码扫描）', () {
+    test('A11 · 共享套件内零 pumpEventQueue', () {
+      final src = File('lib/test_support/signaling_contract_suite.dart')
+          .readAsStringSync();
+      expect(src.contains('pumpEventQueue'), isFalse,
+          reason: '共享套件不得使用 pumpEventQueue —— 它的语义是「把事件队列'
+              '转若干圈」，对同步 StreamController 碰巧成立，对任何真实 I/O '
+              '都不成立（字节要过内核）。正向断言 await 可观测量本身，负向'
+              '断言用拓扑注入的具名宽限期（D5 / A11）');
     });
   });
 
@@ -476,24 +213,6 @@ final class _BarrelTypeProbe {
   static const barrel.SignalingSession? session = null;
 }
 
-/// 把信封序列化成文本，供隐私断言扫描。
-///
-/// 用 switch 穷尽而非 toString()：确保新增变体时这里会变红，
-/// 不会有字段悄悄逃过隐私检查。
-String _serializeForPrivacyCheck(SignalingEnvelope e) => switch (e) {
-      SessionDescriptionEnvelope(:final kind, :final sdp) => '$kind|$sdp',
-      IceCandidateEnvelope(
-        :final candidate,
-        :final sdpMid,
-        :final sdpMLineIndex
-      ) =>
-        '$candidate|$sdpMid|$sdpMLineIndex',
-      ByeEnvelope() => 'bye',
-    };
-
-/// 一对同拓扑的信令通道。
-typedef _ChannelPair = ({SignalingChannel alice, SignalingChannel bob});
-
 /// 能模拟非正常断开的会话（测试用能力，不属契约）。
 abstract interface class _CrashableSession {
   /// 模拟进程被杀 / 断网：不发 Bye，直接失联。
@@ -551,9 +270,7 @@ class _LanFabricSignaling implements SignalingChannel {
 }
 
 class _LanSession implements SignalingSession, _CrashableSession {
-  _LanSession(this.rendezvous) {
-    _presence.add(PeerPresence.awaiting);
-  }
+  _LanSession(this.rendezvous);
 
   @override
   final RendezvousKey rendezvous;
@@ -584,11 +301,14 @@ class _LanSession implements SignalingSession, _CrashableSession {
   Stream<SignalingEnvelope> get incoming => _incoming.stream;
 
   @override
-  Stream<PeerPresence> get peerPresence async* {
-    // 订阅后立即给出当前状态，再跟随后续变化（契约要求）。
-    yield _current;
-    yield* _presence.stream;
-  }
+  Stream<PeerPresence> get peerPresence => Stream.multi((controller) {
+        // 订阅即重放当前状态（契约：订阅后应立即得到当前状态，不必等下次变化）。
+        // 每个订阅者独立重放 —— broadcast 的 onListen 只在首个订阅者时触发，
+        // 无法服务多个订阅者。真实 socket 实现同样采用此模式。
+        controller.add(_current);
+        final sub = _presence.stream.listen(controller.add);
+        controller.onCancel = sub.cancel;
+      });
 
   @override
   Future<void> send(SignalingEnvelope envelope) async {
@@ -719,10 +439,14 @@ class _CloudSession implements SignalingSession, _CrashableSession {
   Stream<SignalingEnvelope> get incoming => _incoming.stream;
 
   @override
-  Stream<PeerPresence> get peerPresence async* {
-    yield _current;
-    yield* _presence.stream;
-  }
+  Stream<PeerPresence> get peerPresence => Stream.multi((controller) {
+        // 订阅即重放当前状态（契约：订阅后应立即得到当前状态，不必等下次变化）。
+        // 每个订阅者独立重放 —— broadcast 的 onListen 只在首个订阅者时触发，
+        // 无法服务多个订阅者。真实 socket 实现同样采用此模式。
+        controller.add(_current);
+        final sub = _presence.stream.listen(controller.add);
+        controller.onCancel = sub.cancel;
+      });
 
   @override
   Future<void> send(SignalingEnvelope envelope) async {
