@@ -56,7 +56,7 @@ DatasetMaterializer`）+ 用户覆盖层**的契约与 reference 实现，且 `t
 
 - ❌ **下载 / 校验 / 世代管理 / 活跃指针翻转 / 回滚 / GC / 幂等** —— 全归 XRAP `DatasetInstaller`
   （`dataset_installer.dart:188-192`「唯一实现，数据集无关」，再写一个主题专用安装器直接违反它）
-- ❌ **主题包 zip ���式 / manifest.yaml 定义 / 版本兼容规则 / 签名验证** —— 归 XRAP `DatasetManifest`
+- ❌ **主题包 zip 格式 / manifest.yaml 定义 / 版本兼容规则 / 签名验证** -- 归 XRAP `DatasetManifest`  （R5-F1：修复 U+FFFD 乱码）
 - ❌ 任何安装类方法与安装态值类型（S5a 端口只有：读合并结果 / 写覆盖层 / 主题选择）
 - ❌ 生产实现（drift 表 / 真实 materializer）—— 后续子任务
 - ❌ `theme` 包的任何改动（设计 §2.2，零 IO 边界必须保住）
@@ -285,9 +285,17 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
       报告：`docs/reviews/2026-08-04-s5a-theme-plan-eng-review-r4.md`
 - [x] **R4-P0 闭合**（载荷行 schema 删 `g` 字段，提交 `ebad8af`）
 - [x] **按 R4 余下 9 条修订 → v6**（2026-08-05，明细见决定记录 v6 段）
-- [ ] **Codex 复审（R5）** ← **当前卡在这里。R5 通过前不许转译**
-- [ ] 转译为 ACT（`wjt-act`）
-- [ ] 跨模型闸门（`wjt-react`，≤2 轮）
+- [x] **R5 复审**（Claude，2026-08-04）-> **PASS-WITH-REVISIONS**
+      报告：`docs/reviews/2026-08-04-s5a-theme-plan-eng-review-r5.md@08abb03`
+      v6 验收 9/9 闭合；0 P0/P1；2 P2 文字级（纪要乱码 + BUILD-THEME 占位未落成）。
+      唯一未闭：派工书 §九验收命令串后半段（s1b gate + core/drift/p2p test）未跑完，
+      gating 执行不 gating 转译。
+- [x] **转译为 ACT**（2026-08-04）-> `docs/storage-s5a-theme/act/01..07.yaml` + `HANDOFF.md`
+      7 个 ACT：01 契约(中立类型) / 02 契约(门面+值类型+端口) / 03 契约(策略+数据集+注册) /
+      04 reference(合并算法) / 05 reference(materializer) / 06 reference(store+装配) / 07 门禁+总验收。
+      每个 ACT 自包含（SCOPE/SIGNATURE/CONSTRAINTS/TESTS_FIRST/VERIFICATION/DONE_WHEN）。
+      执行前必须先让 R5 未闭的命令串全绿（见 HANDOFF §6）。
+- [ ] 跨模型闸门（`wjt-react`，≤2 轮）  ← **当前卡点**
 - [ ] 下发执行
 - [ ] 人类验收
 

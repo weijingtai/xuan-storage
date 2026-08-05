@@ -1,0 +1,188 @@
+ACT_VERSION: 1
+TASK_ID: mimo-storage-s5a-theme/05
+TITLE: reference · InMemoryThemeMaterializer + InMemoryThemeTokenStore（XRAP 落地器）
+TYPE: reference
+ORDER: 5
+DEPENDS_ON: [mimo-storage-s5a-theme/03]
+DISPATCH_STATUS: ready
+STRONG_MODEL_ONLY: false
+
+OBJECTIVE: >
+  交付 S5a 在 XRAP 中的唯一可插拔点：InMemoryThemeMaterializer implements DatasetMaterializer，
+  以及落地物的共享持有者 InMemoryThemeTokenStore。这是 §4.4/§4.5 装配数据流的落地形态--
+  落地物存在外部共享 store 里（工厂闭包捕获），不在 materializer 实例私有字段里（R4-P1-3 闭合点）。
+
+SCOPE:
+  READ:
+    - docs/superpowers/specs/2026-08-03-s5a-theme-resource-distribution-design.md   # §4.1 XRAP 八条事实；§4.3 载荷格式(JSONL, 无 g)；§4.4 落地结构；§4.5 装配数据流第 1-3 步
+    - core/lib/model/dataset/dataset_materializer.dart                              # XRAP 契约（只读）：materialize/dropGeneration/datasetId 签名 + MaterializeOutcome
+    - core/lib/model/dataset/dataset_manifest.dart                                  # XRAP 契约（只读）：DatasetManifest
+    - core/lib/model/cancellation_token.dart                                        # S1a 既有
+    - core/lib/model/theme_dataset.dart                                             # ACT 03 产物：themeDatasetId
+  WRITE:
+    - core/lib/reference/in_memory_theme_materializer.dart
+
+SIGNATURE:
+  # §4.4：InMemoryThemeTokenStore（落地物共享持有者）+ InMemoryThemeMaterializer 同文件。
+  in_memory_theme_materializer.dart: |
+    // 包：persistence_core  文件：core/lib/reference/in_memory_theme_materializer.dart
+    // 【reference】§4.4 落地结构。两者一体，拆开会让 reference 层多一个文件而不增加信息。
+
+    /// reference 落地物的共享持有者：世代号 -> (扁平 key -> 值) 的两级内存 Map。
+    /// 【为什么必须是独立对象】XRAP 的 DatasetDescriptor.materializer 是工厂（dataset_descriptor.dart:44），
+    /// 安装器每次落地新建一个 materializer 实例，该实例出了安装流程即不可达。
+    /// 落地物若存在实例私有字段里，启动路径的 ThemeLocalReader 永远读不到（R4-P1-3 断链）。
+    /// 故落地物必须存在这个由工厂闭包捕获的外部对象里（§4.5 第 1-2 步）。
+    final class InMemoryThemeTokenStore {
+      InMemoryThemeTokenStore();   // 装配期建一个，全生命周期共享（§4.5 第 1 步）
+
+      /// 写入某一代的全部 token（整代覆盖写，幂等）。只有 materializer 调用它。
+      void putGeneration(int generation, Map<String, dynamic> tokens);
+
+      /// 读取某一代的 token；该代未落地返回 null。
+      /// 返回 Map.unmodifiable 只读视图（A16 不可变性）。
+      Map<String, dynamic>? tokensOf(int generation);
+
+      /// 删除某一代。不存在时静默返回（XRAP 要求 dropGeneration 幂等）。
+      void dropGeneration(int generation);
+
+      /// 已落地的世代号集合。诊断与 P4/A20/A21 断言用。
+      Set<int> get generations;
+    }
+
+    /// S5a 在 XRAP 中的唯一可插拔点（§4.2：不另包 ThemeMaterializer 子接口）。
+    /// 消费 JSON Lines 载荷（§4.3），整代写入共享 store。
+    final class InMemoryThemeMaterializer implements DatasetMaterializer {
+      /// 落地物写进外部传入的共享 store，不存在实例私有字段里（§4.5）。
+      InMemoryThemeMaterializer(this._tokens);
+      final InMemoryThemeTokenStore _tokens;
+
+      @override
+      String get datasetId => themeDatasetId;
+
+      @override
+      Future<MaterializeOutcome> materialize({
+        required DatasetManifest manifest,
+        required Stream<List<int>> payload,
+        required int generation,
+        CancellationToken? cancel,
+      }) async {
+        // §4.3 示意代码：
+        // - payload 是 Stream<List<int>>（不是 Uint8List）
+        // - 逐行 UTF-8 解码 + jsonDecode；v 为 Map 的行立即抛 StateError
+        // - 载荷行没有 g 字段，世代号一律取入参 -- 不得从载荷读或校验世代（R4-P0）
+        // - _tokens.putGeneration(generation, tokens)（用入参 generation）
+        // - 返回 MaterializeOutcome(rowCount: 实际行数, bytesOnDisk: 载荷字节数)
+        // - 不重复校验 sha256（XRAP 已校验）
+        // - 不改动活跃指针（协议 P3）
+      }
+
+      @override
+      Future<void> dropGeneration(int generation) => _tokens.dropGeneration(generation);  // 幂等
+    }
+
+CONSTRAINTS:
+  - **落地物不在 materializer 实例私有字段里**（R4-P1-3 闭合点）。`InMemoryThemeMaterializer`
+    构造器收 `InMemoryThemeTokenStore`，materialize 写进它。若改回持有私有 Map，A21 ③会红。
+  - **载荷行没有 `g` 字段**（R4-P0）。世代号一律取入参 `generation`，**不得**写 `g != generation 即抛`。
+    A20 ⑥会用同一份载荷两个 generation 各落地一次验证。
+  - `materialize` 入参 `payload` 是 `Stream<List<int>>`（不是 `Uint8List`）。
+    `MaterializeOutcome` 用默认构造器 `({required rowCount, required bytesOnDisk})`，**无 `.success`**。
+  - **只写入参 generation，不触其它世代**（XRAP §4.1 事实③）。`putGeneration(g, ...)` 只写第 g 代。
+  - **`dropGeneration` 幂等**：删不存在世代静默返回（XRAP §4.1 事实⑤）。
+  - **不重复校验 sha256**（XRAP §4.1：调用 materialize 时已完成校验）。
+  - **不改活跃指针**（XRAP P3）。
+  - 不得改 `core/lib/model/dataset/` 任何文件。
+  - dartdoc 中文（A18）。
+
+TESTS_FIRST:
+  CASES:
+    - NAME: generation_isolation
+      FILE: core/test/theme_materializer_test.dart
+      BEHAVIOR: >
+        A20 ①：注入两代数据（generation 0 和 1），断言互不干扰：
+        tokensOf(0) 与 tokensOf(1) 各自独立，putGeneration(1,...) 不影响 tokensOf(0)。
+      RED_COMMAND: cd core && flutter test test/theme_materializer_test.dart
+      RED_EXPECT: 编译失败（InMemoryThemeMaterializer 不存在），退出码非 0
+      COVERS: [A20]
+
+    - NAME: drop_generation_idempotent
+      FILE: core/test/theme_materializer_test.dart
+      BEHAVIOR: >
+        A20 ②：dropGeneration 删一个不存在的世代不抛异常。再删已存在的世代后 tokensOf 变 null。
+      RED_COMMAND: cd core && flutter test test/theme_materializer_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A20]
+
+    - NAME: row_count_is_real
+      FILE: core/test/theme_materializer_test.dart
+      BEHAVIOR: >
+        A20 ③：materialize 一个 3 行 JSONL 载荷，断言 outcome.rowCount == 3
+        （与 fixture token 条数一致，防填假数）。
+      RED_COMMAND: cd core && flutter test test/theme_materializer_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A20]
+
+    - NAME: no_active_pointer_mutation
+      FILE: core/test/theme_materializer_test.dart
+      BEHAVIOR: >
+        A20 ④：materializer 无任何指针操作 API 调用。断言 InMemoryThemeMaterializer
+        不含 active/ensureInstalled/rollbackTo 等方法（源码扫描或 isA 断言）。
+      RED_COMMAND: cd core && flutter test test/theme_materializer_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A20]
+
+    - NAME: no_sha256_recheck
+      FILE: core/test/theme_materializer_test.dart
+      BEHAVIOR: >
+        A20 ⑤：materialize 不重复校验 sha256。源码扫描断言不含 sha256 计算调用
+        （grep -c "sha256\|crypto" == 0）。
+      RED_COMMAND: cd core && flutter test test/theme_materializer_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A20]
+
+    - NAME: same_payload_two_generations_both_succeed
+      FILE: core/test/theme_materializer_test.dart
+      BEHAVIOR: >
+        A20 ⑥（R4-P0 回归守卫）：同一份载荷用 generation 0 和 generation 1 各落地一次，
+        两次都成功，且 tokenStore.generations 含 {0, 1}，两代的 tokensOf 各自返回正确数据。
+        若实现从载荷读世代或做相等校验，第二次落地必红。
+      RED_COMMAND: cd core && flutter test test/theme_materializer_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A20]
+
+    - NAME: payload_value_map_throws
+      FILE: core/test/theme_materializer_test.dart
+      BEHAVIOR: >
+        载荷某行 v 为 Map（嵌套未展平），materialize 立即抛 StateError。
+        证明契约违反被拒（§4.3）。
+      RED_COMMAND: cd core && flutter test test/theme_materializer_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A20]
+
+VERIFICATION:
+  - CMD: cd core && dart analyze --fatal-infos lib/reference/in_memory_theme_materializer.dart
+    EXPECT_EXIT: 0
+  - CMD: cd core && flutter test test/theme_materializer_test.dart
+    EXPECT_EXIT: 0
+  # R4-P0：载荷不读 g（不得有 g != generation 校验）
+  - CMD: grep -nE "j\['g'\]|payload.*g|g != generation|generation != g" core/lib/reference/in_memory_theme_materializer.dart
+    EXPECT_EXIT: 1
+  # 不重复校验 sha256
+  - CMD: grep -c "sha256\|crypto" core/lib/reference/in_memory_theme_materializer.dart
+    EXPECT_STDOUT: "0"
+    EXPECT_EXIT: 1
+  # 不改 XRAP 契约
+  - CMD: git diff --quiet -- core/lib/model/dataset/
+    EXPECT_EXIT: 0
+  # materializer 持有共享 store（不是私有 Map）
+  - CMD: grep -c "InMemoryThemeTokenStore _tokens" core/lib/reference/in_memory_theme_materializer.dart
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+
+DONE_WHEN:
+  - 源文件存在且 analyze 零 issue
+  - 七个测试用例全绿（先红后绿）
+  - 不修改任何既有文件
+  - SELF_CHECK：临时把 `_tokens.putGeneration(generation, tokens)` 改成实例私有 Map 写入
+    -> same_payload_two_generations 或 A21 ③（ACT 06）变红 -> 改回 -> git status 为空
