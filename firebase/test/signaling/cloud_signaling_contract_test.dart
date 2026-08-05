@@ -135,6 +135,43 @@ void main() {
     await bob.dispose();
   });
 
+  // ── R5：present 同值去重（对端在场期间连发信封只发射一次 present）──
+
+  test('R5 · 对端在场期间连发信封，present 只发射一次', () async {
+    final b = MemoryRendezvousBackend();
+    final alice = CloudSignaling(backend: b);
+    final bob = CloudSignaling(backend: b);
+
+    final aliceSession = await alice.open('rv-r5-dedup');
+    final bobSession = await bob.open('rv-r5-dedup');
+
+    final seen = <PeerPresence>[];
+    final sub = aliceSession.peerPresence.listen(seen.add);
+
+    // 对端连发 3 条信封（每次写信封都推一帧快照；不去重则每帧都重发射 present）。
+    for (var i = 0; i < 3; i++) {
+      await bobSession.send(IceCandidateEnvelope(
+        candidate: 'candidate:$i 1 udp 2130706431 192.168.0.2 54321 typ host',
+        sdpMid: '0',
+        sdpMLineIndex: 0,
+      ));
+    }
+    await Future<void>.delayed(grace);
+
+    expect(seen.last, PeerPresence.present,
+        reason: '对端在场期间应保持 present');
+    expect(
+      seen.where((p) => p == PeerPresence.present).length,
+      1,
+      reason: 'present 必须同值去重：对端在场期间连发 N 条信封，'
+          'peerPresence 只收到 1 次 present（与 LocalSignaling 只发一次对齐）',
+    );
+
+    await sub.cancel();
+    await alice.dispose();
+    await bob.dispose();
+  });
+
   // ── A7 隐私：RTDB 路径与载荷不含身份（可读回的返回值上的断言）──
 
   test('A7 · 会合路径与载荷不含 scopeUid / 用户名 / 设备名', () async {

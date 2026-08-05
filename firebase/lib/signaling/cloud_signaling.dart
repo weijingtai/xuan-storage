@@ -224,6 +224,10 @@ final class _CloudSession implements SignalingSession {
   }
 
   void _emit(PeerPresence p) {
+    // 同值去重（R5）：后端每次写信封都会推一帧快照，若对端在场期间连发
+    // 信封，present 会被重复发射；与 LocalSignaling 的「配对只发射一次」
+    // 语义对齐。去重挡的是「重复的同值」，不挡状态推进（awaiting→present→departed）。
+    if (p == _current) return;
     _current = p;
     if (!_presence.isClosed) _presence.add(p);
   }
