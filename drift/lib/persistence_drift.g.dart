@@ -17002,6 +17002,1439 @@ class TScopeAliasCompanion extends UpdateCompanion<TScopeAlia> {
   }
 }
 
+class $BlobMetasTable extends BlobMetas
+    with TableInfo<$BlobMetasTable, BlobMetaRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BlobMetasTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _cipherManifestIdMeta = const VerificationMeta(
+    'cipherManifestId',
+  );
+  @override
+  late final GeneratedColumn<String> cipherManifestId = GeneratedColumn<String>(
+    'cipher_manifest_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _plaintextSha256Meta = const VerificationMeta(
+    'plaintextSha256',
+  );
+  @override
+  late final GeneratedColumn<String> plaintextSha256 = GeneratedColumn<String>(
+    'plaintext_sha256',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _cipherIdMeta = const VerificationMeta(
+    'cipherId',
+  );
+  @override
+  late final GeneratedColumn<String> cipherId = GeneratedColumn<String>(
+    'cipher_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _keyVersionMeta = const VerificationMeta(
+    'keyVersion',
+  );
+  @override
+  late final GeneratedColumn<int> keyVersion = GeneratedColumn<int>(
+    'key_version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _totalBytesMeta = const VerificationMeta(
+    'totalBytes',
+  );
+  @override
+  late final GeneratedColumn<int> totalBytes = GeneratedColumn<int>(
+    'total_bytes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _chunkCountMeta = const VerificationMeta(
+    'chunkCount',
+  );
+  @override
+  late final GeneratedColumn<int> chunkCount = GeneratedColumn<int>(
+    'chunk_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _mimeTypeMeta = const VerificationMeta(
+    'mimeType',
+  );
+  @override
+  late final GeneratedColumn<String> mimeType = GeneratedColumn<String>(
+    'mime_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _tierMeta = const VerificationMeta('tier');
+  @override
+  late final GeneratedColumn<int> tier = GeneratedColumn<int>(
+    'tier',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _visibilityMeta = const VerificationMeta(
+    'visibility',
+  );
+  @override
+  late final GeneratedColumn<int> visibility = GeneratedColumn<int>(
+    'visibility',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<int> status = GeneratedColumn<int>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, DateTime> stagedAtUtc =
+      GeneratedColumn<DateTime>(
+        'staged_at_utc',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: true,
+      ).withConverter<DateTime>($BlobMetasTable.$converterstagedAtUtc);
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, DateTime>
+  lastAccessAtUtc = GeneratedColumn<DateTime>(
+    'last_access_at_utc',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  ).withConverter<DateTime>($BlobMetasTable.$converterlastAccessAtUtc);
+  static const VerificationMeta _externalIdMeta = const VerificationMeta(
+    'externalId',
+  );
+  @override
+  late final GeneratedColumn<String> externalId = GeneratedColumn<String>(
+    'external_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    cipherManifestId,
+    scopeUid,
+    plaintextSha256,
+    cipherId,
+    keyVersion,
+    totalBytes,
+    chunkCount,
+    mimeType,
+    tier,
+    visibility,
+    status,
+    stagedAtUtc,
+    lastAccessAtUtc,
+    externalId,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_blob_meta';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<BlobMetaRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('cipher_manifest_id')) {
+      context.handle(
+        _cipherManifestIdMeta,
+        cipherManifestId.isAcceptableOrUnknown(
+          data['cipher_manifest_id']!,
+          _cipherManifestIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_cipherManifestIdMeta);
+    }
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scopeUidMeta);
+    }
+    if (data.containsKey('plaintext_sha256')) {
+      context.handle(
+        _plaintextSha256Meta,
+        plaintextSha256.isAcceptableOrUnknown(
+          data['plaintext_sha256']!,
+          _plaintextSha256Meta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_plaintextSha256Meta);
+    }
+    if (data.containsKey('cipher_id')) {
+      context.handle(
+        _cipherIdMeta,
+        cipherId.isAcceptableOrUnknown(data['cipher_id']!, _cipherIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cipherIdMeta);
+    }
+    if (data.containsKey('key_version')) {
+      context.handle(
+        _keyVersionMeta,
+        keyVersion.isAcceptableOrUnknown(data['key_version']!, _keyVersionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_keyVersionMeta);
+    }
+    if (data.containsKey('total_bytes')) {
+      context.handle(
+        _totalBytesMeta,
+        totalBytes.isAcceptableOrUnknown(data['total_bytes']!, _totalBytesMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_totalBytesMeta);
+    }
+    if (data.containsKey('chunk_count')) {
+      context.handle(
+        _chunkCountMeta,
+        chunkCount.isAcceptableOrUnknown(data['chunk_count']!, _chunkCountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_chunkCountMeta);
+    }
+    if (data.containsKey('mime_type')) {
+      context.handle(
+        _mimeTypeMeta,
+        mimeType.isAcceptableOrUnknown(data['mime_type']!, _mimeTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_mimeTypeMeta);
+    }
+    if (data.containsKey('tier')) {
+      context.handle(
+        _tierMeta,
+        tier.isAcceptableOrUnknown(data['tier']!, _tierMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tierMeta);
+    }
+    if (data.containsKey('visibility')) {
+      context.handle(
+        _visibilityMeta,
+        visibility.isAcceptableOrUnknown(data['visibility']!, _visibilityMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_visibilityMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('external_id')) {
+      context.handle(
+        _externalIdMeta,
+        externalId.isAcceptableOrUnknown(data['external_id']!, _externalIdMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {cipherManifestId};
+  @override
+  BlobMetaRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BlobMetaRow(
+      cipherManifestId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cipher_manifest_id'],
+      )!,
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      )!,
+      plaintextSha256: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}plaintext_sha256'],
+      )!,
+      cipherId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cipher_id'],
+      )!,
+      keyVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}key_version'],
+      )!,
+      totalBytes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total_bytes'],
+      )!,
+      chunkCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}chunk_count'],
+      )!,
+      mimeType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mime_type'],
+      )!,
+      tier: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}tier'],
+      )!,
+      visibility: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}visibility'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}status'],
+      )!,
+      stagedAtUtc: $BlobMetasTable.$converterstagedAtUtc.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime,
+          data['${effectivePrefix}staged_at_utc'],
+        )!,
+      ),
+      lastAccessAtUtc: $BlobMetasTable.$converterlastAccessAtUtc.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime,
+          data['${effectivePrefix}last_access_at_utc'],
+        )!,
+      ),
+      externalId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}external_id'],
+      ),
+    );
+  }
+
+  @override
+  $BlobMetasTable createAlias(String alias) {
+    return $BlobMetasTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<DateTime, DateTime> $converterstagedAtUtc =
+      const BlobUtcDateTimeConverter();
+  static TypeConverter<DateTime, DateTime> $converterlastAccessAtUtc =
+      const BlobUtcDateTimeConverter();
+}
+
+class BlobMetaRow extends DataClass implements Insertable<BlobMetaRow> {
+  /// 密文清单 id。私有 blob 为随机 UUID；公开 blob 等于明文 sha256。
+  final String cipherManifestId;
+
+  /// 作用域 uid，按用户隔离。
+  final String scopeUid;
+
+  /// 明文 sha256（hex）。**仅作本地去重索引，永不作远端对象名。**
+  final String plaintextSha256;
+
+  /// 解密时定位实现的 cipher 标识。
+  final String cipherId;
+
+  /// 加密时的密钥版本，支持轮换后解旧数据。
+  final int keyVersion;
+
+  /// 明文总字节数。
+  final int totalBytes;
+
+  /// chunk 总数。
+  final int chunkCount;
+
+  /// MIME 类型。
+  final String mimeType;
+
+  /// 所在区：0 = sourceOfTruth（真相源，不可自动回收），1 = cache（可 LRU 清理）。
+  final int tier;
+
+  /// 可见性：0 = private（真加密），1 = public（identity cipher）。
+  final int visibility;
+
+  /// 生命周期状态：0 = staged，1 = committed，2 = orphaned。
+  ///
+  /// 约定：`staged` 经 `reconcileRefs` 转 `committed`（契约规定这是唯一途径）。
+  final int status;
+
+  /// 进入 staged 的时刻（UTC），TTL 计时起点。
+  final DateTime stagedAtUtc;
+
+  /// 最近访问时刻（UTC），LRU 逐出的排序依据。
+  final DateTime lastAccessAtUtc;
+
+  /// 业务外部 id（可空）。紧急下架按此逐出，因下发的黑名单是业务 id 而非句柄。
+  final String? externalId;
+  const BlobMetaRow({
+    required this.cipherManifestId,
+    required this.scopeUid,
+    required this.plaintextSha256,
+    required this.cipherId,
+    required this.keyVersion,
+    required this.totalBytes,
+    required this.chunkCount,
+    required this.mimeType,
+    required this.tier,
+    required this.visibility,
+    required this.status,
+    required this.stagedAtUtc,
+    required this.lastAccessAtUtc,
+    this.externalId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['cipher_manifest_id'] = Variable<String>(cipherManifestId);
+    map['scope_uid'] = Variable<String>(scopeUid);
+    map['plaintext_sha256'] = Variable<String>(plaintextSha256);
+    map['cipher_id'] = Variable<String>(cipherId);
+    map['key_version'] = Variable<int>(keyVersion);
+    map['total_bytes'] = Variable<int>(totalBytes);
+    map['chunk_count'] = Variable<int>(chunkCount);
+    map['mime_type'] = Variable<String>(mimeType);
+    map['tier'] = Variable<int>(tier);
+    map['visibility'] = Variable<int>(visibility);
+    map['status'] = Variable<int>(status);
+    {
+      map['staged_at_utc'] = Variable<DateTime>(
+        $BlobMetasTable.$converterstagedAtUtc.toSql(stagedAtUtc),
+      );
+    }
+    {
+      map['last_access_at_utc'] = Variable<DateTime>(
+        $BlobMetasTable.$converterlastAccessAtUtc.toSql(lastAccessAtUtc),
+      );
+    }
+    if (!nullToAbsent || externalId != null) {
+      map['external_id'] = Variable<String>(externalId);
+    }
+    return map;
+  }
+
+  BlobMetasCompanion toCompanion(bool nullToAbsent) {
+    return BlobMetasCompanion(
+      cipherManifestId: Value(cipherManifestId),
+      scopeUid: Value(scopeUid),
+      plaintextSha256: Value(plaintextSha256),
+      cipherId: Value(cipherId),
+      keyVersion: Value(keyVersion),
+      totalBytes: Value(totalBytes),
+      chunkCount: Value(chunkCount),
+      mimeType: Value(mimeType),
+      tier: Value(tier),
+      visibility: Value(visibility),
+      status: Value(status),
+      stagedAtUtc: Value(stagedAtUtc),
+      lastAccessAtUtc: Value(lastAccessAtUtc),
+      externalId: externalId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(externalId),
+    );
+  }
+
+  factory BlobMetaRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BlobMetaRow(
+      cipherManifestId: serializer.fromJson<String>(json['cipherManifestId']),
+      scopeUid: serializer.fromJson<String>(json['scopeUid']),
+      plaintextSha256: serializer.fromJson<String>(json['plaintextSha256']),
+      cipherId: serializer.fromJson<String>(json['cipherId']),
+      keyVersion: serializer.fromJson<int>(json['keyVersion']),
+      totalBytes: serializer.fromJson<int>(json['totalBytes']),
+      chunkCount: serializer.fromJson<int>(json['chunkCount']),
+      mimeType: serializer.fromJson<String>(json['mimeType']),
+      tier: serializer.fromJson<int>(json['tier']),
+      visibility: serializer.fromJson<int>(json['visibility']),
+      status: serializer.fromJson<int>(json['status']),
+      stagedAtUtc: serializer.fromJson<DateTime>(json['stagedAtUtc']),
+      lastAccessAtUtc: serializer.fromJson<DateTime>(json['lastAccessAtUtc']),
+      externalId: serializer.fromJson<String?>(json['externalId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'cipherManifestId': serializer.toJson<String>(cipherManifestId),
+      'scopeUid': serializer.toJson<String>(scopeUid),
+      'plaintextSha256': serializer.toJson<String>(plaintextSha256),
+      'cipherId': serializer.toJson<String>(cipherId),
+      'keyVersion': serializer.toJson<int>(keyVersion),
+      'totalBytes': serializer.toJson<int>(totalBytes),
+      'chunkCount': serializer.toJson<int>(chunkCount),
+      'mimeType': serializer.toJson<String>(mimeType),
+      'tier': serializer.toJson<int>(tier),
+      'visibility': serializer.toJson<int>(visibility),
+      'status': serializer.toJson<int>(status),
+      'stagedAtUtc': serializer.toJson<DateTime>(stagedAtUtc),
+      'lastAccessAtUtc': serializer.toJson<DateTime>(lastAccessAtUtc),
+      'externalId': serializer.toJson<String?>(externalId),
+    };
+  }
+
+  BlobMetaRow copyWith({
+    String? cipherManifestId,
+    String? scopeUid,
+    String? plaintextSha256,
+    String? cipherId,
+    int? keyVersion,
+    int? totalBytes,
+    int? chunkCount,
+    String? mimeType,
+    int? tier,
+    int? visibility,
+    int? status,
+    DateTime? stagedAtUtc,
+    DateTime? lastAccessAtUtc,
+    Value<String?> externalId = const Value.absent(),
+  }) => BlobMetaRow(
+    cipherManifestId: cipherManifestId ?? this.cipherManifestId,
+    scopeUid: scopeUid ?? this.scopeUid,
+    plaintextSha256: plaintextSha256 ?? this.plaintextSha256,
+    cipherId: cipherId ?? this.cipherId,
+    keyVersion: keyVersion ?? this.keyVersion,
+    totalBytes: totalBytes ?? this.totalBytes,
+    chunkCount: chunkCount ?? this.chunkCount,
+    mimeType: mimeType ?? this.mimeType,
+    tier: tier ?? this.tier,
+    visibility: visibility ?? this.visibility,
+    status: status ?? this.status,
+    stagedAtUtc: stagedAtUtc ?? this.stagedAtUtc,
+    lastAccessAtUtc: lastAccessAtUtc ?? this.lastAccessAtUtc,
+    externalId: externalId.present ? externalId.value : this.externalId,
+  );
+  BlobMetaRow copyWithCompanion(BlobMetasCompanion data) {
+    return BlobMetaRow(
+      cipherManifestId: data.cipherManifestId.present
+          ? data.cipherManifestId.value
+          : this.cipherManifestId,
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
+      plaintextSha256: data.plaintextSha256.present
+          ? data.plaintextSha256.value
+          : this.plaintextSha256,
+      cipherId: data.cipherId.present ? data.cipherId.value : this.cipherId,
+      keyVersion: data.keyVersion.present
+          ? data.keyVersion.value
+          : this.keyVersion,
+      totalBytes: data.totalBytes.present
+          ? data.totalBytes.value
+          : this.totalBytes,
+      chunkCount: data.chunkCount.present
+          ? data.chunkCount.value
+          : this.chunkCount,
+      mimeType: data.mimeType.present ? data.mimeType.value : this.mimeType,
+      tier: data.tier.present ? data.tier.value : this.tier,
+      visibility: data.visibility.present
+          ? data.visibility.value
+          : this.visibility,
+      status: data.status.present ? data.status.value : this.status,
+      stagedAtUtc: data.stagedAtUtc.present
+          ? data.stagedAtUtc.value
+          : this.stagedAtUtc,
+      lastAccessAtUtc: data.lastAccessAtUtc.present
+          ? data.lastAccessAtUtc.value
+          : this.lastAccessAtUtc,
+      externalId: data.externalId.present
+          ? data.externalId.value
+          : this.externalId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BlobMetaRow(')
+          ..write('cipherManifestId: $cipherManifestId, ')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('plaintextSha256: $plaintextSha256, ')
+          ..write('cipherId: $cipherId, ')
+          ..write('keyVersion: $keyVersion, ')
+          ..write('totalBytes: $totalBytes, ')
+          ..write('chunkCount: $chunkCount, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('tier: $tier, ')
+          ..write('visibility: $visibility, ')
+          ..write('status: $status, ')
+          ..write('stagedAtUtc: $stagedAtUtc, ')
+          ..write('lastAccessAtUtc: $lastAccessAtUtc, ')
+          ..write('externalId: $externalId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    cipherManifestId,
+    scopeUid,
+    plaintextSha256,
+    cipherId,
+    keyVersion,
+    totalBytes,
+    chunkCount,
+    mimeType,
+    tier,
+    visibility,
+    status,
+    stagedAtUtc,
+    lastAccessAtUtc,
+    externalId,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BlobMetaRow &&
+          other.cipherManifestId == this.cipherManifestId &&
+          other.scopeUid == this.scopeUid &&
+          other.plaintextSha256 == this.plaintextSha256 &&
+          other.cipherId == this.cipherId &&
+          other.keyVersion == this.keyVersion &&
+          other.totalBytes == this.totalBytes &&
+          other.chunkCount == this.chunkCount &&
+          other.mimeType == this.mimeType &&
+          other.tier == this.tier &&
+          other.visibility == this.visibility &&
+          other.status == this.status &&
+          other.stagedAtUtc == this.stagedAtUtc &&
+          other.lastAccessAtUtc == this.lastAccessAtUtc &&
+          other.externalId == this.externalId);
+}
+
+class BlobMetasCompanion extends UpdateCompanion<BlobMetaRow> {
+  final Value<String> cipherManifestId;
+  final Value<String> scopeUid;
+  final Value<String> plaintextSha256;
+  final Value<String> cipherId;
+  final Value<int> keyVersion;
+  final Value<int> totalBytes;
+  final Value<int> chunkCount;
+  final Value<String> mimeType;
+  final Value<int> tier;
+  final Value<int> visibility;
+  final Value<int> status;
+  final Value<DateTime> stagedAtUtc;
+  final Value<DateTime> lastAccessAtUtc;
+  final Value<String?> externalId;
+  final Value<int> rowid;
+  const BlobMetasCompanion({
+    this.cipherManifestId = const Value.absent(),
+    this.scopeUid = const Value.absent(),
+    this.plaintextSha256 = const Value.absent(),
+    this.cipherId = const Value.absent(),
+    this.keyVersion = const Value.absent(),
+    this.totalBytes = const Value.absent(),
+    this.chunkCount = const Value.absent(),
+    this.mimeType = const Value.absent(),
+    this.tier = const Value.absent(),
+    this.visibility = const Value.absent(),
+    this.status = const Value.absent(),
+    this.stagedAtUtc = const Value.absent(),
+    this.lastAccessAtUtc = const Value.absent(),
+    this.externalId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  BlobMetasCompanion.insert({
+    required String cipherManifestId,
+    required String scopeUid,
+    required String plaintextSha256,
+    required String cipherId,
+    required int keyVersion,
+    required int totalBytes,
+    required int chunkCount,
+    required String mimeType,
+    required int tier,
+    required int visibility,
+    this.status = const Value.absent(),
+    required DateTime stagedAtUtc,
+    required DateTime lastAccessAtUtc,
+    this.externalId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : cipherManifestId = Value(cipherManifestId),
+       scopeUid = Value(scopeUid),
+       plaintextSha256 = Value(plaintextSha256),
+       cipherId = Value(cipherId),
+       keyVersion = Value(keyVersion),
+       totalBytes = Value(totalBytes),
+       chunkCount = Value(chunkCount),
+       mimeType = Value(mimeType),
+       tier = Value(tier),
+       visibility = Value(visibility),
+       stagedAtUtc = Value(stagedAtUtc),
+       lastAccessAtUtc = Value(lastAccessAtUtc);
+  static Insertable<BlobMetaRow> custom({
+    Expression<String>? cipherManifestId,
+    Expression<String>? scopeUid,
+    Expression<String>? plaintextSha256,
+    Expression<String>? cipherId,
+    Expression<int>? keyVersion,
+    Expression<int>? totalBytes,
+    Expression<int>? chunkCount,
+    Expression<String>? mimeType,
+    Expression<int>? tier,
+    Expression<int>? visibility,
+    Expression<int>? status,
+    Expression<DateTime>? stagedAtUtc,
+    Expression<DateTime>? lastAccessAtUtc,
+    Expression<String>? externalId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (cipherManifestId != null) 'cipher_manifest_id': cipherManifestId,
+      if (scopeUid != null) 'scope_uid': scopeUid,
+      if (plaintextSha256 != null) 'plaintext_sha256': plaintextSha256,
+      if (cipherId != null) 'cipher_id': cipherId,
+      if (keyVersion != null) 'key_version': keyVersion,
+      if (totalBytes != null) 'total_bytes': totalBytes,
+      if (chunkCount != null) 'chunk_count': chunkCount,
+      if (mimeType != null) 'mime_type': mimeType,
+      if (tier != null) 'tier': tier,
+      if (visibility != null) 'visibility': visibility,
+      if (status != null) 'status': status,
+      if (stagedAtUtc != null) 'staged_at_utc': stagedAtUtc,
+      if (lastAccessAtUtc != null) 'last_access_at_utc': lastAccessAtUtc,
+      if (externalId != null) 'external_id': externalId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  BlobMetasCompanion copyWith({
+    Value<String>? cipherManifestId,
+    Value<String>? scopeUid,
+    Value<String>? plaintextSha256,
+    Value<String>? cipherId,
+    Value<int>? keyVersion,
+    Value<int>? totalBytes,
+    Value<int>? chunkCount,
+    Value<String>? mimeType,
+    Value<int>? tier,
+    Value<int>? visibility,
+    Value<int>? status,
+    Value<DateTime>? stagedAtUtc,
+    Value<DateTime>? lastAccessAtUtc,
+    Value<String?>? externalId,
+    Value<int>? rowid,
+  }) {
+    return BlobMetasCompanion(
+      cipherManifestId: cipherManifestId ?? this.cipherManifestId,
+      scopeUid: scopeUid ?? this.scopeUid,
+      plaintextSha256: plaintextSha256 ?? this.plaintextSha256,
+      cipherId: cipherId ?? this.cipherId,
+      keyVersion: keyVersion ?? this.keyVersion,
+      totalBytes: totalBytes ?? this.totalBytes,
+      chunkCount: chunkCount ?? this.chunkCount,
+      mimeType: mimeType ?? this.mimeType,
+      tier: tier ?? this.tier,
+      visibility: visibility ?? this.visibility,
+      status: status ?? this.status,
+      stagedAtUtc: stagedAtUtc ?? this.stagedAtUtc,
+      lastAccessAtUtc: lastAccessAtUtc ?? this.lastAccessAtUtc,
+      externalId: externalId ?? this.externalId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (cipherManifestId.present) {
+      map['cipher_manifest_id'] = Variable<String>(cipherManifestId.value);
+    }
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
+    }
+    if (plaintextSha256.present) {
+      map['plaintext_sha256'] = Variable<String>(plaintextSha256.value);
+    }
+    if (cipherId.present) {
+      map['cipher_id'] = Variable<String>(cipherId.value);
+    }
+    if (keyVersion.present) {
+      map['key_version'] = Variable<int>(keyVersion.value);
+    }
+    if (totalBytes.present) {
+      map['total_bytes'] = Variable<int>(totalBytes.value);
+    }
+    if (chunkCount.present) {
+      map['chunk_count'] = Variable<int>(chunkCount.value);
+    }
+    if (mimeType.present) {
+      map['mime_type'] = Variable<String>(mimeType.value);
+    }
+    if (tier.present) {
+      map['tier'] = Variable<int>(tier.value);
+    }
+    if (visibility.present) {
+      map['visibility'] = Variable<int>(visibility.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<int>(status.value);
+    }
+    if (stagedAtUtc.present) {
+      map['staged_at_utc'] = Variable<DateTime>(
+        $BlobMetasTable.$converterstagedAtUtc.toSql(stagedAtUtc.value),
+      );
+    }
+    if (lastAccessAtUtc.present) {
+      map['last_access_at_utc'] = Variable<DateTime>(
+        $BlobMetasTable.$converterlastAccessAtUtc.toSql(lastAccessAtUtc.value),
+      );
+    }
+    if (externalId.present) {
+      map['external_id'] = Variable<String>(externalId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BlobMetasCompanion(')
+          ..write('cipherManifestId: $cipherManifestId, ')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('plaintextSha256: $plaintextSha256, ')
+          ..write('cipherId: $cipherId, ')
+          ..write('keyVersion: $keyVersion, ')
+          ..write('totalBytes: $totalBytes, ')
+          ..write('chunkCount: $chunkCount, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('tier: $tier, ')
+          ..write('visibility: $visibility, ')
+          ..write('status: $status, ')
+          ..write('stagedAtUtc: $stagedAtUtc, ')
+          ..write('lastAccessAtUtc: $lastAccessAtUtc, ')
+          ..write('externalId: $externalId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $BlobChunksTable extends BlobChunks
+    with TableInfo<$BlobChunksTable, BlobChunkRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BlobChunksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _cipherManifestIdMeta = const VerificationMeta(
+    'cipherManifestId',
+  );
+  @override
+  late final GeneratedColumn<String> cipherManifestId = GeneratedColumn<String>(
+    'cipher_manifest_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _chunkIndexMeta = const VerificationMeta(
+    'chunkIndex',
+  );
+  @override
+  late final GeneratedColumn<int> chunkIndex = GeneratedColumn<int>(
+    'chunk_index',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _cipherBytesLenMeta = const VerificationMeta(
+    'cipherBytesLen',
+  );
+  @override
+  late final GeneratedColumn<int> cipherBytesLen = GeneratedColumn<int>(
+    'cipher_bytes_len',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _chunkSha256Meta = const VerificationMeta(
+    'chunkSha256',
+  );
+  @override
+  late final GeneratedColumn<String> chunkSha256 = GeneratedColumn<String>(
+    'chunk_sha256',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    cipherManifestId,
+    chunkIndex,
+    cipherBytesLen,
+    chunkSha256,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_blob_chunk';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<BlobChunkRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('cipher_manifest_id')) {
+      context.handle(
+        _cipherManifestIdMeta,
+        cipherManifestId.isAcceptableOrUnknown(
+          data['cipher_manifest_id']!,
+          _cipherManifestIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_cipherManifestIdMeta);
+    }
+    if (data.containsKey('chunk_index')) {
+      context.handle(
+        _chunkIndexMeta,
+        chunkIndex.isAcceptableOrUnknown(data['chunk_index']!, _chunkIndexMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_chunkIndexMeta);
+    }
+    if (data.containsKey('cipher_bytes_len')) {
+      context.handle(
+        _cipherBytesLenMeta,
+        cipherBytesLen.isAcceptableOrUnknown(
+          data['cipher_bytes_len']!,
+          _cipherBytesLenMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_cipherBytesLenMeta);
+    }
+    if (data.containsKey('chunk_sha256')) {
+      context.handle(
+        _chunkSha256Meta,
+        chunkSha256.isAcceptableOrUnknown(
+          data['chunk_sha256']!,
+          _chunkSha256Meta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_chunkSha256Meta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {cipherManifestId, chunkIndex};
+  @override
+  BlobChunkRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BlobChunkRow(
+      cipherManifestId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cipher_manifest_id'],
+      )!,
+      chunkIndex: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}chunk_index'],
+      )!,
+      cipherBytesLen: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}cipher_bytes_len'],
+      )!,
+      chunkSha256: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}chunk_sha256'],
+      )!,
+    );
+  }
+
+  @override
+  $BlobChunksTable createAlias(String alias) {
+    return $BlobChunksTable(attachedDatabase, alias);
+  }
+}
+
+class BlobChunkRow extends DataClass implements Insertable<BlobChunkRow> {
+  /// 所属 blob 的密文清单 id。
+  final String cipherManifestId;
+
+  /// chunk 序号，从 0 开始。
+  final int chunkIndex;
+
+  /// 该 chunk 的密文字节长度，写后校验用。
+  final int cipherBytesLen;
+
+  /// 该 chunk 的独立 sha256（hex），用于定位损坏到具体 chunk。
+  final String chunkSha256;
+  const BlobChunkRow({
+    required this.cipherManifestId,
+    required this.chunkIndex,
+    required this.cipherBytesLen,
+    required this.chunkSha256,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['cipher_manifest_id'] = Variable<String>(cipherManifestId);
+    map['chunk_index'] = Variable<int>(chunkIndex);
+    map['cipher_bytes_len'] = Variable<int>(cipherBytesLen);
+    map['chunk_sha256'] = Variable<String>(chunkSha256);
+    return map;
+  }
+
+  BlobChunksCompanion toCompanion(bool nullToAbsent) {
+    return BlobChunksCompanion(
+      cipherManifestId: Value(cipherManifestId),
+      chunkIndex: Value(chunkIndex),
+      cipherBytesLen: Value(cipherBytesLen),
+      chunkSha256: Value(chunkSha256),
+    );
+  }
+
+  factory BlobChunkRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BlobChunkRow(
+      cipherManifestId: serializer.fromJson<String>(json['cipherManifestId']),
+      chunkIndex: serializer.fromJson<int>(json['chunkIndex']),
+      cipherBytesLen: serializer.fromJson<int>(json['cipherBytesLen']),
+      chunkSha256: serializer.fromJson<String>(json['chunkSha256']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'cipherManifestId': serializer.toJson<String>(cipherManifestId),
+      'chunkIndex': serializer.toJson<int>(chunkIndex),
+      'cipherBytesLen': serializer.toJson<int>(cipherBytesLen),
+      'chunkSha256': serializer.toJson<String>(chunkSha256),
+    };
+  }
+
+  BlobChunkRow copyWith({
+    String? cipherManifestId,
+    int? chunkIndex,
+    int? cipherBytesLen,
+    String? chunkSha256,
+  }) => BlobChunkRow(
+    cipherManifestId: cipherManifestId ?? this.cipherManifestId,
+    chunkIndex: chunkIndex ?? this.chunkIndex,
+    cipherBytesLen: cipherBytesLen ?? this.cipherBytesLen,
+    chunkSha256: chunkSha256 ?? this.chunkSha256,
+  );
+  BlobChunkRow copyWithCompanion(BlobChunksCompanion data) {
+    return BlobChunkRow(
+      cipherManifestId: data.cipherManifestId.present
+          ? data.cipherManifestId.value
+          : this.cipherManifestId,
+      chunkIndex: data.chunkIndex.present
+          ? data.chunkIndex.value
+          : this.chunkIndex,
+      cipherBytesLen: data.cipherBytesLen.present
+          ? data.cipherBytesLen.value
+          : this.cipherBytesLen,
+      chunkSha256: data.chunkSha256.present
+          ? data.chunkSha256.value
+          : this.chunkSha256,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BlobChunkRow(')
+          ..write('cipherManifestId: $cipherManifestId, ')
+          ..write('chunkIndex: $chunkIndex, ')
+          ..write('cipherBytesLen: $cipherBytesLen, ')
+          ..write('chunkSha256: $chunkSha256')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(cipherManifestId, chunkIndex, cipherBytesLen, chunkSha256);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BlobChunkRow &&
+          other.cipherManifestId == this.cipherManifestId &&
+          other.chunkIndex == this.chunkIndex &&
+          other.cipherBytesLen == this.cipherBytesLen &&
+          other.chunkSha256 == this.chunkSha256);
+}
+
+class BlobChunksCompanion extends UpdateCompanion<BlobChunkRow> {
+  final Value<String> cipherManifestId;
+  final Value<int> chunkIndex;
+  final Value<int> cipherBytesLen;
+  final Value<String> chunkSha256;
+  final Value<int> rowid;
+  const BlobChunksCompanion({
+    this.cipherManifestId = const Value.absent(),
+    this.chunkIndex = const Value.absent(),
+    this.cipherBytesLen = const Value.absent(),
+    this.chunkSha256 = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  BlobChunksCompanion.insert({
+    required String cipherManifestId,
+    required int chunkIndex,
+    required int cipherBytesLen,
+    required String chunkSha256,
+    this.rowid = const Value.absent(),
+  }) : cipherManifestId = Value(cipherManifestId),
+       chunkIndex = Value(chunkIndex),
+       cipherBytesLen = Value(cipherBytesLen),
+       chunkSha256 = Value(chunkSha256);
+  static Insertable<BlobChunkRow> custom({
+    Expression<String>? cipherManifestId,
+    Expression<int>? chunkIndex,
+    Expression<int>? cipherBytesLen,
+    Expression<String>? chunkSha256,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (cipherManifestId != null) 'cipher_manifest_id': cipherManifestId,
+      if (chunkIndex != null) 'chunk_index': chunkIndex,
+      if (cipherBytesLen != null) 'cipher_bytes_len': cipherBytesLen,
+      if (chunkSha256 != null) 'chunk_sha256': chunkSha256,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  BlobChunksCompanion copyWith({
+    Value<String>? cipherManifestId,
+    Value<int>? chunkIndex,
+    Value<int>? cipherBytesLen,
+    Value<String>? chunkSha256,
+    Value<int>? rowid,
+  }) {
+    return BlobChunksCompanion(
+      cipherManifestId: cipherManifestId ?? this.cipherManifestId,
+      chunkIndex: chunkIndex ?? this.chunkIndex,
+      cipherBytesLen: cipherBytesLen ?? this.cipherBytesLen,
+      chunkSha256: chunkSha256 ?? this.chunkSha256,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (cipherManifestId.present) {
+      map['cipher_manifest_id'] = Variable<String>(cipherManifestId.value);
+    }
+    if (chunkIndex.present) {
+      map['chunk_index'] = Variable<int>(chunkIndex.value);
+    }
+    if (cipherBytesLen.present) {
+      map['cipher_bytes_len'] = Variable<int>(cipherBytesLen.value);
+    }
+    if (chunkSha256.present) {
+      map['chunk_sha256'] = Variable<String>(chunkSha256.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BlobChunksCompanion(')
+          ..write('cipherManifestId: $cipherManifestId, ')
+          ..write('chunkIndex: $chunkIndex, ')
+          ..write('cipherBytesLen: $cipherBytesLen, ')
+          ..write('chunkSha256: $chunkSha256, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $BlobRefsTable extends BlobRefs
+    with TableInfo<$BlobRefsTable, BlobRefRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BlobRefsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _ownerRecordUuidMeta = const VerificationMeta(
+    'ownerRecordUuid',
+  );
+  @override
+  late final GeneratedColumn<String> ownerRecordUuid = GeneratedColumn<String>(
+    'owner_record_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _cipherManifestIdMeta = const VerificationMeta(
+    'cipherManifestId',
+  );
+  @override
+  late final GeneratedColumn<String> cipherManifestId = GeneratedColumn<String>(
+    'cipher_manifest_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [ownerRecordUuid, cipherManifestId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_blob_ref';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<BlobRefRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('owner_record_uuid')) {
+      context.handle(
+        _ownerRecordUuidMeta,
+        ownerRecordUuid.isAcceptableOrUnknown(
+          data['owner_record_uuid']!,
+          _ownerRecordUuidMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_ownerRecordUuidMeta);
+    }
+    if (data.containsKey('cipher_manifest_id')) {
+      context.handle(
+        _cipherManifestIdMeta,
+        cipherManifestId.isAcceptableOrUnknown(
+          data['cipher_manifest_id']!,
+          _cipherManifestIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_cipherManifestIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {ownerRecordUuid, cipherManifestId};
+  @override
+  BlobRefRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BlobRefRow(
+      ownerRecordUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_record_uuid'],
+      )!,
+      cipherManifestId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cipher_manifest_id'],
+      )!,
+    );
+  }
+
+  @override
+  $BlobRefsTable createAlias(String alias) {
+    return $BlobRefsTable(attachedDatabase, alias);
+  }
+}
+
+class BlobRefRow extends DataClass implements Insertable<BlobRefRow> {
+  /// 持有引用的记录 uuid。
+  final String ownerRecordUuid;
+
+  /// 被引用 blob 的密文清单 id。
+  final String cipherManifestId;
+  const BlobRefRow({
+    required this.ownerRecordUuid,
+    required this.cipherManifestId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['owner_record_uuid'] = Variable<String>(ownerRecordUuid);
+    map['cipher_manifest_id'] = Variable<String>(cipherManifestId);
+    return map;
+  }
+
+  BlobRefsCompanion toCompanion(bool nullToAbsent) {
+    return BlobRefsCompanion(
+      ownerRecordUuid: Value(ownerRecordUuid),
+      cipherManifestId: Value(cipherManifestId),
+    );
+  }
+
+  factory BlobRefRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BlobRefRow(
+      ownerRecordUuid: serializer.fromJson<String>(json['ownerRecordUuid']),
+      cipherManifestId: serializer.fromJson<String>(json['cipherManifestId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'ownerRecordUuid': serializer.toJson<String>(ownerRecordUuid),
+      'cipherManifestId': serializer.toJson<String>(cipherManifestId),
+    };
+  }
+
+  BlobRefRow copyWith({String? ownerRecordUuid, String? cipherManifestId}) =>
+      BlobRefRow(
+        ownerRecordUuid: ownerRecordUuid ?? this.ownerRecordUuid,
+        cipherManifestId: cipherManifestId ?? this.cipherManifestId,
+      );
+  BlobRefRow copyWithCompanion(BlobRefsCompanion data) {
+    return BlobRefRow(
+      ownerRecordUuid: data.ownerRecordUuid.present
+          ? data.ownerRecordUuid.value
+          : this.ownerRecordUuid,
+      cipherManifestId: data.cipherManifestId.present
+          ? data.cipherManifestId.value
+          : this.cipherManifestId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BlobRefRow(')
+          ..write('ownerRecordUuid: $ownerRecordUuid, ')
+          ..write('cipherManifestId: $cipherManifestId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(ownerRecordUuid, cipherManifestId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BlobRefRow &&
+          other.ownerRecordUuid == this.ownerRecordUuid &&
+          other.cipherManifestId == this.cipherManifestId);
+}
+
+class BlobRefsCompanion extends UpdateCompanion<BlobRefRow> {
+  final Value<String> ownerRecordUuid;
+  final Value<String> cipherManifestId;
+  final Value<int> rowid;
+  const BlobRefsCompanion({
+    this.ownerRecordUuid = const Value.absent(),
+    this.cipherManifestId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  BlobRefsCompanion.insert({
+    required String ownerRecordUuid,
+    required String cipherManifestId,
+    this.rowid = const Value.absent(),
+  }) : ownerRecordUuid = Value(ownerRecordUuid),
+       cipherManifestId = Value(cipherManifestId);
+  static Insertable<BlobRefRow> custom({
+    Expression<String>? ownerRecordUuid,
+    Expression<String>? cipherManifestId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (ownerRecordUuid != null) 'owner_record_uuid': ownerRecordUuid,
+      if (cipherManifestId != null) 'cipher_manifest_id': cipherManifestId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  BlobRefsCompanion copyWith({
+    Value<String>? ownerRecordUuid,
+    Value<String>? cipherManifestId,
+    Value<int>? rowid,
+  }) {
+    return BlobRefsCompanion(
+      ownerRecordUuid: ownerRecordUuid ?? this.ownerRecordUuid,
+      cipherManifestId: cipherManifestId ?? this.cipherManifestId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (ownerRecordUuid.present) {
+      map['owner_record_uuid'] = Variable<String>(ownerRecordUuid.value);
+    }
+    if (cipherManifestId.present) {
+      map['cipher_manifest_id'] = Variable<String>(cipherManifestId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BlobRefsCompanion(')
+          ..write('ownerRecordUuid: $ownerRecordUuid, ')
+          ..write('cipherManifestId: $cipherManifestId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
   _$PersistenceDriftDatabase(QueryExecutor e) : super(e);
   $PersistenceDriftDatabaseManager get managers =>
@@ -17058,6 +18491,9 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
   late final $TRecordSearchIndexTable tRecordSearchIndex =
       $TRecordSearchIndexTable(this);
   late final $TScopeAliasTable tScopeAlias = $TScopeAliasTable(this);
+  late final $BlobMetasTable blobMetas = $BlobMetasTable(this);
+  late final $BlobChunksTable blobChunks = $BlobChunksTable(this);
+  late final $BlobRefsTable blobRefs = $BlobRefsTable(this);
   late final OutboxRecordsDao outboxRecordsDao = OutboxRecordsDao(
     this as PersistenceDriftDatabase,
   );
@@ -17144,6 +18580,9 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
     tRecordMeta,
     tRecordSearchIndex,
     tScopeAlias,
+    blobMetas,
+    blobChunks,
+    blobRefs,
   ];
 }
 
@@ -26436,6 +27875,761 @@ typedef $$TScopeAliasTableProcessedTableManager =
       TScopeAlia,
       PrefetchHooks Function()
     >;
+typedef $$BlobMetasTableCreateCompanionBuilder =
+    BlobMetasCompanion Function({
+      required String cipherManifestId,
+      required String scopeUid,
+      required String plaintextSha256,
+      required String cipherId,
+      required int keyVersion,
+      required int totalBytes,
+      required int chunkCount,
+      required String mimeType,
+      required int tier,
+      required int visibility,
+      Value<int> status,
+      required DateTime stagedAtUtc,
+      required DateTime lastAccessAtUtc,
+      Value<String?> externalId,
+      Value<int> rowid,
+    });
+typedef $$BlobMetasTableUpdateCompanionBuilder =
+    BlobMetasCompanion Function({
+      Value<String> cipherManifestId,
+      Value<String> scopeUid,
+      Value<String> plaintextSha256,
+      Value<String> cipherId,
+      Value<int> keyVersion,
+      Value<int> totalBytes,
+      Value<int> chunkCount,
+      Value<String> mimeType,
+      Value<int> tier,
+      Value<int> visibility,
+      Value<int> status,
+      Value<DateTime> stagedAtUtc,
+      Value<DateTime> lastAccessAtUtc,
+      Value<String?> externalId,
+      Value<int> rowid,
+    });
+
+class $$BlobMetasTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $BlobMetasTable> {
+  $$BlobMetasTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get cipherManifestId => $composableBuilder(
+    column: $table.cipherManifestId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get plaintextSha256 => $composableBuilder(
+    column: $table.plaintextSha256,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get cipherId => $composableBuilder(
+    column: $table.cipherId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get keyVersion => $composableBuilder(
+    column: $table.keyVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get totalBytes => $composableBuilder(
+    column: $table.totalBytes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get chunkCount => $composableBuilder(
+    column: $table.chunkCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mimeType => $composableBuilder(
+    column: $table.mimeType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get tier => $composableBuilder(
+    column: $table.tier,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get visibility => $composableBuilder(
+    column: $table.visibility,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<DateTime, DateTime, DateTime>
+  get stagedAtUtc => $composableBuilder(
+    column: $table.stagedAtUtc,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<DateTime, DateTime, DateTime>
+  get lastAccessAtUtc => $composableBuilder(
+    column: $table.lastAccessAtUtc,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get externalId => $composableBuilder(
+    column: $table.externalId,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$BlobMetasTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $BlobMetasTable> {
+  $$BlobMetasTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get cipherManifestId => $composableBuilder(
+    column: $table.cipherManifestId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get plaintextSha256 => $composableBuilder(
+    column: $table.plaintextSha256,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get cipherId => $composableBuilder(
+    column: $table.cipherId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get keyVersion => $composableBuilder(
+    column: $table.keyVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get totalBytes => $composableBuilder(
+    column: $table.totalBytes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get chunkCount => $composableBuilder(
+    column: $table.chunkCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mimeType => $composableBuilder(
+    column: $table.mimeType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get tier => $composableBuilder(
+    column: $table.tier,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get visibility => $composableBuilder(
+    column: $table.visibility,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get stagedAtUtc => $composableBuilder(
+    column: $table.stagedAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastAccessAtUtc => $composableBuilder(
+    column: $table.lastAccessAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get externalId => $composableBuilder(
+    column: $table.externalId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$BlobMetasTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $BlobMetasTable> {
+  $$BlobMetasTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get cipherManifestId => $composableBuilder(
+    column: $table.cipherManifestId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
+
+  GeneratedColumn<String> get plaintextSha256 => $composableBuilder(
+    column: $table.plaintextSha256,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get cipherId =>
+      $composableBuilder(column: $table.cipherId, builder: (column) => column);
+
+  GeneratedColumn<int> get keyVersion => $composableBuilder(
+    column: $table.keyVersion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get totalBytes => $composableBuilder(
+    column: $table.totalBytes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get chunkCount => $composableBuilder(
+    column: $table.chunkCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get mimeType =>
+      $composableBuilder(column: $table.mimeType, builder: (column) => column);
+
+  GeneratedColumn<int> get tier =>
+      $composableBuilder(column: $table.tier, builder: (column) => column);
+
+  GeneratedColumn<int> get visibility => $composableBuilder(
+    column: $table.visibility,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<DateTime, DateTime> get stagedAtUtc =>
+      $composableBuilder(
+        column: $table.stagedAtUtc,
+        builder: (column) => column,
+      );
+
+  GeneratedColumnWithTypeConverter<DateTime, DateTime> get lastAccessAtUtc =>
+      $composableBuilder(
+        column: $table.lastAccessAtUtc,
+        builder: (column) => column,
+      );
+
+  GeneratedColumn<String> get externalId => $composableBuilder(
+    column: $table.externalId,
+    builder: (column) => column,
+  );
+}
+
+class $$BlobMetasTableTableManager
+    extends
+        RootTableManager<
+          _$PersistenceDriftDatabase,
+          $BlobMetasTable,
+          BlobMetaRow,
+          $$BlobMetasTableFilterComposer,
+          $$BlobMetasTableOrderingComposer,
+          $$BlobMetasTableAnnotationComposer,
+          $$BlobMetasTableCreateCompanionBuilder,
+          $$BlobMetasTableUpdateCompanionBuilder,
+          (
+            BlobMetaRow,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $BlobMetasTable,
+              BlobMetaRow
+            >,
+          ),
+          BlobMetaRow,
+          PrefetchHooks Function()
+        > {
+  $$BlobMetasTableTableManager(
+    _$PersistenceDriftDatabase db,
+    $BlobMetasTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$BlobMetasTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BlobMetasTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$BlobMetasTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> cipherManifestId = const Value.absent(),
+                Value<String> scopeUid = const Value.absent(),
+                Value<String> plaintextSha256 = const Value.absent(),
+                Value<String> cipherId = const Value.absent(),
+                Value<int> keyVersion = const Value.absent(),
+                Value<int> totalBytes = const Value.absent(),
+                Value<int> chunkCount = const Value.absent(),
+                Value<String> mimeType = const Value.absent(),
+                Value<int> tier = const Value.absent(),
+                Value<int> visibility = const Value.absent(),
+                Value<int> status = const Value.absent(),
+                Value<DateTime> stagedAtUtc = const Value.absent(),
+                Value<DateTime> lastAccessAtUtc = const Value.absent(),
+                Value<String?> externalId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => BlobMetasCompanion(
+                cipherManifestId: cipherManifestId,
+                scopeUid: scopeUid,
+                plaintextSha256: plaintextSha256,
+                cipherId: cipherId,
+                keyVersion: keyVersion,
+                totalBytes: totalBytes,
+                chunkCount: chunkCount,
+                mimeType: mimeType,
+                tier: tier,
+                visibility: visibility,
+                status: status,
+                stagedAtUtc: stagedAtUtc,
+                lastAccessAtUtc: lastAccessAtUtc,
+                externalId: externalId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String cipherManifestId,
+                required String scopeUid,
+                required String plaintextSha256,
+                required String cipherId,
+                required int keyVersion,
+                required int totalBytes,
+                required int chunkCount,
+                required String mimeType,
+                required int tier,
+                required int visibility,
+                Value<int> status = const Value.absent(),
+                required DateTime stagedAtUtc,
+                required DateTime lastAccessAtUtc,
+                Value<String?> externalId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => BlobMetasCompanion.insert(
+                cipherManifestId: cipherManifestId,
+                scopeUid: scopeUid,
+                plaintextSha256: plaintextSha256,
+                cipherId: cipherId,
+                keyVersion: keyVersion,
+                totalBytes: totalBytes,
+                chunkCount: chunkCount,
+                mimeType: mimeType,
+                tier: tier,
+                visibility: visibility,
+                status: status,
+                stagedAtUtc: stagedAtUtc,
+                lastAccessAtUtc: lastAccessAtUtc,
+                externalId: externalId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$BlobMetasTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PersistenceDriftDatabase,
+      $BlobMetasTable,
+      BlobMetaRow,
+      $$BlobMetasTableFilterComposer,
+      $$BlobMetasTableOrderingComposer,
+      $$BlobMetasTableAnnotationComposer,
+      $$BlobMetasTableCreateCompanionBuilder,
+      $$BlobMetasTableUpdateCompanionBuilder,
+      (
+        BlobMetaRow,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $BlobMetasTable,
+          BlobMetaRow
+        >,
+      ),
+      BlobMetaRow,
+      PrefetchHooks Function()
+    >;
+typedef $$BlobChunksTableCreateCompanionBuilder =
+    BlobChunksCompanion Function({
+      required String cipherManifestId,
+      required int chunkIndex,
+      required int cipherBytesLen,
+      required String chunkSha256,
+      Value<int> rowid,
+    });
+typedef $$BlobChunksTableUpdateCompanionBuilder =
+    BlobChunksCompanion Function({
+      Value<String> cipherManifestId,
+      Value<int> chunkIndex,
+      Value<int> cipherBytesLen,
+      Value<String> chunkSha256,
+      Value<int> rowid,
+    });
+
+class $$BlobChunksTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $BlobChunksTable> {
+  $$BlobChunksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get cipherManifestId => $composableBuilder(
+    column: $table.cipherManifestId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get chunkIndex => $composableBuilder(
+    column: $table.chunkIndex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get cipherBytesLen => $composableBuilder(
+    column: $table.cipherBytesLen,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get chunkSha256 => $composableBuilder(
+    column: $table.chunkSha256,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$BlobChunksTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $BlobChunksTable> {
+  $$BlobChunksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get cipherManifestId => $composableBuilder(
+    column: $table.cipherManifestId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get chunkIndex => $composableBuilder(
+    column: $table.chunkIndex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get cipherBytesLen => $composableBuilder(
+    column: $table.cipherBytesLen,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get chunkSha256 => $composableBuilder(
+    column: $table.chunkSha256,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$BlobChunksTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $BlobChunksTable> {
+  $$BlobChunksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get cipherManifestId => $composableBuilder(
+    column: $table.cipherManifestId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get chunkIndex => $composableBuilder(
+    column: $table.chunkIndex,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get cipherBytesLen => $composableBuilder(
+    column: $table.cipherBytesLen,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get chunkSha256 => $composableBuilder(
+    column: $table.chunkSha256,
+    builder: (column) => column,
+  );
+}
+
+class $$BlobChunksTableTableManager
+    extends
+        RootTableManager<
+          _$PersistenceDriftDatabase,
+          $BlobChunksTable,
+          BlobChunkRow,
+          $$BlobChunksTableFilterComposer,
+          $$BlobChunksTableOrderingComposer,
+          $$BlobChunksTableAnnotationComposer,
+          $$BlobChunksTableCreateCompanionBuilder,
+          $$BlobChunksTableUpdateCompanionBuilder,
+          (
+            BlobChunkRow,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $BlobChunksTable,
+              BlobChunkRow
+            >,
+          ),
+          BlobChunkRow,
+          PrefetchHooks Function()
+        > {
+  $$BlobChunksTableTableManager(
+    _$PersistenceDriftDatabase db,
+    $BlobChunksTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$BlobChunksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BlobChunksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$BlobChunksTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> cipherManifestId = const Value.absent(),
+                Value<int> chunkIndex = const Value.absent(),
+                Value<int> cipherBytesLen = const Value.absent(),
+                Value<String> chunkSha256 = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => BlobChunksCompanion(
+                cipherManifestId: cipherManifestId,
+                chunkIndex: chunkIndex,
+                cipherBytesLen: cipherBytesLen,
+                chunkSha256: chunkSha256,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String cipherManifestId,
+                required int chunkIndex,
+                required int cipherBytesLen,
+                required String chunkSha256,
+                Value<int> rowid = const Value.absent(),
+              }) => BlobChunksCompanion.insert(
+                cipherManifestId: cipherManifestId,
+                chunkIndex: chunkIndex,
+                cipherBytesLen: cipherBytesLen,
+                chunkSha256: chunkSha256,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$BlobChunksTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PersistenceDriftDatabase,
+      $BlobChunksTable,
+      BlobChunkRow,
+      $$BlobChunksTableFilterComposer,
+      $$BlobChunksTableOrderingComposer,
+      $$BlobChunksTableAnnotationComposer,
+      $$BlobChunksTableCreateCompanionBuilder,
+      $$BlobChunksTableUpdateCompanionBuilder,
+      (
+        BlobChunkRow,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $BlobChunksTable,
+          BlobChunkRow
+        >,
+      ),
+      BlobChunkRow,
+      PrefetchHooks Function()
+    >;
+typedef $$BlobRefsTableCreateCompanionBuilder =
+    BlobRefsCompanion Function({
+      required String ownerRecordUuid,
+      required String cipherManifestId,
+      Value<int> rowid,
+    });
+typedef $$BlobRefsTableUpdateCompanionBuilder =
+    BlobRefsCompanion Function({
+      Value<String> ownerRecordUuid,
+      Value<String> cipherManifestId,
+      Value<int> rowid,
+    });
+
+class $$BlobRefsTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $BlobRefsTable> {
+  $$BlobRefsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get ownerRecordUuid => $composableBuilder(
+    column: $table.ownerRecordUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get cipherManifestId => $composableBuilder(
+    column: $table.cipherManifestId,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$BlobRefsTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $BlobRefsTable> {
+  $$BlobRefsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get ownerRecordUuid => $composableBuilder(
+    column: $table.ownerRecordUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get cipherManifestId => $composableBuilder(
+    column: $table.cipherManifestId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$BlobRefsTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $BlobRefsTable> {
+  $$BlobRefsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get ownerRecordUuid => $composableBuilder(
+    column: $table.ownerRecordUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get cipherManifestId => $composableBuilder(
+    column: $table.cipherManifestId,
+    builder: (column) => column,
+  );
+}
+
+class $$BlobRefsTableTableManager
+    extends
+        RootTableManager<
+          _$PersistenceDriftDatabase,
+          $BlobRefsTable,
+          BlobRefRow,
+          $$BlobRefsTableFilterComposer,
+          $$BlobRefsTableOrderingComposer,
+          $$BlobRefsTableAnnotationComposer,
+          $$BlobRefsTableCreateCompanionBuilder,
+          $$BlobRefsTableUpdateCompanionBuilder,
+          (
+            BlobRefRow,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $BlobRefsTable,
+              BlobRefRow
+            >,
+          ),
+          BlobRefRow,
+          PrefetchHooks Function()
+        > {
+  $$BlobRefsTableTableManager(
+    _$PersistenceDriftDatabase db,
+    $BlobRefsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$BlobRefsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BlobRefsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$BlobRefsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> ownerRecordUuid = const Value.absent(),
+                Value<String> cipherManifestId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => BlobRefsCompanion(
+                ownerRecordUuid: ownerRecordUuid,
+                cipherManifestId: cipherManifestId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String ownerRecordUuid,
+                required String cipherManifestId,
+                Value<int> rowid = const Value.absent(),
+              }) => BlobRefsCompanion.insert(
+                ownerRecordUuid: ownerRecordUuid,
+                cipherManifestId: cipherManifestId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$BlobRefsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PersistenceDriftDatabase,
+      $BlobRefsTable,
+      BlobRefRow,
+      $$BlobRefsTableFilterComposer,
+      $$BlobRefsTableOrderingComposer,
+      $$BlobRefsTableAnnotationComposer,
+      $$BlobRefsTableCreateCompanionBuilder,
+      $$BlobRefsTableUpdateCompanionBuilder,
+      (
+        BlobRefRow,
+        BaseReferences<_$PersistenceDriftDatabase, $BlobRefsTable, BlobRefRow>,
+      ),
+      BlobRefRow,
+      PrefetchHooks Function()
+    >;
 
 class $PersistenceDriftDatabaseManager {
   final _$PersistenceDriftDatabase _db;
@@ -26517,4 +28711,10 @@ class $PersistenceDriftDatabaseManager {
       $$TRecordSearchIndexTableTableManager(_db, _db.tRecordSearchIndex);
   $$TScopeAliasTableTableManager get tScopeAlias =>
       $$TScopeAliasTableTableManager(_db, _db.tScopeAlias);
+  $$BlobMetasTableTableManager get blobMetas =>
+      $$BlobMetasTableTableManager(_db, _db.blobMetas);
+  $$BlobChunksTableTableManager get blobChunks =>
+      $$BlobChunksTableTableManager(_db, _db.blobChunks);
+  $$BlobRefsTableTableManager get blobRefs =>
+      $$BlobRefsTableTableManager(_db, _db.blobRefs);
 }

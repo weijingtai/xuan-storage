@@ -192,9 +192,10 @@ void main() {
       final clockTables = await (db.select(db.hlcClockStates)).get();
       expect(clockTables, isEmpty);
 
-      // PRAGMA user_version = 8
+      // PRAGMA user_version = db.schemaVersion
       final version = await db.customSelect('PRAGMA user_version').getSingle();
-      expect(version.data['user_version'], 8);
+      expect(version.data['user_version'], db.schemaVersion,
+          reason: 'user_version 应与 schemaVersion 一致');
     });
   });
 }

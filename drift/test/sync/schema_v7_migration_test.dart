@@ -67,8 +67,9 @@ void main() {
     expect(pk, ['scope_uid', 'peer_id', 'entity_type'],
         reason: '主键未切到三元组，实际为 $pk');
 
-    // 5. user_version 为 8（v7 之上又经 ACT 08 升到 v8）
-    expect(sqliteDb.userVersion, 8);
+    // 5. user_version 读 db.schemaVersion（不应写死，因为后续加表会递增）
+    expect(sqliteDb.userVersion, db.schemaVersion,
+        reason: 'user_version 应与 schemaVersion 一致');
 
     // 6. v8 的两张新表存在（t_entity_stamp + t_hlc_clock_state）
     final v8Tables = sqliteDb
@@ -136,7 +137,8 @@ void main() {
     expect(idx, contains('idx_outbox_peer_ack_peer_status'));
     expect(idx, contains('idx_outbox_peer_ack_operation'));
 
-    expect(sqliteDb.userVersion, 8);
+    expect(sqliteDb.userVersion, db.schemaVersion,
+        reason: 'user_version 应与 schemaVersion 一致');
 
     // v8 表已建（fresh 库直接建到 v8）
     final v8Tables = sqliteDb
