@@ -196,19 +196,22 @@ FutureOr<void> runPeerStreamContractSuite({
       );
 
       // oplog 流不得被 blob 的背压饿死：send 必须在正向超时内完成。
-      await expectLater(
-        oplogSender.send(_chunk).timeout(_positiveObservableTimeout),
-        completes,
+      // 不用 expectLater(future.timeout(), completes)：future 以异常完成时
+      // flutter_test 直接抛原始异常、reason 丢失；改由 _expectCompletesWithin
+      // 捕获超时后交给 expect，让「一条流的背压不得饿死另一条流」进失败信息。
+      await _expectCompletesWithin(
+        () => oplogSender.send(_chunk),
+        _positiveObservableTimeout,
         reason: 'blob 流触顶时 oplog 流的 send 必须照常完成 —— 一条流的背压不得饿死另一条流',
       );
-      await expectLater(
-        oplogSender.send(_chunk).timeout(_positiveObservableTimeout),
-        completes,
+      await _expectCompletesWithin(
+        () => oplogSender.send(_chunk),
+        _positiveObservableTimeout,
         reason: 'blob 流触顶时 oplog 流的 send 必须照常完成 —— 一条流的背压不得饿死另一条流',
       );
-      await expectLater(
-        oplogSender.send(_chunk).timeout(_positiveObservableTimeout),
-        completes,
+      await _expectCompletesWithin(
+        () => oplogSender.send(_chunk),
+        _positiveObservableTimeout,
         reason: 'blob 流触顶时 oplog 流的 send 必须照常完成 —— 一条流的背压不得饿死另一条流',
       );
 
@@ -320,6 +323,25 @@ FutureOr<void> runPeerStreamContractSuite({
       );
     });
   });
+}
+
+/// 断言 [action] 返回的 Future 在 [timeout] 内正常完成，否则以 [reason] 失败。
+///
+/// 捕获超时/异常后交给 `expect`，这样失败信息里**一定出现 [reason]** ——
+/// 直接 `expectLater(future.timeout(), completes)` 在 future 以异常完成时会
+/// 把原始 TimeoutException 原样抛出、reason 丢失（返工 R6/R7 的教训）。
+Future<void> _expectCompletesWithin(
+  Future<void> Function() action,
+  Duration timeout, {
+  required String reason,
+}) async {
+  Object? failure;
+  try {
+    await action().timeout(timeout);
+  } on Object catch (e) {
+    failure = e;
+  }
+  expect(failure, isNull, reason: reason);
 }
 
 /// 持续 [send] 直到流的 `bufferedAmount >= maxBufferedAmount`（压满）。

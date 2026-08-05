@@ -69,10 +69,25 @@ enum OverflowPolicy {
 }
 
 // PeerStream 新增：
-int get bufferedAmount;        // 已发出但尚未被对端消费确认的字节数（发送水位）
+int get bufferedAmount;        // 已交给本地发送缓冲、尚未发出的字节数（发送水位）
 int get maxBufferedAmount;     // 背压上限（字节），达到后触发 overflowPolicy 行为
-OverflowPolicy get overflowPolicy;  // 运行时自报的溢出策略
+OverflowPolicy get overflowPolicy;  // 运行时自报的溢出策略（生命周期内不得改变）
 ```
+
+> **返工 R3 修正**：`bufferedAmount` 的契约定义原为「已发出但尚未被对端消费确认
+> 的字节数」—— 两个后端都实现不出来（WebRTC 的 `RTCDataChannel.bufferedAmount`
+> 是「尚未交给 SCTP」，无应用层消费确认；Dart `IOSink` 无任何计数，自记账只能
+> 算到「尚未交给内核」）。改为「已交给本地发送缓冲、尚未发出」后，两个后端的
+> 取值方式：
+>
+> | 后端 | `bufferedAmount` 怎么取 |
+> |---|---|
+> | WebRTC | 直接用原生 `RTCDataChannel.bufferedAmount`（已排队本地、未交给 SCTP 的字节） |
+> | LAN socket | 自记账「已 write - 已 flush」（`flush()` 的 Future 完成 = 已交给内核） |
+>
+> 对端消费慢**确实**会让本值涨，但那是**间接**经由传输层流控（对端停读 → TCP
+> 窗口 / SCTP 接收窗关闭 → 本地发送缓冲积压）；本契约**不要求**应用层消费确认。
+> D3 里 pause 传导的物理机制描述不变。
 
 ### send 的入口检查语义（写死在 dartdoc，防死锁）
 
@@ -173,22 +188,28 @@ final class BackpressureOverflowError extends StorageError { ... }
 
 ## D6 两个形态迥异的 fake（各跑一遍套件）
 
-> 实现定型：流对象**自配对**（`caller.openStream` 返回的对象原样进入对端
-> `incomingStreams`，本流 send 的数据投递到本流自己的 incoming，消费确认由
-> 本流 incoming 的订阅者是否活跃决定）。每条逻辑流**独立缓冲** —— 这正是
-> A6 要的实现形态；「共享无界缓冲 / 复用同一流」是缺陷态（见 V4）。
+> **返工 R2 修正**：实现定型从「流对象**自配对**」改为「**对端边界**」：
+> `caller.openStream` **在本端**创建发送流、**在对端**创建独立接收流，两对象
+> 经显式投递路径耦合（`sender._receiver = receiver`），数据经 `receiver` 的
+> incoming 投递、消费确认由 receiver 订阅者活跃度决定。套件 A4/A5 各断言
+> `identical(sender, receiver) == false`，杜绝「fake 把同一个对象既 return 又
+> add、验的是 fake 自己」的同构空转（验收 F4/F5）。每条逻辑流仍**独立预算**，
+> 「共享预算 / 复用同一流」是缺陷态（见 V4、V6）。
 
 | | Fake A —— `_WaitPeerSession`/`_WaitStream` | Fake B —— `_FailPeerSession`/`_FailStream` |
 |---|---|---|
-| 溢出策略 | `wait`（发送侧字节会计 `_buffered` + `Completer` 挂起，消费确认后释放） | `fail`（发送侧队列计数 `_queued`，入口 `>= max` 同步抛 `BackpressureOverflowError`） |
-| 消费确认驱动 | `onListen/onPause/onResume/onCancel` 回调 + `_pending` 队列 + `_pump` 循环 | 同左（`onListen/onPause/onResume/onCancel` + `_pump`），但确认只减计数、无空间释放 |
+| 溢出策略 | `wait`（发送侧字节会计 `_buffered` + `Completer` 挂起队列，消费后逐条恢复） | `fail`（接收侧 credit/window 流控：配额在接收端 `_window`，入口检查对端窗口不足即同步抛 `BackpressureOverflowError`） |
+| 消费确认驱动 | `onListen/onPause/onResume/onCancel` 回调 + `_pending` 队列 + `_pump` 循环 | `onListen/onPause/onResume/onCancel` 回调 + `_pump` 循环（确认只补回接收端窗口额度，无发送侧队列） |
 | 触顶行为 | 挂起直到水位 `< maxBufferedAmount` | 立即抛错 |
-| 结构差异 | **字节会计 + 挂起 + Completer**，无抛错路径 | **队列计数 + 同步抛错**，无挂起路径 |
+| `bufferedAmount` 来源 | 发送侧自记账 `_buffered` | `max - _peer!._window`（从对端剩余窗口推导，发送侧无计数） |
+| 结构差异 | 字节会计 + 挂起 + Completer + 发送侧队列 | credit/window + 同步抛错 + 接收侧配额，无挂起/无队列 |
 | 目的 | 覆盖「等/挂起/恢复」路径 | 覆盖「抛错」路径 + 验证 `overflowPolicy` 自报 |
 
-两者代码结构不同（一个会计+挂起，一个计数+抛错），满足 S3c-a「同构的两个
-fake 等于只测了一遍」的规矩。fake 在 `transport_contract_test.dart` 里（测试
-私有，不算 S1a 交付物），套件在 `test_support/`（不进 barrel，D7）。
+两者代码结构不同（一个会计+挂起、一个 credit/window+抛错），满足 S3c-a「同构的
+两个 fake 等于只测了一遍」的规矩。归一化结构 diff（字段重命名后再 diff，剩余
+62 行，差异含 overflow 分支、对端边界建立、水位推导来源、窗口同步）归档
+`fake-structure-diff.txt`。fake 在 `transport_contract_test.dart` 里（测试私有，
+不算 S1a 交付物），套件在 `test_support/`（不进 barrel，D7）。
 
 ---
 
@@ -211,8 +232,12 @@ fake 等于只测了一遍」的规矩。fake 在 `transport_contract_test.dart`
   socket 内核已有的缓冲重复，会话级水位不可靠。见 D1 论证。
 - ❌ **发送侧只做 `bool get canSend`** —— 瞬时布尔是谎言（值在读取与使用之间
   已过期），且给不出「await 到可写」的事件语义。
-- ❌ **`overflowPolicy` 用 `const` 字段** —— WebRTC 实现可能随会话降级切换策略，
-  编译期写死会逼实现方扩字段或造假。
+- ❌ **`overflowPolicy` 用 `const` 字段** —— 编译期写死与运行时自报冲突，且两个后端
+  没有在**流生命周期内**切换策略的真实动机（见 D10：契约已定死「生命周期内不得
+  改变」，`const` 反而让 `fail`/`wait` 之外的语义落不进契约测试）。
+- ❌ **`overflowPolicy` 实现随会话状态切换策略** —— 返工 R4 否决：同一条流内
+  TOCTOU 既不可测试也让调用方无法安全重试；WebRTC/LAN 实现本就不会在流存活期间
+  改策略（详见 D10）。
 - ❌ **`maxBufferedAmount` 用常数** —— 上限与实现内存预算绑定，不能由契约定死。
 - ❌ **错误类放 `storage_error.dart`** —— 超出派工 §四「直接连带」的授权面。
 - ❌ **只做发送侧有界、不做接收侧 pause 传导** —— 派工 §五.1 第二点是硬性要求
@@ -222,8 +247,9 @@ fake 等于只测了一遍」的规矩。fake 在 `transport_contract_test.dart`
 
 ## D9 变异自检记录（A8，2026-08-05 执行）
 
-> 全部 5 个变异均**红在目标断言**（非编译失败、非测试超时误报），复原后
-> `transport_contract_test.dart` 20 条全绿。
+> 全部 6 个变异均**红在目标断言**（非编译失败、非测试超时误报），复原后
+> `transport_contract_test.dart` 24 条全绿。V1-V5 为返工前（20 条套件）执行，
+> V6 为返工 R7 复验 M1。
 
 | # | 注入的变异 | 期望红在哪条断言 | 结果 |
 |---|---|---|---|
@@ -232,7 +258,37 @@ fake 等于只测了一遍」的规矩。fake 在 `transport_contract_test.dart`
 | V3 | `_activeChanged` 忽略 `isPaused`（pause 不传导） | A5/Fake A「pause 后持续发送必须能把水位推上顶」→ Expected >= 8192, Actual 0 | ✅ 红在目标断言 |
 | V4 | `openStream` 每次返回同一条流（两流彻底共享，互不隔离） | A6/Fake A「blob 流必须确实被压满」→ Expected >= 8192, Actual 0（共享流被 oplog 订阅消费，blob 压不满） | ✅ 红在目标断言 |
 | V5 | `_confirm` 删除空间释放（挂起的 send 永不恢复） | A4/Fake A「对端消费后挂起的 send 恢复完成」→ `await blocked.timeout` 抛 TimeoutException: Future not completed | ✅ 红在目标断言 |
+| V6 | `_WaitPeerSession` 持会话级 `_SharedBudget`，blob/oplog 两流发送水位读写同一 budget（**真饿死**，M1 复验） | A6/Fake A「blob 流触顶时 oplog 流的 send 必须照常完成」→ 5s TimeoutException，失败信息含「一条流的背压不得饿死另一条流」 | ✅ 红在核心断言（原因见 V6 批注） |
 
 > 附：压满 helper `_pressureUntilFull` 带 10 万次兜底上限，防止异常实现
 > 导致水位永不触顶时测试死锁（V3 曾验证此路径：若不加上限会挂死而非红在
 > 目标断言）。
+
+> **V6 批注（返工 R7）**：复验 M1 时发现 flutter_test 的
+> `expectLater(future.timeout(), completes, reason: ...)` 在 future 以异常完成时
+> 会把原始 `TimeoutException` **原样抛出、reason 丢失** —— 用 A6 裸跑确认失败
+> 信息里没有契约语言。改用套件内 `_expectCompletesWithin`（捕获超时后交给
+> `expect(failure, isNull, reason: ...)`），失败信息才出现
+> 「一条流的背压不得饿死另一条流」。判据「红在核心断言 + 契约语言进失败信息」
+> 由 `_expectCompletesWithin` 承担。
+
+---
+
+## 返工记录（2026-08-05，基于 REVIEW-S3c-c-pre.md）
+
+- **R1**：`openStream` 从「自配对」改为「对端边界」——本端建 sender、对端建独立
+  receiver，`sender._receiver` 显式投递；套件 A4/A5 加
+  `expect(identical(sender, receiver), isFalse)`（对应 F4「fake 无对端边界」）。
+- **R2**：Fake B 换 credit/window 骨架（F4「两 fake 同构、等于只测一遍」）；
+  归一化结构 diff 归档 `fake-structure-diff.txt`。
+- **R3**：`bufferedAmount` 契约改为「已交给本地发送缓冲、尚未发出」，补两后端取值
+  表（见 D2；对应 F2「实现不出来」）。
+- **R4**：`overflowPolicy` 定性「生命周期内不得改变、不得 TOCTOU」（见 D10；
+  对应 F3「可运行时切换」）。
+- **R5**：`send` 并发契约写死「越界 ≤ 一个在途批次」，契约测试 R5 验证并发最终完成/抛错
+  不丢字节（对应 F1「溢出策略多包并发语义未定义」）。
+- **R6**：A6 断言换 `_expectCompletesWithin`（带 reason，契约语言进失败信息；
+  对应 F6「A6 断言无牙齿」）。
+- **R7**：M1 变异复验 + 修复 reason 丢失问题（见 D9/V6；对应 M1）。
+- **R8**：A7 守卫从 `core/lib` 扩到全仓各包 `lib/`，注入 `p2p/lib` 探针验红后复原
+  （对应 F7「A7 只扫 core/lib」）。
