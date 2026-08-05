@@ -184,8 +184,10 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
 1. `grep -c` 无匹配时打印 "0" 且退出码 1 ⇒ `EXPECT_STDOUT` 与 `EXPECT_EXIT` **两个都要写**
 2. 测试里**不要用 `fail()` 做断言** —— 调用方 catch-all 会吞掉 `TestFailure`。用**计数式 spy**
    （P3/P4 尤其适用；S5c 返工 F1 即因此）
-3. 文本扫描类门禁**必须有写死的覆盖下限**（A3 的文件数 == 6、A18 的 dartdoc >= 60、
-   fixture 叶子数 >= 700），否则正则写错扫到 0 个会静默全绿
+3. 文本扫描类门禁**必须有写死的覆盖下限**（A3 的契约层文件数 == 8、A18 的 dartdoc >= 60、
+   fixture 叶子数 >= 700），否则正则写错扫到 0 个会静默全绿。
+   ⚠️ 覆盖下限**不许用 `ls` glob 数文件** —— glob 空匹配与目录递归口径有歧义。
+   用**显式文件数组 + 逐个 `[ -f ]` 存在性断言**（`run_s5a_residue_gate.sh` 的做法，设计 §11.6）
 4. 任何以 `|| true` 结尾的验证命令都是假的
 5. `expect(SomeClass, isNotNull)` 是同义反复 —— 必须真的构造实例并驱动行为
    （S5c 返工 F2 即因此；A8 已按此写成"真实调用 register 并断言进表"）
@@ -198,10 +200,22 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
 
 ## Stop conditions（触发即停，报人类）
 
-1. **S1a 契约不在当前分支基线** —— 开工第一步验证四个文件存在（见上方基线前置条件）
-2. **`theme` 包出现任何改动** —— A4 触发即停
-3. **需要触碰 `xuan-qizhengsiyu/lib/painter/**`** —— Canvas 提取所有权，须先握手
-4. **需要真实网络下载** —— `ConfigBootstrap` 三真值仍占位，联调须等人类
+> **与设计 §11.4 逐条同构，五条，编号一致。两边任一处改动必须同步另一边。**
+
+1. **S1a 契约或 XRAP 契约不在当前分支基线** —— 开工第一步验证四个 S1a 文件
+   （见上方基线前置条件）与 `core/lib/model/dataset/dataset_materializer.dart` 均存在
+2. **本 ACT 的任何文件读取 `theme` 仓库** —— 跨仓库读取在 S5a ACT 范围外。
+   构建脚本确实要读 `theme/config/presets/*.yaml`，但它属独立任务 `BUILD-THEME`（设计 §11.5），
+   不在本 ACT；本 ACT 交付文件均不得出现 `theme/` 路径引用，测试用 bundled token 由 fixture 内联常量提供
+3. **`theme` 包出现任何改动** —— A4 触发即停
+4. **发现需要在 XRAP 的 `DatasetMaterializer` 之外新增扩展点** —— 说明协议有缺口，
+   须走协议变更流程，不得在 S5a 侧绕过（设计 §4.2）
+5. **需要触碰 `xuan-qizhengsiyu/lib/painter/**`** —— Canvas 提取所有权，须先握手
+
+> ⚠️ **`ConfigBootstrap` 三占位符不是 stop condition**（v4 裁定 4，设计 §1.6 / §9.2）。
+> v5 之前曾把「需要真实网络下载」写成第 4 条，与裁定 4 直接冲突，**v6 已删除**。
+> S5a 的 reference 实现零网络、零 IO，冷启动只用内置世代（generation 0），
+> 根本走不到需要 `ConfigBootstrap` 真值的路径。
 
 ## 当前状态
 
@@ -224,6 +238,26 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
 - [ ] 人类验收
 
 ## 决定记录
+
+### v6 修订（2026-08-05，按 Codex gStack R4 的 1 条 P0 + 7 条 P1 + 2 条 P2）
+
+> R4 报告：`docs/reviews/2026-08-04-s5a-theme-plan-eng-review-r4.md`。
+> P0（载荷行 schema 删 `g` 字段）已在 `ebad8af` 闭合，本节记录余下 9 条。
+
+- 2026-08-05 【R4-P2-9】**清 UTF-8 replacement character**。设计稿 4 处 `U+FFFD`：
+  §上游文档第 13–15 行（是第 10–12 行的**重复块**，整块删除）、§0.2 第 3 点「测试对端口编程」、
+  §2.3 末「会让执行者以为」、§7.3 标题「卡很久的来源」。
+  改文件: 设计稿（`grep -c` 现为 0）。
+- 2026-08-05 【R4-P2-8】**A3 文件数 6 → 8**。纪要「门禁写作纪律」第 3 条写死的覆盖下限
+  与验收 A3（`== 8`）打架。同时把该条的手法从 `ls` glob 改为**显式文件数组 +
+  逐个 `[ -f ]` 存在性断言**（glob 空匹配与目录递归口径有歧义，R4-P1-7 同因）。
+  改文件: 纪要「门禁写作纪律」第 3 条。
+- 2026-08-05 【R4-P1-5】**ConfigBootstrap 自相矛盾清零**。全文只保留一个口径：
+  **不是阻塞项**（裁定 4）。改文件:
+  ①设计 §1.6 —— 删「这是 S5a 真实下载能力的前置阻塞项」，改为「不是 S5a 的阻塞项」+ 指向 §0.0 裁定 4 / §9.2；
+  ②纪要「Stop conditions」—— 删原第 4 条「需要真实网络下载」，整段改为与设计 §11.4 **逐条同构的五条**
+  （基线 / 读 theme 仓库 / theme 包改动 / Materializer 之外的扩展点 / painter），并加一条显式说明记录该条已删。
+  设计 §9.2 与纪要「已知非阻塞背景」原本口径已正确，未动。
 
 ### v5 修订（2026-08-04，按 Codex gStack R3 的六条 P1/P0 + P2）
 

@@ -10,9 +10,6 @@
   - `xuan-storage/tasks/mimo-storage-s1a-contracts.md`（S1a 契约层，已交付并已合入本仓库 `main`）
   - `xuan_config/tasks/mimo-config-s5c-remote-source.md`（S5c 控制下发，已交付，最新提交 `a324902`）
   - `/xuan-migration/openspec/changes/theme-token-customization-contract/`（在途 OpenSpec change，含 4 轮评审）
-  - `xuan-storage/tasks/mimo-storage-s1a-contracts.md`（S1a 契约层，��交付并已合入本仓库 `main`）
-  - `xuan_config/tasks/mimo-config-s5c-remote-source.md`（S5c 控制下发，已交付，最新提交 `a324902`）
-  - `/xuan-migration/openspec/changes/theme-token-customization-contract/`（在途 OpenSpec change，含 4 轮评审）
 
 ---
 
@@ -71,7 +68,7 @@
 
 1. **它是行为规格的可执行形式**，不是生产实现。生产实现（drift + blob + 下载器）是后续子任务；
 2. **它必须零 IO**：不碰文件系统、不发网络、不依赖 drift。全部状态在内存 Map 里；
-3. **它是后续生产实现的对照基准** —— 同一套契约测试必须能同时跑通 reference 实现与将来的 drift 实现（���试对端口编程，不对实现编程）；
+3. **它是后续生产实现的对照基准** —— 同一套契约测试必须能同时跑通 reference 实现与将来的 drift 实现（测试对端口编程，不对实现编程）；
 4. **它承载 §6.6 的合并算法**。合并算法必须只有一份权威定义，生产实现复用它而非重写。
 
 **因此本文档中的 Dart 代码块分两类，各自标注**：
@@ -141,7 +138,9 @@ S1a（`persistence_core`，已交付）：`DataVisibility`/`Publisher`/`Carrier`
 
 S5c（`xuan_config`，已交付，`a324902`）：`RemoteConfigSource`（`fetch`/`probe`/`capabilities`）、`WatchableConfigSource`、`ConfigFetchResult` 三态、`FirebaseHostingConfigSource`、`RuntimeConfigRepository`（有序源链 + offline-first + `ResolvedConfig` 四溯源字段）、L0 ed25519 验签、`isTrustedEndpoint` 七条白名单、缓存中毒缓解。
 
-⚠️ **`ConfigBootstrap.endpoints` / `allowedHostSuffixes` / `l0PublicKeyBase64` 三个真值仍是占位符**（`'config.invalid'` / `'invalid'` / 含"占位"字样），待人类填入。**这是 S5a 真实下载能力的前置阻塞项。**
+ℹ️ **`ConfigBootstrap.endpoints` / `allowedHostSuffixes` / `l0PublicKeyBase64` 三个真值仍是占位符**（`'config.invalid'` / `'invalid'` / 含"占位"字样），待人类填入。
+
+**这不是 S5a 的阻塞项**（§0.0 裁定 4，全文唯一口径）：`dataset_source.dart:61` 明写"未配置返回 null（此时只用内置世代）"，`bundledManifest` 恒存在、冷启动零网络；T1 实证全程 generation 0，未用到任何域名或公钥。状态登记见 §9.2，**不得写入 S5a 的 stop conditions**（§11.4 的五条均与 `ConfigBootstrap` 无关）。
 
 ---
 
@@ -214,7 +213,7 @@ persistence_* ──X──>  theme       禁止
 
 > ✅ **S5a 契约层与 reference 实现不依赖 S1b**：reference 实现是纯内存的，不涉及任何同步。
 > ⚠️ **但"可跨设备同步"这个产品目标依赖后续的 drift + outbox 集成**（单 peer 即可，仍不需要 S1b 的多 peer fan-out）。
-> 两句话必须分开说 —— 混为一谈会让执行��以为 S5a 交付完就自动有跨设备能力。
+> 两句话必须分开说 —— 混为一谈会让执行者以为 S5a 交付完就自动有跨设备能力。
 
 ### 2.4 决定四：存差量，不存拷贝
 
@@ -1286,7 +1285,7 @@ reference 实现须持有一个**单条缓存**：
 2. 合并产出的 Map **key 顺序必须稳定**（有序 Map 或排序输出），否则 Equatable 的 Map 比较可能产生意外不等；
 3. 验收判据：连续两次相同输入的 `resolve()` 结果必须 `identical`。
 
-### 7.3 真实风险二：启动路径上的耗时操作（这才是"卡很久"的来��）
+### 7.3 真实风险二：启动路径上的耗时操作（这才是"卡很久"的来源）
 
 | 操作 | 量级 | 允许在启动路径？ |
 |---|---|---|
