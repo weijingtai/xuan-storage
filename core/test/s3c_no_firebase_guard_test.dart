@@ -48,8 +48,9 @@ void main() {
             continue;
           }
           final src = entity.readAsStringSync();
-          if (RegExp(r"import\s+'package:(firebase|cloud_firestore)")
-              .hasMatch(src)) {
+          if (RegExp(
+            r"import\s+'package:(firebase|cloud_firestore|persistence_firebase)",
+          ).hasMatch(src)) {
             offenders.add(entity.path);
           }
         }
