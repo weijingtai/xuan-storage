@@ -6,7 +6,6 @@ library;
 import 'package:persistence_core/persistence_core.dart';
 import 'package:persistence_drift/blob/drift_local_blob_store.dart';
 import 'package:persistence_drift/persistence_drift.dart';
-import 'package:persistence_drift/record/drift_record_data_source.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
 
 /// Drift-backed [RecordBlobUnitOfWork].

@@ -8,7 +8,6 @@
 library;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -16,7 +15,6 @@ import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart' as dr;
 import 'package:persistence_core/persistence_core.dart';
 import 'package:persistence_drift/blob/blob_metadata_repository.dart';
-import 'package:persistence_drift/blob/identity_blob_cipher.dart';
 import 'package:persistence_drift/blob/native.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 

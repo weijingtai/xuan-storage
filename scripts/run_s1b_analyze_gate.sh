@@ -29,7 +29,7 @@ fi
 # ── 冻结基线（2026-08-04 实测，合并 main 后；与 S1a 门禁同口径）──
 # 注：core 57 = S1a 基线 58 减 1（ACT 07 修好 sync_runtime.dart 的一个 issue）。
 BASELINE_TOTAL_CORE=57
-BASELINE_TOTAL_DRIFT=151
+BASELINE_TOTAL_DRIFT=146
 BASELINE_TOTAL_FIREBASE=20
 
 # ── S1b 拥有的文件（检查 1 的 scoped analyze 对象）──

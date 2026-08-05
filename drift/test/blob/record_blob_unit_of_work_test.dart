@@ -7,7 +7,6 @@
 /// - fake follows same observable contract
 library;
 
-import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:persistence_core/persistence_core.dart';
@@ -17,11 +16,9 @@ import 'package:persistence_drift/blob/drift_local_blob_store.dart';
 import 'package:persistence_drift/blob/drift_record_blob_unit_of_work.dart';
 import 'package:persistence_drift/blob/identity_blob_cipher.dart';
 import 'package:persistence_drift/persistence_drift.dart';
-import 'package:persistence_drift/record/drift_record_data_source.dart';
 import 'package:persistence_drift/blob/in_memory_record_blob_unit_of_work.dart'
     as support;
-import 'package:repository_interface_record/repository_interface_record.dart'
-    hide isNotNull;
+import 'package:repository_interface_record/repository_interface_record.dart';
 
 RecordMeta _makeRecord(String uuid) {
   return RecordMeta(

@@ -9,7 +9,6 @@ library;
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:persistence_core/persistence_core.dart';
-import 'package:persistence_drift/blob/blob_byte_backend.dart' as backend;
 import 'package:persistence_drift/blob/native.dart';
 
 void main() {

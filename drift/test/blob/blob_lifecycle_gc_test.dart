@@ -46,7 +46,7 @@ void main() {
     tmpDir.deleteSync(recursive: true);
   });
 
-  Future<void> _insertMeta(String manifestId, {int status = 0, int tier = 0, DateTime? stagedAt}) async {
+  Future<void> insertMeta(String manifestId, {int status = 0, int tier = 0, DateTime? stagedAt}) async {
     final stagedAtUtc = stagedAt ?? frozenNow;
     await db.into(db.blobMetas).insert(
       BlobMetasCompanion.insert(
@@ -67,7 +67,7 @@ void main() {
     );
   }
 
-  Future<void> _insertRef(String manifestId, {String owner = 'rec-1'}) async {
+  Future<void> insertRef(String manifestId, {String owner = 'rec-1'}) async {
     await db.into(db.blobRefs).insert(
       BlobRefsCompanion.insert(
         ownerRecordUuid: owner,
@@ -78,7 +78,7 @@ void main() {
 
   group('garbage collection', () {
     test('staged blob past 24h TTL is collected', () async {
-      await _insertMeta('staged-old', stagedAt: frozenNow.subtract(const Duration(hours: 25)));
+      await insertMeta('staged-old', stagedAt: frozenNow.subtract(const Duration(hours: 25)));
 
       final gc = DriftBlobGarbageCollector(
         db: db,
@@ -95,7 +95,7 @@ void main() {
     });
 
     test('staged blob within 24h TTL is not collected', () async {
-      await _insertMeta('staged-fresh', stagedAt: frozenNow.subtract(const Duration(hours: 23)));
+      await insertMeta('staged-fresh', stagedAt: frozenNow.subtract(const Duration(hours: 23)));
 
       final gc = DriftBlobGarbageCollector(
         db: db,
@@ -112,7 +112,7 @@ void main() {
     });
 
     test('cache tier zero refs is deleted', () async {
-      await _insertMeta('cache-zero', status: 1, tier: 1);
+      await insertMeta('cache-zero', status: 1, tier: 1);
 
       final gc = DriftBlobGarbageCollector(
         db: db,
@@ -129,7 +129,7 @@ void main() {
     });
 
     test('sourceOfTruth zero refs is orphaned but NOT deleted', () async {
-      await _insertMeta('sot-zero', status: 1, tier: 0);
+      await insertMeta('sot-zero', status: 1, tier: 0);
 
       final gc = DriftBlobGarbageCollector(
         db: db,
@@ -149,8 +149,8 @@ void main() {
     });
 
     test('pinned cache (with refs) is not collected', () async {
-      await _insertMeta('cache-pinned', status: 1, tier: 1);
-      await _insertRef('cache-pinned');
+      await insertMeta('cache-pinned', status: 1, tier: 1);
+      await insertRef('cache-pinned');
 
       final gc = DriftBlobGarbageCollector(
         db: db,

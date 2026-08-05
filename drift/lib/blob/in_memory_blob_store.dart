@@ -2,17 +2,13 @@ import 'dart:async';
 import 'package:crypto/crypto.dart';
 import 'package:persistence_core/persistence_core.dart';
 
-import 'identity_blob_cipher.dart';
-
 const int blobChunkBytes = 16384;
 
 final class InMemoryBlobStore implements LocalBlobStore {
-  InMemoryBlobStore({required this.scopeUid, BlobCipherResolver? resolver})
-      : _resolver = resolver ?? const DefaultBlobCipherResolver();
+  InMemoryBlobStore({required this.scopeUid, BlobCipherResolver? resolver});
 
   @override
   final String scopeUid;
-  final BlobCipherResolver _resolver;
   final Map<BlobHandle, Map<int, List<int>>> _chunks = {};
   final Map<BlobHandle, BlobTier> _tiers = {};
   final Map<BlobHandle, DateTime> _access = {};

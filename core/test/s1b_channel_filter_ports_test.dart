@@ -198,8 +198,10 @@ void main() {
         [
           '-rn',
           'StoragePolicyRegistry.lookup',
-          'lib',
-          '../drift/lib',
+          'lib/sync',
+          'lib/routing',
+          'lib/core',
+          '../drift/lib/sync',
         ],
       );
       final lines = (process.stdout as String)

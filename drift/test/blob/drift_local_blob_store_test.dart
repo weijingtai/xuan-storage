@@ -11,7 +11,6 @@ library;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:persistence_core/persistence_core.dart';
@@ -20,11 +19,6 @@ import 'package:persistence_drift/blob/blob_metadata_repository.dart';
 import 'package:persistence_drift/blob/drift_local_blob_store.dart';
 import 'package:persistence_drift/blob/identity_blob_cipher.dart';
 import 'package:persistence_drift/persistence_drift.dart';
-
-Future<List<int>> _readAll(BlobReadResult result) async {
-  final ok = result as BlobOk;
-  return ok.plaintext.expand((p) => p).toList();
-}
 
 void main() {
   late Directory tmpDir;
