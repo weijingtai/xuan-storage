@@ -1,7 +1,11 @@
 # S5a 样式资源分发 · 详细设计
 
-- 日期：2026-08-03（**v4**，2026-08-04 按人类四条裁定并入 XRAP，范围大幅收窄）
-- 状态：范围已裁定，待转译为 ACT
+- 日期：2026-08-03 起草；**当前版本 v6**（2026-08-05，按 Codex gStack R4 修订）
+  - v4（2026-08-04）按人类四条裁定并入 XRAP，范围大幅收窄
+  - v5（2026-08-04）按 R3 六条 P1/P0 + P2 修订
+  - v6（2026-08-05）按 R4 的 1 条 P0 + 7 条 P1 + 2 条 P2 修订；核心是 §4.5
+    「安装 → 落地 → 启动读取」装配数据流闭合（R4-P1-3）
+- 状态：**待 R5 复审**。R5 通过前不得进入 `wjt-act`
 - 范围：**主题包的 XRAP Materializer 实现 + 用户覆盖层**。下载 / 校验 / 世代 / 指针翻转 / 回滚 / GC / 幂等**全部归 XRAP**，S5a 不再自建
 - **交付形态：契约 + reference 实现**（方案 B）
 - 上游文档：
@@ -1673,8 +1677,8 @@ reference 实现须持有一个**单条缓存**：
 |---|---|---|
 | **P1** | 三层合并 `ThemeBenchFixture` **< 5 ms** | 独立 benchmark 测试（`@Tags(['benchmark'])`）：**先 warm-up 20 次**（触发 JIT），再测 100 次取**中位数**。断言中位数 < 5 ms。<br>⚠️ **不进 CI 阻塞门禁**（Flutter debug VM 抖动大），标记为趋势观测；CI 只跑一次冒烟确认不超时（< 100 ms）。<br>⚠️ fixture 叶子数须 `>= 700`，防止用空输入假通过 |
 | **P2** | 相同输入连续两次 `resolve()` 返回 `identical` 实例 | 单测断言 `identical(a, b) == true`；**再改一次 override 后断言 `identical` 为 false**（证明缓存键真的参与判定，不是恒返回同一实例） |
-| **P3** | 启动路径**零网络请求** | **v4：结构性保证** —— `InMemoryThemeResourceStore` 构造器只接收 `ThemeLocalReader`，没有网络端口可传（§5.5.3）。架构守卫断言其参数表仅两项；**正向控制**断言 `localReader.bundledReadCount > 0` 且 `overrideReadCount > 0` |
-| **P4** | 启动路径**不触发 XRAP 安装** | 把 `DatasetInstaller` 的 fake 传给装配层，断言 `resolve()` 期间其 `install` 调用次数 == 0 + 正向控制 `localReader.bundledReadCount > 0` |
+| **P3** | 启动路径**零网络请求** | **结构性保证** —— `InMemoryThemeResourceStore` 构造器只接收 `{required String scopeUid, required ThemeLocalReader localReader}`，没有网络端口可传（§5.5.3）。三条断言见 **§5.5.4**：P3-a1 构造器 tear-off 的**函数类型**断言、P3-a2 **import 集合**白名单（含正向控制与禁 `export`/`part` 绕过）、P3-b 行为正向控制 `bundledReadCount > 0` 且 `overrideReadCount > 0`。⛔ v5 的「命中次数 == 1 / `required` == 2」文本计数已作废（R4-P1-4） |
+| **P4** | 启动路径**不触发 XRAP 安装** | 经 `assembleThemeStore` 注入 `CountingDatasetInstaller`，**分装配期 / resolve 期两段计数**，完整断言序列与三条变红手法见 **§5.5.4**。⚠️ `DatasetInstaller` **没有** `install` 方法，抽象方法恰好六个 |
 | **P5** | 合并产出不持有"下一层"引用 | 结构断言：`ThemeTokenSection` 的字段类型中不出现 `ThemeResourceStore` / 任何 layer 引用；且 `resolve()` 返回后**销毁 store 实例**，结果仍可正常读取（证明无回指） |
 | **P6** | 活跃世代读取挂起时 `resolve()` **50 ms 内**返回 bundled 兜底 | 六步见 **§5.5.4**：注入 `SlowLocalReader`（`readActiveThemeTokens` 永不完成），`Stopwatch` 计时，断言 < 50 ms + 结果来自 bundled + **不抛异常** |
 | **P7** | 合并输出的 Map key 顺序稳定 | 同一 fixture 合并 **10 次**，逐层 `keys.toList()` 序列**逐元素**比对全部相等；且断言顺序为**字典序**（`keys.toList()` == `keys.toList()..sort()`） |

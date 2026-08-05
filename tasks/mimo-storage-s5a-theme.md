@@ -1,6 +1,6 @@
 # 任务: storage-s5a-theme
 负责: mimo ｜ 分支: agent/mimo/storage-s5a-theme ｜ 开工: 2026-08-03
-状态: 蓝图 v4（过两轮 Codex 评审 + 2026-08-04 人类四条裁定并入 XRAP，范围大幅收窄）
+状态: 蓝图 **v6**（过四轮 Codex 评审 R1–R4 + 人类四条裁定并入 XRAP）｜ **待 R5 复审，通过前不得进 `wjt-act`**
 
 ## 目标
 
@@ -217,7 +217,7 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
 - [ ] **P7** key 顺序稳定：同 fixture 合并 10 次，逐层 `keys.toList()` 逐元素相等，
       且等于其字典序排序结果
 
-验收命令: `bash scripts/run_s5a_analyze_gate.sh && bash scripts/run_s5a_residue_gate.sh && (cd core && flutter test --exclude-tags benchmark)`
+验收命令: bash scripts/run_s5a_analyze_gate.sh && bash scripts/run_s5a_residue_gate.sh && (cd core && flutter test --exclude-tags benchmark)
 
 > **残留门禁 `scripts/run_s5a_residue_gate.sh`（脚本全文在设计 §11.6，照抄即可运行）**：
 > 扫已裁定移除的 8 个标识符（InstalledTheme / AvailableTheme / ThemeRemoteFetcher /
@@ -281,7 +281,11 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
 - [x] **Codex gStack `plan-eng-review` R3 → REVISE-FIRST**（6 条 P1/P0 + 3 条 P2）
       报告：`docs/reviews/2026-08-04-s5a-theme-plan-eng-review-r3.md`
 - [x] **按 R3 全面修订 → v5**（2026-08-04，明细见决定记录）
-- [ ] Codex 复审（R4）
+- [x] **Codex gStack `plan-eng-review` R4 → REVISE-FIRST**（1 条 P0 + 7 条 P1 + 2 条 P2）
+      报告：`docs/reviews/2026-08-04-s5a-theme-plan-eng-review-r4.md`
+- [x] **R4-P0 闭合**（载荷行 schema 删 `g` 字段，提交 `ebad8af`）
+- [x] **按 R4 余下 9 条修订 → v6**（2026-08-05，明细见决定记录 v6 段）
+- [ ] **Codex 复审（R5）** ← **当前卡在这里。R5 通过前不许转译**
 - [ ] 转译为 ACT（`wjt-act`）
 - [ ] 跨模型闸门（`wjt-react`，≤2 轮）
 - [ ] 下发执行
@@ -392,6 +396,16 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
   ②纪要「Stop conditions」—— 删原第 4 条「需要真实网络下载」，整段改为与设计 §11.4 **逐条同构的五条**
   （基线 / 读 theme 仓库 / theme 包改动 / Materializer 之外的扩展点 / painter），并加一条显式说明记录该条已删。
   设计 §9.2 与纪要「已知非阻塞背景」原本口径已正确，未动。
+
+- 2026-08-05 【v6 连带·一致性】版本号与状态同步。改文件:
+  ①设计稿头部 —— 「v4」改为「当前版本 v6」并列 v4/v5/v6 三行沿革，状态改「待 R5 复审」；
+  ②纪要状态行 —— 「蓝图 v4」改「蓝图 v6 ｜ 待 R5 复审」；
+  ③纪要「当前状态」—— 补 R4 结论、R4-P0 已闭（`ebad8af`）、v6 已修订三条，
+  并把「Codex 复审（R5）」标为当前卡点；
+  ④设计 §7.5 性能表的 P3 / P4 两行 —— 与 §5.5.4 重写后的 oracle 同步（原文还写着
+  「参数表仅两项」和不存在的 `install` 方法）；
+  ⑤纪要「验收命令:」行 —— **去掉 markdown 反引号**（`aiwt` 用 `eval` 执行该行，
+  反引号会被当成命令替换，属已知踩坑）。
 
 ### v5 修订（2026-08-04，按 Codex gStack R3 的六条 P1/P0 + P2）
 
