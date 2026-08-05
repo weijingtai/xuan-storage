@@ -124,11 +124,88 @@
 
 ## 未完成项（handoff 说明）
 
-本轮因迭代预算耗尽，以下未做完，交下一轮：
+本轮因迭代预算耗尽，派工书 §九验收命令串的后半段未跑完。**任务① 9 条 + 任务② 文档评审 + §六清单 + 三生产可用性判断已全部完成**，结论可独立采信。下一轮**只需跑下面的命令并回填结果**，无需重读设计稿/纪要/契约（本轮已逐条核对并存证于本报告）。
 
-- **未跑** `run_s1b_analyze_gate.sh`（派工书 §九验收命令串的第 2 段）
-- **未跑** `(cd core && flutter test)` / `(cd drift && flutter test)` / `(cd p2p && flutter test)`
-- **已跑通**（供下一轮参考）：`run_monorepo_convention_check.sh`（PASS）、`run_s1a_analyze_gate.sh`（PASS，基线 57）、core/p2p/drift 三包 `flutter pub get`（drift 需已建好的 `pubspec_overrides.yaml`，5 级 `../` 路径，见上）
-- **任务① 9 条 + 任务② 文档评审 + §六清单 + 三生产可用性判断**：**已全部完成**，结论可独立采信
+### 一、当前环境状态（本轮已就绪，下一轮可直接复用）
 
-下一轮启动位置：直接跑上述未跑的命令串即可，无需重读设计稿/纪要/契约（本轮已逐条核对并存证于本报告）。
+| 项 | 状态 | 说明 |
+|---|---|---|
+| worktree 路径 | `/Users/jingtaiwei/Git/Public/xuan-migration/xuan-storage/.claude/worktrees/mimo-storage-s5a-theme` | 注意：比 `.worktrees/<name>/` **深一级**，这是 sibling-repo 路径要用 5 级 `../` 的根因 |
+| `core/.dart_tool/package_config.json` | ✅ 已 `flutter pub get`（114 deps） | 可直接 `flutter test` |
+| `p2p/.dart_tool/package_config.json` | ✅ 已 `flutter pub get`（84 deps） | 可直接 `flutter test` |
+| `drift/.dart_tool/package_config.json` | ✅ 已 `flutter pub get`（152 deps） | **前提**：`drift/pubspec_overrides.yaml` 必须存在（见下方坑） |
+| `drift/pubspec_overrides.yaml` | ✅ 已建好（gitignored，`git status` 不显示） | 路径已修正为 5 级 `../`，**不要动**；若被删需按下方"坑"重建 |
+| `p2p/` 包存在 | ✅ | 证明 v6 已 `git merge main`（102 commits） |
+
+### 二、待跑命令（按顺序，逐条记录退出码与末尾输出）
+
+> 全部从 worktree 根目录执行。每条跑完把 `EXIT=?` 和末尾几行贴进本报告的「四、结果回填」表。
+
+```bash
+cd /Users/jingtaiwei/Git/Public/xuan-migration/xuan-storage/.claude/worktrees/mimo-storage-s5a-theme
+
+# 1) S1b 分析门禁（派工书 §九命令串第 2 段）
+bash scripts/run_s1b_analyze_gate.sh
+echo "EXIT_S1B=$?"
+
+# 2) core 全量测试
+(cd core && flutter test)
+echo "EXIT_CORE_TEST=$?"
+
+# 3) drift 全量测试
+(cd drift && flutter test)
+echo "EXIT_DRIFT_TEST=$?"
+
+# 4) p2p 全量测试
+(cd p2p && flutter test)
+echo "EXIT_P2P_TEST=$?"
+```
+
+### 三、判据与结论升级路径
+
+把四条结果按下表判定，然后更新本报告顶部的「结论」段与末尾的收尾汇报行：
+
+| 四条命令结果 | 含义 | 结论升级为 | 动作 |
+|---|---|---|---|
+| **全部 EXIT=0** | v6 合并 main 没弄坏任何东西 | **PASS** | 在报告顶部把结论改为 `PASS（可直接进 wjt-act）`，删除"唯一未完成项"段；向人类回报可进 wjt-act |
+| 某条 EXIT≠0，且**红在测试断言**（不是 `uri_does_not_exist` / 不是 `pub get` 失败 / 不是 "No such file or directory"） | v6 merge main 引入回归 | **REVISE-FIRST** | 查是哪个包哪条测试，按派工书 §九「两种红」判为"v6 弄坏了东西"；列 Finding 并降级结论；建议上报人类 |
+| 某条 EXIT≠0，但**红在环境**（`uri_does_not_exist` / `pub get` 失败 / 找不到 `repository-interface-*` / lockfile 陈旧） | 环境问题，非 v6 回归 | **维持 PASS-WITH-REVISIONS** | 按下方"已知环境坑"修环境后重跑；**不降级结论**，v6 本身无问题 |
+| `p2p/` 不存在 | v6 根本没 merge main | **REVISE-FIRST**（新增 Finding） | 但本轮已确认 `p2p/` 存在，此分支不会触发；若触发说明 worktree 被重置 |
+
+### 四、结果回填表（下一轮跑完填这里）
+
+| 命令 | 退出码 | 末尾输出摘要 | 判定 |
+|---|---|---|---|
+| `run_s1b_analyze_gate.sh` | _EXIT=?_ | _待填_ | _待填_ |
+| `core && flutter test` | _EXIT=?_ | _待填_ | _待填_ |
+| `drift && flutter test` | _EXIT=?_ | _待填_ | _待填_ |
+| `p2p && flutter test` | _EXIT=?_ | _待填_ | _待填_ |
+| **综合** | -- | -- | _PASS / REVISE-FIRST / 维持 PASS-WITH-REVISIONS_ |
+
+### 五、已知环境坑（若卡住按此排查）
+
+1. **drift `pub get` 失败、报 `repository_interface_media from path which doesn't exist`**：
+   - 根因：本 worktree 在 `.claude/worktrees/<name>/drift/`，比 s1d 模板的 `.worktrees/<name>/drift/` 深一级，sibling-repo 相对路径需 5 级 `../`。
+   - 修复：确认 `drift/pubspec_overrides.yaml` 存在，且 `repository_interface_*` 行的 `path:` 是 `../../../../../repository-interface-*`（5 级），不是 `../../../../`（4 级）。`../core` 与 Gitea URL 行**不要动**。
+   - 验证：`grep "path:" drift/pubspec_overrides.yaml` 应看到 5 级 `../` 指向 `repository-interface-record/-xiang/-divination-tag/-media`。
+   - 本文件已被 `.gitignore`（`**/pubspec_overrides.yaml`），改它不入库、不违反本轮只读约束。
+
+2. **`dart analyze` 报 500+ 条 `uri_does_not_exist`**：
+   - 根因：该包没跑过 `flutter pub get`。
+   - 修复：进对应包 `flutter pub get`。本轮 core/drift/p2p 均已 get 过，除非 `.dart_tool/` 被清。
+
+3. **报错指向 `.pub-cache` 里某包类型不匹配 / 同名类重复定义**（如 `EnumDatetimeType` 从两个包 import）：
+   - 根因：陈旧 `pubspec.lock`，两个不同 commit 的 `metaphysics_core` 被同时解析（assets 包踩过）。
+   - 修复：`rm <pkg>/pubspec.lock && (cd <pkg> && flutter pub get)`。`pub upgrade <单包>` 顶不掉。**注意**：仅对出问题的包做，不要批量删 lock。
+
+4. **`(cd p2p && flutter test)` 报 "No such file or directory" 或 "p2p 不在"**：
+   - 这不是环境问题，是 v6 没 merge main（派工书 §九明写）。本轮已确认 `p2p/` 存在，若下一轮不存在说明 worktree 被重置到 merge 之前--直接判 REVISE-FIRST 并上报。
+
+### 六、已跑通的命令（供对照，不用重跑）
+
+- `git log --oneline fe294fe..HEAD` → 4 个 v6 提交（硬前置满足）
+- `git diff --stat fe294fe..HEAD -- core/lib/model/dataset/` → 空（v6 未触 XRAP 契约）
+- `ls -d p2p/` → 存在（已 merge main）
+- `bash scripts/run_monorepo_convention_check.sh` → EXIT 0（✅ 三项检查全过）
+- `bash scripts/run_s1a_analyze_gate.sh` → EXIT 0（✅ 基线 57，三项制全过）
+- core / p2p / drift `flutter pub get` → 全部成功
