@@ -70,6 +70,8 @@ FutureOr<void> runPeerStreamContractSuite({
       final sender = await pair.caller.openStream(StreamKind.blobChunk);
       final receiver = await receiverFuture;
 
+      expect(identical(sender, receiver), isFalse,
+          reason: 'fake 必须有真实对端边界，否则 A5/A6 验的是 fake 自己而非契约');
       expect(sender.maxBufferedAmount, greaterThan(0),
           reason: '背压上限必须为正，否则「有界」无从谈起');
       expect(sender.bufferedAmount, 0,
@@ -119,6 +121,9 @@ FutureOr<void> runPeerStreamContractSuite({
           .timeout(_positiveObservableTimeout);
       final sender = await pair.caller.openStream(StreamKind.oplog);
       final receiver = await receiverFuture;
+
+      expect(identical(sender, receiver), isFalse,
+          reason: 'fake 必须有真实对端边界，否则 A5/A6 验的是 fake 自己而非契约');
 
       final sub = receiver.incoming.listen((_) {});
 
@@ -191,9 +196,21 @@ FutureOr<void> runPeerStreamContractSuite({
       );
 
       // oplog 流不得被 blob 的背压饿死：send 必须在正向超时内完成。
-      await oplogSender.send(_chunk).timeout(_positiveObservableTimeout);
-      await oplogSender.send(_chunk).timeout(_positiveObservableTimeout);
-      await oplogSender.send(_chunk).timeout(_positiveObservableTimeout);
+      await expectLater(
+        oplogSender.send(_chunk).timeout(_positiveObservableTimeout),
+        completes,
+        reason: 'blob 流触顶时 oplog 流的 send 必须照常完成 —— 一条流的背压不得饿死另一条流',
+      );
+      await expectLater(
+        oplogSender.send(_chunk).timeout(_positiveObservableTimeout),
+        completes,
+        reason: 'blob 流触顶时 oplog 流的 send 必须照常完成 —— 一条流的背压不得饿死另一条流',
+      );
+      await expectLater(
+        oplogSender.send(_chunk).timeout(_positiveObservableTimeout),
+        completes,
+        reason: 'blob 流触顶时 oplog 流的 send 必须照常完成 —— 一条流的背压不得饿死另一条流',
+      );
 
       await oplogSub.cancel();
       await collectSub.cancel();
@@ -212,6 +229,94 @@ FutureOr<void> runPeerStreamContractSuite({
         sender.overflowPolicy,
         anyOf(OverflowPolicy.wait, OverflowPolicy.fail),
         reason: '实现必须自报契约允许的策略之一',
+      );
+    });
+
+    // ── R4：溢出策略在同一条流的生命周期内不得改变 ──
+    test('R4 · overflowPolicy 在同一条流的生命周期内不得改变', () async {
+      final pair = await makeSession();
+
+      final receiverFuture = pair.callee.incomingStreams.first
+          .timeout(_positiveObservableTimeout);
+      final sender = await pair.caller.openStream(StreamKind.oplog);
+      final receiver = await receiverFuture;
+
+      final first = sender.overflowPolicy;
+
+      // 压满触顶，再读一次，验证触顶行为与首次读到的策略一致。
+      await _pressureUntilFull(sender);
+      final second = sender.overflowPolicy;
+      expect(second, first,
+          reason: '同一条流的生命周期内 overflowPolicy 不得改变 —— 否则调用方'
+              '读到 wait 后仍可能吃到 BackpressureOverflowError（TOCTOU）');
+
+      if (first == OverflowPolicy.wait) {
+        final blocked = sender.send(_chunk);
+        await expectLater(
+          blocked.timeout(negativeAssertionGrace),
+          throwsA(isA<TimeoutException>()),
+          reason: '触顶行为必须与首次读到的策略一致：wait 应挂起',
+        );
+        final sub = receiver.incoming.listen((_) {});
+        await blocked.timeout(_positiveObservableTimeout);
+        await sub.cancel();
+      } else {
+        await expectLater(
+          sender.send(_chunk),
+          throwsA(isA<BackpressureOverflowError>()),
+          reason: '触顶行为必须与首次读到的策略一致：fail 应抛错',
+        );
+      }
+    });
+
+    // ── R5：并发 send 的越界必须是有界的 ──
+    test('R5 · 并发 send 时 bufferedAmount 越界不超过一个在途批次', () async {
+      final pair = await makeSession();
+
+      final receiverFuture = pair.callee.incomingStreams.first
+          .timeout(_positiveObservableTimeout);
+      final sender = await pair.caller.openStream(StreamKind.oplog);
+      final receiver = await receiverFuture;
+      final max = sender.maxBufferedAmount;
+
+      await _pressureUntilFull(sender);
+
+      // 压满后并发发起 K 条 send（不逐条 await），收集各自的结局。
+      const k = 16;
+      final outcomes = <bool>[];
+      final futures = <Future<void>>[
+        for (var i = 0; i < k; i++)
+          sender.send(_chunk).then<void>(
+                (_) => outcomes.add(true),
+                onError: (Object e) =>
+                    outcomes.add(e is BackpressureOverflowError),
+              ),
+      ];
+
+      if (sender.overflowPolicy == OverflowPolicy.wait) {
+        // 并发 send 全部挂在挂起点：水位不得因并发而无界越界。
+        await Future<void>.delayed(negativeAssertionGrace);
+        expect(
+          sender.bufferedAmount,
+          lessThanOrEqualTo(max + _chunk.length),
+          reason: 'wait 策略：并发 send 挂起阶段水位不得超过 max + 一个在途批次',
+        );
+        // 消费恢复：全部并发 send 必须最终完成（不丢）。
+        final sub = receiver.incoming.listen((_) {});
+        await Future.wait(futures).timeout(_positiveObservableTimeout);
+        expect(outcomes.where((ok) => ok).length, k,
+            reason: 'wait 策略：全部并发 send 必须最终完成（不得丢字节）');
+        await sub.cancel();
+      } else {
+        await Future.wait(futures);
+        expect(outcomes.where((ok) => ok).length, k,
+            reason: 'fail 策略：压满后并发 send 必须全部抛 '
+                'BackpressureOverflowError');
+      }
+      expect(
+        sender.bufferedAmount,
+        lessThanOrEqualTo(max + _chunk.length),
+        reason: '并发 send 的越界不得超过一个在途批次（契约 R5）',
       );
     });
   });

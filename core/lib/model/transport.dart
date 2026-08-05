@@ -148,6 +148,7 @@ enum PeerSessionState {
 /// 契约固定这两种明文策略（S3c-c-pre 决定记录 D2）—— 行为不是「由实现
 /// 自由决定」，而是二选一：实现必须在运行时通过 [PeerStream.overflowPolicy]
 /// 自报选的是哪一种，调用方据此决定「await 重试」还是「catch 背压错误」。
+/// 对同一条流，所选策略**在生命周期内不得改变**（决定记录 R4）。
 enum OverflowPolicy {
   /// 缓冲已满后 [PeerStream.send] 挂起，直到水位降到 `maxBufferedAmount`
   /// 以下才返回。适合内存充裕、宁可等也不抛错的场景。
@@ -202,7 +203,14 @@ abstract interface class PeerStream {
   /// 判断「现在写会不会撑爆」。
   int get maxBufferedAmount;
 
-  /// 当前发送水位（字节）：已发出但尚未被对端消费确认的字节数。
+  /// 当前发送水位（字节）：已交给本地发送缓冲、尚未发出的字节数。
+  ///
+  /// 实现上的取值（决定记录 D2）：WebRTC 直接用原生
+  /// `RTCDataChannel.bufferedAmount`；LAN socket 用「已 write - 已 flush」
+  /// 自记账（`flush()` 完成 = 已交给内核）。
+  ///
+  /// 对端消费慢只经由传输层流控**间接**推高本值（对端停读 → TCP 窗口 /
+  /// SCTP 接收窗关闭 → 本地发送缓冲积压）；本契约**不要求**应用层消费确认。
   ///
   /// 调用方可轮询它判断「现在写会不会撑爆」；而 [send] 的挂起/抛错才是
   /// 可 await 的事件语义（何时能继续写），见 [send] 的背压语义。
@@ -211,7 +219,9 @@ abstract interface class PeerStream {
   /// 溢出策略：发送水位触顶（`bufferedAmount >= maxBufferedAmount`）时的行为。
   ///
   /// 契约固定两种明文策略（[OverflowPolicy]），实现运行时自报选哪一种。
-  /// 必须运行时可查而非编译期常量：实现可能随会话状态（如降级）切换策略。
+  /// **同一条流的生命周期内不得改变**（决定记录 R4）：调用方读到该策略后，
+  /// 后续每次 [send] 的行为都必须与之一致 —— 不得在调用方读到 `wait` 后
+  /// 突然抛出 [BackpressureOverflowError]（TOCTOU）。契约测试 R4 验证。
   OverflowPolicy get overflowPolicy;
 
   /// 发送一段字节。
@@ -224,9 +234,13 @@ abstract interface class PeerStream {
   ///   [overflowPolicy] 行动 —— [OverflowPolicy.wait] 挂起直到水位降到
   ///   `maxBufferedAmount` 以下才返回；[OverflowPolicy.fail] 抛
   ///   [BackpressureOverflowError]。
-  /// - 入口未满时接受本包；接受后水位可短暂超过上限（单包越界，与
-  ///   WebRTC 原生 bufferedAmount 行为一致）。因此调用方用
-  ///   `while (bufferedAmount < maxBufferedAmount)` 压满不会死锁。
+  /// - 入口未满时接受本包；接受后水位可短暂超过上限，越界被限制为
+  ///   **最多超出 [maxBufferedAmount] 一个在途批次**（一次 [send] 调用
+  ///   接受的字节数，与 WebRTC 原生 bufferedAmount 行为一致）。因此调用方
+  ///   用 `while (bufferedAmount < maxBufferedAmount)` 压满不会死锁。
+  /// - 并发：[send] 允许并发调用（多条 in-flight，不逐条 await）。契约
+  ///   写死越界上限即上面那条 —— 实现不得让并发下水位无界上涨；wait 策略
+  ///   下并发调用各自挂起，对端消费后逐个恢复，不得丢字节。契约测试 R5 验证。
   /// - 多路复用隔离见本类说明：本流触顶不得饿死同一会话上的其他流。
   ///
   /// 约定：

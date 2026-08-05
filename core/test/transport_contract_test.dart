@@ -165,11 +165,11 @@ void main() {
   // ── S3c-c-pre：PeerStream 背压契约，两个结构迥异的内存 fake 各跑一遍 ──
   group('PeerStream 背压契约', () {
     runPeerStreamContractSuite(
-      topologyName: 'Fake A · wait（字节会计 + Completer 挂起 + 单订阅流）',
+      topologyName: 'Fake A · wait（发送侧字节会计 + Completer 挂起 + 显式投递）',
       makeSession: _makeWaitSession,
     );
     runPeerStreamContractSuite(
-      topologyName: 'Fake B · fail（队列计数 + 同步抛错 + 单订阅流）',
+      topologyName: 'Fake B · fail（接收侧 credit/window + 同步抛错 + 显式投递）',
       makeSession: _makeFailSession,
     );
   });
@@ -187,13 +187,18 @@ void main() {
   });
 
   group('A7 · 全仓仍零 Transport 实现', () {
-    test('lib 下不存在任何 implements Transport 的实现', () {
+    test('全仓各包 lib/ 下不存在任何 implements Transport 的实现', () {
       // S3c-c-pre 本轮零实现：只有契约与契约测试，不写任何传输实现。
-      // 一旦有人在 lib/ 里写了实现，这里立即红。
+      // 守卫遍历仓库根下所有包的 lib/（不止 core/lib）—— 否则有人在
+      // p2p/lib 里写了实现，只扫 core/lib 的守卫照样绿。
       final hits = <String>[];
       void walk(Directory d) {
         for (final e in d.listSync(followLinks: false)) {
           if (e is Directory) {
+            final name = e.path.split('/').last;
+            if (name.startsWith('.')) {
+              continue;
+            }
             walk(e);
           } else if (e is File && e.path.endsWith('.dart')) {
             final src = e.readAsStringSync();
@@ -204,8 +209,21 @@ void main() {
         }
       }
 
-      walk(Directory('lib'));
-      expect(hits, isEmpty, reason: 'lib/ 下不得出现 Transport 实现（本轮零实现）：'
+      final root = Directory('..');
+      for (final pkg in root.listSync(followLinks: false)) {
+        if (pkg is! Directory) {
+          continue;
+        }
+        final name = pkg.path.split('/').last;
+        if (name.startsWith('.')) {
+          continue;
+        }
+        final lib = Directory('${pkg.path}/lib');
+        if (lib.existsSync()) {
+          walk(lib);
+        }
+      }
+      expect(hits, isEmpty, reason: '全仓 lib/ 下不得出现 Transport 实现（本轮零实现）：'
           '${hits.join(', ')}');
     });
   });
@@ -470,13 +488,10 @@ Future<PeerSessionPair> _makeFailSession() async {
   return (caller: caller, callee: callee);
 }
 
-/// 背压契约 Fake A（overflowPolicy = wait）。
+/// 背压契约 Fake A 的会话（overflowPolicy = wait）。
 ///
-/// 结构特征（与 Fake B 迥异，S3c-a 规矩）：
-/// - 发送侧用**字节会计**（`_buffered` 累计未确认字节）+ **Completer 挂起**；
-/// - 接收侧用**单订阅 StreamController**，消费确认经 `onListen/onPause/
-///   onResume/onCancel` 回调驱动 —— 订阅者 pause 即停止确认，发送侧水位
-///   随之触顶（A5 传导的可测实现）。
+/// [openStream] 在本端创建发送流、在对端创建**独立**的接收流，显式投递
+/// 耦合（真实对端边界，返工 R1）。结构特征见 [_WaitStream]。
 class _WaitPeerSession implements PeerSession {
   _WaitPeerSession(this.remote);
 
@@ -495,9 +510,15 @@ class _WaitPeerSession implements PeerSession {
 
   @override
   Future<PeerStream> openStream(StreamKind kind) async {
-    final out = _WaitStream(maxBufferedAmount: _kFakeBufferSize);
-    _peer!._incomingStreams.add(out);
-    return out;
+    // 真实对端边界（返工 R1）：本端拿到发送流，对端从 incomingStreams 收到
+    // **独立的**接收流，两者经显式投递路径（sender._receiver）耦合 ——
+    // 绝不把同一个对象既 return 又 add，否则 A5/A6 验的是 fake 自己。
+    final sender = _WaitStream(maxBufferedAmount: _kFakeBufferSize);
+    final receiver = _WaitStream(maxBufferedAmount: _kFakeBufferSize);
+    sender._receiver = receiver;
+    receiver._source = sender;
+    _peer!._incomingStreams.add(receiver);
+    return sender;
   }
 
   @override
@@ -507,6 +528,13 @@ class _WaitPeerSession implements PeerSession {
   Future<void> close() async => _incomingStreams.close();
 }
 
+/// 背压契约 Fake A 的逻辑流（wait 策略，发送侧字节会计 + Completer 挂起）。
+///
+/// 结构（与 Fake B 的 credit/window 骨架迥异，返工 R2）：
+/// - 发送侧 `_buffered` 自记账 + `_waiting` 挂起队列（每条并发 send 一个
+///   Completer，`_confirm` 每次只释放一条，保证「越界 ≤ 一个在途批次」）；
+/// - 接收侧经 `_deliver` 显式接收对端投递的字节，`_pending` 队列 + `_pump`
+///   在订阅者活跃时拉取投递，消费确认回调发送源 `_source._confirm`。
 class _WaitStream implements PeerStream {
   _WaitStream({required this.maxBufferedAmount}) {
     _incoming = StreamController<List<int>>(
@@ -520,15 +548,17 @@ class _WaitStream implements PeerStream {
   @override
   final int maxBufferedAmount;
 
+  /// 对端兄弟对象：本流作为发送侧时，[send] 的字节经它投递给对端接收流。
+  _WaitStream? _receiver;
+
+  /// 发送源：本流作为接收侧时，消费确认回调它、释放它挂起的 send。
+  _WaitStream? _source;
+
   late final StreamController<List<int>> _incoming;
   int _buffered = 0;
   bool _active = false;
-  Completer<void>? _spaceAvailable;
+  final List<Completer<void>> _waiting = [];
   final List<List<int>> _pending = [];
-
-  // 流对象自配对：caller.openStream 返回的对象原样进入对端 incomingStreams，
-  // 因此本流的 send 数据投递到本流自己的 incoming，由「本流 incoming 的订阅
-  // 者是否活跃」决定消费确认 —— 即对端（本流 incoming 的订阅者）是否在消费。
 
   void _activeChanged() {
     _active = _incoming.hasListener && !_incoming.isPaused;
@@ -550,14 +580,15 @@ class _WaitStream implements PeerStream {
   Future<void> send(List<int> bytes) async {
     if (_buffered >= maxBufferedAmount) {
       final c = Completer<void>();
-      _spaceAvailable = c;
+      _waiting.add(c);
       await c.future;
     }
     _buffered += bytes.length;
-    _enqueue(bytes);
+    _receiver!._deliver(bytes);
   }
 
-  void _enqueue(List<int> bytes) {
+  /// 对端投递本段字节：进入本地待消费队列，订阅者活跃则立即消费。
+  void _deliver(List<int> bytes) {
     _pending.add(bytes);
     if (_active) {
       _pump();
@@ -568,19 +599,17 @@ class _WaitStream implements PeerStream {
     while (_pending.isNotEmpty && _active) {
       final b = _pending.removeAt(0);
       _incoming.add(b);
-      _confirm(b.length);
+      _source!._confirm(b.length);
     }
   }
 
-  /// 对端（本流 incoming 的订阅者）消费确认 [len] 字节：发送水位下降，
-  /// 释放挂起的 send。
+  /// 本流（发送侧）的 [len] 字节被对端订阅者消费确认：水位下降，恢复一条
+  /// 挂起的 send。只释放一条 —— 被恢复的 send 接受字节后水位仍可能越过上限，
+  /// 越界被控制在「一个在途批次」内（返工 R5）。
   void _confirm(int len) {
     _buffered -= len;
-    if (_buffered < maxBufferedAmount) {
-      final c = _spaceAvailable;
-      if (c != null && !c.isCompleted) {
-        c.complete();
-      }
+    if (_buffered < maxBufferedAmount && _waiting.isNotEmpty) {
+      _waiting.removeAt(0).complete();
     }
   }
 
@@ -588,13 +617,10 @@ class _WaitStream implements PeerStream {
   Future<void> close() async => _incoming.close();
 }
 
-/// 背压契约 Fake B（overflowPolicy = fail）。
+/// 背压契约 Fake B 的会话（overflowPolicy = fail）。
 ///
-/// 结构特征（与 Fake A 迥异）：
-/// - 发送侧用**队列计数**（`_queued`）+ **同步抛错**（`send` 入口检查，
-///   触顶即抛 [BackpressureOverflowError]，无 Completer、无挂起）；
-/// - 接收侧同样用单订阅 controller + 消费确认回调，但确认逻辑比 Fake A
-///   简单（只有减计数，没有空间释放）。
+/// [openStream] 在本端创建发送流、在对端创建**独立**的接收流，显式投递
+/// 耦合（真实对端边界，返工 R1）。结构特征见 [_FailStream]。
 class _FailPeerSession implements PeerSession {
   _FailPeerSession(this.remote);
 
@@ -613,9 +639,12 @@ class _FailPeerSession implements PeerSession {
 
   @override
   Future<PeerStream> openStream(StreamKind kind) async {
-    final out = _FailStream(maxBufferedAmount: _kFakeBufferSize);
-    _peer!._incomingStreams.add(out);
-    return out;
+    // 真实对端边界（返工 R1）：本端拿到发送流，对端收到独立的接收流。
+    final sender = _FailStream(maxBufferedAmount: _kFakeBufferSize);
+    final receiver = _FailStream(maxBufferedAmount: _kFakeBufferSize);
+    sender._peer = receiver;
+    _peer!._incomingStreams.add(receiver);
+    return sender;
   }
 
   @override
@@ -625,70 +654,78 @@ class _FailPeerSession implements PeerSession {
   Future<void> close() async => _incomingStreams.close();
 }
 
+/// 背压契约 Fake B 的逻辑流（fail 策略，**credit/window 流控骨架**）。
+///
+/// 结构（与 Fake A 的「发送侧记账 + Completer 挂起」迥异，返工 R2）：
+/// - **配额在接收侧**：接收流维护一个可消耗的 `_window`（credit window，
+///   初始 = maxBufferedAmount）。订阅者每消费一字节归还一字节配额 ——
+///   消费确认是「对端显式归还配额」，不是发送侧自记账；
+/// - `bufferedAmount` 从对端剩余配额**推导**（max - peer._window），
+///   发送侧自己没有任何字节计数；
+/// - 无 Completer、无挂起、无发送侧队列：send 入口检查对端窗口，不足即
+///   同步抛 [BackpressureOverflowError]，接受则立即投递给对端。
 class _FailStream implements PeerStream {
   _FailStream({required this.maxBufferedAmount}) {
+    _window = maxBufferedAmount;
     _incoming = StreamController<List<int>>(
-      onListen: _activeChanged,
-      onPause: _activeChanged,
-      onResume: _activeChanged,
-      onCancel: _activeChanged,
+      onListen: _onActive,
+      onPause: _onInactive,
+      onResume: _onActive,
+      onCancel: _onInactive,
     );
   }
 
   @override
   final int maxBufferedAmount;
 
+  /// 对端兄弟对象：本流作为发送侧时，[send] 检查它的窗口并投递给它。
+  _FailStream? _peer;
+
   late final StreamController<List<int>> _incoming;
-  int _queued = 0;
+  int _window = 0;
   bool _active = false;
-  final List<List<int>> _pending = [];
+  final List<List<int>> _delivered = [];
 
-  // 流对象自配对：send 数据投递到本流自己的 incoming，消费确认由本流
-  // incoming 的订阅者是否活跃决定（与 _WaitStream 同构）。
-
-  void _activeChanged() {
-    _active = _incoming.hasListener && !_incoming.isPaused;
-    if (_active) {
-      _pump();
-    }
+  void _onActive() {
+    _active = true;
+    _drain();
   }
+
+  void _onInactive() => _active = false;
 
   @override
   OverflowPolicy get overflowPolicy => OverflowPolicy.fail;
 
+  /// 已发出但未被对端消费确认的字节 = 对端已扣减、尚未归还的配额。
   @override
-  int get bufferedAmount => _queued;
+  int get bufferedAmount => maxBufferedAmount - _peer!._window;
 
   @override
   Stream<List<int>> get incoming => _incoming.stream;
 
   @override
   Future<void> send(List<int> bytes) async {
-    if (_queued >= maxBufferedAmount) {
+    final peer = _peer!;
+    if (bytes.length > peer._window) {
       throw BackpressureOverflowError();
     }
-    _queued += bytes.length;
-    _enqueue(bytes);
+    peer._deliver(bytes);
   }
 
-  void _enqueue(List<int> bytes) {
-    _pending.add(bytes);
-    if (_active) {
-      _pump();
-    }
+  /// 对端投递本段字节：扣减本端配额（发送侧水位随之上涨），投给订阅者；
+  /// 订阅者活跃则投递即消费、归还配额，不活跃则字节待投、配额不归还。
+  void _deliver(List<int> bytes) {
+    _window -= bytes.length;
+    _delivered.add(bytes);
+    _drain();
   }
 
-  void _pump() {
-    while (_pending.isNotEmpty && _active) {
-      final b = _pending.removeAt(0);
+  void _drain() {
+    while (_delivered.isNotEmpty && _active) {
+      final b = _delivered.removeAt(0);
       _incoming.add(b);
-      _confirm(b.length);
+      _window += b.length;
     }
-  }
-
-  /// 对端（本流 incoming 的订阅者）消费确认 [len] 字节：发送队列计数下降。
-  void _confirm(int len) {
-    _queued -= len;
   }
 
   @override
