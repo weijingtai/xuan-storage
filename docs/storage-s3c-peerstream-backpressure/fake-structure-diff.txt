@@ -1,0 +1,63 @@
+=== 归一化 diff（重命名计数/队列/对端/controller 字段，剥注释，压空白）===
+1,2c1,3
+< class _WaitStream implements PeerStream {
+< _WaitStream({required this.maxBufferedAmount}) {
+---
+> class _FailStream implements PeerStream {
+> _FailStream({required this.maxBufferedAmount}) {
+> COUNT = maxBufferedAmount;
+12,13c13
+< _WaitStream? PEER;
+< _WaitStream? SOURCE;
+---
+> _FailStream? PEER;
+17d16
+< final List<Completer<void>> WAITING = [];
+20,21c19
+< ACTIVE = CTRL.hasListener && !CTRL.isPaused;
+< if (ACTIVE) {
+---
+> ACTIVE = true;
+24c22
+< }
+---
+> void ACTCHG() => ACTIVE = false;
+26c24
+< OverflowPolicy get overflowPolicy => OverflowPolicy.wait;
+---
+> OverflowPolicy get overflowPolicy => OverflowPolicy.fail;
+28c26
+< int get bufferedAmount => COUNT;
+---
+> int get bufferedAmount => maxBufferedAmount - PEER!.COUNT;
+33,36c31,33
+< if (COUNT >= maxBufferedAmount) {
+< final c = Completer<void>();
+< WAITING.add(c);
+< await c.future;
+---
+> final peer = PEER!;
+> if (bytes.length > peer.COUNT) {
+> throw BackpressureOverflowError();
+38,39c35
+< COUNT += bytes.length;
+< PEER!.DELIVER(bytes);
+---
+> peer.DELIVER(bytes);
+41a38
+> COUNT -= bytes.length;
+43d39
+< if (ACTIVE) {
+46d41
+< }
+51c46
+< SOURCE!.CONFIRM(b.length);
+---
+> COUNT += b.length;
+54,59d48
+< void CONFIRM(int len) {
+< COUNT -= len;
+< if (COUNT < maxBufferedAmount && WAITING.isNotEmpty) {
+< WAITING.removeAt(0).complete();
+< }
+< }

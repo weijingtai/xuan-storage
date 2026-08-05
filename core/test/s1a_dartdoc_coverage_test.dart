@@ -108,7 +108,10 @@ void main() {
     // 2026-08-04 S3c-a 信令契约层并入后实测 158（原 142）：signaling.dart
     // 贡献 16 项（3 个信封变体的字段与构造器、SignalingSession 4 项、
     // SignalingChannel 2 项）。下限按 ~10 余量上调至 148。
-    const minMemberDeclarations = 148;
+    // 2026-08-05 S3c-c-pre 背压契约并入后实测 161（原 158）：transport.dart
+    // 新增 3 项（bufferedAmount / maxBufferedAmount / overflowPolicy getter）。
+    // 下限按 ~10 余量上调至 151。
+    const minMemberDeclarations = 151;
     expect(memberCount, greaterThanOrEqualTo(minMemberDeclarations),
         reason: 'member 正则覆盖的声明总数 $memberCount 低于下限 '
             '$minMemberDeclarations，正则可能被改窄了');

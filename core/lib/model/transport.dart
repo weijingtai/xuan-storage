@@ -13,6 +13,7 @@ library;
 
 import 'cancellation_token.dart';
 import 'storage_classification.dart';
+import 'storage_error.dart';
 
 /// 逻辑流类型。oplog 与 blob chunk 各占一条，互不阻塞。
 enum StreamKind {
@@ -141,19 +142,106 @@ enum PeerSessionState {
   closed,
 }
 
+/// 发送侧溢出策略：`bufferedAmount >= maxBufferedAmount` 时 [PeerStream.send]
+/// 采取的行为。
+///
+/// 契约固定这两种明文策略（S3c-c-pre 决定记录 D2）—— 行为不是「由实现
+/// 自由决定」，而是二选一：实现必须在运行时通过 [PeerStream.overflowPolicy]
+/// 自报选的是哪一种，调用方据此决定「await 重试」还是「catch 背压错误」。
+/// 对同一条流，所选策略**在生命周期内不得改变**（决定记录 R4）。
+enum OverflowPolicy {
+  /// 缓冲已满后 [PeerStream.send] 挂起，直到水位降到 `maxBufferedAmount`
+  /// 以下才返回。适合内存充裕、宁可等也不抛错的场景。
+  wait,
+
+  /// 缓冲已满后 [PeerStream.send] 抛 [BackpressureOverflowError]。
+  /// 适合内存预算硬约束、必须立刻止损的场景。
+  fail,
+}
+
+/// 发送侧缓冲触顶抛出的背压溢出错误（[OverflowPolicy.fail] 专用）。
+///
+/// 调用方（如 BlobGateway）应对它做「等水位下降再重试」，与 sync 冲突、
+/// vault 拒绝等不可重试错误区分开（§3.6 的 code/message/reason/suggestion
+/// 四段齐备）。
+final class BackpressureOverflowError extends StorageError {
+  /// 构造一个背压溢出错误。
+  BackpressureOverflowError()
+      : super(
+          code: 'storage.backpressure_overflow',
+          message: 'Send buffer overflowed (backpressure)',
+          reason:
+              'Peer consumes slower than local send rate; bufferedAmount '
+              'reached maxBufferedAmount',
+          suggestion: '请等待发送缓冲水位下降后重试，或减小单次发送批大小',
+        );
+}
+
 /// 一条已认证连接上的逻辑流。
 ///
 /// 约定（§3.6）：
 /// - 失败一律抛 StorageError 子类，不返回 null 表达失败。
 /// - 超时约定：发送应在会话的传输超时内返回或抛超时。
+///
+/// 多路复用隔离（S3c-c-pre 决定记录 D1，方案 C）：
+/// 同一条会话上的多条逻辑流复用同一条物理连接。**一条流的背压不得饿死
+/// 另一条流**：本流因 [overflowPolicy] 触顶挂起/抛错时，同一会话上其他流
+/// 的 [send] 必须照常完成。契约测试 A6 验证。
 abstract interface class PeerStream {
   /// 对端发来的字节流。
+  ///
+  /// 背压传导（S3c-c-pre 决定记录 D3）：实现必须实现订阅者 `pause()`
+  /// 语义 —— 订阅者 `pause()` 后，压力必须传导到对端发送侧：对端连续
+  /// [send] 时其 [bufferedAmount] 增长，并在达到 [maxBufferedAmount] 后
+  /// 触发其 [overflowPolicy] 行为；本端不得无限缓冲。契约测试 A5 验证。
   Stream<List<int>> get incoming;
+
+  /// 发送侧背压上限（字节）。
+  ///
+  /// 与实现的内存预算绑定（WebRTC 通道缓冲 / socket 缓冲区大小随环境
+  /// 不同），因此是只读查询、不由调用方设置。调用方用它与 [bufferedAmount]
+  /// 判断「现在写会不会撑爆」。
+  int get maxBufferedAmount;
+
+  /// 当前发送水位（字节）：已交给本地发送缓冲、尚未发出的字节数。
+  ///
+  /// 实现上的取值（决定记录 D2）：WebRTC 直接用原生
+  /// `RTCDataChannel.bufferedAmount`；LAN socket 用「已 write - 已 flush」
+  /// 自记账（`flush()` 完成 = 已交给内核）。
+  ///
+  /// 对端消费慢只经由传输层流控**间接**推高本值（对端停读 → TCP 窗口 /
+  /// SCTP 接收窗关闭 → 本地发送缓冲积压）；本契约**不要求**应用层消费确认。
+  ///
+  /// 调用方可轮询它判断「现在写会不会撑爆」；而 [send] 的挂起/抛错才是
+  /// 可 await 的事件语义（何时能继续写），见 [send] 的背压语义。
+  int get bufferedAmount;
+
+  /// 溢出策略：发送水位触顶（`bufferedAmount >= maxBufferedAmount`）时的行为。
+  ///
+  /// 契约固定两种明文策略（[OverflowPolicy]），实现运行时自报选哪一种。
+  /// **同一条流的生命周期内不得改变**（决定记录 R4）：调用方读到该策略后，
+  /// 后续每次 [send] 的行为都必须与之一致 —— 不得在调用方读到 `wait` 后
+  /// 突然抛出 [BackpressureOverflowError]（TOCTOU）。契约测试 R4 验证。
+  OverflowPolicy get overflowPolicy;
 
   /// 发送一段字节。
   ///
   /// 参数说明：
   /// - [bytes]: 要发送的字节。
+  ///
+  /// 背压语义（S3c-c-pre 决定记录 D2）：
+  /// - 入口检查：调用时若 `bufferedAmount >= maxBufferedAmount`，按
+  ///   [overflowPolicy] 行动 —— [OverflowPolicy.wait] 挂起直到水位降到
+  ///   `maxBufferedAmount` 以下才返回；[OverflowPolicy.fail] 抛
+  ///   [BackpressureOverflowError]。
+  /// - 入口未满时接受本包；接受后水位可短暂超过上限，越界被限制为
+  ///   **最多超出 [maxBufferedAmount] 一个在途批次**（一次 [send] 调用
+  ///   接受的字节数，与 WebRTC 原生 bufferedAmount 行为一致）。因此调用方
+  ///   用 `while (bufferedAmount < maxBufferedAmount)` 压满不会死锁。
+  /// - 并发：[send] 允许并发调用（多条 in-flight，不逐条 await）。契约
+  ///   写死越界上限即上面那条 —— 实现不得让并发下水位无界上涨；wait 策略
+  ///   下并发调用各自挂起，对端消费后逐个恢复，不得丢字节。契约测试 R5 验证。
+  /// - 多路复用隔离见本类说明：本流触顶不得饿死同一会话上的其他流。
   ///
   /// 约定：
   /// - 超时约定见 §3.6：应在传输超时内返回或抛超时。
