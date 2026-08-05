@@ -10,26 +10,32 @@ import 'package:persistence_core/model/signaling.dart';
 import 'package:persistence_firebase/signaling/rendezvous_backend.dart';
 import 'package:persistence_firebase/signaling/rtdb_rendezvous_backend.dart';
 
-/// `RtdbRendezvousBackend` 真 RTDB 模拟器集成测试（决定记录 D6）。
+/// `RtdbRendezvousBackend` 真 RTDB 模拟器集成测试（**冒烟占位**，验收 R8）。
 ///
-/// 真 `onDisconnect` 是 RTDB **服务端行为**，内存 backend 不覆盖它，必须到
-/// 模拟器上验证（验收 A3 的最后一环）。`dart_test.yaml` 默认排除 `integration`
-/// 标签，`flutter test` 不带参数不会跑它。
+/// 真 `onDisconnect` 是 RTDB **服务端行为**，内存 backend 不覆盖它。本测试只在
+/// 本机起 RTDB 模拟器时才有意义；起不来（无模拟器 / 平台通道不可用）时两条
+/// 都报 **SKIPPED**（`markTestSkipped`），**不许报 PASSED**（验收 R3）。
+///
+/// 【A3 的服务端事实由谁保证】「服务端 onDisconnect 真的删成员节点」这一环在
+/// 本仓由窄端口 + 内存 backend 的「已登记删除」语义 + 契约套件「A4 · 非正常
+/// 断开产出 departed」保证。本集成测试只冒烟验证后端在真实 RTDB 上读写不抛错，
+/// **不**声称验证了服务端断开删除（那需要真实断连 + 第二连接观察，超出单进程
+/// 测试能力）—— 见决定记录「集成测试」段。
 ///
 /// 人工触发（需本地起 RTDB 模拟器）：
 /// ```bash
-/// cd firebase && flutter test --tags integration
+/// cd firebase && flutter test --tags integration --run-skipped
 /// ```
 /// 起模拟器：
 /// ```bash
-/// cd infrastructure/emulator && ./start_emulator.sh   # 需 firebase.json 配 database 段
+/// cd infrastructure/emulator && ./start_emulator.sh
 /// ```
 ///
-/// ⚠ VM 平台通道不可用时会自动 skip（打印原因），需真机或 Chrome。
+/// ⚠ VM 平台通道不可用时会报 SKIPPED（打印原因），需真机或 Chrome。
 void main() {
   group('RtdbRendezvousBackend · RTDB 模拟器', () {
     late FirebaseDatabase database;
-    bool skipped = false;
+    String? skipReason;
 
     setUpAll(() async {
       try {
@@ -46,11 +52,9 @@ void main() {
         );
         database = FirebaseDatabase.instanceFor(app: app);
       } catch (e) {
-        skipped = true;
-        markTestSkipped(
-          'Firebase RTDB 平台通道在 flutter test VM 不可用：$e\n'
-          '真机/Chrome 运行：flutter test --tags integration --device=...',
-        );
+        skipReason =
+            'Firebase RTDB 平台通道在 flutter test VM 不可用：$e\n'
+            '真机/Chrome 运行：flutter test --tags integration --device=...';
         return;
       }
 
@@ -59,17 +63,17 @@ void main() {
         await Socket.connect('localhost', 9000,
             timeout: const Duration(seconds: 2));
       } catch (_) {
-        skipped = true;
-        markTestSkipped(
-          '未检测到 RTDB 模拟器在 localhost:9000。\n'
-          '先起模拟器：cd infrastructure/emulator && ./start_emulator.sh',
-        );
+        skipReason = '未检测到 RTDB 模拟器在 localhost:9000。\n'
+            '先起模拟器：cd infrastructure/emulator && ./start_emulator.sh';
         return;
       }
     });
 
-    test('基本流：成员登记 → 信封中转 → 删除后成员消失', () async {
-      if (skipped) return;
+    test('冒烟 · 成员登记 → 信封中转 → 删除后成员消失', () async {
+      if (skipReason != null) {
+        markTestSkipped(skipReason!);
+        return;
+      }
       final backend = RtdbRendezvousBackend(database: database);
       const rv = 'rv-integration-flow';
       const aliceId = 'm-int-alice';
@@ -112,14 +116,17 @@ void main() {
       await backend.remove(rv, aliceId);
     });
 
-    test('onDisconnect 登记不抛错（RTDB 模拟器支持服务端钩子）', () async {
-      if (skipped) return;
+    test('冒烟 · onDisconnect 登记与读写不抛错', () async {
+      if (skipReason != null) {
+        markTestSkipped(skipReason!);
+        return;
+      }
       final backend = RtdbRendezvousBackend(database: database);
       const rv = 'rv-integration-ondisconnect';
       const memberId = 'm-int-od';
 
       await backend.register(rv, memberId);
-      // 登记「断开时删除本端成员节点」—— 模拟器支持即不抛错。
+      // 登记「断开时删除本端成员节点」—— 冒烟：模拟器支持即不抛错。
       await backend.onDisconnectRemove(rv, memberId);
 
       // 确认登记后仍可正常读写。
