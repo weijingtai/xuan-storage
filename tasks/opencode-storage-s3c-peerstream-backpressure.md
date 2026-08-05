@@ -19,22 +19,23 @@
 - [x] R7 补红在 A6 核心断言的变异自检（会话级共享预算真饿死），D9 补记录
 - [x] R8 A7 守卫扫描范围扩到全仓各包 lib/，并用 p2p/lib 空实现验证红
 - [x] R9 订正 DESIGN-DECISION.md（D6 重写真实形态、D9 补 R7、D2 补取值方式、新增 R4 决定）
-- [ ] R10 每子任务 /wjt-handoff 落盘；成果推到 `agent/opencode/storage-s3c-peerstream-backpressure` 并确认 `git ls-remote` 可见
+- [x] R10 每子任务 /wjt-handoff 落盘；成果推到 `agent/opencode/storage-s3c-peerstream-backpressure` 并确认 `git ls-remote` 可见
 
 ## 验收标准
-- [ ] 返工书 R1-R10 完成判据逐条满足
-- [ ] `bash scripts/run_s1a_analyze_gate.sh` 检查 1 零 issue、检查 3 = 57
-- [ ] `bash scripts/run_monorepo_convention_check.sh` 全绿
-- [ ] core / drift / p2p 各包测试全绿；S1b 门禁在 **main 位置**复跑（副本里跑出 drift 149 是环境假象，见返工书 §四）
-- [ ] 变异自检：红在 A6 核心断言，复原后全绿
+- [x] 返工书 R1-R10 完成判据逐条满足
+- [x] `bash scripts/run_s1a_analyze_gate.sh` 检查 1 零 issue、检查 3 = 57
+- [x] `bash scripts/run_monorepo_convention_check.sh` 全绿
+- [x] core / drift / p2p 各包测试全绿；S1b 门禁在 **main 位置**复跑（副本里跑出 drift 149 是环境假象，见返工书 §四）
+- [x] 变异自检：红在 A6 核心断言，复原后全绿
 验收命令: bash scripts/run_s1a_analyze_gate.sh && bash scripts/run_s1b_analyze_gate.sh && bash scripts/run_monorepo_convention_check.sh && (cd core && flutter test) && (cd drift && flutter test) && (cd p2p && flutter test)
 
 ## 当前状态
-- R1-R9 全部完成；`transport_contract_test.dart` 24 条全绿；S1a 57=57、S1b 全绿（副本 drift 146=146、firebase 20=20）、monorepo、dartdoc、drift +391、p2p +18~1 全过。
-- 第一次落盘 `ae4984a`（R1-R8 + fake-structure-diff.txt + 任务纪要）；本次提交为 R9 决定记录订正 + R6 断言修法。
-- R7 变异（会话级共享预算真饿死）：A6 红在核心断言、失败信息含契约 reason，已复原；D9 补 V6 批注。
-- R6 修正：`expectLater(future.timeout(), completes, reason)` 的 reason 会丢，改 `_expectCompletesWithin` 捕获后交给 `expect(failure, isNull, reason)`。
-- 剩余：R10 推送 gitea + ls-remote 确认（S1b 已在副本复跑通过；返工书 §四 的 main 位置复跑属基线确认，main 目录第 1 会话已验证 145/146 全绿）。
+- **R1-R10 全部完成并已推送** gitea：`agent/opencode/storage-s3c-peerstream-backpressure` @ `f31146a`（ls-remote 已确认可见）。
+- 提交线：`3e2f464`(main) → `d66d3af`(cherry-pick 3375cc7) → `ae4984a`(R1-R8) → `f31146a`(R9+纪要)。
+- 门禁全绿：transport_contract_test 24 条、S1a 57=57、S1b 副本 drift 146=146 & firebase 20=20、monorepo、dartdoc、drift +391、p2p +18~1。
+- R7 变异（M1 共享预算）：A6 红在核心断言、失败信息含契约 reason，已复原；D9/V6 记录。
+- 返工后新增产物：fake-structure-diff.txt、契约测试 R4/R5、_expectCompletesWithin、A7 全仓扫描。
+- 待人类：合入 main 前按 AGENTS.md 铁律人工验收（R10 已把 S1b 判定明确为副本 146=146 真实通过）。
 
 ## 决定记录
 2026-08-05: 返工 R4 选 (b)：保留 `OverflowPolicy` 枚举但 dartdoc 改为「同一条流生命周期内不得改变」，并加契约测试 R4。理由：(a) 钉死单一策略与派工 §五.3「两个 fake 各展示一种行为（wait/fail）」冲突，两个 fake 会退化为同策略；(b) 保留枚举 + 禁运行时切换，既消除 TOCTOU 又保住两种行为的展示。
