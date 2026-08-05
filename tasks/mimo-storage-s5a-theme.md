@@ -47,8 +47,9 @@ DatasetMaterializer`）+ 用户覆盖层**的契约与 reference 实现，且 `t
   持有者 `InMemoryThemeTokenStore`）+ **装配入口 `theme_assembly.dart`**
   （`XrapThemeLocalReader` + `assembleThemeStore`，P4 的唯一注入入口，设计 §4.5）
 - 测试 **8** 个文件（设计 §11.3）
-- 门禁脚本 **1** 个：`scripts/run_s5a_residue_gate.sh`（设计 §11.6，验收命令直接调用它）
-- 合计 **21** 个交付文件
+- 门禁脚本 **2** 个：`scripts/run_s5a_analyze_gate.sh`（A1）+ `scripts/run_s5a_residue_gate.sh`
+  （设计 §11.6）。**两个仓里都还不存在，均由本 ACT 创建**，验收命令直接调用它们
+- 合计 **22** 个交付文件（设计 §11.0 总表）
 - 合并算法完整规格已在设计 §6.6 写死，**执行者按步骤实现，无需推断**
 
 ### 不做（v4 删除的部分）
@@ -190,11 +191,25 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
       CI 只跑一次冒烟确认 < 100 ms
 - [ ] **P2** 相同输入两次 `resolve()` 返回 `identical` 实例；
       **改一次 override 后 `identical` 为 false**（证明缓存键真参与判定，非恒返回同一实例）
-- [ ] **P3** 启动路径零网络 —— **v4 改为结构性保证**：`InMemoryThemeResourceStore` 构造器
-      只接收 `ThemeLocalReader`，**没有网络端口可传**（设计 §5.5.3）。架构守卫断言其参数表仅两项；
-      **正向控制**：`localReader.bundledReadCount > 0` 且 `overrideReadCount > 0`
-- [ ] **P4** `resolve()` 期间不触发 XRAP 安装：把 `DatasetInstaller` 的 fake 传给装配层，
-      断言其 `install` 调用次数 == 0 + 正向控制
+- [ ] **P3** 启动路径零网络 —— **结构性保证**：`InMemoryThemeResourceStore` 构造器
+      只接收 `{required String scopeUid, required ThemeLocalReader localReader}`，
+      **没有网络端口可传**（设计 §5.5.3）。三条断言，全文在设计 §5.5.4：
+      **P3-a1** 构造器 tear-off 的**函数类型**断言（`isA<... Function({required String scopeUid,
+      required ThemeLocalReader localReader})>()`）—— 新增/删除/改类型任一 required 参数即红；
+      **P3-a2** **import 集合**白名单（`IMPORTS ⊆ ALLOWED` + `IMPORTS ⊇ 必需两条`正向控制
+      + 无 `export`/`part` 绕过）—— 新增网络依赖必须先 import，即红；
+      **P3-b** 行为正向控制 `localReader.bundledReadCount > 0` 且 `overrideReadCount > 0`。
+      ⛔ **v5 的「`ThemeLocalReader` 全文命中恰好 1 次」「参数区 `required` 恰好 2 次」已作废**
+      （R4-P1-4：数拼写次数不是查依赖图，正常实现光字段+构造器就 2 次）
+- [ ] **P4** `resolve()` 期间不触发 XRAP 安装（设计 §5.5.4 完整断言序列）：
+      经 `assembleThemeStore` 注入 `CountingDatasetInstaller`，**分装配期/resolve 期两段计数**
+      （中间 `resetCounts()`）。装配期断言 `ensureInstalledCallCount == 1`、
+      `checkForUpdateCallCount == 0`、`tokenStore.generations.contains(0)`；
+      resolve 期断言 `ensureInstalled` / `checkForUpdate` / `rollbackTo` / `collectGarbage`
+      四个计数全 `== 0`，**正向控制** `activeCallCount > 0` 且 `calledDatasetIds` 含 `themeDatasetId`。
+      ⚠️ **`DatasetInstaller` 没有名为 `install` 的方法** —— 抽象方法恰好六个，
+      探针必须六个全实现（v5 写的 `installCallCount` 是凭空发明的方法名）。
+      **变红手法三条见设计 §5.5.4**
 - [ ] **P5** 无"下一层"回指：`resolve()` 返回后销毁 store 实例，结果仍可正常读取
 - [ ] **P6** 活跃世代读取挂起时 `resolve()` **50 ms 内**返回 bundled 兜底（设计 §5.5.4 六步）：
       注入 `SlowLocalReader`（`readActiveThemeTokens` 永不完成），`Stopwatch` 计时，
@@ -204,10 +219,14 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
 
 验收命令: `bash scripts/run_s5a_analyze_gate.sh && bash scripts/run_s5a_residue_gate.sh && (cd core && flutter test --exclude-tags benchmark)`
 
-> **残留门禁 `run_s5a_residue_gate.sh`（设计 §11.6）**：扫已裁定移除的标识符
-> （InstalledTheme / AvailableTheme / ThemeRemoteFetcher / ThemePackageStore /
-> ThemeSignatureVerifier / ThemeSignatureVerdict / refreshCatalog / listInstalled），
-> 出现即 exit 1 + 覆盖下限 8 文件。**转 ACT 时须做变红自检**。
+> **残留门禁 `scripts/run_s5a_residue_gate.sh`（脚本全文在设计 §11.6，照抄即可运行）**：
+> 扫已裁定移除的 8 个标识符（InstalledTheme / AvailableTheme / ThemeRemoteFetcher /
+> ThemePackageStore / ThemeSignatureVerifier / ThemeSignatureVerdict / refreshCatalog /
+> listInstalled），出现即 `exit 1`。
+> **它是精确交付文件**（设计 §11.0 总表），仓里现在不存在，由本 ACT 创建并 `chmod +x`。
+> 扫描范围用**显式文件数组**（20 个交付文件逐条写死）+ 逐个 `[ -f ]` 存在性断言，
+> **不用 `ls` glob**；缺文件 `exit 2`，数组被改空 `exit 2`，grep 自身出错 `exit 3`。
+> **转 ACT 时须做设计 §11.6 表中的三条变红自检**（残留 / 缺文件 / 范围被改空，各红一次）。
 > 起因: R3 的 P0 正是我正则替换后未验证导致 InstalledTheme 类定义残留 —— 此门禁防它重演。
 
 ## 门禁写作纪律（S1a / S5c 返工换来，转 ACT 时必须遵守）
@@ -275,6 +294,46 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
 > R4 报告：`docs/reviews/2026-08-04-s5a-theme-plan-eng-review-r4.md`。
 > P0（载荷行 schema 删 `g` 字段）已在 `ebad8af` 闭合，本节记录余下 9 条。
 
+- 2026-08-05 【R4-P1-2】**`CountingDatasetInstaller` 补成可编译的完整定义**。
+  发现 v5 的探针表写「每次 `install(...)` 被进入」是**凭空发明的方法名** ——
+  `dataset_installer.dart` 的抽象方法恰好六个：`ensureInstalled` / `checkForUpdate` /
+  `active` / `generations` / `rollbackTo` / `collectGarbage`，`implements` 必须六个全实现。
+  改文件: 设计 §5.5.4 —— 探针表那行改为「六个 `<方法名>CallCount` + `calledDatasetIds`」，
+  并补一整段完整定义：构造器 `CountingDatasetInstaller({required Stream<List<int>> Function() bundledPayload})`、
+  六个计数字段初值 0、`calledDatasetIds` 类型 `List<String>` 初值 `<String>[]`、
+  `resetCounts()`、六个方法逐个写死 fake 返回表达式。
+  其中 `ensureInstalled` **会真的调 `descriptor.materializer()` 工厂并驱动 `materialize`**
+  —— 这样 P4/A21 测的是 §4.5 那条真链路，不是测试自己伪造的落地物。
+  ①设计 §11.3 —— `theme_probes.dart` 那行补上 `CountingDatasetInstaller`；
+  ②设计 §11.3 —— `theme_bench_fixture.dart` 补 `bundledJsonlBytes()`（探针的载荷来源）；
+  ③纪要 P4 —— 同步断言序列，并写明「没有 `install` 方法」这条坑。
+- 2026-08-05 【R4-P1-4】**P3-a oracle 重写：从"数拼写次数"改为结构性断言**。
+  v5 的「`ThemeLocalReader` 全文命中恰好 1 次」「参数区 `required` 恰好 2 次」被作废 ——
+  正常实现光字段声明 + 构造器参数就 2 次，会逼实现者用类型推断规避文本来过门禁。
+  新 oracle 两条，都不需要新依赖（`analyzer` 不在 `core/pubspec.yaml` 里，不为一条门禁引入）：
+  **P3-a1** 构造器 tear-off 的**函数类型**断言 —— `final Object ctor = InMemoryThemeResourceStore.new;`
+  再 `isA<InMemoryThemeResourceStore Function({required String scopeUid,
+  required ThemeLocalReader localReader})>()`。Dart 函数子类型规则保证：新增/删除任一
+  required 具名参数、或改任一参数类型/名字，都不再是子类型 → 红，且**红在运行时断言不在编译期**
+  （tear-off 先赋给 `Object`）。
+  **P3-a2** **import 集合**白名单 —— 逐行抽 `^import\s+'(?<uri>[^']+)'.*;$` 得 `IMPORTS`，
+  断言 `IMPORTS ⊆ ALLOWED`（6 条写死）、`IMPORTS ⊇ 必需两条`（正向控制，防空集静默全绿）、
+  `^(export|part|part of)\s` 命中 == 0（防绕过）。
+  **「新增网络依赖 → 变红」的自检手法已写死**：临时加 `import 'dart:io';` → 断言 1 红；
+  临时把 import 正则改成永不匹配 → 断言 2 红。
+  **已知缺口明写不藏**：新增**可选**具名参数时 a1 抓不到（仍是子类型），由 a2 兜住；
+  若该可选参数的类型来自白名单内文件则两条都抓不到 —— 但白名单里全是 S5a 自己的契约文件，
+  不可能是网络端口，对「零网络」这一命题无损。
+  改文件: 设计 §5.5.4 P3 段整段重写；纪要 P3 同步。
+- 2026-08-05 【R4-P1-7】**`run_s5a_residue_gate.sh` 列为精确交付文件**。
+  R4 抓到验收命令调用一个既不在交付表、仓里也不存在的脚本。改文件:
+  ①设计**新增 §11.0 交付物总表** —— 契约 8 / reference 4 / 测试 8 / 门禁脚本 2 = **22**，
+  并显式点名 `run_s5a_analyze_gate.sh` 也不存在、也必须由本 ACT 创建；
+  ②设计 §11.6 —— 脚本全文重写：`ls` glob 换成**三个显式文件数组**（20 个交付文件逐条写死）
+  + 逐个 `[ -f ]` 存在性断言 + 数组长度下限；`grep` 的三种退出码（0/1/>=2）全部显式处理，
+  **不用 `|| true`**；退出码语义写死（1 残留 / 2 清单或范围问题 / 3 grep 自身出错）；
+  变红自检从一条扩到**三条表格**（残留 / 缺文件 / 范围被改空）；
+  ③纪要「验收命令」下方的残留门禁说明段同步；④纪要「范围 · 做」补门禁脚本 2 个 / 合计 22。
 - 2026-08-05 【R4-P1-3】**数据流闭合 —— 本轮唯一的真设计题**。
   问题: `DatasetDescriptor.materializer` 是**工厂**（`dataset_descriptor.dart:44`
   `final DatasetMaterializer Function() materializer;`），安装器每次落地新建一个

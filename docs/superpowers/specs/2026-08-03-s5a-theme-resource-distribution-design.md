@@ -1049,23 +1049,152 @@ final class InMemoryThemeResourceStore implements ThemeResourceStore {
 | | | `activeThemeReadCount` | 每次 `readActiveThemeTokens()` 返回 |
 | | | `overrideReadCount` | 每次 `readOverrides()` 返回 |
 | `SlowLocalReader` | `ThemeLocalReader` | — | `readActiveThemeTokens()` 返回**永不完成的 `Completer.future`**；另两个方法正常返回（用于 P6） |
-| `CountingDatasetInstaller` | `DatasetInstaller`（XRAP） | `installCallCount` | 每次 `install(...)` 被**进入**（不等返回，用于 P4） |
-| | | `calledDatasetIds` | 同上，追加被请求的 datasetId |
+| `CountingDatasetInstaller` | `DatasetInstaller`（XRAP） | 六个 `<方法名>CallCount` + `calledDatasetIds` | 见下方完整定义 |
 
-**P3 的可执行 oracle（Dart 无实用反射，故用静态扫描 + 行为断言双保险）**：
+**`CountingDatasetInstaller` 的完整定义（照抄即可编译）**
 
-Dart 的 `dart:mirrors` 在 Flutter 下不可用，**无法在运行时读构造器参数表**。
-因此 P3 拆成两条各自可执行的断言：
+⚠️ **`DatasetInstaller` 没有名为 `install` 的方法。** v5 的探针表写「每次 `install(...)`
+被进入」是**凭空发明的方法名** —— `dataset_installer.dart` 的抽象方法**恰好六个**：
+`ensureInstalled` / `checkForUpdate` / `active` / `generations` / `rollbackTo` / `collectGarbage`。
+`implements DatasetInstaller` 必须**六个全部实现**，缺一编译不过。
+
+```dart
+/// P4 / A21 用的 XRAP 安装器 spy。
+///
+/// 它不只是计数器 —— `ensureInstalled` 会**真的**调 descriptor 的 materializer
+/// 工厂并驱动 `materialize`，这样 P4/A21 测的才是 §4.5 那条真链路，
+/// 而不是测试自己伪造的落地物。
+///
+/// **本 fake 零 IO 零网络**：载荷来自入参的内存 Stream。
+final class CountingDatasetInstaller implements DatasetInstaller {
+  /// [bundledPayload] 每次调用返回一条**新的** `Stream<List<int>>`
+  /// （Stream 只能监听一次，复用会抛 StateError）。
+  /// 取 `ThemeBenchFixture.bundledJsonlBytes`（§11.3）。
+  CountingDatasetInstaller({required Stream<List<int>> Function() bundledPayload});
+
+  // ---- 计数字段：初值一律 0；calledDatasetIds 初值为空 List ----
+  int ensureInstalledCallCount = 0;
+  int checkForUpdateCallCount = 0;
+  int activeCallCount = 0;
+  int generationsCallCount = 0;
+  int rollbackToCallCount = 0;
+  int collectGarbageCallCount = 0;
+
+  /// 被请求过的 datasetId，按调用顺序追加（**可重复**，不是 Set）。
+  /// 类型写死 `List<String>`，初值 `<String>[]`。六个方法**全部**追加。
+  final List<String> calledDatasetIds = <String>[];
+
+  /// 把六个计数清零并 `calledDatasetIds.clear()`。
+  /// P4 用它把"装配期的调用"与"resolve 期间的调用"分开计。
+  void resetCounts();
+
+  // ---- 六个抽象方法的 fake 返回值，逐个写死 ----
+
+  /// +1；追加 id。
+  /// 已有 ready 世代 → 直接返回 `InstallOutcome.alreadyCurrent(_record!)`；
+  /// 否则：`final d = DatasetRegistry.lookup(datasetId)!;`
+  ///       `await d.materializer().materialize(`            // ← 调工厂，§4.5 第 3 步
+  ///           `manifest: d.bundledManifest,`
+  ///           `payload: bundledPayload(), generation: 0);`
+  ///       `_record = InstalledDataset(datasetId: datasetId, generation: 0,`
+  ///           `manifest: d.bundledManifest,`
+  ///           `status: DatasetGenerationStatus.ready, sourceId: 'fake.bundled',`
+  ///           `actualRowCount: outcome.rowCount, installedAtUtc: DateTime.utc(2026));`
+  ///       返回 `InstallOutcome.installed(_record!)`。
+  @override
+  Future<InstallOutcome> ensureInstalled(String datasetId, {CancellationToken? cancel});
+
+  /// +1；追加 id。**永远返回**
+  /// `InstallOutcome.sourceUnavailable(reason: 'fake: 本探针不触网', current: _record)`
+  /// —— 这是协议 P5 的正常路径，不是错误。
+  @override
+  Future<InstallOutcome> checkForUpdate(String datasetId, {CancellationToken? cancel});
+
+  /// +1；追加 id。返回 `_record`（未装过则 null）。**读路径走这里。**
+  @override
+  Future<InstalledDataset?> active(String datasetId);
+
+  /// +1；追加 id。返回 `_record == null ? <InstalledDataset>[] : [_record!]`。
+  @override
+  Future<List<InstalledDataset>> generations(String datasetId);
+
+  /// +1；追加 id。返回 `InstallOutcome.alreadyCurrent(_record!)`；
+  /// `_record == null` 时抛 `StateError`（测试若走到这里说明用错了）。
+  @override
+  Future<InstallOutcome> rollbackTo(String datasetId, int generation);
+
+  /// +1；`only != null` 时追加它，否则追加 `'*'`。**恒返回 0 字节**。
+  @override
+  Future<int> collectGarbage({String? only});
+}
+```
+
+> 📌 **判据**：照着上面这段，一个便宜执行体应当能直接写出可编译的 fake ——
+> 六个方法齐全、每个方法的返回值都是具体表达式、计数字段初值明确、
+> `calledDatasetIds` 类型明确。若发现某个方法的返回值还要自己发挥，那是本节的缺陷，返工。
+
+**P3 的可执行 oracle（v6 重写，R4-P1-4）**
+
+> ⛔ **v5 的写法已作废**：它规定「源码全文中 `ThemeLocalReader` 命中次数 == 1」和
+> 「构造器参数区内 `required ` 出现次数 == 2」—— 这是在**数拼写次数**，不是查依赖图。
+> 正常实现光「字段声明 + 构造器参数」就已经 2 次；执行者只能靠类型推断或规避文本
+> 来过门禁。既有假阳性也有误杀。**v6 换成两条结构性断言。**
+
+Dart 的 `dart:mirrors` 在 Flutter 下不可用，无法运行时反射读参数表；`analyzer` 不在
+`core/pubspec.yaml` 的依赖里，本轮也不打算为一条门禁引入它。以下两条**不需要任何新依赖**，
+且测的是结构（构造器的**类型**、文件的**import 集合**）而不是文本频次。
 
 ```
-P3-a 静态扫描（架构守卫测试内以纯文本读源码）
-  读 core/lib/reference/in_memory_theme_resource_store.dart 全文，断言：
-    (1) 'ThemeLocalReader' 命中次数 == 1                    唯一注入端口
-    (2) 正则 'http|Http|Socket|Uri|DatasetInstaller|DatasetSource' 命中 == 0
-    (3) 构造器参数区内 'required ' 出现次数 == 2             scopeUid + localReader
-  三条任一失败即红。(2) 是关键 —— 证明该类连发起 IO 的符号都没引用到。
+P3-a1 构造器参数表 —— 用构造器 tear-off 的【函数类型】断言（不是数文本）
 
-P3-b 行为断言（正向控制）
+  // tear-off 先赋给 Object，保证参数表变化时红在运行时断言，不红在编译期
+  final Object ctor = InMemoryThemeResourceStore.new;
+  expect(
+    ctor,
+    isA<InMemoryThemeResourceStore Function({
+      required String scopeUid,
+      required ThemeLocalReader localReader,
+    })>(),
+  );
+
+  这条断言的是构造器的【类型】。Dart 的函数子类型规则决定了：
+    · 新增任一 required 具名参数  → 不再是目标类型的子类型 → 红
+    · 删除任一参数              → 不再是子类型               → 红
+    · 改任一参数的类型/名字      → 不再是子类型               → 红
+  怎么让它变红（自检，必须做一次）：
+    临时加 `required Object extra` 到构造器 → 跑测试 → 确认红 → 改回 → git status 为空
+
+  ⚠️ 已知缺口（写明，不装作没有）：新增一个【可选】具名参数时，
+     函数类型仍是目标类型的子类型，这条抓不到。由 P3-a2 兜住 ——
+     任何网络/安装端口类型都必须先被 import 进来。
+
+P3-a2 import 白名单 —— 断言的是【import 集合】，不是命中次数
+
+  读 core/lib/reference/in_memory_theme_resource_store.dart，
+  逐行按 ^import\s+'(?<uri>[^']+)'.*;$ 抽出 uri，得到集合 IMPORTS。
+
+  ALLOWED（写死，共 6 条；新增任何一条都必须先改这份白名单，即"显式加白"）：
+    '../model/theme_token_types.dart'
+    '../model/theme_resolution.dart'
+    '../model/theme_resource_store.dart'
+    '../model/theme_source_ports.dart'
+    '../model/theme_value_types.dart'
+    'theme_token_merger.dart'
+  （相对路径以该文件所在目录为基准；若实现改用 package: 形式，白名单同步改为
+    package:persistence_core/... 的等价 6 条，**形式必须全文件统一**）
+
+  断言 1（负向）: IMPORTS ⊆ ALLOWED
+  断言 2（正向控制）: IMPORTS ⊇ {'../model/theme_source_ports.dart',
+                                '../model/theme_resource_store.dart'}
+                     —— 防正则失配得到空集时 ∅ ⊆ ALLOWED 恒成立而静默全绿
+  断言 3（防绕过）: 全文匹配 ^(export|part|part of)\s 的行数 == 0
+                     —— 不许用 export/part 把依赖藏到别的文件里
+
+  怎么让它变红（自检，必须做一次）：
+    临时加 `import 'dart:io';` → 断言 1 红 → 删掉 → git status 为空
+    临时把 import 正则改成永不匹配 → 断言 2 红（证明断言 2 真的在防空集）
+
+P3-b 行为断言（正向控制，不变）
   store = InMemoryThemeResourceStore(
       scopeUid: 'u1', localReader: CountingLocalReader(fixture))
   await store.resolve()
@@ -1073,43 +1202,62 @@ P3-b 行为断言（正向控制）
   断言 localReader.overrideReadCount > 0
 ```
 
-> ⚠️ **P3-a 第 (3) 条的防假绿要求**：必须先从 `InMemoryThemeResourceStore({`
-> 切到配对的 `})` 得到参数区子串，再在**子串内**计数 —— 全文计数会被值类型的
-> `required` 污染。且须对子串加长度下限断言（`length > 50`），
-> 否则正则失配切出空串时 `0 == 0` 会静默通过。
+> 📌 **三条各自证明什么**：a1 证明构造器**收不到**别的必需依赖；
+> a2 证明该文件**引用不到**网络/安装类符号（含 a1 漏掉的可选参数场景）；
+> b 证明它**确实**走了本地读取路径而不是什么都没做。
+> **残余缺口**：若新增的可选参数其类型来自已在白名单内的文件，两条都抓不到。
+> 这类参数不可能是网络端口（白名单里全是 S5a 自己的契约文件），
+> 故对 P3「零网络」这一命题无损。**明写在此，不藏。**
 
-**P4 的装配入口（v4 原缺，此处补全）**：
+**P4 的装配入口与断言（v6 按 §4.5 重写）**
 
-P4 要验证 `resolve()` 不触发 XRAP 安装。但 `ThemeResourceStore` 本身**不持有**
-`DatasetInstaller`（那是 XRAP 的东西），所以注入点不在 store 上，**在装配函数上**：
-
-```dart
-// core/lib/reference/theme_assembly.dart —— reference 装配入口
-//
-// 【为什么需要它】P4 要断言「启动路径不触发安装」，就必须有一个能同时看到
-// store 与 installer 的位置。生产装配在 xuan-shell 的 DI bootstrap，
-// reference 装配在这里，二者形状一致 —— 测试对装配函数编程，不对实现编程。
-Future<ThemeResourceStore> assembleThemeStore({
-  required String scopeUid,
-  required ThemeLocalReader localReader,
-  required DatasetInstaller installer,   // 只服务安装流程；resolve 路径不得触碰
-});
-```
+P4 要验证 `resolve()` 不触发 XRAP 安装。`ThemeResourceStore` 本身**不持有**
+`DatasetInstaller`（那是 XRAP 的东西），所以注入点不在 store 上，**在装配函数
+`assembleThemeStore` 上**（签名见 §4.5，此处不重复）。
 
 ```
-P4 的断言：
-  installerSpy = CountingDatasetInstaller()
+P4 的断言（分「装配期」与「resolve 期」两段计数，中间 resetCounts）
+
+  tokenStore = InMemoryThemeTokenStore()
+  DatasetRegistry.clearForTesting(); ThemeModuleRegistry.resetForTesting()
+  ThemeModuleRegistry.register(
+      themeMaterializer: () => InMemoryThemeMaterializer(tokenStore))
+  installerSpy = CountingDatasetInstaller(
+      bundledPayload: ThemeBenchFixture.bundledJsonlBytes)
+
   store = await assembleThemeStore(
-      scopeUid: 'u1',
-      localReader: CountingLocalReader(fixture),
-      installer: installerSpy)
-  await store.resolve()
-  断言 installerSpy.installCallCount == 0     零安装
-  断言 localReader.bundledReadCount  > 0      正向控制：确实走了启动路径
+      scopeUid: 'u1', installer: installerSpy,
+      initialOverrides: ThemeBenchFixture.overrides)
+
+  — 装配期（正向控制：装配确实把 XRAP 接上了）—
+  断言 installerSpy.ensureInstalledCallCount  == 1
+  断言 installerSpy.checkForUpdateCallCount   == 0   装配期也不触网
+  断言 tokenStore.generations.contains(0)            §4.5 链闭合（与 A21 同一守卫）
+
+  installerSpy.resetCounts()
+  result = await store.resolve()
+
+  — resolve 期（零安装）—
+  断言 installerSpy.ensureInstalledCallCount  == 0
+  断言 installerSpy.checkForUpdateCallCount   == 0
+  断言 installerSpy.rollbackToCallCount       == 0
+  断言 installerSpy.collectGarbageCallCount   == 0
+  — resolve 期（正向控制：确实经 XRAP 活跃指针读了落地物）—
+  断言 installerSpy.activeCallCount           >  0
+  断言 installerSpy.calledDatasetIds          含 themeDatasetId
 ```
 
-第二条正向控制不可省 —— 没有它，一个 `assembleThemeStore` 什么都不做的实现
-也能让第一条通过（门禁纪律第 9 条）。
+**怎么让 P4 变红（三条自检，逐条做）**：
+
+1. 把 `XrapThemeLocalReader.readActiveThemeTokens` 里的 `installer.active(...)`
+   改成 `installer.ensureInstalled(...)` → resolve 期 `ensureInstalledCallCount == 0` 红；
+2. 把 `assembleThemeStore` 里第 3 步的 `ensureInstalled` 删掉 →
+   装配期 `== 1` 与 `tokenStore.generations.contains(0)` 同时红；
+3. 把 `InMemoryThemeMaterializer` 改回持有实例私有 Map（不写共享 store）→
+   `tokenStore.generations.contains(0)` 红。**这是 R4-P1-3 断链的回归守卫。**
+
+正向控制不可省 —— 没有 `activeCallCount > 0`，一个 `assembleThemeStore` 什么都不做、
+`resolve()` 直接返回空结果的实现也能让全部"零安装"断言通过（门禁纪律第 9 条）。
 
 **P6 的状态转换**：
 
@@ -1614,6 +1762,24 @@ reference 实现须持有一个**单条缓存**：
 ## 11. 交付物清单（精确到文件）
 
 > **v4 已大幅收窄**：删掉安装机制相关文件，新增 `InMemoryThemeMaterializer`（XRAP Materializer 实现）与数据集声明。
+> **v6 补两处**：`core/lib/reference/theme_assembly.dart`（§4.5 装配链的连接点，P4 的唯一注入入口）
+> 与 `scripts/run_s5a_residue_gate.sh`（验收命令直接调用它）。
+
+### 11.0 总数（**验收命令用到的每个文件都必须在下面某张表里**）
+
+| 分层 | 数量 | 表 |
+|---|---|---|
+| 契约层（零实现） | **8** | §11.1 |
+| reference 实现层 | **4** | §11.2 |
+| 测试与支撑 | **8** | §11.3 |
+| 门禁脚本 | **2** | `scripts/run_s5a_analyze_gate.sh`（纪要 A1）+ `scripts/run_s5a_residue_gate.sh`（§11.6）。两者均需 `chmod +x` |
+| **合计** | **22** | —— |
+
+⚠️ **自检**：验收命令是
+`bash scripts/run_s5a_analyze_gate.sh && bash scripts/run_s5a_residue_gate.sh && (cd core && flutter test --exclude-tags benchmark)`。
+其中 `run_s5a_analyze_gate.sh` 是**沿用 S1a 口径的分析门禁**（纪要 A1，与 `run_s1a_analyze_gate.sh`
+同形制，开工时重新测定基线并写死），`run_s5a_residue_gate.sh` 在 §11.6。
+**两个脚本都必须由本 ACT 创建** —— 仓里现在都不存在。
 
 ### 11.1 契约层（零实现）
 
@@ -1695,20 +1861,104 @@ reference 实现须持有一个**单条缓存**：
 > Codex R3 的 P0 是「已裁定删除的类型仍有残留」，根因是我用正则批量替换后**未独立验证**。
 > 以下门禁写进 ACT 的 VERIFICATION，每次执行都跑，不依赖人的自觉。
 
+**本脚本是精确交付文件**（§11.0 总表第 4 行两个门禁脚本之一），路径
+`scripts/run_s5a_residue_gate.sh`，可执行位 `chmod +x`。**验收命令直接调用它，因此它必须真实存在** ——
+R4-P1-7 抓到的正是"验收命令用了一个不在交付表里、仓里也不存在的脚本"。
+
+⚠️ **不许用 `ls` glob 数文件**：glob 空匹配（`nullglob` 未开时会把模式本身当文件名）
+与目录递归的口径都有歧义，`ls` 失配时还可能因 `set -e` 直接把脚本打断在错误的地方。
+**改用显式文件数组 + 逐个 `[ -f ]` 存在性断言** —— 交付清单少一个文件立刻 `exit 2`，
+比"数出来的个数够不够"强得多。
+
 ```bash
+#!/usr/bin/env bash
 # scripts/run_s5a_residue_gate.sh
-# 已裁定移出 S5a 的标识符，出现即失败
-FORBIDDEN='InstalledTheme|AvailableTheme|ThemeRemoteFetcher|ThemePackageStore|ThemeSignatureVerifier|ThemeSignatureVerdict|refreshCatalog|listInstalled'
-HITS=$(grep -rnE "$FORBIDDEN" core/lib/model/theme_*.dart core/lib/reference/ core/test/theme_*.dart 2>/dev/null | wc -l | tr -d ' ')
-[ "$HITS" = "0" ] || { echo "RESIDUE_FOUND: $HITS"; exit 1; }
-# 覆盖下限：防止 glob 失配扫到 0 个文件而假绿
-FILES=$(ls core/lib/model/theme_*.dart 2>/dev/null | wc -l | tr -d ' ')
-[ "$FILES" -ge 8 ] || { echo "SCAN_TOO_NARROW: only $FILES files"; exit 2; }
-echo "RESIDUE_GATE_OK (scanned $FILES contract files)"
+# S5a 残留门禁：已裁定移出 S5a 的标识符出现即失败。
+# 从仓库根目录执行。macOS /bin/bash 是 3.2.57 —— 只用普通数组，不用 declare -A / mapfile。
+set -euo pipefail
+
+readonly FORBIDDEN='InstalledTheme|AvailableTheme|ThemeRemoteFetcher|ThemePackageStore|ThemeSignatureVerifier|ThemeSignatureVerdict|refreshCatalog|listInstalled'
+
+# —— 扫描范围：写死的交付清单，与设计 §11.1 / §11.2 / §11.3 逐字对应 ——
+# 新增交付文件时必须同步这三个数组，否则新文件不被扫描（漏网），
+# 删除交付文件时存在性断言会 exit 2（提醒你清单变了）。
+CONTRACT_FILES=(
+  "core/lib/model/theme_token_types.dart"
+  "core/lib/model/theme_resolution.dart"
+  "core/lib/model/theme_resource_store.dart"
+  "core/lib/model/theme_value_types.dart"
+  "core/lib/model/theme_source_ports.dart"
+  "core/lib/model/theme_storage_policies.dart"
+  "core/lib/model/theme_dataset.dart"
+  "core/lib/model/theme_module_registry.dart"
+)
+REFERENCE_FILES=(
+  "core/lib/reference/theme_token_merger.dart"
+  "core/lib/reference/in_memory_theme_resource_store.dart"
+  "core/lib/reference/in_memory_theme_materializer.dart"
+  "core/lib/reference/theme_assembly.dart"
+)
+TEST_FILES=(
+  "core/test/support/theme_bench_fixture.dart"
+  "core/test/support/theme_probes.dart"
+  "core/test/theme_token_merger_test.dart"
+  "core/test/theme_resource_store_contract_test.dart"
+  "core/test/theme_module_registry_test.dart"
+  "core/test/theme_materializer_test.dart"
+  "core/test/theme_startup_path_test.dart"
+  "core/test/theme_merge_bench_test.dart"
+)
+ALL_FILES=( "${CONTRACT_FILES[@]}" "${REFERENCE_FILES[@]}" "${TEST_FILES[@]}" )
+
+# —— 覆盖下限之一：交付清单里的文件必须全部存在 ——
+missing=0
+for f in "${ALL_FILES[@]}"; do
+  if [ ! -f "${f}" ]; then
+    echo "MISSING_FILE: ${f}"
+    missing=$(( missing + 1 ))
+  fi
+done
+if [ "${missing}" -ne 0 ]; then
+  echo "SCAN_INCOMPLETE: ${missing} declared deliverable(s) missing"
+  exit 2
+fi
+
+# —— 覆盖下限之二：数组本身不许被改空 ——
+readonly SCANNED=${#ALL_FILES[@]}
+if [ "${SCANNED}" -lt 20 ]; then
+  echo "SCAN_TOO_NARROW: only ${SCANNED} files in deliverable arrays (expected >= 20)"
+  exit 2
+fi
+
+# —— 残留扫描。grep 三种退出码全部显式处理，不用 `|| true` ——
+set +e
+matches="$(grep -nE "${FORBIDDEN}" "${ALL_FILES[@]}")"
+grep_status=$?
+set -e
+if [ "${grep_status}" -ge 2 ]; then
+  echo "GREP_ERROR: exit ${grep_status}"
+  exit 3
+fi
+if [ "${grep_status}" -eq 0 ]; then
+  echo "RESIDUE_FOUND:"
+  echo "${matches}"
+  exit 1
+fi
+
+echo "RESIDUE_GATE_OK (scanned ${SCANNED} deliverable files, 0 residue)"
+exit 0
 ```
 
-**必须做变红自检**：临时在任一 `theme_*.dart` 里写一行 `// InstalledTheme`，
-确认脚本 `exit 1`；删掉后回到 `exit 0`。一个绿的门禁若证明不了自己能红，它就是假的。
+**必须做的三条变红自检（每条都要真跑一遍，改回后 `git status --porcelain` 为空）**：
+
+| # | 怎么改坏 | 期望 |
+|---|---|---|
+| 1 | 在任一 `core/lib/model/theme_*.dart` 里加一行 `// InstalledTheme` | `exit 1` + stdout 含 `RESIDUE_FOUND:` |
+| 2 | 把 `core/lib/reference/theme_assembly.dart` 临时改名 | `exit 2` + stdout 含 `MISSING_FILE:` |
+| 3 | 把 `TEST_FILES` 数组临时清空 | `exit 2` + stdout 含 `SCAN_TOO_NARROW:` |
+
+三条分别证明：门禁**扫得到**残留、**察觉得到**交付清单缺文件、**察觉得到**扫描范围被改空。
+一个绿的门禁若证明不了自己能红，它就是假的。
 
 > 📌 **门禁扫代码文件，不扫文档**。本节的 `FORBIDDEN` 变量与上面这行自检示例
 > 是门禁的**定义**，本身含这些标识符属正当。评审若做全文 grep，请排除
