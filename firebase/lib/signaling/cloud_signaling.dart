@@ -236,6 +236,9 @@ final class _CloudSession implements SignalingSession {
   }
 
   Future<void> _teardown() async {
+    // R9：清空已消费信封 id 集合（与 D4「rv 一次一用」约束叠加后，
+    // 长会话 / rv 复用也不会让 _consumedEnvelopeIds 无界增长）。
+    _consumedEnvelopeIds.clear();
     await _watchSub?.cancel();
     _watchSub = null;
     if (!_incoming.isClosed) await _incoming.close();
