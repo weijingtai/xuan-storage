@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:persistence_core/model/signaling.dart';
+import 'package:persistence_core/model/storage_error.dart';
 import 'package:persistence_core/test_support/signaling_contract_suite.dart';
 import 'package:persistence_firebase/signaling/cloud_signaling.dart';
 
@@ -101,6 +102,33 @@ void main() {
       isNot(PeerPresence.departed),
       reason: 'departed 必须来自服务端 onDisconnect 机制；'
           '删掉登记步骤后崩溃不应再产出 departed',
+    );
+
+    await alice.dispose();
+    await bob.dispose();
+  });
+
+  // ── R2：close 后 send 必须抛 StorageError 子类（契约 §3.6 / A5 不静默丢弃）──
+
+  test('R2 · close 后 send 抛 StorageError 子类，不静默丢弃', () async {
+    final b = MemoryRendezvousBackend();
+    final alice = CloudSignaling(backend: b);
+    final bob = CloudSignaling(backend: b);
+
+    final aliceSession = await alice.open('rv-r2-closed-send');
+    await bob.open('rv-r2-closed-send');
+    await aliceSession.peerPresence
+        .firstWhere((p) => p == PeerPresence.present)
+        .timeout(const Duration(seconds: 5));
+
+    await aliceSession.close();
+
+    // close 后 send：必须抛 StorageError 子类（不是静默成功，也不是裸 StateError）。
+    expect(
+      () => aliceSession.send(const ByeEnvelope()),
+      throwsA(isA<StorageError>()),
+      reason: 'close 后 send 必须抛 StorageError 子类（契约 §3.6 / A5 不静默丢弃）；'
+          '与 p2p LocalSignaling 的语义差异见决定记录 D5',
     );
 
     await alice.dispose();

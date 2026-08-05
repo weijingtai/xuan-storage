@@ -39,6 +39,22 @@ final class CloudPeerDepartedError extends StorageError {
         );
 }
 
+/// 会话已关闭后仍调用 [SignalingSession.send] 抛出的错误。
+///
+/// 契约 §3.6「失败一律抛 StorageError 子类」；验收 A5「不静默丢弃」。
+/// 与 `p2p` `LocalSignaling` 的差异（p2p 是静默成功）记录在决定记录 D5，
+/// 语义裁定与两端对齐待人类拍板 —— 本实现按「不静默丢弃」执行。
+final class CloudSessionClosedError extends StorageError {
+  /// 构造会话已关闭错误。
+  const CloudSessionClosedError()
+      : super(
+          code: 'cloud.session_closed',
+          message: '信令会话已关闭，拒绝发送',
+          reason: '会话已 close，再写信封不会有人接收',
+          suggestion: '为新的信令交换重新 open 一个会话',
+        );
+}
+
 /// 云端信令通道：以 RTDB 为会合点中转 SDP/ICE。
 class CloudSignaling implements SignalingChannel {
   /// 构造一个云端信令实现。
@@ -178,7 +194,7 @@ final class _CloudSession implements SignalingSession {
 
   @override
   Future<void> send(SignalingEnvelope envelope) async {
-    if (_closed) throw StateError('会话已关闭');
+    if (_closed) throw CloudSessionClosedError();
     if (_current == PeerPresence.departed) {
       throw CloudPeerDepartedError();
     }
