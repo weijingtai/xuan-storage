@@ -1,6 +1,6 @@
 /// S1d blob 流式化基准测试（阶段 0 测量）。
 ///
-/// 运行方式：flutter test --tags bench test/blob/blob_streaming_bench_test.dart
+/// 运行方式：flutter test --dart-define=BENCH=true test/blob/blob_streaming_bench_test.dart
 /// 不进 CI，只手动运行。
 /// 测量三档输入（1 MB、50 MB、500 MB）的峰值内存和耗时。
 library;
@@ -64,7 +64,8 @@ void main() {
         tmpDir.deleteSync(recursive: true);
       });
 
-      test('put() 耗时', () async {
+      test('put() 耗时', timeout: const Timeout(Duration(minutes: 15)),
+          () async {
         final rng = Random(42);
         final data = List<int>.generate(sizeBytes, (_) => rng.nextInt(256));
         final stream = Stream.value(data);
@@ -82,7 +83,8 @@ void main() {
             'sha256=${handle.plaintextSha256.substring(0, 16)}...');
       });
 
-      test('putFile() 耗时', () async {
+      test('putFile() 耗时', timeout: const Timeout(Duration(minutes: 15)),
+          () async {
         final filePath = '${tmpDir.path}/input_${sizeMb}mb.bin';
         final file = File(filePath);
         final rng = Random(42);
