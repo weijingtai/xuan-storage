@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_test:
+    sdk: flutter
   yaml: ^3.1.2
   shared_preferences: ^2.3.2
   protobuf: ^6.0.0
@@ -40,8 +42,6 @@ dependencies:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-record.git
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
   lints: ^5.0.0
   test: ^1.25.0
   build_runner: ^2.4.0

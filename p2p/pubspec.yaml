@@ -1,7 +1,7 @@
-name: p2p
-description: "A new Flutter package project."
+name: persistence_p2p
+description: "P2P 局域网信令实现（bonsoir 发现 + socket 直连），SignalingChannel 的第一个真实实现。"
 version: 0.0.1
-homepage:
+publish_to: none
 
 environment:
   sdk: ^3.12.2
