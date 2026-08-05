@@ -172,6 +172,25 @@ void main() {
     await bob.dispose();
   });
 
+  // ── R6：同一会合标识二次 open 不泄漏旧会话成员节点 ──
+
+  test('R6 · 同一会合标识二次 open 不泄漏旧会话成员节点', () async {
+    final b = MemoryRendezvousBackend();
+    final alice = CloudSignaling(backend: b);
+
+    await alice.open('rv-r6-reopen');
+    await alice.open('rv-r6-reopen');
+
+    expect(b.debugMemberIds('rv-r6-reopen').length, 1,
+        reason: '二次 open 后应只剩新会话一个成员节点（旧会话已 close，'
+            '不得直接覆盖 _sessions 泄漏旧节点）');
+
+    await alice.dispose();
+    expect(b.debugMemberIds('rv-r6-reopen'), isEmpty,
+        reason: 'dispose 后成员节点必须全部清空，不得残留 —— '
+            '否则对端永远看不到那一端 departed');
+  });
+
   // ── A7 隐私：RTDB 路径与载荷不含身份（可读回的返回值上的断言）──
 
   test('A7 · 会合路径与载荷不含 scopeUid / 用户名 / 设备名', () async {

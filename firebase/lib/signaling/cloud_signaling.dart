@@ -73,6 +73,9 @@ class CloudSignaling implements SignalingChannel {
     CancellationToken? cancel,
   }) async {
     cancel?.throwIfCancelled();
+    // R6：同一会合标识二次 open 时先关闭旧会话，否则旧成员节点留在会合点、
+    // 旧 watch 不取消（对端永远看不到那一端 departed）。
+    await _sessions[rendezvous]?.close();
     final memberId = _randomMemberId();
     final session = _CloudSession(rendezvous, memberId, _backend);
     _sessions[rendezvous] = session;
