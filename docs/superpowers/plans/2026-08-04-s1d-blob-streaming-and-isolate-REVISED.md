@@ -285,7 +285,10 @@ final cipherManifestId = (cipher is IdentityBlobCipher) ? plaintextSha256 : _ran
 | `put()` 改造前 | 500 MB | OOM（~4 GB 需） | — | — | 无法完成测量 |
 | `putFile()` 改造前 | 500 MB | ~500 MB（Uint8List） | ~3500 ms | ~2974 ms | readAsBytes 全量加载 |
 | `openRead()` 首字节 | 500 MB | — | 全量读盘后才返回 | — | 改造前先验后返 |
-| `put()` 阶段 1 后 | 500 MB | < 16 KB + 开销 | 流式处理 | 每块 ~0.2 ms | 峰值内存与输入大小无关 |
+| `put()` 阶段 1 后 | 1 MB | < 16 KB + 开销 | **127 ms** | — | 实测值 |
+| `put()` 阶段 1 后 | 50 MB | < 16 KB + 开销 | **2418 ms** | — | 实测值 |
+| `put()` 阶段 1 后 | 500 MB | < 16 KB + 开销 | **27866 ms** | — | 实测值 |
+| `putFile()` 阶段 1 后 | 500 MB | < 16 KB + 开销 | **28494 ms** | — | 实测值 |
 | `openRead()` 阶段 2 后 | 500 MB | — | 首字节 < 50 ms | — | 惰性校验，读一块吐一块 |
 
 ### 阶段 3 门控判定

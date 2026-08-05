@@ -105,18 +105,45 @@ final class DriftLocalBlobStore implements LocalBlobStore {
     // shaSink 是 Sink<List<int>> 包装器，digestAccumulator 独立持有
     var totalBytes = 0;
     var chunkCount = 0;
-    var pendingBytes = <int>[];
+
+    // 用 Uint8List 队列替代 List<int> 累积，避免 O(n²) 重拷。
+    final pending = <Uint8List>[];
+    var pendingOffset = 0;
+
+    // 从 pending 队列中取出恰好 chunkSize 字节。
+    Uint8List? takeChunk() {
+      final avail = pending.fold(0, (int sum, e) => sum + e.length) - pendingOffset;
+      if (avail < blobChunkSize) return null;
+      final result = Uint8List(blobChunkSize);
+      var written = 0;
+      while (written < blobChunkSize) {
+        final head = pending.first;
+        final available = head.length - pendingOffset;
+        final need = blobChunkSize - written;
+        final take = need < available ? need : available;
+        result.setRange(written, written + take, head, pendingOffset);
+        written += take;
+        pendingOffset += take;
+        if (pendingOffset >= head.length) {
+          pending.removeAt(0);
+          pendingOffset = 0;
+        }
+      }
+      return result;
+    }
+
+    // 计算 pending 队列剩余字节数。
+    int pendingLen() =>
+        pending.fold(0, (int s, e) => s + e.length) - pendingOffset;
 
     // 逐块处理
     await for (final part in inputStream) {
       cancel?.throwIfCancelled();
-      pendingBytes.addAll(part);
+      pending.add(Uint8List.fromList(part is Uint8List ? part : part.toList()));
 
       // 累积到 >= blobChunkSize 时吐出一块
-      while (pendingBytes.length >= blobChunkSize) {
-        final chunk = pendingBytes.take(blobChunkSize);
-        final chunkBytes = Uint8List.fromList(chunk.toList());
-        pendingBytes = pendingBytes.skip(blobChunkSize).toList();
+      while (pendingLen() >= blobChunkSize) {
+        final chunkBytes = takeChunk()!;
 
         // 增量喂入哈希
         shaSink.add(chunkBytes);
@@ -147,13 +174,28 @@ final class DriftLocalBlobStore implements LocalBlobStore {
     }
 
     // 处理最后不足一块的残余
-    if (pendingBytes.isNotEmpty) {
-      final chunkBytes = Uint8List.fromList(pendingBytes.toList());
-      pendingBytes = [];
-      shaSink.add(chunkBytes);
+    if (pendingLen() > 0) {
+      final remaining = Uint8List(pendingLen());
+      var written = 0;
+      while (written < remaining.length) {
+        final head = pending.first;
+        final available = head.length - pendingOffset;
+        final need = remaining.length - written;
+        final take = need < available ? need : available;
+        remaining.setRange(written, written + take, head, pendingOffset);
+        written += take;
+        pendingOffset += take;
+        if (pendingOffset >= head.length) {
+          pending.removeAt(0);
+          pendingOffset = 0;
+        }
+      }
+      pending.clear();
+      pendingOffset = 0;
+      shaSink.add(remaining);
 
       final cipherChunk = await cipher.encryptChunk(
-        chunkBytes.toList(),
+        remaining.toList(),
         chunkIndex: chunkCount,
       );
       final chunkSha256 = sha256.convert(cipherChunk).toString();
@@ -171,7 +213,7 @@ final class DriftLocalBlobStore implements LocalBlobStore {
       );
 
       chunkCount++;
-      totalBytes += chunkBytes.length;
+      totalBytes += remaining.length;
       onProgress?.call(chunkCount, chunkCount);
     }
 
