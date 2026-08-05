@@ -194,7 +194,7 @@ cd firebase && flutter test --tags integration --run-skipped
 | R5 | `_emit` 同值去重 + 测试 | 变异 8 变红在 R5 |
 | R6 | `open` 先关旧会话 + 测试 | 变异 9 变红在 R6 |
 | R7 | 守卫正则补 `persistence_firebase` | 变异 10 变红在 A6 |
-| R8 | `firebase.json` 补 database 段 + rules；集成测试降级为冒烟占位 | 措辞无「A3 的最后一环」 |
+| R8 | `firebase.json` 补 database 段 + rules；集成测试降级为冒烟占位 | 措辞已如实降级，无暗示已验证的表述 |
 | R9 | `_teardown()` 清空 `_consumedEnvelopeIds`；D4 写明 rv 不复用 | 本表 D4 |
 | R10 | 本文件（变异全表 + ✓ 修正 + 流程事故） | — |
 
