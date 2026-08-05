@@ -379,23 +379,42 @@ materializer 时传入的落地世代号（`materialize(generation:)` 入参）�
 （`dataset_materializer.dart:50-56` 明写"generation 由调用方提供"）。
 **若把运行时 generation 写进载荷并要求相等，合法载荷会在第二次落地时被拒绝。**
 
-Materializer 实现用入参 generation 作为 `_byGeneration` Map 的第一层 key：
+Materializer 实现用**入参** generation 作为落地物的第一层 key（落地物存在共享 store 里，见 §4.4 / §4.5）：
 
 ```dart
-final _byGeneration = <int, Map<String, dynamic>>{};
-
 @override
 Future<MaterializeOutcome> materialize({
-  required int generation, required Uint8List payload, ...
+  required DatasetManifest manifest,
+  required Stream<List<int>> payload,
+  required int generation,
+  CancellationToken? cancel,
 }) async {
-  _byGeneration[generation] = {};  // 用入参，不读载荷
-  for (final line in utf8.decode(payload).split('\n')) {
-    final j = jsonDecode(line);
-    _byGeneration[generation]![j['k']] = j['v'];  // 只读 k/v/t
+  final tokens = <String, dynamic>{};
+  var rowCount = 0;
+  var bytes = 0;
+  // Stream<List<int>> → 逐行 UTF-8 解码。载荷是 LF 分隔的 JSON Lines。
+  await for (final line in payload
+      .map((chunk) { bytes += chunk.length; return chunk; })
+      .transform(utf8.decoder)
+      .transform(const LineSplitter())) {
+    if (line.isEmpty) continue;                 // 末行 LF 产生的空串，跳过
+    final j = jsonDecode(line) as Map<String, dynamic>;
+    if (j['v'] is Map) {
+      throw StateError('token 值不得是 Map（嵌套应在构建期展平）: ${j['k']}');
+    }
+    tokens[j['k'] as String] = j['v'];          // 只读 k/v/t，载荷里没有 g
+    rowCount++;
   }
-  return MaterializeOutcome.success(rowCount: lineCount);
+  _tokens.putGeneration(generation, tokens);    // 用入参 generation，不读载荷
+  return MaterializeOutcome(rowCount: rowCount, bytesOnDisk: bytes);
 }
 ```
+
+⚠️ 上面这段是**可编译形状的示意**，三处易错点已写死，不许自行发挥：
+`payload` 是 `Stream<List<int>>`（不是 `Uint8List`）；`MaterializeOutcome` 只有**默认构造器**
+`MaterializeOutcome({required rowCount, required bytesOnDisk})`，**没有** `.success` 命名工厂
+（`dataset_materializer.dart:23-26`）；载荷行**没有** `g` 字段，因此**不得**写「`g != generation` 即抛」
+一类的校验 —— 那正是 R4-P0 删掉的东西。
 
 示例（三行，均无 `g`）：
 
@@ -419,40 +438,74 @@ theme/config/presets/*.yaml
 
 ### 4.4 落地结构（reference 实现的唯一形态）
 
-**reference 实现的落地结构写死为**：
+**落地物不存在 materializer 实例里，存在一个装配期创建、工厂闭包捕获的共享持有者里。**
+理由见 §4.5 —— 这是 R4-P1-3「数据流不闭合」的闭合点，不是风格选择。
+
+文件：`core/lib/reference/in_memory_theme_materializer.dart`（与 materializer 同文件，
+两者是一体的落地形态，拆开会让 reference 层多一个文件而不增加任何信息）
 
 ```dart
-/// 世代号 → (扁平 key → 值) 的两级内存 Map。
-Map<int, Map<String, dynamic>> _byGeneration;
+/// reference 落地物的**共享持有者**：世代号 → (扁平 key → 值) 的两级内存 Map。
+///
+/// 【为什么必须是独立对象，而不是 materializer 的私有字段】
+/// XRAP 的 `DatasetDescriptor.materializer` 字段类型是
+/// `DatasetMaterializer Function()`（`dataset_descriptor.dart:44`）—— 是**工厂**，
+/// 且协议注释写明「落地器可能持有数据库连接等资源，由安装器在需要时创建、用完释放」。
+/// 因此安装器每次落地都新建一个 materializer 实例，该实例出了安装流程即不可达。
+/// 落地物若存在实例私有字段里，启动路径的 `ThemeLocalReader` **永远读不到**。
+/// 故落地物必须存在这个由工厂闭包捕获的外部对象里。
+final class InMemoryThemeTokenStore {
+  /// 构造一个空的落地物持有者。**装配期建一个，全生命周期共享**（§4.5 第 1 步）。
+  InMemoryThemeTokenStore();
+
+  /// 写入某一代的全部 token（整代覆盖写，幂等）。**只有 materializer 调用它。**
+  void putGeneration(int generation, Map<String, dynamic> tokens);
+
+  /// 读取某一代的 token；该代未落地返回 null。
+  /// 返回 `Map.unmodifiable` 只读视图（A16 不可变性）。
+  Map<String, dynamic>? tokensOf(int generation);
+
+  /// 删除某一代。不存在时静默返回（XRAP 要求 `dropGeneration` 幂等）。
+  void dropGeneration(int generation);
+
+  /// 已落地的世代号集合。诊断与 P4/A20 断言用。
+  Set<int> get generations;
+}
 ```
 
-- **世代隔离**：`materialize(generation: g)` 只写 `_byGeneration[g]`，不触碰其它键；
-- **`dropGeneration(g)`**：`_byGeneration.remove(g)`，不存在时静默返回（幂等）；
-- **读取**：`ThemeLocalReader.readActiveThemeTokens()` 从活跃世代号取那一层 Map。
+- **世代隔离**：`materialize(generation: g)` 只调 `putGeneration(g, ...)`，不触碰其它世代；
+- **`dropGeneration(g)`**：转调 `store.dropGeneration(g)`，不存在时静默返回（幂等）；
+- **读取**：由 `XrapThemeLocalReader` 按 XRAP 活跃指针给出的世代号取那一层 Map（§4.5 第 4 步）。
 
-> ⚠️ **生产实现（drift 表）不在本设计决定** —— 它属后续 drift 任务，需与 S1d/S5b
-> 协调 schema 版本号。但**行 schema 与世代隔离语义已在此定死**，生产实现必须遵守，
-> 且必须能通过同一套 A20 契约测试。
+> ⚠️ **生产实现（drift 表）不在本设计决定** —— 它属后续任务 `THEME-DRIFT`（§11.5），
+> 需与 S1d/S5b 协调 schema 版本号。但**行 schema、世代隔离语义、以及「落地物由外部持有、
+> 工厂闭包捕获」这一装配形状已在此定死**，生产实现必须遵守（drift 版的"外部持有者"就是
+> 数据库连接/DAO），且必须能通过同一套 A20 契约测试。
 
 #### `InMemoryThemeMaterializer` 实现的精确签名【reference】
 
-文件：`core/lib/reference/in_memory_theme_materializer.dart`
+同一文件：`core/lib/reference/in_memory_theme_materializer.dart`
 
 ```dart
 final class InMemoryThemeMaterializer implements DatasetMaterializer {
-  /// 构造。落地物存在实例内，供 ThemeLocalReader 读取。
-  InMemoryThemeMaterializer();
+  /// 构造。落地物写进**外部传入的共享 store**，不存在实例私有字段里
+  /// —— 这是安装期与启动读取期能看到同一份落地物的唯一原因（§4.5）。
+  InMemoryThemeMaterializer(this._tokens);
+
+  final InMemoryThemeTokenStore _tokens;
 
   @override
   String get datasetId => themeDatasetId;
 
-  /// 消费 JSON Lines 载荷（§4.3），逐行写入 [generation] 那一层。
+  /// 消费 JSON Lines 载荷（§4.3），整代写入 [generation]。
   ///
-  /// 实现要点：
-  /// - 逐行解析，遇到 `g != generation` 的行立即抛 `StorageError`（世代混淆）；
-  /// - 遇到 `v` 为 Map 的行立即抛（契约违反，嵌套应在构建期展平）；
+  /// 实现要点（逐条都有对应验收，见 A20）：
+  /// - 逐行解析；`v` 为 Map 的行立即抛（契约违反，嵌套应在构建期展平）；
+  /// - **载荷行没有 `g` 字段**，世代号一律取入参 —— 不得从载荷里读或校验世代
+  ///   （R4-P0：那会让合法载荷在第二次落地时被拒）；
   /// - 返回 `MaterializeOutcome(rowCount: 实际写入行数, bytesOnDisk: 载荷字节数)`；
-  /// - **不重复校验 sha256**（XRAP 已校验，`dataset_materializer.dart:43-45`）。
+  /// - **不重复校验 sha256**（XRAP 已校验，`dataset_materializer.dart:43-45`）；
+  /// - **不改动活跃指针**（协议 P3，翻转是安装器的事）。
   @override
   Future<MaterializeOutcome> materialize({
     required DatasetManifest manifest,
@@ -461,14 +514,129 @@ final class InMemoryThemeMaterializer implements DatasetMaterializer {
     CancellationToken? cancel,
   });
 
+  /// 转调 `_tokens.dropGeneration(generation)`。幂等。
   @override
   Future<void> dropGeneration(int generation);
-
-  /// 仅供 reference 的 ThemeLocalReader 读取落地物。生产实现改为查表。
-  @visibleForTesting
-  Map<String, dynamic>? tokensOf(int generation);
 }
 ```
+
+> 📌 **v6 变更**：v5 曾在 materializer 上挂一个 `@visibleForTesting Map<String, dynamic>? tokensOf(int)`
+> 供 reader 读。**已删除** —— 它只能读到"某一个实例"的落地物，而安装器手里的是工厂新建的
+> 另一个实例，这正是 R4-P1-3 抓到的断链。读取入口现在是 `InMemoryThemeTokenStore.tokensOf`，
+> 且它是**生产读路径**，不是 `@visibleForTesting`。
+
+### 4.5 装配数据流：安装 → 落地 → 启动读取（R4-P1-3 闭合点）
+
+**问题**：`DatasetDescriptor.materializer` 是工厂（`dataset_descriptor.dart:44`），
+安装器新建的 materializer 实例与启动路径的 `ThemeLocalReader` 是两个互不认识的对象。
+落地物怎么从前者传到后者？
+
+**结论：方案 A（工厂闭包捕获外部共享 store）+ 方案 C（世代号取自 XRAP 活跃指针）的组合。
+不改 `core/lib/model/dataset/` 下任何 XRAP 契约。**
+
+> **为什么不选"materializer 改单例注入"**：`dataset_descriptor.dart:44` 的字段类型就是
+> `final DatasetMaterializer Function() materializer;` —— 契约要的是工厂。改成实例
+> 等于改 XRAP 契约，而 XRAP 是 T1 已交付并在用的东西（§0.0 裁定 3）。**已排除。**
+>
+> **为什么不只用方案 C**：`DatasetRegistry` / `DatasetInstaller` 只记录**世代元数据**
+> （`InstalledDataset`：世代号、状态、清单、行数），**不持有落地物本身** ——
+> 落地物长什么样正是 materializer 的自由（协议 §3.3）。所以 C 能提供"读哪一代"，
+> 提供不了"那一代的字节在哪"。二者必须合用。
+
+**五步链，每步都指明发生在哪个文件里的哪个函数**：
+
+| 步 | 时机 | 在哪 | 做什么 |
+|---|---|---|---|
+| 1 | 装配期 | `theme_assembly.dart` 的 `assembleThemeStore` | `final tokenStore = InMemoryThemeTokenStore();` —— **全进程一个** |
+| 2 | 装配期 | 同上 | `ThemeModuleRegistry.register(themeMaterializer: () => InMemoryThemeMaterializer(tokenStore));`<br>**这个闭包就是捕获点** —— 工厂每次调用新建 materializer，但它们全都写进同一个 `tokenStore` |
+| 3 | 装配期 + 安装期 | XRAP `DatasetInstaller` | `await installer.ensureInstalled(themeDatasetId)`（装配期调一次，**不触网**，`dataset_installer.dart` 明写）→ 安装器调 `descriptor.materializer()` 拿到实例 → `materialize(generation: 0, ...)` → 落地物进 `tokenStore` 的第 0 代 → 安装器单事务翻转活跃指针 |
+| 4 | 启动读取期 | `theme_assembly.dart` 的 `XrapThemeLocalReader` | `final active = await installer.active(themeDatasetId);`（**XRAP 的落地产物**，`dataset_installer.dart` 明写 active 是"读路径的唯一入口……不得直接查最大世代号"）→ `tokenStore.tokensOf(active.generation)` |
+| 5 | 启动读取期 | `in_memory_theme_resource_store.dart` | `InMemoryThemeResourceStore` 只认识 `ThemeLocalReader`，对 `tokenStore` / `installer` **一无所知** —— P3 的结构性零网络保证不受影响 |
+
+**装配连接点的精确签名【reference】**
+
+文件：`core/lib/reference/theme_assembly.dart`
+
+```dart
+/// 把 XRAP 的落地产物接到 S5a 读路径上的 reference reader。
+///
+/// 【它是 §4.5 第 4 步的落地形态】生产实现（drift）换掉本类即可，
+/// `InMemoryThemeResourceStore` 一行不改 —— 这正是端口存在的意义。
+final class XrapThemeLocalReader implements ThemeLocalReader {
+  /// 构造。三个入参分别对应三个读方法的数据来源。
+  ///
+  /// - [tokenStore]: §4.5 第 1 步创建的那一个，与 materializer 工厂捕获的是**同一个实例**；
+  /// - [installer]: XRAP 安装器。**只用来读活跃指针**（`active`），
+  ///   reader 不得调 `ensureInstalled` / `checkForUpdate`（P4 会断言）；
+  /// - [initialOverrides]: 用户覆盖差量的初始快照。生产实现改为查 drift 覆盖表。
+  XrapThemeLocalReader({
+    required InMemoryThemeTokenStore tokenStore,
+    required DatasetInstaller installer,
+    required Map<String, OverrideEntry> initialOverrides,
+  });
+
+  /// bundled = XRAP 的 **generation 0**（`dataset_descriptor.dart:33-37`：
+  /// 内置世代恒存在，且作为 generation 0 参与统一机制）。
+  ///
+  /// 实现：`_tokens.tokensOf(0)`；为 null 抛 `StateError`（fail closed）——
+  /// 说明装配漏了第 3 步的 `ensureInstalled`，**不得静默返回空 Map**
+  /// （空 Map 会让三层合并全部落空却全绿）。
+  @override
+  Future<Map<String, dynamic>> readBundledTokens();
+
+  /// 活跃世代的 token。**六步，无分支歧义**：
+  ///   1. `themeId != themeDatasetId` → 抛 `ArgumentError`。
+  ///      reference 阶段主题包与 XRAP 数据集一一对应，themeId 即 datasetId；
+  ///      「多主题包并存」需要多个 datasetId，属 THEME-DRIFT，不在 S5a。
+  ///   2. `final active = await installer.active(themeDatasetId);`
+  ///   3. `active == null || !active.isUsable` → 返回 null（无 ready 世代）
+  ///   4. `active.generation == 0` → 返回 null
+  ///      （第 0 代是 bundled，由 readBundledTokens 承担，不重复算作"已装主题包"）
+  ///   5. `final t = _tokens.tokensOf(active.generation);`
+  ///      `t == null` → 返回 null（指针指向的世代无落地物：结构性不一致，
+  ///      fail closed 交给 bundled 兜底，与 P6 同一条降级路径）
+  ///   6. 返回 `t`
+  @override
+  Future<Map<String, dynamic>?> readActiveThemeTokens(String themeId);
+
+  /// 返回 [initialOverrides] 的只读视图。
+  @override
+  Future<Map<String, OverrideEntry>> readOverrides();
+}
+
+/// reference 装配入口。**P4 的唯一注入点**。
+///
+/// 【为什么需要它】P4 要断言「启动路径不触发安装」，就必须有一个能同时看到
+/// store 与 installer 的位置。生产装配在 xuan-shell 的 DI bootstrap，
+/// reference 装配在这里，二者形状一致 —— 测试对装配函数编程，不对实现编程。
+///
+/// 【它按顺序做四件事，缺一不可】
+///   1. `final tokenStore = InMemoryThemeTokenStore();`
+///   2. `ThemeModuleRegistry.register(
+///          themeMaterializer: () => InMemoryThemeMaterializer(tokenStore));`
+///   3. `await installer.ensureInstalled(themeDatasetId);`
+///      —— 保证 generation 0 已落地。该方法**不触网**（`dataset_installer.dart`：
+///      「这是读路径唯一允许调用的安装方法 —— 它不触网」）。
+///   4. `return InMemoryThemeResourceStore(
+///          scopeUid: scopeUid,
+///          localReader: XrapThemeLocalReader(
+///              tokenStore: tokenStore, installer: installer,
+///              initialOverrides: initialOverrides));`
+Future<ThemeResourceStore> assembleThemeStore({
+  required String scopeUid,
+  required DatasetInstaller installer,
+  required Map<String, OverrideEntry> initialOverrides,
+});
+```
+
+> ⚠️ **`assembleThemeStore` 不接收 `localReader`**。reader 由它自己按第 4 步造 ——
+> 若把 reader 做成入参，P4 就只在测自己传进去的假货，证明不了生产链路。
+> P3-b / P6 需要注入探针 reader 时，**直接构造 `InMemoryThemeResourceStore`**
+> （§5.5.4），不走装配函数。
+
+**这条链的回归守卫**：P4 断言 `tokenStore.generations.contains(0)`。
+把 `InMemoryThemeMaterializer` 改回持有私有 Map（不写共享 store），该断言立刻变红
+—— 这就是本条的「怎么让它变红」（§5.5.4 P4 第 3 条自检）。
 
 ---
 
@@ -1017,12 +1185,20 @@ const themeSelectionPolicy = StoragePolicy.private(
 ///
 /// 【接入 XRAP 的全部动作】构造 DatasetDescriptor 并调 DatasetRegistry.register
 /// （`dataset_descriptor.dart:3-4`）。
-DatasetDescriptor themeDatasetDescriptor() => DatasetDescriptor(
-      datasetId: themeDatasetId,                 // 'theme.package'
-      appSchemaRevision: kThemeAppSchemaRevision, // 本 app 的落地结构版本
+///
+/// 【为什么 materializer 工厂从外部传入】契约层（`core/lib/model/`）**不得依赖**
+/// reference 层（`core/lib/reference/`）—— 否则 A3「契约层零实现」与分层方向双双被破坏。
+/// 把工厂做成入参后，`InMemoryThemeMaterializer` 与共享 `InMemoryThemeTokenStore`
+/// 的知识全部留在 reference 层，契约层只做原样透传（§4.5 第 2 步）。
+DatasetDescriptor themeDatasetDescriptor({
+  required DatasetMaterializer Function() materializer,
+}) =>
+    DatasetDescriptor(
+      datasetId: themeDatasetId,                  // 'theme.package'
+      appSchemaRevision: kThemeAppSchemaRevision,  // 本 app 的落地结构版本
       policy: officialThemePolicy,
-      bundledManifest: kThemeBundledManifest,     // generation 0，恒存在
-      materializer: () => InMemoryThemeMaterializer(),
+      bundledManifest: kThemeBundledManifest,      // generation 0，恒存在
+      materializer: materializer,                  // 原样透传，契约层不认识 reference 层
     );
 
 /// 数据集稳定标识。**不得内联字面量**（同 entityType 常量的理由）。
@@ -1061,7 +1237,12 @@ abstract final class ThemeModuleRegistry {
   static bool _registered = false;
 
   /// 注册主题模块：三条存储策略 + 一个 XRAP 数据集。幂等。
-  static void register() {
+  ///
+  /// [themeMaterializer] 是**落地器工厂**，由装配层给出（§4.5 第 2 步）。
+  /// 契约层不认识 reference 层的 `InMemoryThemeMaterializer`，故只透传不构造。
+  static void register({
+    required DatasetMaterializer Function() themeMaterializer,
+  }) {
     if (_registered) return;
     // 1) S1a 策略注册
     StoragePolicyRegistry.register(themePackageEntityType, officialThemePolicy);
@@ -1069,7 +1250,9 @@ abstract final class ThemeModuleRegistry {
     StoragePolicyRegistry.register(themeSelectionEntityType, themeSelectionPolicy);
     // 2) XRAP 数据集注册（§5.6.2）。注册期会校验 publisher == official 等
     //    不变式，失败抛 DatasetRegistrationError。
-    DatasetRegistry.register(themeDatasetDescriptor());
+    DatasetRegistry.register(
+      themeDatasetDescriptor(materializer: themeMaterializer),
+    );
     _registered = true;
   }
 
@@ -1442,33 +1625,42 @@ reference 实现须持有一个**单条缓存**：
 | `core/lib/model/theme_value_types.dart` | `LocalTheme` / `OverrideEntry` / `OverrideOrigin` | A6 |
 | `core/lib/model/theme_source_ports.dart` | **一个**注入端口 `ThemeLocalReader`（§5.5.2） | A3, A6, P3 |
 | `core/lib/model/theme_storage_policies.dart` | 三条 `StoragePolicy` const + 三个 entityType 常量 | A8 |
-| `core/lib/model/theme_dataset.dart` | `themeDatasetDescriptor()` + `themeDatasetId` + `kThemeAppSchemaRevision`（§5.6.2） | A8, A20 |
-| `core/lib/model/theme_module_registry.dart` | `ThemeModuleRegistry.register()`（策略 + XRAP 数据集，幂等） | A8 |
+| `core/lib/model/theme_dataset.dart` | `themeDatasetDescriptor({required DatasetMaterializer Function() materializer})` + `themeDatasetId` + `kThemeAppSchemaRevision` + `kThemeBundledManifest`（§5.6.2） | A8, A20 |
+| `core/lib/model/theme_module_registry.dart` | `ThemeModuleRegistry.register({required DatasetMaterializer Function() themeMaterializer})`（策略 + XRAP 数据集，幂等）+ `resetForTesting()` + 三个 entityType 常量（§5.6.3） | A8 |
 
 ⚠️ 契约层共 **8 个文件**（A3 覆盖下限相应为 8）。
 
 ### 11.2 reference 实现层
 
-| 文件 | 内容 | 验收 |
-|---|---|---|
-| `core/lib/reference/theme_token_merger.dart` | §6.6 合并算法的权威实现（纯函数，无状态） | A9–A13, A14c, A19, P1, P7 |
-| `core/lib/reference/in_memory_theme_resource_store.dart` | `InMemoryThemeResourceStore`（构造器只收 `ThemeLocalReader`，§5.5.3）+ 缓存 | P2, P3, P4, P5, P6 |
-| `core/lib/reference/in_memory_theme_materializer.dart` | `InMemoryThemeMaterializer implements DatasetMaterializer`：消费 jsonl 载荷 → 内存 Map，含世代隔离（§4.4） | A20 |
+| 文件 | 内容 | 精确签名出处 | 验收 |
+|---|---|---|---|
+| `core/lib/reference/theme_token_merger.dart` | §6.6 合并算法的权威实现（纯函数，无状态） | §6.6 | A9–A13, A14c, A19, P1, P7 |
+| `core/lib/reference/in_memory_theme_resource_store.dart` | `InMemoryThemeResourceStore`（构造器**只有** `{required String scopeUid, required ThemeLocalReader localReader}`，§5.5.3）+ 缓存 | §5.5.3 | P2, P3, P5, P6 |
+| `core/lib/reference/in_memory_theme_materializer.dart` | `InMemoryThemeTokenStore`（落地物共享持有者）+ `InMemoryThemeMaterializer implements DatasetMaterializer`（消费 jsonl 载荷 → 共享 store，含世代隔离） | §4.4 | A20, A21 |
+| `core/lib/reference/theme_assembly.dart` | `XrapThemeLocalReader implements ThemeLocalReader`（按 XRAP 活跃指针取世代号 → 从共享 store 取落地物，六步无分支歧义）+ `Future<ThemeResourceStore> assembleThemeStore({required String scopeUid, required DatasetInstaller installer, required Map<String, OverrideEntry> initialOverrides})`（**P4 的唯一注入入口**，四步装配） | §4.5 | A21, P4 |
 
+⚠️ reference 实现层共 **4 个文件**。
 ⚠️ **`core/lib/reference/` 是新目录**。A3 的零实现扫描须**排除**此目录，扫描范围限定 `core/lib/model/theme_*`。
+
+> 📌 **`theme_assembly.dart` 不可省**：它是 §4.5 那条「安装 → 落地 → 启动读取」链的唯一
+> 连接点，也是 P4 的唯一注入入口。机械执行者若按旧清单只建 3 个文件，P4 直接不可执行，
+> 且 R4-P1-3 的断链会原样重现。
 
 ### 11.3 测试与支撑
 
 | 文件 | 内容 |
 |---|---|
-| `core/test/support/theme_bench_fixture.dart` | §7.5 共同 fixture（叶子数 >= 700）+ `ThemeLocalReader` 的 fixture 实现 |
-| `core/test/support/theme_probes.dart` | §5.5.4 的 `CountingLocalReader` / `SlowLocalReader` |
+| `core/test/support/theme_bench_fixture.dart` | §7.5 共同 fixture（叶子数 >= 700）+ `ThemeLocalReader` 的 fixture 实现 + `bundledJsonlBytes()`（§4.3 行 schema 的 `Stream<List<int>>`，供 `CountingDatasetInstaller` 落地 generation 0） |
+| `core/test/support/theme_probes.dart` | §5.5.4 的 `CountingLocalReader` / `SlowLocalReader` / **`CountingDatasetInstaller`**（三个探针的完整定义见 §5.5.4，照抄即可编译） |
 | `core/test/theme_token_merger_test.dart` | A9–A13、A14c、A19 合并语义 |
 | `core/test/theme_resource_store_contract_test.dart` | A6/A7/A15/A16 契约形状 + 溯源 |
 | `core/test/theme_module_registry_test.dart` | A8 注册与幂等（策略 + XRAP 数据集） |
-| `core/test/theme_materializer_test.dart` | A20：世代隔离 / dropGeneration 幂等 / rowCount 真实性 |
-| `core/test/theme_startup_path_test.dart` | P3/P4/P5/P6 |
+| `core/test/theme_materializer_test.dart` | A20：世代隔离 / dropGeneration 幂等 / rowCount 真实性 / 不读载荷 `g` |
+| `core/test/theme_startup_path_test.dart` | **A21**（§4.5 装配链闭合）+ P3/P4/P5/P6 |
 | `core/test/theme_merge_bench_test.dart` | P1（标 `@Tags(['benchmark'])`） |
+
+⚠️ 测试与支撑共 **8 个文件**（A2 的计数下限相应为 8）。**A21 不新增文件** ——
+它测的是 §4.5 那条装配链，与 P4 同属启动路径，放同一个文件。
 
 ### 11.4 Stop conditions（触发即停，报人类）
 

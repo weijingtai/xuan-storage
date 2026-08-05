@@ -4,8 +4,16 @@
 
 ## 目标
 
-在 `persistence_core` 交付**主题在 XRAP 中的落地器（ThemeMaterializer）+ 用户覆盖层**的
-契约与 reference 实现，且 `theme` 包零改动、启动路径零网络。
+在 `persistence_core` 交付**主题在 XRAP 中的落地器（`InMemoryThemeMaterializer implements
+DatasetMaterializer`）+ 用户覆盖层**的契约与 reference 实现，且 `theme` 包零改动、启动路径零网络。
+
+⚠️ **不存在 `ThemeMaterializer` 这个类型**。v4 初稿曾定义空子接口
+`abstract interface class ThemeMaterializer implements DatasetMaterializer {}`，
+**v5 已删除**（无唯一消费者：`DatasetDescriptor.materializer` 的字段类型是
+`DatasetMaterializer Function()`，既不认识也不需要该子接口）。S5a 直接实现
+`DatasetMaterializer`。本纪要下文中所有裸 `ThemeMaterializer` 字样均为**历史记录**，
+且已就地标注「已被 v5 supersede」—— 转 ACT 时**不得**据此创建任何名为
+`ThemeMaterializer` 的类型（设计 §4.2）。
 
 ⚠️ **v4 范围裁定（2026-08-04 人类四条，有代码依据）**：
 下载 / 校验 / 世代 / 指针翻转 / 回滚 / GC / 幂等 **全部归 XRAP**，S5a 不再自建。
@@ -34,9 +42,13 @@
 
 ### 做
 
-- 契约层 8 个文件（设计 §11.1）—— 含 XRAP `DatasetDescriptor` 声明（`theme_dataset.dart`）
-- reference 实现 3 个文件（设计 §11.2）：合并算法 + 内存 store + 内存 materializer
-- 测试 8 个文件（设计 §11.3）
+- 契约层 **8** 个文件（设计 §11.1）—— 含 XRAP `DatasetDescriptor` 声明（`theme_dataset.dart`）
+- reference 实现 **4** 个文件（设计 §11.2）：合并算法 + 内存 store + 内存 materializer（含落地物共享
+  持有者 `InMemoryThemeTokenStore`）+ **装配入口 `theme_assembly.dart`**
+  （`XrapThemeLocalReader` + `assembleThemeStore`，P4 的唯一注入入口，设计 §4.5）
+- 测试 **8** 个文件（设计 §11.3）
+- 门禁脚本 **1** 个：`scripts/run_s5a_residue_gate.sh`（设计 §11.6，验收命令直接调用它）
+- 合计 **21** 个交付文件
 - 合并算法完整规格已在设计 §6.6 写死，**执行者按步骤实现，无需推断**
 
 ### 不做（v4 删除的部分）
@@ -110,9 +122,13 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
       在 `theme_resource_store.dart` 内，匹配 `Future<void> (save|set)[A-Z]` → EXPECT_EXIT:1
       （限定文件范围与方法模式，不做全仓扫描）
 - [ ] **A8** 策略注册**真实驱动**（不是仅声明）：
-      测试中调用 `ThemeModuleRegistry.register()`，断言 `StoragePolicyRegistry.all` 含
+      测试中调用
+      `ThemeModuleRegistry.register(themeMaterializer: () => InMemoryThemeMaterializer(tokenStore))`
+      （签名见设计 §5.6.3；工厂从外部传入是为了让契约层不依赖 reference 层），
+      断言 `StoragePolicyRegistry.all` 含
       `theme_package` / `theme_override` / `theme_selection` 三个 key 且策略对象相等；
-      **再调一次 `register()` 不抛异常**（幂等，设计 §5.5）；
+      **且 `DatasetRegistry.lookup(themeDatasetId) != null`**；
+      **再调一次 `register(...)` 不抛异常**（幂等，设计 §5.6.3）；
       **`resetForTesting()` 后重复注册同名 entityType 抛 `StateError`**（证明幂等标志不是靠吞异常）
 
 ### 合并语义（reference 实现驱动）
@@ -138,6 +154,21 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
       ③返回真实 `rowCount`（与 fixture 的 token 条数一致，防填假数）
       ④**不改动活跃指针**（断言 materializer 无任何指针操作 API 调用）
       ⑤`materialize` 不重复校验 sha256（XRAP 已校验，重复即违反 N1）
+      ⑥**同一份载荷用两个不同 generation 各落地一次，两次都成功**（R4-P0 的回归守卫：
+      载荷行没有 `g` 字段，世代号只能取入参；若实现从载荷读世代或做相等校验，第二次落地必红）
+- [ ] **A21** **装配链闭合**（设计 §4.5，R4-P1-3 的回归守卫）——「安装 → 落地 → 启动读取」
+      三段必须看到**同一份**落地物：
+      ①`tokenStore = InMemoryThemeTokenStore()`；
+      `ThemeModuleRegistry.register(themeMaterializer: () => InMemoryThemeMaterializer(tokenStore))`；
+      ②`await installer.ensureInstalled(themeDatasetId)`（用 `CountingDatasetInstaller`，
+      它会真的调 `descriptor.materializer()` 工厂并驱动 `materialize`）；
+      ③断言 `tokenStore.generations.contains(0)` —— **工厂新建的实例把落地物写进了共享 store**；
+      ④断言 `await XrapThemeLocalReader(...).readBundledTokens()` 的 key 数 == fixture 的 token 条数
+      —— 读路径确实拿到了安装期落地的那一份；
+      ⑤**连调两次工厂**（`descriptor.materializer()` 调两次，各落地一代），断言两代都在
+      `tokenStore.generations` 里 —— 证明共享的是 store 而不是碰巧同一个实例。
+      **怎么让它变红**：把 `InMemoryThemeMaterializer` 改回持有实例私有 Map（不写共享 store），
+      ③④⑤三条同时红。这正是 v5 的断链形态
 - [ ] **A15** 溯源完整性：`ThemeResolution` 能回答「哪个主题包 / 什么版本 / id 来源 /
       各层贡献多少 key」。**`contributedKeyCount` 之和须等于结果 key 总数**（防止填假数）
 - [ ] **A16** 结果不可变：对 `resolve()` 结果的 `components` 及嵌套 Map 执行 `[]=` / `remove()`
@@ -244,6 +275,50 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
 > R4 报告：`docs/reviews/2026-08-04-s5a-theme-plan-eng-review-r4.md`。
 > P0（载荷行 schema 删 `g` 字段）已在 `ebad8af` 闭合，本节记录余下 9 条。
 
+- 2026-08-05 【R4-P1-3】**数据流闭合 —— 本轮唯一的真设计题**。
+  问题: `DatasetDescriptor.materializer` 是**工厂**（`dataset_descriptor.dart:44`
+  `final DatasetMaterializer Function() materializer;`），安装器每次落地新建一个
+  materializer 实例；而 v5 把落地物放在该实例的私有 `_byGeneration` 里，
+  启动路径的 `ThemeLocalReader` 永远读不到那个实例 —— 链断在安装与读取之间。
+  **裁定: 方案 A + 方案 C 组合**。
+  A（工厂闭包捕获外部共享 store）解决"落地物存哪"，
+  C（世代号取自 `DatasetInstaller.active()`）解决"读哪一代"。
+  **方案 B（materializer 改单例注入）已排除** —— 契约字段类型就是工厂，改它等于改 XRAP 契约。
+  **单独用 C 也不行** —— `DatasetRegistry` / `DatasetInstaller` 只记录世代元数据
+  （`InstalledDataset`：世代号/状态/清单/行数），**不持有落地物本身**，落地物形态是
+  materializer 的自由（协议 §3.3）。
+  **✅ 不需要改 `core/lib/model/dataset/` 下任何 XRAP 契约**，无「需人类裁定」项。
+  改文件:
+  ①设计 §4.3 —— materialize 示意代码重写（`Stream<List<int>>` 而非 `Uint8List`；
+  `MaterializeOutcome` 默认构造器而非不存在的 `.success`；显式禁止对载荷 `g` 做校验）；
+  ②设计 §4.4 —— 落地结构从「materializer 私有 `_byGeneration`」改为独立类
+  `InMemoryThemeTokenStore`（`putGeneration` / `tokensOf` / `dropGeneration` / `generations`），
+  `InMemoryThemeMaterializer(this._tokens)` 构造器收它；**删掉 v5 的
+  `@visibleForTesting tokensOf`**（它只能读单个实例，正是断链本体）；
+  ③设计**新增 §4.5「装配数据流」** —— 五步链表格（每步指明文件+函数）、
+  `XrapThemeLocalReader` 与 `assembleThemeStore` 的精确签名、
+  `readActiveThemeTokens` 的六步无分支歧义流程、以及方案 B/单独 C 的排除论证；
+  ④设计 §5.6.2 —— `themeDatasetDescriptor({required DatasetMaterializer Function() materializer})`
+  （工厂改入参，让契约层不依赖 reference 层，保住 A3 与分层方向）；
+  ⑤设计 §5.6.3 —— `ThemeModuleRegistry.register({required DatasetMaterializer Function() themeMaterializer})`；
+  ⑥纪要 A8 —— 调用形态同步；⑦纪要**新增 A21**（装配链闭合，五条断言 + 变红手法）。
+- 2026-08-05 【R4-P1-1】**`theme_assembly.dart` 进交付表，reference 3 → 4**。
+  改文件: ①设计 §11.2 —— 新增该行，含文件、`XrapThemeLocalReader` 与 `assembleThemeStore`
+  的签名摘要、精确签名出处（§4.5）、验收编号（A21, P4），并加「共 4 个文件」与
+  「不可省」说明；②设计 §11.1 —— `theme_dataset.dart` / `theme_module_registry.dart`
+  两行的签名同步；③设计 §11.3 —— 加「共 8 个文件」计数与 A21 归属说明；
+  ④纪要「范围 · 做」—— reference 3 → 4，并给出合计 21 个交付文件。
+- 2026-08-05 【R4-P1-6】**`ThemeMaterializer` 残留清理**。裸 `ThemeMaterializer`
+  （非 `InMemoryThemeMaterializer` 子串）全部标注或消除。改文件:
+  ①纪要「目标」—— 改为 `InMemoryThemeMaterializer implements DatasetMaterializer`，
+  并加一段「不存在 `ThemeMaterializer` 这个类型」的显式警告，防 ACT 转译器重建已删接口；
+  ②纪要 v4 决定记录【裁定 3】—— 加 ⛔ 标注「已被 v5 supersede」；
+  ③纪要 v4 决定记录【连带 4】—— 契约层「7 → 9」与 A3「== 8」的打架改为分层标注：
+  9 已被 v5 supersede 为 8、reference 3 已被 v6 supersede 为 4，并写明当前唯一有效计数。
+  > 📌 **给复审的说明**：`grep -c ThemeMaterializer` 的计数**不会归零** ——
+  > `InMemoryThemeMaterializer` 含该子串，它是当前正确的类名。判据是
+  > **裸 `ThemeMaterializer` 是否全部已删除或已标注 supersede**，
+  > 用 `grep -nE '(^|[^y])ThemeMaterializer'` 复核（`y` 来自 `InMemory`）。
 - 2026-08-05 【R4-P2-9】**清 UTF-8 replacement character**。设计稿 4 处 `U+FFFD`：
   §上游文档第 13–15 行（是第 10–12 行的**重复块**，整块删除）、§0.2 第 3 点「测试对端口编程」、
   §2.3 末「会让执行者以为」、§7.3 标题「卡很久的来源」。
@@ -301,6 +376,10 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
   安装类方法与安装态类型、主题包 zip 格式与 manifest 定义、版本兼容规则、
   验签端口、远端拉取端口、包落盘端口，全部不由 S5a 定义。
   **新增** `ThemeMaterializer`（唯一可插拔点）+ `themeDatasetDescriptor()`。
+  > ⛔ **本条的 `ThemeMaterializer` 已被 v5 supersede** —— 该空子接口在 v5 被删除，
+  > 现为 `InMemoryThemeMaterializer implements DatasetMaterializer`（设计 §4.2）。
+  > `themeDatasetDescriptor()` 的签名也已被 v6 supersede，现为
+  > `themeDatasetDescriptor({required DatasetMaterializer Function() materializer})`（设计 §5.6.2）。
 - 2026-08-04 【裁定 4】**`ConfigBootstrap` 三占位符不是 S5a 阻塞项**：
   `dataset_source.dart:61` 明写"未配置返回 null（此时只用内置世代）"，`bundledManifest`
   恒存在、冷启动零网络。实证：T1 已交付完整接入样板（main `6cd7a66`，geo 三数据集），
@@ -315,10 +394,16 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
 - 2026-08-04 【连带 3】**P6 语义变更**：v3 测"下载未完成时返回旧主题"，但下载已归 XRAP。
   v4 改测"活跃世代落地物读取挂起时，`resolve()` 仍在 50ms 内返回 bundled 兜底且不抛异常"
   —— 这才是 S5a 侧真实存在的降级路径。
-- 2026-08-04 【连带 4】契约层 7 → **9 个文件**（新增 `theme_materializer.dart`、
-  `theme_dataset.dart`；安装态值类型改为只保留本地可用主题 `LocalTheme`），A3 覆盖下限同步改 `== 8`；
-  reference 层 2 → 3（新增内存 materializer）；测试 7 → 8（新增 A20 的 materializer 测试）。
-  （注：v4 初稿曾定 9 文件含 `theme_materializer.dart` 空接口，R3 后删除该冗余接口，回落到 8。）
+- 2026-08-04 【连带 4】文件计数变更。**v4 当时的值**：契约层 7 → 9（新增
+  `theme_materializer.dart`、`theme_dataset.dart`；安装态值类型改为只保留本地可用主题
+  `LocalTheme`）；reference 层 2 → 3（新增内存 materializer）；测试 7 → 8（新增 A20 的
+  materializer 测试）。
+  > ⛔ **契约层 9 已被 v5 supersede → 8**（v5 删掉 `theme_materializer.dart` 空子接口，
+  > A3 覆盖下限 `== 8`）。
+  > ⛔ **reference 层 3 已被 v6 supersede → 4**（v6 新增 `theme_assembly.dart`，
+  > 设计 §4.5 / §11.2）。
+  > **当前唯一有效计数以设计 §11.1–§11.3 与本纪要「范围 · 做」段为准：
+  > 契约层 8 / reference 4 / 测试 8 / 门禁脚本 1 = 21 个交付文件。**
 - 2026-08-04 【记录】`assets/pubspec.yaml` 的 `dependency_overrides.persistence_core`
   从 git URL 改为 `path:../core` **已随 T1 落到 main**，保留。理由（人类给出）：
   `dependency_overrides` 只在该包作为根包时生效，外部仓库消费 assets 时会忽略；
