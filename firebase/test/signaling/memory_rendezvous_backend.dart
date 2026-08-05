@@ -15,6 +15,7 @@ import 'dart:convert';
 import 'package:persistence_core/model/signaling.dart';
 
 import 'package:persistence_firebase/signaling/rendezvous_backend.dart';
+import 'package:persistence_firebase/signaling/rtdb_rendezvous_backend.dart';
 
 /// 内存会合点后端（测试替身）。
 final class MemoryRendezvousBackend implements RendezvousBackend {
@@ -69,6 +70,13 @@ final class MemoryRendezvousBackend implements RendezvousBackend {
     room.notify();
   }
 
+  @override
+  String pathOf(RendezvousKey rv, String memberId) =>
+      // 绑定真实实现同一事实源：格式与前缀都取 `RtdbRendezvousBackend.rootPath`，
+      // 不许在这里另写一个 'signaling' 字面量（验收 F1：fake 自己硬编码 = 复述
+      // 约定，不是读回实现）。rootPath 被污染时 A7 断言必须跟着变红。
+      '${RtdbRendezvousBackend.rootPath}/$rv/members/$memberId';
+
   /// 模拟服务端检测到 [memberId] 掉线：执行其**已登记**的断开删除动作。
   ///
   /// 若该成员从未登记过 `onDisconnect`（实现变异），什么都不做 ——
@@ -96,15 +104,19 @@ final class MemoryRendezvousBackend implements RendezvousBackend {
   /// 把会合点序列化成「路径 + 载荷」文本，供 A7 隐私断言**读回**扫描。
   ///
   /// 返回值等价于 RTDB 上该会合点的路径段与全部信封载荷 —— 断言的正是
-  /// 实现真正写到会合点的内容，而不是注释里的承诺。
+  /// 实现真正写到会合点的内容，而不是注释里的承诺。路径段经 [pathOf]
+  /// 构造（绑定 `RtdbRendezvousBackend.rootPath` 这一事实源）。
   String debugSerializedRoom(RendezvousKey rv) {
     final room = _rooms[rv];
-    if (room == null) return 'signaling/$rv (empty)';
+    if (room == null) return '${pathOf(rv, '?')} (empty)';
     final membersText = room.members.join(',');
     final envelopesText = room.envelopes
         .map((e) => '${e.id}:${e.from}:${jsonEncode(e.payload)}')
         .join(';');
-    return 'signaling/$rv members=[$membersText] envelopes=[$envelopesText]';
+    final pathText = room.members.isEmpty
+        ? pathOf(rv, '?')
+        : pathOf(rv, room.members.first);
+    return '$pathText members=[$membersText] envelopes=[$envelopesText]';
   }
 }
 

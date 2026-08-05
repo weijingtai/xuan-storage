@@ -40,6 +40,10 @@ final class RtdbRendezvousBackend implements RendezvousBackend {
       _database.ref('$rootPath/$rv/envelopes');
 
   @override
+  String pathOf(RendezvousKey rv, String memberId) =>
+      '$rootPath/$rv/members/$memberId';
+
+  @override
   Future<void> register(RendezvousKey rv, String memberId) async {
     await _memberRef(rv, memberId).set(true);
   }

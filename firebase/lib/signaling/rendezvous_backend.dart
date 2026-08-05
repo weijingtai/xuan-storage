@@ -40,6 +40,16 @@ abstract interface class RendezvousBackend {
     String fromMemberId,
     Map<String, Object?> payload,
   );
+
+  /// 指定成员节点在会合点下的真实路径（供 A7 隐私断言**读回**实现构造）。
+  ///
+  /// 【为什么是接口方法而非测试内硬编码】A7 的断言若只盯着内存 fake 自己
+  /// 写死的字符串，就是在复述约定，不是读回真实实现 —— 真实路径构造被
+  /// 塞进身份信息时没有任何断言能发现（验收 F1 / 返工 R1）。本方法让
+  /// 每个后端暴露自己的路径构造：`RtdbRendezvousBackend` 返回真实
+  /// `rootPath` 拼接结果，内存 fake 的 `debugSerializedRoom` 也必须调用它
+  /// （且其格式源自同一 `rootPath` 常量），两条线绑定同一事实源。
+  String pathOf(RendezvousKey rendezvous, String memberId);
 }
 
 /// 会合点快照：当前在场成员集合 + 该会合点下全部信封。
