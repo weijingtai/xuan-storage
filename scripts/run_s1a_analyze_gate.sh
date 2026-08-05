@@ -9,7 +9,9 @@
 #   搬进来却没接线的孤儿模块。这是仓库既有断点，不属于 S1a 范围，S1a 也无权修既有文件。
 #
 # 本门禁改判三件事（严格程度不降反升）：
-#   [1] S1a 自己的 18 个文件（12 源 + 6 测试）必须零 issue —— 包含 INFO，等价 --fatal-infos
+#   [1] S1a 自己的 20 个文件（13 源 + 7 测试）必须零 issue —— 包含 INFO，等价 --fatal-infos
+#       （2026-08-04 S3c-a 信令契约层并入：+lib/model/signaling.dart、
+#         +test/signaling_contract_test.dart，原 18 → 20）
 #   [2] 有 issue 的文件集合必须是冻结白名单的子集 —— 防止把断点挪到新文件
 #   [3] 全包 issue 总数不得超过冻结基线 —— 防止在既有文件里新增问题
 #
@@ -23,7 +25,7 @@ CORE="$ROOT/core"
 # ── 前置断言：本 worktree 必须已解析过依赖 ──
 # 新建的 worktree 不会自带 .dart_tool/。缺 package_config.json 时，analyzer 无法解析
 # 任何 package: import，会把每一条 import 都报成 uri_does_not_exist，产出 500+ 条假 issue，
-# 与本门禁的 58 条冻结基线毫无可比性 —— 那不是回归，是环境没装好。
+# 与本门禁的 57 条冻结基线毫无可比性 —— 那不是回归，是环境没装好。
 # 与其让人对着一屏红字找原因，不如在这里直接说清楚。
 if [ ! -f "$CORE/.dart_tool/package_config.json" ]; then
   echo "❌ 前置失败: 未找到 $CORE/.dart_tool/package_config.json"
@@ -32,8 +34,9 @@ if [ ! -f "$CORE/.dart_tool/package_config.json" ]; then
   exit 2
 fi
 
-# ── 冻结基线（2026-08-01，基线 commit 1fae94c；与 main 上 core 的状态一致）──
-BASELINE_TOTAL=58
+# ── 冻结基线（2026-08-01，基线 commit 1fae94c；2026-08-04 由 58 收至 57，
+#    因 ACT 07 修好了 sync_runtime.dart 的一个 issue）──
+BASELINE_TOTAL=57
 
 # 允许存在 issue 的既有文件（相对 core/ 的路径）。冻结于同一时点。
 BASELINE_FILES='
@@ -62,18 +65,22 @@ lib/model/record_blob_unit_of_work.dart
 lib/model/blob_gateway.dart
 lib/model/transport.dart
 lib/model/export_bundle.dart
+lib/model/signaling.dart
 test/storage_classification_test.dart
 test/storage_policy_test.dart
 test/blob_types_test.dart
 test/transport_contract_test.dart
 test/policy_channel_filter_test.dart
 test/s1a_dartdoc_coverage_test.dart
+test/signaling_contract_test.dart
 '
 
 cd "$CORE" || { echo "❌ 找不到 core 目录 $CORE"; exit 1; }
 
 # ── 检查 1：S1a 自有文件必须零 issue（scoped analyze，含 INFO）──
+# 文件数动态统计，不写死 —— 写死的数字会与白名单脱节，且每次加文件都要改两处。
 SCOPED=""
+S1A_COUNT=0
 while IFS= read -r F; do
   F="$(echo "$F" | tr -d '[:space:]')"
   [ -z "$F" ] && continue
@@ -82,6 +89,7 @@ while IFS= read -r F; do
     exit 1
   fi
   SCOPED="$SCOPED $F"
+  S1A_COUNT=$((S1A_COUNT + 1))
 done <<EOF
 $S1A_FILES
 EOF
@@ -90,11 +98,11 @@ EOF
 dart analyze --fatal-infos --suppress-analytics $SCOPED >/tmp/s1a_scoped.log 2>&1
 SCOPED_EC=$?
 if [ "$SCOPED_EC" -ne 0 ]; then
-  echo "❌ [检查1] S1a 自有 18 个文件存在 issue（退出码 $SCOPED_EC），必须全部为零："
+  echo "❌ [检查1] S1a 自有 $S1A_COUNT 个文件存在 issue（退出码 ${SCOPED_EC}），必须全部为零："
   cat /tmp/s1a_scoped.log
   exit 1
 fi
-echo "✅ [检查1] S1a 18 个文件 --fatal-infos 零 issue"
+echo "✅ [检查1] S1a $S1A_COUNT 个文件 --fatal-infos 零 issue"
 
 # ── 检查 2/3：全包分析，比对冻结白名单与基线总数 ──
 dart analyze --format=machine --suppress-analytics >/tmp/s1a_full.log 2>&1

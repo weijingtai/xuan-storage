@@ -1,3 +1,5 @@
+import 'package:persistence_core/model/storage_classification.dart';
+import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/model/types.dart';
 
 /// Persistence-core ports (contracts) for local-first sync.
@@ -33,16 +35,25 @@ abstract class OutboxStore {
   ///
   /// 参数说明：
   /// - [scopeUid]: 作用域 uid（通常为用户 uid）。
+  /// - [peerId]: 只返回【该对端尚未 ack】的记录。这是多 peer 的核心 ——
+  ///   同一条 operationId 对 cloud 已成功、对 lan 仍 pending 是常态。
+  /// - [channel]: 该对端所在通道。只返回【策略允许走该通道】的记录（§5.4 第一道锁）。
   /// - [limit]: 最大返回条数。
   ///
   /// 返回值：
-  /// - 待推送的 outbox 记录列表（通常包含 pending/failed）。
+  /// - 待推送的 outbox 记录列表（对 [peerId] 而言可推的：无 ack 行 + pending/failed）。
   ///
   /// 约束：
+  /// - [peerId] 决定"推没推过"，[channel] 决定"该不该推"。两者故意分开：
+  ///   合并会让"换了个同通道的新对端"需要重新推导策略，也会让 fail-closed
+  ///   的判定点从两处变成一处。
   /// - 返回的记录应当是“可重试”的集合：pending + failed（不包含 dead/success）。
-  /// - 推荐排序稳定（createdAtUtc 升序），便于重试公平与测试确定性。
+  /// - 过滤必须发生在 peekBatch 【内部】，且先过滤再截断到 [limit]（防静默饥饿）。
+  /// - 推荐排序稳定（createdAtUtc 升序），便于并发拉取与测试确定性。
   Future<List<OutboxRecord>> peekBatch({
     required String scopeUid,
+    required PeerId peerId,
+    required Channel channel,
     required int limit,
   });
 
@@ -50,12 +61,19 @@ abstract class OutboxStore {
   ///
   /// 参数说明：
   /// - [operationId]: 要标记的操作 id。
+  /// - [peerId]: 标记对该对端推送成功。
   /// - [atUtc]: 标记时间（UTC）。
+  ///
+  /// 语义变更（§5.2.1 阻断点 3）：success 是 (operationId, peerId) 二元组的属性，
+  /// 不是 operationId 的属性。对 cloud 成功【不得】让该行退出其他对端的 peekBatch。
   ///
   /// 约束：
   /// - 建议实现允许幂等调用（重复 success 不应报错）。
+  /// - 【不得】删除 t_outbox 行 —— 删除是 compaction 的事（§5.3），
+  ///   否则其他对端永远拿不到这条记录。
   Future<void> markSuccess({
     required String operationId,
+    required PeerId peerId,
     required DateTime atUtc,
   });
 
@@ -63,16 +81,21 @@ abstract class OutboxStore {
   ///
   /// 参数说明：
   /// - [operationId]: 要标记的操作 id。
-  /// - [attempt]: 本次失败后的尝试次数（一般为 record.attempt + 1）。
+  /// - [peerId]: 标记对该对端推送失败。
+  /// - [attempt]: 本次失败后该对端的尝试次数。
   /// - [errorCode]: 错误分类 code（建议与 [SyncErrorCode] 对齐）。
   /// - [errorMessage]: 用于诊断的错误信息。
   /// - [atUtc]: 标记时间（UTC）。
   /// - [isDead]: 是否进入死信（达到最大尝试次数阈值）。
   ///
+  /// 语义变更（§5.2.1 阻断点 3）：attempt 与 isDead 同样是 per-peer 的 ——
+  /// 一个长期离线的 LAN peer 达到 dead 阈值，【不得】影响该行对 cloud 的可推送性。
+  ///
   /// 约束：
-  /// - 当 [isDead] 为 true 时，该记录后续不应再被 [peekBatch] 返回。
+  /// - 当 [isDead] 为 true 时，该记录对 [peerId] 不应再被 [peekBatch] 返回。
   Future<void> markFailed({
     required String operationId,
+    required PeerId peerId,
     required int attempt,
     required String errorCode,
     required String errorMessage,
@@ -80,33 +103,43 @@ abstract class OutboxStore {
     required bool isDead,
   });
 
-  /// Returns count of records eligible for pushing (pending + failed).
+  /// 读取【某一条记录对某一个对端】的当前重试次数。
   ///
-  /// 参数说明：
-  /// - [scopeUid]: 作用域 uid。
+  /// 【新增方法，不是签名变更】。ACT 06 的 coordinator 要用它算下一次的 attempt ——
+  /// 没有这个读取端口，调用方只能退回 `record.attempt`（t_outbox 上的全局字段），
+  /// 于是两个对端共用一个计数：cloud 成功也会被 lan 的失败推高，
+  /// 进而在 10 次内把 cloud 也推成 dead。
   ///
-  /// 返回值：
-  /// - 待推送积压数量。
-  Future<int> backlogCount(String scopeUid);
+  /// 约束：
+  /// - ack 行不存在（从未推送过）时返回 0，不抛异常。
+  Future<int> attemptFor({
+    required String operationId,
+    required PeerId peerId,
+  });
 
-  /// Watches count of records eligible for pushing (pending + failed).
+  /// 该对端的待推送积压数（含 ack 行不存在的记录）。
   ///
-  /// 用途：
-  /// - 上层运行时（例如 SyncRuntime）可以订阅该 stream，在 outbox 发生变化时
-  ///   触发一次 push（并配合退避定时器实现“非轮询”的重试）。
-  ///
-  /// 返回值：
-  /// - 广播或单播 stream 均可；建议至少在订阅后尽快发出一次当前值。
-  Stream<int> watchBacklogCount(String scopeUid);
+  /// [channel]: 与 [peekBatch] 用同一套过滤 —— 否则 SyncRuntime 会看到
+  /// "还有 N 条待推"但 peekBatch 返回空，无限空转唤醒。
+  Future<int> backlogCount({
+    required String scopeUid,
+    required PeerId peerId,
+    required Channel channel,
+  });
 
-  /// Returns count of dead-letter records.
-  ///
-  /// 参数说明：
-  /// - [scopeUid]: 作用域 uid。
-  ///
-  /// 返回值：
-  /// - dead 状态记录数量。
-  Future<int> deadCount(String scopeUid);
+  /// 订阅该对端的待推送积压数。
+  Stream<int> watchBacklogCount({
+    required String scopeUid,
+    required PeerId peerId,
+    required Channel channel,
+  });
+
+  /// 该对端的死信数（该对端 ack 行 status = 'dead' 的条数）。
+  Future<int> deadCount({
+    required String scopeUid,
+    required PeerId peerId,
+    required Channel channel,
+  });
 }
 
 /// Storage for per-scope, per-entityType pull cursors and sync markers.
@@ -116,15 +149,17 @@ abstract class OutboxStore {
 /// - 提供 pull/push 的时间戳标记（用于诊断/可观测性）。
 ///
 /// 约束：
-/// - cursor 必须按 (scopeUid, entityType) 隔离。
-/// - [setCursorIfNewer] 必须避免 cursor 回退。
+/// - cursor 必须按 (scopeUid, peerId, entityType) 隔离。
+/// - [setCursorIfNewer] 必须避免 cursor 回退，且只在该三元组那一行内比较
+///   —— 跨 peer 的游标本来不可比，混用会导致「换了个 peer 就从错误的位置续拉」。
 abstract class SyncStateStore {
-  /// Gets the last stored cursor for (scopeUid, entityType).
+  /// Gets the last stored cursor for (scopeUid, peerId, entityType).
   ///
   /// 返回值：
-  /// - 若从未拉取过则返回 null。
+  /// - 若该对端从未拉取过则返回 null。
   Future<PullCursor?> getCursor({
     required String scopeUid,
+    required PeerId peerId,
     required String entityType,
   });
 
@@ -136,80 +171,47 @@ abstract class SyncStateStore {
   ///
   /// 约束：
   /// - 若 cursor 类型与既有 cursor 不一致，推荐拒绝覆盖（避免混用策略）。
+  /// - 「不回退」判定只比较 (scopeUid, peerId, entityType) 那一行，不跨 peer。
   Future<void> setCursorIfNewer({
     required String scopeUid,
+    required PeerId peerId,
     required String entityType,
     required PullCursor cursor,
     required DateTime atUtc,
   });
 
-  /// Clears cursor and markers for (scopeUid, entityType).
+  /// Clears cursor and markers for (scopeUid, peerId, entityType).
   ///
   /// 用途：
   /// - 账号切换/数据重置/强制全量重拉时使用。
   Future<void> clear({
     required String scopeUid,
+    required PeerId peerId,
     required String entityType,
   });
 
-  /// Records that pull succeeded for (scopeUid, entityType) at [atUtc].
+  /// Records that pull succeeded for (scopeUid, peerId, entityType) at [atUtc].
+  /// 记录某对端某实体类型的最近拉取时间。
   Future<void> markPulledAt({
     required String scopeUid,
+    required PeerId peerId,
     required String entityType,
     required DateTime atUtc,
   });
 
   /// Records that push succeeded for [scopeUid] at [atUtc].
+  /// 记录某对端某实体类型的最近推送时间。
   Future<void> markPushedAt({
     required String scopeUid,
+    required PeerId peerId,
     required DateTime atUtc,
   });
-}
-
-/// Remote read/write gateway.
-///
-/// 功能说明：
-/// - 将 outbox 操作推送到远端（[push]）。
-/// - 按游标增量拉取远端变更（[listChanges]）。
-///
-/// 典型实现：
-/// - Firestore：push=写业务文档+写 oplog；listChanges=按 serverTime/cursor 查询 oplog。
-abstract class RemoteGateway {
-  /// Pushes one [OutboxRecord] to remote.
-  ///
-  /// 返回值：
-  /// - 成功返回 null。
-  /// - 失败返回 [SyncError]，用于 outbox 状态回写与诊断。
-  Future<SyncError?> push(OutboxRecord record);
-
-  /// Lists remote changes for one entity type since [sinceCursor].
-  ///
-  /// 参数说明：
-  /// - [scopeUid]: 作用域 uid。
-  /// - [entityType]: 实体类型。
-  /// - [sinceCursor]: 断点续拉游标，null 表示从头开始（或服务端默认）。
-  /// - [limit]: 单页最大条数。
-  ///
-  /// 返回值：
-  /// - [RemoteChangesPage]：包含 changes、nextCursor 与 hasMore。
-  Future<RemoteChangesPage> listChanges({
-    required String scopeUid,
-    required String entityType,
-    required PullCursor? sinceCursor,
-    required int limit,
-  });
-
-  /// Returns the capabilities of this region's backend.
-  ///
-  /// 用途：
-  /// - SyncRuntime 可根据 capabilities 做动态 feature gating。
-  Future<RegionCapabilities> getCapabilities();
 }
 
 /// Applies remote changes to local storage.
 ///
 /// 功能说明：
-/// - 将 [RemoteGateway.listChanges] 返回的 [RemoteChange] 回填到本地数据库。
+/// - 将 [SyncPeer.listChanges] 返回的 [RemoteChange] 回填到本地数据库。
 /// - 给出逐条处理结果（outcomes），并指示是否允许推进 cursor。
 ///
 /// 关键约束（防回环）：
@@ -254,11 +256,17 @@ class DeviceIdentity {
     this.appVersion,
   });
 
+  /// 设备唯一标识（稳定且不含敏感信息）。
   final String deviceId;
+  /// 平台标识（ios/android/macos/windows/web）。
   final String platform;
+  /// 设备形态（phone/tablet/desktop）。
   final String formFactor;
+  /// 设备型号（可选诊断信息）。
   final String? model;
+  /// 操作系统版本（可选诊断信息）。
   final String? osVersion;
+  /// 应用版本（可选诊断信息）。
   final String? appVersion;
 }
 
@@ -268,6 +276,7 @@ class DeviceIdentity {
 /// - Flutter 侧通过 platform channel / package_info_plus / device_info_plus 获取。
 abstract class DeviceIdentityProvider {
   /// Returns current device identity.
+  /// 获取当前设备身份标识。
   Future<DeviceIdentity> get();
 }
 

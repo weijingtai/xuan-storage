@@ -13,11 +13,10 @@ dependencies:
   cloud_firestore: ^6.1.2
   firebase_auth: ^6.1.4
   firebase_database: ^12.1.2
+  firebase_core: ^4.12.1
   uuid: ^4.6.0
   persistence_core:
-    git:
-      url: http://192.168.0.165:3000/xuan/xuan-storage.git
-      path: core
+    path: ../core
   divination_case:
     git:
       url: http://192.168.0.165:3000/xuan/xuan-divination-case.git

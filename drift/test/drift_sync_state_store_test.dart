@@ -3,10 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:persistence_core/model/ports.dart';
 import 'package:persistence_core/model/types.dart';
 import 'package:persistence_core/logging/sync_logger.dart';
+import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:persistence_drift/sync/drift_sync_state_store.dart';
 
 void main() {
+  const _peer = PeerId('firestore');
   late PersistenceDriftDatabase db;
   late SyncStateStore store;
 
@@ -20,7 +22,7 @@ void main() {
   group('DriftSyncStateStore', () {
     test('getCursor returns null initially', () async {
       final cursor = await store.getCursor(
-        scopeUid: 'user-x',
+        scopeUid: 'user-x', peerId: _peer,
         entityType: 'seeker',
       );
       expect(cursor, isNull);
@@ -33,13 +35,13 @@ void main() {
         tieBreaker: 'op-1',
       );
       await store.setCursorIfNewer(
-        scopeUid: 'user-x',
+        scopeUid: 'user-x', peerId: _peer,
         entityType: 'seeker',
         cursor: cursor,
         atUtc: DateTime.utc(2026, 1, 1),
       );
       final got = await store.getCursor(
-        scopeUid: 'user-x',
+        scopeUid: 'user-x', peerId: _peer,
         entityType: 'seeker',
       );
       expect(got, isA<TimestampCursor>());
@@ -52,13 +54,13 @@ void main() {
         () async {
       final cursor = RevisionCursor(revision: 42);
       await store.setCursorIfNewer(
-        scopeUid: 'user-x',
+        scopeUid: 'user-x', peerId: _peer,
         entityType: 'divination',
         cursor: cursor,
         atUtc: DateTime.utc(2026, 1, 1),
       );
       final got = await store.getCursor(
-        scopeUid: 'user-x',
+        scopeUid: 'user-x', peerId: _peer,
         entityType: 'divination',
       );
       expect(got, isA<RevisionCursor>());
@@ -68,7 +70,7 @@ void main() {
 
     test('setCursorIfNewer rejects older cursor', () async {
       await store.setCursorIfNewer(
-        scopeUid: 'user-x',
+        scopeUid: 'user-x', peerId: _peer,
         entityType: 'seeker',
         cursor: TimestampCursor(
           serverUpdatedAtUtc: DateTime.utc(2026, 6, 1),
@@ -79,7 +81,7 @@ void main() {
 
       // Attempt to set an older cursor — should be rejected
       await store.setCursorIfNewer(
-        scopeUid: 'user-x',
+        scopeUid: 'user-x', peerId: _peer,
         entityType: 'seeker',
         cursor: TimestampCursor(
           serverUpdatedAtUtc: DateTime.utc(2026, 1, 1),
@@ -89,7 +91,7 @@ void main() {
       );
 
       final got = await store.getCursor(
-        scopeUid: 'user-x',
+        scopeUid: 'user-x', peerId: _peer,
         entityType: 'seeker',
       );
       final ts = got as TimestampCursor;
@@ -99,7 +101,7 @@ void main() {
 
     test('clear removes cursor', () async {
       await store.setCursorIfNewer(
-        scopeUid: 'user-x',
+        scopeUid: 'user-x', peerId: _peer,
         entityType: 'seeker',
         cursor: TimestampCursor(
           serverUpdatedAtUtc: DateTime.utc(2026, 1, 1),
@@ -107,9 +109,9 @@ void main() {
         ),
         atUtc: DateTime.utc(2026, 1, 1),
       );
-      await store.clear(scopeUid: 'user-x', entityType: 'seeker');
+      await store.clear(scopeUid: 'user-x', peerId: _peer, entityType: 'seeker');
       expect(
-        await store.getCursor(scopeUid: 'user-x', entityType: 'seeker'),
+        await store.getCursor(scopeUid: 'user-x', peerId: _peer, entityType: 'seeker'),
         isNull,
       );
     });
@@ -117,7 +119,7 @@ void main() {
     test('markPulledAt updates timestamp', () async {
       // Must create a row first so markPulledAt has something to update
       await store.setCursorIfNewer(
-        scopeUid: 'user-x',
+        scopeUid: 'user-x', peerId: _peer,
         entityType: 'seeker',
         cursor: RevisionCursor(revision: 1),
         atUtc: DateTime.utc(2026, 1, 1),
@@ -125,7 +127,7 @@ void main() {
 
       // markPulledAt should not throw
       await store.markPulledAt(
-        scopeUid: 'user-x',
+        scopeUid: 'user-x', peerId: _peer,
         entityType: 'seeker',
         atUtc: DateTime.utc(2026, 6, 15),
       );
@@ -134,7 +136,7 @@ void main() {
     test('markPushedAt updates timestamp', () async {
       // Must create a row first so markPushedAt has something to update
       await store.setCursorIfNewer(
-        scopeUid: 'user-x',
+        scopeUid: 'user-x', peerId: _peer,
         entityType: 'seeker',
         cursor: RevisionCursor(revision: 1),
         atUtc: DateTime.utc(2026, 1, 1),
@@ -142,20 +144,20 @@ void main() {
 
       // markPushedAt should not throw
       await store.markPushedAt(
-        scopeUid: 'user-x',
+        scopeUid: 'user-x', peerId: _peer,
         atUtc: DateTime.utc(2026, 6, 15),
       );
     });
 
     test('cursors are isolated by (scopeUid, entityType)', () async {
       await store.setCursorIfNewer(
-        scopeUid: 'user-a',
+        scopeUid: 'user-a', peerId: _peer,
         entityType: 'seeker',
         cursor: RevisionCursor(revision: 10),
         atUtc: DateTime.utc(2026, 1, 1),
       );
       await store.setCursorIfNewer(
-        scopeUid: 'user-b',
+        scopeUid: 'user-b', peerId: _peer,
         entityType: 'divination',
         cursor: TimestampCursor(
           serverUpdatedAtUtc: DateTime.utc(2026, 3, 1),
@@ -166,21 +168,21 @@ void main() {
 
       // user-a/seeker should have revision cursor
       final curA = await store.getCursor(
-        scopeUid: 'user-a',
+        scopeUid: 'user-a', peerId: _peer,
         entityType: 'seeker',
       );
       expect(curA, isA<RevisionCursor>());
 
       // user-b/divination should have timestamp cursor
       final curB = await store.getCursor(
-        scopeUid: 'user-b',
+        scopeUid: 'user-b', peerId: _peer,
         entityType: 'divination',
       );
       expect(curB, isA<TimestampCursor>());
 
       // user-a/divination should be null
       final curC = await store.getCursor(
-        scopeUid: 'user-a',
+        scopeUid: 'user-a', peerId: _peer,
         entityType: 'divination',
       );
       expect(curC, isNull);
@@ -188,26 +190,26 @@ void main() {
 
     test('clear does not affect other scopes', () async {
       await store.setCursorIfNewer(
-        scopeUid: 'user-a',
+        scopeUid: 'user-a', peerId: _peer,
         entityType: 'seeker',
         cursor: RevisionCursor(revision: 1),
         atUtc: DateTime.utc(2026, 1, 1),
       );
       await store.setCursorIfNewer(
-        scopeUid: 'user-b',
+        scopeUid: 'user-b', peerId: _peer,
         entityType: 'seeker',
         cursor: RevisionCursor(revision: 2),
         atUtc: DateTime.utc(2026, 1, 1),
       );
 
-      await store.clear(scopeUid: 'user-a', entityType: 'seeker');
+      await store.clear(scopeUid: 'user-a', peerId: _peer, entityType: 'seeker');
 
       expect(
-        await store.getCursor(scopeUid: 'user-a', entityType: 'seeker'),
+        await store.getCursor(scopeUid: 'user-a', peerId: _peer, entityType: 'seeker'),
         isNull,
       );
       expect(
-        await store.getCursor(scopeUid: 'user-b', entityType: 'seeker'),
+        await store.getCursor(scopeUid: 'user-b', peerId: _peer, entityType: 'seeker'),
         isNotNull,
       );
     });

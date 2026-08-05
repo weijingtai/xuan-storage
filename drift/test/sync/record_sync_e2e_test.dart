@@ -1,11 +1,10 @@
-import 'dart:convert';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:persistence_core/persistence_core.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
-import '../../lib/sync/record_local_applier.dart';
-import '../../lib/sync/record_sync_config.dart';
+import 'package:persistence_drift/sync/record_local_applier.dart';
+import 'package:persistence_drift/sync/record_outbox_mapper.dart';
 
 class _TagAdapter implements ModuleRecordAdapter {
   @override String get module => 'meihua';
@@ -19,12 +18,23 @@ class _TagAdapter implements ModuleRecordAdapter {
       const [SearchTag('upper_gua', '3')];
 }
 
-class _InMemRemoteGw implements RemoteGateway {
+class _InMemRemoteGw implements SyncPeer {
   final _store = <String, List<Map<String, dynamic>>>{};
+  int _clockMillis = 1700000000000;
+
+  @override
+  PeerId get peerId => const PeerId('in-memory');
+
+  @override
+  Channel get channel => Channel.cloud;
 
   @override
   Future<SyncError?> push(OutboxRecord record) async {
     _store.putIfAbsent('${record.scopeUid}:${record.entityType}', () => []);
+    // 模拟真实网关：为入站记录分配一个单调递增的 HLC 戳（ACT 08 线上格式）。
+    // 无戳的 change 会被 applier 判 keepLocal（fail-safe），e2e 期望两条都应用，
+    // 因此 push 必须带上戳 —— 这与真实 Firestore/RTDB 网关行为一致。
+    _clockMillis = _clockMillis + 1;
     _store['${record.scopeUid}:${record.entityType}']!.add({
       'operationId': record.operationId,
       'entityType': record.entityType,
@@ -32,6 +42,8 @@ class _InMemRemoteGw implements RemoteGateway {
       'opType': record.opType,
       'payloadJson': record.payloadJson,
       'serverTimeUtc': DateTime.now().toUtc().toIso8601String(),
+      'hlcPacked': _clockMillis << 16,
+      'deviceId': 'e2e-gateway-device',
     });
     return null;
   }
@@ -59,6 +71,8 @@ class _InMemRemoteGw implements RemoteGateway {
       ),
       payloadJson: r['payloadJson'] as String,
       serverTimeUtc: DateTime.parse(r['serverTimeUtc'] as String),
+      hlcPacked: r['hlcPacked'] as int?,
+      deviceId: r['deviceId'] as String?,
     )).toList();
     return RemoteChangesPage(
       changes: changes.take(limit).toList(),
@@ -70,12 +84,24 @@ class _InMemRemoteGw implements RemoteGateway {
     );
   }
 
-  @override Future<RegionCapabilities> getCapabilities() async => RegionCapabilities(
-    entityVersions: {'record_meta': 1}, supportedFeatures: {'outbox_v1'}, serverProtocolVersion: 1,
+  @override Future<PeerCapabilities> getCapabilities() async => PeerCapabilities(
+    peerId: peerId, channel: channel,
+    entityVersions: const {'record_meta': 1}, supportedFeatures: const {'outbox_v1'},
+    protocolVersion: 1,
   );
 }
 
 void main() {
+  const peer = PeerId('firestore');
+  setUp(() {
+    // ACT 05：peekBatch 按 channel 过滤且 fail closed。本文件用 record_meta。
+    StoragePolicyRegistry.clearForTesting();
+    StoragePolicyRegistry.register(
+      'record_meta',
+      StoragePolicy.private(carriers: const {}),
+    );
+  });
+
   test('full sync cycle: save → outbox → push → pull → verify on peer', () async {
     final dbA = PersistenceDriftDatabase(NativeDatabase.memory());
     final dbB = PersistenceDriftDatabase(NativeDatabase.memory());
@@ -99,7 +125,7 @@ void main() {
     ));
 
     // Push from outbox
-    final batch = await outboxA.peekBatch(scopeUid: scope, limit: 100);
+    final batch = await outboxA.peekBatch(scopeUid: scope, peerId: peer, channel: Channel.cloud, limit: 100);
     expect(batch, hasLength(1));
     for (final record in batch) {
       final err = await gw.push(record);
@@ -109,8 +135,31 @@ void main() {
     // Device B: pull + apply
     final dsB = DriftRecordDataSource(dbB, scopeUid: scope);
     final applierB = RecordLocalApplier(
+      scopeUid: scope,
       applyRecord: dsB.applyRemoteRecord,
       deleteRecord: dsB.softDeleteRecord,
+      readLocalRecord: (uuid) => dsB.getRecord(uuid),
+      readLocalStamp: (entityId) => dbB.getEntityStamp(
+        scopeUid: scope,
+        entityType: RecordOutboxMapper.entityType,
+        entityId: entityId,
+      ),
+      applyWithStamp: ({
+        required entityType,
+        required entityId,
+        required hlcPacked,
+        required deviceId,
+        required write,
+      }) =>
+          dbB.applyWithStamp(
+            scopeUid: scope,
+            entityType: entityType,
+            entityId: entityId,
+            hlcPacked: hlcPacked,
+            deviceId: deviceId,
+            write: write,
+          ),
+      arbiter: const HlcConflictArbiter(),
     );
 
     final page = await gw.listChanges(
@@ -159,7 +208,7 @@ void main() {
     expect(deleted, isTrue);
 
     // Push all outbox records
-    final batch = await outboxA.peekBatch(scopeUid: scope, limit: 100);
+    final batch = await outboxA.peekBatch(scopeUid: scope, peerId: peer, channel: Channel.cloud, limit: 100);
     // We should have 2: one UPSERT, one DELETE
     expect(batch, hasLength(2));
 
@@ -170,8 +219,31 @@ void main() {
     // Device B: pull + apply
     final dsB = DriftRecordDataSource(dbB, scopeUid: scope);
     final applierB = RecordLocalApplier(
+      scopeUid: scope,
       applyRecord: dsB.applyRemoteRecord,
       deleteRecord: dsB.softDeleteRecord,
+      readLocalRecord: (uuid) => dsB.getRecord(uuid),
+      readLocalStamp: (entityId) => dbB.getEntityStamp(
+        scopeUid: scope,
+        entityType: RecordOutboxMapper.entityType,
+        entityId: entityId,
+      ),
+      applyWithStamp: ({
+        required entityType,
+        required entityId,
+        required hlcPacked,
+        required deviceId,
+        required write,
+      }) =>
+          dbB.applyWithStamp(
+            scopeUid: scope,
+            entityType: entityType,
+            entityId: entityId,
+            hlcPacked: hlcPacked,
+            deviceId: deviceId,
+            write: write,
+          ),
+      arbiter: const HlcConflictArbiter(),
     );
 
     // Apply both changes on device B
@@ -220,7 +292,7 @@ void main() {
         createdAt: DateTime.now(),
       ));
 
-      final batch = await outbox.peekBatch(scopeUid: scope, limit: 100);
+      final batch = await outbox.peekBatch(scopeUid: scope, peerId: peer, channel: Channel.cloud, limit: 100);
       for (final record in batch) {
         await gw.push(record);
       }
@@ -229,8 +301,31 @@ void main() {
     // Device B scope-a: should only get scope-a records
     final dsB = DriftRecordDataSource(dbB, scopeUid: 'scope-a');
     final applierB = RecordLocalApplier(
+      scopeUid: 'scope-a',
       applyRecord: dsB.applyRemoteRecord,
       deleteRecord: dsB.softDeleteRecord,
+      readLocalRecord: (uuid) => dsB.getRecord(uuid),
+      readLocalStamp: (entityId) => dbB.getEntityStamp(
+        scopeUid: 'scope-a',
+        entityType: RecordOutboxMapper.entityType,
+        entityId: entityId,
+      ),
+      applyWithStamp: ({
+        required entityType,
+        required entityId,
+        required hlcPacked,
+        required deviceId,
+        required write,
+      }) =>
+          dbB.applyWithStamp(
+            scopeUid: 'scope-a',
+            entityType: entityType,
+            entityId: entityId,
+            hlcPacked: hlcPacked,
+            deviceId: deviceId,
+            write: write,
+          ),
+      arbiter: const HlcConflictArbiter(),
     );
 
     final page = await gw.listChanges(

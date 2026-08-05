@@ -1,12 +1,13 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_core/persistence_core.dart';
 
 export 'firebase_realtime_remote_gateway.dart';
 export 'playground/playground.dart';
 
-/// Firestore implementation of [RemoteGateway].
+/// Firestore implementation of [SyncPeer].
 ///
 /// 功能说明：
 /// - 将 [OutboxRecord] push 到 Firestore（实体文档 + oplog）。
@@ -17,7 +18,7 @@ export 'playground/playground.dart';
 /// - 开发环境：minLevel=debug，sink=PrintLogSink。
 /// - 生产环境：minLevel=warn/info，sink=上报到你的统计/埋点系统。
 /// - 本实现不会在日志中输出 payloadJson 等大字段，以降低采集成本与敏感信息风险。
-class FirestoreRemoteGateway implements RemoteGateway {
+class FirestoreRemoteGateway implements SyncPeer {
   /// Creates a Firestore-based gateway.
   ///
   /// 功能说明：
@@ -52,6 +53,14 @@ class FirestoreRemoteGateway implements RemoteGateway {
   final int _maxAttemptsBeforeDead;
   final SyncLogger _logger;
   static const String _publicScopeUid = 'public';
+
+  /// 本对端标识。钉死为 'firestore'（ACT 03 的 ack 表行键，勿改）。
+  @override
+  PeerId get peerId => const PeerId('firestore');
+
+  /// 本对端走云端通道。
+  @override
+  Channel get channel => Channel.cloud;
 
   /// Redacts potentially sensitive identifiers for production logs.
   ///
@@ -565,6 +574,20 @@ class FirestoreRemoteGateway implements RemoteGateway {
     return page;
   }
 
+  /// 该对端报告的能力。
+  ///
+  /// 当前为静态值（诚实的最小值），待后端协商接口就绪后改为真实上报。
+  @override
+  Future<PeerCapabilities> getCapabilities() async {
+    return PeerCapabilities(
+      peerId: peerId,
+      channel: channel,
+      entityVersions: const {},
+      supportedFeatures: const {'outbox_v1'},
+      protocolVersion: 1,
+    );
+  }
+
   DocumentReference<Map<String, dynamic>> _oplogDoc({
     required String scopeUid,
     required String operationId,
@@ -622,13 +645,16 @@ class FirestoreRemoteGateway implements RemoteGateway {
     if (entityType == 'divination') return 'divinations';
     if (entityType == 'seeker') return 'seekers';
     if (entityType == 'timing_divination') return 'timing_divinations';
-    if (entityType == 'seeker_divination_map')
+    if (entityType == 'seeker_divination_map') {
       return 'seeker_divination_mappers';
-    if (entityType == 'seeker_divination_mapper')
+    }
+    if (entityType == 'seeker_divination_mapper') {
       return 'seeker_divination_mappers';
+    }
     if (entityType == 'divination_panel_map') return 'divination_panel_mappers';
-    if (entityType == 'divination_panel_mapper')
+    if (entityType == 'divination_panel_mapper') {
       return 'divination_panel_mappers';
+    }
     return entityType;
   }
 

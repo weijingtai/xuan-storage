@@ -7,3 +7,6 @@
 | storage-s1b-multipeer | mimo | agent/mimo/storage-s1b-multipeer | 🚧 进行中 | 2026-08-02 |
 | storage-s1a-transport-passive | claude | agent/claude/storage-s1a-transport-passive | 🚧 进行中 | 2026-08-03 |
 | storage-c1c2-transport-rulings | claude | agent/claude/storage-c1c2-transport-rulings | 🚧 进行中 | 2026-08-03 |
+| storage-s3c-signaling | claude | agent/claude/storage-s3c-signaling | 🚧 进行中 | 2026-08-03 |
+| storage-s1d-blobstore | codex | agent/codex/storage-s1d-blobstore | 🚧 进行中 | 2026-08-04 |
+| storage-s3c-local-signaling | claude | agent/claude/storage-s3c-local-signaling | 🚧 进行中 | 2026-08-04 |

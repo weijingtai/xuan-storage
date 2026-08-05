@@ -1,0 +1,438 @@
+ACT_VERSION: 1
+TASK_ID: mimo-storage-s1b-multipeer/03
+TITLE: drift schema 全量前置（v6 → v7）—— 新 ack 表 + peer_id 列 + t_sync_state 主键三元组
+TYPE: schema-migration
+ORDER: 3
+DEPENDS_ON: [mimo-storage-s1b-multipeer/02]
+DISPATCH_STATUS: ready
+STRONG_MODEL_ONLY: true    # 全任务风险最高的一块：迁移写错【不会报错】，但会静默丢历史游标
+
+OBJECTIVE: >
+  把 §5.2.2 第 1、2 条要求的【全部 schema 变更】一次做完，且【一个字都不碰端口与
+  Store 实现】。本 ACT 结束时 drift 整包仍然编译、276 个既有测试仍然全绿。
+
+  一次做完的三件事：
+    ① 建 t_outbox_peer_ack 表（per-peer ack 水位）
+    ② t_sync_state 加 peer_id 列（带默认值 'firestore'，既有行自动回填）
+    ③ t_sync_state 主键切到 {scopeUid, peerId, entityType}
+
+  ⚠ **为什么③放在这里而不是留给端口那个 ACT** —— 见 WHY_SCHEMA_GOES_FIRST。
+
+WHY_SCHEMA_GOES_FIRST: >
+  ⚠ 这是转译 v3 相对 v2 的结构性改动，人类 2026-08-02 裁定（方案 A）。开工前读懂它。
+
+  转译 v2 试图三步走：端口(03) → 加列(04) → 主键+实现(05)，
+  想让每一步都保持可编译。**这做不到**，实测原因：
+
+    drift/lib/persistence_drift.dart:614  class DriftOutboxStore implements OutboxStore
+    drift/lib/persistence_drift.dart:916  class DriftSyncStateStore implements SyncStateStore
+
+  这两个类【直接 implements core 的端口】。一旦端口加了 `required peerId`，
+  它们必然报 NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER —— 编译是被
+  【端口变更】打断的，不是被 schema 打断的，加不加列都一样红（Codex R2 已实证）。
+
+  结论：在静态类型 + 跨包 implements 的结构下，"端口变更"与"实现跟进"
+  **无法拆到两个 ACT 而不产生不可编译的中间态**。
+
+  于是改成：
+    · 本 ACT（03）= 纯 schema。端口不动、Store 签名不动 ⇒ 整包全程绿。
+    · 下一个 ACT（04）= 端口 + 实现，在【同一个 ACT 内】从红走到绿。
+
+  【关键事实，本 ACT 成立的前提】：改 t_sync_state 主键【不会】破坏编译。
+  drift 的 `primaryKey` override 只影响生成的 DDL 与 upsert 的冲突目标；
+  SyncStatesDao 的 `where(tbl.scopeUid.equals(..) & tbl.entityType.equals(..))`
+  是列比较，不依赖主键，照常编译。而此刻 peer_id 只有 'firestore' 一个取值，
+  三元组主键的唯一性与二元组等价 ⇒ **行为零变化**。
+  如果你发现改完主键 drift 编译不过，那是你顺手改了别的东西，撤回来。
+
+WHY_STRONG_MODEL: >
+  ⚠ 这个 ACT 为什么必须强模型：
+  写错的迁移【不会抛异常、不会让测试变红】。t_sync_state 主键从
+  {scopeUid, entityType} 变成 {scopeUid, peerId, entityType}，SQLite 上做不到
+  ALTER，必须建新表 + 搬数据 + 改名。搬数据时若把 peerId 回填成空串、或漏搬几行、
+  或把 cursor_updated_at_utc 搬丢，结果是【所有历史游标失效 → 全量重拉】——
+  用户看到的是"app 突然卡住并重新下载全部数据"，而代码里一行错误日志都没有。
+  这类 bug 只有靠"造一个 v6 库、升级、逐字段比对"才能抓到，所以 TESTS_FIRST
+  的第二条是本 ACT 的生死线。
+
+ACT_BASE:
+  说明: >
+    本 ACT 的若干 VERIFICATION 需要界定"本 ACT 改了什么"。
+    【开工第一件事】记下不可变基线：
+
+      git rev-parse HEAD > .act-base && cat .act-base
+
+    之后所有 no-touch 检查【逐字】这样写（`$(cat .act-base)` 是可执行的 shell
+    命令替换，不是占位符 —— 直接复制粘贴就能跑）：
+
+      git diff --exit-code "$(cat .act-base)"..HEAD -- <路径>
+
+    【不要】用 `HEAD~1` —— 它假设"每个 ACT 恰好一个提交"，
+    一旦你分了两次小提交，守卫就只覆盖最后一次，前面的改动无人看管
+    （Codex R1 · P1-20）。
+    .act-base 是临时文件，收工前删掉，不要提交（加进 .git/info/exclude 或直接 rm）。
+
+SCOPE:
+  READ:
+    - docs/superpowers/specs/2026-07-31-storage-architecture-design.md
+      # §5.2.2 第 1、2 条：OutboxPeerAcks 表定义原文 + t_sync_state 主键
+      # §5.3 oplog compaction —— 本表【同时】是 compaction 的水位表，
+      #      因此 compaction 的数据模型不能列为「待决」，它决定 schema
+    - drift/lib/persistence_drift.dart
+      # OutboxRecords 表:160-190（列命名风格 named('snake_case')、Index 写法）
+      # SyncStates 表:192-224（primaryKey:215、indexes）
+      # schemaVersion:541、MigrationStrategy:544、onUpgrade:550（from<2..6 五段）
+      # _createRecordIndices / _createAuditLogIndices 的写法
+      # SyncStatesDao:350（本 ACT【不改】它，但要读懂它为什么不用改）
+    - drift/test/divination_case/creation_audit_logs_schema_v6_migration_test.dart
+      # 【迁移测试的范本，照抄它的骨架】：
+      #   sqlite3.openInMemory() → PRAGMA user_version = <旧版本> →
+      #   PersistenceDriftDatabase(NativeDatabase.opened(sqliteDb)) → 断言
+    - drift/test/record/record_meta_schema_v4_migration_test.dart
+      # 另一个范本：v4 那次动过表结构，看它怎么验「既有行没丢」
+    - core/lib/model/sync_peer.dart     # ACT 01 的 PeerId
+    - firebase/lib/persistence_firebase.dart
+      # ACT 02 钉死的 `PeerId('firestore')` 字面量 —— 本 ACT 的回填值必须与它逐字一致
+  MODIFY:
+    - drift/lib/persistence_drift.dart   # 新表类 + peer_id 列 + 主键 + schemaVersion 7 + onUpgrade from<7
+  WRITE:
+    - drift/test/sync/schema_v7_migration_test.dart
+
+SIGNATURE:
+  persistence_drift.dart 新增表: |
+    /// per-peer ack 水位表（§5.2.2 第 1 条）。
+    ///
+    /// 一条 outbox 记录对 N 个对端各有一行 ack —— 记录本身只存一份，
+    /// 「推没推成功」是 (operationId, peerId) 二元组的属性。
+    ///
+    /// 本表【同时】是 §5.3 oplog compaction 的水位表：
+    /// 「所有已知 peer 均已 success 的 operationId 可被压缩」这一判定直接查本表。
+    /// 因此 compaction 的数据模型不是待决项，它就是这张表。
+    ///
+    /// ⚠ 但本表提供的是压缩的【判据】，不是压缩的【许可】。
+    /// compaction 的前置条件是「游标落在 oplog 保留窗口外 → 强制全量对齐」，
+    /// 该能力归 S1c（见 specs/2026-08-03-s1c-full-reconciliation-design.md）。
+    /// 缺了它而实现压缩，久未上线的设备会静默丢失被压缩区间的变更：
+    /// 对端只能给出保留窗口内的增量，而该设备收下后照常把游标推进到"现在"
+    /// ——【零报错、零测试变红】。
+    /// 【S1b 内不得实现 compaction】。
+    @DataClassName('OutboxPeerAckRow')
+    class OutboxPeerAcks extends Table {
+      @override
+      String get tableName => 't_outbox_peer_ack';
+
+      TextColumn get operationId => text().named('operation_id')();
+      TextColumn get peerId => text().named('peer_id')();
+
+      /// pending / success / failed / dead。与 t_outbox.status 同一套取值。
+      TextColumn get status =>
+          text().withDefault(const Constant('pending')).named('status')();
+
+      /// 该对端的重试次数。per-peer —— 一个对端推成 dead 不影响其他对端。
+      IntColumn get attempt =>
+          integer().withDefault(const Constant(0)).named('attempt')();
+
+      TextColumn get lastErrorCode => text().nullable().named('last_error_code')();
+      TextColumn get lastErrorMessage =>
+          text().nullable().named('last_error_message')();
+      DateTimeColumn get ackedAtUtc => dateTime().nullable().named('acked_at_utc')();
+
+      @override
+      Set<Column> get primaryKey => {operationId, peerId};
+    }
+
+  persistence_drift.dart SyncStates 改动: |
+    // 新增列，【带默认值】，放在 entityType 之后。
+    // 有默认值 ⇒ 既有行升级后自动回填，且既有 DAO 代码不必改就能继续编译。
+    TextColumn get peerId =>
+        text().withDefault(const Constant('firestore')).named('peer_id')();
+
+    // 主键切到三元组。游标是 per-(scope, peer, entityType) 的 ——
+    // 云端游标推进到 T，不代表 LAN peer 也同步到了 T。
+    //
+    // ⚠ 改这一行【不会】破坏编译（理由见 WHY_SCHEMA_GOES_FIRST），
+    // 且此刻 peer_id 只有 'firestore' 一个取值，唯一性与二元组等价 ⇒ 行为零变化。
+    @override
+    Set<Column> get primaryKey => {scopeUid, peerId, entityType};
+
+    // schemaVersion:541
+    int get schemaVersion => 7;
+
+TASK_DETAIL:
+  backfill_value: >
+    既有 t_sync_state 行的 peer_id 一律回填 **'firestore'**。
+
+    这个值【不是随便选的】：它必须与 ACT 02 钉死的
+    `FirestoreRemoteGateway.peerId = PeerId('firestore')` 逐字一致。
+    对不上的后果是所有历史游标查不到 → 全量重拉。
+
+    ⚠ **这条是硬要求，没有降级路径**（Codex R1 · P0-13）。
+    迁移测试【必须】跨包读 firebase/lib/persistence_firebase.dart 的源文件，
+    提取 `PeerId('...')` 里的字面量，与本迁移的回填常量逐字比对。
+    worktree 里 firebase 包与 drift 包是同一仓库的兄弟目录，路径可达；
+    定位方式照抄 ACT 02 给边界测试写的"从 Directory.current 逐级向上找容器目录"，
+    【不要】写死相对层数。
+    读不到文件时【测试必须失败并打印它实际搜索过的路径】，
+    不许退化成"改为断言常量等于 'firestore'" —— 那样两处各写一遍就永远对不上账，
+    而对不上账的那天没有任何东西会红。
+
+    【不要】回填成 'cloud' / 'default' / 空串。'cloud' 是 Channel 的名字不是 peerId；
+    空串会让主键三元组退化且永远匹配不上任何真实对端。
+
+  migration_mechanics: >
+    onUpgrade 只新增 `if (from < 7)` 一段，**三步严格按此顺序**：
+
+      if (from < 7) {
+        await m.createTable(outboxPeerAcks);
+        await m.addColumn(syncStates, syncStates.peerId);  // 带默认值，既有行自动填 'firestore'
+        await m.alterTable(TableMigration(syncStates));    // 再切主键（此时 peer_id 已有值）
+        await _createOutboxPeerAckIndices();
+      }
+
+    顺序不能换：先切主键再加列，TableMigration 建新表时 peer_id 还不存在。
+
+    放在既有 from<6 之后，【不要动前五段】。
+
+    主键变更 SQLite 做不到 ALTER，必须建新表 + 搬数据 + 改名，drift 的 `TableMigration`
+    负责这个流程。【不要】手写 `customStatement('ALTER TABLE ...')` ——
+    手写极易漏掉索引重建。
+    ⚠ 搬数据时 peer_id 列已经有值（上一步 addColumn 填的），不需要在 TableMigration
+    里再写 columnTransformer 回填。
+
+    索引照既有风格另起一个私有方法，与 _createRecordIndices / _createAuditLogIndices 并列：
+      idx_outbox_peer_ack_peer_status   ON t_outbox_peer_ack (peer_id, status)
+      idx_outbox_peer_ack_operation     ON t_outbox_peer_ack (operation_id)
+    前者服务 peekBatch（按对端筛未 ack 的），后者服务 compaction（按 operationId 聚合）。
+
+  no_dao_no_store_changes: >
+    【本 ACT 不动 OutboxRecordsDao:226 / SyncStatesDao:350 / DriftOutboxStore:614 /
+    DriftSyncStateStore:916 的方法体，一个字都不动】。
+
+    ⚠ 本 ACT 结束时 **drift 整包必须编译通过、276 个既有测试必须全绿**。
+    这是本 ACT 的定义性质：新列有默认值、主键变更不影响列比较查询，
+    所以既有 DAO/Store 代码一个字不改也能编译、也能跑绿。
+
+    如果你发现 drift 编译不过或既有测试变红，【不要去改 DAO 迁就它】——
+    那说明你多改了什么，撤回来。DAO 与 Store 的改造整体属于 ACT 04。
+
+  t_outbox_unchanged: >
+    t_outbox 表本身【不动】—— 不加 peer_id 列、主键仍是 {operationId}。
+    ack 是独立一张表。把 peer 维度塞进 t_outbox 会让同一条操作的 payload
+    复制 N 份（N = 对端数），既浪费又制造了 N 份可能不一致的真相。
+
+CONSTRAINTS:
+  - 【不要】改动 onUpgrade 里 from<2 到 from<6 的五段。它们是历史迁移路径，
+    改一个字都可能让某个停留在旧版本的用户升级失败，而这类用户你无法测试。
+  - 【不要】把回填值写成 'cloud' / 'default' / 空串，也【不要】给跨包比对留降级路径。
+    见 backfill_value。
+  - 【不要】给 t_outbox 加 peer_id 列。见 t_outbox_unchanged。
+  - 【不要】在本 ACT 碰 core/lib/model/ports.dart。端口变更整体属于 ACT 04。
+  - 【不要】在本 ACT 改 DAO / Store 的任何方法体。见 no_dao_no_store_changes。
+  - 【不要】用 `customStatement('ALTER TABLE ... ')` 手写主键变更。
+    drift 的 TableMigration 会处理临时表命名与外键，手写极易漏掉索引重建。
+  - 每个新增公开声明必须有中文 dartdoc（A12）。
+
+TESTS_FIRST:
+  CASES:
+    - NAME: whole_drift_package_stays_green
+      FILE: drift/test/sync/schema_v7_migration_test.dart
+      BEHAVIOR: >
+        【本 ACT 的定义性质，对应 Codex R2 对编译死锁的结论】。
+        本条不是普通断言，而是对整包状态的要求：
+        `cd drift && dart analyze --format=machine | grep -c "^ERROR"` 必须为 0，
+        `cd drift && flutter test` 必须【276 个既有测试全绿】。
+        实现方式：只加表、只加带默认值的列、只改主键，端口与 DAO/Store 一律不动。
+        若整包编译不过，说明动了端口或 DAO —— 撤回，那是 ACT 04。
+      RED_COMMAND: cd drift && flutter test
+      RED_EXPECT: 本条在实现前后都应为绿；它守的是"别把包改坏"，不是"先红后绿"
+      COVERS: [A2]
+
+    - NAME: v6_upgrade_preserves_every_cursor_field
+      FILE: drift/test/sync/schema_v7_migration_test.dart
+      BEHAVIOR: >
+        【本 ACT 的生死线】。照 creation_audit_logs_schema_v6_migration_test.dart 的骨架：
+        1. `sqlite3.openInMemory()`，`PRAGMA user_version = 6`；
+        2. 用 customStatement 手工建出 v6 形态的 t_sync_state（主键 {scope_uid, entity_type}），
+           插入【至少 3 行】，每行的 cursor_type / revision / server_updated_at_utc /
+           tie_breaker / cursor_updated_at_utc / last_pulled_at_utc / last_pushed_at_utc
+           都填【互不相同的可辨识值】（不要全填 null，null 比对不出搬运错误）；
+        3. 打开 PersistenceDriftDatabase 触发升级；
+        4. 断言升级后：
+           - 行数【仍是 3】（漏搬会红）；
+           - 每一行的每一个字段【逐字段】等于插入时的值（搬错列会红）；
+           - 每一行的 peer_id 【都】等于 'firestore'（默认值没生效会红）；
+           - `PRAGMA table_info(t_sync_state)` 显示主键为
+             (scope_uid, peer_id, entity_type) 三列（主键没切会红）；
+           - `PRAGMA user_version` 为 7。
+        只断言"表里有 peer_id 列"是不够的 —— 那种写法漏搬数据也会绿。
+      RED_COMMAND: cd drift && flutter test test/sync/schema_v7_migration_test.dart
+      RED_EXPECT: 编译失败或断言失败（schemaVersion 仍是 6、无 peer_id 列），退出码非 0
+      COVERS: [A3]
+
+    - NAME: backfilled_peer_id_matches_firestore_gateway_literal
+      FILE: drift/test/sync/schema_v7_migration_test.dart
+      BEHAVIOR: >
+        【跨包比对，无降级路径】。从 Directory.current 逐级向上定位到同时包含
+        `drift/` 与 `firebase/` 的那一级目录（照抄 ACT 02 给边界测试写的定位函数），
+        以纯文本读取 firebase/lib/persistence_firebase.dart，用正则提取
+        `PeerId('...')` 里的字面量，断言它与本迁移的回填常量【逐字相等】。
+        定位失败时【必须 fail 并打印实际搜索过的起点与每一级路径】，
+        不许 skip、不许改成"断言常量等于 'firestore'"。
+        不要把 'firestore' 在两处各写一遍就算数 —— 那正是将来某人改了一处
+        忘了另一处的入口，而后果是历史游标全部失效且无任何报错。
+      RED_COMMAND: cd drift && flutter test test/sync/schema_v7_migration_test.dart
+      RED_EXPECT: 断言失败，先红
+      COVERS: [A3]
+
+    - NAME: fresh_database_creates_v7_shape_directly
+      FILE: drift/test/sync/schema_v7_migration_test.dart
+      BEHAVIOR: >
+        新建库（`NativeDatabase.memory()`，走 onCreate 不走 onUpgrade），断言：
+        - t_outbox_peer_ack 表存在且主键是 (operation_id, peer_id)；
+        - t_sync_state 主键是 (scope_uid, peer_id, entity_type)；
+        - 两条 idx_outbox_peer_ack_* 索引存在；
+        - `PRAGMA user_version` 为 7。
+        onCreate 与 onUpgrade 是两条独立代码路径，只测一条是 drift 迁移最经典的漏。
+        主键与索引用 `PRAGMA table_info` / `PRAGMA index_list` 查，
+        不要靠"插入不报错"推断。
+      RED_COMMAND: cd drift && flutter test test/sync/schema_v7_migration_test.dart
+      RED_EXPECT: 断言失败，先红
+      COVERS: [A3]
+
+    - NAME: sync_state_pk_allows_same_entity_for_two_peers
+      FILE: drift/test/sync/schema_v7_migration_test.dart
+      BEHAVIOR: >
+        主键切换的行为验收（不是形状验收）。往 t_sync_state 插入
+        (scope-1, 'firestore', 'record') 与 (scope-1, 'lan', 'record') 两行，
+        断言【两行都在】—— 二元组主键下第二行会覆盖第一行，这条会红。
+        再重复插入 (scope-1, 'firestore', 'record')，断言抛主键冲突。
+        游标若不按 peer 隔离，换个 peer 就会从错误的位置续拉 ——
+        静默丢变更，且丢的量等于两个 peer 的进度差。
+      RED_COMMAND: cd drift && flutter test test/sync/schema_v7_migration_test.dart
+      RED_EXPECT: 断言失败，先红
+      COVERS: [A3]
+
+    - NAME: peer_ack_primary_key_rejects_duplicate_pair
+      FILE: drift/test/sync/schema_v7_migration_test.dart
+      BEHAVIOR: >
+        非 happy-path。往 t_outbox_peer_ack 插入 (op-1, cloud)，再插入 (op-1, lan) ——
+        断言【两行都在】（同一操作对不同对端各一行，这是本表存在的意义）。
+        再重复插入 (op-1, cloud) —— 断言抛主键冲突。
+        若主键错写成只有 operationId，第一步就会红；错写成没有主键，第三步会红。
+      RED_COMMAND: cd drift && flutter test test/sync/schema_v7_migration_test.dart
+      RED_EXPECT: 断言失败，先红
+      COVERS: [A3]
+
+    - NAME: t_outbox_table_shape_unchanged
+      FILE: drift/test/sync/schema_v7_migration_test.dart
+      BEHAVIOR: >
+        用 `PRAGMA table_info(t_outbox)` 断言 t_outbox 【没有】 peer_id 列，
+        且主键仍只有 operation_id。
+        把 peer 维度塞进 t_outbox 会让 payload 复制 N 份并制造 N 份可能不一致的真相 ——
+        这是个很容易"顺手就做了"的错误设计，需要一条测试拦着。
+      RED_COMMAND: cd drift && flutter test test/sync/schema_v7_migration_test.dart
+      RED_EXPECT: 断言失败，先红
+      COVERS: [A3]
+
+    - NAME: old_migration_branches_untouched
+      FILE: drift/test/sync/schema_v7_migration_test.dart
+      BEHAVIOR: >
+        以纯文本读取 drift/lib/persistence_drift.dart，断言 onUpgrade 里
+        `if (from < 2)` 到 `if (from < 6)` 五个分支【逐字】仍在，
+        且 `if (from < 7)` 恰好出现 1 次。
+        历史迁移路径改一个字都可能让停留在旧版本的用户升级失败，
+        而那类用户你无法测试 —— 只能靠文本级守卫。
+      RED_COMMAND: cd drift && flutter test test/sync/schema_v7_migration_test.dart
+      RED_EXPECT: 断言失败，先红
+      COVERS: [A3]
+
+VERIFICATION:
+  - CMD: cd drift && flutter test test/sync/schema_v7_migration_test.dart
+    EXPECT_EXIT: 0
+  # 本 ACT 全程不破坏编译：drift 整包 ERROR 必须为 0
+  - CMD: 'cd drift && dart analyze --format=machine 2>/dev/null | grep -c "^ERROR"'
+    EXPECT_STDOUT: "0"
+    EXPECT_EXIT: 1
+  - CMD: cd drift && flutter test
+    EXPECT_EXIT: 0
+  # core 与 firebase 完全没被卷入
+  - CMD: cd core && flutter test
+    EXPECT_EXIT: 0
+  - CMD: cd firebase && flutter test
+    EXPECT_EXIT: 0
+  - CMD: git diff --exit-code "$(cat .act-base)"..HEAD -- core firebase
+    EXPECT_EXIT: 0
+  - CMD: 'grep -c "int get schemaVersion => 7;" drift/lib/persistence_drift.dart'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  # 五段历史迁移分支一个不少
+  - CMD: 'for n in 2 3 4 5 6; do grep -q "if (from < $n)" drift/lib/persistence_drift.dart || { echo "LOST:$n"; exit 1; }; done; echo OLD_BRANCHES_OK'
+    EXPECT_STDOUT: "OLD_BRANCHES_OK"
+    EXPECT_EXIT: 0
+  - CMD: 'grep -c "if (from < 7)" drift/lib/persistence_drift.dart'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  # 回填常量正确
+  - CMD: "grep -c \"Constant('firestore')\" drift/lib/persistence_drift.dart"
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  # 主键已切到三元组
+  - CMD: 'grep -c "Set<Column> get primaryKey => {scopeUid, peerId, entityType};" drift/lib/persistence_drift.dart'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  # t_outbox 主键未变
+  - CMD: 'grep -c "Set<Column> get primaryKey => {operationId};" drift/lib/persistence_drift.dart'
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  # 不得用手写 ALTER TABLE 改主键
+  - CMD: 'grep -niE "customStatement\(.*ALTER TABLE.*t_sync_state" drift/lib/persistence_drift.dart'
+    EXPECT_EXIT: 1
+  # 本 ACT 不碰任何 Store / DAO 实现体
+  - CMD: 'git diff "$(cat .act-base)"..HEAD -- drift/lib/persistence_drift.dart | grep -E "^[+-].*(class DriftOutboxStore|class DriftSyncStateStore|class OutboxRecordsDao|class SyncStatesDao)"'
+    EXPECT_EXIT: 1
+  # 跨包比对测试没有降级分支（不许出现"读不到就退而求其次"的 skip）
+  - CMD: 'grep -nE "skip:|, skip" drift/test/sync/schema_v7_migration_test.dart'
+    EXPECT_EXIT: 1
+
+SELF_CHECK:
+  - 把回填常量临时改成空串 → `v6_upgrade_preserves_every_cursor_field` 与
+    `backfilled_peer_id_matches_firestore_gateway_literal` 必须【同时】变红 → 改回
+  - 把 firebase 侧的 `PeerId('firestore')` 临时改成 `PeerId('firestore_v2')` →
+    `backfilled_peer_id_matches_firestore_gateway_literal` 必须变红 → 改回。
+    **这一步证明跨包比对真的跨了包**，只比对本文件常量的写法这一步不会红
+  - 把 peer_id 列的 withDefault 临时去掉（让既有行为 NULL）→
+    迁移测试必须变红 → 改回
+  - 在 TableMigration 里临时把 cursor_updated_at_utc 映射成常量（模拟搬错列）→
+    `v6_upgrade_preserves_every_cursor_field` 必须变红并指出是哪个字段 → 改回。
+    **这一步是本 ACT 的关键自检** —— 如果它不红，说明你的迁移测试只验了列存在、
+    没有逐字段比对，那么真正的搬运错误也不会被抓到
+  - 把 t_sync_state 主键临时改回二元组 →
+    `sync_state_pk_allows_same_entity_for_two_peers` 必须变红 → 改回
+  - 把 OutboxPeerAcks 主键临时改成只有 operationId →
+    `peer_ack_primary_key_rejects_duplicate_pair` 必须变红 → 改回
+  - 六次自检后 `git status --porcelain` 必须为空
+
+ON_FAIL:
+  - RED 阶段测试没红（写实现前就绿）→ 测试没真正依赖新类型/新行为，
+    停下重写测试，【不要】继续往下做
+  - 实现后 VERIFICATION 某条不过 → 先看是不是 EXPECT 写错（尤其 grep -c 的
+    双 EXPECT 语义：无匹配时打印 0 且退出码 1），再改实现
+  - 【必须】drift 整包编译不过或既有测试变红 → 立即停下，撤回你多改的东西。**
+    本 ACT 的定义性质就是"全程绿"，编译不过说明你碰了端口或 DAO
+  - SELF_CHECK 的某条注入后【没有】变红 → 那条门禁是假的，
+    必须重写门禁而不是跳过自检
+  - 跨包定位 firebase 源文件失败 → **不要改成断言本文件常量**，
+    先修定位函数（照抄 ACT 02 的逐级向上找法）。改断言等于放弃这条门禁
+  - 基线类命令（analyze 数量、测试数量）不符 → 不要改基线迁就实现，
+    先确认是不是真的引入了新问题
+  - 连续两次修不好同一条 → 在纪要「决定记录」写下现象与已排除的可能，停下上报，
+    不要连续第三次尝试
+
+DONE_WHEN:
+  - schemaVersion 为 7，onUpgrade 新增且仅新增 from<7 一段，前五段逐字未动
+  - t_outbox_peer_ack 表存在，主键 (operation_id, peer_id)，两条索引就位
+  - t_sync_state 有 peer_id 列（默认 'firestore'），主键为三元组
+  - 【必须】drift 整包编译通过、276 个既有测试全绿；core / firebase 零 diff**
+  - 八个测试用例全部存在且通过
+  - 六条 SELF_CHECK 已实做并确认能变红（尤其第二条跨包、第四条搬错列）
+  - .act-base 已删除，未被提交

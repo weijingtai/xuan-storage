@@ -4,8 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:persistence_core/persistence_core.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
-import '../../lib/sync/record_local_applier.dart';
-import '../../lib/sync/record_outbox_mapper.dart';
+import 'package:persistence_drift/sync/record_local_applier.dart';
+import 'package:persistence_drift/sync/record_outbox_mapper.dart';
 
 RecordMeta _meta(String uuid, {String scope = 's1'}) => RecordMeta(
   uuid: uuid, scopeUid: scope, module: 'meihua', category: 'divination',
@@ -13,12 +13,19 @@ RecordMeta _meta(String uuid, {String scope = 's1'}) => RecordMeta(
 );
 
 void main() {
+  const peer = PeerId('firestore');
   late PersistenceDriftDatabase db;
   late DriftRecordDataSource ds;
   late OutboxRecordsDao outboxDao;
   late DriftOutboxStore outboxStore;
 
   setUp(() {
+    // ACT 05：peekBatch 按 channel 过滤且 fail closed。本文件用 record_meta。
+    StoragePolicyRegistry.clearForTesting();
+    StoragePolicyRegistry.register(
+      'record_meta',
+      StoragePolicy.private(carriers: const {}),
+    );
     db = PersistenceDriftDatabase(NativeDatabase.memory());
     ds = DriftRecordDataSource(db, scopeUid: 's1');
     outboxDao = OutboxRecordsDao(db);
@@ -35,7 +42,7 @@ void main() {
       expect(found, isNotNull);
       expect(found!.uuid, 'r1');
 
-      final outboxRows = await outboxStore.peekBatch(scopeUid: 's1', limit: 100);
+      final outboxRows = await outboxStore.peekBatch(scopeUid: 's1', peerId: peer, channel: Channel.cloud, limit: 100);
       expect(outboxRows, isEmpty);
     });
 
@@ -74,8 +81,31 @@ void main() {
   group('RecordLocalApplier', () {
     test('applyRemoteChanges applies UPSERT RemoteChange', () async {
       final applier = RecordLocalApplier(
+        scopeUid: 's1',
         applyRecord: ds.applyRemoteRecord,
         deleteRecord: ds.softDeleteRecord,
+        readLocalRecord: (uuid) => ds.getRecord(uuid),
+        readLocalStamp: (entityId) => db.getEntityStamp(
+          scopeUid: 's1',
+          entityType: RecordOutboxMapper.entityType,
+          entityId: entityId,
+        ),
+        applyWithStamp: ({
+          required entityType,
+          required entityId,
+          required hlcPacked,
+          required deviceId,
+          required write,
+        }) =>
+            db.applyWithStamp(
+              scopeUid: 's1',
+              entityType: entityType,
+              entityId: entityId,
+              hlcPacked: hlcPacked,
+              deviceId: deviceId,
+              write: write,
+            ),
+        arbiter: const HlcConflictArbiter(),
       );
       final payload = {
         'meta': RecordOutboxMapper.metaToJson(_meta('r5')),
@@ -102,8 +132,31 @@ void main() {
 
     test('local applier restores record public columns', () async {
       final applier = RecordLocalApplier(
+        scopeUid: 's1',
         applyRecord: ds.applyRemoteRecord,
         deleteRecord: ds.softDeleteRecord,
+        readLocalRecord: (uuid) => ds.getRecord(uuid),
+        readLocalStamp: (entityId) => db.getEntityStamp(
+          scopeUid: 's1',
+          entityType: RecordOutboxMapper.entityType,
+          entityId: entityId,
+        ),
+        applyWithStamp: ({
+          required entityType,
+          required entityId,
+          required hlcPacked,
+          required deviceId,
+          required write,
+        }) =>
+            db.applyWithStamp(
+              scopeUid: 's1',
+              entityType: entityType,
+              entityId: entityId,
+              hlcPacked: hlcPacked,
+              deviceId: deviceId,
+              write: write,
+            ),
+        arbiter: const HlcConflictArbiter(),
       );
 
       final metaMap = RecordOutboxMapper.metaToJson(_meta('r-public'));
@@ -147,8 +200,31 @@ void main() {
 
     test('applyRemoteChanges does not trigger outbox (anti-loop)', () async {
       final applier = RecordLocalApplier(
+        scopeUid: 's1',
         applyRecord: ds.applyRemoteRecord,
         deleteRecord: ds.softDeleteRecord,
+        readLocalRecord: (uuid) => ds.getRecord(uuid),
+        readLocalStamp: (entityId) => db.getEntityStamp(
+          scopeUid: 's1',
+          entityType: RecordOutboxMapper.entityType,
+          entityId: entityId,
+        ),
+        applyWithStamp: ({
+          required entityType,
+          required entityId,
+          required hlcPacked,
+          required deviceId,
+          required write,
+        }) =>
+            db.applyWithStamp(
+              scopeUid: 's1',
+              entityType: entityType,
+              entityId: entityId,
+              hlcPacked: hlcPacked,
+              deviceId: deviceId,
+              write: write,
+            ),
+        arbiter: const HlcConflictArbiter(),
       );
       final payload = {
         'meta': RecordOutboxMapper.metaToJson(_meta('r6')),
@@ -167,14 +243,37 @@ void main() {
         changes: [change],
       );
 
-      final outboxRows = await outboxStore.peekBatch(scopeUid: 's1', limit: 100);
+      final outboxRows = await outboxStore.peekBatch(scopeUid: 's1', peerId: peer, channel: Channel.cloud, limit: 100);
       expect(outboxRows, isEmpty);
     });
 
     test('canApply returns true only for record_meta', () {
       final applier = RecordLocalApplier(
+        scopeUid: 's1',
         applyRecord: ds.applyRemoteRecord,
         deleteRecord: ds.softDeleteRecord,
+        readLocalRecord: (uuid) => ds.getRecord(uuid),
+        readLocalStamp: (entityId) => db.getEntityStamp(
+          scopeUid: 's1',
+          entityType: RecordOutboxMapper.entityType,
+          entityId: entityId,
+        ),
+        applyWithStamp: ({
+          required entityType,
+          required entityId,
+          required hlcPacked,
+          required deviceId,
+          required write,
+        }) =>
+            db.applyWithStamp(
+              scopeUid: 's1',
+              entityType: entityType,
+              entityId: entityId,
+              hlcPacked: hlcPacked,
+              deviceId: deviceId,
+              write: write,
+            ),
+        arbiter: const HlcConflictArbiter(),
       );
       expect(applier.canApply('record_meta'), isTrue);
       expect(applier.canApply('divination'), isFalse);

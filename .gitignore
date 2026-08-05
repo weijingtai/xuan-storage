@@ -4,7 +4,12 @@
 example/.chrome-profile/
 fail_evidence*.txt
 .dart_tool/
-assets/.flutter-plugins-dependencies
+# Flutter 自动生成的插件解析结果（每次 pub get 重写，逐包生成）
+# 注意: 只写 assets/ 一个路径是不够的 —— core/drift/firebase/preferences 都会生成
+.flutter-plugins
+.flutter-plugins-dependencies
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
 pubspec.lock
 pubspec_overrides.yaml
 **/pubspec_overrides.yaml

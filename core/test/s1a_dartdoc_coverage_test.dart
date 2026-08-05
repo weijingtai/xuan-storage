@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-/// A10 门禁：本任务新增的 12 个源文件中，每一个公开声明都必须紧邻上方
+/// A10 门禁：本任务新增的 13 个源文件中，每一个公开声明都必须紧邻上方
 /// 有 `///` 注释块，且注释块中至少含一个 CJK 字符（仓库惯例，见 ports.dart）。
 void main() {
   const files = [
@@ -18,6 +18,7 @@ void main() {
     'lib/model/blob_gateway.dart',
     'lib/model/transport.dart',
     'lib/model/export_bundle.dart',
+    'lib/model/signaling.dart',
   ];
 
   // 顶层公开声明：enum / class / final class / sealed class /
@@ -103,8 +104,11 @@ void main() {
     // 低于 123 即说明有人把通用正则改窄成白名单式了。
     // 2026-08-04 Transport 被动侧补丁后实测 142（原 133）：新增
     // DeviceKeyStore 3 项、AdvertisementHandle 4 项、advertise /
-    // stopAdvertising / incoming / incomingStreams 4 项。下限按 ~10 余量上调。
-    const minMemberDeclarations = 132;
+    // stopAdvertising / incoming / incomingStreams 4 项。
+    // 2026-08-04 S3c-a 信令契约层并入后实测 158（原 142）：signaling.dart
+    // 贡献 16 项（3 个信封变体的字段与构造器、SignalingSession 4 项、
+    // SignalingChannel 2 项）。下限按 ~10 余量上调至 148。
+    const minMemberDeclarations = 148;
     expect(memberCount, greaterThanOrEqualTo(minMemberDeclarations),
         reason: 'member 正则覆盖的声明总数 $memberCount 低于下限 '
             '$minMemberDeclarations，正则可能被改窄了');

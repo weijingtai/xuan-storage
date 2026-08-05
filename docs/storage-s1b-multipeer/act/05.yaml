@@ -1,0 +1,304 @@
+ACT_VERSION: 1
+TASK_ID: mimo-storage-s1b-multipeer/05
+TITLE: 策略过滤 —— PeerEligibility 单一判定源 + peekBatch 按 channel 过滤
+TYPE: security
+ORDER: 5
+DEPENDS_ON: [mimo-storage-s1b-multipeer/04]
+DISPATCH_STATUS: ready
+STRONG_MODEL_ONLY: false
+
+OBJECTIVE: >
+  §5.4 的第一道锁：`peekBatch` 按 channel 过滤，`shared` 类记录不会被派发给
+  非 cloud 的对端（§2.3.1）。
+  本 ACT 排在扇出（ACT 06）【之前】是刻意的：不知道谁有资格收，就不该先建扇出。
+  转译 v1 把过滤排在扇出之后，结果 peekBatch 挑好的记录被 pushToAll 转头发给所有人
+  —— shared 照样泄漏到 LAN，两边测试都绿（Codex R1 · P0-1）。
+
+  本 ACT 交付【单一判定源】 `PeerEligibility`，peekBatch 与 ACT 06 的扇出
+  **共用同一个函数**。两处各写一份判定 = 迟早分叉，而分叉的那一天不会有人发现。
+
+WHY_THIS_IS_NOT_OPTIONAL: >
+  ⚠ 设计稿 §5.4 明确删除了上一版「拓扑上无法到达」的说法，并标注【该说法为假】：
+
+    去中心化通道的对端确实只有本人授信设备，但这只保证「不会分发给其他用户」，
+    不保证「shared 数据不会离开云端」—— 没有策略过滤时，
+    草稿 oplog 照样会被 fan-out 到本人的 LAN peer。过滤是主动的，不是被动的。
+
+  所以不要以为"反正只有自己的设备，无所谓" —— 那正是被判定为假的推理。
+
+SCOPE:
+  READ:
+    - docs/superpowers/specs/2026-07-31-storage-architecture-design.md
+      # §5.4 全节（两道锁、被删除的错误说法）；§2.3.1 策略强制点
+    - core/test/policy_channel_filter_test.dart
+      # 【本 ACT 的可执行规格，先完整读完】。里面的 filterForChannel 是
+      # 测试内定义的函数（不是库代码），S1a 把它留在这里就是为了给 S1b 抄。
+      # fail closed 语义已写死：lookup 返回 null 一律不推。
+    - core/lib/model/storage_policy_registry.dart   # lookup / all / clearForTesting
+    - core/lib/model/storage_policy.dart            # channels getter（cloud 结构性恒在）
+    - core/lib/model/storage_classification.dart    # Channel enum:25
+    - core/lib/model/sync_peer.dart                 # SyncPeer.channel（ACT 01）
+    - core/lib/model/ports.dart                     # ACT 04 的 peekBatch(peerId) 签名
+    - drift/lib/persistence_drift.dart              # ACT 04 的 peekBatch 实现（LEFT JOIN ack 表）
+  MODIFY:
+    - core/lib/model/ports.dart          # peekBatch + 三个计数方法增加 channel 参数（见 SIGNATURE）
+    - core/lib/test_support/in_memory_stores.dart   # ACT 04 抽出的公开 fake，同步实现过滤
+    - drift/lib/persistence_drift.dart   # drift 实现接上过滤
+    - core/lib/core/sync_coordinator.dart    # 调用点传入该 peer 的 channel
+  WRITE:
+    - core/lib/model/peer_eligibility.dart
+    - core/test/s1b_channel_filter_ports_test.dart
+    - drift/test/sync/peek_batch_channel_filter_test.dart
+
+SIGNATURE:
+  peer_eligibility.dart: |
+    /// 存储策略 → 哪些对端有资格接收（§5.4 第一道锁的【单一判定源】）。
+    ///
+    /// peekBatch（本 ACT）与 PeerFanoutPusher 的调用方（ACT 06）
+    /// **必须共用本类**。两处各写一份判定迟早会分叉，
+    /// 而分叉那天没有任何测试会红 —— 除非你把判定收在一处。
+    abstract final class PeerEligibility {
+      /// 该 [entityType] 的记录允许走哪些通道。
+      ///
+      /// fail closed：`StoragePolicyRegistry.lookup` 返回 null 时返回【空集】，
+      /// 不是"全部允许"。未注册意味着"没人想过它该不该外发"。
+      static Set<Channel> channelsFor(String entityType);
+
+      /// 该 [entityType] 的记录允许发给 [peers] 中的哪些对端。
+      ///
+      /// 实现即 `peers.where((p) => channelsFor(entityType).contains(p.channel))`。
+      /// ACT 06 的 coordinator 用它算 `pushToAll` 的 eligiblePeers。
+      static Set<PeerId> eligiblePeers(String entityType, Iterable<SyncPeer> peers);
+
+      /// 单个判定：该记录能不能走该通道。peekBatch 的过滤谓词。
+      static bool allows(String entityType, Channel channel);
+    }
+
+  ports.dart peekBatch: |
+    /// 取一批待推送记录。
+    ///
+    /// [peerId]：只返回该对端尚未 ack 的记录（ACT 04）。
+    /// [channel]：该对端所在通道。只返回【策略允许走该通道】的记录（§5.4 第一道锁）。
+    ///
+    /// 两个参数看似冗余（peerId 已隐含 channel），但故意分开：
+    /// peerId 决定"推没推过"，channel 决定"该不该推"。
+    /// 合并成一个会让"换了个同通道的新对端"需要重新推导策略，
+    /// 也会让 fail-closed 的判定点从两处变成一处。
+    Future<List<OutboxRecord>> peekBatch({
+      required String scopeUid,
+      required PeerId peerId,
+      required Channel channel,
+      required int limit,
+    });
+
+TASK_DETAIL:
+  single_source_of_truth: >
+    【本 ACT 的结构性要求】。判定逻辑只写在 `PeerEligibility` 一处：
+      · peekBatch（core fake 与 drift 实现）调 `PeerEligibility.allows`
+      · ACT 06 的 coordinator 调 `PeerEligibility.eligiblePeers`
+    两处【都不许】自己再写一遍 `lookup(...) == null ? ... : channels.contains(...)`。
+    有一条门禁专门数这个表达式在库代码里出现的次数（见 VERIFICATION）。
+
+  semantics_copied_verbatim: >
+    过滤语义【逐条照抄】core/test/policy_channel_filter_test.dart 里的 filterForChannel：
+
+      final p = StoragePolicyRegistry.lookup(r.entityType);
+      if (p == null) return false;          // fail closed
+      return p.channels.contains(channel);
+
+    三点不可改：
+      · lookup 返回 null → 【不推】。不是"默认允许"，是 fail closed。
+        未注册策略的 entityType 意味着"没人想过它该不该外发"，
+        默认允许等于把未经审视的数据推出去。
+      · 判定用 `policy.channels.contains(channel)`，不要自己写 if-else 枚举分支 ——
+        StoragePolicy 的 channels getter 保证了 cloud 结构性恒在（S1a 的不变式 #2），
+        绕过它就绕过了那个保证。
+      · 过滤发生在 peekBatch【内部】，不是调用方过滤。
+        放在调用方意味着每个调用点都要记得过滤，漏一处就是数据外泄。
+
+  drift_implementation: >
+    drift 侧不能在 SQL 里查策略（策略在 Dart 的 Registry 里，不在库里）。
+    做法：SQL 先按 (scopeUid, peerId, ack 状态) 取候选，再在 Dart 层用上面的语义过滤，
+    最后截断到 limit。
+
+    ⚠ 注意 limit 的位置：必须【先过滤再截断】。
+    先按 limit 取 N 条再过滤，会得到少于 N 条的结果，
+    而调用方看到"不足一批"通常理解为"推完了" ——
+    于是一批里 shared 记录多的时候，后面的记录永远轮不上。这是个静默饥饿。
+    实现上可以循环取直到凑够 limit 或候选耗尽。
+
+  backlog_counts_follow_same_filter: >
+    backlogCount / watchBacklogCount / deadCount 【也要】用同一套过滤 ——
+    否则 SyncRuntime 会看到"还有 5 条待推"但 peekBatch 返回空，
+    表现是无限空转唤醒。这三个方法同样要加 channel 参数。
+
+    ⚠ **来源标注**（Codex R1 · P0-12）：设计稿 §5.4 只写了「peekBatch 按 channel 过滤」，
+    【没有】提到这三个计数方法。把它们一并扩 channel 是【转译者的实现推导】，
+    不是计划原文，理由就是上面那句"计数与 peekBatch 不一致 ⇒ 无限空转唤醒"。
+    这属于同一个不变式的必然推论（计数必须与它所计的查询同语义），
+    不构成需求扩张，因此按推导执行。
+    若人类验收时认为不该扩，驳回本条即可 —— 撤掉三个 channel 参数不影响其余部分。
+
+    ⚠ `attemptFor`（ACT 04 新增）**不加 channel** ——
+    它读的是 (operationId, peerId) 这一行 ack 的重试次数，
+    与"这条记录该不该走这个通道"无关。给它加 channel 只会制造一个永远传同一个值的参数。
+
+  coordinator_passes_peer_channel: >
+    sync_coordinator.dart 调 peekBatch 时，channel 取【该 peer 的 SyncPeer.channel】
+    （ACT 01 定义的 getter）。不要用常量、不要从配置读 ——
+    对端自己声明自己在哪个通道，这是唯一真相源。
+
+CONSTRAINTS:
+  - 【不要】把 lookup 返回 null 当成"允许"。fail closed 是本 ACT 的核心。
+  - 【不要】自己写 if-else 枚举 channel 分支替代 `policy.channels.contains(channel)`。
+  - 【不要】把过滤放到调用方。见 semantics_copied_verbatim 第三点。
+  - 【不要】在 PeerEligibility 之外重复写判定表达式。见 single_source_of_truth。
+  - 【不要】先按 limit 截断再过滤。见 drift_implementation 的静默饥饿。
+  - 【不要】只给 peekBatch 加过滤而漏掉三个计数方法。见 backlog_counts_follow_same_filter。
+  - 【不要】修改 core/test/policy_channel_filter_test.dart。它是 S1a 留下的规格，
+    本 ACT 是它的实现方，不是它的修改方。
+  - 每个改动的公开声明必须更新中文 dartdoc（A12）。
+
+TESTS_FIRST:
+  CASES:
+    - NAME: shared_record_never_returned_for_lan_peer
+      FILE: core/test/s1b_channel_filter_ports_test.dart
+      BEHAVIOR: >
+        【本 ACT 的生死线】。注册两个策略：
+          'xiang_reading'   -> StoragePolicy.private(...)
+          'playground_post' -> StoragePolicy.shared(...)
+        enqueue 两类记录各若干。断言：
+        - `peekBatch(channel: Channel.lan)`   【只含】 xiang_reading；
+        - `peekBatch(channel: Channel.cloud)` 【两类都含】（cloud 结构性恒在）。
+        这条直接对应 §5.4「草稿 oplog 照样会被 fan-out 到本人的 LAN peer」。
+        用 StoragePolicyRegistry.clearForTesting() 在 setUp 里清干净，
+        照抄 policy_channel_filter_test.dart 的做法。
+      RED_COMMAND: cd core && flutter test test/s1b_channel_filter_ports_test.dart
+      RED_EXPECT: 编译失败（peekBatch 尚无 channel 参数），退出码非 0
+      COVERS: [A7]
+
+    - NAME: unregistered_entity_type_fails_closed
+      FILE: core/test/s1b_channel_filter_ports_test.dart
+      BEHAVIOR: >
+        enqueue 一条 entityType 【未注册任何策略】的记录。断言：
+        - 对【所有】Channel 值（cloud/lan/webrtc/manualExport）逐个调 peekBatch，
+          结果都【不含】它 —— 包括 cloud。
+        未注册意味着"没人想过它该不该外发"，默认允许等于把未经审视的数据推出去。
+        写成"查不到策略就放行"这条会红，而那种实现平时完全看不出问题，
+        直到某个新模块忘了注册策略。
+      RED_COMMAND: cd core && flutter test test/s1b_channel_filter_ports_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A7]
+
+    - NAME: counts_agree_with_peek_batch
+      FILE: core/test/s1b_channel_filter_ports_test.dart
+      BEHAVIOR: >
+        非 happy-path。enqueue 3 条 shared + 2 条 private，对 lan 断言：
+        - `peekBatch(channel: lan)` 返回 2 条；
+        - `backlogCount(channel: lan)` 【也是 2】（不是 5）。
+        计数不跟着过滤走时，SyncRuntime 会看到"还有 5 条待推"但 peekBatch 只给 2 条，
+        推完后 backlog 仍是 3 —— 无限空转唤醒，CPU 与电量白烧，且没有任何报错。
+      RED_COMMAND: cd core && flutter test test/s1b_channel_filter_ports_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A7]
+
+    - NAME: filter_before_limit_no_silent_starvation
+      FILE: drift/test/sync/peek_batch_channel_filter_test.dart
+      BEHAVIOR: >
+        【专打"先截断后过滤"这个静默饥饿】。
+        按 createdAtUtc 顺序 enqueue：10 条 shared，然后 3 条 private。
+        对 lan 调 `peekBatch(limit: 3)`，断言返回【3 条 private】。
+        先按 limit 取前 3 条（全是 shared）再过滤的实现会返回【空列表】——
+        而调用方看到空通常理解为"推完了"，于是那 3 条 private 记录
+        在 shared 记录被清空之前【永远轮不上】。没有报错，只是不同步。
+      RED_COMMAND: cd drift && flutter test test/sync/peek_batch_channel_filter_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A7]
+
+    - NAME: drift_matches_memory_fake_behavior
+      FILE: drift/test/sync/peek_batch_channel_filter_test.dart
+      BEHAVIOR: >
+        parity 检查：把 core 侧那三条断言（shared 不给 lan / 未注册 fail closed /
+        计数一致）在 drift 实现上【原样再跑一遍】。
+        两套实现跑同一组断言，差异立刻显形 —— 内存 fake 与 drift 各自绿
+        但行为不一致，是 ACT 04 就埋下的风险，这里一并收口。
+      RED_COMMAND: cd drift && flutter test test/sync/peek_batch_channel_filter_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A7]
+
+    - NAME: filter_uses_policy_channels_not_hardcoded_enum
+      FILE: core/test/s1b_channel_filter_ports_test.dart
+      BEHAVIOR: >
+        以纯文本扫描 core/lib/model/ports.dart 与 drift/lib/persistence_drift.dart
+        中过滤相关的代码，断言【不存在】形如
+        `channel == Channel.lan` / `switch (channel)` 的硬编码分支，
+        且【存在】 `.channels.contains(` 的调用。
+        StoragePolicy 的 channels getter 保证了 cloud 结构性恒在（S1a 不变式 #2）——
+        自己写枚举分支就绕过了那个保证，而绕过之后 S1a 的契约测试仍然全绿，
+        没有任何东西会提醒你。
+      RED_COMMAND: cd core && flutter test test/s1b_channel_filter_ports_test.dart
+      RED_EXPECT: 断言失败，先红
+      COVERS: [A7]
+
+VERIFICATION:
+  - CMD: cd core && dart analyze --fatal-infos lib/model/ports.dart
+    EXPECT_EXIT: 0
+  - CMD: cd core && flutter test
+    EXPECT_EXIT: 0
+  - CMD: cd drift && flutter test
+    EXPECT_EXIT: 0
+  # 四个方法都带上了 channel
+  - CMD: 'grep -c "required Channel channel" core/lib/model/ports.dart'
+    EXPECT_STDOUT: "4"
+    EXPECT_EXIT: 0
+  # 必须用 policy.channels.contains
+  - CMD: 'grep -q "channels.contains(" drift/lib/persistence_drift.dart'
+    EXPECT_EXIT: 0
+  # 不得硬编码 channel 分支
+  - CMD: 'grep -nE "channel == Channel\.|switch \(channel\)" core/lib/model/ports.dart drift/lib/persistence_drift.dart core/lib/core/sync_coordinator.dart'
+    EXPECT_EXIT: 1
+  # fail closed：不得出现 "?? true" 之类的默认放行
+  - CMD: "grep -nE 'lookup\\([^)]*\\)\\s*\\?\\?|p == null.*return true' drift/lib/persistence_drift.dart core/lib/test_support/in_memory_stores.dart"
+    EXPECT_EXIT: 1
+  # 判定逻辑只在 PeerEligibility 一处（单一判定源）
+  - CMD: 'grep -rn "StoragePolicyRegistry.lookup" core/lib drift/lib | grep -v "peer_eligibility.dart" | grep -c ""'
+    EXPECT_STDOUT: "0"
+    EXPECT_EXIT: 1
+  # S1a 留下的规格文件未被修改
+  - CMD: git diff --exit-code main.. -- core/test/policy_channel_filter_test.dart
+    EXPECT_EXIT: 0
+
+SELF_CHECK:
+  - 把 `if (p == null) return false;` 临时改成 `return true;` →
+    `unregistered_entity_type_fails_closed` 必须变红 → 改回。
+    **不做这步不算完成本 ACT** —— fail closed 是它的全部意义
+  - 把 drift 侧临时改成"先 limit 截断再过滤" →
+    `filter_before_limit_no_silent_starvation` 必须变红 → 改回
+  - 把 backlogCount 临时改回不过滤 →
+    `counts_agree_with_peek_batch` 必须变红 → 改回
+  - 把 `policy.channels.contains(channel)` 临时改成
+    `channel == Channel.cloud || channel == Channel.lan` →
+    `filter_uses_policy_channels_not_hardcoded_enum` 必须变红 → 改回
+  - 四次自检后 `git status --porcelain` 必须为空
+
+ON_FAIL:
+  - RED 阶段测试没红（写实现前就绿）→ 测试没真正依赖新类型/新行为，
+    停下重写测试，【不要】继续往下做
+  - 实现后 VERIFICATION 某条不过 → 先看是不是 EXPECT 写错（尤其 grep -c 的
+    双 EXPECT 语义：无匹配时打印 0 且退出码 1），再改实现
+  - core / drift / firebase 的【既有】测试变红 → 立即停下。
+    本 ACT 只加不改，既有测试变红说明动到了不该动的地方
+  - SELF_CHECK 的某条注入后【没有】变红 → 那条门禁是假的，
+    必须重写门禁而不是跳过自检
+  - 基线类命令（analyze 数量、测试数量）不符 → 不要改基线迁就实现，
+    先确认是不是真的引入了新问题
+  - 连续两次修不好同一条 → 在纪要「决定记录」写下现象与已排除的可能，停下上报，
+    不要连续第三次尝试
+
+DONE_WHEN:
+  - peekBatch 与三个计数方法都带 channel 且用同一套过滤
+  - fail closed 成立：未注册策略的 entityType 对所有通道都不推
+  - 先过滤后截断，无静默饥饿
+  - 内存 fake 与 drift 实现行为一致（parity 测试通过）
+  - 六个测试用例全部存在，四条 SELF_CHECK 已实做并确认能变红
+  - policy_channel_filter_test.dart 对 main 零 diff

@@ -1,10 +1,12 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:persistence_core/persistence_core.dart';
+import 'package:persistence_core/model/sync_peer.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import '../../lib/sync/record_sync_config.dart';
 
 void main() {
+  const _peer = PeerId('firestore');
   late PersistenceDriftDatabase db;
   late SyncStatesDao dao;
   late DriftSyncStateStore store;
@@ -24,7 +26,7 @@ void main() {
 
   test('getCursor returns null for uninitialized record_meta', () async {
     final cursor = await store.getCursor(
-      scopeUid: 's1', entityType: 'record_meta',
+      scopeUid: 's1', peerId: _peer, entityType: 'record_meta',
     );
     expect(cursor, isNull);
   });
@@ -33,7 +35,7 @@ void main() {
     await RecordSyncConfig.ensureInitialized(store, 's1');
 
     final cursor = await store.getCursor(
-      scopeUid: 's1', entityType: 'record_meta',
+      scopeUid: 's1', peerId: _peer, entityType: 'record_meta',
     );
     expect(cursor, isNotNull);
   });
@@ -42,7 +44,7 @@ void main() {
     await RecordSyncConfig.ensureInitialized(store, 's1');
 
     await store.setCursorIfNewer(
-      scopeUid: 's1', entityType: 'record_meta',
+      scopeUid: 's1', peerId: _peer, entityType: 'record_meta',
       cursor: TimestampCursor(
         serverUpdatedAtUtc: DateTime.utc(2026, 6, 29),
         tieBreaker: 'op-advance',
@@ -51,7 +53,7 @@ void main() {
     );
 
     final cursor = await store.getCursor(
-      scopeUid: 's1', entityType: 'record_meta',
+      scopeUid: 's1', peerId: _peer, entityType: 'record_meta',
     );
     expect(cursor, isA<TimestampCursor>());
     final ts = cursor as TimestampCursor;
@@ -63,7 +65,7 @@ void main() {
     await RecordSyncConfig.ensureInitialized(store, 's2');
 
     await store.setCursorIfNewer(
-      scopeUid: 's1', entityType: 'record_meta',
+      scopeUid: 's1', peerId: _peer, entityType: 'record_meta',
       cursor: TimestampCursor(
         serverUpdatedAtUtc: DateTime.utc(2026, 6, 29),
         tieBreaker: 'op-s1',
@@ -72,7 +74,7 @@ void main() {
     );
 
     final cursorS2 = await store.getCursor(
-      scopeUid: 's2', entityType: 'record_meta',
+      scopeUid: 's2', peerId: _peer, entityType: 'record_meta',
     );
     expect(cursorS2, isNotNull);
     // Should have the minimal/default cursor from ensureInitialized,
