@@ -148,9 +148,9 @@ VERIFICATION:
   # 不得改 XRAP 契约
   - CMD: git diff --quiet -- core/lib/model/dataset/
     EXPECT_EXIT: 0
-  # 幂等标志存在
+  # 幂等标志存在（SIGNATURE 照抄产出 4 行：声明 / 短路读 / 写 true / resetForTesting 写 false）
   - CMD: grep -c "_registered" core/lib/model/theme_module_registry.dart
-    EXPECT_STDOUT: "3"   # 声明 + 读 + 写，至少 3 处
+    EXPECT_STDOUT: "4"
     EXPECT_EXIT: 0
 
 DONE_WHEN:

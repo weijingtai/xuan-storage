@@ -73,7 +73,7 @@ SIGNATURE:
         // - 载荷行没有 g 字段，世代号一律取入参 -- 不得从载荷读或校验世代（R4-P0）
         // - _tokens.putGeneration(generation, tokens)（用入参 generation）
         // - 返回 MaterializeOutcome(rowCount: 实际行数, bytesOnDisk: 载荷字节数)
-        // - 不重复校验 sha256（XRAP 已校验）
+        // - 不重复校验载荷完整性（XRAP 已在 §4.1 完成，见 dataset_materializer.dart:43-45）
         // - 不改动活跃指针（协议 P3）
       }
 
@@ -90,7 +90,8 @@ CONSTRAINTS:
     `MaterializeOutcome` 用默认构造器 `({required rowCount, required bytesOnDisk})`，**无 `.success`**。
   - **只写入参 generation，不触其它世代**（XRAP §4.1 事实③）。`putGeneration(g, ...)` 只写第 g 代。
   - **`dropGeneration` 幂等**：删不存在世代静默返回（XRAP §4.1 事实⑤）。
-  - **不重复校验 sha256**（XRAP §4.1：调用 materialize 时已完成校验）。
+  - **不重复校验载荷完整性**（XRAP §4.1：调用 materialize 时已完成校验，见 dataset_materializer.dart:43-45）。
+    实现【不得】import `package:crypto/...` 也不得调用任何哈希计算 API -- 完整性是 XRAP 安装器的职责。
   - **不改活跃指针**（XRAP P3）。
   - 不得改 `core/lib/model/dataset/` 任何文件。
   - dartdoc 中文（A18）。
@@ -126,20 +127,27 @@ TESTS_FIRST:
     - NAME: no_active_pointer_mutation
       FILE: core/test/theme_materializer_test.dart
       BEHAVIOR: >
-        A20 ④：materializer 无任何指针操作 API 调用。断言 InMemoryThemeMaterializer
-        不含 active/ensureInstalled/rollbackTo 等方法（源码扫描或 isA 断言）。
+        A20 ④：materializer 无任何指针操作 API。断言 InMemoryThemeMaterializer 只声明 DatasetMaterializer
+        的两个抽象方法（materialize / dropGeneration）与 datasetId getter，不含 ensureInstalled /
+        checkForUpdate / active / generations / rollbackTo / collectGarbage 这六个 DatasetInstaller 方法名。
+        用源码扫描：grep -nE "Future.*(ensureInstalled|checkForUpdate|active|generations|rollbackTo|collectGarbage)"
+        在 in_memory_theme_materializer.dart -> EXPECT_EXIT 1（无匹配）。
       RED_COMMAND: cd core && flutter test test/theme_materializer_test.dart
       RED_EXPECT: 编译失败，先红
       COVERS: [A20]
 
-    - NAME: no_sha256_recheck
+    - NAME: no_payload_integrity_recheck
       FILE: core/test/theme_materializer_test.dart
       BEHAVIOR: >
-        A20 ⑤：materialize 不重复校验 sha256。源码扫描断言不含 sha256 计算调用
-        （grep -c "sha256\|crypto" == 0）。
+        A20 ⑤：materialize 不重复校验载荷完整性（XRAP 已在 §4.1 完成）。
+        断言 in_memory_theme_materializer.dart 的 import 集合不含 `package:crypto/...` 与 `dart:convert` 的哈希 API。
+        具体用 P3-a2 同一手法：逐行抽 ^import\s+'(?<uri>[^']+)'.*;$ 得 IMPORTS，
+        断言 IMPORTS 中无任何以 `package:crypto` 开头的 uri。
+        【不是数拼写次数】R4-P1-4 精神：用 import 集合断言，不用 grep -c sha256。
       RED_COMMAND: cd core && flutter test test/theme_materializer_test.dart
       RED_EXPECT: 编译失败，先红
       COVERS: [A20]
+      SELF_CHECK: 临时在 in_memory_theme_materializer.dart 加 `import 'package:crypto/crypto.dart';` -> 断言红 -> 删 -> git status 为空
 
     - NAME: same_payload_two_generations_both_succeed
       FILE: core/test/theme_materializer_test.dart
@@ -168,10 +176,9 @@ VERIFICATION:
   # R4-P0：载荷不读 g（不得有 g != generation 校验）
   - CMD: grep -nE "j\['g'\]|payload.*g|g != generation|generation != g" core/lib/reference/in_memory_theme_materializer.dart
     EXPECT_EXIT: 1
-  # 不重复校验 sha256
-  - CMD: grep -c "sha256\|crypto" core/lib/reference/in_memory_theme_materializer.dart
-    EXPECT_STDOUT: "0"
-    EXPECT_EXIT: 1
+  # A20⑤：不重复校验载荷完整性 -- import 集合断言（不是数 sha256 拼写次数）
+  - CMD: grep -nE "^import 'package:crypto" core/lib/reference/in_memory_theme_materializer.dart
+    EXPECT_EXIT: 1   # 无匹配 = 未 import crypto = 通过
   # 不改 XRAP 契约
   - CMD: git diff --quiet -- core/lib/model/dataset/
     EXPECT_EXIT: 0

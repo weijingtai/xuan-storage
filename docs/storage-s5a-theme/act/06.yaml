@@ -140,8 +140,11 @@ TESTS_FIRST:
       FILE: core/test/theme_startup_path_test.dart
       BEHAVIOR: >
         P3-a2：读 in_memory_theme_resource_store.dart，逐行抽 ^import\s+'(?<uri>[^']+)'.*;$ 得 IMPORTS。
-        ALLOWED 6 条（见设计 §5.5.4）：theme_token_types/theme_resolution/theme_resource_store/
-        theme_source_ports/theme_value_types/theme_token_merger。
+        ALLOWED 7 条（设计 §5.5.4 原 6 条 + dart:async）：
+        theme_token_types/theme_resolution/theme_resource_store/
+        theme_source_ports/theme_value_types/theme_token_merger + 'dart:async'。
+        【dart:async 已显式加白】理由：watchResolved() 的 StreamController 需要 dart:async
+        （Future/Stream 由 dart:core 转出不受影响，StreamController 不是）。新增任何其它 uri 仍须先改白名单。
         断言：①IMPORTS ⊆ ALLOWED；②IMPORTS ⊇ {theme_source_ports, theme_resource_store}（正向控制防空集）；
         ③^(export|part|part of)\s 命中 == 0（防绕过）。
       RED_COMMAND: cd core && flutter test test/theme_startup_path_test.dart

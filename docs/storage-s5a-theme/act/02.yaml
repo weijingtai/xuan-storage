@@ -48,9 +48,11 @@ SIGNATURE:
 
       // ── 写 · 用户覆盖层（只作用于用户覆盖层，§2.6）──
       /// 批量应用覆盖差量。原子提交：要么全成，要么全不成。只存差量。
+      /// 【只作用于用户覆盖层】§2.5 读写不对称：写不碰主题包与 bundled。
       Future<void> applyOverrides({required Map<String, dynamic> patch, required OverrideOrigin origin});
 
       /// 删除指定覆盖，恢复到下层。不存在的 key 静默忽略（幂等）。
+      /// 【只作用于用户覆盖层】仅删用户覆盖，不动主题包与 bundled。
       Future<void> removeOverrides(Set<String> tokenKeys);
 
       /// 当前全部用户覆盖（诊断与"恢复默认"UI 用）。
@@ -149,9 +151,13 @@ TESTS_FIRST:
 VERIFICATION:
   - CMD: cd core && dart analyze --fatal-infos lib/model/theme_resource_store.dart lib/model/theme_value_types.dart lib/model/theme_source_ports.dart
     EXPECT_EXIT: 0
-  # A6：读写不对称 dartdoc
-  - CMD: grep -c "只作用于用户覆盖层" core/lib/model/theme_resource_store.dart
-    EXPECT_STDOUT: "2"
+  # A6：读写不对称 dartdoc —— 逐方法判定（纪要 A6 口径：applyOverrides 与 removeOverrides 的 dartdoc 各含）
+  # 抽 applyOverrides 到下一个空行之间的 dartdoc 块，断言含目标字串；removeOverrides 同理。
+  - CMD: awk '/Future<void> applyOverrides/,/^$/' core/lib/model/theme_resource_store.dart | grep -c "只作用于用户覆盖层"
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  - CMD: awk '/Future<void> removeOverrides/,/^$/' core/lib/model/theme_resource_store.dart | grep -c "只作用于用户覆盖层"
+    EXPECT_STDOUT: "1"
     EXPECT_EXIT: 0
   - CMD: grep -c "三层合并" core/lib/model/theme_resource_store.dart
     EXPECT_STDOUT: "1"

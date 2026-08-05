@@ -3,7 +3,7 @@ TASK_ID: mimo-storage-s5a-theme/04
 TITLE: reference · 三层合并算法纯函数 theme_token_merger
 TYPE: reference
 ORDER: 4
-DEPENDS_ON: [mimo-storage-s5a-theme/01]
+DEPENDS_ON: [mimo-storage-s5a-theme/01, mimo-storage-s5a-theme/02]   # 02 产出 OverrideEntry，SIGNATURE 与 READ 均依赖
 DISPATCH_STATUS: ready
 STRONG_MODEL_ONLY: false
 
@@ -156,11 +156,11 @@ VERIFICATION:
   # 纯函数：无实例字段（class 不持有状态，或为顶层函数）
   - CMD: grep -nE "static .* _cache|class .* \\{" core/lib/reference/theme_token_merger.dart | grep -v "^.*//"
     EXPECT_EXIT: 1   # 不持有状态字段（注释里的不算）
-  # 用 containsKey 不是 ??（A9 null 命中的实现保证）
-  - CMD: grep -c "containsKey" core/lib/reference/theme_token_merger.dart
-    EXPECT_EXIT: 0   # 必须有匹配
-  # 不可变：Map.unmodifiable 出现
-  - CMD: grep -c "Map.unmodifiable" core/lib/reference/theme_token_merger.dart
+  # 用 containsKey 不是 ??（A9 null 命中的实现保证）- 下限断言防正则写错扫到 0 静默绿
+  - CMD: test "$(grep -c "containsKey" core/lib/reference/theme_token_merger.dart)" -ge 1
+    EXPECT_EXIT: 0
+  # 不可变：Map.unmodifiable 出现（下限断言）
+  - CMD: test "$(grep -c "Map.unmodifiable" core/lib/reference/theme_token_merger.dart)" -ge 1
     EXPECT_EXIT: 0
 
 DONE_WHEN:

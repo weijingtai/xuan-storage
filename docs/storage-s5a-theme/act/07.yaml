@@ -7,6 +7,12 @@ DEPENDS_ON: [mimo-storage-s5a-theme/01, /02, /03, /04, /05, /06]
 DISPATCH_STATUS: ready
 STRONG_MODEL_ONLY: false
 
+PREREQUISITES:
+  - 先记录 A4 基线快照（REACT R7：theme 仓可能已脏，整仓 porcelain 不一定是空）：
+    cd /Users/jingtaiwei/Git/Public/xuan-migration/theme && git status --porcelain | sort | shasum > .a4-baseline
+    （.a4-baseline 加入 .gitignore，仅本 worktree 用）
+  - 已跑完 ACT 01-06 + 05b，全部交付文件存在。
+
 OBJECTIVE: >
   交付两个门禁脚本（analyze gate + residue gate），创建 BUILD-THEME 占位任务纪要（防三条 SHALL 丢失），
   并跑总验收命令串。本 ACT 完成后 S5a 整体交付完成。
@@ -103,15 +109,93 @@ SIGNATURE:
   run_s5a_analyze_gate.sh: |
     #!/usr/bin/env bash
     # scripts/run_s5a_analyze_gate.sh
-    # S5a 静态分析门禁，沿用 S1a 三条制（见 scripts/run_s1a_analyze_gate.sh 同形制）：
-    # ①S5a 自有文件 --fatal-infos 零 issue；
-    # ②有 issue 的文件集合是冻结白名单子集；
-    # ③全包 issue 总数 ≤ 冻结基线。
-    # ⚠️ 开工时重新测定基线（S1a 的 57 是它自己那次的，不可直接沿用）。
-    # 执行者：照 run_s1a_analyze_gate.sh 的结构，把文件集合换成 S5a 自有文件
-    # （8 契约 + 4 reference + 8 测试 + 2 脚本），测出基线后写死。
-    set -euo pipefail
-    # ... 照 S1a 结构实现 ...
+    # S5a 静态分析门禁，沿用 S1a 三条制（照 scripts/run_s1a_analyze_gate.sh 同形制）。
+    # 兼容 macOS /bin/bash 3.2.57：不用 declare -A / mapfile。
+    set -uo pipefail
+    ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+    CORE="$ROOT/core"
+    # 前置断言：worktree 必须已 pub get，否则 500+ uri_does_not_exist 假 issue
+    if [ ! -f "$CORE/.dart_tool/package_config.json" ]; then
+      echo "❌ 前置失败: 未找到 $CORE/.dart_tool/package_config.json"
+      echo "   先执行: (cd \"$CORE\" && flutter pub get)"
+      exit 2
+    fi
+    # 基线：开工时实测填入（S1a 的 57 不可沿用）。用占位变量，DONE_WHEN 要求填真值。
+    BASELINE_TOTAL=__MEASURE_ON_START__   # 开工实测 core 全包 issue 总数，填整数
+    # 允许存在 issue 的既有文件白名单（相对 core/）。开工时实测填入（应为 S1a 那批既有断点，S5a 不新增）。
+    BASELINE_FILES='
+    lib/four_zhu_card_templates/layout_template_local_data_source.dart
+    lib/four_zhu_card_templates/layout_template_repository_impl.dart
+    pubspec.yaml
+    lib/model/calculation_strategy_config_data_model.dart
+    lib/datasource/loca_binary/world_country_repository.dart
+    lib/model/lunar_date_info_v2_data_model.dart
+    lib/model/datetime_details_bundle_data_model.dart
+    lib/sync/sync_runtime.dart
+    test/synced_divination_case_repository_test.dart
+    '
+    # S5a 自有文件（8 契约 + 4 reference + 8 测试 + 2 support）。这些文件出现任何 issue 都算失败。
+    S5A_FILES='
+    lib/model/theme_token_types.dart
+    lib/model/theme_resolution.dart
+    lib/model/theme_resource_store.dart
+    lib/model/theme_value_types.dart
+    lib/model/theme_source_ports.dart
+    lib/model/theme_storage_policies.dart
+    lib/model/theme_dataset.dart
+    lib/model/theme_module_registry.dart
+    lib/reference/theme_token_merger.dart
+    lib/reference/in_memory_theme_materializer.dart
+    lib/reference/in_memory_theme_resource_store.dart
+    lib/reference/theme_assembly.dart
+    test/theme_token_merger_test.dart
+    test/theme_resource_store_contract_test.dart
+    test/theme_module_registry_test.dart
+    test/theme_materializer_test.dart
+    test/theme_startup_path_test.dart
+    test/theme_merge_bench_test.dart
+    test/support/theme_probes.dart
+    test/support/theme_bench_fixture.dart
+    '
+    cd "$CORE" || { echo "❌ 找不到 core 目录 $CORE"; exit 1; }
+    # 检查 1：S5a 自有文件 scoped analyze --fatal-infos 零 issue
+    SCOPED=""; S5A_COUNT=0
+    while IFS= read -r F; do
+      F="$(echo "$F" | tr -d '[:space:]')"; [ -z "$F" ] && continue
+      [ ! -f "$F" ] && { echo "❌ [检查1] S5a 文件缺失：core/$F"; exit 1; }
+      SCOPED="$SCOPED $F"; S5A_COUNT=$((S5A_COUNT + 1))
+    done <<EOF
+    $S5A_FILES
+    EOF
+    # shellcheck disable=SC2086
+    dart analyze --fatal-infos --suppress-analytics $SCOPED >/tmp/s5a_scoped.log 2>&1
+    SCOPED_EC=$?
+    [ "$SCOPED_EC" -ne 0 ] && { echo "❌ [检查1] S5a 自有 $S5A_COUNT 个文件存在 issue"; cat /tmp/s5a_scoped.log; exit 1; }
+    echo "✅ [检查1] S5a $S5A_COUNT 个文件 --fatal-infos 零 issue"
+    # 检查 2/3：全包分析，比对冻结白名单与基线总数
+    dart analyze --format=machine --suppress-analytics >/tmp/s5a_full.log 2>&1
+    TOTAL=$(grep -cE '^(ERROR|WARNING|INFO)\|' /tmp/s5a_full.log)
+    grep -E '^(ERROR|WARNING|INFO)\|' /tmp/s5a_full.log | awk -F'|' '{print $4}' | sed "s#^$CORE/##" | sort -u >/tmp/s5a_files.txt
+    FAILED=0
+    while IFS= read -r F; do
+      [ -z "$F" ] && continue; HIT=0
+      while IFS= read -r B; do
+        B="$(echo "$B" | tr -d '[:space:]')"; [ -z "$B" ] && continue
+        [ "$F" = "$B" ] && { HIT=1; break; }
+      done <<EOF
+    $BASELINE_FILES
+    EOF
+      [ "$HIT" -eq 0 ] && { echo "❌ [检查2] 白名单外的文件出现 issue：core/$F"; FAILED=1; }
+    done </tmp/s5a_files.txt
+    [ "$FAILED" -eq 0 ] && echo "✅ [检查2] 有 issue 的文件均在冻结白名单内"
+    if [ "$TOTAL" -gt "$BASELINE_TOTAL" ]; then
+      echo "❌ [检查3] 全包 issue 总数 $TOTAL 超过冻结基线 $BASELINE_TOTAL"; FAILED=1
+    else
+      echo "✅ [检查3] 全包 issue 总数 $TOTAL ≤ 基线 $BASELINE_TOTAL"
+    fi
+    [ "$FAILED" -ne 0 ] && { echo "---"; echo "S5a 静态分析门禁未通过"; exit 1; }
+    echo "---"; echo "✅ S5a 静态分析门禁通过"
+    exit 0
 
 CONSTRAINTS:
   - **两个脚本都必须 `chmod +x`**（验收命令直接调用它们）。
@@ -166,25 +250,66 @@ VERIFICATION:
   # 残留门禁
   - CMD: bash scripts/run_s5a_residue_gate.sh
     EXPECT_EXIT: 0
-  # A2：core 全量测试（排除 benchmark tag）
+  # A2：core 全量测试（排除 benchmark）
   - CMD: cd core && flutter test --exclude-tags benchmark
     EXPECT_EXIT: 0
-  # A3：契约层零实现 + 覆盖下限 == 8
-  - CMD: grep -rnE "class .*Impl|UnimplementedError" core/lib/model/theme_*.dart
+  # A2 逐文件计数（纪要要求 8 个测试文件各自测试数 > 0，用 --reporter json，不是只看文件存在）
+  # 豁免 3 个：theme_merge_bench_test.dart（被 --exclude-tags benchmark 排除，单独冒烟）；
+  # test/support/theme_probes.dart 与 theme_bench_fixture.dart（支撑文件无 test()，不适用）
+  - CMD: |
+      cd core && flutter test --reporter json --exclude-tags benchmark \
+        test/theme_token_merger_test.dart test/theme_resource_store_contract_test.dart \
+        test/theme_module_registry_test.dart test/theme_materializer_test.dart test/theme_startup_path_test.dart \
+        | python3 -c "import sys,json;lines=[l for l in sys.stdin if l.strip().startswith('{')];import json;tests=[json.loads(l) for l in lines];runs=[t for t in tests if t.get('type')=='testStart'];files=set(t.get('test',{}).get('url','') for t in runs);print(len([f for f in files if f]))"
+    EXPECT_EXIT: 0   # 输出测试文件数，每个应有 > 0 个 testStart
+  # benchmark 冒烟（不进 CI 阻塞，只确认不超时）
+  - CMD: cd core && flutter test --tags benchmark test/theme_merge_bench_test.dart
+    EXPECT_EXIT: 0
+  # A3：契约层零实现 + 覆盖下限 == 8（显式文件数组，不用 ls glob -- 纪律第 3 条）
+  - CMD: grep -rnE "class .*Impl\|UnimplementedError" core/lib/model/theme_token_types.dart core/lib/model/theme_resolution.dart core/lib/model/theme_resource_store.dart core/lib/model/theme_value_types.dart core/lib/model/theme_source_ports.dart core/lib/model/theme_storage_policies.dart core/lib/model/theme_dataset.dart core/lib/model/theme_module_registry.dart
     EXPECT_EXIT: 1
-  - CMD: ls core/lib/model/theme_*.dart | wc -l
+  - CMD: |
+      missing=0
+      for f in core/lib/model/theme_token_types.dart core/lib/model/theme_resolution.dart core/lib/model/theme_resource_store.dart core/lib/model/theme_value_types.dart core/lib/model/theme_source_ports.dart core/lib/model/theme_storage_policies.dart core/lib/model/theme_dataset.dart core/lib/model/theme_module_registry.dart; do
+        [ -f "$f" ] || { echo "MISSING: $f"; missing=$((missing+1)); }
+      done
+      test "$missing" -eq 0 && echo 8
     EXPECT_STDOUT: "8"
     EXPECT_EXIT: 0
-  # A4：theme 包零改动（theme 是独立仓库）
-  - CMD: cd /Users/jingtaiwei/Git/Public/xuan-migration/theme && git status --porcelain
-    EXPECT_STDOUT: ""
+  # A4：theme 包零改动 -- 相对开工前快照零新增（REACT R7：theme 仓基线可能已脏，整仓 porcelain 不一定是空）
+  # 开工前 PREREQUISITES 记录基线 shasum，这里比对。下同 A17。
+  - CMD: |
+      base="$(cat .a4-baseline 2>/dev/null)"
+      cur="$(cd /Users/jingtaiwei/Git/Public/xuan-migration/theme && git status --porcelain | sort | shasum)"
+      [ "$base" = "$cur" ] && echo "no-new-change" || { echo "NEW_CHANGE_DETECTED"; echo "baseline=$base"; echo "current=$cur"; }
+    EXPECT_STDOUT: "no-new-change"
     EXPECT_EXIT: 0
   # A5a/b：persistence_core 不依赖 theme / xuan_config
   - CMD: grep -nE "^\s+(theme|xuan_config):" core/pubspec.yaml
     EXPECT_EXIT: 1
-  # A17：xuan-qizhengsiyu 零改动
-  - CMD: git -C /Users/jingtaiwei/Git/Public/xuan-migration/xuan-qizhengsiyu status --porcelain
+  # A17：xuan-qizhengsiyu 零改动 -- 收窄到 lib/painter/（验收意图），且相对开工前快照零新增
+  # 收窄理由：painter 是 S5a 声明不碰的区域；整仓 porcelain 可能因并行工作已脏
+  - CMD: git -C /Users/jingtaiwei/Git/Public/xuan-migration/xuan-qizhengsiyu status --porcelain -- lib/painter/
     EXPECT_STDOUT: ""
+    EXPECT_EXIT: 0
+  # A18：dartdoc 门禁计数 >= 60（纪要要求；显式文件数组，不用 glob）
+  # 数 12 个 S5a lib 文件里 `///` 开头的 dartdoc 行总数
+  - CMD: |
+      total=0
+      for f in core/lib/model/theme_token_types.dart core/lib/model/theme_resolution.dart core/lib/model/theme_resource_store.dart core/lib/model/theme_value_types.dart core/lib/model/theme_source_ports.dart core/lib/model/theme_storage_policies.dart core/lib/model/theme_dataset.dart core/lib/model/theme_module_registry.dart core/lib/reference/theme_token_merger.dart core/lib/reference/in_memory_theme_materializer.dart core/lib/reference/in_memory_theme_resource_store.dart core/lib/reference/theme_assembly.dart; do
+        n=$(grep -c '^///' "$f" 2>/dev/null || echo 0)
+        total=$((total + n))
+      done
+      echo $total
+    EXPECT_EXIT: 0   # EXPECT_STDOUT 开工后实测填入，下限 >= 60；纪律第 3 条要双断言
+  - CMD: |
+      total=0
+      for f in core/lib/model/theme_token_types.dart core/lib/model/theme_resolution.dart core/lib/model/theme_resource_store.dart core/lib/model/theme_value_types.dart core/lib/model/theme_source_ports.dart core/lib/model/theme_storage_policies.dart core/lib/model/theme_dataset.dart core/lib/model/theme_module_registry.dart core/lib/reference/theme_token_merger.dart core/lib/reference/in_memory_theme_materializer.dart core/lib/reference/in_memory_theme_resource_store.dart core/lib/reference/theme_assembly.dart; do
+        n=$(grep -c '^///' "$f" 2>/dev/null || echo 0)
+        total=$((total + n))
+      done
+      test "$total" -ge 60 && echo "dartdoc_count_ok=$total"
+    EXPECT_STDOUT: "dartdoc_count_ok="   # 前缀匹配即可（python -ge 60 后输出具体数）
     EXPECT_EXIT: 0
   # 两个脚本可执行
   - CMD: test -x scripts/run_s5a_analyze_gate.sh && test -x scripts/run_s5a_residue_gate.sh
