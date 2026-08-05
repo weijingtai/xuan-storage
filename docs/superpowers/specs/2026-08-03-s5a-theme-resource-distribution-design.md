@@ -366,21 +366,44 @@ XRAP 要求内置世代的 `payloadFormat` **必须**是 `DatasetPayloadFormat.p
 > 且 reference 实现要为了消费 SQL 而引入解析器 —— 违反"零 IO、零依赖"。
 > JSON Lines 可逐行流式消费，与 `Stream<List<int>>` 入参天然契合。
 
-#### 行 schema（每行一个 JSON 对象，字段固定四个）
+#### 行 schema（每行一个 JSON 对象，字段固定三个）
 
 | 字段 | 类型 | 说明 |
 |---|---|---|
 | `k` | string | 扁平 token key，形如 `light.components.four_zhu_card.shadow.color` |
 | `v` | any | token 值（string / num / bool / List / null）。**不得是 Map** —— 嵌套已在构建期展平 |
 | `t` | string | 值类型标记：`s`/`n`/`b`/`a`/`z`（string/number/bool/array/null），供落地层做类型校验 |
-| `g` | int | 该行所属世代号。**必须等于 `materialize` 的 `generation` 入参**，不符即抛 |
 
-示例（三行）：
+⚠️ **不含 `g`（generation）字段**。XRAP 的 generation 是**运行时**安装器调用
+materializer 时传入的落地世代号（`materialize(generation:)` 入参），不是构建期可预知的
+包内容；同一载荷重装、回滚后重落地或安装到不同设备时 generation 可以不同
+（`dataset_materializer.dart:50-56` 明写"generation 由调用方提供"）。
+**若把运行时 generation 写进载荷并要求相等，合法载荷会在第二次落地时被拒绝。**
+
+Materializer 实现用入参 generation 作为 `_byGeneration` Map 的第一层 key：
+
+```dart
+final _byGeneration = <int, Map<String, dynamic>>{};
+
+@override
+Future<MaterializeOutcome> materialize({
+  required int generation, required Uint8List payload, ...
+}) async {
+  _byGeneration[generation] = {};  // 用入参，不读载荷
+  for (final line in utf8.decode(payload).split('\n')) {
+    final j = jsonDecode(line);
+    _byGeneration[generation]![j['k']] = j['v'];  // 只读 k/v/t
+  }
+  return MaterializeOutcome.success(rowCount: lineCount);
+}
+```
+
+示例（三行，均无 `g`）：
 
 ```
-{"k":"light.components.btn.radius","v":8,"t":"n","g":3}
-{"k":"light.components.btn.shadow.color","v":"#8B0000","t":"s","g":3}
-{"k":"dark.semantic.luck.daji","v":"#22C55E","t":"s","g":3}
+{"k":"light.components.btn.radius","v":8,"t":"n"}
+{"k":"light.components.btn.shadow.color","v":"#8B0000","t":"s"}
+{"k":"dark.semantic.luck.daji","v":"#22C55E","t":"s"}
 ```
 
 #### 构建期产出（不在 S5a ACT 范围，见 §11.5）
