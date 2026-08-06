@@ -147,23 +147,28 @@ final class PeerIdentity {
 
 ## 当前状态
 
-**P0 完成，P1 完成。** 四条门禁全绿，四包测试全绿。
+**P0–P8 全部完成。** 四条门禁全绿，四包测试全绿，57 冻结基线未抬高。
 
 | 门禁 | 结果 |
 |---|---|
 | `run_s1a_analyze_gate.sh` | ✅ 检查1/2/3 全过，57 = 冻结基线 57 |
 | `run_s1b_analyze_gate.sh` | ✅ core 57/57、drift 145/146、firebase 20/20 |
 | `run_monorepo_convention_check.sh` | ✅ 检查1/2 全过 |
-| `core flutter test` | ✅ 211 All tests passed（基线 205，+6 FakeTransport） |
+| `core flutter test` | ✅ 213 All tests passed（基线 211，+2 ice_server 守卫） |
 | `p2p flutter test` | ✅ 18 passed + 1 skipped (integration) |
 | `drift flutter test` | ✅ 391 All tests passed |
 | `firebase flutter test` | ✅ 131 passed + 4 skipped |
 
-**dartdoc 下限**：161（实测值），下限 151（`s1a_dartdoc_coverage_test.dart`）。
+**dartdoc 下限**：165（实测值），下限 155（`s1a_dartdoc_coverage_test.dart`）。
 
-**已变更文件**：
-- `core/lib/test_support/fake_transport.dart`（新增，FakeTransport + FakePeerSession + _FakeBackpressureStream）
-- `core/test/transport_contract_test.dart`（A7 守卫放行 test_support，+6 条 FakeTransport 契约测试）
+**已变更文件（本轮 P3–P7）**：
+- `core/lib/model/ice_server.dart`（新增，IceServer + IceServerProvider，凭证时效性进签名）
+- `core/test/ice_server_provider_guard_test.dart`（新增，A6 供应商无关扫描 + barrel 可消费）
+- `core/lib/persistence_core.dart`（+1 export ice_server.dart）
+- `core/test/s1a_dartdoc_coverage_test.dart`（+ice_server.dart 进 files，下限 151→155）
+- `docs/dispatch/2026-08-05-s3c-c-preflight-platform-config-report.md`（新增，P5 跨仓上报）
+- `docs/opsx/changes/s3c-c-preflight/ACT-Protocol-Document.md`（新增，ACT 协议文档）
+- `tasks/claude-storage-s3c-c-preflight.md`（D4 变异自检记录，3 条全红在断言）
 
 **P1 完成细节**：
 - `makeFakeTransportSessionPair()` 走 advertise → discover → connect → incoming 全路径
