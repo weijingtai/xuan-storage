@@ -66,6 +66,29 @@ S5a 已交付**读主题的整条链**（三层合并 / 缓存 / 超时降级 / 
 `dataset_manifest.dart` 明确 contentVersion"人可读，用于展示与诊断，不参与兼容判定"，
 故日期式足够且确定。本任务首次构建填 `2026-08-06`，每次重新出包更新。
 
+### 决定 4：变异自检记录（A8，2026-08-06 誊抄自 HANDOFF.md:32-39）
+
+每条新测试做过变异自检：注入违规 -> 确认红在**目标断言**（非编译失败）-> 复原。逐条如下：
+
+| 变异 | 注入了什么 | 红在哪条断言 |
+|---|---|---|
+| A6-1 | `kThemeBundledManifest.payloadSha256` 首字符 `a`->`b` | sha256 断言（`theme_bundled_manifest_consistency_test.dart:66`）|
+| A6-2 | `declaredRowCount` 338->337 | rowCount 断言 |
+| A6-3 | `payloadBytes` 27458->27457 | bytes 断言 |
+| A3 | 禁用数值校验（校验函数 return 提前）| "期望非零退出但实际 0"（SHALL-1 fixture）|
+| A5 | 禁用形状校验（校验函数 return 提前）| "期望非零退出但实际 0"（SHALL-3 fixture）|
+| A7 | jsonl 行注入 `g` 字段 | 产物扫描 + 源码扫描**双向均红** |
+
+> 六项自检全部红在目标断言，无一是编译失败（符合本仓纪律 #1：变红要红在对的地方）。
+
+### 决定 5：返工评审 3 条 P2 的处置（2026-08-06，不修，留痕）
+
+返工评审列的 3 条 P2 评估后均未修（评审明确"可不修"，且涉及禁改对象 / 超出本任务范围）：
+
+- **BUILD-REPORT 时间戳导致工作区脏**：时间戳由 `build_theme_jsonl.py` 写入，该脚本已过变异自检、执行指令 §六 禁止重写，不修。
+- **assets 侧 A7 先重建再扫、护不住已入库载荷**：改 A7 测试属重写已交付测试逻辑；产物另有 rootBundle 真读测试 + core 一致性门禁 + 验收命令（含 assets）覆盖，不修。
+- **另 3 个 jsonl（dark/ai-mingli-ink/ai-starry-bronze）无一致性门禁**：其 manifest 不在本任务回填范围（决定 2：只有 default.jsonl 喂 kThemeBundledManifest），不修。
+
 ## 五、三条 SHALL（承接自外部契约，构建期拒绝出包）
 
 | # | 出处 | 内容 | 承接动作 | 坏 fixture |
@@ -128,7 +151,7 @@ S5a 已交付**读主题的整条链**（三层合并 / 缓存 / 超时降级 / 
 - A9 既有门禁全绿，S1a 57 条冻结基线未抬高，dartdoc 下限 161 未调低
 - A10 四包测试只增不减
 
-验收命令: bash scripts/run_s1a_analyze_gate.sh && bash scripts/run_s1b_analyze_gate.sh && bash scripts/run_monorepo_convention_check.sh && bash scripts/run_s5a_analyze_gate.sh && bash scripts/run_s5a_residue_gate.sh && (cd core && flutter test) && (cd drift && flutter test) && (cd p2p && flutter test) && (cd firebase && flutter test)
+验收命令: bash scripts/run_s1a_analyze_gate.sh && bash scripts/run_s1b_analyze_gate.sh && bash scripts/run_monorepo_convention_check.sh && bash scripts/run_s5a_analyze_gate.sh && bash scripts/run_s5a_residue_gate.sh && (cd assets && flutter test) && (cd core && flutter test) && (cd drift && flutter test) && (cd p2p && flutter test) && (cd firebase && flutter test)
 
 基线参考（以实测为准，只增不减）：core 256 / drift 401 / p2p 62+1skip / firebase 131+4skip / S1a 全包 issue 57 / dartdoc 下限 161。
 
