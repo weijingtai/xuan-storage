@@ -111,7 +111,10 @@ void main() {
     // 2026-08-05 S3c-c-pre 背压契约并入后实测 161（原 158）：transport.dart
     // 新增 3 项（bufferedAmount / maxBufferedAmount / overflowPolicy getter）。
     // 下限按 ~10 余量上调至 151。
-    const minMemberDeclarations = 151;
+    // 2026-08-06 S6 ChannelBinding 并入后实测 164（原 161）：transport.dart
+    // 新增 3 项（localCertificateFingerprint 字段 + 构造函数 + channelBinding
+    // getter）。下限按 ~9 余量上调至 155。
+    const minMemberDeclarations = 155;
     expect(memberCount, greaterThanOrEqualTo(minMemberDeclarations),
         reason: 'member 正则覆盖的声明总数 $memberCount 低于下限 '
             '$minMemberDeclarations，正则可能被改窄了');

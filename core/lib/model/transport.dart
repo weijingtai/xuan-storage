@@ -251,6 +251,19 @@ abstract interface class PeerStream {
   Future<void> close();
 }
 
+/// 一次握手的 channel-binding 产物：本端在本次握手绑定的传输层证书指纹。
+///
+/// 由 Transport 实现在握手完成时产出，供 S6 配对层取本端证书指纹做
+/// 带外比对与签名。只持本端指纹（对端指纹由对端自己签、经签名声明过来）。
+final class ChannelBinding {
+  /// 本端传输层证书指纹，SDP a=fingerprint 格式 'sha-256 AA:BB:...'。
+  /// 算法名内联在字符串里，不再单列字段（避免两处不一致、单一来源）。
+  final String localCertificateFingerprint;
+
+  /// 构造一个 [ChannelBinding]。
+  const ChannelBinding({required this.localCertificateFingerprint});
+}
+
 /// 一条已认证连接上的多路复用会话。
 ///
 /// 持有连接、握手、心跳、重连。一条会话上可开多条逻辑流
@@ -261,6 +274,17 @@ abstract interface class PeerStream {
 abstract interface class PeerSession {
   /// 对端身份（握手认证后绑定）。
   PeerIdentity get remote;
+
+  /// 本端在本次握手时绑定的传输层证书指纹（channel binding）。
+  ///
+  /// 这是**展示/审计口**：绑定的强制发生在 [Transport.connect]/
+  /// [Transport.advertise] 的握手内部（握手必须验证「对端声明的证书
+  /// 指纹 == 本端这一腿观测到的对端证书指纹」，否则会话不产出）。本
+  /// getter 供 S6 配对层取本端证书指纹做带外比对与签名。
+  ///
+  /// 因 [PeerSession] 本身即「一条已认证连接上的会话」，访问本 getter
+  /// 时握手必然已完成，不存在未认证形态。
+  ChannelBinding get channelBinding;
 
   /// 会话状态流。
   Stream<PeerSessionState> get state;
