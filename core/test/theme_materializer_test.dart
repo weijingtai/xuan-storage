@@ -2,9 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:persistence_core/model/cancellation_token.dart';
 import 'package:persistence_core/model/dataset/dataset_manifest.dart';
-import 'package:persistence_core/model/dataset/dataset_materializer.dart';
 import 'package:persistence_core/model/storage_classification.dart';
 import 'package:persistence_core/model/theme_dataset.dart';
 import 'package:persistence_core/reference/in_memory_theme_materializer.dart';
@@ -14,7 +12,7 @@ import 'package:persistence_core/reference/in_memory_theme_materializer.dart';
 /// 覆盖验收 A20 ①②③④⑤⑥（世代隔离 / 幂等删除 / 真实行数 / 无指针操作 /
 /// 不重复校验完整性 / 同载荷多世代落地）+ payload v 为 Map 抛 StateError。
 Stream<List<int>> payloadOf(List<String> lines) => Stream.value(
-      utf8.encode(lines.join('\n') + '\n'),
+      utf8.encode('${lines.join('\n')}\n'),
     );
 
 final _sampleManifest = DatasetManifest(
