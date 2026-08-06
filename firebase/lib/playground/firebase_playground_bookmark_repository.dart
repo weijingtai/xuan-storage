@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
+import 'package:persistence_core/persistence_core.dart';
 
 import 'firebase_playground_schema.dart';
 import 'firebase_playground_identity_resolver.dart';
@@ -8,7 +9,7 @@ import 'firebase_playground_error_mapper.dart';
 import 'firebase_playground_cursor.dart';
 
 final class FirebasePlaygroundBookmarkRepository
-    implements PlaygroundBookmarkRepository {
+    implements PlaygroundBookmarkRemoteDataSource {
   FirebasePlaygroundBookmarkRepository({
     required FirebaseFirestore firestore,
     required FirebaseAuth auth,
