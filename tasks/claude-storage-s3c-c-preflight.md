@@ -18,19 +18,19 @@ S3c-c（WebRTC Transport 实现）依赖 S6，S6 刚重启。本轮不等 S6，�
 
 **论证**（三条硬事实，每条带 `transport.dart` 行号）：
 
-1. **`connect` 的入口参数就是 S6 的交付物。** `core/lib/model/transport.dart:232`：
+1. **`connect` 的入口参数就是 S6 的交付物。** `core/lib/model/transport.dart:322`：
    `required DeviceKeyStore keys` —— S6 的东西，required。内存 fake 注入一个
    test-only 的 fake `DeviceKeyStore` 就能跑通，但真 WebRTC 实现必须等 S6 交付真实现。
 
 2. **channel binding 写在 `connect` 的 dartdoc 里，不是写在某个后续步骤上。**
-   `transport.dart:225-226`：「握手**必须**完成认证密钥交换并把指纹绑定到会话
+   `transport.dart:313-314`：「握手**必须**完成认证密钥交换并把指纹绑定到会话
    （channel binding），否则带外指纹比对对主动 MITM 无效。规格见 S6。」—— 不在
    `connect` 里做 channel binding 的 `Transport` 实现是**违反契约**的，不是「功能
    不完整」。乙方案（A 层无认证）要交出 `PeerSession`，只有两条路：编造一个
    `remote`（直接违反「握手认证后绑定」），或者改契约。它不是在契约允许的空间
    里做取舍，它是在契约外面。
 
-3. **`PeerSession` 的定义是「一条已认证连接上的多路复用会话」。** `transport.dart:174`
+3. **`PeerSession` 的定义是「一条已认证连接上的多路复用会话」。** `transport.dart:262-263`
    `remote` 的 dartdoc：「对端身份（**握手认证后**绑定）」。`PeerIdentity.publicKeyFingerprint`
    明写「用于带外比对（channel binding）」。`PeerSession` 本身就是已认证的会话，
    不存在「无认证的 PeerSession」。
@@ -97,6 +97,7 @@ final class PeerIdentity {
 | V1 | P4 A6 扫描守卫 | `ice_server.dart:4` 库注释加 `（Cloudflare）` | A6 守卫：`Expected: empty / Actual: ['lib/model/ice_server.dart 含 "Cloudflare"']` | ✅ 守卫测试 2 条全绿 |
 | V2 | P6 R5 并发契约 | `fake_transport.dart` `send()` 删除挂起检查（并发水位无界上涨） | FakeTransport 全路径 R5：`Expected: ≤8256 / Actual: 9216`（wait 策略挂起阶段水位） | ✅ `transport_contract_test.dart` 30 条全绿 |
 | V3 | P3 dartdoc 下限 | 删除 `IceServer.urls` 的 `///` 注释块 | dartdoc 测试：`lib/model/ice_server.dart:23: final String urls;` 缺中文 dartdoc | ✅ dartdoc + 守卫 3 条全绿 |
+| V4 | P3 返工：A4 凭证时效性运行期守卫 | `isValidCredentialExpiry` 改成恒 `true`（永不过期也判有效） | 时效守卫：`Expected: false / Actual: true`（9999 年凭证必须判无效） | ✅ 守卫 5 条 + dartdoc 全绿 |
 
 > 注：P4 barrel 可消费探针是**编译期**守卫（删 barrel export 会红在编译失败），
 > 按纪律「红在编译失败不算数」，该条不以编译失败为有效变异 —— 其有效性由

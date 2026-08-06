@@ -5,7 +5,7 @@
 ## 当前分支与提交
 
 - 分支：`agent/claude/storage-s3c-c-preflight`
-- HEAD：`feat(s3c-c-preflight): P3-P7 完成`（已提交，工作区仅剩 2 个无关未跟踪文件：`docs/dispatch/2026-08-02-s1b-dispatch-prompt.md`、`docs/superpowers/specs/2026-08-05-s3c-c-preflight-turn-selection.md`，均非本轮产物、勿动）
+- HEAD：`feat(s3c-c-preflight): P3-P7 完成`（已提交；`docs/superpowers/specs/2026-08-05-s3c-c-preflight-turn-selection.md` 是 **A3/P2 交付物本体**，ice_server.dart 与守卫测试都在引用它，已随本批提交；`docs/dispatch/2026-08-02-s1b-dispatch-prompt.md` 非本轮产物、勿动）
 
 ## 已完成（P0–P7，全部验证绿）
 

@@ -37,16 +37,52 @@ final class IceServer {
   /// 重新向签发方索取，不得返回缓存值。
   final Future<String> Function() credential;
 
+  /// 凭证过期时刻（UTC）。
+  ///
+  /// 【为什么必须有这个字段】凭证时效性是本端口的核心语义，必须可被
+  /// **运行期**机械验证：凭证是短期值，过期后必须重新索取。若只靠
+  /// [credential] 的异步签名，把凭证做成常量字符串只会在编译期失败；
+  /// 有了本字段，守卫测试就能断言「过期时刻存在且在合理窗口内」，
+  /// 「永不过期 / 常量凭证」的实现会在此**运行期**变红。
+  final DateTime expiresAt;
+
+  /// 判断 [expiresAt] 是否为「短期凭证」的有效过期时刻。
+  ///
+  /// 有效期必须落在 [now] 之后的 [minLifetime] ~ [maxLifetime] 窗口内：
+  /// - 过去 / 立即过期：无效（凭证已失效，调用方必须重新索取）。
+  /// - 永不过期 / 超长有效期：无效（等价「常量凭证」，违背本端口语义）。
+  ///
+  /// 这是凭证时效性的**运行期**守卫 —— 只靠 [credential] 的异步签名，把
+  /// 凭证做成常量只会在编译期失败；本方法让「永不过期」在运行期变红。
+  ///
+  /// 参数说明：
+  /// - [expiresAt]: 凭证过期时刻（UTC）。
+  /// - [now]: 当前时刻（默认取系统时钟；测试可注入固定时刻）。
+  /// - [minLifetime]: 最短有效期（默认 5 分钟）。
+  /// - [maxLifetime]: 最长有效期（默认 72 小时，托管 TURN 都发 24h 级凭证）。
+  static bool isValidCredentialExpiry(
+    DateTime expiresAt, {
+    DateTime? now,
+    Duration minLifetime = const Duration(minutes: 5),
+    Duration maxLifetime = const Duration(hours: 72),
+  }) {
+    final base = now ?? DateTime.now().toUtc();
+    final lifetime = expiresAt.difference(base);
+    return lifetime >= minLifetime && lifetime <= maxLifetime;
+  }
+
   /// 构造一条 ICE 服务器配置。
   ///
   /// 参数说明：
   /// - [urls]: 服务器地址。
   /// - [username]: 用户名（可选）。
   /// - [credential]: 当前有效凭证的获取回调。
+  /// - [expiresAt]: 凭证过期时刻（UTC），必须是一个**有限的未来时刻**。
   const IceServer({
     required this.urls,
     this.username,
     required this.credential,
+    required this.expiresAt,
   });
 }
 
