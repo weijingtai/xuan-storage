@@ -1,0 +1,8 @@
+# firebase 包测试配置。
+#
+# integration 标签默认排除：RTDB 模拟器集成测试需要本地起
+# `firebase emulators:start`（见 test/signaling/rtdb_rendezvous_backend_integration_test.dart
+# 头注释），CI / 沙箱里不会默认提供。
+tags:
+  integration:
+    skip: "真 RTDB 模拟器依赖本地起 emulator；人工触发见集成测试头注释"
