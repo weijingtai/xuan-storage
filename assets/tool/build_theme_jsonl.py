@@ -269,12 +269,10 @@ def build_one(name: str, presets_dir: Path | None = None) -> dict:
 
 
 def _write_report(results: list) -> None:
-    from datetime import datetime, timezone
-    now = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+    # 不写构建时间戳：写死会导致每次构建 BUILD-REPORT.md 都变、验收弄脏工作区。
     lines = [
         '# 主题预设 JSON Lines 载荷构建报告',
         '',
-        f'- 构建时间：{now}',
         f'- 构建脚本：assets/tool/build_theme_jsonl.py',
         f'- 源目录：theme/config/presets/*.yaml（theme 仓，不改源文件）',
         f'- 产物目录：assets/lib/theme/*.jsonl',

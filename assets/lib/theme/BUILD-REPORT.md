@@ -1,6 +1,5 @@
 # 主题预设 JSON Lines 载荷构建报告
 
-- 构建时间：2026-08-06 22:37:07 UTC
 - 构建脚本：assets/tool/build_theme_jsonl.py
 - 源目录：theme/config/presets/*.yaml（theme 仓，不改源文件）
 - 产物目录：assets/lib/theme/*.jsonl

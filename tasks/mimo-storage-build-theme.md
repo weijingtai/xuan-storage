@@ -85,9 +85,19 @@ S5a 已交付**读主题的整条链**（三层合并 / 缓存 / 超时降级 / 
 
 返工评审列的 3 条 P2 评估后均未修（评审明确"可不修"，且涉及禁改对象 / 超出本任务范围）：
 
-- **BUILD-REPORT 时间戳导致工作区脏**：时间戳由 `build_theme_jsonl.py` 写入，该脚本已过变异自检、执行指令 §六 禁止重写，不修。
+- **BUILD-REPORT.md 时间戳脏工作区**：~~时间戳由 `build_theme_jsonl.py` 写入，该脚本已过变异自检、执行指令 §六 禁止重写，不修。~~ **复验后已修**（2026-08-06）：按返工指令三选一，取「时间戳去掉」——`_write_report` 删除 `构建时间` 行（最小改动，不动三条 SHALL 校验/A6/A7 逻辑，变异自检证据不受影响）。BUILD-REPORT.md 保持入库（照 T1 geo 形制），每次构建产物字节稳定，验收不再弄脏工作区。
 - **assets 侧 A7 先重建再扫、护不住已入库载荷**：改 A7 测试属重写已交付测试逻辑；产物另有 rootBundle 真读测试 + core 一致性门禁 + 验收命令（含 assets）覆盖，不修。
 - **另 3 个 jsonl（dark/ai-mingli-ink/ai-starry-bronze）无一致性门禁**：其 manifest 不在本任务回填范围（决定 2：只有 default.jsonl 喂 kThemeBundledManifest），不修。
+
+### 决定 6：验收命令 assets 段精确路径限定（R1 闭合，2026-08-06）
+
+复验发现：assets 整包进验收命令后，`taiyishenshu` 既有红项（main 62a1e4c 上即红，`taiyi_school_assets_repository_test.dart` 测试注入 key 与实现请求路径 `packages/taiyishenshu/...` 前缀不匹配，git stash 坐实与本任务无关）会让 && 链在 assets 段 EXIT=1，core/drift/p2p/firebase 全部不跑——永远红的门禁没有信号。
+
+三选一论证（选 c）：
+
+- **a) 修好 taiyishenshu**：不选。既存问题属 T1/taiyishenshu 仓领域，超出本任务派工范围（执行指令 §六 不碰 T1 文件），修它等于越界改别的任务的债。
+- **b) 把坏 fixture 测试挪出 assets**：不选。坏 fixture 测试依赖 `assets/tool/build_theme_jsonl.py` 的 cwd 相对路径与 test_fixtures 目录，挪包会破坏脚本调用路径；且 assets 包仍需跑 theme 测试（rootBundle 真读测试在 assets 包内），挪走坏 fixture 反而让 assets 包测试更碎。
+- **c) 验收命令对 assets 做精确路径限定 `flutter test test/theme`**：**选**。坏 fixture 测试（A3/A5）与 rootBundle 真读测试都在 `assets/test/theme/` 下，被验收命令覆盖；taiyishenshu 既存红项不在验收路径内，不阻塞信号；四包测试数仍出现在输出中。taiyishenshu 红项单独挂账报告，等人类裁定。
 
 ## 五、三条 SHALL（承接自外部契约，构建期拒绝出包）
 
@@ -151,7 +161,7 @@ S5a 已交付**读主题的整条链**（三层合并 / 缓存 / 超时降级 / 
 - A9 既有门禁全绿，S1a 57 条冻结基线未抬高，dartdoc 下限 161 未调低
 - A10 四包测试只增不减
 
-验收命令: bash scripts/run_s1a_analyze_gate.sh && bash scripts/run_s1b_analyze_gate.sh && bash scripts/run_monorepo_convention_check.sh && bash scripts/run_s5a_analyze_gate.sh && bash scripts/run_s5a_residue_gate.sh && (cd assets && flutter test) && (cd core && flutter test) && (cd drift && flutter test) && (cd p2p && flutter test) && (cd firebase && flutter test)
+验收命令: bash scripts/run_s1a_analyze_gate.sh && bash scripts/run_s1b_analyze_gate.sh && bash scripts/run_monorepo_convention_check.sh && bash scripts/run_s5a_analyze_gate.sh && bash scripts/run_s5a_residue_gate.sh && (cd assets && flutter test test/theme) && (cd core && flutter test) && (cd drift && flutter test) && (cd p2p && flutter test) && (cd firebase && flutter test)
 
 基线参考（以实测为准，只增不减）：core 256 / drift 401 / p2p 62+1skip / firebase 131+4skip / S1a 全包 issue 57 / dartdoc 下限 161。
 
