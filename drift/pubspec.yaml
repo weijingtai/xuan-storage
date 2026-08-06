@@ -16,6 +16,7 @@ dependencies:
   uuid: ^4.6.0
   collection: ^1.19.1
   crypto: ^3.0.7
+  cryptography: 2.9.0
   json_annotation: ^4.10.0
   persistence_core:
     path: ../core

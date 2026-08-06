@@ -9,6 +9,9 @@ environment:
 
 dependencies:
   bonsoir: 7.1.4
+  cryptography: 2.9.0
+  flutter_secure_storage: 10.3.1
+  uuid: ^4.6.0
   persistence_core:
     path: ../core
   flutter:

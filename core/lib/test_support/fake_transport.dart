@@ -200,6 +200,11 @@ final class FakePeerSession implements PeerSession {
   @override
   final PeerIdentity remote;
 
+  @override
+  ChannelBinding get channelBinding => const ChannelBinding(
+        localCertificateFingerprint: 'sha-256 AA:BB:CC:DD',
+      );
+
   /// Buffer size for [PeerStream] instances created by this session.
   final int bufferSize;
 

@@ -36,6 +36,7 @@ export 'model/record_blob_unit_of_work.dart';
 export 'model/blob_gateway.dart';
 export 'model/transport.dart';
 export 'model/signaling.dart';
+export 'model/pairing.dart';
 export 'model/ice_server.dart';
 export 'model/export_bundle.dart';
 

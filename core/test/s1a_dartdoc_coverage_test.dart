@@ -114,8 +114,9 @@ void main() {
     // 下限按 ~10 余量上调至 151。
     // 2026-08-05 S3c-c-pre P3 后实测 165（原 161）：ice_server.dart
     // 新增 4 项（urls / credential 字段、IceServer 构造器、iceServers 方法）。
-    // 下限按 ~10 余量上调至 155。
-    const minMemberDeclarations = 155;
+    // 2026-08-06 merge main（S3c-c-preflight）后实测 171（原 165）：ice_server 4 项
+    // + transport.dart ChannelBinding 3 项 + FakeTransport 并入。下限按 ~10 余量上调至 161。
+    const minMemberDeclarations = 161;
     expect(memberCount, greaterThanOrEqualTo(minMemberDeclarations),
         reason: 'member 正则覆盖的声明总数 $memberCount 低于下限 '
             '$minMemberDeclarations，正则可能被改窄了');

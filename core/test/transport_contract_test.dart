@@ -362,6 +362,11 @@ class _FakePeerSession implements PeerSession {
   @override
   final PeerIdentity remote;
 
+  @override
+  ChannelBinding get channelBinding => const ChannelBinding(
+        localCertificateFingerprint: 'sha-256 AA:BB:CC:DD',
+      );
+
   _FakePeerSession? _peer;
   final StreamController<PeerStream> _incomingStreams =
       StreamController<PeerStream>.broadcast();
@@ -512,6 +517,11 @@ class _WaitPeerSession implements PeerSession {
   @override
   final PeerIdentity remote;
 
+  @override
+  ChannelBinding get channelBinding => const ChannelBinding(
+        localCertificateFingerprint: 'sha-256 11:22:33:44',
+      );
+
   _WaitPeerSession? _peer;
   final StreamController<PeerStream> _incomingStreams =
       StreamController<PeerStream>.broadcast();
@@ -640,6 +650,11 @@ class _FailPeerSession implements PeerSession {
 
   @override
   final PeerIdentity remote;
+
+  @override
+  ChannelBinding get channelBinding => const ChannelBinding(
+        localCertificateFingerprint: 'sha-256 55:66:77:88',
+      );
 
   _FailPeerSession? _peer;
   final StreamController<PeerStream> _incomingStreams =
