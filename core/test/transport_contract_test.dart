@@ -10,6 +10,7 @@ import 'package:persistence_core/model/types.dart';
 import 'package:persistence_core/persistence_core.dart' as barrel;
 // 共享契约套件走深路径消费（决定记录 D7：test_support 不进 barrel）。
 import 'package:persistence_core/test_support/peer_stream_contract_suite.dart';
+import 'package:persistence_core/test_support/fake_transport.dart';
 
 void main() {
   group('Transport 主动侧与被动侧成对', () {
@@ -174,6 +175,14 @@ void main() {
     );
   });
 
+  // ── S3c-c-preflight：FakeTransport 跑同一套 PeerStream 背压契约 ──
+  group('PeerStream 背压契约（FakeTransport 全路径）', () {
+    runPeerStreamContractSuite(
+      topologyName: 'FakeTransport（advertise/connect/incoming 全路径）',
+      makeSession: () => makeFakeTransportSessionPair(),
+    );
+  });
+
   group('barrel 可消费（背压契约必须能从包入口拿到）', () {
     test('barrel 导出的背压类型与深路径导出的是同一个', () {
       // 类型引用在编译期解析：若 barrel 未 export transport.dart（或
@@ -189,6 +198,8 @@ void main() {
   group('A7 · 全仓仍零 Transport 实现', () {
     test('全仓各包 lib/ 下不存在任何 implements Transport 的实现', () {
       // S3c-c-pre 本轮零实现：只有契约与契约测试，不写任何传输实现。
+      // S3c-c-preflight 方案丙：放行 `test_support/` 下的 test-only fake
+      // （如 FakeTransport）—— 它们不是产品实现，契约测试需要它们。
       // 守卫遍历仓库根下所有包的 lib/（不止 core/lib）—— 否则有人在
       // p2p/lib 里写了实现，只扫 core/lib 的守卫照样绿。
       final hits = <String>[];
@@ -198,6 +209,9 @@ void main() {
             final name = e.path.split('/').last;
             if (name.startsWith('.')) {
               continue;
+            }
+            if (name == 'test_support') {
+              continue; // 放行 test_support（test-only fake，不是产品实现）
             }
             walk(e);
           } else if (e is File && e.path.endsWith('.dart')) {

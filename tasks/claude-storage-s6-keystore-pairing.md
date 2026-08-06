@@ -82,7 +82,15 @@
 - dartdoc 实测 **164**，下限已从 151 抬至 **155**（S6 ChannelBinding 3 项）；
 - 变异自检 M3/M4/M5 补做 + M2 坐实（见「2026-08-06 · A8 变异自检补充」）。
 
-**剩余待办（重启会话放行 .git 后）**：落盘提交（git add -A && git commit）→ merge main（含 S3c-c-preflight，注意 `fake_transport.dart` 的 FakePeerSession 需补 `channelBinding`、`transport_contract_test.dart` 可能冲突）→ 重跑 core 全量测试与门禁 → 收口。
+**剩余待办（需用户终端执行 git 写入）**：merge 已由用户终端发起并出现 2 处冲突 —— **冲突内容已由 AI 在沙箱内解决并验证**（见下），但 `git add`/`git commit` 仍需用户终端执行（沙箱拦 `.git` 写入）。
+
+**2026-08-06 merge 连带修复（沙箱内已做）**：
+- `core/lib/persistence_core.dart` 冲突：`export 'model/pairing.dart'`（s6）+ `export 'model/ice_server.dart'`（main）**两条都保留**；
+- `core/test/s1a_dartdoc_coverage_test.dart` 冲突：两条实测注释合并，实测 171（ice_server 4 项 + ChannelBinding 3 项 + FakeTransport 并入），下限 155→**161**（main 的旧声明行重复定义已删）；
+- `core/lib/test_support/fake_transport.dart`（main 新增，实现 PeerSession）：`FakePeerSession` 补 `channelBinding` getter（S3c-c-pre 不知道 Q3 v2 的改动，merge 后必须补）；
+- `transport_contract_test.dart` 自动合并成功（三处 fake 的 channelBinding 完好）。
+
+**merge 后验证（沙箱内实测）**：core **216** 测试全绿（≥ 参考 213）、S1a 57=57 / S1b / monorepo 三门禁 PASS、dartdoc 下限 161 通过（实测 171）。
 
 ## 决定记录
 
