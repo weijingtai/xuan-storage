@@ -45,4 +45,34 @@ final class FirebasePlaygroundModerationRepository
       throw FirebasePlaygroundErrorMapper.map(e);
     }
   }
+
+  @override
+  Future<void> quarantinePost(PlaygroundPostId postId) async {
+    try {
+      await _firestore
+          .collection(PlaygroundFirestoreSchema.posts)
+          .doc(postId.value)
+          .update({
+        'status': PlaygroundPostStatus.quarantined.name,
+        'updated_at': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw FirebasePlaygroundErrorMapper.map(e);
+    }
+  }
+
+  @override
+  Future<void> emergencyTakeDown(PlaygroundPostId postId) async {
+    try {
+      await _firestore
+          .collection(PlaygroundFirestoreSchema.posts)
+          .doc(postId.value)
+          .update({
+        'status': PlaygroundPostStatus.tombstoned.name,
+        'updated_at': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw FirebasePlaygroundErrorMapper.map(e);
+    }
+  }
 }
