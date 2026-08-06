@@ -1,0 +1,196 @@
+ACT_VERSION: 1
+TASK_ID: mimo-storage-s5a-theme/02
+TITLE: 契约层 · 主门面 ThemeResourceStore + 值类型 + 注入端口 ThemeLocalReader
+TYPE: contract
+ORDER: 2
+DEPENDS_ON: [mimo-storage-s5a-theme/01]
+DISPATCH_STATUS: ready
+STRONG_MODEL_ONLY: false
+
+OBJECTIVE: >
+  交付 S5a 的主读写门面端口、配套值类型、以及唯一的本地读取注入端口。
+  本 ACT 是「读写不对称」（§2.5）与「零网络结构性保证」（§5.5.1/§5.5.2/§5.5.3）的契约落点。
+  零实现，只签名 + dartdoc。
+
+SCOPE:
+  READ:
+    - docs/superpowers/specs/2026-08-03-s5a-theme-resource-distribution-design.md   # §5.3 主门面；§5.4 值类型；§5.5.2 注入端口；§5.5.3 store 构造器；§2.5 读写不对称；§2.6 写入形状
+    - core/lib/model/theme_token_types.dart                                        # ACT 01 产物
+    - core/lib/model/theme_resolution.dart                                         # ACT 01 产物
+    - core/lib/model/cancellation_token.dart                                       # S1a 既有，CancellationToken 类型
+    - core/lib/model/storage_error.dart                                            # StorageError 基类
+  WRITE:
+    - core/lib/model/theme_resource_store.dart
+    - core/lib/model/theme_value_types.dart
+    - core/lib/model/theme_source_ports.dart
+
+SIGNATURE:
+  # 严格照设计 §5.3 / §5.4 / §5.5.2 原文。不要增删方法。
+  theme_resource_store.dart: |
+    // 包：persistence_core  文件：core/lib/model/theme_resource_store.dart
+    abstract interface class ThemeResourceStore {
+      String get scopeUid;
+
+      // ── 读 ──
+      /// 解析当前生效主题：三层合并（override > 已装包 > bundled），逐 key 取第一命中。
+      /// 【性能硬约束】不得发起任何网络请求、不得触发 XRAP 安装流程。
+      Future<ThemeTokenSet> resolve({CancellationToken? cancel});
+
+      /// 当前生效主题的解析结果流。覆盖层变更、主题切换、XRAP 活跃指针翻转时推送。
+      Stream<ThemeTokenSet> watchResolved();
+
+      /// 本地可用的主题清单（XRAP 活跃世代落地物 + generation 0）。
+      Future<List<LocalTheme>> listLocalThemes();
+
+      // ── 写 · 主题选择 ──
+      Future<void> selectTheme(String themeId);
+      Future<void> clearThemeSelection();
+
+      // ── 写 · 用户覆盖层（只作用于用户覆盖层，§2.6）──
+      /// 批量应用覆盖差量。原子提交：要么全成，要么全不成。只存差量。
+      /// 【只作用于用户覆盖层】§2.5 读写不对称：写不碰主题包与 bundled。
+      Future<void> applyOverrides({required Map<String, dynamic> patch, required OverrideOrigin origin});
+
+      /// 删除指定覆盖，恢复到下层。不存在的 key 静默忽略（幂等）。
+      /// 【只作用于用户覆盖层】仅删用户覆盖，不动主题包与 bundled。
+      Future<void> removeOverrides(Set<String> tokenKeys);
+
+      /// 当前全部用户覆盖（诊断与"恢复默认"UI 用）。
+      Future<Map<String, OverrideEntry>> listOverrides();
+    }
+    // ⚠️ 本端口不提供任何安装类方法（归 XRAP，§0.0 裁定 3）。
+
+  theme_value_types.dart: |
+    final class LocalTheme {
+      final String id;
+      final String displayName;
+      final String author;
+      final int generation;        // XRAP 世代号；0 即 bundled 内置世代
+      const LocalTheme({required this.id, required this.displayName, required this.author, required this.generation});
+    }
+    final class OverrideEntry {
+      final dynamic value;
+      final OverrideOrigin origin;
+      final DateTime updatedAtUtc;
+      const OverrideEntry({required this.value, required this.origin, required this.updatedAtUtc});
+    }
+    final class OverrideOrigin {
+      static const manual = OverrideOrigin._('manual', null, null);
+      final String kind;
+      final String? sourceThemeId;
+      final String? sourceThemeVersion;
+      const OverrideOrigin._(this.kind, this.sourceThemeId, this.sourceThemeVersion);
+      const OverrideOrigin.fromPackage({required String themeId, required String version})
+          : this._('package', themeId, version);
+    }
+
+  theme_source_ports.dart: |
+    // §5.5.2：S5a 只保留一个注入端口（remote/package/signature 三类归 XRAP）。
+    abstract interface class ThemeLocalReader {
+      /// 读取 bundled（XRAP generation 0）的已解析、已扁平化 token。
+      /// 返回值不得为 null -- bundled 是最后兜底层，恒存在（XRAP 协议 P5）。
+      Future<Map<String, dynamic>> readBundledTokens();
+
+      /// 读取 XRAP 当前活跃世代的主题 token；无已装主题时返回 null。
+      /// 【不触发安装】只读已翻转到活跃指针的落地物。
+      Future<Map<String, dynamic>?> readActiveThemeTokens(String themeId);
+
+      /// 读取用户覆盖差量（private 层，XRAP 硬拒的那部分）。
+      Future<Map<String, OverrideEntry>> readOverrides();
+    }
+
+CONSTRAINTS:
+  - `ThemeResourceStore` 是 `abstract interface class`，**不提供任何安装类方法**
+    （`install`/`uninstall`/`download` 等名字出现即违规，归 XRAP）。
+  - `applyOverrides` 与 `removeOverrides` 的 dartdoc 各含「只作用于用户覆盖层」字样；
+    `resolve` 的 dartdoc 含「三层合并」字样（验收 A6，逐条 grep -c == 1）。
+  - `ThemeLocalReader` 是**唯一**注入端口。不得再定义 `ThemeRemoteFetcher` /
+    `ThemePackageStore` / `ThemeSignatureVerifier` 等端口（残留门禁会扫，见 ACT 07）。
+  - `InMemoryThemeResourceStore` 的构造器在 ACT 06 落地，本 ACT 只定义端口。
+    构造器形状约束（P3-a1 tear-off 断言会检查）：
+    `InMemoryThemeResourceStore({required String scopeUid, required ThemeLocalReader localReader})`，
+    **没有第三参数**（这是零网络的结构性保证）。
+  - dartdoc 中文，密度照 `ports.dart`（A18）。
+
+TESTS_FIRST:
+  CASES:
+    - NAME: store_has_no_install_methods
+      FILE: core/test/theme_resource_store_contract_test.dart
+      BEHAVIOR: >
+        用 dart:mirrors 不可用（Flutter），改用反射式断言：读取 ThemeResourceStore 的
+        抽象方法名集合（通过 `ThemeResourceStore` 的 `abstract interface` 声明无法运行时枚举，
+        故改用源码扫描）：grep `Future<.*> (install|uninstall|download|fetch|verify)` 在
+        theme_resource_store.dart 内 EXPECT_EXIT=1。此用例在 ACT 06 用构造器 tear-off
+        断言 P3-a1 兜住；本 ACT 先落 A7 的源码扫描版。
+      RED_COMMAND: cd core && flutter test test/theme_resource_store_contract_test.dart
+      RED_EXPECT: 编译失败（ThemeResourceStore 不存在），退出码非 0
+      COVERS: [A7]
+
+    - NAME: read_write_asymmetry_dartdoc_present
+      FILE: core/test/theme_resource_store_contract_test.dart
+      BEHAVIOR: >
+        断言 theme_resource_store.dart 中：
+        `applyOverrides` 段落 dartdoc 含「只作用于用户覆盖层」；
+        `removeOverrides` 段落 dartdoc 含「只作用于用户覆盖层」；
+        `resolve` 段落 dartdoc 含「三层合并」。
+        用读文件 + 子串断言（不依赖运行时反射）。
+      RED_COMMAND: cd core && flutter test test/theme_resource_store_contract_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A6]
+
+    - NAME: override_origin_from_package_records_values
+      FILE: core/test/theme_resource_store_contract_test.dart
+      BEHAVIOR: >
+        构造 OverrideOrigin.fromPackage(themeId: 'pkg.a', version: '1.2')，
+        断言 kind == 'package' / sourceThemeId == 'pkg.a' / sourceThemeVersion == '1.2'。
+        OverrideOrigin.manual 断言三字段为 manual/null/null。证明"存值不存引用"。
+      RED_COMMAND: cd core && flutter test test/theme_resource_store_contract_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A6]
+
+VERIFICATION:
+  - CMD: cd core && dart analyze --fatal-infos lib/model/theme_resource_store.dart lib/model/theme_value_types.dart lib/model/theme_source_ports.dart
+    EXPECT_EXIT: 0
+  # A6：读写不对称 dartdoc -- 逐方法判定（纪要 A6 口径：applyOverrides 与 removeOverrides 的 dartdoc 各含）
+  # 取声明行之上 3 行的 dartdoc 块（grep -B3），再只留 `///` 行（排除 section 注释 `//`），
+  # 断言含目标字串。dartdoc 在声明行【之上】，awk 区间从声明行起算抽不到（REACT-R2 修正）。
+  - CMD: grep -B3 'Future<void> applyOverrides' core/lib/model/theme_resource_store.dart | grep -E '^\s*///' | grep -c "只作用于用户覆盖层"
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  - CMD: grep -B3 'Future<void> removeOverrides' core/lib/model/theme_resource_store.dart | grep -E '^\s*///' | grep -c "只作用于用户覆盖层"
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  - CMD: grep -c "三层合并" core/lib/model/theme_resource_store.dart
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  # A7：无安装类方法（save/set 前缀）
+  - CMD: grep -nE "Future<void> (save|set)[A-Z]" core/lib/model/theme_resource_store.dart
+    EXPECT_EXIT: 1
+  # A5b：不依赖 xuan_config
+  - CMD: grep -rn "package:xuan_config" core/lib/
+    EXPECT_EXIT: 1
+  # 零实现
+  - CMD: grep -rn "class .*Impl\|UnimplementedError" core/lib/model/theme_resource_store.dart core/lib/model/theme_value_types.dart core/lib/model/theme_source_ports.dart
+    EXPECT_EXIT: 1
+
+ON_FAIL:
+  - RED 阶段测试没红（写实现前就绿）-> 测试没真正依赖新类型/新行为，
+    停下重写测试，【不要】继续往下做
+  - 实现后 VERIFICATION 某条不过 -> 先看是不是 EXPECT 写错（尤其 grep -c 的
+    双 EXPECT 语义：无匹配时打印 0 且退出码 1，两者都断言），再改实现
+  - core / drift / p2p 的【既有】测试变红 -> 立即停下。
+    本 ACT 只加不改，既有测试变红说明动到了不该动的地方
+  - SELF_CHECK/变红自检某条注入后【没有】变红 -> 那条门禁是假的，
+    必须重写门禁而不是跳过自检（本仓门禁纪律第 8 条）
+  - 基线类命令（analyze 数量、测试数量）不符 -> 不要改基线迁就实现，
+    先确认是不是真的引入了新问题
+  - `core/lib/model/dataset/` 下任何文件被改 -> 立即停下（XRAP 契约只读，stop condition #4）
+  - 连续两次修不好同一条 -> 在纪要「决定记录」写下现象与已排除的可能，停下上报，
+    不要连续第三次尝试
+
+DONE_WHEN:
+  - 三个源文件存在且 analyze 零 issue
+  - A6/A7 的 VERIFICATION 命令全过
+  - 三个测试用例存在（先红后绿）
+  - 不修改既有文件，**本任务链内先前 ACT 新建的测试文件除外**
+    （本 ACT 扩充 ACT 01 新建的 core/test/theme_resource_store_contract_test.dart）

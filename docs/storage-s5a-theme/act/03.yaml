@@ -1,0 +1,194 @@
+ACT_VERSION: 1
+TASK_ID: mimo-storage-s5a-theme/03
+TITLE: 契约层 · 存储策略 + XRAP 数据集声明 + 模块注册器
+TYPE: contract
+ORDER: 3
+DEPENDS_ON: [mimo-storage-s5a-theme/01, mimo-storage-s5a-theme/02]
+DISPATCH_STATUS: ready
+STRONG_MODEL_ONLY: false
+
+OBJECTIVE: >
+  交付 S5a 接入 XRAP 的全部契约动作：三条 StoragePolicy 常量、主题数据集的
+  DatasetDescriptor 声明、以及模块注册器 ThemeModuleRegistry（策略 + XRAP 数据集，幂等）。
+  这是 `StoragePolicyRegistry` 的首个生产调用点（§1.6 实查零生产调用）。
+
+SCOPE:
+  READ:
+    - docs/superpowers/specs/2026-08-03-s5a-theme-resource-distribution-design.md   # §5.6.1 策略声明；§5.6.2 数据集声明；§5.6.3 注册落点
+    - core/lib/model/storage_policy.dart                                            # S1a 既有，StoragePolicy.resource/private 签名
+    - core/lib/model/storage_policy_registry.dart                                   # S1a 既有，register/lookup/all/clearForTesting
+    - core/lib/model/dataset/dataset_descriptor.dart                                # XRAP 契约（只读，禁改）：DatasetDescriptor 字段
+    - core/lib/model/dataset/dataset_registry.dart                                  # XRAP 契约（只读）：DatasetRegistry.register 校验
+    - core/lib/model/dataset/dataset_manifest.dart                                  # XRAP 契约（只读）：DatasetManifest 字段
+    - core/lib/model/dataset/dataset_materializer.dart                              # XRAP 契约（只读）：materialize 四参数 + MaterializeOutcome 默认构造器（CASE1 手写 fake materializer 需看）
+    - core/lib/model/storage_classification.dart                                    # S1a 既有：Carrier/Source/Publisher/DataVisibility
+    - assets/lib/geo/geo_datasets.dart                                              # T1 接入样板（main 6cd7a66），照此形制
+  WRITE:
+    - core/lib/model/theme_storage_policies.dart
+    - core/lib/model/theme_dataset.dart
+    - core/lib/model/theme_module_registry.dart
+
+SIGNATURE:
+  # 严格照设计 §5.6.1 / §5.6.2 / §5.6.3 原文。
+  theme_storage_policies.dart: |
+    // §5.6.1：三条 StoragePolicy const + 三个 entityType 常量
+    const officialThemePolicy = StoragePolicy.resource(
+      carriers: {Carrier.row, Carrier.blob},
+      sources: {Source.bundled, Source.officialRemote},
+    );   // publisher 默认 official
+    const themeOverridePolicy = StoragePolicy.private(carriers: {Carrier.row});
+    const themeSelectionPolicy = StoragePolicy.private(carriers: {Carrier.row});
+
+    // entityType 常量（不得内联字面量，测试与生产引用同一常量）
+    const themePackageEntityType = 'theme_package';
+    const themeOverrideEntityType = 'theme_override';
+    const themeSelectionEntityType = 'theme_selection';
+
+  theme_dataset.dart: |
+    // §5.6.2：照 T1 样板（assets/lib/geo/geo_datasets.dart）的形制。
+    // ⚠ materializer 工厂从外部传入 -- 契约层（core/lib/model/）不得依赖 reference 层（core/lib/reference/）。
+    DatasetDescriptor themeDatasetDescriptor({
+      required DatasetMaterializer Function() materializer,
+    }) =>
+        DatasetDescriptor(
+          datasetId: themeDatasetId,
+          appSchemaRevision: kThemeAppSchemaRevision,
+          policy: officialThemePolicy,
+          bundledManifest: kThemeBundledManifest,    // generation 0，恒存在
+          materializer: materializer,                // 原样透传，契约层不认识 reference 层
+        );
+
+    const themeDatasetId = 'theme.package';          // 不得内联字面量
+    const kThemeAppSchemaRevision = 1;
+    // ⚠ kThemeBundledManifest 占位（本 ACT 仅让契约编译通过；真值由 BUILD-THEME 任务填入，见 CONSTRAINTS）
+    // ⚠ final 不是 const -- publishedAtUtc 是 DateTime 无 const 构造器
+    final kThemeBundledManifest = DatasetManifest(
+      datasetId: themeDatasetId,
+      contentVersion: '0.0.0-placeholder',   // TODO(BUILD-THEME)
+      minimumAppSchemaRevision: 1,
+      payloadFormat: DatasetPayloadFormat.prebuilt,
+      carriers: {Carrier.row},
+      payloadSha256: '00...0',   // 64 个 0，TODO(BUILD-THEME)
+      payloadBytes: 0,
+      declaredRowCount: 0,   // TODO(BUILD-THEME)
+      publishedAtUtc: DateTime.utc(2026, 1, 1),
+    );
+
+  theme_module_registry.dart: |
+    // §5.6.3：注册落点（精确到文件、函数、时机、幂等策略）
+    abstract final class ThemeModuleRegistry {
+      static bool _registered = false;
+
+      /// 注册主题模块：三条存储策略 + 一个 XRAP 数据集。幂等。
+      /// [themeMaterializer] 是落地器工厂，由装配层给出（§4.5 第 2 步）。
+      /// 契约层不认识 reference 层的 InMemoryThemeMaterializer，故只透传不构造。
+      static void register({
+        required DatasetMaterializer Function() themeMaterializer,
+      }) {
+        if (_registered) return;
+        StoragePolicyRegistry.register(themePackageEntityType, officialThemePolicy);
+        StoragePolicyRegistry.register(themeOverrideEntityType, themeOverridePolicy);
+        StoragePolicyRegistry.register(themeSelectionEntityType, themeSelectionPolicy);
+        DatasetRegistry.register(themeDatasetDescriptor(materializer: themeMaterializer));
+        _registered = true;
+      }
+
+      @visibleForTesting
+      static void resetForTesting() => _registered = false;
+    }
+
+CONSTRAINTS:
+  - `themeDatasetDescriptor` 的 `materializer` 必须是**入参**（`required DatasetMaterializer Function() materializer`），
+    不是契约层自己 new。这保住 A3（契约层零实现）与分层方向（契约层不依赖 reference 层）。
+    设计 §5.6.2 / §4.5 第 2 步。
+  - `kThemeBundledManifest` 本 ACT 用占位【全部 11 个 required 字段都给值】，仅让契约编译通过；真值由 BUILD-THEME 任务填入：
+    - datasetId: themeDatasetId
+    - contentVersion: '0.0.0-placeholder'   # TODO(BUILD-THEME) 填真值
+    - minimumAppSchemaRevision: 1   # == kThemeAppSchemaRevision（自己装得进自己）
+    - payloadFormat: DatasetPayloadFormat.prebuilt
+    - carriers: {Carrier.row}
+    - payloadSha256: '00...0'（64 个 0）
+    - payloadBytes: 0
+    - declaredRowCount: 0   # TODO(BUILD-THEME) 填真值
+    - publishedAtUtc: DateTime.utc(2026, 1, 1)
+    ⚠ `publishedAtUtc` 是 DateTime，【无 const 构造器】，所以 `kThemeBundledManifest` 必须 `final` 不能 `const`。
+    ACT 05 的 A20 测试用 fixture 的真值，不读这个占位。占位 dartdoc 里写明 TODO(BUILD-THEME)。
+  - `ThemeModuleRegistry.register` 用 `_registered` 标志保证幂等，**不用 try-catch 吞 StateError**
+    （那会掩盖"别的模块抢注同名 entityType"的真实错误，设计 §5.6.3）。
+  - `resetForTesting` 必须 `@visibleForTesting`（照 `DatasetRegistry.clearForTesting` 形制）。
+  - 不得改 `core/lib/model/dataset/` 下任何文件（XRAP 契约只读）。
+  - dartdoc 中文（A18）。
+
+TESTS_FIRST:
+  CASES:
+    - NAME: register_real_drives_policy_and_dataset
+      FILE: core/test/theme_module_registry_test.dart
+      BEHAVIOR: >
+        测试中调用
+        `ThemeModuleRegistry.register(themeMaterializer: () => InMemoryThemeMaterializer(tokenStore))`
+        （InMemoryThemeMaterializer 在 ACT 05，本 ACT 测试用一个最小 fake materializer 代替：
+        实现 DatasetMaterializer 的 materialize/dropGeneration/datasetId，materialize 写入传入的 tokenStore）。
+        断言：
+        ①StoragePolicyRegistry.all 含 theme_package/theme_override/theme_selection 三 key 且策略对象相等；
+        ②DatasetRegistry.lookup(themeDatasetId) != null；
+        再调一次 register(...) 不抛异常（幂等）。
+      RED_COMMAND: cd core && flutter test test/theme_module_registry_test.dart
+      RED_EXPECT: 编译失败（ThemeModuleRegistry 不存在），退出码非 0
+      COVERS: [A8]
+
+    - NAME: register_idempotent_flag_not_swallow
+      FILE: core/test/theme_module_registry_test.dart
+      BEHAVIOR: >
+        resetForTesting() 后，先 register 一次成功；再 resetForTesting() 后，
+        手动 StoragePolicyRegistry.register(themePackageEntityType, officialThemePolicy)
+        抢注同名 entityType，再调 ThemeModuleRegistry.register(...) 必须抛 StateError
+        （证明幂等标志不是靠吞异常，而是靠 _registered 短路）。
+      RED_COMMAND: cd core && flutter test test/theme_module_registry_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A8]
+
+    - NAME: entity_type_constants_not_inlined
+      FILE: core/test/theme_module_registry_test.dart
+      BEHAVIOR: >
+        断言 themePackageEntityType == 'theme_package' 等三个常量值正确，
+        且 StoragePolicyRegistry.all 的 key 与这三个常量引用同一字符串（防止拼写漂移）。
+      RED_COMMAND: cd core && flutter test test/theme_module_registry_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A8]
+
+VERIFICATION:
+  - CMD: cd core && dart analyze --fatal-infos lib/model/theme_storage_policies.dart lib/model/theme_dataset.dart lib/model/theme_module_registry.dart
+    EXPECT_EXIT: 0
+  - CMD: grep -rn "class .*Impl\|UnimplementedError" core/lib/model/theme_storage_policies.dart core/lib/model/theme_dataset.dart core/lib/model/theme_module_registry.dart
+    EXPECT_EXIT: 1
+  # materializer 必须是入参，不是契约层自己构造
+  - CMD: grep -nE "DatasetMaterializer Function\(\) (materializer|themeMaterializer)" core/lib/model/theme_dataset.dart core/lib/model/theme_module_registry.dart
+    EXPECT_EXIT: 0   # 必须有匹配
+  # 不得改 XRAP 契约
+  - CMD: git diff --quiet -- core/lib/model/dataset/
+    EXPECT_EXIT: 0
+  # 幂等标志存在（SIGNATURE 照抄产出 4 行：声明 / 短路读 / 写 true / resetForTesting 写 false）
+  - CMD: grep -c "_registered" core/lib/model/theme_module_registry.dart
+    EXPECT_STDOUT: "4"
+    EXPECT_EXIT: 0
+
+ON_FAIL:
+  - RED 阶段测试没红（写实现前就绿）-> 测试没真正依赖新类型/新行为，
+    停下重写测试，【不要】继续往下做
+  - 实现后 VERIFICATION 某条不过 -> 先看是不是 EXPECT 写错（尤其 grep -c 的
+    双 EXPECT 语义：无匹配时打印 0 且退出码 1，两者都断言），再改实现
+  - core / drift / p2p 的【既有】测试变红 -> 立即停下。
+    本 ACT 只加不改，既有测试变红说明动到了不该动的地方
+  - SELF_CHECK/变红自检某条注入后【没有】变红 -> 那条门禁是假的，
+    必须重写门禁而不是跳过自检（本仓门禁纪律第 8 条）
+  - 基线类命令（analyze 数量、测试数量）不符 -> 不要改基线迁就实现，
+    先确认是不是真的引入了新问题
+  - `core/lib/model/dataset/` 下任何文件被改 -> 立即停下（XRAP 契约只读，stop condition #4）
+  - 连续两次修不好同一条 -> 在纪要「决定记录」写下现象与已排除的可能，停下上报，
+    不要连续第三次尝试
+
+DONE_WHEN:
+  - 三个源文件存在且 analyze 零 issue
+  - 三个测试用例存在（先红后绿）
+  - `git diff --quiet -- core/lib/model/dataset/` 通过（XRAP 契约未被动）
+  - 不修改任何既有文件（除测试文件本 ACT 新建）

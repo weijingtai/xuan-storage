@@ -1,0 +1,314 @@
+ACT_VERSION: 1
+TASK_ID: mimo-storage-s5a-theme/06
+TITLE: reference · InMemoryThemeResourceStore + 装配入口 theme_assembly
+TYPE: reference
+ORDER: 6
+DEPENDS_ON: [mimo-storage-s5a-theme/02, mimo-storage-s5a-theme/04, mimo-storage-s5a-theme/05, mimo-storage-s5a-theme/05b]   # 05b 产 CountingDatasetInstaller/ThemeBenchFixture，P3/P4/P6/A21 用例依赖
+DISPATCH_STATUS: ready
+STRONG_MODEL_ONLY: true   # 本 ACT 含 P3/P4 oracle 与装配链，逻辑密度高，建议强模型
+
+OBJECTIVE: >
+  交付 reference store 与装配入口，闭合「安装 -> 落地 -> 启动读取」数据流（§4.5）。
+  这是 S5a 最复杂的 ACT：store 的零网络结构性保证（P3）、启动路径不触发安装（P4）、
+  活跃世代读取挂起时 50ms 降级（P6）、装配链同一份落地物（A21）全在此验证。
+
+SCOPE:
+  READ:
+    - docs/superpowers/specs/2026-08-03-s5a-theme-resource-distribution-design.md   # §4.5 装配数据流五步链；§5.5.3 store 构造器；§5.5.4 P3/P4/P6 oracle + 探针完整定义；§5.5.5 A14/A19 归属；§6.6 缓存
+    - core/lib/model/theme_resource_store.dart                                      # ACT 02 产物：ThemeResourceStore 端口
+    - core/lib/model/theme_source_ports.dart                                        # ACT 02 产物：ThemeLocalReader
+    - core/lib/model/theme_value_types.dart                                         # ACT 02 产物：OverrideEntry
+    - core/lib/model/theme_token_types.dart                                         # ACT 01 产物
+    - core/lib/model/theme_resolution.dart                                          # ACT 01 产物
+    - core/lib/model/theme_module_registry.dart                                     # ACT 03 产物：ThemeModuleRegistry.register
+    - core/lib/reference/theme_token_merger.dart                                    # ACT 04 产物：mergeThemeTokens
+    - core/lib/reference/in_memory_theme_materializer.dart                          # ACT 05 产物：InMemoryThemeTokenStore / InMemoryThemeMaterializer
+    - core/lib/model/dataset/dataset_installer.dart                                 # XRAP 契约（只读）：DatasetInstaller 六个抽象方法
+    - core/lib/model/dataset/dataset_registry.dart                                  # XRAP 契约（只读）：DatasetRegistry.clearForTesting（P4 CASE 调它）
+  WRITE:
+    - core/lib/reference/in_memory_theme_resource_store.dart
+    - core/lib/reference/theme_assembly.dart
+
+SIGNATURE:
+  # §5.5.3：store 构造器只有两个参数（零网络的结构性保证，P3-a1 tear-off 会断言）
+  in_memory_theme_resource_store.dart: |
+    final class InMemoryThemeResourceStore implements ThemeResourceStore {
+      /// 构造 reference store。
+      /// - scopeUid: 作用域 uid
+      /// - localReader: 必需。bundled/活跃世代/override 的唯一来源。
+      /// 【v4：不再接收 remoteFetcher/packageStore/signatureVerifier】那三样归 XRAP。
+      /// reference 的零 IO 由「只有一个本地读取端口」这一结构事实保证 --
+      /// 它连发起网络的能力都没有，比"默认实现抛异常"更强。
+      InMemoryThemeResourceStore({
+        required this.scopeUid,
+        required ThemeLocalReader localReader,
+      });
+
+      @override
+      final String scopeUid;
+      // 持有 localReader，调 mergeThemeTokens（ACT 04）产出 ThemeTokenSet。
+      // 缓存键 (activeThemeId, packageVersion, overridesRevision) 三元组，相同返回 identical（P2）。
+      // watchResolved：覆盖层变更/主题切换/XRAP 活跃指针翻转时推送新值。
+      // listLocalThemes：XRAP 活跃世代 + generation 0。
+      // selectTheme/clearThemeSelection/applyOverrides/removeOverrides/listOverrides：写覆盖层。
+    }
+
+  # §4.5：装配入口 + XrapThemeLocalReader
+  theme_assembly.dart: |
+    /// 把 XRAP 的落地产物接到 S5a 读路径上的 reference reader（§4.5 第 4 步）。
+    final class XrapThemeLocalReader implements ThemeLocalReader {
+      /// - tokenStore: §4.5 第 1 步创建的那一个，与 materializer 工厂捕获的是同一个实例
+      /// - installer: XRAP 安装器，只用来读活跃指针（active）；不得调 ensureInstalled/checkForUpdate（P4 会断言）
+      /// - initialOverrides: 用户覆盖差量初始快照；生产实现改查 drift 覆盖表
+      XrapThemeLocalReader({
+        required InMemoryThemeTokenStore tokenStore,
+        required DatasetInstaller installer,
+        required Map<String, OverrideEntry> initialOverrides,
+      });
+
+      @override
+      Future<Map<String, dynamic>> readBundledTokens();
+      // 实现：_tokens.tokensOf(0)；为 null 抛 StateError（fail closed，装配漏了 ensureInstalled）。
+
+      @override
+      Future<Map<String, dynamic>?> readActiveThemeTokens(String themeId);
+      // 六步无分支（§4.5）：
+      // 1. themeId != themeDatasetId -> 抛 ArgumentError
+      // 2. final active = await installer.active(themeDatasetId);
+      // 3. active == null || !active.isUsable -> 返回 null
+      // 4. active.generation == 0 -> 返回 null（第 0 代由 readBundledTokens 承担）
+      // 5. final t = _tokens.tokensOf(active.generation); t == null -> 返回 null
+      // 6. 返回 t
+
+      @override
+      Future<Map<String, OverrideEntry>> readOverrides();  // 返回 initialOverrides 只读视图
+    }
+
+    /// reference 装配入口。P4 的唯一注入点。
+    /// 按顺序做四件事（§4.5，缺一不可）：
+    ///   1. final tokenStore = InMemoryThemeTokenStore();
+    ///   2. ThemeModuleRegistry.register(themeMaterializer: () => InMemoryThemeMaterializer(tokenStore));
+    ///   3. await installer.ensureInstalled(themeDatasetId);  // 不触网
+    ///   4. return InMemoryThemeResourceStore(scopeUid: scopeUid,
+    ///        localReader: XrapThemeLocalReader(tokenStore: tokenStore, installer: installer, initialOverrides: initialOverrides));
+    /// ⚠️ assembleThemeStore 不接收 localReader -- reader 由它自己造，否则 P4 只测自己传的假货。
+    Future<ThemeResourceStore> assembleThemeStore({
+      required String scopeUid,
+      required DatasetInstaller installer,
+      required Map<String, OverrideEntry> initialOverrides,
+    });
+
+CONSTRAINTS:
+  - **store 构造器只有两个参数** `{required String scopeUid, required ThemeLocalReader localReader}`（§5.5.3）。
+    P3-a1 tear-off 断言会检查函数类型；新增任何 required 参数即红。这是零网络的结构性保证。
+  - **assembleThemeStore 不接收 localReader**（§4.5 末注）。reader 由它自己按第 4 步造。
+    P3-b/P6 需注入探针 reader 时，**直接构造 InMemoryThemeResourceStore**，不走装配函数。
+  - **readActiveThemeTokens 六步无分支**（§4.5）。不得加 else 分支或提前 return。
+  - **缓存 identical**（§6.6 缓存）：相同 (activeThemeId, packageVersion, overridesRevision) 返回同一实例；
+    改一次 override 后 identical 为 false（P2）。overridesRevision 单调递增。
+  - **不可变性**：resolve() 结果的 Map 逐层 unmodifiable（A16，与 ACT 04 一致）。
+  - **assembleThemeStore 第 3 步 ensureInstalled 不触网**（XRAP dataset_installer.dart 明写）。
+  - dartdoc 中文（A18）。
+
+TESTS_FIRST:
+  CASES:
+    # === A21 装配链闭合（R4-P1-3 回归守卫）===
+    - NAME: assembly_chain_shares_one_tokenstore
+      FILE: core/test/theme_startup_path_test.dart
+      BEHAVIOR: >
+        A21：①tokenStore = InMemoryThemeTokenStore()；
+        ThemeModuleRegistry.register(themeMaterializer: () => InMemoryThemeMaterializer(tokenStore))；
+        ②await installer.ensureInstalled(themeDatasetId)（用 CountingDatasetInstaller，它真调 descriptor.materializer() 工厂并驱动 materialize）；
+        ③断言 tokenStore.generations.contains(0) -- 工厂新建的实例把落地物写进了共享 store；
+        ④断言 await XrapThemeLocalReader(...).readBundledTokens() 的 key 数 == fixture token 条数；
+        ⑤连调两次工厂（各落地一代），断言两代都在 tokenStore.generations 里。
+      RED_COMMAND: cd core && flutter test test/theme_startup_path_test.dart
+      RED_EXPECT: 编译失败（assembleThemeStore 不存在），退出码非 0
+      COVERS: [A21]
+
+    # === P3 零网络（三条结构性断言）===
+    - NAME: P3_a1_constructor_tearoff_function_type
+      FILE: core/test/theme_startup_path_test.dart
+      BEHAVIOR: >
+        P3-a1：final Object ctor = InMemoryThemeResourceStore.new;
+        expect(ctor, isA<InMemoryThemeResourceStore Function({required String scopeUid, required ThemeLocalReader localReader})>())。
+        新增/删除/改类型任一 required 参数即红。tear-off 先赋 Object 保证红在运行时不在编译期。
+      RED_COMMAND: cd core && flutter test test/theme_startup_path_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [P3]
+
+    - NAME: P3_a2_import_whitelist
+      FILE: core/test/theme_startup_path_test.dart
+      BEHAVIOR: >
+        P3-a2：读 in_memory_theme_resource_store.dart，逐行抽 ^import\s+'(?<uri>[^']+)'.*;$ 得 IMPORTS。
+        ALLOWED 7 条（设计 §5.5.4 原 6 条 + dart:async）：
+        theme_token_types/theme_resolution/theme_resource_store/
+        theme_source_ports/theme_value_types/theme_token_merger + 'dart:async'。
+        【dart:async 已显式加白】理由：watchResolved() 的 StreamController 需要 dart:async
+        （Future/Stream 由 dart:core 转出不受影响，StreamController 不是）。新增任何其它 uri 仍须先改白名单。
+        断言：①IMPORTS ⊆ ALLOWED；②IMPORTS ⊇ {theme_source_ports, theme_resource_store}（正向控制防空集）；
+        ③^(export|part|part of)\s 命中 == 0（防绕过）。
+      RED_COMMAND: cd core && flutter test test/theme_startup_path_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [P3]
+
+    - NAME: P3_b_behavior_positive_control
+      FILE: core/test/theme_startup_path_test.dart
+      BEHAVIOR: >
+        P3-b：store = InMemoryThemeResourceStore(scopeUid:'u1', localReader: CountingLocalReader(fixture))；
+        await store.resolve()；断言 localReader.bundledReadCount > 0 且 overrideReadCount > 0。
+        证明确实走了本地读取路径而非什么都没做。
+      RED_COMMAND: cd core && flutter test test/theme_startup_path_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [P3]
+
+    # === P4 启动路径不触发安装（分装配期/resolve 期两段计数）===
+    - NAME: P4_resolve_does_not_trigger_install
+      FILE: core/test/theme_startup_path_test.dart
+      BEHAVIOR: >
+        P4：tokenStore = InMemoryThemeTokenStore()；DatasetRegistry.clearForTesting() + ThemeModuleRegistry.resetForTesting()；
+        ThemeModuleRegistry.register(themeMaterializer: () => InMemoryThemeMaterializer(tokenStore))；
+        installerSpy = CountingDatasetInstaller(bundledPayload: ThemeBenchFixture.bundledJsonlBytes)；
+        store = await assembleThemeStore(scopeUid:'u1', installer: installerSpy, initialOverrides: ThemeBenchFixture.overrides)；
+        装配期：断言 ensureInstalledCallCount==1、checkForUpdateCallCount==0、tokenStore.generations.contains(0)；
+        installerSpy.resetCounts()；result = await store.resolve()；
+        resolve 期：断言 ensureInstalledCallCount==0、checkForUpdateCallCount==0、rollbackToCallCount==0、collectGarbageCallCount==0；
+        正向控制：activeCallCount > 0 且 calledDatasetIds 含 themeDatasetId。
+      RED_COMMAND: cd core && flutter test test/theme_startup_path_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [P4]
+
+    # === P2 缓存 identical ===
+    - NAME: P2_same_input_identical_then_override_breaks
+      FILE: core/test/theme_startup_path_test.dart
+      BEHAVIOR: >
+        P2：相同输入两次 resolve() 返回 identical 实例；
+        改一次 override 后 identical 为 false（证明缓存键真参与判定，非恒返回同一实例）。
+      RED_COMMAND: cd core && flutter test test/theme_startup_path_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [P2]
+
+    # === P5 无回指 ===
+    - NAME: P5_no_back_reference
+      FILE: core/test/theme_startup_path_test.dart
+      BEHAVIOR: >
+        P5：resolve() 返回后销毁 store 实例，结果仍可正常读取（证明无回指）。
+        ThemeTokenSection 字段类型不出现 ThemeResourceStore / layer 引用。
+      RED_COMMAND: cd core && flutter test test/theme_startup_path_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [P5]
+
+    # === P6 50ms 降级 ===
+    - NAME: P6_active_read_hang_returns_bundled_under_50ms
+      FILE: core/test/theme_startup_path_test.dart
+      BEHAVIOR: >
+        P6：store = InMemoryThemeResourceStore(localReader: SlowLocalReader(fixture, 活跃世代读取挂起))；
+        sw = Stopwatch()..start()；result = await store.resolve()；
+        断言 sw.elapsedMilliseconds < 50；result 来自 bundled 层；不抛异常。
+      RED_COMMAND: cd core && flutter test test/theme_startup_path_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [P6]
+
+    # === A6/A7/A15/A16 契约形状 ===
+    - NAME: contract_shape_and_resolution
+      FILE: core/test/theme_resource_store_contract_test.dart
+      BEHAVIOR: >
+        A6/A7/A15/A16：构造 store，resolve() 返回 ThemeTokenSet；
+        resolution.layers 各 contributedKeyCount 之和 == 结果 key 总数（A15）；
+        对结果 components 及嵌套 Map 执行 []=/remove() 抛 UnsupportedError（A16）。
+      RED_COMMAND: cd core && flutter test test/theme_resource_store_contract_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A6, A15, A16]
+
+    # === A10/A11/A12/A13③ store 层行为（REACT R8/R9/R10）===
+    - NAME: A10_override_survives_package_swap_and_uninstall
+      FILE: core/test/theme_resource_store_contract_test.dart
+      BEHAVIOR: >
+        A10：换主题包后用户覆盖仍生效；卸载主题包不影响覆盖层。经 store.resolve() 驱动（不是直接调 merger）。
+        ①同一 override 集合 {k1:'o1'} 下，先以 packageTokens=A 解析，再换成 packageTokens=B 解析，
+          断言两次结果中 k1 均为 'o1'（被 override 的 key 不随换包变）。
+        ②令 packageTokens=null（卸载），断言 override 仍生效（k1 仍为 'o1'）。
+        ③断言 listOverrides() 在换包/卸载前后均含 k1（覆盖层数据不随包变动）。
+      RED_COMMAND: cd core && flutter test test/theme_resource_store_contract_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A10]
+
+    - NAME: A11_applyOverrides_only_patch_keys_and_atomic
+      FILE: core/test/theme_resource_store_contract_test.dart
+      BEHAVIOR: >
+        A11：applyOverrides 只影响 patch 中的 key + 原子提交。
+        ①先 apply {k1:'a', k2:'b'}，再 apply {k1:'a2'}，断言 k2 仍在且值仍为 'b'（未出现的 key 不被清除）。
+        ②apply 一个含非法条目的 patch（如某 key 的 value 类型违反 §4.3 v 不得为 Map），
+          断言抛错【且】listOverrides() 与调用前逐 key 相等（原子回滚，整批不生效）。
+      RED_COMMAND: cd core && flutter test test/theme_resource_store_contract_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A11]
+
+    - NAME: A12_removeOverrides_falls_back_and_idempotent
+      FILE: core/test/theme_resource_store_contract_test.dart
+      BEHAVIOR: >
+        A12：removeOverrides 后 key 回落到下层；对不存在的 key 幂等不抛。
+        ①先 apply {k1:'o1'}（package 层 k1='p1'），removeOverrides({k1}) 后 resolve() 中 k1 == 'p1'（回落到 package）。
+        ②removeOverrides({不存在的 key}) 不抛异常（幂等）。
+        ③A13③：orphan key（package 与 bundled 均不含）在 listOverrides() 中仍存在（数据未删，§6.4）。
+      RED_COMMAND: cd core && flutter test test/theme_resource_store_contract_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A12, A13]
+
+
+    # === P1 bench（标 benchmark tag，不进 CI 阻塞）===
+    - NAME: P1_merge_bench_under_5ms
+      FILE: core/test/theme_merge_bench_test.dart
+      BEHAVIOR: >
+        P1：标 @Tags(['benchmark'])。先 warm-up 20 次，再测 100 次取中位数。
+        断言中位数 < 5ms。CI 只跑一次冒烟 < 100ms（不阻塞）。
+        fixture 叶子数须断言 >= 700（防空输入假通过）。
+      RED_COMMAND: cd core && flutter test test/theme_merge_bench_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [P1]
+
+VERIFICATION:
+  - CMD: cd core && dart analyze --fatal-infos lib/reference/in_memory_theme_resource_store.dart lib/reference/theme_assembly.dart
+    EXPECT_EXIT: 0
+  - CMD: cd core && flutter test test/theme_startup_path_test.dart test/theme_resource_store_contract_test.dart
+    EXPECT_EXIT: 0
+  # P3-a1：构造器形状（tear-off 断言在测试里，这里 grep 双参数）
+  - CMD: grep -cE "required String scopeUid, required ThemeLocalReader localReader" core/lib/reference/in_memory_theme_resource_store.dart
+    EXPECT_STDOUT: "1"
+    EXPECT_EXIT: 0
+  # assembleThemeStore 不接收 localReader
+  - CMD: grep -A3 "Future<ThemeResourceStore> assembleThemeStore" core/lib/reference/theme_assembly.dart | grep -c "localReader"
+    EXPECT_STDOUT: "0"
+    EXPECT_EXIT: 1
+  # 不改 XRAP 契约
+  - CMD: git diff --quiet -- core/lib/model/dataset/
+    EXPECT_EXIT: 0
+  # 不残留禁止标识符
+  - CMD: grep -rnE "InstalledTheme|AvailableTheme|ThemeRemoteFetcher|ThemePackageStore|ThemeSignatureVerifier|ThemeSignatureVerdict|refreshCatalog|listInstalled" core/lib/reference/in_memory_theme_resource_store.dart core/lib/reference/theme_assembly.dart
+    EXPECT_EXIT: 1
+
+ON_FAIL:
+  - RED 阶段测试没红（写实现前就绿）-> 测试没真正依赖新类型/新行为，
+    停下重写测试，【不要】继续往下做
+  - 实现后 VERIFICATION 某条不过 -> 先看是不是 EXPECT 写错（尤其 grep -c 的
+    双 EXPECT 语义：无匹配时打印 0 且退出码 1，两者都断言），再改实现
+  - core / drift / p2p 的【既有】测试变红 -> 立即停下。
+    本 ACT 只加不改，既有测试变红说明动到了不该动的地方
+  - SELF_CHECK/变红自检某条注入后【没有】变红 -> 那条门禁是假的，
+    必须重写门禁而不是跳过自检（本仓门禁纪律第 8 条）
+  - 基线类命令（analyze 数量、测试数量）不符 -> 不要改基线迁就实现，
+    先确认是不是真的引入了新问题
+  - `core/lib/model/dataset/` 下任何文件被改 -> 立即停下（XRAP 契约只读，stop condition #4）
+  - 连续两次修不好同一条 -> 在纪要「决定记录」写下现象与已排除的可能，停下上报，
+    不要连续第三次尝试
+
+DONE_WHEN:
+  - 两个源文件存在且 analyze 零 issue
+  - 十个测试用例全绿（先红后绿），P1 bench 标 benchmark tag
+  - 不修改任何既有文件，**本任务链内先前 ACT 新建的测试文件除外**
+    （本 ACT 扩充 ACT 01 新建的 core/test/theme_resource_store_contract_test.dart）
+  - 三条变红自检（设计 §5.5.4）逐条做：
+    1. readActiveThemeTokens 里把 installer.active 改成 installer.ensureInstalled -> resolve 期 ensureInstalledCallCount==0 红 -> 改回
+    2. assembleThemeStore 删第 3 步 ensureInstalled -> 装配期 ==1 与 tokenStore.generations.contains(0) 同时红 -> 改回
+    3. InMemoryThemeMaterializer 改回实例私有 Map -> tokenStore.generations.contains(0) 红 -> 改回
+    每条改坏后 git status 为空

@@ -1,0 +1,185 @@
+ACT_VERSION: 1
+TASK_ID: mimo-storage-s5a-theme/04
+TITLE: reference · 三层合并算法纯函数 theme_token_merger
+TYPE: reference
+ORDER: 4
+DEPENDS_ON: [mimo-storage-s5a-theme/01, mimo-storage-s5a-theme/02]   # 02 产出 OverrideEntry，SIGNATURE 与 READ 均依赖
+DISPATCH_STATUS: ready
+STRONG_MODEL_ONLY: false
+
+OBJECTIVE: >
+  交付 §6.6 合并算法的权威实现（纯函数，无状态）。这是 S5a 的核心价值落地：
+  三层取值（override > package > bundled，null 也算命中）、原子组补全、orphan 判定、
+  反扁平化与字典序稳定排序。将来的 drift 生产实现必须复用它，不得重写。
+
+SCOPE:
+  READ:
+    - docs/superpowers/specs/2026-08-03-s5a-theme-resource-distribution-design.md   # §6.6 完整规格（输入/6 步/缓存/不可变性）；§6.1-6.5 合并模型；§6.2 原子组清单
+    - core/lib/model/theme_token_types.dart                                        # ACT 01 产物：ThemeTokenSet/Section
+    - core/lib/model/theme_resolution.dart                                         # ACT 01 产物：ThemeResolution/ThemeLayerInfo/ThemeLayerKind
+    - core/lib/model/theme_value_types.dart                                        # ACT 02 产物：OverrideEntry/OverrideOrigin
+  WRITE:
+    - core/lib/reference/theme_token_merger.dart
+
+SIGNATURE:
+  # §6.6：纯函数，无状态。算法只有这一份权威定义。
+  theme_token_merger.dart: |
+    // 包：persistence_core  文件：core/lib/reference/theme_token_merger.dart
+    // 【reference】§6.6 合并算法的可执行形式。纯函数，无状态，零 IO。
+
+    /// 合并三层 token 为一份源无关的 ThemeTokenSet。
+    ///
+    /// 输入（均已扁平化，key 形如 light.components.four_zhu_card.shadow.color）：
+    /// - bundledTokens: bundled 默认主题（恒存在，最后兜底）
+    /// - packageTokens: 已装主题包；null 表示无已装包
+    /// - overrides: 用户覆盖差量
+    /// - activeThemeId / activeThemeVersion / selectionOrigin: 溯源信息
+    ///
+    /// 实现顺序（§6.6 末注）：1 输入校验 -> 5 orphan 判定 -> 2 逐 key 取值 -> 4 原子组补全 -> 3 记贡献数 -> 6 反扁平化
+    ThemeTokenSet mergeThemeTokens({
+      required Map<String, dynamic> bundledTokens,
+      required Map<String, dynamic>? packageTokens,
+      required Map<String, OverrideEntry> overrides,
+      required String? activeThemeId,
+      required String? activeThemeVersion,
+      required ThemeSelectionOrigin selectionOrigin,
+      required DateTime resolvedAtUtc,
+    }) {
+      // 见 §6.6 六步。关键点：
+      //  - 第 2 步：null 也算命中，用 containsKey 不用 ??
+      //  - 第 4 步：原子组清单见 §6.2（shadow/border/text_shadow/padding/margin）
+      //  - 第 5 步：orphan 不参与输出，加入 orphanedOverrideKeys，数据不删
+      //  - 第 6 步：所有层级 Map 按 key 字典序插入（SplayTreeMap 或先排序），顶层按 brightness 拆 light/dark
+    }
+
+    // 原子组清单（写死，不得由执行者推断，§6.2）：
+    //   .shadow        -> color/blur_radius/offset_x/offset_y
+    //   .border        -> color/width
+    //   .text.text_shadow -> color/blur_radius/offset_x/offset_y
+    //   .padding/.margin -> top/bottom/left/right/all（标量整体替换，Map 按方向补全）
+
+CONSTRAINTS:
+  - **纯函数，无状态**：不得持有任何实例字段、缓存、IO。缓存是 ACT 06 store 的职责，不在本文件。
+  - **null 也算命中**（§6.6 第 2 步）：某层显式给 null 须命中该层而非穿透下层。**用 `containsKey`，不用 `??`**。
+    这是 A9 的关键用例，写错就红。
+  - **orphan 判定顺序**（§6.6 末注）：必须 1->5（判定）->2->4->3->6。若 orphan 在第 2 步之后判定，
+    会参与原子组补全并污染结果。写测试时注入 orphan 覆盖验证它不出现在结果里。
+  - **原子组补全**（§6.6 第 4 步）：组内至少一个叶子来自较高层时，其余成员从较低层补齐；
+    较低层也没有则保持缺失（由 token_loader 字段默认值兜底，不在本层）。padding/margin 双形态见 §6.2。
+  - **字典序稳定**（§6.6 第 6 步）：所有层级 Map 按 key 字典序插入（`SplayTreeMap` 或先排序后插入）。
+    这是 P7 的实现保证。
+  - **不可变性**（§6.6 末）：合并产出的 `ThemeTokenSection.components/chart/semantic` 必须是
+    `Map.unmodifiable` 且内部嵌套逐层 unmodifiable。这是 A16/P2 的保证。
+  - dartdoc 中文（A18）。
+
+TESTS_FIRST:
+  CASES:
+    - NAME: three_layer_priority_override_package_bundled
+      FILE: core/test/theme_token_merger_test.dart
+      BEHAVIOR: >
+        A9：三层同 key，断言结果取 override > package > bundled。
+        构造 bundled={k1:'b'}、package={k1:'p'}、overrides={k1: OverrideEntry(value:'o',...)}，
+        断言结果 light.components 含 k1=='o'。删 override 断言变 'p'；删 package 断言变 'b'。
+      RED_COMMAND: cd core && flutter test test/theme_token_merger_test.dart
+      RED_EXPECT: 编译失败（mergeThemeTokens 不存在），退出码非 0
+      COVERS: [A9]
+
+    - NAME: null_value_counts_as_hit
+      FILE: core/test/theme_token_merger_test.dart
+      BEHAVIOR: >
+        A9 关键用例：package 显式给 k1=null，bundled 给 k1='b'。
+        断言结果 k1 == null（命中 package，不穿透到 bundled）。证明用 containsKey 不是 ??。
+      RED_COMMAND: cd core && flutter test test/theme_token_merger_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A9]
+
+    - NAME: atomic_group_completion_shadow
+      FILE: core/test/theme_token_merger_test.dart
+      BEHAVIOR: >
+        A14c：override 只覆盖 four_zhu_card.shadow.color，bundled 有完整 shadow（color/blur_radius/offset_x/offset_y）。
+        断言结果 shadow 四叶子齐全：color 来自 override，其余三叶子从 bundled 补齐。
+        若较高层给标量 padding 则整体替换（不做补全）。
+      RED_COMMAND: cd core && flutter test test/theme_token_merger_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A14c]
+
+    - NAME: orphan_not_in_result_but_kept_in_overrides
+      FILE: core/test/theme_token_merger_test.dart
+      BEHAVIOR: >
+        A13：override 覆盖 k_orphan，但 package 与 bundled 都不含 k_orphan。
+        断言：①k_orphan 不出现在合并结果中；②resolution.orphanedOverrideKeys 含 k_orphan；
+        ③listOverrides() 仍含它（数据未删 -- 这条在 ACT 06 store 层验，本 ACT 验 orphanedOverrideKeys）。
+      RED_COMMAND: cd core && flutter test test/theme_token_merger_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A13]
+
+    - NAME: merge_does_not_swallow_invalid_value
+      FILE: core/test/theme_token_merger_test.dart
+      BEHAVIOR: >
+        A19：注入 radius 值为 "8px"（非法），断言它原样出现在 resolve 结果中。
+        证明合并层不吞值、不过滤、不修正。非法值处置由下游 token_loader 负责。
+      RED_COMMAND: cd core && flutter test test/theme_token_merger_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A19]
+
+    - NAME: key_order_stable_and_sorted
+      FILE: core/test/theme_token_merger_test.dart
+      BEHAVIOR: >
+        P7：同一 fixture 合并 10 次，逐层 keys.toList() 逐元素相等，
+        且等于其字典序排序结果（keys.toList() == keys.toList()..sort()）。
+      RED_COMMAND: cd core && flutter test test/theme_token_merger_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [P7]
+
+    - NAME: contributed_key_count_sums_to_total
+      FILE: core/test/theme_token_merger_test.dart
+      BEHAVIOR: >
+        A15：resolution.layers 各 contributedKeyCount 之和 == 结果 key 总数。
+        防止填假数。
+      RED_COMMAND: cd core && flutter test test/theme_token_merger_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A15]
+
+    - NAME: result_is_unmodifiable
+      FILE: core/test/theme_token_merger_test.dart
+      BEHAVIOR: >
+        A16：对结果 components 及嵌套 Map 执行 []= 与 remove()，断言抛 UnsupportedError。
+      RED_COMMAND: cd core && flutter test test/theme_token_merger_test.dart
+      RED_EXPECT: 编译失败，先红
+      COVERS: [A16]
+
+VERIFICATION:
+  - CMD: cd core && dart analyze --fatal-infos lib/reference/theme_token_merger.dart
+    EXPECT_EXIT: 0
+  - CMD: cd core && flutter test test/theme_token_merger_test.dart
+    EXPECT_EXIT: 0
+  # 纯函数：无实例字段（class 不持有状态，或为顶层函数）
+  - CMD: grep -nE "static .* _cache|class .* \\{" core/lib/reference/theme_token_merger.dart | grep -v "^.*//"
+    EXPECT_EXIT: 1   # 不持有状态字段（注释里的不算）
+  # 用 containsKey 不是 ??（A9 null 命中的实现保证）- 下限断言防正则写错扫到 0 静默绿
+  - CMD: test "$(grep -c "containsKey" core/lib/reference/theme_token_merger.dart)" -ge 1
+    EXPECT_EXIT: 0
+  # 不可变：Map.unmodifiable 出现（下限断言）
+  - CMD: test "$(grep -c "Map.unmodifiable" core/lib/reference/theme_token_merger.dart)" -ge 1
+    EXPECT_EXIT: 0
+
+ON_FAIL:
+  - RED 阶段测试没红（写实现前就绿）-> 测试没真正依赖新类型/新行为，
+    停下重写测试，【不要】继续往下做
+  - 实现后 VERIFICATION 某条不过 -> 先看是不是 EXPECT 写错（尤其 grep -c 的
+    双 EXPECT 语义：无匹配时打印 0 且退出码 1，两者都断言），再改实现
+  - core / drift / p2p 的【既有】测试变红 -> 立即停下。
+    本 ACT 只加不改，既有测试变红说明动到了不该动的地方
+  - SELF_CHECK/变红自检某条注入后【没有】变红 -> 那条门禁是假的，
+    必须重写门禁而不是跳过自检（本仓门禁纪律第 8 条）
+  - 基线类命令（analyze 数量、测试数量）不符 -> 不要改基线迁就实现，
+    先确认是不是真的引入了新问题
+  - `core/lib/model/dataset/` 下任何文件被改 -> 立即停下（XRAP 契约只读，stop condition #4）
+  - 连续两次修不好同一条 -> 在纪要「决定记录」写下现象与已排除的可能，停下上报，
+    不要连续第三次尝试
+
+DONE_WHEN:
+  - 源文件存在且 analyze 零 issue
+  - 八个测试用例全绿（先红后绿）
+  - 不修改任何既有文件
+  - SELF_CHECK：临时把某处 `containsKey` 改成 `??` -> null_value_counts_as_hit 用例变红 -> 改回 -> git status 为空
