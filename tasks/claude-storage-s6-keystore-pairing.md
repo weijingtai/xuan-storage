@@ -13,8 +13,8 @@
 
 详见下方「决定记录」Q1/Q2/Q3。一句话摘要：
 - **Q1**：`DeviceKeyStore` 实现落 **`p2p` 包**（与传输同层，纯 Dart 密码学，无平台依赖）。不在 `core`（避免污染纯契约包）。
-- **Q2**：私钥**落盘**用 `cryptography` 包的 Ed25519 密钥对，序列化为加密的 PEM/字节，存 app-private 目录；桌面端**叠加** `flutter_secure_storage` 存 DEK；移动端靠沙盒+全盘加密。**核实结论：派工转述的「D16 不引入 flutter_secure_storage」不准确**——见决定记录 Q2 核实。
-- **Q3**：channel binding 绑 **`nonce ‖ dtlsFingerprint ‖ 双方公钥指纹`**。`Transport` 契约**需新增一个口子**暴露 DTLS 指纹——**走评审路径上报人类，本轮不自己改 transport.dart**。
+- **Q2**：私钥用 `cryptography` 的 Ed25519；移动端**与桌面端都用 `flutter_secure_storage` 存私钥**（硬件 Keystore/Keychain 背书，采纳人类意见--原「移动端裸存 app-private」论证自相矛盾已废）。**核实结论：派工转述的「D16 不引入 flutter_secure_storage」不准确**--D16 禁的是移动端业务数据落盘加密，D15 反而加回了它存 DEK；身份私钥 D16 不管，用 secure storage 是最佳归宿。见决定记录 Q2。
+- **Q3**：channel binding 签名对象 = `nonce ‖ 本端证书指纹 ‖ 双方公钥指纹`（**钉死签『本端自己证书的指纹』，方案 A**）；带外配对指纹 = `SHA-256(sort([双方公钥指纹]))`（对称、不含证书指纹）。`Transport` 契约需新增 `ChannelBinding` 值类 + `PeerSession.channelBinding` getter--**走评审路径上报人类，本轮不自己改 transport.dart**。见决定记录 Q3 v2。
 
 ## 计划
 
@@ -34,7 +34,7 @@
 - [ ] **ACT 2 · 设备配对流程**（跑在 `SignalingChannel` 上）
   - 配对信封：用现有 `SignalingEnvelope` 的封闭类型？**不行**——它是 SDP/ICE 专用。
     需在**配对层**定义自己的配对消息（offer/answer 信封在 S6 自己的类里，不碰 signaling.dart 契约）。
-  - 流程：双方 open(同一 rendezvous) → 交换公钥（经信令）→ 挑战-应答（签名覆盖 nonce‖dtlsFingerprint‖双方公钥指纹）→ 各自算出**相同**的带外指纹
+  - 流程：双方 open(同一 rendezvous) -> 交换公钥（经信令）-> 挑战-应答（签名对象 = `nonce ‖ 本端证书指纹 ‖ 双方公钥指纹`，**签本端自己的证书指纹**）-> 各自算出**对称**的带外配对指纹 `SHA-256(sort([双方公钥指纹]))`（不含证书指纹）
 - [ ] **ACT 3 · channel binding 规格**（Q3 的答案落地为可测形式）
   - 规格文档 + 签名对象定义
   - 若 Q3 改 transport.dart 获批：补 DTLS 指纹暴露口子 + 契约测试
@@ -115,7 +115,7 @@
 
 ### 2026-08-05 · Q3：channel binding 具体绑什么？（v2 -- 钉死三条歧义）
 
-> v1 被人类打回三条歧义：①签名对象里的 dtlsFingerprint 是谁的没写死；②ChannelBinding 字段冗余/可能不够；③首次配对与每连接 channel binding 混在一起。v2 逐条钉死。
+> v1 被人类打回三条歧义：①签名对象里的证书指纹所属方未写死；②ChannelBinding 字段冗余/可能不够；③首次配对与每连接 channel binding 混在一起。v2 逐条钉死。
 
 **先把两个目的分开（洞三的答案，先讲清才能讲洞一/二）：**
 
@@ -149,7 +149,7 @@ final class ChannelBinding {
 }
 ```
 
-**洞三钉死：`channelBinding` getter 是展示/审计口，绑定强制在 `connect()` 内部。dartdoc 改写（去掉「未认证抛 StateError」--PeerSession 本身即已认证会话，无未认证形态）：**
+**洞三钉死：`channelBinding` getter 是展示/审计口，绑定强制在 `connect()` 内部。dartdoc 改写（v1 里那句「未认证访问抛异常」已删--PeerSession 本身即已认证会话，无未认证形态）：**
 
 ```dart
 abstract interface class PeerSession {
