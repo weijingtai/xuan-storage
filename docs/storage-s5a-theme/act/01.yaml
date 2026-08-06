@@ -69,7 +69,7 @@ CONSTRAINTS:
     这两个文件只 import dart 核心与同包类型，不 import 任何外部业务包。
   - `ThemeTokenSection.components` / `chart` / `semantic` 是 `Map<String, dynamic>`，
     **不在契约层做 unmodifiable 包装** -- 不可变性是 reference 合并产物的要求（A16），在 ACT 04/06 落地。
-  - 所有公开成员必须有中文 dartdoc，照 `core/lib/model/ports.dart` 的密度（验收 A18，下限 >= 60，本 ACT 贡献若干条）。
+  - 所有公开成员必须有中文 dartdoc，照 `core/lib/model/ports.dart` 的密度（验收 A18，全 12 文件下限 >= 60；本 ACT 2 文件下限 >= 8，开工实测填真值）。
   - 不要新建名为 `InstalledTheme` / `AvailableTheme` 的类型（已裁定移除，残留门禁会扫，见 ACT 07）。
 
 TESTS_FIRST:

@@ -85,7 +85,7 @@ xuan-storage/                                    ← Git 仓库根（xuan-migrat
 | 01 | 中立数据结构 + 溯源类型 | contract | [] | theme_token_types.dart, theme_resolution.dart | A6,A15,A16 |
 | 02 | 主门面 + 值类型 + 注入端口 | contract | [01] | theme_resource_store.dart, theme_value_types.dart, theme_source_ports.dart | A3,A5a,A5b,A6,A7 |
 | 03 | 策略 + XRAP 数据集声明 + 注册 | contract | [01,02] | theme_storage_policies.dart, theme_dataset.dart, theme_module_registry.dart | A8 |
-| 04 | 合并算法纯函数（reference） | reference | [01,02] | theme_token_merger.dart | A9-A13,A14c,A19,P1,P7 |
+| 04 | 合并算法纯函数（reference） | reference | [01,02] | theme_token_merger.dart | A9,A13(①②),A14c,A19,P1,P7（A10/A11/A12/A13③ 在 ACT06） |
 | 05 | materializer + token store（reference） | reference | [03] | in_memory_theme_materializer.dart | A20 |
 | 05b | 测试探针 + fixture（test-support） | test-support | [02,03,05] | theme_probes.dart, theme_bench_fixture.dart | P3,P4,P6,A21（探针依赖） |
 | 06 | resource store + 装配入口（reference） | reference | [02,04,05,05b] | in_memory_theme_resource_store.dart, theme_assembly.dart | A6,A7,A8,A10,A11,A12,A13,A15,A16,A21,P2,P3,P4,P5,P6 |

@@ -151,12 +151,13 @@ TESTS_FIRST:
 VERIFICATION:
   - CMD: cd core && dart analyze --fatal-infos lib/model/theme_resource_store.dart lib/model/theme_value_types.dart lib/model/theme_source_ports.dart
     EXPECT_EXIT: 0
-  # A6：读写不对称 dartdoc —— 逐方法判定（纪要 A6 口径：applyOverrides 与 removeOverrides 的 dartdoc 各含）
-  # 抽 applyOverrides 到下一个空行之间的 dartdoc 块，断言含目标字串；removeOverrides 同理。
-  - CMD: awk '/Future<void> applyOverrides/,/^$/' core/lib/model/theme_resource_store.dart | grep -c "只作用于用户覆盖层"
+  # A6：读写不对称 dartdoc -- 逐方法判定（纪要 A6 口径：applyOverrides 与 removeOverrides 的 dartdoc 各含）
+  # 取声明行之上 3 行的 dartdoc 块（grep -B3），再只留 `///` 行（排除 section 注释 `//`），
+  # 断言含目标字串。dartdoc 在声明行【之上】，awk 区间从声明行起算抽不到（REACT-R2 修正）。
+  - CMD: grep -B3 'Future<void> applyOverrides' core/lib/model/theme_resource_store.dart | grep -E '^\s*///' | grep -c "只作用于用户覆盖层"
     EXPECT_STDOUT: "1"
     EXPECT_EXIT: 0
-  - CMD: awk '/Future<void> removeOverrides/,/^$/' core/lib/model/theme_resource_store.dart | grep -c "只作用于用户覆盖层"
+  - CMD: grep -B3 'Future<void> removeOverrides' core/lib/model/theme_resource_store.dart | grep -E '^\s*///' | grep -c "只作用于用户覆盖层"
     EXPECT_STDOUT: "1"
     EXPECT_EXIT: 0
   - CMD: grep -c "三层合并" core/lib/model/theme_resource_store.dart
