@@ -141,7 +141,10 @@ FutureOr<void> runThemeResourceStoreContractSuite({
       expect(_valueAt(r, k2), 'b');
 
       // ② 含非法条目的 patch：原子回滚，整批不生效。
-      final before = await store.listOverrides();
+      // 比较用规范化记录（值/来源/时间戳逐字段）而非 OverrideEntry 实例：
+      // OverrideEntry 无 ==，内存版恰好返回同一实例、drift 版每次从 DB 重建
+      // —— 实例同一性断言只对内存版成立，逐字段比较对两种实现都成立（不弱化）。
+      final before = _entrySnapshot(await store.listOverrides());
       await expectLater(
         store.applyOverrides(
           patch: const {k1: <String, dynamic>{'nested': true}},
@@ -149,7 +152,7 @@ FutureOr<void> runThemeResourceStoreContractSuite({
         ),
         throwsA(isA<StateError>()),
       );
-      final after = await store.listOverrides();
+      final after = _entrySnapshot(await store.listOverrides());
       expect(after, before);
     });
 
@@ -220,3 +223,22 @@ int _leafCount(Map<String, dynamic> map) {
   }
   return count;
 }
+
+/// 把覆盖表快照规范化为可深比较的记录（值/来源/时间戳逐字段）。
+///
+/// [OverrideEntry] 无 `==`，直接用 expect(after, before) 依赖实例同一性：
+/// 内存版恰好返回同一实例能过，drift 版每次从 DB 重建对象必然不等。
+/// 用 record 深比较后，两种实现都以「内容未变」判定原子回滚成立。
+Map<String, Object?> _entrySnapshot(Map<String, OverrideEntry> entries) =>
+    entries.map(
+      (key, e) => MapEntry(
+        key,
+        (
+          e.value,
+          e.origin.kind,
+          e.origin.sourceThemeId,
+          e.origin.sourceThemeVersion,
+          e.updatedAtUtc,
+        ),
+      ),
+    );
