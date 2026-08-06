@@ -56,14 +56,16 @@ final class CachedPlaygroundFeedRepository
     return page;
   }
 
-  /// 翻页结果逐条回写帖子缓存（静默失败不阻断 Feed 返回）。
+  /// 翻页结果逐条回写帖子缓存（并行写；单条失败不阻断 Feed 返回）。
   Future<void> _writeThrough(PlaygroundPage<PlaygroundPost> page) async {
-    for (final post in page.items) {
-      try {
-        await _cache.upsertPost(post);
-      } catch (_) {
-        // 缓存写入失败不影响 Feed 展示。
-      }
-    }
+    await Future.wait(
+      page.items.map((post) async {
+        try {
+          await _cache.upsertPost(post);
+        } catch (_) {
+          // 缓存写入失败不影响 Feed 展示。
+        }
+      }),
+    );
   }
 }

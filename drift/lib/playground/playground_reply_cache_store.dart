@@ -36,14 +36,16 @@ class DriftPlaygroundReplyCacheStore
   @override
   Future<void> upsertReplies(
       PlaygroundPostId postId, List<Object> replies) async {
-    // 先清后写：整页回写，避免旧页残留。
-    await deleteReplies(postId);
-    if (replies.isEmpty) return;
-    await batch((b) {
-      b.insertAll(
-        playgroundReplyCaches,
-        replies.map(replyToCompanion).toList(),
-      );
+    // 先清后写在同一事务内：避免「清空已提交、批量写入失败」留下空缓存。
+    await transaction(() async {
+      await deleteReplies(postId);
+      if (replies.isEmpty) return;
+      await batch((b) {
+        b.insertAll(
+          playgroundReplyCaches,
+          replies.map(replyToCompanion).toList(),
+        );
+      });
     });
   }
 

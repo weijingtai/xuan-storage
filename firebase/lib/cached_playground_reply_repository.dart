@@ -23,9 +23,11 @@ final class CachedPlaygroundReplyRepository
 
   @override
   Future<PlaygroundPage<Object>> getReplies(GetRepliesQuery query) async {
-    // 1. 先查缓存（命中返回缓存页，无游标续页能力）。
+    // 1. 先查缓存。仅当缓存条目数 < limit 时命中 —— 说明上一页未满、
+    //    即已取完全部评论；若 == limit 则可能还有后续页（评论 >20 条时
+    //    缓存只回写了第一页），必须走远端防截断。
     final cached = await _cache.getReplies(query.postId);
-    if (cached.isNotEmpty) {
+    if (cached.isNotEmpty && cached.length < query.limit) {
       return PlaygroundPage(
         items: cached,
         nextCursor: null,
@@ -33,7 +35,7 @@ final class CachedPlaygroundReplyRepository
       );
     }
 
-    // 2. 未命中走远端，整页回写。
+    // 2. 未命中（或可能截断）走远端，整页回写。
     final page = await _remote.getReplies(query);
     await _cache.upsertReplies(query.postId, page.items);
     return page;
