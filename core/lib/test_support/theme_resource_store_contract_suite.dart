@@ -196,39 +196,42 @@ FutureOr<void> runThemeResourceStoreContractSuite({
 
     test('A6_watchResolved_写操作后推送新值', () async {
       // A6：覆盖层变更 / 主题切换必须经 watchResolved 推送新值（广播流）。
-      // 变异的注入点：注释掉两版 store `_refreshAndNotify` 里的
-      // `_controller.add(await resolve())` -> 下方 `pushed isNotEmpty`
-      // 断言红（**不是**超时、**不是**编译失败 —— 订阅在写操作前建立，
-      // 写操作后等待微任务 flush，变异后收集列表恒为空）。
+      //
+      // 【结构而非时序】（D10 / F1 修复）：用 expectLater(stream,
+      // emitsInOrder([...])) 在事件到达前挂起等待，不靠
+      // Future.delayed(Duration.zero) flush —— 后者靠时序巧合，将来
+      // 多一跳异步就退化成假绿；emits 等待事件本身，等待即结构。
+      //
+      // 【变异注入点】注释掉两版 store `_refreshAndNotify` 里的
+      // `_controller.add(await resolve())`（drift :237 / 内存版 :252）
+      // -> 流无事件、匹配永不完成，显式 timeout 兜底抛 TestFailure
+      // （断言失败，**不是** TimeoutException、**不是**编译失败）。
       const k1 = 'light.components.four_zhu_card.shadow.color';
       final store = await makeStore(
         scopeUid: 'u1',
         localReader: CountingLocalReader(makeBundledFixture()),
       );
-      final pushed = <ThemeTokenSet>[];
-      final sub = store.watchResolved().listen(pushed.add);
-      try {
-        // ① applyOverrides 推送新值（覆盖 o1 生效）。
-        await store.applyOverrides(
-          patch: const {k1: 'o1'},
-          origin: OverrideOrigin.manual,
-        );
-        // 广播流异步分发：让出事件循环把已排队的推送送完。
-        await Future<void>.delayed(Duration.zero);
-        expect(pushed, isNotEmpty,
-            reason: 'applyOverrides 后 watchResolved 必须推送新值'); // ← 变异红在这
-        expect(_valueAt(pushed.last, k1), 'o1');
-
-        // ② removeOverrides 再次推送（回落到 bundled '#8B0000'）。
-        final before = pushed.length;
-        await store.removeOverrides({k1});
-        await Future<void>.delayed(Duration.zero);
-        expect(pushed.length, greaterThan(before),
-            reason: 'removeOverrides 后 watchResolved 必须再次推送新值');
-        expect(_valueAt(pushed.last, k1), '#8B0000');
-      } finally {
-        await sub.cancel();
-      }
+      // 变异（无事件）时：流的 3s timeout 关闭流 -> emitsInOrder 匹配器
+      // 以「流提前结束、断言失败」收场，**不是** TimeoutException（D10）。
+      final stream = store.watchResolved().timeout(
+            const Duration(seconds: 3),
+            onTimeout: (EventSink<ThemeTokenSet> sink) => sink.close(),
+          );
+      final expected = expectLater(
+        stream,
+        emitsInOrder([
+          // ① applyOverrides 推送覆盖 o1 生效。
+          predicate<ThemeTokenSet>((s) => _valueAt(s, k1) == 'o1'),
+          // ② removeOverrides 推送回落 bundled '#8B0000'。
+          predicate<ThemeTokenSet>((s) => _valueAt(s, k1) == '#8B0000'),
+        ]),
+      );
+      await store.applyOverrides(
+        patch: const {k1: 'o1'},
+        origin: OverrideOrigin.manual,
+      );
+      await store.removeOverrides({k1});
+      await expected;
     });
   });
 }

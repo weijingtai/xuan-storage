@@ -88,6 +88,15 @@ T1（地理资产）已为"XRAP 资源落哪里"立了先例：独立库 `GeoDat
 1. **store 无 dispose 入口，`_controller.isClosed` 分支不可达** —— 不修。理由：与内存版 InMemoryThemeResourceStore 保持一致（它同样无 dispose，`isClosed` 分支是防御性写法，照抄语义）；端口 `ThemeResourceStore` 无 dispose 契约，加 dispose 属接口扩展、超出本变更范围；store 生命周期由装配层（xuan-shell DI）管理，本任务不交付装配接线。
 2. **assets 包在深层 worktree `flutter pub get` 失败** —— 不修。理由：既有环境噪音（worktree 比主目录深两层，assets 的入库相对路径按 main 位置解析），不在 T7 验收命令 8 条之内；AGENTS.md 铁律「依赖解析」已归因此类问题，处置是 gitignored 的 `pubspec_overrides.yaml`，与主题库无关。
 
+### D10：A6 watchResolved 推送测试与变异自检（REVISE-FIRST 补独立编号）
+
+A6 的测试与变异注入点独立编号记录（评审 finding：D9 只记了两条 P2「决定不修」，与 A6 变异不是同一件事，此处补独立 D 编号）：
+
+- **测试位置**：契约套件 `core/lib/test_support/theme_resource_store_contract_suite.dart` 的 `A6_watchResolved_写操作后推送新值`，core（InMemory）与 drift 两个入口各调一次，实测两侧都跑到。
+- **断言方式**：`expectLater(stream, emitsInOrder([...]))` 结构性等待两个按序事件（applyOverrides 推覆盖 o1 生效、removeOverrides 推回落 bundled `#8B0000`），**不依赖时序 flush**。F1 修复：原 `Future.delayed(Duration.zero)` 靠时序巧合，将来多一跳异步会退化成假绿；emitsInOrder 在事件到达前挂起，等待本身即结构（对照 signaling 套件的「等事件而非等时间」）。
+- **变异注入点**：两版 store `_refreshAndNotify` 里的 `_controller.add(await resolve())` —— `drift/lib/theme/drift_theme_resource_store.dart` :237、`core/lib/reference/in_memory_theme_resource_store.dart` :252。注释掉后流无事件、匹配永不完成，由测试的显式 timeout 兜底抛 `TestFailure`（**断言失败**，非 `TimeoutException`、非编译失败）。
+- **验收记录**：注入后红在断言（`Expected: non-empty / Actual: []` 的等价物，用时 <1s）；恢复后绿。该变异自检随契约套件被 core 与 drift 同时覆盖。
+
 ## Risks / Trade-offs
 
 - **[identical 在 drift 上易退化]** -> D4 显式缓存层 + A3 变异自检（拆缓存必红，断言不许降级）。
