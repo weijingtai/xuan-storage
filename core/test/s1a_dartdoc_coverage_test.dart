@@ -19,6 +19,7 @@ void main() {
     'lib/model/transport.dart',
     'lib/model/export_bundle.dart',
     'lib/model/signaling.dart',
+    'lib/model/ice_server.dart',
   ];
 
   // 顶层公开声明：enum / class / final class / sealed class /
@@ -111,7 +112,10 @@ void main() {
     // 2026-08-05 S3c-c-pre 背压契约并入后实测 161（原 158）：transport.dart
     // 新增 3 项（bufferedAmount / maxBufferedAmount / overflowPolicy getter）。
     // 下限按 ~10 余量上调至 151。
-    const minMemberDeclarations = 151;
+    // 2026-08-05 S3c-c-pre P3 后实测 165（原 161）：ice_server.dart
+    // 新增 4 项（urls / credential 字段、IceServer 构造器、iceServers 方法）。
+    // 下限按 ~10 余量上调至 155。
+    const minMemberDeclarations = 155;
     expect(memberCount, greaterThanOrEqualTo(minMemberDeclarations),
         reason: 'member 正则覆盖的声明总数 $memberCount 低于下限 '
             '$minMemberDeclarations，正则可能被改窄了');
