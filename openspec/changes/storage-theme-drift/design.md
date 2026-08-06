@@ -70,6 +70,19 @@ T1（地理资产）已为"XRAP 资源落哪里"立了先例：独立库 `GeoDat
 
 新增 `assembleThemeStoreDrift(...)` 与内存版 `assembleThemeStore(...)` 并存。内存版是 reference 与 fake 的装配，保留不动。生产装配（xuan-shell DI bootstrap）未来切到 drift 版，但那不在本变更范围（本变更只交付 drift 装配函数本身 + 测试）。
 
+### D8：overrides revision 从覆盖表派生（选 b，不维护计数器列）
+
+**选择 (b)**：缓存键的 `overridesRevision` 不落库维护，而是每次从 t_theme_override 派生 =「该 scope_uid 的行数 + 最大 updated_at_utc（毫秒）」。
+
+依据：
+
+1. **§1.1 硬约束冲突**：选项 (a) 需要在 T1 已交付的 `theme_selection_table.dart` 加列并全量重跑 build_runner（43 个 .g.dart），而 §1.1「不碰 S1b/S1d/S3c/S6/T1 的任何文件」是「违反即打回」级约束。EXECUTION-T3-T7.md §4.1 虽「推荐 (a)」，但同时把决定权交给执行 agent。
+2. **(b) 行为等价**：`_refreshAndNotify` 在每次写操作后显式失效缓存并重算（照内存版），revision 比较只承担「未写路径上的缓存命中」——重复 resolve 无写时行数与 max(updated_at_utc) 恒等 → identical 命中（A3 语义不变）；写操作后的新鲜度由失效+重算保证，不依赖 revision 递增。
+3. **(b) 反而更强**：revision 直接反映覆盖表真值，外部对表的任何变更（未来多 store 实例 / 多进程）都会改变派生值，比进程内计数器更接近「缓存键 = 数据状态」。
+4. **零撞车面**：不碰任何已交付文件、不需要 build_runner、不影响其他包。
+
+已知边界：drift 的 `dateTime()` 默认按秒存，同一秒内两次写且行数不变时派生值相同——由第 2 条「写后必失效重算」兜住，不产生陈旧结果。
+
 ## Risks / Trade-offs
 
 - **[identical 在 drift 上易退化]** -> D4 显式缓存层 + A3 变异自检（拆缓存必红，断言不许降级）。
