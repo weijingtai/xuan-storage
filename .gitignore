@@ -22,3 +22,4 @@ build/
 # ACT 执行期本地基线快照（如 S5a 的 .a4-baseline，照 S1b .act-base 形制）
 .a4-baseline
 .act-base
+.codegraph/
