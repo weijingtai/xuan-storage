@@ -20,6 +20,7 @@ SCOPE:
     - core/lib/model/dataset/dataset_descriptor.dart                                # XRAP 契约（只读，禁改）：DatasetDescriptor 字段
     - core/lib/model/dataset/dataset_registry.dart                                  # XRAP 契约（只读）：DatasetRegistry.register 校验
     - core/lib/model/dataset/dataset_manifest.dart                                  # XRAP 契约（只读）：DatasetManifest 字段
+    - core/lib/model/dataset/dataset_materializer.dart                              # XRAP 契约（只读）：materialize 四参数 + MaterializeOutcome 默认构造器（CASE1 手写 fake materializer 需看）
     - core/lib/model/storage_classification.dart                                    # S1a 既有：Carrier/Source/Publisher/DataVisibility
     - assets/lib/geo/geo_datasets.dart                                              # T1 接入样板（main 6cd7a66），照此形制
   WRITE:
@@ -59,10 +60,19 @@ SIGNATURE:
 
     const themeDatasetId = 'theme.package';          // 不得内联字面量
     const kThemeAppSchemaRevision = 1;
-    // ⚠ kThemeBundledManifest 的 sha256/bytes/rowCount 必须是 BUILD-THEME 脚本产出的真值，
-    //   不得手写占位 -- XRAP 安装器会比对（不变式 I4）。
-    //   本 ACT 用占位 manifest 先让契约编译通过；真值由 BUILD-THEME 任务（§11.5）填入。
-    //   占位写法见 CONSTRAINTS。
+    // ⚠ kThemeBundledManifest 占位（本 ACT 仅让契约编译通过；真值由 BUILD-THEME 任务填入，见 CONSTRAINTS）
+    // ⚠ final 不是 const -- publishedAtUtc 是 DateTime 无 const 构造器
+    final kThemeBundledManifest = DatasetManifest(
+      datasetId: themeDatasetId,
+      contentVersion: '0.0.0-placeholder',   // TODO(BUILD-THEME)
+      minimumAppSchemaRevision: 1,
+      payloadFormat: DatasetPayloadFormat.prebuilt,
+      carriers: {Carrier.row},
+      payloadSha256: '00...0',   // 64 个 0，TODO(BUILD-THEME)
+      payloadBytes: 0,
+      declaredRowCount: 0,   // TODO(BUILD-THEME)
+      publishedAtUtc: DateTime.utc(2026, 1, 1),
+    );
 
   theme_module_registry.dart: |
     // §5.6.3：注册落点（精确到文件、函数、时机、幂等策略）
@@ -91,9 +101,18 @@ CONSTRAINTS:
   - `themeDatasetDescriptor` 的 `materializer` 必须是**入参**（`required DatasetMaterializer Function() materializer`），
     不是契约层自己 new。这保住 A3（契约层零实现）与分层方向（契约层不依赖 reference 层）。
     设计 §5.6.2 / §4.5 第 2 步。
-  - `kThemeBundledManifest` 本 ACT 用占位（sha256 用 64 个 '0'、bytes/rowCount 用 0、payloadFormat=prebuilt、
-    carriers={Carrier.row}）。**占位仅让契约编译通过**；真值由 BUILD-THEME 任务填入。
-    ACT 05 的 A20 测试会用 fixture 的真值，不读这个占位。**在占位 dartdoc 里写明 TODO(BUILD-THEME)**。
+  - `kThemeBundledManifest` 本 ACT 用占位【全部 11 个 required 字段都给值】，仅让契约编译通过；真值由 BUILD-THEME 任务填入：
+    - datasetId: themeDatasetId
+    - contentVersion: '0.0.0-placeholder'   # TODO(BUILD-THEME) 填真值
+    - minimumAppSchemaRevision: 1   # == kThemeAppSchemaRevision（自己装得进自己）
+    - payloadFormat: DatasetPayloadFormat.prebuilt
+    - carriers: {Carrier.row}
+    - payloadSha256: '00...0'（64 个 0）
+    - payloadBytes: 0
+    - declaredRowCount: 0   # TODO(BUILD-THEME) 填真值
+    - publishedAtUtc: DateTime.utc(2026, 1, 1)
+    ⚠ `publishedAtUtc` 是 DateTime，【无 const 构造器】，所以 `kThemeBundledManifest` 必须 `final` 不能 `const`。
+    ACT 05 的 A20 测试用 fixture 的真值，不读这个占位。占位 dartdoc 里写明 TODO(BUILD-THEME)。
   - `ThemeModuleRegistry.register` 用 `_registered` 标志保证幂等，**不用 try-catch 吞 StateError**
     （那会掩盖"别的模块抢注同名 entityType"的真实错误，设计 §5.6.3）。
   - `resetForTesting` 必须 `@visibleForTesting`（照 `DatasetRegistry.clearForTesting` 形制）。
@@ -152,6 +171,21 @@ VERIFICATION:
   - CMD: grep -c "_registered" core/lib/model/theme_module_registry.dart
     EXPECT_STDOUT: "4"
     EXPECT_EXIT: 0
+
+ON_FAIL:
+  - RED 阶段测试没红（写实现前就绿）-> 测试没真正依赖新类型/新行为，
+    停下重写测试，【不要】继续往下做
+  - 实现后 VERIFICATION 某条不过 -> 先看是不是 EXPECT 写错（尤其 grep -c 的
+    双 EXPECT 语义：无匹配时打印 0 且退出码 1，两者都断言），再改实现
+  - core / drift / p2p 的【既有】测试变红 -> 立即停下。
+    本 ACT 只加不改，既有测试变红说明动到了不该动的地方
+  - SELF_CHECK/变红自检某条注入后【没有】变红 -> 那条门禁是假的，
+    必须重写门禁而不是跳过自检（本仓门禁纪律第 8 条）
+  - 基线类命令（analyze 数量、测试数量）不符 -> 不要改基线迁就实现，
+    先确认是不是真的引入了新问题
+  - `core/lib/model/dataset/` 下任何文件被改 -> 立即停下（XRAP 契约只读，stop condition #4）
+  - 连续两次修不好同一条 -> 在纪要「决定记录」写下现象与已排除的可能，停下上报，
+    不要连续第三次尝试
 
 DONE_WHEN:
   - 三个源文件存在且 analyze 零 issue

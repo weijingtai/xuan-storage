@@ -85,10 +85,11 @@ xuan-storage/                                    ← Git 仓库根（xuan-migrat
 | 01 | 中立数据结构 + 溯源类型 | contract | [] | theme_token_types.dart, theme_resolution.dart | A6,A15,A16 |
 | 02 | 主门面 + 值类型 + 注入端口 | contract | [01] | theme_resource_store.dart, theme_value_types.dart, theme_source_ports.dart | A3,A5a,A5b,A6,A7 |
 | 03 | 策略 + XRAP 数据集声明 + 注册 | contract | [01,02] | theme_storage_policies.dart, theme_dataset.dart, theme_module_registry.dart | A8 |
-| 04 | 合并算法纯函数（reference） | reference | [01] | theme_token_merger.dart | A9-A13,A14c,A19,P1,P7 |
+| 04 | 合并算法纯函数（reference） | reference | [01,02] | theme_token_merger.dart | A9-A13,A14c,A19,P1,P7 |
 | 05 | materializer + token store（reference） | reference | [03] | in_memory_theme_materializer.dart | A20 |
-| 06 | resource store + 装配入口（reference） | reference | [02,04,05] | in_memory_theme_resource_store.dart, theme_assembly.dart | A6,A7,A8,A15,A16,A21,P2,P3,P4,P5,P6 |
-| 07 | 门禁脚本 + 总验收 | gate | [01-06] | run_s5a_analyze_gate.sh, run_s5a_residue_gate.sh | A1,A2,A3,A4,A17,A18,残留门禁 |
+| 05b | 测试探针 + fixture（test-support） | test-support | [02,03,05] | theme_probes.dart, theme_bench_fixture.dart | P3,P4,P6,A21（探针依赖） |
+| 06 | resource store + 装配入口（reference） | reference | [02,04,05,05b] | in_memory_theme_resource_store.dart, theme_assembly.dart | A6,A7,A8,A10,A11,A12,A13,A15,A16,A21,P2,P3,P4,P5,P6 |
+| 07 | 门禁脚本 + 总验收 | gate | [01-06,05b] | run_s5a_analyze_gate.sh, run_s5a_residue_gate.sh | A1,A2,A3,A4,A17,A18,残留门禁 |
 
 **执行原则**：
 1. **TESTS_FIRST**：每个 ACT 先写测试（测试会红，因为实现不存在），再写实现让测试变绿。
@@ -120,7 +121,20 @@ ls core/lib/model/storage_policy.dart core/lib/model/storage_policy_registry.dar
 
 ```bash
 cd /Users/jingtaiwei/Git/Public/xuan-migration/xuan-storage/.claude/worktrees/mimo-storage-s5a-theme
-bash scripts/run_s1b_analyze_gate.sh   # EXIT 0
+bash scripts/run_s1b_analyze_gate.sh   # 允许 drift 超 146->149（3 条 path_does_not_exist，见下），其余包 EXIT 0
+(cd core && flutter test)              # EXIT 0
+(cd drift && flutter test)             # EXIT 0  (前提: drift/pubspec_overrides.yaml 存在)
+(cd p2p && flutter test)               # EXIT 0
+```
+
+> ⚠ **`run_s1b_analyze_gate.sh` 的已知偏差（REACT R15，与 S5a 无关）**：
+> 本 worktree（`.claude/worktrees/<name>/`）比主检出深一级，`drift/pubspec.yaml` 行 77/79/81 的三条
+> `../../repository-interface-{xiang,divination-tag,media}` 相对路径解析不到 -> `dart analyze` 对 pubspec.yaml
+> 文本 lint 报 3 条 `path_does_not_exist`，使 drift 全包 issue 数恒为 149（基线 146 + 3）。
+> `pubspec_overrides.yaml` 覆盖了这三个包，所以 `flutter pub get` 与 `flutter test` 全绿，但 analyze
+> 不看 overrides。**判定口径**：允许且仅允许 drift 因这 3 条 path_does_not_exist 超基线 146->149；
+> 其余任何超出（或 core/firebase 超基线）即停。core/drift/p2p 的 598 条测试全绿是开工的真正健康指标。
+
 (cd core && flutter test)              # EXIT 0
 (cd drift && flutter test)             # EXIT 0  (前提: drift/pubspec_overrides.yaml 存在)
 (cd p2p && flutter test)               # EXIT 0

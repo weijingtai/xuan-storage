@@ -172,8 +172,24 @@ VERIFICATION:
   - CMD: grep -rn "class .*Impl\|UnimplementedError" core/lib/model/theme_resource_store.dart core/lib/model/theme_value_types.dart core/lib/model/theme_source_ports.dart
     EXPECT_EXIT: 1
 
+ON_FAIL:
+  - RED 阶段测试没红（写实现前就绿）-> 测试没真正依赖新类型/新行为，
+    停下重写测试，【不要】继续往下做
+  - 实现后 VERIFICATION 某条不过 -> 先看是不是 EXPECT 写错（尤其 grep -c 的
+    双 EXPECT 语义：无匹配时打印 0 且退出码 1，两者都断言），再改实现
+  - core / drift / p2p 的【既有】测试变红 -> 立即停下。
+    本 ACT 只加不改，既有测试变红说明动到了不该动的地方
+  - SELF_CHECK/变红自检某条注入后【没有】变红 -> 那条门禁是假的，
+    必须重写门禁而不是跳过自检（本仓门禁纪律第 8 条）
+  - 基线类命令（analyze 数量、测试数量）不符 -> 不要改基线迁就实现，
+    先确认是不是真的引入了新问题
+  - `core/lib/model/dataset/` 下任何文件被改 -> 立即停下（XRAP 契约只读，stop condition #4）
+  - 连续两次修不好同一条 -> 在纪要「决定记录」写下现象与已排除的可能，停下上报，
+    不要连续第三次尝试
+
 DONE_WHEN:
   - 三个源文件存在且 analyze 零 issue
   - A6/A7 的 VERIFICATION 命令全过
   - 三个测试用例存在（先红后绿）
-  - 不修改既有文件
+  - 不修改既有文件，**本任务链内先前 ACT 新建的测试文件除外**
+    （本 ACT 扩充 ACT 01 新建的 core/test/theme_resource_store_contract_test.dart）
