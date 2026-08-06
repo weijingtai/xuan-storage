@@ -193,6 +193,43 @@ FutureOr<void> runThemeResourceStoreContractSuite({
       final list = await store.listOverrides();
       expect(list.containsKey(orphan), isTrue);
     });
+
+    test('A6_watchResolved_写操作后推送新值', () async {
+      // A6：覆盖层变更 / 主题切换必须经 watchResolved 推送新值（广播流）。
+      // 变异的注入点：注释掉两版 store `_refreshAndNotify` 里的
+      // `_controller.add(await resolve())` -> 下方 `pushed isNotEmpty`
+      // 断言红（**不是**超时、**不是**编译失败 —— 订阅在写操作前建立，
+      // 写操作后等待微任务 flush，变异后收集列表恒为空）。
+      const k1 = 'light.components.four_zhu_card.shadow.color';
+      final store = await makeStore(
+        scopeUid: 'u1',
+        localReader: CountingLocalReader(makeBundledFixture()),
+      );
+      final pushed = <ThemeTokenSet>[];
+      final sub = store.watchResolved().listen(pushed.add);
+      try {
+        // ① applyOverrides 推送新值（覆盖 o1 生效）。
+        await store.applyOverrides(
+          patch: const {k1: 'o1'},
+          origin: OverrideOrigin.manual,
+        );
+        // 广播流异步分发：让出事件循环把已排队的推送送完。
+        await Future<void>.delayed(Duration.zero);
+        expect(pushed, isNotEmpty,
+            reason: 'applyOverrides 后 watchResolved 必须推送新值'); // ← 变异红在这
+        expect(_valueAt(pushed.last, k1), 'o1');
+
+        // ② removeOverrides 再次推送（回落到 bundled '#8B0000'）。
+        final before = pushed.length;
+        await store.removeOverrides({k1});
+        await Future<void>.delayed(Duration.zero);
+        expect(pushed.length, greaterThan(before),
+            reason: 'removeOverrides 后 watchResolved 必须再次推送新值');
+        expect(_valueAt(pushed.last, k1), '#8B0000');
+      } finally {
+        await sub.cancel();
+      }
+    });
   });
 }
 

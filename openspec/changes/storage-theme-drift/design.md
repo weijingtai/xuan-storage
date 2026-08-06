@@ -83,6 +83,11 @@ T1（地理资产）已为"XRAP 资源落哪里"立了先例：独立库 `GeoDat
 
 已知边界：drift 的 `dateTime()` 默认按秒存，同一秒内两次写且行数不变时派生值相同——由第 2 条「写后必失效重算」兜住，不产生陈旧结果。
 
+### D9（REVISE-FIRST 顺带 P2，决定不修，各留一行依据）
+
+1. **store 无 dispose 入口，`_controller.isClosed` 分支不可达** —— 不修。理由：与内存版 InMemoryThemeResourceStore 保持一致（它同样无 dispose，`isClosed` 分支是防御性写法，照抄语义）；端口 `ThemeResourceStore` 无 dispose 契约，加 dispose 属接口扩展、超出本变更范围；store 生命周期由装配层（xuan-shell DI）管理，本任务不交付装配接线。
+2. **assets 包在深层 worktree `flutter pub get` 失败** —— 不修。理由：既有环境噪音（worktree 比主目录深两层，assets 的入库相对路径按 main 位置解析），不在 T7 验收命令 8 条之内；AGENTS.md 铁律「依赖解析」已归因此类问题，处置是 gitignored 的 `pubspec_overrides.yaml`，与主题库无关。
+
 ## Risks / Trade-offs
 
 - **[identical 在 drift 上易退化]** -> D4 显式缓存层 + A3 变异自检（拆缓存必红，断言不许降级）。
