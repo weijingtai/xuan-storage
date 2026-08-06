@@ -141,6 +141,9 @@ import 'tables/record_search_index_table.dart';
 import 'scope/drift_scope_alias_table.dart';
 import 'blob/blob_tables.dart';
 import 'blob/blob_datetime_converter.dart';
+import 'playground/playground_cache_tables.dart';
+import 'playground/playground_post_cache_store.dart';
+import 'playground/playground_reply_cache_store.dart';
 
 part 'persistence_drift.g.dart';
 
@@ -901,6 +904,8 @@ class EntityStampDao extends DatabaseAccessor<PersistenceDriftDatabase>
     BlobMetas,
     BlobChunks,
     BlobRefs,
+    PlaygroundPostCaches,
+    PlaygroundReplyCaches,
   ],
   daos: [
     OutboxRecordsDao,
@@ -921,13 +926,15 @@ class EntityStampDao extends DatabaseAccessor<PersistenceDriftDatabase>
     TaiYuanRecordsDao,
     CreationAuditLogsDao,
     EntityStampDao,
+    DriftPlaygroundPostCacheStore,
+    DriftPlaygroundReplyCacheStore,
   ],
 )
 class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
   PersistenceDriftDatabase(super.executor);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -1001,6 +1008,11 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
         await m.createTable(blobChunks);
         await m.createTable(blobRefs);
         await _createBlobIndices();
+      }
+      if (from < 10) {
+        // schema v10：playground 云端公开分享缓存表（S2 Phase 3）。
+        await m.createTable(playgroundPostCaches);
+        await m.createTable(playgroundReplyCaches);
       }
     },
   );
