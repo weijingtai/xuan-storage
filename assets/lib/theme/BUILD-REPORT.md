@@ -1,6 +1,6 @@
 # 主题预设 JSON Lines 载荷构建报告
 
-- 构建时间：2026-08-06 22:31:31 UTC
+- 构建时间：2026-08-06 22:35:27 UTC
 - 构建脚本：assets/tool/build_theme_jsonl.py
 - 源目录：theme/config/presets/*.yaml（theme 仓，不改源文件）
 - 产物目录：assets/lib/theme/*.jsonl
@@ -10,9 +10,6 @@
 | 预设 | 文件 | 行数 | 字节数 | sha256 | 内置世代 | 未知字段告警 |
 |---|---|---|---|---|---|---|
 | default | default.jsonl | 338 | 27458 | aa62ab4aaa45038a2625dc0fcf26daee616c1a7c40d00bf50ab081f15d634af1 | ✓ generation 0 | 0 |
-| dark | dark.jsonl | 178 | 14887 | 1f2e8cf2a19f3babc8057686101c5bd9dd28f8e412b5780ddf3242c17d2e4b45 |  | 0 |
-| ai-mingli-ink | ai-mingli-ink.jsonl | 310 | 24872 | 798f2185bd1ed7cd6143c6aa1684db888c9d8faa027b0fee0797488f7c2819bf |  | 0 |
-| ai-starry-bronze | ai-starry-bronze.jsonl | 318 | 25557 | c27dbe7f50632d4c891f0c48d77baaf3f39e959b58841fb73d1a483b3dd10c0e |  | 0 |
 
 ## 载荷格式（设计 §4.3，R4-P0）
 

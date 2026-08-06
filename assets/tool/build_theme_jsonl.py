@@ -208,9 +208,13 @@ def _flatten(name: str, brightness: str, node, prefix: str, out: dict, unknown_l
     out[prefix] = node
 
 
-def build_one(name: str) -> dict:
-    """构建单个预设的 jsonl 载荷。返回统计信息。"""
-    src = PRESETS_DIR / f'{name}.yaml'
+def build_one(name: str, presets_dir: Path | None = None) -> dict:
+    """构建单个预设的 jsonl 载荷。返回统计信息。
+
+    [presets_dir] 默认用 PRESETS_DIR；测试可传入临时目录喂坏 fixture。
+    """
+    base = presets_dir if presets_dir is not None else PRESETS_DIR
+    src = base / f'{name}.yaml'
     if not src.exists():
         raise BuildError(f'{name}: 源文件不存在：{src}')
 
@@ -322,15 +326,31 @@ def _write_report(results: list) -> None:
 
 def main(argv=None) -> int:
     argv = argv if argv is not None else sys.argv[1:]
-    targets = argv if argv else PRESETS
+    # 支持 --presets-dir <path> 覆盖预设目录（测试用，喂坏 fixture）
+    overrides_dir: Path | None = None
+    rest = []
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a == '--presets-dir':
+            if i + 1 >= len(argv):
+                print('错误：--presets-dir 需要一个参数', file=sys.stderr)
+                return 2
+            overrides_dir = Path(argv[i + 1])
+            i += 2
+        else:
+            rest.append(a)
+            i += 1
+    targets = rest if rest else PRESETS
     for t in targets:
         if t not in PRESETS:
             print(f'错误：未知预设 {t!r}，可选 {PRESETS}', file=sys.stderr)
             return 2
 
+    src_dir = overrides_dir if overrides_dir is not None else PRESETS_DIR
     print('=' * 60)
     print('主题预设 YAML -> JSON Lines 载荷构建')
-    print(f'源目录：{PRESETS_DIR}')
+    print(f'源目录：{src_dir}')
     print(f'产物目录：{OUT_DIR}')
     print('=' * 60)
 
@@ -339,7 +359,7 @@ def main(argv=None) -> int:
     for name in targets:
         print(f'\n-- 构建 {name} --')
         try:
-            r = build_one(name)
+            r = build_one(name, presets_dir=overrides_dir)
             results.append(r)
             tag = ' [BUNDLED -> generation 0]' if r['is_bundled'] else ''
             print(f"   产物: {r['out']}{tag}")

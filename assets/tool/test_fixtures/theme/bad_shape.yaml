@@ -1,0 +1,7 @@
+# 坏 fixture：顶层缺 light/dark brightness 分区，SHALL-3 必须构建失败
+version: 2
+metadata:
+  id: bad-shape
+components:
+  test.button:
+    radius: 8
