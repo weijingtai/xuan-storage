@@ -87,6 +87,21 @@ final class PeerIdentity {
 而 main 的代码是 `required DeviceKeyStore keys`（C3 改名后设计稿没跟上）。照着设计稿写
 的执行者会发明一个不存在的类型。**记 P2**，建议与 D2 同批处理。
 
+### 2026-08-05: D4 · P3–P7 变异自检记录（A8 逐条实做）
+
+按 ACT `docs/opsx/changes/s3c-c-preflight/ACT-Protocol-Document.md` P7 执行，
+每条新测试/改动注入违规 → 确认红 → 复原。**全部红在断言上，无一条红在编译失败。**
+
+| # | 变异对象 | 注入了什么 | 红在哪条断言 | 复原后 |
+|---|---|---|---|---|
+| V1 | P4 A6 扫描守卫 | `ice_server.dart:4` 库注释加 `（Cloudflare）` | A6 守卫：`Expected: empty / Actual: ['lib/model/ice_server.dart 含 "Cloudflare"']` | ✅ 守卫测试 2 条全绿 |
+| V2 | P6 R5 并发契约 | `fake_transport.dart` `send()` 删除挂起检查（并发水位无界上涨） | FakeTransport 全路径 R5：`Expected: ≤8256 / Actual: 9216`（wait 策略挂起阶段水位） | ✅ `transport_contract_test.dart` 30 条全绿 |
+| V3 | P3 dartdoc 下限 | 删除 `IceServer.urls` 的 `///` 注释块 | dartdoc 测试：`lib/model/ice_server.dart:23: final String urls;` 缺中文 dartdoc | ✅ dartdoc + 守卫 3 条全绿 |
+
+> 注：P4 barrel 可消费探针是**编译期**守卫（删 barrel export 会红在编译失败），
+> 按纪律「红在编译失败不算数」，该条不以编译失败为有效变异 —— 其有效性由
+> V1 的扫描守卫变异间接覆盖（同一文件同一批新增）。
+
 ## 计划
 
 - [ ] **P0 环境准备（30min）**：对 `core`、`p2p`、`drift`、`firebase` 各跑 `flutter pub get`；
