@@ -99,6 +99,14 @@ S5a 已交付**读主题的整条链**（三层合并 / 缓存 / 超时降级 / 
 - **b) 把坏 fixture 测试挪出 assets**：不选。坏 fixture 测试依赖 `assets/tool/build_theme_jsonl.py` 的 cwd 相对路径与 test_fixtures 目录，挪包会破坏脚本调用路径；且 assets 包仍需跑 theme 测试（rootBundle 真读测试在 assets 包内），挪走坏 fixture 反而让 assets 包测试更碎。
 - **c) 验收命令对 assets 做精确路径限定 `flutter test test/theme`**：**选**。坏 fixture 测试（A3/A5）与 rootBundle 真读测试都在 `assets/test/theme/` 下，被验收命令覆盖；taiyishenshu 既存红项不在验收路径内，不阻塞信号；四包测试数仍出现在输出中。taiyishenshu 红项单独挂账报告，等人类裁定。
 
+### 决定 7：坏 fixture 输出目录即真产物目录（P2，2026-08-06 人类裁定后记录，不修）
+
+`_runFixture` 用 `--presets-dir` 喂坏 fixture，但构建输出仍落**真产物目录** `assets/lib/theme/`：
+变异期间曾往 `default.jsonl` 写过坏载荷（142 bytes），靠后续幂等性用例重建才复原
+（人类实测：变异后 default.jsonl 短暂为 142 字节的坏载荷）。真产物被测试变异污染过，
+属测试隔离缺陷 —— 建议后续把 fixture 输出改到临时目录（照 `_runFixture` 的 tmpDir 模式）。
+记录留痕，不在本轮修。
+
 ## 五、三条 SHALL（承接自外部契约，构建期拒绝出包）
 
 | # | 出处 | 内容 | 承接动作 | 坏 fixture |
