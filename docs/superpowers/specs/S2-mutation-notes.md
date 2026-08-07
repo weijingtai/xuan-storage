@@ -35,3 +35,30 @@
 - **修复**：`PlaygroundReplyCacheStore` 新增 `removeReply(PlaygroundReplyId)`，
   drift 与内存实现均按 replyId 精确删除缓存行；`deleteReply` 调用之。
 - **验证**：修复后 C9 断言「删除后列表只剩根回复」通过。
+
+---
+
+## P0-2 返工变异（独立验收 REVIEW-S2 §5/§9-2）
+
+| # | 靶点 | 注入变异 | 测试 | 预期红在 | 实际红在 | 结论 |
+|---|---|---|---|---|---|---|
+| 4 | `firebase/lib/media/playground_media_upload_pipeline.dart:43` | 删除剥离步骤，`stripExif(bytes)` 换成 `bytes` | 管线级 A4 门禁（`test/media/playground_media_upload_pipeline_test.dart`） | 断言：gateway 收到的 chunk 字节不含 GPS | **红**：`Expected: false / Actual: <true>`，reason「A4: 上传路径上的字节流不得含 GPS 标签」 | ✅ 变异被捕获（`dart analyze` 0 error，非编译失败） |
+
+> 该门禁直接读 `InMemoryFirebaseBlobGateway.uploadedBytes()` —— 断言的是
+> pipeline 实际提交给网关的字节流，不再绕道纯函数。
+
+---
+
+## P1-5 返工变异（REVIEW-S2 §9-5）
+
+| # | 靶点 | 注入变异 | 测试 | 预期红在 | 实际红在 | 结论 |
+|---|---|---|---|---|---|---|
+| 5 | `firebase/lib/cached_playground_feed_repository.dart` | `getRecommendedFeed` / `getPendingDivinationFeed` 错路由到 `getLatestFeed` | 契约 C2 tab 路由语义 | 断言：待占卜 tab 必须为空 | **红**：`Expected: empty / Actual: [3 帖]`，reason「无 reply_status=pending 时待占卜 tab 必须为空」 | ✅ 变异被捕获（恒绿断言已替换为有信息量断言） |
+
+---
+
+## P1-6 返工变异（REVIEW-S2 §9-6）
+
+| # | 靶点 | 注入变异 | 测试 | 预期红在 | 实际红在 | 结论 |
+|---|---|---|---|---|---|---|
+| 6 | `firebase/lib/playground/firebase_playground_moderation_repository.dart` | `reportContent` 空实现（直接 return） | 举报落库断言（`playground_contract_suite_test.dart`） | 断言：reports 集合出现该文档 | **红**：`Expected: non-empty / Actual: []`，reason「reportContent 必须写入 playground_reports 集合」 | ✅ 变异被捕获（`dart analyze` 0 error，非编译失败） |

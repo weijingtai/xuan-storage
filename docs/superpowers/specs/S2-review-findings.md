@@ -36,3 +36,19 @@
 ## 验证
 
 修复后全量复验：契约套件 13 条全绿 + firebase playground 101 测试通过 + drift store 6 测试通过 + 三个包 analyze 0 error。
+
+---
+
+## P2-9 返工：派工书 §九.4 过期勘误（REVIEW-S2 §9-9）
+
+**勘误内容**：`DISPATCH-S2.md` §九.4（`~/Downloads/storage_refactor/`）称
+「`run_s1b_analyze_gate.sh` 的 drift 基线 146 在深层 worktree 里恒红（149），
+main 上同深度实测也是 149，与你无关，别改」。
+
+**实测**（REVIEW-S2 验收方 + 本次返工复验）：main `623cf41` 同深度为 **146**，
+深层 worktree 不再恒红 149。该已知项**已过期**，继续照抄会掩盖真回归
+（本次返工即抓到「drift 148 的超 2 条全部归 S2」）。
+
+**处置**：本仓库侧无法写 `~/Downloads/`（沙盒只读），勘误已记录于此；
+请在派工书 DISPATCH-S2.md §九.4 手工更正为「146（2026-08-06 实测，已过期
+不再适用）」，或将整条移除。
