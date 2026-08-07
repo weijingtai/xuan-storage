@@ -1,0 +1,9 @@
+# 坏 fixture：radius 是字符串 "8px"（应为数值），SHALL-1 必须构建失败
+version: 2
+metadata:
+  id: bad-numeric
+light:
+  components:
+    test.button:
+      radius: "8px"
+      background: "#FFFFFF"
