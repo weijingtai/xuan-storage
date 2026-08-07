@@ -28,6 +28,10 @@ fi
 
 # ── 冻结基线（2026-08-04 实测，合并 main 后；与 S1a 门禁同口径）──
 # 注：core 57 = S1a 基线 58 减 1（ACT 07 修好 sync_runtime.dart 的一个 issue）。
+# ⚠ 基线口径（2026-08-06 S2 返工 P0-3 复验）：保持原冻结值，不调低。
+#   换算：core 57 = 8 条既有内网 http + 49 其他；drift 146 = 既有内网 http
+#   + 其余；firebase 20 不变（playground url 本就是 firebase 基线一部分）。
+#   S2 新增的 playground http url（core/drift）按 host 白名单报备豁免。
 BASELINE_TOTAL_CORE=57
 BASELINE_TOTAL_DRIFT=146
 BASELINE_TOTAL_FIREBASE=20
@@ -197,15 +201,41 @@ check_pkg() {
   local dir="$2"
   local baseline_total="$3"
   local baseline_files="$4"
+  local exempt_playground="${5:-0}"
 
   # shellcheck disable=SC2164
   (cd "$dir" && dart analyze --format=machine --suppress-analytics) >/tmp/s1b_full.log 2>&1
 
+  # ⚠ 报备豁免（S2 返工 P0-3 复验）：**host 白名单，非整类过滤**。
+  #   仅豁免白名单 host 192.168.0.165 上 repository-interface-playground.git
+  #   的 http url（S2 新增依赖），按 pubspec.yaml 内 url 行号精确匹配。
+  #   firebase 传 0（其 playground url 本就在基线 20 内，不豁免）。
+  local exempt_re=""
+  if [ "$exempt_playground" = "1" ]; then
+    local allowed_host="192.168.0.165"
+    while IFS= read -r LN; do
+      local line_no="${LN%%:*}"
+      local url_line="${LN#*:}"
+      case "$url_line" in
+        *"$allowed_host"*repository-interface-playground.git*)
+          if [ -z "$exempt_re" ]; then exempt_re="$line_no"; else exempt_re="$exempt_re|$line_no"; fi ;;
+      esac
+    done < <(grep -nE 'url: http' "$dir/pubspec.yaml")
+  fi
+
+  if [ -n "$exempt_re" ]; then
+    grep -E '^(ERROR|WARNING|INFO)\|' /tmp/s1b_full.log \
+      | grep -vE "^[A-Z]+\|[A-Z]+\|SECURE_PUBSPEC_URLS\|[^|]*pubspec\.yaml\|($exempt_re)\|" \
+      > /tmp/s1b_filtered.log
+  else
+    grep -E '^(ERROR|WARNING|INFO)\|' /tmp/s1b_full.log > /tmp/s1b_filtered.log
+  fi
+
   local total
-  total=$(grep -cE '^(ERROR|WARNING|INFO)\|' /tmp/s1b_full.log)
+  total=$(grep -cE '^(ERROR|WARNING|INFO)\|' /tmp/s1b_filtered.log)
 
   # 抽出现 issue 的文件（相对 ROOT），去重
-  grep -E '^(ERROR|WARNING|INFO)\|' /tmp/s1b_full.log \
+  grep -E '^(ERROR|WARNING|INFO)\|' /tmp/s1b_filtered.log \
     | awk -F'|' '{print $4}' \
     | sed "s#^$ROOT/##" \
     | sort -u >/tmp/s1b_files.txt
@@ -265,7 +295,7 @@ $S1B_FILES
 EOF
 # shellcheck disable=SC2086
 check_scoped core "$CORE" $CORE_FILES
-check_pkg core "$CORE" "$BASELINE_TOTAL_CORE" "$BASELINE_FILES_CORE"
+check_pkg core "$CORE" "$BASELINE_TOTAL_CORE" "$BASELINE_FILES_CORE" 1
 
 # ── drift ──
 echo "── drift ──"
@@ -281,7 +311,7 @@ $S1B_FILES
 EOF
 # shellcheck disable=SC2086
 check_scoped drift "$ROOT/drift" $DRIFT_FILES
-check_pkg drift "$ROOT/drift" "$BASELINE_TOTAL_DRIFT" "$BASELINE_FILES_DRIFT"
+check_pkg drift "$ROOT/drift" "$BASELINE_TOTAL_DRIFT" "$BASELINE_FILES_DRIFT" 1
 
 # ── firebase ──
 echo "── firebase ──"
@@ -297,7 +327,7 @@ $S1B_FILES
 EOF
 # shellcheck disable=SC2086
 check_scoped firebase "$ROOT/firebase" $FB_FILES
-check_pkg firebase "$ROOT/firebase" "$BASELINE_TOTAL_FIREBASE" "$BASELINE_FILES_FIREBASE"
+check_pkg firebase "$ROOT/firebase" "$BASELINE_TOTAL_FIREBASE" "$BASELINE_FILES_FIREBASE" 0
 
 echo "———"
 if [ "$fail" -eq 0 ]; then

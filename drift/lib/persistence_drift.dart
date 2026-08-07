@@ -141,6 +141,9 @@ import 'tables/record_search_index_table.dart';
 import 'scope/drift_scope_alias_table.dart';
 import 'blob/blob_tables.dart';
 import 'blob/blob_datetime_converter.dart';
+import 'playground/playground_cache_tables.dart';
+import 'playground/playground_post_cache_store.dart';
+import 'playground/playground_reply_cache_store.dart';
 
 part 'persistence_drift.g.dart';
 
@@ -881,6 +884,10 @@ class EntityStampDao extends DatabaseAccessor<PersistenceDriftDatabase>
   }
 }
 
+/// 数据库 schema 版本。任何 onUpgrade 分支新增时同步 +1；
+/// 测试断言跟随本常量（防止版本号断言失同步）。
+const int kPersistenceDriftSchemaVersion = 10;
+
 @DriftDatabase(
   tables: [
     OutboxRecords,
@@ -918,6 +925,8 @@ class EntityStampDao extends DatabaseAccessor<PersistenceDriftDatabase>
     BlobMetas,
     BlobChunks,
     BlobRefs,
+    PlaygroundPostCaches,
+    PlaygroundReplyCaches,
   ],
   daos: [
     OutboxRecordsDao,
@@ -938,13 +947,15 @@ class EntityStampDao extends DatabaseAccessor<PersistenceDriftDatabase>
     TaiYuanRecordsDao,
     CreationAuditLogsDao,
     EntityStampDao,
+    DriftPlaygroundPostCacheStore,
+    DriftPlaygroundReplyCacheStore,
   ],
 )
 class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
   PersistenceDriftDatabase(super.executor);
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => kPersistenceDriftSchemaVersion;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -1020,6 +1031,10 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
         await _createBlobIndices();
       }
       if (from < 10) {
+        // schema v10：playground 云端公开分享缓存表（S2 Phase 3）。
+        await m.createTable(playgroundPostCaches);
+        await m.createTable(playgroundReplyCaches);
+
         // schema v10：t_entity_stamp 加 is_deleted 墓碑列（S1c §3.2① 单戳模型）。
         // 只加列，不触既有列语义（hlcPacked/deviceId/PK）——符合派工 §五。
         //

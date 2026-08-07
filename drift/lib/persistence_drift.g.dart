@@ -18497,6 +18497,1767 @@ class BlobRefsCompanion extends UpdateCompanion<BlobRefRow> {
   }
 }
 
+class $PlaygroundPostCachesTable extends PlaygroundPostCaches
+    with TableInfo<$PlaygroundPostCachesTable, PlaygroundPostCacheRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PlaygroundPostCachesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _postIdMeta = const VerificationMeta('postId');
+  @override
+  late final GeneratedColumn<String> postId = GeneratedColumn<String>(
+    'post_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _authorUserIdMeta = const VerificationMeta(
+    'authorUserId',
+  );
+  @override
+  late final GeneratedColumn<String> authorUserId = GeneratedColumn<String>(
+    'author_user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _textContentMeta = const VerificationMeta(
+    'textContent',
+  );
+  @override
+  late final GeneratedColumn<String> textContent = GeneratedColumn<String>(
+    'text_content',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _allowedChartTechniqueIdsMeta =
+      const VerificationMeta('allowedChartTechniqueIds');
+  @override
+  late final GeneratedColumn<String> allowedChartTechniqueIds =
+      GeneratedColumn<String>(
+        'allowed_chart_technique_ids',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _attachmentJsonMeta = const VerificationMeta(
+    'attachmentJson',
+  );
+  @override
+  late final GeneratedColumn<String> attachmentJson = GeneratedColumn<String>(
+    'attachment_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _revisionJsonMeta = const VerificationMeta(
+    'revisionJson',
+  );
+  @override
+  late final GeneratedColumn<String> revisionJson = GeneratedColumn<String>(
+    'revision_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+    'updated_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _cachedAtMeta = const VerificationMeta(
+    'cachedAt',
+  );
+  @override
+  late final GeneratedColumn<int> cachedAt = GeneratedColumn<int>(
+    'cached_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _replyCountMeta = const VerificationMeta(
+    'replyCount',
+  );
+  @override
+  late final GeneratedColumn<int> replyCount = GeneratedColumn<int>(
+    'reply_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _likeCountMeta = const VerificationMeta(
+    'likeCount',
+  );
+  @override
+  late final GeneratedColumn<int> likeCount = GeneratedColumn<int>(
+    'like_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    postId,
+    authorUserId,
+    textContent,
+    allowedChartTechniqueIds,
+    attachmentJson,
+    revisionJson,
+    status,
+    createdAt,
+    updatedAt,
+    cachedAt,
+    replyCount,
+    likeCount,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_playground_post_cache';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PlaygroundPostCacheRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('post_id')) {
+      context.handle(
+        _postIdMeta,
+        postId.isAcceptableOrUnknown(data['post_id']!, _postIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_postIdMeta);
+    }
+    if (data.containsKey('author_user_id')) {
+      context.handle(
+        _authorUserIdMeta,
+        authorUserId.isAcceptableOrUnknown(
+          data['author_user_id']!,
+          _authorUserIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_authorUserIdMeta);
+    }
+    if (data.containsKey('text_content')) {
+      context.handle(
+        _textContentMeta,
+        textContent.isAcceptableOrUnknown(
+          data['text_content']!,
+          _textContentMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_textContentMeta);
+    }
+    if (data.containsKey('allowed_chart_technique_ids')) {
+      context.handle(
+        _allowedChartTechniqueIdsMeta,
+        allowedChartTechniqueIds.isAcceptableOrUnknown(
+          data['allowed_chart_technique_ids']!,
+          _allowedChartTechniqueIdsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_allowedChartTechniqueIdsMeta);
+    }
+    if (data.containsKey('attachment_json')) {
+      context.handle(
+        _attachmentJsonMeta,
+        attachmentJson.isAcceptableOrUnknown(
+          data['attachment_json']!,
+          _attachmentJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('revision_json')) {
+      context.handle(
+        _revisionJsonMeta,
+        revisionJson.isAcceptableOrUnknown(
+          data['revision_json']!,
+          _revisionJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('cached_at')) {
+      context.handle(
+        _cachedAtMeta,
+        cachedAt.isAcceptableOrUnknown(data['cached_at']!, _cachedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cachedAtMeta);
+    }
+    if (data.containsKey('reply_count')) {
+      context.handle(
+        _replyCountMeta,
+        replyCount.isAcceptableOrUnknown(data['reply_count']!, _replyCountMeta),
+      );
+    }
+    if (data.containsKey('like_count')) {
+      context.handle(
+        _likeCountMeta,
+        likeCount.isAcceptableOrUnknown(data['like_count']!, _likeCountMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {postId};
+  @override
+  PlaygroundPostCacheRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PlaygroundPostCacheRow(
+      postId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}post_id'],
+      )!,
+      authorUserId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}author_user_id'],
+      )!,
+      textContent: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}text_content'],
+      )!,
+      allowedChartTechniqueIds: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}allowed_chart_technique_ids'],
+      )!,
+      attachmentJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}attachment_json'],
+      ),
+      revisionJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}revision_json'],
+      ),
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at'],
+      ),
+      cachedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}cached_at'],
+      )!,
+      replyCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reply_count'],
+      )!,
+      likeCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}like_count'],
+      )!,
+    );
+  }
+
+  @override
+  $PlaygroundPostCachesTable createAlias(String alias) {
+    return $PlaygroundPostCachesTable(attachedDatabase, alias);
+  }
+}
+
+class PlaygroundPostCacheRow extends DataClass
+    implements Insertable<PlaygroundPostCacheRow> {
+  /// 帖子 id。
+  final String postId;
+
+  /// 作者 app 用户 id。
+  final String authorUserId;
+
+  /// 帖子正文。
+  final String textContent;
+
+  /// 允许的术数技法 id，JSON array。
+  final String allowedChartTechniqueIds;
+
+  /// 附件元数据，JSON（[PlaygroundAttachment] 列表的序列化）。
+  final String? attachmentJson;
+
+  /// 修订历史，JSON（[PlaygroundRevision] 列表的序列化）。
+  final String? revisionJson;
+
+  /// 帖子状态（active / quarantined / tombstoned）。
+  final String status;
+
+  /// 创建时间（epoch millis）。
+  final int createdAt;
+
+  /// 更新时间（epoch millis），可空。
+  final int? updatedAt;
+
+  /// 缓存写入时间（epoch millis）。
+  final int cachedAt;
+
+  /// 回复数（仅用于缓存内帖子展示，不用于读取裁定）。
+  final int replyCount;
+
+  /// 点赞数（仅用于缓存内帖子展示，不用于读取裁定）。
+  final int likeCount;
+  const PlaygroundPostCacheRow({
+    required this.postId,
+    required this.authorUserId,
+    required this.textContent,
+    required this.allowedChartTechniqueIds,
+    this.attachmentJson,
+    this.revisionJson,
+    required this.status,
+    required this.createdAt,
+    this.updatedAt,
+    required this.cachedAt,
+    required this.replyCount,
+    required this.likeCount,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['post_id'] = Variable<String>(postId);
+    map['author_user_id'] = Variable<String>(authorUserId);
+    map['text_content'] = Variable<String>(textContent);
+    map['allowed_chart_technique_ids'] = Variable<String>(
+      allowedChartTechniqueIds,
+    );
+    if (!nullToAbsent || attachmentJson != null) {
+      map['attachment_json'] = Variable<String>(attachmentJson);
+    }
+    if (!nullToAbsent || revisionJson != null) {
+      map['revision_json'] = Variable<String>(revisionJson);
+    }
+    map['status'] = Variable<String>(status);
+    map['created_at'] = Variable<int>(createdAt);
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<int>(updatedAt);
+    }
+    map['cached_at'] = Variable<int>(cachedAt);
+    map['reply_count'] = Variable<int>(replyCount);
+    map['like_count'] = Variable<int>(likeCount);
+    return map;
+  }
+
+  PlaygroundPostCachesCompanion toCompanion(bool nullToAbsent) {
+    return PlaygroundPostCachesCompanion(
+      postId: Value(postId),
+      authorUserId: Value(authorUserId),
+      textContent: Value(textContent),
+      allowedChartTechniqueIds: Value(allowedChartTechniqueIds),
+      attachmentJson: attachmentJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(attachmentJson),
+      revisionJson: revisionJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(revisionJson),
+      status: Value(status),
+      createdAt: Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+      cachedAt: Value(cachedAt),
+      replyCount: Value(replyCount),
+      likeCount: Value(likeCount),
+    );
+  }
+
+  factory PlaygroundPostCacheRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PlaygroundPostCacheRow(
+      postId: serializer.fromJson<String>(json['postId']),
+      authorUserId: serializer.fromJson<String>(json['authorUserId']),
+      textContent: serializer.fromJson<String>(json['textContent']),
+      allowedChartTechniqueIds: serializer.fromJson<String>(
+        json['allowedChartTechniqueIds'],
+      ),
+      attachmentJson: serializer.fromJson<String?>(json['attachmentJson']),
+      revisionJson: serializer.fromJson<String?>(json['revisionJson']),
+      status: serializer.fromJson<String>(json['status']),
+      createdAt: serializer.fromJson<int>(json['createdAt']),
+      updatedAt: serializer.fromJson<int?>(json['updatedAt']),
+      cachedAt: serializer.fromJson<int>(json['cachedAt']),
+      replyCount: serializer.fromJson<int>(json['replyCount']),
+      likeCount: serializer.fromJson<int>(json['likeCount']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'postId': serializer.toJson<String>(postId),
+      'authorUserId': serializer.toJson<String>(authorUserId),
+      'textContent': serializer.toJson<String>(textContent),
+      'allowedChartTechniqueIds': serializer.toJson<String>(
+        allowedChartTechniqueIds,
+      ),
+      'attachmentJson': serializer.toJson<String?>(attachmentJson),
+      'revisionJson': serializer.toJson<String?>(revisionJson),
+      'status': serializer.toJson<String>(status),
+      'createdAt': serializer.toJson<int>(createdAt),
+      'updatedAt': serializer.toJson<int?>(updatedAt),
+      'cachedAt': serializer.toJson<int>(cachedAt),
+      'replyCount': serializer.toJson<int>(replyCount),
+      'likeCount': serializer.toJson<int>(likeCount),
+    };
+  }
+
+  PlaygroundPostCacheRow copyWith({
+    String? postId,
+    String? authorUserId,
+    String? textContent,
+    String? allowedChartTechniqueIds,
+    Value<String?> attachmentJson = const Value.absent(),
+    Value<String?> revisionJson = const Value.absent(),
+    String? status,
+    int? createdAt,
+    Value<int?> updatedAt = const Value.absent(),
+    int? cachedAt,
+    int? replyCount,
+    int? likeCount,
+  }) => PlaygroundPostCacheRow(
+    postId: postId ?? this.postId,
+    authorUserId: authorUserId ?? this.authorUserId,
+    textContent: textContent ?? this.textContent,
+    allowedChartTechniqueIds:
+        allowedChartTechniqueIds ?? this.allowedChartTechniqueIds,
+    attachmentJson: attachmentJson.present
+        ? attachmentJson.value
+        : this.attachmentJson,
+    revisionJson: revisionJson.present ? revisionJson.value : this.revisionJson,
+    status: status ?? this.status,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+    cachedAt: cachedAt ?? this.cachedAt,
+    replyCount: replyCount ?? this.replyCount,
+    likeCount: likeCount ?? this.likeCount,
+  );
+  PlaygroundPostCacheRow copyWithCompanion(PlaygroundPostCachesCompanion data) {
+    return PlaygroundPostCacheRow(
+      postId: data.postId.present ? data.postId.value : this.postId,
+      authorUserId: data.authorUserId.present
+          ? data.authorUserId.value
+          : this.authorUserId,
+      textContent: data.textContent.present
+          ? data.textContent.value
+          : this.textContent,
+      allowedChartTechniqueIds: data.allowedChartTechniqueIds.present
+          ? data.allowedChartTechniqueIds.value
+          : this.allowedChartTechniqueIds,
+      attachmentJson: data.attachmentJson.present
+          ? data.attachmentJson.value
+          : this.attachmentJson,
+      revisionJson: data.revisionJson.present
+          ? data.revisionJson.value
+          : this.revisionJson,
+      status: data.status.present ? data.status.value : this.status,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      cachedAt: data.cachedAt.present ? data.cachedAt.value : this.cachedAt,
+      replyCount: data.replyCount.present
+          ? data.replyCount.value
+          : this.replyCount,
+      likeCount: data.likeCount.present ? data.likeCount.value : this.likeCount,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PlaygroundPostCacheRow(')
+          ..write('postId: $postId, ')
+          ..write('authorUserId: $authorUserId, ')
+          ..write('textContent: $textContent, ')
+          ..write('allowedChartTechniqueIds: $allowedChartTechniqueIds, ')
+          ..write('attachmentJson: $attachmentJson, ')
+          ..write('revisionJson: $revisionJson, ')
+          ..write('status: $status, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('cachedAt: $cachedAt, ')
+          ..write('replyCount: $replyCount, ')
+          ..write('likeCount: $likeCount')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    postId,
+    authorUserId,
+    textContent,
+    allowedChartTechniqueIds,
+    attachmentJson,
+    revisionJson,
+    status,
+    createdAt,
+    updatedAt,
+    cachedAt,
+    replyCount,
+    likeCount,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PlaygroundPostCacheRow &&
+          other.postId == this.postId &&
+          other.authorUserId == this.authorUserId &&
+          other.textContent == this.textContent &&
+          other.allowedChartTechniqueIds == this.allowedChartTechniqueIds &&
+          other.attachmentJson == this.attachmentJson &&
+          other.revisionJson == this.revisionJson &&
+          other.status == this.status &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.cachedAt == this.cachedAt &&
+          other.replyCount == this.replyCount &&
+          other.likeCount == this.likeCount);
+}
+
+class PlaygroundPostCachesCompanion
+    extends UpdateCompanion<PlaygroundPostCacheRow> {
+  final Value<String> postId;
+  final Value<String> authorUserId;
+  final Value<String> textContent;
+  final Value<String> allowedChartTechniqueIds;
+  final Value<String?> attachmentJson;
+  final Value<String?> revisionJson;
+  final Value<String> status;
+  final Value<int> createdAt;
+  final Value<int?> updatedAt;
+  final Value<int> cachedAt;
+  final Value<int> replyCount;
+  final Value<int> likeCount;
+  final Value<int> rowid;
+  const PlaygroundPostCachesCompanion({
+    this.postId = const Value.absent(),
+    this.authorUserId = const Value.absent(),
+    this.textContent = const Value.absent(),
+    this.allowedChartTechniqueIds = const Value.absent(),
+    this.attachmentJson = const Value.absent(),
+    this.revisionJson = const Value.absent(),
+    this.status = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.cachedAt = const Value.absent(),
+    this.replyCount = const Value.absent(),
+    this.likeCount = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PlaygroundPostCachesCompanion.insert({
+    required String postId,
+    required String authorUserId,
+    required String textContent,
+    required String allowedChartTechniqueIds,
+    this.attachmentJson = const Value.absent(),
+    this.revisionJson = const Value.absent(),
+    required String status,
+    required int createdAt,
+    this.updatedAt = const Value.absent(),
+    required int cachedAt,
+    this.replyCount = const Value.absent(),
+    this.likeCount = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : postId = Value(postId),
+       authorUserId = Value(authorUserId),
+       textContent = Value(textContent),
+       allowedChartTechniqueIds = Value(allowedChartTechniqueIds),
+       status = Value(status),
+       createdAt = Value(createdAt),
+       cachedAt = Value(cachedAt);
+  static Insertable<PlaygroundPostCacheRow> custom({
+    Expression<String>? postId,
+    Expression<String>? authorUserId,
+    Expression<String>? textContent,
+    Expression<String>? allowedChartTechniqueIds,
+    Expression<String>? attachmentJson,
+    Expression<String>? revisionJson,
+    Expression<String>? status,
+    Expression<int>? createdAt,
+    Expression<int>? updatedAt,
+    Expression<int>? cachedAt,
+    Expression<int>? replyCount,
+    Expression<int>? likeCount,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (postId != null) 'post_id': postId,
+      if (authorUserId != null) 'author_user_id': authorUserId,
+      if (textContent != null) 'text_content': textContent,
+      if (allowedChartTechniqueIds != null)
+        'allowed_chart_technique_ids': allowedChartTechniqueIds,
+      if (attachmentJson != null) 'attachment_json': attachmentJson,
+      if (revisionJson != null) 'revision_json': revisionJson,
+      if (status != null) 'status': status,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (cachedAt != null) 'cached_at': cachedAt,
+      if (replyCount != null) 'reply_count': replyCount,
+      if (likeCount != null) 'like_count': likeCount,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PlaygroundPostCachesCompanion copyWith({
+    Value<String>? postId,
+    Value<String>? authorUserId,
+    Value<String>? textContent,
+    Value<String>? allowedChartTechniqueIds,
+    Value<String?>? attachmentJson,
+    Value<String?>? revisionJson,
+    Value<String>? status,
+    Value<int>? createdAt,
+    Value<int?>? updatedAt,
+    Value<int>? cachedAt,
+    Value<int>? replyCount,
+    Value<int>? likeCount,
+    Value<int>? rowid,
+  }) {
+    return PlaygroundPostCachesCompanion(
+      postId: postId ?? this.postId,
+      authorUserId: authorUserId ?? this.authorUserId,
+      textContent: textContent ?? this.textContent,
+      allowedChartTechniqueIds:
+          allowedChartTechniqueIds ?? this.allowedChartTechniqueIds,
+      attachmentJson: attachmentJson ?? this.attachmentJson,
+      revisionJson: revisionJson ?? this.revisionJson,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      cachedAt: cachedAt ?? this.cachedAt,
+      replyCount: replyCount ?? this.replyCount,
+      likeCount: likeCount ?? this.likeCount,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (postId.present) {
+      map['post_id'] = Variable<String>(postId.value);
+    }
+    if (authorUserId.present) {
+      map['author_user_id'] = Variable<String>(authorUserId.value);
+    }
+    if (textContent.present) {
+      map['text_content'] = Variable<String>(textContent.value);
+    }
+    if (allowedChartTechniqueIds.present) {
+      map['allowed_chart_technique_ids'] = Variable<String>(
+        allowedChartTechniqueIds.value,
+      );
+    }
+    if (attachmentJson.present) {
+      map['attachment_json'] = Variable<String>(attachmentJson.value);
+    }
+    if (revisionJson.present) {
+      map['revision_json'] = Variable<String>(revisionJson.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    if (cachedAt.present) {
+      map['cached_at'] = Variable<int>(cachedAt.value);
+    }
+    if (replyCount.present) {
+      map['reply_count'] = Variable<int>(replyCount.value);
+    }
+    if (likeCount.present) {
+      map['like_count'] = Variable<int>(likeCount.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PlaygroundPostCachesCompanion(')
+          ..write('postId: $postId, ')
+          ..write('authorUserId: $authorUserId, ')
+          ..write('textContent: $textContent, ')
+          ..write('allowedChartTechniqueIds: $allowedChartTechniqueIds, ')
+          ..write('attachmentJson: $attachmentJson, ')
+          ..write('revisionJson: $revisionJson, ')
+          ..write('status: $status, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('cachedAt: $cachedAt, ')
+          ..write('replyCount: $replyCount, ')
+          ..write('likeCount: $likeCount, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PlaygroundReplyCachesTable extends PlaygroundReplyCaches
+    with TableInfo<$PlaygroundReplyCachesTable, PlaygroundReplyCacheRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PlaygroundReplyCachesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _replyIdMeta = const VerificationMeta(
+    'replyId',
+  );
+  @override
+  late final GeneratedColumn<String> replyId = GeneratedColumn<String>(
+    'reply_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _postIdMeta = const VerificationMeta('postId');
+  @override
+  late final GeneratedColumn<String> postId = GeneratedColumn<String>(
+    'post_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _authorUserIdMeta = const VerificationMeta(
+    'authorUserId',
+  );
+  @override
+  late final GeneratedColumn<String> authorUserId = GeneratedColumn<String>(
+    'author_user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _depthMeta = const VerificationMeta('depth');
+  @override
+  late final GeneratedColumn<int> depth = GeneratedColumn<int>(
+    'depth',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isRootMeta = const VerificationMeta('isRoot');
+  @override
+  late final GeneratedColumn<int> isRoot = GeneratedColumn<int>(
+    'is_root',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _rootReplyIdMeta = const VerificationMeta(
+    'rootReplyId',
+  );
+  @override
+  late final GeneratedColumn<String> rootReplyId = GeneratedColumn<String>(
+    'root_reply_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _replyToReplyIdMeta = const VerificationMeta(
+    'replyToReplyId',
+  );
+  @override
+  late final GeneratedColumn<String> replyToReplyId = GeneratedColumn<String>(
+    'reply_to_reply_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _techniqueTagsJsonMeta = const VerificationMeta(
+    'techniqueTagsJson',
+  );
+  @override
+  late final GeneratedColumn<String> techniqueTagsJson =
+      GeneratedColumn<String>(
+        'technique_tags_json',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _chartAttachmentJsonMeta =
+      const VerificationMeta('chartAttachmentJson');
+  @override
+  late final GeneratedColumn<String> chartAttachmentJson =
+      GeneratedColumn<String>(
+        'chart_attachment_json',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _mediaAttachmentsJsonMeta =
+      const VerificationMeta('mediaAttachmentsJson');
+  @override
+  late final GeneratedColumn<String> mediaAttachmentsJson =
+      GeneratedColumn<String>(
+        'media_attachments_json',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _revisionJsonMeta = const VerificationMeta(
+    'revisionJson',
+  );
+  @override
+  late final GeneratedColumn<String> revisionJson = GeneratedColumn<String>(
+    'revision_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+    'updated_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _cachedAtMeta = const VerificationMeta(
+    'cachedAt',
+  );
+  @override
+  late final GeneratedColumn<int> cachedAt = GeneratedColumn<int>(
+    'cached_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    replyId,
+    postId,
+    authorUserId,
+    body,
+    depth,
+    isRoot,
+    rootReplyId,
+    replyToReplyId,
+    techniqueTagsJson,
+    chartAttachmentJson,
+    mediaAttachmentsJson,
+    revisionJson,
+    status,
+    createdAt,
+    updatedAt,
+    cachedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_playground_reply_cache';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PlaygroundReplyCacheRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('reply_id')) {
+      context.handle(
+        _replyIdMeta,
+        replyId.isAcceptableOrUnknown(data['reply_id']!, _replyIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_replyIdMeta);
+    }
+    if (data.containsKey('post_id')) {
+      context.handle(
+        _postIdMeta,
+        postId.isAcceptableOrUnknown(data['post_id']!, _postIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_postIdMeta);
+    }
+    if (data.containsKey('author_user_id')) {
+      context.handle(
+        _authorUserIdMeta,
+        authorUserId.isAcceptableOrUnknown(
+          data['author_user_id']!,
+          _authorUserIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_authorUserIdMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('depth')) {
+      context.handle(
+        _depthMeta,
+        depth.isAcceptableOrUnknown(data['depth']!, _depthMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_depthMeta);
+    }
+    if (data.containsKey('is_root')) {
+      context.handle(
+        _isRootMeta,
+        isRoot.isAcceptableOrUnknown(data['is_root']!, _isRootMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_isRootMeta);
+    }
+    if (data.containsKey('root_reply_id')) {
+      context.handle(
+        _rootReplyIdMeta,
+        rootReplyId.isAcceptableOrUnknown(
+          data['root_reply_id']!,
+          _rootReplyIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('reply_to_reply_id')) {
+      context.handle(
+        _replyToReplyIdMeta,
+        replyToReplyId.isAcceptableOrUnknown(
+          data['reply_to_reply_id']!,
+          _replyToReplyIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('technique_tags_json')) {
+      context.handle(
+        _techniqueTagsJsonMeta,
+        techniqueTagsJson.isAcceptableOrUnknown(
+          data['technique_tags_json']!,
+          _techniqueTagsJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('chart_attachment_json')) {
+      context.handle(
+        _chartAttachmentJsonMeta,
+        chartAttachmentJson.isAcceptableOrUnknown(
+          data['chart_attachment_json']!,
+          _chartAttachmentJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('media_attachments_json')) {
+      context.handle(
+        _mediaAttachmentsJsonMeta,
+        mediaAttachmentsJson.isAcceptableOrUnknown(
+          data['media_attachments_json']!,
+          _mediaAttachmentsJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('revision_json')) {
+      context.handle(
+        _revisionJsonMeta,
+        revisionJson.isAcceptableOrUnknown(
+          data['revision_json']!,
+          _revisionJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('cached_at')) {
+      context.handle(
+        _cachedAtMeta,
+        cachedAt.isAcceptableOrUnknown(data['cached_at']!, _cachedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cachedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {replyId};
+  @override
+  PlaygroundReplyCacheRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PlaygroundReplyCacheRow(
+      replyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reply_id'],
+      )!,
+      postId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}post_id'],
+      )!,
+      authorUserId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}author_user_id'],
+      )!,
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      )!,
+      depth: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}depth'],
+      )!,
+      isRoot: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}is_root'],
+      )!,
+      rootReplyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}root_reply_id'],
+      ),
+      replyToReplyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reply_to_reply_id'],
+      ),
+      techniqueTagsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}technique_tags_json'],
+      ),
+      chartAttachmentJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}chart_attachment_json'],
+      ),
+      mediaAttachmentsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}media_attachments_json'],
+      ),
+      revisionJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}revision_json'],
+      ),
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at'],
+      ),
+      cachedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}cached_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PlaygroundReplyCachesTable createAlias(String alias) {
+    return $PlaygroundReplyCachesTable(attachedDatabase, alias);
+  }
+}
+
+class PlaygroundReplyCacheRow extends DataClass
+    implements Insertable<PlaygroundReplyCacheRow> {
+  /// 回复 id。
+  final String replyId;
+
+  /// 所属帖子 id。
+  final String postId;
+
+  /// 作者 app 用户 id。
+  final String authorUserId;
+
+  /// 回复正文。
+  final String body;
+
+  /// 回复深度（根回复 = 0）。
+  final int depth;
+
+  /// 是否根回复（1 = 根回复）。
+  final int isRoot;
+
+  /// 根回复 id（讨论回复非空）。
+  final String? rootReplyId;
+
+  /// 所回复的回复 id（讨论回复可空）。
+  final String? replyToReplyId;
+
+  /// 术数技法标签，JSON array（根回复用）。
+  final String? techniqueTagsJson;
+
+  /// 图盘附件，JSON（根回复用）。
+  final String? chartAttachmentJson;
+
+  /// 媒体附件列表，JSON。
+  final String? mediaAttachmentsJson;
+
+  /// 修订历史，JSON。
+  final String? revisionJson;
+
+  /// 回复状态（active / tombstoned）。
+  final String status;
+
+  /// 创建时间（epoch millis）。
+  final int createdAt;
+
+  /// 更新时间（epoch millis），可空。
+  final int? updatedAt;
+
+  /// 缓存写入时间（epoch millis）。
+  final int cachedAt;
+  const PlaygroundReplyCacheRow({
+    required this.replyId,
+    required this.postId,
+    required this.authorUserId,
+    required this.body,
+    required this.depth,
+    required this.isRoot,
+    this.rootReplyId,
+    this.replyToReplyId,
+    this.techniqueTagsJson,
+    this.chartAttachmentJson,
+    this.mediaAttachmentsJson,
+    this.revisionJson,
+    required this.status,
+    required this.createdAt,
+    this.updatedAt,
+    required this.cachedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['reply_id'] = Variable<String>(replyId);
+    map['post_id'] = Variable<String>(postId);
+    map['author_user_id'] = Variable<String>(authorUserId);
+    map['body'] = Variable<String>(body);
+    map['depth'] = Variable<int>(depth);
+    map['is_root'] = Variable<int>(isRoot);
+    if (!nullToAbsent || rootReplyId != null) {
+      map['root_reply_id'] = Variable<String>(rootReplyId);
+    }
+    if (!nullToAbsent || replyToReplyId != null) {
+      map['reply_to_reply_id'] = Variable<String>(replyToReplyId);
+    }
+    if (!nullToAbsent || techniqueTagsJson != null) {
+      map['technique_tags_json'] = Variable<String>(techniqueTagsJson);
+    }
+    if (!nullToAbsent || chartAttachmentJson != null) {
+      map['chart_attachment_json'] = Variable<String>(chartAttachmentJson);
+    }
+    if (!nullToAbsent || mediaAttachmentsJson != null) {
+      map['media_attachments_json'] = Variable<String>(mediaAttachmentsJson);
+    }
+    if (!nullToAbsent || revisionJson != null) {
+      map['revision_json'] = Variable<String>(revisionJson);
+    }
+    map['status'] = Variable<String>(status);
+    map['created_at'] = Variable<int>(createdAt);
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<int>(updatedAt);
+    }
+    map['cached_at'] = Variable<int>(cachedAt);
+    return map;
+  }
+
+  PlaygroundReplyCachesCompanion toCompanion(bool nullToAbsent) {
+    return PlaygroundReplyCachesCompanion(
+      replyId: Value(replyId),
+      postId: Value(postId),
+      authorUserId: Value(authorUserId),
+      body: Value(body),
+      depth: Value(depth),
+      isRoot: Value(isRoot),
+      rootReplyId: rootReplyId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rootReplyId),
+      replyToReplyId: replyToReplyId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(replyToReplyId),
+      techniqueTagsJson: techniqueTagsJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(techniqueTagsJson),
+      chartAttachmentJson: chartAttachmentJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(chartAttachmentJson),
+      mediaAttachmentsJson: mediaAttachmentsJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mediaAttachmentsJson),
+      revisionJson: revisionJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(revisionJson),
+      status: Value(status),
+      createdAt: Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+      cachedAt: Value(cachedAt),
+    );
+  }
+
+  factory PlaygroundReplyCacheRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PlaygroundReplyCacheRow(
+      replyId: serializer.fromJson<String>(json['replyId']),
+      postId: serializer.fromJson<String>(json['postId']),
+      authorUserId: serializer.fromJson<String>(json['authorUserId']),
+      body: serializer.fromJson<String>(json['body']),
+      depth: serializer.fromJson<int>(json['depth']),
+      isRoot: serializer.fromJson<int>(json['isRoot']),
+      rootReplyId: serializer.fromJson<String?>(json['rootReplyId']),
+      replyToReplyId: serializer.fromJson<String?>(json['replyToReplyId']),
+      techniqueTagsJson: serializer.fromJson<String?>(
+        json['techniqueTagsJson'],
+      ),
+      chartAttachmentJson: serializer.fromJson<String?>(
+        json['chartAttachmentJson'],
+      ),
+      mediaAttachmentsJson: serializer.fromJson<String?>(
+        json['mediaAttachmentsJson'],
+      ),
+      revisionJson: serializer.fromJson<String?>(json['revisionJson']),
+      status: serializer.fromJson<String>(json['status']),
+      createdAt: serializer.fromJson<int>(json['createdAt']),
+      updatedAt: serializer.fromJson<int?>(json['updatedAt']),
+      cachedAt: serializer.fromJson<int>(json['cachedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'replyId': serializer.toJson<String>(replyId),
+      'postId': serializer.toJson<String>(postId),
+      'authorUserId': serializer.toJson<String>(authorUserId),
+      'body': serializer.toJson<String>(body),
+      'depth': serializer.toJson<int>(depth),
+      'isRoot': serializer.toJson<int>(isRoot),
+      'rootReplyId': serializer.toJson<String?>(rootReplyId),
+      'replyToReplyId': serializer.toJson<String?>(replyToReplyId),
+      'techniqueTagsJson': serializer.toJson<String?>(techniqueTagsJson),
+      'chartAttachmentJson': serializer.toJson<String?>(chartAttachmentJson),
+      'mediaAttachmentsJson': serializer.toJson<String?>(mediaAttachmentsJson),
+      'revisionJson': serializer.toJson<String?>(revisionJson),
+      'status': serializer.toJson<String>(status),
+      'createdAt': serializer.toJson<int>(createdAt),
+      'updatedAt': serializer.toJson<int?>(updatedAt),
+      'cachedAt': serializer.toJson<int>(cachedAt),
+    };
+  }
+
+  PlaygroundReplyCacheRow copyWith({
+    String? replyId,
+    String? postId,
+    String? authorUserId,
+    String? body,
+    int? depth,
+    int? isRoot,
+    Value<String?> rootReplyId = const Value.absent(),
+    Value<String?> replyToReplyId = const Value.absent(),
+    Value<String?> techniqueTagsJson = const Value.absent(),
+    Value<String?> chartAttachmentJson = const Value.absent(),
+    Value<String?> mediaAttachmentsJson = const Value.absent(),
+    Value<String?> revisionJson = const Value.absent(),
+    String? status,
+    int? createdAt,
+    Value<int?> updatedAt = const Value.absent(),
+    int? cachedAt,
+  }) => PlaygroundReplyCacheRow(
+    replyId: replyId ?? this.replyId,
+    postId: postId ?? this.postId,
+    authorUserId: authorUserId ?? this.authorUserId,
+    body: body ?? this.body,
+    depth: depth ?? this.depth,
+    isRoot: isRoot ?? this.isRoot,
+    rootReplyId: rootReplyId.present ? rootReplyId.value : this.rootReplyId,
+    replyToReplyId: replyToReplyId.present
+        ? replyToReplyId.value
+        : this.replyToReplyId,
+    techniqueTagsJson: techniqueTagsJson.present
+        ? techniqueTagsJson.value
+        : this.techniqueTagsJson,
+    chartAttachmentJson: chartAttachmentJson.present
+        ? chartAttachmentJson.value
+        : this.chartAttachmentJson,
+    mediaAttachmentsJson: mediaAttachmentsJson.present
+        ? mediaAttachmentsJson.value
+        : this.mediaAttachmentsJson,
+    revisionJson: revisionJson.present ? revisionJson.value : this.revisionJson,
+    status: status ?? this.status,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+    cachedAt: cachedAt ?? this.cachedAt,
+  );
+  PlaygroundReplyCacheRow copyWithCompanion(
+    PlaygroundReplyCachesCompanion data,
+  ) {
+    return PlaygroundReplyCacheRow(
+      replyId: data.replyId.present ? data.replyId.value : this.replyId,
+      postId: data.postId.present ? data.postId.value : this.postId,
+      authorUserId: data.authorUserId.present
+          ? data.authorUserId.value
+          : this.authorUserId,
+      body: data.body.present ? data.body.value : this.body,
+      depth: data.depth.present ? data.depth.value : this.depth,
+      isRoot: data.isRoot.present ? data.isRoot.value : this.isRoot,
+      rootReplyId: data.rootReplyId.present
+          ? data.rootReplyId.value
+          : this.rootReplyId,
+      replyToReplyId: data.replyToReplyId.present
+          ? data.replyToReplyId.value
+          : this.replyToReplyId,
+      techniqueTagsJson: data.techniqueTagsJson.present
+          ? data.techniqueTagsJson.value
+          : this.techniqueTagsJson,
+      chartAttachmentJson: data.chartAttachmentJson.present
+          ? data.chartAttachmentJson.value
+          : this.chartAttachmentJson,
+      mediaAttachmentsJson: data.mediaAttachmentsJson.present
+          ? data.mediaAttachmentsJson.value
+          : this.mediaAttachmentsJson,
+      revisionJson: data.revisionJson.present
+          ? data.revisionJson.value
+          : this.revisionJson,
+      status: data.status.present ? data.status.value : this.status,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      cachedAt: data.cachedAt.present ? data.cachedAt.value : this.cachedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PlaygroundReplyCacheRow(')
+          ..write('replyId: $replyId, ')
+          ..write('postId: $postId, ')
+          ..write('authorUserId: $authorUserId, ')
+          ..write('body: $body, ')
+          ..write('depth: $depth, ')
+          ..write('isRoot: $isRoot, ')
+          ..write('rootReplyId: $rootReplyId, ')
+          ..write('replyToReplyId: $replyToReplyId, ')
+          ..write('techniqueTagsJson: $techniqueTagsJson, ')
+          ..write('chartAttachmentJson: $chartAttachmentJson, ')
+          ..write('mediaAttachmentsJson: $mediaAttachmentsJson, ')
+          ..write('revisionJson: $revisionJson, ')
+          ..write('status: $status, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('cachedAt: $cachedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    replyId,
+    postId,
+    authorUserId,
+    body,
+    depth,
+    isRoot,
+    rootReplyId,
+    replyToReplyId,
+    techniqueTagsJson,
+    chartAttachmentJson,
+    mediaAttachmentsJson,
+    revisionJson,
+    status,
+    createdAt,
+    updatedAt,
+    cachedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PlaygroundReplyCacheRow &&
+          other.replyId == this.replyId &&
+          other.postId == this.postId &&
+          other.authorUserId == this.authorUserId &&
+          other.body == this.body &&
+          other.depth == this.depth &&
+          other.isRoot == this.isRoot &&
+          other.rootReplyId == this.rootReplyId &&
+          other.replyToReplyId == this.replyToReplyId &&
+          other.techniqueTagsJson == this.techniqueTagsJson &&
+          other.chartAttachmentJson == this.chartAttachmentJson &&
+          other.mediaAttachmentsJson == this.mediaAttachmentsJson &&
+          other.revisionJson == this.revisionJson &&
+          other.status == this.status &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.cachedAt == this.cachedAt);
+}
+
+class PlaygroundReplyCachesCompanion
+    extends UpdateCompanion<PlaygroundReplyCacheRow> {
+  final Value<String> replyId;
+  final Value<String> postId;
+  final Value<String> authorUserId;
+  final Value<String> body;
+  final Value<int> depth;
+  final Value<int> isRoot;
+  final Value<String?> rootReplyId;
+  final Value<String?> replyToReplyId;
+  final Value<String?> techniqueTagsJson;
+  final Value<String?> chartAttachmentJson;
+  final Value<String?> mediaAttachmentsJson;
+  final Value<String?> revisionJson;
+  final Value<String> status;
+  final Value<int> createdAt;
+  final Value<int?> updatedAt;
+  final Value<int> cachedAt;
+  final Value<int> rowid;
+  const PlaygroundReplyCachesCompanion({
+    this.replyId = const Value.absent(),
+    this.postId = const Value.absent(),
+    this.authorUserId = const Value.absent(),
+    this.body = const Value.absent(),
+    this.depth = const Value.absent(),
+    this.isRoot = const Value.absent(),
+    this.rootReplyId = const Value.absent(),
+    this.replyToReplyId = const Value.absent(),
+    this.techniqueTagsJson = const Value.absent(),
+    this.chartAttachmentJson = const Value.absent(),
+    this.mediaAttachmentsJson = const Value.absent(),
+    this.revisionJson = const Value.absent(),
+    this.status = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.cachedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PlaygroundReplyCachesCompanion.insert({
+    required String replyId,
+    required String postId,
+    required String authorUserId,
+    required String body,
+    required int depth,
+    required int isRoot,
+    this.rootReplyId = const Value.absent(),
+    this.replyToReplyId = const Value.absent(),
+    this.techniqueTagsJson = const Value.absent(),
+    this.chartAttachmentJson = const Value.absent(),
+    this.mediaAttachmentsJson = const Value.absent(),
+    this.revisionJson = const Value.absent(),
+    required String status,
+    required int createdAt,
+    this.updatedAt = const Value.absent(),
+    required int cachedAt,
+    this.rowid = const Value.absent(),
+  }) : replyId = Value(replyId),
+       postId = Value(postId),
+       authorUserId = Value(authorUserId),
+       body = Value(body),
+       depth = Value(depth),
+       isRoot = Value(isRoot),
+       status = Value(status),
+       createdAt = Value(createdAt),
+       cachedAt = Value(cachedAt);
+  static Insertable<PlaygroundReplyCacheRow> custom({
+    Expression<String>? replyId,
+    Expression<String>? postId,
+    Expression<String>? authorUserId,
+    Expression<String>? body,
+    Expression<int>? depth,
+    Expression<int>? isRoot,
+    Expression<String>? rootReplyId,
+    Expression<String>? replyToReplyId,
+    Expression<String>? techniqueTagsJson,
+    Expression<String>? chartAttachmentJson,
+    Expression<String>? mediaAttachmentsJson,
+    Expression<String>? revisionJson,
+    Expression<String>? status,
+    Expression<int>? createdAt,
+    Expression<int>? updatedAt,
+    Expression<int>? cachedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (replyId != null) 'reply_id': replyId,
+      if (postId != null) 'post_id': postId,
+      if (authorUserId != null) 'author_user_id': authorUserId,
+      if (body != null) 'body': body,
+      if (depth != null) 'depth': depth,
+      if (isRoot != null) 'is_root': isRoot,
+      if (rootReplyId != null) 'root_reply_id': rootReplyId,
+      if (replyToReplyId != null) 'reply_to_reply_id': replyToReplyId,
+      if (techniqueTagsJson != null) 'technique_tags_json': techniqueTagsJson,
+      if (chartAttachmentJson != null)
+        'chart_attachment_json': chartAttachmentJson,
+      if (mediaAttachmentsJson != null)
+        'media_attachments_json': mediaAttachmentsJson,
+      if (revisionJson != null) 'revision_json': revisionJson,
+      if (status != null) 'status': status,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (cachedAt != null) 'cached_at': cachedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PlaygroundReplyCachesCompanion copyWith({
+    Value<String>? replyId,
+    Value<String>? postId,
+    Value<String>? authorUserId,
+    Value<String>? body,
+    Value<int>? depth,
+    Value<int>? isRoot,
+    Value<String?>? rootReplyId,
+    Value<String?>? replyToReplyId,
+    Value<String?>? techniqueTagsJson,
+    Value<String?>? chartAttachmentJson,
+    Value<String?>? mediaAttachmentsJson,
+    Value<String?>? revisionJson,
+    Value<String>? status,
+    Value<int>? createdAt,
+    Value<int?>? updatedAt,
+    Value<int>? cachedAt,
+    Value<int>? rowid,
+  }) {
+    return PlaygroundReplyCachesCompanion(
+      replyId: replyId ?? this.replyId,
+      postId: postId ?? this.postId,
+      authorUserId: authorUserId ?? this.authorUserId,
+      body: body ?? this.body,
+      depth: depth ?? this.depth,
+      isRoot: isRoot ?? this.isRoot,
+      rootReplyId: rootReplyId ?? this.rootReplyId,
+      replyToReplyId: replyToReplyId ?? this.replyToReplyId,
+      techniqueTagsJson: techniqueTagsJson ?? this.techniqueTagsJson,
+      chartAttachmentJson: chartAttachmentJson ?? this.chartAttachmentJson,
+      mediaAttachmentsJson: mediaAttachmentsJson ?? this.mediaAttachmentsJson,
+      revisionJson: revisionJson ?? this.revisionJson,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      cachedAt: cachedAt ?? this.cachedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (replyId.present) {
+      map['reply_id'] = Variable<String>(replyId.value);
+    }
+    if (postId.present) {
+      map['post_id'] = Variable<String>(postId.value);
+    }
+    if (authorUserId.present) {
+      map['author_user_id'] = Variable<String>(authorUserId.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (depth.present) {
+      map['depth'] = Variable<int>(depth.value);
+    }
+    if (isRoot.present) {
+      map['is_root'] = Variable<int>(isRoot.value);
+    }
+    if (rootReplyId.present) {
+      map['root_reply_id'] = Variable<String>(rootReplyId.value);
+    }
+    if (replyToReplyId.present) {
+      map['reply_to_reply_id'] = Variable<String>(replyToReplyId.value);
+    }
+    if (techniqueTagsJson.present) {
+      map['technique_tags_json'] = Variable<String>(techniqueTagsJson.value);
+    }
+    if (chartAttachmentJson.present) {
+      map['chart_attachment_json'] = Variable<String>(
+        chartAttachmentJson.value,
+      );
+    }
+    if (mediaAttachmentsJson.present) {
+      map['media_attachments_json'] = Variable<String>(
+        mediaAttachmentsJson.value,
+      );
+    }
+    if (revisionJson.present) {
+      map['revision_json'] = Variable<String>(revisionJson.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    if (cachedAt.present) {
+      map['cached_at'] = Variable<int>(cachedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PlaygroundReplyCachesCompanion(')
+          ..write('replyId: $replyId, ')
+          ..write('postId: $postId, ')
+          ..write('authorUserId: $authorUserId, ')
+          ..write('body: $body, ')
+          ..write('depth: $depth, ')
+          ..write('isRoot: $isRoot, ')
+          ..write('rootReplyId: $rootReplyId, ')
+          ..write('replyToReplyId: $replyToReplyId, ')
+          ..write('techniqueTagsJson: $techniqueTagsJson, ')
+          ..write('chartAttachmentJson: $chartAttachmentJson, ')
+          ..write('mediaAttachmentsJson: $mediaAttachmentsJson, ')
+          ..write('revisionJson: $revisionJson, ')
+          ..write('status: $status, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('cachedAt: $cachedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
   _$PersistenceDriftDatabase(QueryExecutor e) : super(e);
   $PersistenceDriftDatabaseManager get managers =>
@@ -18556,6 +20317,10 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
   late final $BlobMetasTable blobMetas = $BlobMetasTable(this);
   late final $BlobChunksTable blobChunks = $BlobChunksTable(this);
   late final $BlobRefsTable blobRefs = $BlobRefsTable(this);
+  late final $PlaygroundPostCachesTable playgroundPostCaches =
+      $PlaygroundPostCachesTable(this);
+  late final $PlaygroundReplyCachesTable playgroundReplyCaches =
+      $PlaygroundReplyCachesTable(this);
   late final OutboxRecordsDao outboxRecordsDao = OutboxRecordsDao(
     this as PersistenceDriftDatabase,
   );
@@ -18605,6 +20370,10 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
   late final EntityStampDao entityStampDao = EntityStampDao(
     this as PersistenceDriftDatabase,
   );
+  late final DriftPlaygroundPostCacheStore driftPlaygroundPostCacheStore =
+      DriftPlaygroundPostCacheStore(this as PersistenceDriftDatabase);
+  late final DriftPlaygroundReplyCacheStore driftPlaygroundReplyCacheStore =
+      DriftPlaygroundReplyCacheStore(this as PersistenceDriftDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -18645,6 +20414,8 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
     blobMetas,
     blobChunks,
     blobRefs,
+    playgroundPostCaches,
+    playgroundReplyCaches,
   ];
 }
 
@@ -28711,6 +30482,809 @@ typedef $$BlobRefsTableProcessedTableManager =
       BlobRefRow,
       PrefetchHooks Function()
     >;
+typedef $$PlaygroundPostCachesTableCreateCompanionBuilder =
+    PlaygroundPostCachesCompanion Function({
+      required String postId,
+      required String authorUserId,
+      required String textContent,
+      required String allowedChartTechniqueIds,
+      Value<String?> attachmentJson,
+      Value<String?> revisionJson,
+      required String status,
+      required int createdAt,
+      Value<int?> updatedAt,
+      required int cachedAt,
+      Value<int> replyCount,
+      Value<int> likeCount,
+      Value<int> rowid,
+    });
+typedef $$PlaygroundPostCachesTableUpdateCompanionBuilder =
+    PlaygroundPostCachesCompanion Function({
+      Value<String> postId,
+      Value<String> authorUserId,
+      Value<String> textContent,
+      Value<String> allowedChartTechniqueIds,
+      Value<String?> attachmentJson,
+      Value<String?> revisionJson,
+      Value<String> status,
+      Value<int> createdAt,
+      Value<int?> updatedAt,
+      Value<int> cachedAt,
+      Value<int> replyCount,
+      Value<int> likeCount,
+      Value<int> rowid,
+    });
+
+class $$PlaygroundPostCachesTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $PlaygroundPostCachesTable> {
+  $$PlaygroundPostCachesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get postId => $composableBuilder(
+    column: $table.postId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get authorUserId => $composableBuilder(
+    column: $table.authorUserId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get textContent => $composableBuilder(
+    column: $table.textContent,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get allowedChartTechniqueIds => $composableBuilder(
+    column: $table.allowedChartTechniqueIds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get attachmentJson => $composableBuilder(
+    column: $table.attachmentJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get revisionJson => $composableBuilder(
+    column: $table.revisionJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get cachedAt => $composableBuilder(
+    column: $table.cachedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get replyCount => $composableBuilder(
+    column: $table.replyCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get likeCount => $composableBuilder(
+    column: $table.likeCount,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PlaygroundPostCachesTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $PlaygroundPostCachesTable> {
+  $$PlaygroundPostCachesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get postId => $composableBuilder(
+    column: $table.postId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get authorUserId => $composableBuilder(
+    column: $table.authorUserId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get textContent => $composableBuilder(
+    column: $table.textContent,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get allowedChartTechniqueIds => $composableBuilder(
+    column: $table.allowedChartTechniqueIds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get attachmentJson => $composableBuilder(
+    column: $table.attachmentJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get revisionJson => $composableBuilder(
+    column: $table.revisionJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get cachedAt => $composableBuilder(
+    column: $table.cachedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get replyCount => $composableBuilder(
+    column: $table.replyCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get likeCount => $composableBuilder(
+    column: $table.likeCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PlaygroundPostCachesTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $PlaygroundPostCachesTable> {
+  $$PlaygroundPostCachesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get postId =>
+      $composableBuilder(column: $table.postId, builder: (column) => column);
+
+  GeneratedColumn<String> get authorUserId => $composableBuilder(
+    column: $table.authorUserId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get textContent => $composableBuilder(
+    column: $table.textContent,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get allowedChartTechniqueIds => $composableBuilder(
+    column: $table.allowedChartTechniqueIds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get attachmentJson => $composableBuilder(
+    column: $table.attachmentJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get revisionJson => $composableBuilder(
+    column: $table.revisionJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get cachedAt =>
+      $composableBuilder(column: $table.cachedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get replyCount => $composableBuilder(
+    column: $table.replyCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get likeCount =>
+      $composableBuilder(column: $table.likeCount, builder: (column) => column);
+}
+
+class $$PlaygroundPostCachesTableTableManager
+    extends
+        RootTableManager<
+          _$PersistenceDriftDatabase,
+          $PlaygroundPostCachesTable,
+          PlaygroundPostCacheRow,
+          $$PlaygroundPostCachesTableFilterComposer,
+          $$PlaygroundPostCachesTableOrderingComposer,
+          $$PlaygroundPostCachesTableAnnotationComposer,
+          $$PlaygroundPostCachesTableCreateCompanionBuilder,
+          $$PlaygroundPostCachesTableUpdateCompanionBuilder,
+          (
+            PlaygroundPostCacheRow,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $PlaygroundPostCachesTable,
+              PlaygroundPostCacheRow
+            >,
+          ),
+          PlaygroundPostCacheRow,
+          PrefetchHooks Function()
+        > {
+  $$PlaygroundPostCachesTableTableManager(
+    _$PersistenceDriftDatabase db,
+    $PlaygroundPostCachesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PlaygroundPostCachesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PlaygroundPostCachesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$PlaygroundPostCachesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> postId = const Value.absent(),
+                Value<String> authorUserId = const Value.absent(),
+                Value<String> textContent = const Value.absent(),
+                Value<String> allowedChartTechniqueIds = const Value.absent(),
+                Value<String?> attachmentJson = const Value.absent(),
+                Value<String?> revisionJson = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int?> updatedAt = const Value.absent(),
+                Value<int> cachedAt = const Value.absent(),
+                Value<int> replyCount = const Value.absent(),
+                Value<int> likeCount = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PlaygroundPostCachesCompanion(
+                postId: postId,
+                authorUserId: authorUserId,
+                textContent: textContent,
+                allowedChartTechniqueIds: allowedChartTechniqueIds,
+                attachmentJson: attachmentJson,
+                revisionJson: revisionJson,
+                status: status,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                cachedAt: cachedAt,
+                replyCount: replyCount,
+                likeCount: likeCount,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String postId,
+                required String authorUserId,
+                required String textContent,
+                required String allowedChartTechniqueIds,
+                Value<String?> attachmentJson = const Value.absent(),
+                Value<String?> revisionJson = const Value.absent(),
+                required String status,
+                required int createdAt,
+                Value<int?> updatedAt = const Value.absent(),
+                required int cachedAt,
+                Value<int> replyCount = const Value.absent(),
+                Value<int> likeCount = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PlaygroundPostCachesCompanion.insert(
+                postId: postId,
+                authorUserId: authorUserId,
+                textContent: textContent,
+                allowedChartTechniqueIds: allowedChartTechniqueIds,
+                attachmentJson: attachmentJson,
+                revisionJson: revisionJson,
+                status: status,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                cachedAt: cachedAt,
+                replyCount: replyCount,
+                likeCount: likeCount,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PlaygroundPostCachesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PersistenceDriftDatabase,
+      $PlaygroundPostCachesTable,
+      PlaygroundPostCacheRow,
+      $$PlaygroundPostCachesTableFilterComposer,
+      $$PlaygroundPostCachesTableOrderingComposer,
+      $$PlaygroundPostCachesTableAnnotationComposer,
+      $$PlaygroundPostCachesTableCreateCompanionBuilder,
+      $$PlaygroundPostCachesTableUpdateCompanionBuilder,
+      (
+        PlaygroundPostCacheRow,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $PlaygroundPostCachesTable,
+          PlaygroundPostCacheRow
+        >,
+      ),
+      PlaygroundPostCacheRow,
+      PrefetchHooks Function()
+    >;
+typedef $$PlaygroundReplyCachesTableCreateCompanionBuilder =
+    PlaygroundReplyCachesCompanion Function({
+      required String replyId,
+      required String postId,
+      required String authorUserId,
+      required String body,
+      required int depth,
+      required int isRoot,
+      Value<String?> rootReplyId,
+      Value<String?> replyToReplyId,
+      Value<String?> techniqueTagsJson,
+      Value<String?> chartAttachmentJson,
+      Value<String?> mediaAttachmentsJson,
+      Value<String?> revisionJson,
+      required String status,
+      required int createdAt,
+      Value<int?> updatedAt,
+      required int cachedAt,
+      Value<int> rowid,
+    });
+typedef $$PlaygroundReplyCachesTableUpdateCompanionBuilder =
+    PlaygroundReplyCachesCompanion Function({
+      Value<String> replyId,
+      Value<String> postId,
+      Value<String> authorUserId,
+      Value<String> body,
+      Value<int> depth,
+      Value<int> isRoot,
+      Value<String?> rootReplyId,
+      Value<String?> replyToReplyId,
+      Value<String?> techniqueTagsJson,
+      Value<String?> chartAttachmentJson,
+      Value<String?> mediaAttachmentsJson,
+      Value<String?> revisionJson,
+      Value<String> status,
+      Value<int> createdAt,
+      Value<int?> updatedAt,
+      Value<int> cachedAt,
+      Value<int> rowid,
+    });
+
+class $$PlaygroundReplyCachesTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $PlaygroundReplyCachesTable> {
+  $$PlaygroundReplyCachesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get replyId => $composableBuilder(
+    column: $table.replyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get postId => $composableBuilder(
+    column: $table.postId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get authorUserId => $composableBuilder(
+    column: $table.authorUserId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get depth => $composableBuilder(
+    column: $table.depth,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get isRoot => $composableBuilder(
+    column: $table.isRoot,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get rootReplyId => $composableBuilder(
+    column: $table.rootReplyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get replyToReplyId => $composableBuilder(
+    column: $table.replyToReplyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get techniqueTagsJson => $composableBuilder(
+    column: $table.techniqueTagsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get chartAttachmentJson => $composableBuilder(
+    column: $table.chartAttachmentJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mediaAttachmentsJson => $composableBuilder(
+    column: $table.mediaAttachmentsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get revisionJson => $composableBuilder(
+    column: $table.revisionJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get cachedAt => $composableBuilder(
+    column: $table.cachedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PlaygroundReplyCachesTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $PlaygroundReplyCachesTable> {
+  $$PlaygroundReplyCachesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get replyId => $composableBuilder(
+    column: $table.replyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get postId => $composableBuilder(
+    column: $table.postId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get authorUserId => $composableBuilder(
+    column: $table.authorUserId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get depth => $composableBuilder(
+    column: $table.depth,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get isRoot => $composableBuilder(
+    column: $table.isRoot,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rootReplyId => $composableBuilder(
+    column: $table.rootReplyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get replyToReplyId => $composableBuilder(
+    column: $table.replyToReplyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get techniqueTagsJson => $composableBuilder(
+    column: $table.techniqueTagsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get chartAttachmentJson => $composableBuilder(
+    column: $table.chartAttachmentJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mediaAttachmentsJson => $composableBuilder(
+    column: $table.mediaAttachmentsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get revisionJson => $composableBuilder(
+    column: $table.revisionJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get cachedAt => $composableBuilder(
+    column: $table.cachedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PlaygroundReplyCachesTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $PlaygroundReplyCachesTable> {
+  $$PlaygroundReplyCachesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get replyId =>
+      $composableBuilder(column: $table.replyId, builder: (column) => column);
+
+  GeneratedColumn<String> get postId =>
+      $composableBuilder(column: $table.postId, builder: (column) => column);
+
+  GeneratedColumn<String> get authorUserId => $composableBuilder(
+    column: $table.authorUserId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<int> get depth =>
+      $composableBuilder(column: $table.depth, builder: (column) => column);
+
+  GeneratedColumn<int> get isRoot =>
+      $composableBuilder(column: $table.isRoot, builder: (column) => column);
+
+  GeneratedColumn<String> get rootReplyId => $composableBuilder(
+    column: $table.rootReplyId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get replyToReplyId => $composableBuilder(
+    column: $table.replyToReplyId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get techniqueTagsJson => $composableBuilder(
+    column: $table.techniqueTagsJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get chartAttachmentJson => $composableBuilder(
+    column: $table.chartAttachmentJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get mediaAttachmentsJson => $composableBuilder(
+    column: $table.mediaAttachmentsJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get revisionJson => $composableBuilder(
+    column: $table.revisionJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get cachedAt =>
+      $composableBuilder(column: $table.cachedAt, builder: (column) => column);
+}
+
+class $$PlaygroundReplyCachesTableTableManager
+    extends
+        RootTableManager<
+          _$PersistenceDriftDatabase,
+          $PlaygroundReplyCachesTable,
+          PlaygroundReplyCacheRow,
+          $$PlaygroundReplyCachesTableFilterComposer,
+          $$PlaygroundReplyCachesTableOrderingComposer,
+          $$PlaygroundReplyCachesTableAnnotationComposer,
+          $$PlaygroundReplyCachesTableCreateCompanionBuilder,
+          $$PlaygroundReplyCachesTableUpdateCompanionBuilder,
+          (
+            PlaygroundReplyCacheRow,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $PlaygroundReplyCachesTable,
+              PlaygroundReplyCacheRow
+            >,
+          ),
+          PlaygroundReplyCacheRow,
+          PrefetchHooks Function()
+        > {
+  $$PlaygroundReplyCachesTableTableManager(
+    _$PersistenceDriftDatabase db,
+    $PlaygroundReplyCachesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PlaygroundReplyCachesTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$PlaygroundReplyCachesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$PlaygroundReplyCachesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> replyId = const Value.absent(),
+                Value<String> postId = const Value.absent(),
+                Value<String> authorUserId = const Value.absent(),
+                Value<String> body = const Value.absent(),
+                Value<int> depth = const Value.absent(),
+                Value<int> isRoot = const Value.absent(),
+                Value<String?> rootReplyId = const Value.absent(),
+                Value<String?> replyToReplyId = const Value.absent(),
+                Value<String?> techniqueTagsJson = const Value.absent(),
+                Value<String?> chartAttachmentJson = const Value.absent(),
+                Value<String?> mediaAttachmentsJson = const Value.absent(),
+                Value<String?> revisionJson = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int?> updatedAt = const Value.absent(),
+                Value<int> cachedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PlaygroundReplyCachesCompanion(
+                replyId: replyId,
+                postId: postId,
+                authorUserId: authorUserId,
+                body: body,
+                depth: depth,
+                isRoot: isRoot,
+                rootReplyId: rootReplyId,
+                replyToReplyId: replyToReplyId,
+                techniqueTagsJson: techniqueTagsJson,
+                chartAttachmentJson: chartAttachmentJson,
+                mediaAttachmentsJson: mediaAttachmentsJson,
+                revisionJson: revisionJson,
+                status: status,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                cachedAt: cachedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String replyId,
+                required String postId,
+                required String authorUserId,
+                required String body,
+                required int depth,
+                required int isRoot,
+                Value<String?> rootReplyId = const Value.absent(),
+                Value<String?> replyToReplyId = const Value.absent(),
+                Value<String?> techniqueTagsJson = const Value.absent(),
+                Value<String?> chartAttachmentJson = const Value.absent(),
+                Value<String?> mediaAttachmentsJson = const Value.absent(),
+                Value<String?> revisionJson = const Value.absent(),
+                required String status,
+                required int createdAt,
+                Value<int?> updatedAt = const Value.absent(),
+                required int cachedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => PlaygroundReplyCachesCompanion.insert(
+                replyId: replyId,
+                postId: postId,
+                authorUserId: authorUserId,
+                body: body,
+                depth: depth,
+                isRoot: isRoot,
+                rootReplyId: rootReplyId,
+                replyToReplyId: replyToReplyId,
+                techniqueTagsJson: techniqueTagsJson,
+                chartAttachmentJson: chartAttachmentJson,
+                mediaAttachmentsJson: mediaAttachmentsJson,
+                revisionJson: revisionJson,
+                status: status,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                cachedAt: cachedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PlaygroundReplyCachesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PersistenceDriftDatabase,
+      $PlaygroundReplyCachesTable,
+      PlaygroundReplyCacheRow,
+      $$PlaygroundReplyCachesTableFilterComposer,
+      $$PlaygroundReplyCachesTableOrderingComposer,
+      $$PlaygroundReplyCachesTableAnnotationComposer,
+      $$PlaygroundReplyCachesTableCreateCompanionBuilder,
+      $$PlaygroundReplyCachesTableUpdateCompanionBuilder,
+      (
+        PlaygroundReplyCacheRow,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $PlaygroundReplyCachesTable,
+          PlaygroundReplyCacheRow
+        >,
+      ),
+      PlaygroundReplyCacheRow,
+      PrefetchHooks Function()
+    >;
 
 class $PersistenceDriftDatabaseManager {
   final _$PersistenceDriftDatabase _db;
@@ -28798,4 +31372,8 @@ class $PersistenceDriftDatabaseManager {
       $$BlobChunksTableTableManager(_db, _db.blobChunks);
   $$BlobRefsTableTableManager get blobRefs =>
       $$BlobRefsTableTableManager(_db, _db.blobRefs);
+  $$PlaygroundPostCachesTableTableManager get playgroundPostCaches =>
+      $$PlaygroundPostCachesTableTableManager(_db, _db.playgroundPostCaches);
+  $$PlaygroundReplyCachesTableTableManager get playgroundReplyCaches =>
+      $$PlaygroundReplyCachesTableTableManager(_db, _db.playgroundReplyCaches);
 }

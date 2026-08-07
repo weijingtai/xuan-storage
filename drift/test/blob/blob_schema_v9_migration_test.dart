@@ -41,10 +41,12 @@ void main() {
       await _assertBlobIndexes(db);
     });
 
-    test('schemaVersion 是 10', () async {
+    test('schemaVersion 跟随常量', () async {
       final db = PersistenceDriftDatabase(NativeDatabase.memory());
       addTearDown(db.close);
-      expect(db.schemaVersion, 10);
+      // 跟随 kPersistenceDriftSchemaVersion：版本升级后本断言自动同步，
+      // 不会因 schemaVersion 变化而误红。
+      expect(db.schemaVersion, kPersistenceDriftSchemaVersion);
     });
 
     /// ⚠ 这是本文件最重要的一条：迁移不得丢失既有数据。
@@ -109,6 +111,92 @@ void main() {
       expect(row.read<int>('occurred_at_utc'), 1750000002);
       expect(row.read<int?>('deleted_at'), isNull);
       expect(row.read<String>('payload_json'), '{"k":"v"}');
+    });
+
+    test('v9 旧库里的 blob 数据，升到 v10 后逐字段未丢 + 缓存表可用', () async {
+      final sqliteDb = sqlite3.openInMemory();
+
+      // 手工建 v9 形态的 t_blob_meta（只建本测试需要的列）。
+      sqliteDb.execute('''
+        CREATE TABLE t_blob_meta (
+          cipher_manifest_id TEXT NOT NULL PRIMARY KEY,
+          scope_uid TEXT NOT NULL,
+          plaintext_sha256 TEXT NOT NULL,
+          cipher_id TEXT NOT NULL,
+          key_version INTEGER NOT NULL,
+          total_bytes INTEGER NOT NULL,
+          chunk_count INTEGER NOT NULL,
+          mime_type TEXT NOT NULL,
+          tier INTEGER NOT NULL,
+          visibility INTEGER NOT NULL,
+          status INTEGER NOT NULL DEFAULT 0,
+          staged_at_utc INTEGER NOT NULL,
+          last_access_at_utc INTEGER NOT NULL,
+          external_id TEXT
+        );
+      ''');
+      sqliteDb.execute('''
+        INSERT INTO t_blob_meta
+          (cipher_manifest_id, scope_uid, plaintext_sha256, cipher_id,
+           key_version, total_bytes, chunk_count, mime_type, tier, visibility,
+           status, staged_at_utc, last_access_at_utc, external_id)
+        VALUES
+          ('manifest-v9-keep', 'scope-a', '${'b' * 64}', 'identity',
+           1, 32768, 2, 'image/jpeg', 0, 0, 1,
+           1750000000, 1750000001, 'attachment-keep');
+      ''');
+      sqliteDb.execute('PRAGMA user_version = 9;');
+
+      final db = PersistenceDriftDatabase(NativeDatabase.opened(sqliteDb));
+      addTearDown(db.close);
+
+      // 触发升级到 v10：一次 drift 查询驱动 onUpgrade
+      //（v9 手工库只有 t_blob_meta，不能跑三表 roundtrip）。
+      await db.select(db.blobMetas).get();
+
+      // 逐字段比对 v9 旧数据未丢。
+      final rows = await db
+          .customSelect(
+            "SELECT cipher_manifest_id, scope_uid, plaintext_sha256, cipher_id, "
+            "key_version, total_bytes, chunk_count, mime_type, tier, visibility, "
+            "status, staged_at_utc, last_access_at_utc, external_id "
+            "FROM t_blob_meta WHERE cipher_manifest_id = 'manifest-v9-keep'",
+          )
+          .get();
+
+      expect(rows.length, 1, reason: 'v9 旧 blob 元数据迁移后必须还在');
+      final row = rows.single;
+      expect(row.read<String>('cipher_manifest_id'), 'manifest-v9-keep');
+      expect(row.read<String>('scope_uid'), 'scope-a');
+      expect(row.read<String>('plaintext_sha256'), 'b' * 64);
+      expect(row.read<String>('cipher_id'), 'identity');
+      expect(row.read<int>('key_version'), 1);
+      expect(row.read<int>('total_bytes'), 32768);
+      expect(row.read<int>('chunk_count'), 2);
+      expect(row.read<String>('mime_type'), 'image/jpeg');
+      expect(row.read<int>('tier'), 0);
+      expect(row.read<int>('visibility'), 0);
+      expect(row.read<int>('status'), 1);
+      expect(row.read<int>('staged_at_utc'), 1750000000);
+      expect(row.read<int>('last_access_at_utc'), 1750000001);
+      expect(row.read<String>('external_id'), 'attachment-keep');
+
+      // v10 新增的 playground 缓存表可用（S2 Phase 3）。
+      await db.into(db.playgroundPostCaches).insert(
+            PlaygroundPostCachesCompanion.insert(
+              postId: 'p-v10-migrated',
+              authorUserId: 'u-1',
+              textContent: '迁移后可用',
+              allowedChartTechniqueIds: '[]',
+              status: 'active',
+              createdAt: 1750000002,
+              cachedAt: 1750000003,
+            ),
+          );
+      final cached = await db
+          .select(db.playgroundPostCaches)
+          .getSingleOrNull();
+      expect(cached?.textContent, '迁移后可用');
     });
   });
 }

@@ -68,3 +68,4 @@ flutter:
     - lib/tiebanshenshu/assets/formulas/
     - lib/tiebanshenshu/assets/all_tiao_wen_v1.csv
     - lib/geo/
+    - lib/theme/
