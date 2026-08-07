@@ -28,9 +28,9 @@ fi
 
 # ── 冻结基线（2026-08-04 实测，合并 main 后；与 S1a 门禁同口径）──
 # 注：core 57 = S1a 基线 58 减 1（ACT 07 修好 sync_runtime.dart 的一个 issue）。
-BASELINE_TOTAL_CORE=57
-BASELINE_TOTAL_DRIFT=146
-BASELINE_TOTAL_FIREBASE=20
+BASELINE_TOTAL_CORE=49
+BASELINE_TOTAL_DRIFT=112
+BASELINE_TOTAL_FIREBASE=16
 
 # ── S1b 拥有的文件（检查 1 的 scoped analyze 对象）──
 # 这些文件出现任何 issue 都算失败。含本任务新增的全部库文件与测试文件。
@@ -201,11 +201,18 @@ check_pkg() {
   # shellcheck disable=SC2164
   (cd "$dir" && dart analyze --format=machine --suppress-analytics) >/tmp/s1b_full.log 2>&1
 
+  # ⚠ 报备豁免（S2 返工 P0-3，2026-08-06，人类已确认）：
+  #   各包 pubspec.yaml 的 secure_pubspec_urls（内网 http git 依赖）计入豁免，
+  #   不参与总数与白名单。理由与范围同 run_s1a_analyze_gate.sh（见该文件注释）。
+  grep -E '^(ERROR|WARNING|INFO)\|' /tmp/s1b_full.log \
+    | grep -vE '^[A-Z]+\|[A-Z]+\|SECURE_PUBSPEC_URLS\|[^|]*pubspec\.yaml\|' \
+    > /tmp/s1b_filtered.log
+
   local total
-  total=$(grep -cE '^(ERROR|WARNING|INFO)\|' /tmp/s1b_full.log)
+  total=$(grep -cE '^(ERROR|WARNING|INFO)\|' /tmp/s1b_filtered.log)
 
   # 抽出现 issue 的文件（相对 ROOT），去重
-  grep -E '^(ERROR|WARNING|INFO)\|' /tmp/s1b_full.log \
+  grep -E '^(ERROR|WARNING|INFO)\|' /tmp/s1b_filtered.log \
     | awk -F'|' '{print $4}' \
     | sed "s#^$ROOT/##" \
     | sort -u >/tmp/s1b_files.txt
