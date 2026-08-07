@@ -867,6 +867,10 @@ class EntityStampDao extends DatabaseAccessor<PersistenceDriftDatabase>
   }
 }
 
+/// 数据库 schema 版本。任何 onUpgrade 分支新增时同步 +1；
+/// 测试断言跟随本常量（防止版本号断言失同步）。
+const int kPersistenceDriftSchemaVersion = 10;
+
 @DriftDatabase(
   tables: [
     OutboxRecords,
@@ -934,7 +938,7 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
   PersistenceDriftDatabase(super.executor);
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => kPersistenceDriftSchemaVersion;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
