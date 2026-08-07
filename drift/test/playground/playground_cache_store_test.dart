@@ -8,7 +8,6 @@ library;
 
 import 'package:drift/native.dart' show NativeDatabase;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:persistence_core/persistence_core.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:persistence_drift/playground/playground_post_cache_store.dart';
 import 'package:persistence_drift/playground/playground_reply_cache_store.dart';

@@ -24,6 +24,7 @@ import 'package:persistence_firebase/playground/firebase_playground_moderation_r
 import 'package:persistence_firebase/playground/firebase_playground_post_repository.dart';
 import 'package:persistence_firebase/playground/firebase_playground_reply_repository.dart';
 import 'package:persistence_firebase/playground/firebase_playground_schema.dart';
+import 'package:repository_interface_playground/repository_interface_playground.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -167,4 +168,42 @@ void main() {
       identityResolver: identityResolver,
     ),
   );
+
+  // ---- C10 落库断言（REVIEW-S2 §9-6）：举报必须真实写入 Firestore ----
+  group('契约 · 举报落库 · firebase', () {
+    test('reportContent 后 playground_reports 集合出现该条文档', () async {
+      final postRepo = FirebasePlaygroundPostRepository(
+        firestore: firestore,
+        auth: mockAuth,
+        identityResolver: identityResolver,
+      );
+      final moderation = FirebasePlaygroundModerationRepository(
+        firestore: firestore,
+        auth: mockAuth,
+        identityResolver: identityResolver,
+      );
+
+      final post = await postRepo.createPost(
+        const CreatePostCommand(text: '待举报帖子'),
+      );
+      await moderation.reportContent(
+        ReportContentCommand(
+          postId: post.id,
+          reason: PlaygroundReportReason.misinformation,
+          description: '落库断言',
+        ),
+      );
+
+      // 断言：reports 集合出现该条文档，post_id 与 reason 落库。
+      final snaps = await firestore
+          .collection(PlaygroundFirestoreSchema.reports)
+          .where('post_id', isEqualTo: post.id.value)
+          .get();
+      expect(snaps.docs, isNotEmpty,
+          reason: 'C10: reportContent 必须写入 playground_reports 集合');
+      final doc = snaps.docs.first.data();
+      expect(doc['post_id'], post.id.value);
+      expect(doc['reason'], PlaygroundReportReason.misinformation.name);
+    });
+  });
 }

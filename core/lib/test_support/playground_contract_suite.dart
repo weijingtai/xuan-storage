@@ -134,11 +134,14 @@ FutureOr<void> runPlaygroundFeedContractSuite({
       );
       expect(page.items, hasLength(2));
 
-      // 最后一页：游标续翻。注意 created_at 可能同值（serverTimestamp
-      // 同毫秒），同值边界的游标语义由实现决定 —— 契约只保证：不抛异常、
-      // 不与第一页重复。真实远端毫秒级不同值时第二页返回剩余帖。
+      // 不变量：hasMore 与 nextCursor 必须一致。
+      expect(page.hasMore, equals(page.nextCursor != null),
+          reason: 'C2: hasMore 必须与 nextCursor 存在性一致');
+
+      // 无条件续翻：只要实现返回了游标就必须可继续（同值 created_at 时
+      // 实现可能返回空续页，但不得抛异常、不得与首页重复）。
       final nextCursor = page.nextCursor;
-      if (page.hasMore && nextCursor != null) {
+      if (nextCursor != null) {
         final next = await repo.getLatestFeed(
           GetFeedQuery(
             tab: PlaygroundFeedTab.latest,
@@ -160,19 +163,71 @@ FutureOr<void> runPlaygroundFeedContractSuite({
       }
     });
 
-    test('C2 Feed 推荐/待占卜 tab 路由', () async {
+    test('C2 Feed 最后一页：取完后 hasMore=false 且 nextCursor=null', () async {
+      final remote = await makePostRemote();
       final repo = await makeFeedRepository();
-      final q = const GetFeedQuery(tab: PlaygroundFeedTab.recommended, limit: 5);
-      final recommended = await repo.getRecommendedFeed(q);
+
+      // 造 3 帖，limit 10 一次取完 → 命中最后一页语义。
+      for (var i = 0; i < 3; i++) {
+        await remote.createPost(CreatePostCommand(text: 'last-$i'));
+      }
+
+      final page = await repo.getLatestFeed(
+        const GetFeedQuery(tab: PlaygroundFeedTab.latest, limit: 10),
+      );
+      expect(page.items, hasLength(3));
+      expect(page.hasMore, isFalse,
+          reason: 'C2: 取完最后一页后 hasMore 必须为 false');
+      expect(page.nextCursor, isNull,
+          reason: 'C2: 取完最后一页后 nextCursor 必须为 null');
+    });
+
+    test('C2 Feed 游标失效：伪造/过期 cursor 不抛异常', () async {
+      final repo = await makeFeedRepository();
+
+      // 伪造 cursor（base64 解码失败 / 路径不存在），实现二选一：
+      // 抛可识别错误或返回空页/首页 —— 契约只保证不抛未识别异常。
+      final fakeCursor = PlaygroundCursor('not-a-real-cursor-%%%');
+      final page = await repo.getLatestFeed(
+        GetFeedQuery(
+          tab: PlaygroundFeedTab.latest,
+          limit: 5,
+          cursor: fakeCursor,
+        ),
+      );
+      expect(page, isNotNull);
+      expect(page.items, isA<List<PlaygroundPost>>());
+    });
+
+    test('C2 Feed tab 路由语义：各 tab 返回符合其过滤语义的集合', () async {
+      final remote = await makePostRemote();
+      final repo = await makeFeedRepository();
+
+      // 造 3 帖：createPost 不写 reply_status / recommendation_score。
+      // 语义：pendingDivination 要求 reply_status=pending（缺字段不匹配 → 空）；
+      // latest 返回全部 active 帖；recommended 按 score 排序（缺省兜底）。
+      for (var i = 0; i < 3; i++) {
+        await remote.createPost(CreatePostCommand(text: 'tab-$i'));
+      }
+
       final pending = await repo.getPendingDivinationFeed(
         const GetFeedQuery(tab: PlaygroundFeedTab.pendingDivination, limit: 5),
       );
+      expect(pending.items, isEmpty,
+          reason: 'C2: 无 reply_status=pending 的帖子时待占卜 tab 必须为空'
+              '（若路由错到 latest 会返回 3 帖）');
+
       final latest = await repo.getLatestFeed(
         const GetFeedQuery(tab: PlaygroundFeedTab.latest, limit: 5),
       );
-      expect(recommended, isNotNull);
-      expect(pending, isNotNull);
-      expect(latest, isNotNull);
+      expect(latest.items, hasLength(3),
+          reason: 'C2: latest tab 必须返回全部 active 帖');
+
+      final recommended = await repo.getRecommendedFeed(
+        const GetFeedQuery(tab: PlaygroundFeedTab.recommended, limit: 5),
+      );
+      expect(recommended.items, hasLength(3),
+          reason: 'C2: recommended tab 必须返回全部 active 帖（按 score 兜底排序）');
     });
   });
 }
@@ -372,11 +427,12 @@ FutureOr<void> runPlaygroundModerationContractSuite({
         const CreatePostCommand(text: '待审核帖子'),
       );
 
-      // 举报可调用。
+      // 举报：必须针对真实帖子 id（验收 A2：不得硬编码）。
       await moderation.reportContent(
-        const ReportContentCommand(
-          postId: PlaygroundPostId('c10-post'),
+        ReportContentCommand(
+          postId: post.id,
           reason: PlaygroundReportReason.spam,
+          description: '契约测试举报',
         ),
       );
 
