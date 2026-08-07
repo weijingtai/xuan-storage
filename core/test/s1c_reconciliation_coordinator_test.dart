@@ -266,7 +266,7 @@ class _FakeApplier implements LocalReconciliationApplier {
 // ── Fake B：合并门面 _BSide + 显式转发 channel（结构迥异）────────────────
 
 class _RigB implements ReconciliationRig {
-  _RigB(this.initiator, this.responder, this._idata, this._rdata);
+  _RigB(this.initiator, this.responder, this._idata, this._rdata, this._sent);
 
   @override
   final ReconciliationCoordinator initiator;
@@ -274,6 +274,7 @@ class _RigB implements ReconciliationRig {
   final ReconciliationCoordinator responder;
   final Map<String, _Stamped> _idata;
   final Map<String, _Stamped> _rdata;
+  final List<String> _sent;
 
   @override
   void seed(List<TerminalSpec> specs) {
@@ -289,6 +290,9 @@ class _RigB implements ReconciliationRig {
   Map<String, _Stamped> initiatorState() => _idata;
   @override
   Map<String, _Stamped> responderState() => _rdata;
+
+  @override
+  List<String> get initiatorSentOrder => _sent;
 }
 
 Future<_RigB> _makeRigB() async {
@@ -298,10 +302,11 @@ Future<_RigB> _makeRigB() async {
   final sideI = _BSide(idata);
   final sideR = _BSide(rdata);
 
+  final sent = <String>[];
   final initiator = ReconciliationCoordinator(
     source: sideI,
     store: sideI,
-    channel: _BChannel(),
+    channel: _BChannel(sent),
     comparator: DefaultManifestComparator(),
     applier: sideI,
   );
@@ -315,7 +320,7 @@ Future<_RigB> _makeRigB() async {
   (initiator.channelForTest as _BChannel).peer = responder;
   (responder.channelForTest as _BChannel).peer = initiator;
 
-  return _RigB(initiator, responder, idata, rdata);
+  return _RigB(initiator, responder, idata, rdata, sent);
 }
 
 /// Fake B 的合并门面：同一个类实现 ManifestSource + TerminalStore +
@@ -426,14 +431,22 @@ class _BSide implements ManifestSource, TerminalStore, LocalReconciliationApplie
 }
 
 class _BChannel implements RemoteTerminalChannel {
+  _BChannel([this.sentOrder]);
+
   ReconciliationCoordinator? peer;
+  final List<String>? sentOrder;
+
+  void _log(String kind) => sentOrder?.add(kind);
 
   @override
-  Future<void> sendManifestChunk(ManifestChunk chunk) =>
-      peer!.handleRemoteManifest(chunk);
+  Future<void> sendManifestChunk(ManifestChunk chunk) {
+    _log('manifestChunk');
+    return peer!.handleRemoteManifest(chunk);
+  }
 
   @override
   Future<void> sendTerminals(List<EntityTerminal> terminals) {
+    _log('terminals');
     if (terminals.isEmpty) return Future.value();
     return peer!.handleRemoteTerminals(
       scopeUid: terminals.first.scopeUid,
@@ -444,6 +457,7 @@ class _BChannel implements RemoteTerminalChannel {
 
   @override
   Future<void> requestTerminals(List<EntityRequest> requests) {
+    _log('requests');
     if (requests.isEmpty) return Future.value();
     return peer!.handleRemoteRequests(
       scopeUid: requests.first.scopeUid,
@@ -453,5 +467,7 @@ class _BChannel implements RemoteTerminalChannel {
   }
 
   @override
-  Future<void> sendCursorAdvance(CursorAdvance advance) async {}
+  Future<void> sendCursorAdvance(CursorAdvance advance) async {
+    _log('cursorAdvance');
+  }
 }

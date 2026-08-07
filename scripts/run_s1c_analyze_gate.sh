@@ -169,11 +169,36 @@ check_pkg() {
   # shellcheck disable=SC2164
   (cd "$dir" && dart analyze --format=machine --suppress-analytics) >/tmp/s1c_full.log 2>&1
 
+  # ⚠ 报备豁免（S2 返工 P0-3 复验，2026-08-06，与 S1a/S1b 门禁同口径）：
+  #   **host 白名单，非整类过滤**。仅豁免内网白名单 host 192.168.0.165 上
+  #   repository-interface-playground.git 的 http url（S2 新增依赖；内网 gitea
+  #   无 https、ssh 需 key、path 依赖与 taiyishenshu 等 git 包结构性冲突，
+  #   均实测不可行）。main 合并后 core/drift 的 pubspec.yaml 均含该 url，
+  #   本门禁与 S1a/S1b 同步豁免口径，基线保持 57/146 不调低。
+  local ALLOWED_HOST="192.168.0.165"
+  local EXEMPT_RE=""
+  while IFS= read -r LN; do
+    local LINE_NO="${LN%%:*}"
+    local URL_LINE="${LN#*:}"
+    case "$URL_LINE" in
+      *"$ALLOWED_HOST"*repository-interface-playground.git*)
+        if [ -z "$EXEMPT_RE" ]; then EXEMPT_RE="$LINE_NO"; else EXEMPT_RE="$EXEMPT_RE|$LINE_NO"; fi ;;
+    esac
+  done < <(grep -nE 'url: http' "$dir/pubspec.yaml")
+
+  if [ -n "$EXEMPT_RE" ]; then
+    grep -E '^(ERROR|WARNING|INFO)\|' /tmp/s1c_full.log \
+      | grep -vE "^[A-Z]+\|[A-Z]+\|SECURE_PUBSPEC_URLS\|[^|]*pubspec\.yaml\|($EXEMPT_RE)\|" \
+      > /tmp/s1c_filtered.log
+  else
+    grep -E '^(ERROR|WARNING|INFO)\|' /tmp/s1c_full.log > /tmp/s1c_filtered.log
+  fi
+
   local total
-  total=$(grep -cE '^(ERROR|WARNING|INFO)\|' /tmp/s1c_full.log)
+  total=$(grep -cE '^(ERROR|WARNING|INFO)\|' /tmp/s1c_filtered.log)
 
   # 抽出现 issue 的文件（相对 ROOT），去重
-  grep -E '^(ERROR|WARNING|INFO)\|' /tmp/s1c_full.log \
+  grep -E '^(ERROR|WARNING|INFO)\|' /tmp/s1c_filtered.log \
     | awk -F'|' '{print $4}' \
     | sed "s#^$ROOT/##" \
     | sort -u >/tmp/s1c_files.txt
