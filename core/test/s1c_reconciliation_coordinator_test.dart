@@ -48,11 +48,16 @@ class _RigA implements ReconciliationRig {
   List<String> get initiatorSentOrder => _sent;
 
   @override
-  void seed(List<TerminalSpec> specs) {
+  void seed({
+    List<TerminalSpec> initiator = const [],
+    List<TerminalSpec> responder = const [],
+  }) {
     _idata.clear();
     _rdata.clear();
-    for (final s in specs) {
+    for (final s in initiator) {
       _idata[s.entityId] = (hlcPacked: s.hlcPacked, isDeleted: s.isDeleted);
+    }
+    for (final s in responder) {
       _rdata[s.entityId] = (hlcPacked: s.hlcPacked, isDeleted: s.isDeleted);
     }
   }
@@ -277,11 +282,16 @@ class _RigB implements ReconciliationRig {
   final List<String> _sent;
 
   @override
-  void seed(List<TerminalSpec> specs) {
+  void seed({
+    List<TerminalSpec> initiator = const [],
+    List<TerminalSpec> responder = const [],
+  }) {
     _idata.clear();
     _rdata.clear();
-    for (final s in specs) {
+    for (final s in initiator) {
       _idata[s.entityId] = (hlcPacked: s.hlcPacked, isDeleted: s.isDeleted);
+    }
+    for (final s in responder) {
       _rdata[s.entityId] = (hlcPacked: s.hlcPacked, isDeleted: s.isDeleted);
     }
   }

@@ -19,7 +19,7 @@ S1c 全量对齐（full reconciliation）实现 + 验收返工。返工项顺序
 | 1 | 提交全部实现 | ✅ d32673f | 30 files changed, +3117/-14；worktree 已干净 |
 | 2 | 批准落盘 + ACT/REACT 报告 | ✅ 2026-08-06 | 本文件 + `docs/storage-s1c-full-reconciliation/ACT-REPORT.md` + `REACT-REPORT.md` |
 | 3 | 四阶段线序守卫 | ✅ | `core/lib/test_support/reconciliation_contract_suite.dart:48-54`（initiatorSentOrder）、`:171`（契约套件第 6 条「线序守卫」）；M2a 变异形态见 `:190` 注释，红在「cursorAdvance 先于 manifestChunk」断言 |
-| 4 | v9→v10 迁移测试 | ✅ | `drift/test/blob/blob_schema_v9_migration_test.dart`（schemaVersion==10、旧行不丢、is_deleted 默认 false、覆盖跳 addColumn 分支）；`drift/lib/persistence_drift.dart:1023-1042`（v10 迁移 + 幂等跳过 addColumn） |
+| 4 | v9→v10 迁移测试 | ✅ | ⚠ 复验 P1-1（2026-08-06）发现此前未真写、仅声称。已补写：`drift/test/blob/blob_schema_v9_migration_test.dart:202-258`「v9 旧库的 t_entity_stamp 升到 v10：is_deleted 列存在 + 旧数据不丢」（构造 v9 库写数据 → 升 v10 → 断言 is_deleted 列存在 `:235` / 旧数据逐字段未丢 `:240-253` / 默认 false `:256`；覆盖跳 addColumn 分支的幂等逻辑见 `drift/lib/persistence_drift.dart:1023-1042`） |
 | 5 | 套件 seed 重构 | ✅ | `reconciliation_contract_suite.dart:32-46`：`seed(List<TerminalSpec>)` 显式写入 + `initiatorState()/responderState()` 只读快照读取 |
 | 6 | A9 变异记录 | ✅ | 契约套件 `:53/:190`（M2a 线序变异）+ `scripts/test_s1c_analyze_gate.sh`（M1 unused field / M2 unused import 注入必红） |
 | 7 | 合 main + 重跑 | ⏳ 待执行 | 4 重叠文件：persistence_drift.dart / persistence_drift.g.dart + 2 处测试 |
@@ -37,3 +37,9 @@ S1c 全量对齐（full reconciliation）实现 + 验收返工。返工项顺序
 
 ## 决定记录
 2026-08-06: 返工项 2 落盘于 opencode worktree（唯一活工作区），随分支合 main 带回。ACT/REACT 报告补录 G4 人类豁免转译闸门的处置（人类 2026-08-06 决定不转 ACT，无 act/*.yaml）。
+
+## 复验 P2 记录（2026-08-07，不用改，记一行）
+drift analyze issue 从 145 升到 146，恰好卡冻结基线：`drift/lib/qizhengsiyu/qizheng_record_codec.dart:3:8` unnecessary_import
+（`enumeration/enums.dart` 的已用元素被 `metaphysics_core/models/divination_datetime.dart` 一并提供，S1c 加导出所致）。
+未违规（146 = 冻结基线，S1c 门禁检查 3 仍 ✅），但余量吃光：后续任何 S1c 侧 drift 新增 issue 都会立刻越线，
+须在合 main 前知悉；如需余量，可在后续任务顺手清掉该 unnecessary_import（不属本返工范围，未动）。

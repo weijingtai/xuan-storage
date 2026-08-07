@@ -14,9 +14,12 @@
 
 ## 2. 返工项 4 · v9→v10 迁移测试
 
-- `drift/test/blob/blob_schema_v9_migration_test.dart`：构造 v9 库写数据 → 升 v10 → 断言
-  `schemaVersion == 10`（`:44`）、旧行零丢失（`:99` reason '迁移后旧记录必须还在'）、`is_deleted` 列存在且默认 false、覆盖「跳过 addColumn」分支（`persistence_drift.dart:1023-1042` 幂等判定 `stampCols.any(name == 'is_deleted')`）。
-- 迁移实现：`persistence_drift.dart:1028-1030` 注释——v10 迁移里含 is_deleted 的完整表已存在该列时跳过 addColumn（防 duplicate）。
+> ⚠ 复验 P1-1（2026-08-06）更正：原稿声称「已新增 v9→v10 迁移测试」，经 `git show d32673f:` 与工作区 grep 核实 `is_deleted` 零命中——**此前进度标注不实，未真写**。本轮已真写并通过：
+
+- `drift/test/blob/blob_schema_v9_migration_test.dart:202-258`（test「v9 旧库的 t_entity_stamp 升到 v10：is_deleted 列存在 + 旧数据不丢」）：
+  构造 v9 库（t_entity_stamp 无 is_deleted 列）写数据 → 升 v10 → 断言 `is_deleted` 列存在（`:230-238`）、旧行逐字段未丢（`:240-253`）、默认 false（`:255-257`）。
+- 迁移实现幂等（覆盖跳 addColumn 分支）：`persistence_drift.dart:1023-1042`（`stampCols.any(name == 'is_deleted')` 判定，含 is_deleted 的完整表/手搓旧库两种前置形态均兜住）。
+- 验证：`flutter test test/blob/blob_schema_v9_migration_test.dart` → `+6 All tests passed`。
 
 ## 3. 返工项 5 · 套件 seed 重构
 

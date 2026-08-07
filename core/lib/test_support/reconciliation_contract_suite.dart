@@ -11,8 +11,8 @@
 /// 接由拓扑自己负责。
 ///
 /// 【seed 约定】套件每个测试都【先 seed 两端数据再跑一次对齐】，保证测试
-/// 相互独立（不共享全局状态）。rig 的 [seed] 写入两端初始数据，
-/// [initiatorState]/[responderState] 读两端收敛后数据。
+/// 相互独立（不共享全局状态）。rig 的 [seed] 按端写入初始数据（可只写一端、
+/// 可两端不同），[initiatorState]/[responderState] 读两端收敛后数据。
 ///
 /// 【两个 fake 结构迥异 + 不能是同一对象】（派工 §七第4条）：套件在
 /// [runReconciliationContractSuite] 调用处由测试方注入两种不同拓扑。套件
@@ -36,8 +36,14 @@ abstract interface class ReconciliationRig {
   /// 应答方 coordinator（已接通到 [initiator]）。
   ReconciliationCoordinator get responder;
 
-  /// 用 [specs] 覆写两端初始数据。每个测试先 seed 再跑对齐。
-  void seed(List<TerminalSpec> specs);
+  /// 分别覆写发起方/应答方初始数据。每个测试先 seed 再跑对齐。
+  ///
+  /// 契约场景需要「一端有/一端无」（新设备入网、各自独有）与「两端同实体
+  /// 不同戳」（对端更新、墓碑 vs 活），故按端传参；只写一端时另一端省略。
+  void seed({
+    List<TerminalSpec> initiator = const [],
+    List<TerminalSpec> responder = const [],
+  });
 
   /// 发起方本地的实体终态快照（entityId → (hlcPacked, isDeleted)）。
   Map<String, ({int hlcPacked, bool isDeleted})> initiatorState();
@@ -72,14 +78,17 @@ FutureOr<void> runReconciliationContractSuite({
 
     test('重叠 + 各自独有 → 双向收敛', () async {
       final rig = await makeRig();
-      rig.seed([
-        // 两端都有的 r2：同一写操作（同 deviceId），比对时同版本 → 不交换。
-        (entityId: 'r2', hlcPacked: 2000 << 16, isDeleted: false),
-      ]);
-      rig.initiatorState()['r1'] = (hlcPacked: 1000 << 16, isDeleted: false);
-      rig.responderState()['r3'] = (hlcPacked: 3000 << 16, isDeleted: false);
-      rig.initiatorState()['r2'] = (hlcPacked: 2000 << 16, isDeleted: false);
-      rig.responderState()['r2'] = (hlcPacked: 2000 << 16, isDeleted: false);
+      // r1 只发起方有、r3 只应答方有、r2 两端同版本（同一写操作，不交换）。
+      rig.seed(
+        initiator: [
+          (entityId: 'r1', hlcPacked: 1000 << 16, isDeleted: false),
+          (entityId: 'r2', hlcPacked: 2000 << 16, isDeleted: false),
+        ],
+        responder: [
+          (entityId: 'r3', hlcPacked: 3000 << 16, isDeleted: false),
+          (entityId: 'r2', hlcPacked: 2000 << 16, isDeleted: false),
+        ],
+      );
 
       final run = await rig.initiator.reconcileAsInitiator(
         scopeUid: 'scope-1',
@@ -108,9 +117,13 @@ FutureOr<void> runReconciliationContractSuite({
 
     test('新设备入网 → 对端全量推来', () async {
       final rig = await makeRig();
-      rig.seed(const []);
-      rig.initiatorState()['r1'] = (hlcPacked: 1000 << 16, isDeleted: false);
-      rig.initiatorState()['r2'] = (hlcPacked: 2000 << 16, isDeleted: false);
+      // 新设备入网：发起方本地有 r1/r2，应答方为空 → 应答方全量拉取。
+      rig.seed(
+        initiator: [
+          (entityId: 'r1', hlcPacked: 1000 << 16, isDeleted: false),
+          (entityId: 'r2', hlcPacked: 2000 << 16, isDeleted: false),
+        ],
+      );
 
       final run = await rig.initiator.reconcileAsInitiator(
         scopeUid: 'scope-2',
@@ -129,10 +142,15 @@ FutureOr<void> runReconciliationContractSuite({
 
     test('墓碑传播且不复活', () async {
       final rig = await makeRig();
-      rig.seed(const []);
       // 发起方有墓碑 r1（戳 3000）；应答方有活记录 r1（旧戳 1000）。
-      rig.initiatorState()['r1'] = (hlcPacked: 3000 << 16, isDeleted: true);
-      rig.responderState()['r1'] = (hlcPacked: 1000 << 16, isDeleted: false);
+      rig.seed(
+        initiator: [
+          (entityId: 'r1', hlcPacked: 3000 << 16, isDeleted: true),
+        ],
+        responder: [
+          (entityId: 'r1', hlcPacked: 1000 << 16, isDeleted: false),
+        ],
+      );
 
       final run = await rig.initiator.reconcileAsInitiator(
         scopeUid: 'scope-3',
@@ -150,10 +168,15 @@ FutureOr<void> runReconciliationContractSuite({
 
     test('对端更新版本 → 发起方拉取', () async {
       final rig = await makeRig();
-      rig.seed(const []);
       // 发起方 r1 旧戳（1000），应答方 r1 新戳（5000）。
-      rig.initiatorState()['r1'] = (hlcPacked: 1000 << 16, isDeleted: false);
-      rig.responderState()['r1'] = (hlcPacked: 5000 << 16, isDeleted: false);
+      rig.seed(
+        initiator: [
+          (entityId: 'r1', hlcPacked: 1000 << 16, isDeleted: false),
+        ],
+        responder: [
+          (entityId: 'r1', hlcPacked: 5000 << 16, isDeleted: false),
+        ],
+      );
 
       final run = await rig.initiator.reconcileAsInitiator(
         scopeUid: 'scope-4',
@@ -170,13 +193,12 @@ FutureOr<void> runReconciliationContractSuite({
 
     test('线序守卫：全部 ManifestChunk 必须先于 CursorAdvance（返工#4）', () async {
       final rig = await makeRig();
-      rig.seed(const []);
       // 造 3 个实体使清单分成 3 片（pageSize 1），验证分片线序不止一片。
-      for (var i = 0; i < 3; i++) {
-        final id = 'seq-$i';
-        rig.initiatorState()[id] = (hlcPacked: 1000 << 16, isDeleted: false);
-        rig.responderState()[id] = (hlcPacked: 1000 << 16, isDeleted: false);
-      }
+      final seqSpecs = [
+        for (var i = 0; i < 3; i++)
+          (entityId: 'seq-$i', hlcPacked: 1000 << 16, isDeleted: false),
+      ];
+      rig.seed(initiator: seqSpecs, responder: seqSpecs);
 
       await rig.initiator.reconcileAsInitiator(
         scopeUid: 'scope-order',
