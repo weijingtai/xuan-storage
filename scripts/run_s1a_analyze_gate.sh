@@ -167,6 +167,16 @@ if [ "$FAILED" -ne 0 ]; then
   exit 1
 fi
 
+# ── 检查 4：dartdoc 覆盖下限可读回（A9）──
+# 从 s1a_dartdoc_coverage_test.dart 的常量实读，不写死 —— 写死会与测试脱节。
+DARTDOC_MIN="$(grep -oE 'minMemberDeclarations = [0-9]+' \
+  test/s1a_dartdoc_coverage_test.dart | grep -oE '[0-9]+' | head -1)"
+if [ -z "$DARTDOC_MIN" ]; then
+  echo "❌ [检查4] 未能在 core/test/s1a_dartdoc_coverage_test.dart 读到 minMemberDeclarations"
+  exit 1
+fi
+echo "✅ [检查4] dartdoc 覆盖下限 = ${DARTDOC_MIN}（s1a_dartdoc_coverage_test.dart，A9：不得调低）"
+
 echo "———"
 echo "✅ S1a 静态分析门禁通过（既有断点 ${BASELINE_TOTAL} 条已按人类决定挂账，见任务纪要决定记录）"
 exit 0

@@ -42,12 +42,16 @@ const kThemeAppSchemaRevision = 1;
 /// ⚠ `final` 不是 `const` —— [publishedAtUtc] 是 DateTime，无 const 构造器。
 final kThemeBundledManifest = DatasetManifest(
   datasetId: themeDatasetId,
-  contentVersion: '0.0.0-placeholder', // TODO(BUILD-THEME): 填真值
+  contentVersion: '2026-08-06', // 真值：构建日期（照 T1 geo 的 '2026-08-03'），
+  // 不参与兼容判定（dataset_manifest.dart:43-45），人可读用于诊断
+  // 真值来源：assets/lib/theme/default.jsonl（generation 0 内置载荷）
   minimumAppSchemaRevision: 1,
   payloadFormat: DatasetPayloadFormat.prebuilt,
   carriers: {Carrier.row},
-  payloadSha256: '0' * 64, // TODO(BUILD-THEME): 64 位 sha256 真值
-  payloadBytes: 0,
-  declaredRowCount: 0, // TODO(BUILD-THEME): 填真值
+  payloadSha256:
+      'aa62ab4aaa45038a2625dc0fcf26daee616c1a7c40d00bf50ab081f15d634af1',
+  // 真值：assets/lib/theme/default.jsonl 的 sha256（构建脚本产出）
+  payloadBytes: 27458, // 真值：default.jsonl 字节数
+  declaredRowCount: 338, // 真值：default.jsonl 行数（token 数）
   publishedAtUtc: DateTime.utc(2026, 1, 1),
 );
