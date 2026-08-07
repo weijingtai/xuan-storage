@@ -3,7 +3,7 @@
 /// 系统相册选图 → EXIF 剥离（硬要求）→ 客户端转码（stub）→
 /// BlobGateway 两阶段上传（public）→ 返回 [PlaygroundAttachment]。
 ///
-/// 真云端 BlobGateway 交付前，注入 [FirebaseBlobGateway]（内存 fake）即可
+/// 真云端 BlobGateway 交付前，注入 [InMemoryFirebaseBlobGateway]（内存 fake）即可
 /// 全链路跑通（契约套件 C6/C7 依赖本管线做 EXIF 断言）。
 library;
 

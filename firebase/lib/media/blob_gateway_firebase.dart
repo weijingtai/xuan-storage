@@ -16,11 +16,24 @@ import 'package:persistence_core/persistence_core.dart';
 
 /// 内存 BlobGateway fake（@visibleForTesting：仅测试与未交付期接线用）。
 @visibleForTesting
-final class FirebaseBlobGateway implements BlobGateway {
-  FirebaseBlobGateway();
+final class InMemoryFirebaseBlobGateway implements BlobGateway {
+  InMemoryFirebaseBlobGateway();
 
   /// objectName → (index → bytes)。
   final Map<String, Map<int, List<int>>> _chunks = {};
+
+  /// 已上传的全部 chunk 字节（按 index 归位拼接），供测试断言
+  /// 「上传路径上的真实字节流」。
+  List<int> uploadedBytes(String objectName) {
+    final state = _chunks[objectName];
+    if (state == null) return const [];
+    final maxIndex = state.keys.isEmpty ? 0 : state.keys.reduce((a, b) => a > b ? a : b);
+    final out = <int>[];
+    for (var i = 0; i <= maxIndex; i++) {
+      out.addAll(state[i] ?? const []);
+    }
+    return out;
+  }
   final Set<String> _completed = {};
   int _ticketCounter = 0;
 
