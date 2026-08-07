@@ -404,12 +404,27 @@ class SyncCoordinator {
     SyncError? lastError;
 
     while (pages < maxPages) {
-      final page = await pullGateway.listChanges(
+      final result = await pullGateway.listChanges(
         scopeUid: scopeUid,
         entityType: entityType,
         sinceCursor: cursor,
         limit: limit ?? _pullBatchSize,
       );
+
+      // S1c §2.5：对端否决增量时强制切全量对齐，且【不得推进游标】。
+      // 空页/正常页会推进游标；IncrementalUnavailable 在这里以 lastError
+      // 上抛，由上层（SyncRuntime）决定转全量对齐编排。
+      if (result case final IncrementalUnavailable unavailable) {
+        lastError = SyncError(
+          code: SyncErrorCode.invalidData,
+          message:
+              'Peer ${unavailable.peerId.value} denied incremental sync '
+              'for $entityType (${unavailable.reason.name}); '
+              'full reconciliation required',
+        );
+        break;
+      }
+      final page = result as RemoteChangesPage;
 
       pages += 1;
       fetched += page.changes.length;

@@ -41,10 +41,10 @@ void main() {
       await _assertBlobIndexes(db);
     });
 
-    test('schemaVersion 是 9', () async {
+    test('schemaVersion 是 10', () async {
       final db = PersistenceDriftDatabase(NativeDatabase.memory());
       addTearDown(db.close);
-      expect(db.schemaVersion, 9);
+      expect(db.schemaVersion, 10);
     });
 
     /// ⚠ 这是本文件最重要的一条：迁移不得丢失既有数据。

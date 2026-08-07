@@ -125,6 +125,7 @@ void main() {
         required hlcPacked,
         required deviceId,
         required write,
+        bool isDeleted = false,
       }) =>
           db.applyWithStamp(
             scopeUid: scope,
@@ -133,6 +134,7 @@ void main() {
             hlcPacked: hlcPacked,
             deviceId: deviceId,
             write: write,
+              isDeleted: isDeleted,
           ),
       arbiter: arbiter,
       clock: clock,
@@ -192,6 +194,7 @@ void main() {
           entityId: 'r1',
           hlcPacked: 500,
           deviceId: 'device-local',
+          isDeleted: false,
         ),
       );
       await ds.applyRemoteRecord(_meta('r1'), const []);
@@ -262,6 +265,7 @@ void main() {
           required hlcPacked,
           required deviceId,
           required write,
+          bool isDeleted = false,
         }) =>
             db.applyWithStamp(
               scopeUid: 'scope-A',
@@ -270,6 +274,7 @@ void main() {
               hlcPacked: hlcPacked,
               deviceId: deviceId,
               write: write,
+              isDeleted: isDeleted,
             ),
         arbiter: const HlcConflictArbiter(),
       );
@@ -328,6 +333,7 @@ void main() {
           required hlcPacked,
           required deviceId,
           required write,
+          bool isDeleted = false,
         }) =>
             db.applyWithStamp(
               scopeUid: 'scope-A',
@@ -336,6 +342,7 @@ void main() {
               hlcPacked: hlcPacked,
               deviceId: deviceId,
               write: write,
+              isDeleted: isDeleted,
             ),
         arbiter: const HlcConflictArbiter(),
       );
@@ -355,6 +362,7 @@ void main() {
           required hlcPacked,
           required deviceId,
           required write,
+          bool isDeleted = false,
         }) =>
             db.applyWithStamp(
               scopeUid: 'scope-B',
@@ -363,6 +371,7 @@ void main() {
               hlcPacked: hlcPacked,
               deviceId: deviceId,
               write: write,
+              isDeleted: isDeleted,
             ),
         arbiter: const HlcConflictArbiter(),
       );
@@ -434,6 +443,7 @@ void main() {
           entityId: 'r1',
           hlcPacked: 500,
           deviceId: 'device-local',
+          isDeleted: false,
         ),
       );
       await ds.applyRemoteRecord(_meta('r1'), const []);
@@ -468,6 +478,7 @@ void main() {
           entityId: 'r1',
           hlcPacked: 500,
           deviceId: 'device-local',
+          isDeleted: false,
         ),
       );
       final change = _change('op-1', 'r1',
@@ -492,6 +503,7 @@ void main() {
           entityId: 'r1',
           hlcPacked: 500,
           deviceId: 'device-local',
+          isDeleted: false,
         ),
       );
       // 本地已有一个可辨识的旧 payload
@@ -564,6 +576,7 @@ void main() {
           entityId: 'r1',
           hlcPacked: 500,
           deviceId: 'device-local',
+          isDeleted: false,
         ),
       );
       await ds.applyRemoteRecord(_meta('r1'), const []);

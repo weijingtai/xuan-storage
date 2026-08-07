@@ -63,7 +63,12 @@ abstract interface class SyncPeer {
   Future<SyncError?> push(OutboxRecord record);
 
   /// 按游标增量拉取该对端的变更。语义同既有单 peer 网关的 listChanges。
-  Future<RemoteChangesPage> listChanges({
+  ///
+  /// 返回类型收窄（S1c §2.5 定稿，人类已批准）：
+  /// - [RemoteChangesPage]：正常增量页。
+  /// - [IncrementalUnavailable]：对端无法提供增量（游标早于保留水位 /
+  ///   oplog 已压缩 / 主动拒绝），发起方须强制切全量对齐且【不得推进游标】。
+  Future<RemoteChangesResult> listChanges({
     required String scopeUid,
     required String entityType,
     required PullCursor? sinceCursor,

@@ -22,6 +22,13 @@ enum StreamKind {
 
   /// blob chunk 流：BlobGateway 消费。
   blobChunk,
+
+  /// 全量对齐（reconciliation）流：S1c 消费。
+  ///
+  /// S1c §3.1 定稿：全量对齐的四类消息（ManifestChunk / EntityTerminal /
+  /// EntityRequest / CursorAdvance）复用同一条 `reconciliation` 逻辑流，
+  /// 靠消息类型字段区分（不每类开一流，避免多路复用碎片化）。
+  reconciliation,
 }
 
 /// 对端身份：认证握手后绑定到会话的身份信息。

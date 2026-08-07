@@ -41,7 +41,7 @@ class RemoteGatewayRouter implements SyncPeer {
   Future<SyncError?> push(OutboxRecord record) => _active.push(record);
 
   @override
-  Future<RemoteChangesPage> listChanges({
+  Future<RemoteChangesResult> listChanges({
     required String scopeUid,
     required String entityType,
     required PullCursor? sinceCursor,

@@ -273,6 +273,16 @@ class EntityStamps extends Table {
   /// 写入该版本的设备。HLC 相等时的决胜位（= crdt Hlc 的 nodeId）。
   TextColumn get deviceId => text().named('device_id')();
 
+  /// 墓碑标记（S1c §3.2① 定稿，单戳模型）。
+  ///
+  /// - 删除事件发生时，[hlcPacked]/[deviceId]【更新为该删除事件的戳】，
+  ///   一行只保留一套戳，本列置 true —— 不存在「墓碑戳 vs 实体戳」双值。
+  /// - 清单交换必须含 `is_deleted=true` 的墓碑行（否则删除传不到对端，
+  ///   用户删掉的数据会在对端复活）。
+  /// - 默认 false：既有行升级后自动回填，既有 insert 零改动即可编译。
+  BoolColumn get isDeleted =>
+      boolean().withDefault(const Constant(false)).named('is_deleted')();
+
   @override
   Set<Column> get primaryKey => {scopeUid, entityType, entityId};
 }
@@ -795,6 +805,11 @@ class EntityStampDao extends DatabaseAccessor<PersistenceDriftDatabase>
   /// ACT 10 的 applier 必须走这个方法，不许自己 `transaction(() { ... })`
   /// 里分别调两次 —— 那样写法上看着也在一个事务里，但戳的更新会散落在
   /// applier 的多个分支中，漏掉一个分支不报错。
+  ///
+  /// S1c §3.2① 单戳墓碑模型：
+  /// - [isDeleted]=true 表示本次写是墓碑（删除事件）。此时 [write] 回调
+  ///   应负责把业务记录置为删除态/删除，戳仍更新为该删除事件的戳。
+  /// - 一行只保留一套戳，本方法负责把戳与 `is_deleted` 位一起落盘。
   Future<void> applyWithStamp({
     required String scopeUid,
     required String entityType,
@@ -802,6 +817,7 @@ class EntityStampDao extends DatabaseAccessor<PersistenceDriftDatabase>
     required int hlcPacked,
     required String deviceId,
     required Future<void> Function() write,
+    bool isDeleted = false,
   }) async {
     await db.transaction(() async {
       await write();
@@ -812,6 +828,7 @@ class EntityStampDao extends DatabaseAccessor<PersistenceDriftDatabase>
           entityId: entityId,
           hlcPacked: hlcPacked,
           deviceId: deviceId,
+          isDeleted: Value(isDeleted),
         ),
       );
     });
@@ -927,7 +944,7 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
   PersistenceDriftDatabase(super.executor);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -1002,6 +1019,32 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
         await m.createTable(blobRefs);
         await _createBlobIndices();
       }
+      if (from < 10) {
+        // schema v10：t_entity_stamp 加 is_deleted 墓碑列（S1c §3.2① 单戳模型）。
+        // 只加列，不触既有列语义（hlcPacked/deviceId/PK）——符合派工 §五。
+        //
+        // 两种前置形态都要兜住：
+        // - `from < 8` 分支对 v6/v7 旧库会用当前表定义 createTable 直接建出
+        //   含 is_deleted 的完整表 → 已存在该列，跳过 addColumn（否则 duplicate）。
+        // - 手搓的"v8 旧库"可能只有部分表、压根没有 t_entity_stamp → 先建表
+        //   （当前定义天然含 is_deleted），再跳过 addColumn。
+        final stampTables = await customSelect(
+          "SELECT name FROM sqlite_master "
+          "WHERE type = 'table' AND name = 't_entity_stamp'",
+        ).get();
+        if (stampTables.isEmpty) {
+          await m.createTable(entityStamps);
+        } else {
+          final stampCols = await customSelect(
+            'SELECT name FROM pragma_table_info("t_entity_stamp")',
+          ).get();
+          final hasIsDeleted =
+              stampCols.any((r) => r.read<String>('name') == 'is_deleted');
+          if (!hasIsDeleted) {
+            await m.addColumn(entityStamps, entityStamps.isDeleted);
+          }
+        }
+      }
     },
   );
 
@@ -1028,6 +1071,7 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
     required int hlcPacked,
     required String deviceId,
     required Future<void> Function() write,
+    bool isDeleted = false,
   }) {
     return entityStampDao.applyWithStamp(
       scopeUid: scopeUid,
@@ -1036,6 +1080,7 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
       hlcPacked: hlcPacked,
       deviceId: deviceId,
       write: write,
+      isDeleted: isDeleted,
     );
   }
 

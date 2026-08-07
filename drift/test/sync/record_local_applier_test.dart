@@ -96,6 +96,7 @@ void main() {
           required hlcPacked,
           required deviceId,
           required write,
+          bool isDeleted = false,
         }) =>
             db.applyWithStamp(
               scopeUid: 's1',
@@ -104,6 +105,7 @@ void main() {
               hlcPacked: hlcPacked,
               deviceId: deviceId,
               write: write,
+              isDeleted: isDeleted,
             ),
         arbiter: const HlcConflictArbiter(),
       );
@@ -147,6 +149,7 @@ void main() {
           required hlcPacked,
           required deviceId,
           required write,
+          bool isDeleted = false,
         }) =>
             db.applyWithStamp(
               scopeUid: 's1',
@@ -155,6 +158,7 @@ void main() {
               hlcPacked: hlcPacked,
               deviceId: deviceId,
               write: write,
+              isDeleted: isDeleted,
             ),
         arbiter: const HlcConflictArbiter(),
       );
@@ -215,6 +219,7 @@ void main() {
           required hlcPacked,
           required deviceId,
           required write,
+          bool isDeleted = false,
         }) =>
             db.applyWithStamp(
               scopeUid: 's1',
@@ -223,6 +228,7 @@ void main() {
               hlcPacked: hlcPacked,
               deviceId: deviceId,
               write: write,
+              isDeleted: isDeleted,
             ),
         arbiter: const HlcConflictArbiter(),
       );
@@ -264,6 +270,7 @@ void main() {
           required hlcPacked,
           required deviceId,
           required write,
+          bool isDeleted = false,
         }) =>
             db.applyWithStamp(
               scopeUid: 's1',
@@ -272,6 +279,7 @@ void main() {
               hlcPacked: hlcPacked,
               deviceId: deviceId,
               write: write,
+              isDeleted: isDeleted,
             ),
         arbiter: const HlcConflictArbiter(),
       );

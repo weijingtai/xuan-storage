@@ -7,6 +7,7 @@ export 'model/omni_entity.dart';
 export 'model/omni_op.dart';
 export 'core/schema_registry.dart';
 export 'core/sync_coordinator.dart';
+export 'core/reconciliation_coordinator.dart';
 export 'core/connection_factory.dart';
 export 'core/version_guard.dart';
 export 'core/omni_coordinator.dart';
@@ -59,3 +60,9 @@ export 'routing/peer_fanout_pusher.dart'; // ACT 06
 export 'sync/peer_registry.dart';         // ACT 07
 export 'sync/hlc_clock.dart';             // ACT 08
 export 'model/conflict_arbiter.dart';     // ACT 09
+
+// ── S1c 全量对齐（ACT A/B/C/D）──
+export 'model/reconciliation.dart';        // ACT A：四消息 + ManifestEntry
+export 'model/reconciliation_ports.dart';  // ACT C：ManifestSource/Comparator/Applier
+export 'sync/manifest_comparator.dart';    // ACT C：DefaultManifestComparator
+export 'sync/reconciliation_trigger.dart'; // ACT E：触发判定

@@ -34,12 +34,17 @@ class RecordLocalApplier implements LocalApplier {
   /// 同事务写入。转发 ACT 08 的 applyWithStamp（A13 的生产落地点），
   /// scopeUid 用【构造时绑定的那个】。
   /// applier【不得】自己 transaction(...) 里分别写记录和戳。
+  ///
+  /// [isDeleted]（S1c §3.2① 单戳墓碑模型）：true 表示本次写是墓碑
+  /// （删除事件），戳仍更新为删除事件戳、`t_entity_stamp.is_deleted`
+  /// 置 true。默认 false（普通 upsert）。
   final Future<void> Function({
     required String entityType,
     required String entityId,
     required int hlcPacked,
     required String deviceId,
     required Future<void> Function() write,
+    bool isDeleted,
   }) applyWithStamp;
 
   /// 冲突仲裁器。字段类型是抽象接口 [ConflictArbiter]（纯函数、无 IO），
@@ -266,6 +271,8 @@ class RecordLocalApplier implements LocalApplier {
           hlcPacked: packed,
           deviceId: deviceId,
           write: () => deleteRecord(change.entityId),
+          // S1c §3.2① 单戳墓碑模型：删除事件更新戳 + 置墓碑位。
+          isDeleted: true,
         );
       } else {
         await deleteRecord(change.entityId);
