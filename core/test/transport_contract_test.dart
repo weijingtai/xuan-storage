@@ -154,11 +154,11 @@ void main() {
   });
 
   group('StreamKind', () {
-    test('stream_kind_has_exactly_two_values', () {
-      expect(StreamKind.values, hasLength(2));
+    test('stream_kind_has_exactly_three_values', () {
+      expect(StreamKind.values, hasLength(3));
       expect(
         StreamKind.values.map((e) => e.name),
-        ['oplog', 'blobChunk'],
+        ['oplog', 'blobChunk', 'reconciliation'],
       );
     });
   });

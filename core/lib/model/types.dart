@@ -279,12 +279,23 @@ class RemoteChange {
   final String? deviceId;
 }
 
+/// [SyncPeer.listChanges] 的结果形态（S1c §2.5 定稿，sealed）。
+///
+/// 对端无法提供增量时返回 [IncrementalUnavailable]，发起方须强制切全量对齐
+/// 且【不得推进游标】—— 否决不走异常（异常代表失败，不代表"请改走全量"）、
+/// 不走静默空页（空页会被当作"无变更"，游标照常推进，正是 S1c §1.1①
+/// 的静默丢数据）。
+sealed class RemoteChangesResult {
+  /// 子类常量构造所需的基类 const 构造。
+  const RemoteChangesResult();
+}
+
 /// One page of remote changes.
 ///
 /// 功能说明：
 /// - 由 [SyncPeer.listChanges] 返回，用于分页拉取。
 /// - 当 [hasMore] 为 true 时，上层可继续请求下一页。
-class RemoteChangesPage {
+class RemoteChangesPage extends RemoteChangesResult {
   /// Creates a [RemoteChangesPage].
   ///
   /// 参数说明：
@@ -300,6 +311,52 @@ class RemoteChangesPage {
   final List<RemoteChange> changes;
   final PullCursor? nextCursor;
   final bool hasMore;
+}
+
+/// 对端否决增量的原因。
+enum IncrementalUnavailableReason {
+  /// 发起方游标早于对端的 oplog 保留水位（场景 3，久未上线）。
+  behindRetention,
+
+  /// 对端曾压缩过 oplog，增量区间已不可重放（场景 4）。
+  compactedAway,
+
+  /// 对端主动拒绝提供增量（安全/策略原因）。
+  peerRefused,
+}
+
+/// 对端无法提供增量、要求发起方切全量对齐的信号。
+///
+/// 携带字段（S1c §2.5 定稿）：
+/// - [peerId]：哪个对端否决的。
+/// - [entityType]：哪个实体类型被否决。
+/// - [requesterCursor]：发起方提交的游标（诊断用）。
+/// - [peerRetentionFloorUtc]：对端保留水位，供发起方诊断/UX。
+/// - [reason]：否决原因。
+final class IncrementalUnavailable extends RemoteChangesResult {
+  /// 构造一个 [IncrementalUnavailable]。
+  const IncrementalUnavailable({
+    required this.peerId,
+    required this.entityType,
+    required this.requesterCursor,
+    required this.reason,
+    this.peerRetentionFloorUtc,
+  });
+
+  /// 否决的对端。
+  final PeerId peerId;
+
+  /// 被否决的实体类型。
+  final String entityType;
+
+  /// 发起方提交的游标。
+  final PullCursor? requesterCursor;
+
+  /// 对端保留水位（UTC）。为 null 表示对端未提供该信息。
+  final DateTime? peerRetentionFloorUtc;
+
+  /// 否决原因。
+  final IncrementalUnavailableReason reason;
 }
 
 /// Decision made when applying one remote change.

@@ -14077,6 +14077,21 @@ class $EntityStampsTable extends EntityStamps
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     scopeUid,
@@ -14084,6 +14099,7 @@ class $EntityStampsTable extends EntityStamps
     entityId,
     hlcPacked,
     deviceId,
+    isDeleted,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -14137,6 +14153,12 @@ class $EntityStampsTable extends EntityStamps
     } else if (isInserting) {
       context.missing(_deviceIdMeta);
     }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
     return context;
   }
 
@@ -14166,6 +14188,10 @@ class $EntityStampsTable extends EntityStamps
         DriftSqlType.string,
         data['${effectivePrefix}device_id'],
       )!,
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
     );
   }
 
@@ -14193,12 +14219,22 @@ class EntityStampRow extends DataClass implements Insertable<EntityStampRow> {
 
   /// 写入该版本的设备。HLC 相等时的决胜位（= crdt Hlc 的 nodeId）。
   final String deviceId;
+
+  /// 墓碑标记（S1c §3.2① 定稿，单戳模型）。
+  ///
+  /// - 删除事件发生时，[hlcPacked]/[deviceId]【更新为该删除事件的戳】，
+  ///   一行只保留一套戳，本列置 true —— 不存在「墓碑戳 vs 实体戳」双值。
+  /// - 清单交换必须含 `is_deleted=true` 的墓碑行（否则删除传不到对端，
+  ///   用户删掉的数据会在对端复活）。
+  /// - 默认 false：既有行升级后自动回填，既有 insert 零改动即可编译。
+  final bool isDeleted;
   const EntityStampRow({
     required this.scopeUid,
     required this.entityType,
     required this.entityId,
     required this.hlcPacked,
     required this.deviceId,
+    required this.isDeleted,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -14208,6 +14244,7 @@ class EntityStampRow extends DataClass implements Insertable<EntityStampRow> {
     map['entity_id'] = Variable<String>(entityId);
     map['hlc_packed'] = Variable<int>(hlcPacked);
     map['device_id'] = Variable<String>(deviceId);
+    map['is_deleted'] = Variable<bool>(isDeleted);
     return map;
   }
 
@@ -14218,6 +14255,7 @@ class EntityStampRow extends DataClass implements Insertable<EntityStampRow> {
       entityId: Value(entityId),
       hlcPacked: Value(hlcPacked),
       deviceId: Value(deviceId),
+      isDeleted: Value(isDeleted),
     );
   }
 
@@ -14232,6 +14270,7 @@ class EntityStampRow extends DataClass implements Insertable<EntityStampRow> {
       entityId: serializer.fromJson<String>(json['entityId']),
       hlcPacked: serializer.fromJson<int>(json['hlcPacked']),
       deviceId: serializer.fromJson<String>(json['deviceId']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
     );
   }
   @override
@@ -14243,6 +14282,7 @@ class EntityStampRow extends DataClass implements Insertable<EntityStampRow> {
       'entityId': serializer.toJson<String>(entityId),
       'hlcPacked': serializer.toJson<int>(hlcPacked),
       'deviceId': serializer.toJson<String>(deviceId),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
     };
   }
 
@@ -14252,12 +14292,14 @@ class EntityStampRow extends DataClass implements Insertable<EntityStampRow> {
     String? entityId,
     int? hlcPacked,
     String? deviceId,
+    bool? isDeleted,
   }) => EntityStampRow(
     scopeUid: scopeUid ?? this.scopeUid,
     entityType: entityType ?? this.entityType,
     entityId: entityId ?? this.entityId,
     hlcPacked: hlcPacked ?? this.hlcPacked,
     deviceId: deviceId ?? this.deviceId,
+    isDeleted: isDeleted ?? this.isDeleted,
   );
   EntityStampRow copyWithCompanion(EntityStampsCompanion data) {
     return EntityStampRow(
@@ -14268,6 +14310,7 @@ class EntityStampRow extends DataClass implements Insertable<EntityStampRow> {
       entityId: data.entityId.present ? data.entityId.value : this.entityId,
       hlcPacked: data.hlcPacked.present ? data.hlcPacked.value : this.hlcPacked,
       deviceId: data.deviceId.present ? data.deviceId.value : this.deviceId,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
     );
   }
 
@@ -14278,14 +14321,21 @@ class EntityStampRow extends DataClass implements Insertable<EntityStampRow> {
           ..write('entityType: $entityType, ')
           ..write('entityId: $entityId, ')
           ..write('hlcPacked: $hlcPacked, ')
-          ..write('deviceId: $deviceId')
+          ..write('deviceId: $deviceId, ')
+          ..write('isDeleted: $isDeleted')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(scopeUid, entityType, entityId, hlcPacked, deviceId);
+  int get hashCode => Object.hash(
+    scopeUid,
+    entityType,
+    entityId,
+    hlcPacked,
+    deviceId,
+    isDeleted,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -14294,7 +14344,8 @@ class EntityStampRow extends DataClass implements Insertable<EntityStampRow> {
           other.entityType == this.entityType &&
           other.entityId == this.entityId &&
           other.hlcPacked == this.hlcPacked &&
-          other.deviceId == this.deviceId);
+          other.deviceId == this.deviceId &&
+          other.isDeleted == this.isDeleted);
 }
 
 class EntityStampsCompanion extends UpdateCompanion<EntityStampRow> {
@@ -14303,6 +14354,7 @@ class EntityStampsCompanion extends UpdateCompanion<EntityStampRow> {
   final Value<String> entityId;
   final Value<int> hlcPacked;
   final Value<String> deviceId;
+  final Value<bool> isDeleted;
   final Value<int> rowid;
   const EntityStampsCompanion({
     this.scopeUid = const Value.absent(),
@@ -14310,6 +14362,7 @@ class EntityStampsCompanion extends UpdateCompanion<EntityStampRow> {
     this.entityId = const Value.absent(),
     this.hlcPacked = const Value.absent(),
     this.deviceId = const Value.absent(),
+    this.isDeleted = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   EntityStampsCompanion.insert({
@@ -14318,6 +14371,7 @@ class EntityStampsCompanion extends UpdateCompanion<EntityStampRow> {
     required String entityId,
     required int hlcPacked,
     required String deviceId,
+    this.isDeleted = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : scopeUid = Value(scopeUid),
        entityType = Value(entityType),
@@ -14330,6 +14384,7 @@ class EntityStampsCompanion extends UpdateCompanion<EntityStampRow> {
     Expression<String>? entityId,
     Expression<int>? hlcPacked,
     Expression<String>? deviceId,
+    Expression<bool>? isDeleted,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -14338,6 +14393,7 @@ class EntityStampsCompanion extends UpdateCompanion<EntityStampRow> {
       if (entityId != null) 'entity_id': entityId,
       if (hlcPacked != null) 'hlc_packed': hlcPacked,
       if (deviceId != null) 'device_id': deviceId,
+      if (isDeleted != null) 'is_deleted': isDeleted,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -14348,6 +14404,7 @@ class EntityStampsCompanion extends UpdateCompanion<EntityStampRow> {
     Value<String>? entityId,
     Value<int>? hlcPacked,
     Value<String>? deviceId,
+    Value<bool>? isDeleted,
     Value<int>? rowid,
   }) {
     return EntityStampsCompanion(
@@ -14356,6 +14413,7 @@ class EntityStampsCompanion extends UpdateCompanion<EntityStampRow> {
       entityId: entityId ?? this.entityId,
       hlcPacked: hlcPacked ?? this.hlcPacked,
       deviceId: deviceId ?? this.deviceId,
+      isDeleted: isDeleted ?? this.isDeleted,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -14378,6 +14436,9 @@ class EntityStampsCompanion extends UpdateCompanion<EntityStampRow> {
     if (deviceId.present) {
       map['device_id'] = Variable<String>(deviceId.value);
     }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -14392,6 +14453,7 @@ class EntityStampsCompanion extends UpdateCompanion<EntityStampRow> {
           ..write('entityId: $entityId, ')
           ..write('hlcPacked: $hlcPacked, ')
           ..write('deviceId: $deviceId, ')
+          ..write('isDeleted: $isDeleted, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -28154,6 +28216,7 @@ typedef $$EntityStampsTableCreateCompanionBuilder =
       required String entityId,
       required int hlcPacked,
       required String deviceId,
+      Value<bool> isDeleted,
       Value<int> rowid,
     });
 typedef $$EntityStampsTableUpdateCompanionBuilder =
@@ -28163,6 +28226,7 @@ typedef $$EntityStampsTableUpdateCompanionBuilder =
       Value<String> entityId,
       Value<int> hlcPacked,
       Value<String> deviceId,
+      Value<bool> isDeleted,
       Value<int> rowid,
     });
 
@@ -28197,6 +28261,11 @@ class $$EntityStampsTableFilterComposer
 
   ColumnFilters<String> get deviceId => $composableBuilder(
     column: $table.deviceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -28234,6 +28303,11 @@ class $$EntityStampsTableOrderingComposer
     column: $table.deviceId,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$EntityStampsTableAnnotationComposer
@@ -28261,6 +28335,9 @@ class $$EntityStampsTableAnnotationComposer
 
   GeneratedColumn<String> get deviceId =>
       $composableBuilder(column: $table.deviceId, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
 }
 
 class $$EntityStampsTableTableManager
@@ -28305,6 +28382,7 @@ class $$EntityStampsTableTableManager
                 Value<String> entityId = const Value.absent(),
                 Value<int> hlcPacked = const Value.absent(),
                 Value<String> deviceId = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => EntityStampsCompanion(
                 scopeUid: scopeUid,
@@ -28312,6 +28390,7 @@ class $$EntityStampsTableTableManager
                 entityId: entityId,
                 hlcPacked: hlcPacked,
                 deviceId: deviceId,
+                isDeleted: isDeleted,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -28321,6 +28400,7 @@ class $$EntityStampsTableTableManager
                 required String entityId,
                 required int hlcPacked,
                 required String deviceId,
+                Value<bool> isDeleted = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => EntityStampsCompanion.insert(
                 scopeUid: scopeUid,
@@ -28328,6 +28408,7 @@ class $$EntityStampsTableTableManager
                 entityId: entityId,
                 hlcPacked: hlcPacked,
                 deviceId: deviceId,
+                isDeleted: isDeleted,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

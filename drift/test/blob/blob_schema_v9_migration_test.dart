@@ -198,6 +198,63 @@ void main() {
           .getSingleOrNull();
       expect(cached?.textContent, '迁移后可用');
     });
+
+    test('v9 旧库的 t_entity_stamp 升到 v10：is_deleted 列存在 + 旧数据不丢', () async {
+      final sqliteDb = sqlite3.openInMemory();
+
+      // 手工建 v9 形态的 t_entity_stamp（无 is_deleted 列，S1c §3.2① 加列前）。
+      sqliteDb.execute('''
+        CREATE TABLE t_entity_stamp (
+          scope_uid TEXT NOT NULL,
+          entity_type TEXT NOT NULL,
+          entity_id TEXT NOT NULL,
+          hlc_packed INTEGER NOT NULL,
+          device_id TEXT NOT NULL,
+          PRIMARY KEY (scope_uid, entity_type, entity_id)
+        );
+      ''');
+      sqliteDb.execute('''
+        INSERT INTO t_entity_stamp
+          (scope_uid, entity_type, entity_id, hlc_packed, device_id)
+        VALUES
+          ('scope-a', 'record_meta', 'stamp-keep-1', 1750000000, 'dev-v9');
+      ''');
+      sqliteDb.execute('PRAGMA user_version = 9;');
+
+      final db = PersistenceDriftDatabase(NativeDatabase.opened(sqliteDb));
+      addTearDown(db.close);
+
+      // 触发升级到 v10（from=9 只走 <10 分支）。
+      await db.select(db.entityStamps).get();
+
+      // ① is_deleted 列存在（v10 迁移 addColumn 生效）。
+      final stampCols = await db
+          .customSelect('SELECT name FROM pragma_table_info("t_entity_stamp")')
+          .get();
+      expect(
+        stampCols.any((r) => r.read<String>('name') == 'is_deleted'),
+        isTrue,
+        reason: 'v10 迁移必须给 t_entity_stamp 加 is_deleted 墓碑列',
+      );
+
+      // ② 旧数据逐字段未丢。
+      final rows = await db
+          .customSelect(
+            "SELECT scope_uid, entity_type, entity_id, hlc_packed, device_id, "
+            "is_deleted FROM t_entity_stamp WHERE entity_id = 'stamp-keep-1'",
+          )
+          .get();
+      expect(rows.length, 1, reason: 'v9 旧戳迁移后必须还在');
+      final row = rows.single;
+      expect(row.read<String>('scope_uid'), 'scope-a');
+      expect(row.read<String>('entity_type'), 'record_meta');
+      expect(row.read<String>('entity_id'), 'stamp-keep-1');
+      expect(row.read<int>('hlc_packed'), 1750000000);
+      expect(row.read<String>('device_id'), 'dev-v9');
+      // ③ is_deleted 默认 false（旧行回填）。
+      expect(row.read<int>('is_deleted'), 0,
+          reason: '旧行升级后 is_deleted 必须回填为默认 false');
+    });
   });
 }
 

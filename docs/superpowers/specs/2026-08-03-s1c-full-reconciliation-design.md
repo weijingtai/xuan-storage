@@ -127,6 +127,29 @@ t_entity_stamp (scope_uid, entity_type, entity_id) → (hlc_packed, device_id)
 只有对端能判断。因此协议必须允许对端回复「你的游标早于我的保留水位，
 增量给不了你」并强制全量。
 
+**否决载体（定稿）**：否决不走异常、不走静默空页（空页会被当作「无变更」，游标照常推进，正是 §1.1① 的静默丢数据）。
+挂载点为 `SyncPeer.listChanges`（`core/lib/model/sync_peer.dart:55`，返回 `Future<RemoteChangesPage>`，`RemoteChangesPage` 见 `core/lib/model/types.dart:287`）：
+
+- 返回类型从 `Future<RemoteChangesPage>` 收窄为 `Future<RemoteChangesResult>`，
+  其中 `RemoteChangesResult = RemoteChangesPage | IncrementalUnavailable`（sealed）。
+- `IncrementalUnavailable` 携带：`PeerId peerId`、`String entityType`、`PullCursor? requesterCursor`（发起方游标）、
+  `DateTime? peerRetentionFloorUtc`（对端保留水位，供发起方诊断/UX）、
+  `IncrementalUnavailableReason reason`（枚举：`behindRetention` / `compactedAway` / `peerRefused`）。
+- 发起方收到 `IncrementalUnavailable` 后**强制切全量对齐**，且**不得推进游标**。
+
+⚠ **这是 S1a 契约签名变更**（`listChanges` 返回类型收窄）。按派工 §五「不改 core/lib/model/ 下任何 S1a 契约」：
+本设计稿只定稿签名提案，写进「决定记录」（§6）；实现侧须**停下上报人类**，批准后才可在 ACT-A 实现。
+ACT-A 在未获批准前不得自行收窄 `listChanges` 返回类型。
+
+**受影响实现方清单（评审 R1 P1-2 补）**：`listChanges` 是多实现接口，收窄返回类型会波及以下全部实现方与调用方，须【同步适配】：
+- 接口：`core/lib/model/sync_peer.dart:66`（`SyncPeer.listChanges`）
+- 实现方 1：`core/lib/routing/remote_gateway_router.dart:15,50`（`RemoteGatewayRouter implements SyncPeer`，转发到 `_active`）
+- 实现方 2：`firebase/lib/firebase_realtime_remote_gateway.dart:27`（`FirebaseRealtimeRemoteGateway implements SyncPeer`，属 S2 云端通道）
+- 实现方 3：`firebase/lib/persistence_firebase.dart:21`（`FirestoreRemoteGateway implements SyncPeer`，属 S2 云端通道）
+- 调用方：`core/lib/core/sync_coordinator.dart:407`（`pullGateway.listChanges`）
+⚠ 实现方 2/3 属 S2 云端通道，不在 S1c 范围。签名收窄须全部实现方同步适配 -- 这是人类批准签名变更决策的一部分。
+S1c 的 ACT-A 只负责【提案签名 + core 接口与路由实现方适配】；firebase 两个网关的适配归 S2 通道（或人类指定的协调方），S1c 不越界改 firebase。
+
 **阈值取值理由**：
 
 - 取 **90 天**（可配置），**不取 6 个月**；
@@ -162,11 +185,14 @@ oplog 保留 N 天
 ① 发起方 → 对端：清单分片
    [(entity_id, hlc_packed, device_id), ...]   按 (scope, entityType) 分片
 
-② 对端逐条比对自己的清单，分四类：
-   本地有 / 对方无           → 发终态给对方
-   双方都有，本地版本更新    → 发终态给对方
-   双方都有，对方版本更新    → 请对方发来
-   版本相同                 → 跳过
+② 对端【双遍历】比对：先遍历自己的清单，再遍历收到的清单，分五类：
+   【遍历自己清单】
+   本地有 / 对方无           -> 发终态给对方
+   双方都有，本地版本更新    -> 发终态给对方
+   双方都有，对方版本更新    -> 请对方发来
+   版本相同                 -> 跳过
+   【遍历收到清单】
+   本地无 / 对方有           -> 请对方发来（EntityRequest）  ← 场景 1/2 新设备入网的核心路径
 
 ③ 双方各自把收到的终态过 ConflictArbiter，
    【同事务】写记录 + 写戳（S1b A13 门禁的既有要求）
@@ -174,18 +200,61 @@ oplog 保留 N 天
 ④ 双方游标各自设为"现在"
 ```
 
+**消息线序（定稿）**：四阶段是双向消息序列，线序为：
+
+```
+发起方                          对端
+  │  ① 清单分片（ManifestChunk）   ->
+  │                                 │ 双遍历比对（见② 五类）
+  │  <- ②a 终态（EntityTerminal）   │  本地有/对方无 或 本地更新
+  │  <- ②b 索求（EntityRequest）    │  对方更新 或 本地无/对方有，请对方发来
+  │  ②b' 终态（EntityTerminal）  ->  │  回应索求
+  │  ④ 游标确认（CursorAdvance） ->  │  双方各自③过仲裁器+同事务写后
+  │                                 │  游标设为现在
+```
+
+消息类型：`ManifestChunk`、`EntityTerminal`、`EntityRequest`、`CursorAdvance`（皆为值类型，定义在 core 契约层）。
+
+**承载流形态（定稿）**：新增 `StreamKind.reconciliation`（`core/lib/model/transport.dart:19` 现有 `oplog`/`blobChunk` 两种，新增第三种）。
+全量对齐的四类消息复用同一条 `reconciliation` 逻辑流，靠消息类型字段区分（不每类开一流，避免多路复用碎片化）。
+断点续传的分片 id = `(scopeUid, entityType, chunkSeq)`，`chunkSeq` 从 0 递增；中断后发起方在 `reconciliation` 流上重发未确认的 chunk。
+⚠ 这是新增枚举值，不改 `oplog`/`blobChunk` 既有语义，符合派工 §五。
+```
+
 ### 3.2 三个必须定死的细节
 
 这三处是同类方案最常见的错误来源。
 
-**① 删除必须能被表达 —— 否则已删数据复活**
+**① 删除必须能被表达 -- 否则已删数据复活**
 
-清单只列出存在的实体。设想：电脑离线期间手机删了 10 条。
-比对时那 10 条在电脑清单里、不在手机清单里 —— 会被判成
-「手机缺失，从电脑补回来」，**用户删掉的数据自己回来了**。
+设想：电脑离线期间手机删了 10 条。若清单只列活实体，那 10 条在电脑清单里、不在手机清单里 --
+会被判成「手机缺失，从电脑补回来」，**用户删掉的数据自己回来了**。
 
-要求：删除留**墓碑**（`t_entity_stamp` 保留行 + 删除标记），
-且**墓碑保留期 ≥ 全量对齐阈值**。墓碑早于阈值过期 ⇒ 同一个复活缺陷。
+**单戳墓碑模型（定稿）**：
+- `t_entity_stamp` 加一列 `is_deleted`（bool，默认 false）。
+  ⚠ 只加列，不触既有列语义（`hlcPacked`/`deviceId`/PK），符合派工 §五「不改 S1b 的 t_entity_stamp 既有列语义」。
+- 删除事件发生时，`hlcPacked`/`deviceId` **更新为该删除事件的戳**（不是另存一套戳）--
+  一行【只保留一套戳】，代表「该实体最近一次变更（可能是删除）的版本」。
+  ⚠ 不存在「墓碑戳 vs 实体戳」双值--一行一套戳，删除只更新这套戳 + 置 `is_deleted=true`。
+- **清单必须含 `is_deleted=true` 墓碑行**（定稿）：清单含全部未压缩的戳行，**含墓碑行**。
+  「保留行」的语义就是「墓碑行也在清单里」--否则手机删的 10 条永远传不到电脑。
+  （本节原「清单只列出存在的实体」已废，改为「清单含全部未压缩戳行，含墓碑」。）
+- **墓碑保留期 ≥ 全量对齐阈值**（90 天）：墓碑早于阈值过期 ⇒ 同一个复活缺陷。
+- **墓碑清理归属（评审 R1 P2-1 补）**：过期墓碑行的清理归 compaction 周期（与 oplog 保留窗口同步，归 S3，见 §4），S1c 自身不实现 compaction。S1c 只保证「清单含全部未过期墓碑行」；过期墓碑由 S3 的 compaction 在保留窗口外清理。清理判据 = 墓碑戳早于 oplog 保留窗口（180 天）且所有已知 peer 均已 ack 到该戳之后。
+
+**裁决规则（沿用 S1b 三态，不新增第四态；单戳模型下就是纯全序比较）**：
+- 比对单位是「一行的戳 `(hlcPacked, deviceId)` + `is_deleted` 位」。
+- 两端各一行，按 `VersionStamp.compareTo`（`core/lib/model/conflict_arbiter.dart:27-88`，先比 hlc.dateTime、再比 counter、最后比 deviceId 的 UTF-8 字节序）全序比较戳：
+  - 远端戳 > 本地戳 -> `takeRemote`（applier 按远端 `is_deleted` 决定写活记录还是墓碑）；
+  - 远端戳 < 本地戳 -> `keepLocal`（本地版本更新，远端被丢弃）；
+  - 戳相等 -> `identical`（同版本，无操作）。
+- `is_deleted` **不参与定序**，它是 applier 在 `takeRemote` 后决定写形态的数据位。
+  - 「本地活、对端墓碑且戳更大」-> `takeRemote` + 远端 `is_deleted=true` -> 本地变墓碑；
+  - 「本地墓碑、对端活且戳更大」-> `takeRemote` + 远端 `is_deleted=false` -> 本地复活为活记录（含「删除后被重新创建」）。
+- 「戳相等但 is_deleted 不同」不可能：戳含 deviceId + (dateTime,counter)，同一写操作要么删要么改，不会同戳异态；
+  若出现属数据损坏，fail-safe 取 `keepLocal`（不静默改态）。
+- **`ConflictArbiter` 零改动**：墓碑的「删/不删」是数据内容（`is_deleted` 列），不是仲裁决策。
+  仲裁器仍只产 `takeRemote/keepLocal/identical` 三态；符合派工 §五「不改 S1b 的 ConflictArbiter」。
 
 **② 清单必须分片，不能一次性交换**
 
@@ -196,6 +265,11 @@ oplog 保留 N 天
   双方支持的集合可能因版本而不同，分片天然容忍差集；
 - 内存可控。
 
+**分片批大小（定稿）**：契约层参数形态定死为 `manifestPageSize`（int，
+发起方在 `ManifestChunk` 里携带本次分片的 `chunkSeq` 与 `totalChunks`）。
+具体数值不写死在设计稿（需实测，与内存和断点粒度权衡），但须由配置项注入，不得硬编码在代码里。
+断点续传：分片 id = `(scopeUid, entityType, chunkSeq)`，中断后发起方重发未确认的 chunk。
+
 **③ 清单只覆盖记录，blob 是独立阶段**
 
 `BlobHandle` 有独立的 `plaintextSha256` 与密文清单 id
@@ -205,6 +279,10 @@ oplog 保留 N 天
 后果：全量对齐完成后**记录齐了但图片可能还没下载**。
 这必须在 UX 上明确表达，否则用户看到一堆碎图会以为同步失败。
 blob 补齐是独立阶段，可延后、可按需、可仅在 WiFi 下进行。
+
+**blob 未就绪的协议层信号（定稿）**：全量对齐完成（④ 游标确认）后，发起方须能区分「记录齐了但 blob 没齐」。
+协议层信号 = `CursorAdvance` 携带 `recordsReconciled: int` 与 `blobsPending: int` 两个计数。
+`blobsPending > 0` 即「记录齐了但图片没齐」，UX 层据此显示占位。该信号是协议层契约，UX 呈现方式归 UX 层（见 §5）。
 
 ### 3.3 性能：瓶颈不在网络
 
@@ -244,14 +322,14 @@ S1b 的 `act/03.yaml` 已加入禁令：`t_outbox_peer_ack` 提供的是压缩�
 
 ## 5. 待决事项
 
-| 事项 | 说明 |
+| 事项 | 处置结论（定稿） |
 |---|---|
-| oplog 保留窗口的具体天数 | 建议 180 天，须 > 对齐阈值 |
-| 墓碑的物理表示 | `t_entity_stamp` 加删除标记列，或独立墓碑表 |
-| 清单分片的批大小 | 需实测，与内存和断点粒度权衡 |
-| 全量对齐的 UX | 进度呈现、可否后台进行、blob 未就绪时的占位 |
-| 用户手动移除设备 | 归 S6 设备管理 |
-| 冲突留档在全量对齐下的量级 | 半年差异一次性对齐可能产生大量冲突留档，需评估是否折叠呈现 |
+| oplog 保留窗口天数 | **180 天**（配置项注入，须 > 对齐阈值 90 天，留一倍安全余量）。做成可配置项，不硬编码 |
+| 墓碑物理表示 | **单戳模型 + `is_deleted` 列**（见 §3.2①）。`t_entity_stamp` 加 `is_deleted` bool 列，删除时 `hlcPacked`/`deviceId` 更新为删除事件戳，一行一套戳。不采独立墓碑表（多一张表多一次 JOIN，且与戳分离后裁决要双值比较，自相矛盾） |
+| 清单分片批大小 | 契约层参数 `manifestPageSize`（int，配置项注入）定死；具体数值**后实测**（与内存/断点粒度权衡），不在设计稿写死数字。断点续传分片 id = `(scopeUid, entityType, chunkSeq)`（见 §3.1/§3.2②） |
+| 全量对齐 UX | **归 UX 层**，本任务不定 UI 细节；但协议层信号已定（§3.2③）：`CursorAdvance` 携带 `recordsReconciled`/`blobsPending` 计数，`blobsPending>0` 即「记录齐了 blob 没齐」。UX 层据此显占位 |
+| 用户手动移除设备 | **归 S6**（设备管理 UI），本任务不定。oplog 保留窗口机制已使失联设备不再卡 compaction（§2.6），无需「遗忘设备」动作 |
+| 冲突留档量级 | **须在 ACT 阶段评估**：半年差异一次性对齐可能产生大量冲突留档。**ACT-D 硬性条目（评审 R1 P2-2 补）**：须含一个「冲突留档计数」观测点（可观测、可计数）+ 折叠呈现的评估；A9 变异自检须覆盖「冲突留档被正确产出」场景。不在设计稿定折叠策略（属 UX），但定「必须可观测、可计数」 |
 
 ---
 
@@ -264,4 +342,11 @@ S1b 的 `act/03.yaml` 已加入禁令：`t_outbox_peer_ack` 提供的是压缩�
 | 全局单调整数游标 | **否决** | client-server 模型的产物。P2P 下三台设备各有各的 id 序列互不可比；两设备且固定一台为主时**测起来是对的**，三设备交叉同步才暴露串数据 |
 | 变更捕获方式 | **沿用 S1b 的显式 enqueue** | SQLite 触发器 —— 写不出 HLC 戳（需 Dart 层时钟状态）；要给几十张表逐个绑定，**漏绑不报错且不可 grep**，把可测的漏记换成不可测的漏绑 |
 | 触发判定归属 | **本地阈值 + 对端否决权** | 仅本地阈值 —— 对端可能重装过，oplog 比本地以为的短 |
-| 遗忘设备策略 | **否决，改用 oplog 保留窗口** | 「N 天未 ack 则移除设备」—— 在猜测设备行为；设备可离线三年后回归 |
+| 遗忘设备策略 | **否决，改用 oplog 保留窗口** | 「N 天未 ack 则移除设备」-- 在猜测设备行为；设备可离线三年后回归 |
+| 否决消息载体 | **`SyncPeer.listChanges` 返回收窄为 `RemoteChangesResult`，新增 `IncrementalUnavailable`** | 抛异常 -- 异常代表失败，不代表「请改走全量」；静默空页 -- 空页被当作「无变更」，游标照常推进，正是 §1.1① 静默丢数据。⚠ 属 S1a 契约签名变更，须人类批准后才可实现（见 §2.5） |
+| 墓碑物理表示 | **单戳模型 + `is_deleted` 列** | 独立墓碑表 -- 多一张表多一次 JOIN，且戳与墓碑分离后裁决要双值比较（墓碑戳 vs 实体戳），自相矛盾。单戳模型一行一套戳，裁决是纯 `VersionStamp.compareTo` 全序比较，仲裁器零改动 |
+| 墓碑裁决语义 | **不新增仲裁第四态，`is_deleted` 是 applier 数据位** | 新增「deleteRemote」第四态 -- 要改 S1b 的 `ConflictArbiter`，违反派工 §五。删/不删是数据内容不是仲裁决策，三态足够 |
+| 清单是否含墓碑 | **含全部未压缩戳行，含 `is_deleted=true` 墓碑行** | 只列活实体 -- 删除传不过去（手机删 10 条电脑永远不知道），正是 §3.2① 要防的复活缺陷的另一面 |
+| 比对四类 vs 五类 | **五类（双遍历）** | 四类（只遍历自己清单）-- 漏「本地无/对方有->索求」，新设备入网永远拉不到数据（评审 R1 P1-1） |
+| 否决载体扩散面 | **listChanges 收窄波及 4 实现方 + 1 调用方，须同步适配** | 只改接口一处 -- firebase 两个网关（S2）漏改会编译失败或静默不实现（评审 R1 P1-2） |
+| 修订稿落盘位置 | **在 worktree 分支 `agent/pi/storage-s1c-full-reconciliation`（commit 771d8d4+），非 main** | 评审 R1 P1-3 指「设计稿文件未落盘」是因评审时看的是 main 旧版；修订稿实际已提交在 worktree 分支。G3 通过后由人类决定合并/引用方式 |
