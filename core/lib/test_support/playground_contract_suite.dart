@@ -182,11 +182,16 @@ FutureOr<void> runPlaygroundFeedContractSuite({
           reason: 'C2: 取完最后一页后 nextCursor 必须为 null');
     });
 
-    test('C2 Feed 游标失效：伪造/过期 cursor 不抛异常', () async {
+    test('C2 Feed 游标失效：伪造/过期 cursor 回退首页或返回空页', () async {
       final repo = await makeFeedRepository();
 
-      // 伪造 cursor（base64 解码失败 / 路径不存在），实现二选一：
-      // 抛可识别错误或返回空页/首页 —— 契约只保证不抛未识别异常。
+      // 无 cursor 首页（可观测基准）。
+      final baseline = await repo.getLatestFeed(
+        const GetFeedQuery(tab: PlaygroundFeedTab.latest, limit: 5),
+      );
+
+      // 伪造 cursor（base64 解码失败 / 路径不存在）。实现二选一：
+      // 回退首页（本仓 Firebase 实现）或返回空页 —— 两者都不得抛未识别异常。
       final fakeCursor = PlaygroundCursor('not-a-real-cursor-%%%');
       final page = await repo.getLatestFeed(
         GetFeedQuery(
@@ -195,8 +200,13 @@ FutureOr<void> runPlaygroundFeedContractSuite({
           cursor: fakeCursor,
         ),
       );
-      expect(page, isNotNull);
-      expect(page.items, isA<List<PlaygroundPost>>());
+
+      final baselineIds = baseline.items.map((p) => p.id).toSet();
+      final sameAsHome =
+          page.items.length == baseline.items.length &&
+          page.items.every((p) => baselineIds.contains(p.id));
+      expect(page.items.isEmpty || sameAsHome, isTrue,
+          reason: 'C2: 游标失效必须回退首页或返回空页（不得返回错乱页）');
     });
 
     test('C2 Feed tab 路由语义：各 tab 返回符合其过滤语义的集合', () async {

@@ -52,3 +52,28 @@ main 上同深度实测也是 149，与你无关，别改」。
 **处置**：本仓库侧无法写 `~/Downloads/`（沙盒只读），勘误已记录于此；
 请在派工书 DISPATCH-S2.md §九.4 手工更正为「146（2026-08-06 实测，已过期
 不再适用）」，或将整条移除。
+
+---
+
+## P0-2 复验返工：豁免收窄到 host 白名单（REVIEW-S2 复验反馈）
+
+**反馈**：上一版豁免按「lint 名 × pubspec.yaml」整类过滤，对外网 http 依赖失明
+（实证：把 url 改成外网 host 门禁仍 exit 0），且基线被调低（57→49、146→112）。
+
+**返工（2026-08-06）**：
+
+1. **豁免收窄为 host 白名单，非整类过滤**：仅豁免内网白名单 host
+   `192.168.0.165` 上 `repository-interface-playground.git` 的 http url
+   （S2 新增依赖）。实现：读 pubspec.yaml 定位白名单 url 的**行号**，
+   machine 行（第 5 列行号）精确匹配；任何其他 host / 其他 http url 的
+   `SECURE_PUBSPEC_URLS` **不豁免**。
+2. **基线恢复原口径，不调低**：s1a `57`、s1b core `57` / drift `146` /
+   firebase `20`（原冻结值）。换算：57 = 8 条既有内网 http（192.168.0.165
+   其他包，基线一部分）+ 49 其他 issue；S2 新增 playground 1 条按白名单报备
+   豁免 → 豁免后总数 57 = 基线 57（drift 同理 146 = 146）。firebase 不豁免
+   （其 playground url 本就在基线 20 内）。
+3. **变异自检（必做，已验）**：
+   - core/pubspec.yaml 注入外网 `http://unrelated-mutation-host.example.com/foo.git`
+     → s1a 检查3 **红**（58 > 57）✅
+   - drift/pubspec.yaml 注入同样外网依赖 → s1b 检查3/drift **红**（147 > 146）✅
+   - 均已恢复（grep 变异残留 = 0）。

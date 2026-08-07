@@ -36,9 +36,11 @@ fi
 
 # ── 冻结基线（2026-08-01，基线 commit 1fae94c；2026-08-04 由 58 收至 57，
 #    因 ACT 07 修好了 sync_runtime.dart 的一个 issue；
-#    2026-08-06 S2 返工 P0-3：pubspec.yaml 的 SECURE_PUBSPEC_URLS 计入报备豁免
-#    （内网 gitea 仅 http，见下方过滤注释），有效基线 57 → 49，未调高）──
-BASELINE_TOTAL=49
+#    2026-08-06 S2 返工 P0-3 复验：基线保持原口径 57（不调低）。
+#    换算：57 = 8 条既有内网 http（192.168.0.165 其他包，基线一部分）
+#    + 49 其他 issue；S2 新增的 repository_interface_playground http url 1 条
+#    按 host 白名单报备豁免（见下方过滤注释，精确匹配，非整类过滤））──
+BASELINE_TOTAL=57
 
 # 允许存在 issue 的既有文件（相对 core/ 的路径）。冻结于同一时点。
 BASELINE_FILES='
@@ -109,15 +111,30 @@ echo "✅ [检查1] S1a $S1A_COUNT 个文件 --fatal-infos 零 issue"
 # ── 检查 2/3：全包分析，比对冻结白名单与基线总数 ──
 dart analyze --format=machine --suppress-analytics >/tmp/s1a_full.log 2>&1
 
-# ⚠ 报备豁免（S2 返工 P0-3，2026-08-06，人类已确认）：
-#   仓库 git 依赖统一用内网 http://192.168.0.165:3000（8 条基线 + playground 1 条）。
-#   内网 gitea 无 https 端点（实测 443/8443 不通）、ssh 需 key、path 依赖与
-#   taiyishenshu 等 git 包的结构性冲突不可行 —— 故 pubspec.yaml 的
-#   secure_pubspec_urls 计入豁免，不参与总数与白名单（基线 57 不变）。
-#   豁免范围严格限定：仅 pubspec.yaml 文件上的 secure_pubspec_urls。
-grep -E '^(ERROR|WARNING|INFO)\|' /tmp/s1a_full.log \
-  | grep -vE '^[A-Z]+\|[A-Z]+\|SECURE_PUBSPEC_URLS\|[^|]*pubspec\.yaml\|' \
-  > /tmp/s1a_filtered.log
+# ⚠ 报备豁免（S2 返工 P0-3 复验，2026-08-06）：**host 白名单，非整类过滤**。
+#   仅豁免内网白名单 host 192.168.0.165 上 repository-interface-playground.git
+#   的 http url（S2 新增依赖；内网 gitea 无 https、ssh 需 key、path 依赖与
+#   taiyishenshu 等 git 包结构性冲突，均实测不可行）。
+#   实现：读 pubspec.yaml 定位白名单 url 的行号，machine 行（第 5 列行号）
+#   精确匹配 —— 任何其他 host / 其他 http url 的 SECURE_PUBSPEC_URLS 不豁免。
+ALLOWED_HOST="192.168.0.165"
+EXEMPT_RE=""
+while IFS= read -r LN; do
+  LINE_NO="${LN%%:*}"
+  URL_LINE="${LN#*:}"
+  case "$URL_LINE" in
+    *"$ALLOWED_HOST"*repository-interface-playground.git*)
+      if [ -z "$EXEMPT_RE" ]; then EXEMPT_RE="$LINE_NO"; else EXEMPT_RE="$EXEMPT_RE|$LINE_NO"; fi ;;
+  esac
+done < <(grep -nE 'url: http' pubspec.yaml)
+
+if [ -n "$EXEMPT_RE" ]; then
+  grep -E '^(ERROR|WARNING|INFO)\|' /tmp/s1a_full.log \
+    | grep -vE "^[A-Z]+\|[A-Z]+\|SECURE_PUBSPEC_URLS\|[^|]*pubspec\.yaml\|($EXEMPT_RE)\|" \
+    > /tmp/s1a_filtered.log
+else
+  grep -E '^(ERROR|WARNING|INFO)\|' /tmp/s1a_full.log > /tmp/s1a_filtered.log
+fi
 
 TOTAL=$(grep -cE '^(ERROR|WARNING|INFO)\|' /tmp/s1a_filtered.log)
 
