@@ -1,8 +1,8 @@
 BEGIN TRANSACTION;
-CREATE TABLE "ge_ju_patterns" ("id" TEXT NOT NULL, "name" TEXT NOT NULL, "english_name" TEXT NULL, "pinyin" TEXT NULL, "aliases" TEXT NULL, "category_id" TEXT NOT NULL, "keywords" TEXT NULL, "tags" TEXT NULL, "description" TEXT NULL, "origin_notes" TEXT NULL, "reference_count" INTEGER NOT NULL DEFAULT 0, "rule_count" INTEGER NOT NULL DEFAULT 0, "created_at" INTEGER NOT NULL, PRIMARY KEY ("id"));
-CREATE TABLE "ge_ju_schools" ("id" TEXT NOT NULL, "name" TEXT NOT NULL, "type" TEXT NOT NULL, "era" TEXT NULL, "founder" TEXT NULL, "description" TEXT NULL, "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)), "rule_count" INTEGER NOT NULL DEFAULT 0, "created_at" INTEGER NOT NULL, PRIMARY KEY ("id"));
-CREATE TABLE "ge_ju_categories" ("id" TEXT NOT NULL, "name" TEXT NOT NULL, "order" INTEGER NOT NULL DEFAULT 0, "parent_id" TEXT NULL, "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)), "pattern_count" INTEGER NOT NULL DEFAULT 0, "created_at" INTEGER NOT NULL, PRIMARY KEY ("id"));
-CREATE TABLE "ge_ju_rules" (
+CREATE TABLE IF NOT EXISTS "ge_ju_patterns" ("id" TEXT NOT NULL, "name" TEXT NOT NULL, "english_name" TEXT NULL, "pinyin" TEXT NULL, "aliases" TEXT NULL, "category_id" TEXT NOT NULL, "keywords" TEXT NULL, "tags" TEXT NULL, "description" TEXT NULL, "origin_notes" TEXT NULL, "reference_count" INTEGER NOT NULL DEFAULT 0, "rule_count" INTEGER NOT NULL DEFAULT 0, "created_at" INTEGER NOT NULL, PRIMARY KEY ("id"));
+CREATE TABLE IF NOT EXISTS "ge_ju_schools" ("id" TEXT NOT NULL, "name" TEXT NOT NULL, "type" TEXT NOT NULL, "era" TEXT NULL, "founder" TEXT NULL, "description" TEXT NULL, "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)), "rule_count" INTEGER NOT NULL DEFAULT 0, "created_at" INTEGER NOT NULL, PRIMARY KEY ("id"));
+CREATE TABLE IF NOT EXISTS "ge_ju_categories" ("id" TEXT NOT NULL, "name" TEXT NOT NULL, "order" INTEGER NOT NULL DEFAULT 0, "parent_id" TEXT NULL, "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)), "pattern_count" INTEGER NOT NULL DEFAULT 0, "created_at" INTEGER NOT NULL, PRIMARY KEY ("id"));
+CREATE TABLE IF NOT EXISTS "ge_ju_rules" (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   pattern_id TEXT NOT NULL,
   school_id TEXT NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE "ge_ju_rules" (
   updated_at INTEGER NOT NULL,
   UNIQUE(pattern_id, school_id)
 );
-CREATE TABLE "ge_ju_versions" ("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "rule_id" INTEGER NOT NULL, "version" TEXT NOT NULL, "version_remark" TEXT NULL, "operation_type" TEXT NOT NULL, "changed_fields" TEXT NULL, "snapshot" TEXT NOT NULL, "diff_from_previous" TEXT NULL, "created_by" TEXT NOT NULL DEFAULT 'admin', "created_at" INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS "ge_ju_versions" ("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "rule_id" INTEGER NOT NULL, "version" TEXT NOT NULL, "version_remark" TEXT NULL, "operation_type" TEXT NOT NULL, "changed_fields" TEXT NULL, "snapshot" TEXT NOT NULL, "diff_from_previous" TEXT NULL, "created_by" TEXT NOT NULL DEFAULT 'admin', "created_at" INTEGER NOT NULL);
 INSERT INTO ge_ju_patterns ("id", "name", "english_name", "pinyin", "aliases", "category_id", "keywords", "tags", "description", "origin_notes", "reference_count", "rule_count", "created_at") VALUES ('common_001_ri_yue_jia_ming', '日月夹命', NULL, NULL, NULL, 'common', NULL, NULL, '日月夹命格，主大贵。太阳太阴分居命宫两侧。', NULL, 0, 0, 1771384449);
 INSERT INTO ge_ju_patterns ("id", "name", "english_name", "pinyin", "aliases", "category_id", "keywords", "tags", "description", "origin_notes", "reference_count", "rule_count", "created_at") VALUES ('common_002_ri_yue_tong_gong', '日月同宫', NULL, NULL, NULL, 'common', NULL, NULL, '日月同宫，阴阳交泰。', NULL, 0, 0, 1771384449);
 INSERT INTO ge_ju_patterns ("id", "name", "english_name", "pinyin", "aliases", "category_id", "keywords", "tags", "description", "origin_notes", "reference_count", "rule_count", "created_at") VALUES ('common_003_wu_xing_ju_quan', '五星聚全', NULL, NULL, NULL, 'common', NULL, NULL, '五星聚全于三方，主大贵。木火土金水五星皆在三方之内。', NULL, 0, 0, 1771384449);

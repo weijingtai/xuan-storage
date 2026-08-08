@@ -1,6 +1,6 @@
 # qizhengsiyu 数据 SQL 构建报告
 
-- 构建时间：2026-08-08 06:25:59 UTC
+- 构建时间：2026-08-08 07:29:39 UTC
 - 构建脚本：assets/tool/build_qizhengsiyu_sql.py
 - 源数据：star_position_status.json（表形 97 行）+ ge_ju/ge_ju_database.sqlite（预构建 SQLite）
 
@@ -9,7 +9,7 @@
 | 文件 | 表名 | 行数 | 字节数 | sha256 |
 |---|---|---|---|---|
 | star_position_status.sql | star_position_status | 97 | 15601 | 243db078fb6681344414e4227ee298a0d309baafd97409265ff4c05cde1825a5 |
-| ge_ju.sql | ge_ju(5表) | 1005 | 532740 | 883672801951ed621203676b4c9b93dd461fb8364e6ed4b9e0e308d9dc755c7f |
+| ge_ju.sql | ge_ju(5表) | 1005 | 532810 | 40a8fa09e1002987e9e32407b61f38c0feb515ccd9d4f0a9c92ef1ef13ae62c0 |
 | zhou_tian_document.sql | zhou_tian_document(文档表) | 3 | 9128 | 2227d006af44b0d98818ba4db0662d8955beb2e8efc3c64640043d4d68e895e9 |
 | ephemeris_document.sql | ephemeris_document(文档表) | 17 | 52572 | 83a4bc14573d6352ce881b8d8b149d14408e9f5ca6c36427cade97fb0ed08925 |
 | shen_sha_document.sql | shen_sha_document(文档表) | 6 | 48540 | 2bd3a0d25d615b166ddfc7b8d903bd60ded853382fab812233cf271c4cbe3acb |

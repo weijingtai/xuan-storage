@@ -1,9 +1,12 @@
 /// drift 版世代状态存储与安装器（XRAP §5 持久化实现，照 geo 样板）。
 ///
-/// [DriftDatasetGenerationStore] 把世代状态持久化到 [QizhengsiyuDatabase]
+/// [QizhengDriftDatasetGenerationStore] 把世代状态持久化到 [QizhengsiyuDatabase]
 /// 的 `dataset_generation` 表，进程重启后状态保留。
-/// [DriftDatasetInstaller] 用此 store + [DatasetInstallerBase] 的
+/// [QizhengDriftDatasetInstaller] 用此 store + [DatasetInstallerBase] 的
 /// §5.2 安装序列逻辑。
+///
+/// 类名带 `Qizheng` 前缀：geo 域的 `DriftDatasetInstaller` /
+/// `DriftDatasetGenerationStore` 已占同名（barrel 同时导出会冲突）。
 library;
 
 import 'package:drift/drift.dart';
@@ -15,15 +18,15 @@ import 'drift/qizhengsiyu_database.dart';
 ///
 /// 世代记录存 `dataset_generation` 表。活跃指针由
 /// `status='ready'` 隐式表达（查询 active 时取 ready 的那条）。
-class DriftDatasetGenerationStore implements DatasetGenerationStore {
-  DriftDatasetGenerationStore(this._db);
+class QizhengDriftDatasetGenerationStore implements DatasetGenerationStore {
+  QizhengDriftDatasetGenerationStore(this._db);
 
   final QizhengsiyuDatabase _db;
 
   @override
   Future<InstalledDataset?> findGeneration(
       String datasetId, int generation) async {
-    final row = await (_db.select(_db.datasetGenerations)
+    final row = await (_db.select(_db.qizhengDatasetGenerations)
           ..where((t) =>
               t.datasetId.equals(datasetId) & t.generation.equals(generation)))
         .getSingleOrNull();
@@ -32,7 +35,7 @@ class DriftDatasetGenerationStore implements DatasetGenerationStore {
 
   @override
   Future<List<InstalledDataset>> listGenerations(String datasetId) async {
-    final rows = await (_db.select(_db.datasetGenerations)
+    final rows = await (_db.select(_db.qizhengDatasetGenerations)
           ..where((t) => t.datasetId.equals(datasetId))
           ..orderBy([(t) => OrderingTerm(expression: t.generation)]))
         .get();
@@ -41,8 +44,8 @@ class DriftDatasetGenerationStore implements DatasetGenerationStore {
 
   @override
   Future<void> saveGeneration(InstalledDataset record) async {
-    await _db.into(_db.datasetGenerations).insertOnConflictUpdate(
-          DatasetGenerationsCompanion.insert(
+    await _db.into(_db.qizhengDatasetGenerations).insertOnConflictUpdate(
+          QizhengDatasetGenerationsCompanion.insert(
             datasetId: record.datasetId,
             generation: record.generation,
             payloadSha256: record.manifest.payloadSha256,
@@ -57,7 +60,7 @@ class DriftDatasetGenerationStore implements DatasetGenerationStore {
 
   @override
   Future<void> deleteGeneration(String datasetId, int generation) async {
-    await (_db.delete(_db.datasetGenerations)
+    await (_db.delete(_db.qizhengDatasetGenerations)
           ..where((t) =>
               t.datasetId.equals(datasetId) & t.generation.equals(generation)))
         .go();
@@ -66,7 +69,7 @@ class DriftDatasetGenerationStore implements DatasetGenerationStore {
   @override
   Future<int?> activeGeneration(String datasetId) async {
     // 活跃指针由 status='ready' 隐式表达。
-    final row = await (_db.select(_db.datasetGenerations)
+    final row = await (_db.select(_db.qizhengDatasetGenerations)
           ..where((t) =>
               t.datasetId.equals(datasetId) & t.status.equals('ready'))
           ..limit(1))
@@ -78,19 +81,20 @@ class DriftDatasetGenerationStore implements DatasetGenerationStore {
   Future<void> setActiveGeneration(String datasetId, int generation) async {
     // 翻转：先把当前 ready 的转 superseded，再把目标设 ready。
     await _db.transaction(() async {
-      await (_db.update(_db.datasetGenerations)
+      await (_db.update(_db.qizhengDatasetGenerations)
             ..where((t) =>
                 t.datasetId.equals(datasetId) & t.status.equals('ready')))
-          .write(const DatasetGenerationsCompanion(status: Value('superseded')));
-      await (_db.update(_db.datasetGenerations)
+          .write(const QizhengDatasetGenerationsCompanion(
+              status: Value('superseded')));
+      await (_db.update(_db.qizhengDatasetGenerations)
             ..where((t) =>
                 t.datasetId.equals(datasetId) &
                 t.generation.equals(generation)))
-          .write(const DatasetGenerationsCompanion(status: Value('ready')));
+          .write(const QizhengDatasetGenerationsCompanion(status: Value('ready')));
     });
   }
 
-  InstalledDataset _toInstalled(DatasetGenerationEntry row) {
+  InstalledDataset _toInstalled(QizhengDatasetGenerationEntry row) {
     return InstalledDataset(
       datasetId: row.datasetId,
       generation: row.generation,
@@ -116,16 +120,16 @@ class DriftDatasetGenerationStore implements DatasetGenerationStore {
   }
 }
 
-/// drift 版安装器：用 [DriftDatasetGenerationStore] 持久化世代状态。
+/// drift 版安装器：用 [QizhengDriftDatasetGenerationStore] 持久化世代状态。
 ///
 /// 安装序列逻辑继承自 [DatasetInstallerBase]，只换存储后端。
-class DriftDatasetInstaller extends DatasetInstallerBase {
+class QizhengDriftDatasetInstaller extends DatasetInstallerBase {
   // ignore: use_super_parameters
-  DriftDatasetInstaller({
+  QizhengDriftDatasetInstaller({
     required QizhengsiyuDatabase db,
     DatasetSource? bundledSource,
   }) : super(
-          store: DriftDatasetGenerationStore(db),
+          store: QizhengDriftDatasetGenerationStore(db),
           bundledSource: bundledSource,
         );
 }

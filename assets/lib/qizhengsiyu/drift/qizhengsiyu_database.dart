@@ -39,7 +39,7 @@ part 'qizhengsiyu_database.g.dart';
     HuaYaoDocuments,
     GeJuRulesDocuments,
     GeJuContentDocuments,
-    DatasetGenerations,
+    QizhengDatasetGenerations,
   ],
 )
 class QizhengsiyuDatabase extends _$QizhengsiyuDatabase {

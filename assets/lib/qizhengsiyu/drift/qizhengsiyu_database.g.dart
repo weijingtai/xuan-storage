@@ -5358,12 +5358,16 @@ class GeJuContentDocumentsCompanion
   }
 }
 
-class $DatasetGenerationsTable extends DatasetGenerations
-    with TableInfo<$DatasetGenerationsTable, DatasetGenerationEntry> {
+class $QizhengDatasetGenerationsTable extends QizhengDatasetGenerations
+    with
+        TableInfo<
+          $QizhengDatasetGenerationsTable,
+          QizhengDatasetGenerationEntry
+        > {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $DatasetGenerationsTable(this.attachedDatabase, [this._alias]);
+  $QizhengDatasetGenerationsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _datasetIdMeta = const VerificationMeta(
     'datasetId',
   );
@@ -5469,7 +5473,7 @@ class $DatasetGenerationsTable extends DatasetGenerations
   static const String $name = 'dataset_generation';
   @override
   VerificationContext validateIntegrity(
-    Insertable<DatasetGenerationEntry> instance, {
+    Insertable<QizhengDatasetGenerationEntry> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -5552,9 +5556,12 @@ class $DatasetGenerationsTable extends DatasetGenerations
   @override
   Set<GeneratedColumn> get $primaryKey => {datasetId, generation};
   @override
-  DatasetGenerationEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+  QizhengDatasetGenerationEntry map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return DatasetGenerationEntry(
+    return QizhengDatasetGenerationEntry(
       datasetId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}dataset_id'],
@@ -5591,13 +5598,13 @@ class $DatasetGenerationsTable extends DatasetGenerations
   }
 
   @override
-  $DatasetGenerationsTable createAlias(String alias) {
-    return $DatasetGenerationsTable(attachedDatabase, alias);
+  $QizhengDatasetGenerationsTable createAlias(String alias) {
+    return $QizhengDatasetGenerationsTable(attachedDatabase, alias);
   }
 }
 
-class DatasetGenerationEntry extends DataClass
-    implements Insertable<DatasetGenerationEntry> {
+class QizhengDatasetGenerationEntry extends DataClass
+    implements Insertable<QizhengDatasetGenerationEntry> {
   final String datasetId;
   final int generation;
   final String payloadSha256;
@@ -5606,7 +5613,7 @@ class DatasetGenerationEntry extends DataClass
   final String status;
   final String sourceId;
   final DateTime? installedAtUtc;
-  const DatasetGenerationEntry({
+  const QizhengDatasetGenerationEntry({
     required this.datasetId,
     required this.generation,
     required this.payloadSha256,
@@ -5634,8 +5641,8 @@ class DatasetGenerationEntry extends DataClass
     return map;
   }
 
-  DatasetGenerationsCompanion toCompanion(bool nullToAbsent) {
-    return DatasetGenerationsCompanion(
+  QizhengDatasetGenerationsCompanion toCompanion(bool nullToAbsent) {
+    return QizhengDatasetGenerationsCompanion(
       datasetId: Value(datasetId),
       generation: Value(generation),
       payloadSha256: Value(payloadSha256),
@@ -5651,12 +5658,12 @@ class DatasetGenerationEntry extends DataClass
     );
   }
 
-  factory DatasetGenerationEntry.fromJson(
+  factory QizhengDatasetGenerationEntry.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return DatasetGenerationEntry(
+    return QizhengDatasetGenerationEntry(
       datasetId: serializer.fromJson<String>(json['datasetId']),
       generation: serializer.fromJson<int>(json['generation']),
       payloadSha256: serializer.fromJson<String>(json['payloadSha256']),
@@ -5682,7 +5689,7 @@ class DatasetGenerationEntry extends DataClass
     };
   }
 
-  DatasetGenerationEntry copyWith({
+  QizhengDatasetGenerationEntry copyWith({
     String? datasetId,
     int? generation,
     String? payloadSha256,
@@ -5691,7 +5698,7 @@ class DatasetGenerationEntry extends DataClass
     String? status,
     String? sourceId,
     Value<DateTime?> installedAtUtc = const Value.absent(),
-  }) => DatasetGenerationEntry(
+  }) => QizhengDatasetGenerationEntry(
     datasetId: datasetId ?? this.datasetId,
     generation: generation ?? this.generation,
     payloadSha256: payloadSha256 ?? this.payloadSha256,
@@ -5705,8 +5712,10 @@ class DatasetGenerationEntry extends DataClass
         ? installedAtUtc.value
         : this.installedAtUtc,
   );
-  DatasetGenerationEntry copyWithCompanion(DatasetGenerationsCompanion data) {
-    return DatasetGenerationEntry(
+  QizhengDatasetGenerationEntry copyWithCompanion(
+    QizhengDatasetGenerationsCompanion data,
+  ) {
+    return QizhengDatasetGenerationEntry(
       datasetId: data.datasetId.present ? data.datasetId.value : this.datasetId,
       generation: data.generation.present
           ? data.generation.value
@@ -5730,7 +5739,7 @@ class DatasetGenerationEntry extends DataClass
 
   @override
   String toString() {
-    return (StringBuffer('DatasetGenerationEntry(')
+    return (StringBuffer('QizhengDatasetGenerationEntry(')
           ..write('datasetId: $datasetId, ')
           ..write('generation: $generation, ')
           ..write('payloadSha256: $payloadSha256, ')
@@ -5757,7 +5766,7 @@ class DatasetGenerationEntry extends DataClass
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is DatasetGenerationEntry &&
+      (other is QizhengDatasetGenerationEntry &&
           other.datasetId == this.datasetId &&
           other.generation == this.generation &&
           other.payloadSha256 == this.payloadSha256 &&
@@ -5768,8 +5777,8 @@ class DatasetGenerationEntry extends DataClass
           other.installedAtUtc == this.installedAtUtc);
 }
 
-class DatasetGenerationsCompanion
-    extends UpdateCompanion<DatasetGenerationEntry> {
+class QizhengDatasetGenerationsCompanion
+    extends UpdateCompanion<QizhengDatasetGenerationEntry> {
   final Value<String> datasetId;
   final Value<int> generation;
   final Value<String> payloadSha256;
@@ -5779,7 +5788,7 @@ class DatasetGenerationsCompanion
   final Value<String> sourceId;
   final Value<DateTime?> installedAtUtc;
   final Value<int> rowid;
-  const DatasetGenerationsCompanion({
+  const QizhengDatasetGenerationsCompanion({
     this.datasetId = const Value.absent(),
     this.generation = const Value.absent(),
     this.payloadSha256 = const Value.absent(),
@@ -5790,7 +5799,7 @@ class DatasetGenerationsCompanion
     this.installedAtUtc = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  DatasetGenerationsCompanion.insert({
+  QizhengDatasetGenerationsCompanion.insert({
     required String datasetId,
     required int generation,
     required String payloadSha256,
@@ -5806,7 +5815,7 @@ class DatasetGenerationsCompanion
        payloadBytes = Value(payloadBytes),
        status = Value(status),
        sourceId = Value(sourceId);
-  static Insertable<DatasetGenerationEntry> custom({
+  static Insertable<QizhengDatasetGenerationEntry> custom({
     Expression<String>? datasetId,
     Expression<int>? generation,
     Expression<String>? payloadSha256,
@@ -5830,7 +5839,7 @@ class DatasetGenerationsCompanion
     });
   }
 
-  DatasetGenerationsCompanion copyWith({
+  QizhengDatasetGenerationsCompanion copyWith({
     Value<String>? datasetId,
     Value<int>? generation,
     Value<String>? payloadSha256,
@@ -5841,7 +5850,7 @@ class DatasetGenerationsCompanion
     Value<DateTime?>? installedAtUtc,
     Value<int>? rowid,
   }) {
-    return DatasetGenerationsCompanion(
+    return QizhengDatasetGenerationsCompanion(
       datasetId: datasetId ?? this.datasetId,
       generation: generation ?? this.generation,
       payloadSha256: payloadSha256 ?? this.payloadSha256,
@@ -5889,7 +5898,7 @@ class DatasetGenerationsCompanion
 
   @override
   String toString() {
-    return (StringBuffer('DatasetGenerationsCompanion(')
+    return (StringBuffer('QizhengDatasetGenerationsCompanion(')
           ..write('datasetId: $datasetId, ')
           ..write('generation: $generation, ')
           ..write('payloadSha256: $payloadSha256, ')
@@ -5928,8 +5937,8 @@ abstract class _$QizhengsiyuDatabase extends GeneratedDatabase {
       $GeJuRulesDocumentsTable(this);
   late final $GeJuContentDocumentsTable geJuContentDocuments =
       $GeJuContentDocumentsTable(this);
-  late final $DatasetGenerationsTable datasetGenerations =
-      $DatasetGenerationsTable(this);
+  late final $QizhengDatasetGenerationsTable qizhengDatasetGenerations =
+      $QizhengDatasetGenerationsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5947,7 +5956,7 @@ abstract class _$QizhengsiyuDatabase extends GeneratedDatabase {
     huaYaoDocuments,
     geJuRulesDocuments,
     geJuContentDocuments,
-    datasetGenerations,
+    qizhengDatasetGenerations,
   ];
 }
 
@@ -8860,8 +8869,8 @@ typedef $$GeJuContentDocumentsTableProcessedTableManager =
       GeJuContentDocumentEntry,
       PrefetchHooks Function()
     >;
-typedef $$DatasetGenerationsTableCreateCompanionBuilder =
-    DatasetGenerationsCompanion Function({
+typedef $$QizhengDatasetGenerationsTableCreateCompanionBuilder =
+    QizhengDatasetGenerationsCompanion Function({
       required String datasetId,
       required int generation,
       required String payloadSha256,
@@ -8872,8 +8881,8 @@ typedef $$DatasetGenerationsTableCreateCompanionBuilder =
       Value<DateTime?> installedAtUtc,
       Value<int> rowid,
     });
-typedef $$DatasetGenerationsTableUpdateCompanionBuilder =
-    DatasetGenerationsCompanion Function({
+typedef $$QizhengDatasetGenerationsTableUpdateCompanionBuilder =
+    QizhengDatasetGenerationsCompanion Function({
       Value<String> datasetId,
       Value<int> generation,
       Value<String> payloadSha256,
@@ -8885,9 +8894,9 @@ typedef $$DatasetGenerationsTableUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
-class $$DatasetGenerationsTableFilterComposer
-    extends Composer<_$QizhengsiyuDatabase, $DatasetGenerationsTable> {
-  $$DatasetGenerationsTableFilterComposer({
+class $$QizhengDatasetGenerationsTableFilterComposer
+    extends Composer<_$QizhengsiyuDatabase, $QizhengDatasetGenerationsTable> {
+  $$QizhengDatasetGenerationsTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -8935,9 +8944,9 @@ class $$DatasetGenerationsTableFilterComposer
   );
 }
 
-class $$DatasetGenerationsTableOrderingComposer
-    extends Composer<_$QizhengsiyuDatabase, $DatasetGenerationsTable> {
-  $$DatasetGenerationsTableOrderingComposer({
+class $$QizhengDatasetGenerationsTableOrderingComposer
+    extends Composer<_$QizhengsiyuDatabase, $QizhengDatasetGenerationsTable> {
+  $$QizhengDatasetGenerationsTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -8985,9 +8994,9 @@ class $$DatasetGenerationsTableOrderingComposer
   );
 }
 
-class $$DatasetGenerationsTableAnnotationComposer
-    extends Composer<_$QizhengsiyuDatabase, $DatasetGenerationsTable> {
-  $$DatasetGenerationsTableAnnotationComposer({
+class $$QizhengDatasetGenerationsTableAnnotationComposer
+    extends Composer<_$QizhengsiyuDatabase, $QizhengDatasetGenerationsTable> {
+  $$QizhengDatasetGenerationsTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -9029,41 +9038,47 @@ class $$DatasetGenerationsTableAnnotationComposer
   );
 }
 
-class $$DatasetGenerationsTableTableManager
+class $$QizhengDatasetGenerationsTableTableManager
     extends
         RootTableManager<
           _$QizhengsiyuDatabase,
-          $DatasetGenerationsTable,
-          DatasetGenerationEntry,
-          $$DatasetGenerationsTableFilterComposer,
-          $$DatasetGenerationsTableOrderingComposer,
-          $$DatasetGenerationsTableAnnotationComposer,
-          $$DatasetGenerationsTableCreateCompanionBuilder,
-          $$DatasetGenerationsTableUpdateCompanionBuilder,
+          $QizhengDatasetGenerationsTable,
+          QizhengDatasetGenerationEntry,
+          $$QizhengDatasetGenerationsTableFilterComposer,
+          $$QizhengDatasetGenerationsTableOrderingComposer,
+          $$QizhengDatasetGenerationsTableAnnotationComposer,
+          $$QizhengDatasetGenerationsTableCreateCompanionBuilder,
+          $$QizhengDatasetGenerationsTableUpdateCompanionBuilder,
           (
-            DatasetGenerationEntry,
+            QizhengDatasetGenerationEntry,
             BaseReferences<
               _$QizhengsiyuDatabase,
-              $DatasetGenerationsTable,
-              DatasetGenerationEntry
+              $QizhengDatasetGenerationsTable,
+              QizhengDatasetGenerationEntry
             >,
           ),
-          DatasetGenerationEntry,
+          QizhengDatasetGenerationEntry,
           PrefetchHooks Function()
         > {
-  $$DatasetGenerationsTableTableManager(
+  $$QizhengDatasetGenerationsTableTableManager(
     _$QizhengsiyuDatabase db,
-    $DatasetGenerationsTable table,
+    $QizhengDatasetGenerationsTable table,
   ) : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$DatasetGenerationsTableFilterComposer($db: db, $table: table),
+              $$QizhengDatasetGenerationsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
           createOrderingComposer: () =>
-              $$DatasetGenerationsTableOrderingComposer($db: db, $table: table),
+              $$QizhengDatasetGenerationsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
           createComputedFieldComposer: () =>
-              $$DatasetGenerationsTableAnnotationComposer(
+              $$QizhengDatasetGenerationsTableAnnotationComposer(
                 $db: db,
                 $table: table,
               ),
@@ -9078,7 +9093,7 @@ class $$DatasetGenerationsTableTableManager
                 Value<String> sourceId = const Value.absent(),
                 Value<DateTime?> installedAtUtc = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => DatasetGenerationsCompanion(
+              }) => QizhengDatasetGenerationsCompanion(
                 datasetId: datasetId,
                 generation: generation,
                 payloadSha256: payloadSha256,
@@ -9100,7 +9115,7 @@ class $$DatasetGenerationsTableTableManager
                 required String sourceId,
                 Value<DateTime?> installedAtUtc = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => DatasetGenerationsCompanion.insert(
+              }) => QizhengDatasetGenerationsCompanion.insert(
                 datasetId: datasetId,
                 generation: generation,
                 payloadSha256: payloadSha256,
@@ -9119,25 +9134,25 @@ class $$DatasetGenerationsTableTableManager
       );
 }
 
-typedef $$DatasetGenerationsTableProcessedTableManager =
+typedef $$QizhengDatasetGenerationsTableProcessedTableManager =
     ProcessedTableManager<
       _$QizhengsiyuDatabase,
-      $DatasetGenerationsTable,
-      DatasetGenerationEntry,
-      $$DatasetGenerationsTableFilterComposer,
-      $$DatasetGenerationsTableOrderingComposer,
-      $$DatasetGenerationsTableAnnotationComposer,
-      $$DatasetGenerationsTableCreateCompanionBuilder,
-      $$DatasetGenerationsTableUpdateCompanionBuilder,
+      $QizhengDatasetGenerationsTable,
+      QizhengDatasetGenerationEntry,
+      $$QizhengDatasetGenerationsTableFilterComposer,
+      $$QizhengDatasetGenerationsTableOrderingComposer,
+      $$QizhengDatasetGenerationsTableAnnotationComposer,
+      $$QizhengDatasetGenerationsTableCreateCompanionBuilder,
+      $$QizhengDatasetGenerationsTableUpdateCompanionBuilder,
       (
-        DatasetGenerationEntry,
+        QizhengDatasetGenerationEntry,
         BaseReferences<
           _$QizhengsiyuDatabase,
-          $DatasetGenerationsTable,
-          DatasetGenerationEntry
+          $QizhengDatasetGenerationsTable,
+          QizhengDatasetGenerationEntry
         >,
       ),
-      DatasetGenerationEntry,
+      QizhengDatasetGenerationEntry,
       PrefetchHooks Function()
     >;
 
@@ -9168,6 +9183,9 @@ class $QizhengsiyuDatabaseManager {
       $$GeJuRulesDocumentsTableTableManager(_db, _db.geJuRulesDocuments);
   $$GeJuContentDocumentsTableTableManager get geJuContentDocuments =>
       $$GeJuContentDocumentsTableTableManager(_db, _db.geJuContentDocuments);
-  $$DatasetGenerationsTableTableManager get datasetGenerations =>
-      $$DatasetGenerationsTableTableManager(_db, _db.datasetGenerations);
+  $$QizhengDatasetGenerationsTableTableManager get qizhengDatasetGenerations =>
+      $$QizhengDatasetGenerationsTableTableManager(
+        _db,
+        _db.qizhengDatasetGenerations,
+      );
 }

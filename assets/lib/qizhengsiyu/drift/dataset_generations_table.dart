@@ -4,8 +4,11 @@ import 'package:drift/drift.dart';
 ///
 /// 每个 (datasetId, generation) 唯一标识一个世代。
 /// 活跃指针由 `status='ready'` 隐式表达（一个 dataset 同时只有一个 ready）。
-@DataClassName('DatasetGenerationEntry')
-class DatasetGenerations extends Table {
+///
+/// 类名带 `Qizheng` 前缀：geo 域已声明同名 `DatasetGenerations` 表，
+/// barrel 同时导出两个 database 会撞生成符号（Companion/Entry 等）。
+@DataClassName('QizhengDatasetGenerationEntry')
+class QizhengDatasetGenerations extends Table {
   @override
   String get tableName => 'dataset_generation';
 

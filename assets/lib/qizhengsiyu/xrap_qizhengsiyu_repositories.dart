@@ -230,17 +230,29 @@ class XrapGeJuBuiltInDataSource implements GeJuBuiltInDataSource {
 
   /// 从文档表读整份文件并 decode 为 JSON 数组。
   Future<List<Map<String, dynamic>>> _loadJsonList({
-    required _DatasetEnsurer ensure,
+    required bool isRules,
     required String fileName,
   }) async {
+    final ensure = isRules ? _rulesEnsure : _contentEnsure;
     await ensure.ensure();
-    final row = await (db.select(db.geJuRulesDocuments)
-          ..where((t) => t.fileName.equals(fileName)))
-        .getSingleOrNull();
-    if (row == null) {
+    // 两个文档表类型不同（GeJuRulesDocuments / GeJuContentDocuments），
+    // 不能共用一个三目结果（会被推断成 DataClass 超类），分开查询。
+    final String? payload;
+    if (isRules) {
+      final row = await (db.select(db.geJuRulesDocuments)
+            ..where((t) => t.fileName.equals(fileName)))
+          .getSingleOrNull();
+      payload = row?.payloadJson;
+    } else {
+      final row = await (db.select(db.geJuContentDocuments)
+            ..where((t) => t.fileName.equals(fileName)))
+          .getSingleOrNull();
+      payload = row?.payloadJson;
+    }
+    if (payload == null) {
       throw StorageError('格局 JSON 资源不存在: $fileName');
     }
-    final list = jsonDecode(row.payloadJson) as List<dynamic>;
+    final list = jsonDecode(payload) as List<dynamic>;
     return list.cast<Map<String, dynamic>>();
   }
 
@@ -251,10 +263,7 @@ class XrapGeJuBuiltInDataSource implements GeJuBuiltInDataSource {
     // assetPath 形如 'assets/qizhengsiyu/ge_ju/rules/jin_xing_ge_ju_rules.json'
     final fileName = assetPath.split('/').last;
     final isRules = assetPath.contains('/rules/');
-    return _loadJsonList(
-      ensure: isRules ? _rulesEnsure : _contentEnsure,
-      fileName: fileName,
-    );
+    return _loadJsonList(isRules: isRules, fileName: fileName);
   }
 
   @override

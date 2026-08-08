@@ -211,6 +211,10 @@ def build_ge_ju() -> dict:
         if row is None:
             raise RuntimeError(f'ge_ju: 源库缺表 {table}')
         ddl = row[0].rstrip().rstrip(';')
+        # 源 sqlite_master 的 DDL 不含 IF NOT EXISTS；drift 已建表时
+        # 重复执行会失败，故统一规范化为幂等形态（与 geo 样板一致）。
+        if ddl.startswith('CREATE TABLE ') and 'IF NOT EXISTS' not in ddl:
+            ddl = ddl.replace('CREATE TABLE ', 'CREATE TABLE IF NOT EXISTS ', 1)
         ddl_statements.append(ddl)
 
         cur = src.execute(f'SELECT * FROM {table}')
