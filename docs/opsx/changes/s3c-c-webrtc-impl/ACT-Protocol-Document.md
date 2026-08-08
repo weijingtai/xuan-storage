@@ -5,6 +5,14 @@
 > 基线：`main c28de62` ｜ 工作分支：`feat/s3c-c-webrtc-impl` ｜ 日期：2026-08-07
 > 状态：**草案待审核**（其他 AI agents 审核通过后才进入实现）
 
+**任务分工（人类 2026-08-07 指定）**：
+
+| 环节 | 承担者 |
+|---|---|
+| 制定计划 / 编写计划 | ClaudeCode、Codex |
+| 计划拆分细化 / 评审 / 验收 | GLM、Kimi、DeepseekV4Pro |
+| 执行 | DeepseekV4Flash0731（不需要 ACT 协议，按本 ACT 执行即可） |
+
 ## 〇、一句话
 
 在 `feat/s3c-c-webrtc-impl` 分支上实现 `WebRtcTransport implements Transport`（落 `p2p/lib/`），
@@ -205,13 +213,26 @@
 `enforceChannelBindingMatches`（`device_pairing.dart:451-464`），拿**观测到的对端证书指纹**
 vs **声明指纹**比对，不等抛 `PairingBindingMismatchError`。
 
-**关键动作**：
-- 取本端 DTLS 证书指纹（SDP `a=fingerprint` 行）→ 填 `ChannelBinding.localCertificateFingerprint`
-- 取对端**声明的**证书指纹（对端 answer 的 SDP `a=fingerprint`）
+**关键动作**（声明指纹来源已按人类裁定钉死：**取配对验签结果，不取 SDP `a=fingerprint`**）：
+- `connect`/`advertise` 握手内部**必须先跑 `DevicePairingProtocol`**（`p2p/lib/device_pairing.dart`，
+  跑在 `PairingChannel` 上）拿 `PairingResult` —— 这正是 `connect` dartdoc「握手必须完成
+  认证密钥交换」的落地形态；配对产出对端身份 + `peerDeclaredCertificateFingerprint`
+- **声明指纹 = `PairingResult.peerDeclaredCertificateFingerprint`（配对验签通过后可信）**，
+  **不取**对端 answer SDP 的 `a=fingerprint`（SDP 明文可被信令攻击者替换，声明值必须以
+  配对签名为信任锚 —— S6 规格 §5.2b 明示此攻击路径）
+- 取本端 DTLS 证书指纹（本端 SDP `a=fingerprint` 行）→ 填 `ChannelBinding.localCertificateFingerprint`
+  （Q3 v2：签本端自己证书的指纹；该值进入配对签名对象 `nonce ‖ localCertificateFingerprint ‖ ...`）
 - 握手完成后取**观测到的**对端证书指纹（DTLS 握手产物，**不是 SDP 声明值** —— 防 MITM 关键：
   攻击者能改 SDP，但改不了 DTLS 实际协商的证书）
-- 调用 `enforceChannelBindingMatches(peerDeclaredCertificateFingerprint, observedPeerCertificateFingerprint)`
+- 调用 `enforceChannelBindingMatches(
+    peerDeclaredCertificateFingerprint: pairingResult.peerDeclaredCertificateFingerprint,
+    observedPeerCertificateFingerprint: observedFingerprint)`
 - `PeerSession.remote` 在比对通过后才绑定（呼应契约「握手认证后绑定」）；失败 → 会话不产出、抛错
+
+> **承载缺口（须在实现时补上）**：`DevicePairingProtocol` 依赖 `PairingChannel`，目前生产
+> 承载不存在（仅测试 fabric）。本任务需为 `PairingChannel` 提供生产承载（经信令通道转发或
+> 独立 socket，`core/lib/model/pairing.dart` 注释明示「属实现细节，不属契约」）。这是
+> 步骤 3 的**实现依赖**，不是契约变更；接入点由探路/实现阶段定。
 
 **关键验证（门禁，必做变异自检）**：
 - A5 MITM 负向测试用**真 WebRTC 路径**跑通：攻击者在信令上把声明证书指纹换成攻击者的、
@@ -301,11 +322,12 @@ TURN，本步骤可延后。
 
 1. **A7 守卫收窄方案**（§3.3）：白名单排除 `p2p/lib/web_rtc_transport.dart` 是否可接受？
    是否有更优写法（如按 `Channel` 值白名单）？
-2. **步骤 3 的声明指纹来源**：框架计划要求「从对端 SDP 取声明指纹、握手后取观测指纹」，
-   但 S6 语义是「声明指纹来自配对验签结果（`PairingResult.peerDeclaredCertificateFingerprint`）」。
-   本 ACT 按框架计划字面写「对端 answer 的 SDP a=fingerprint 为声明值」——**请审核确认**：
-   声明值取 SDP 还是配对结果？若取配对结果，`connect`/`advertise` 签名无配对结果入参，
-   需在握手内部先跑配对（`DevicePairingProtocol`）拿 `PairingResult`，是否超出本任务范围？
+2. **步骤 3 的声明指纹来源 —— ✅ 已裁定（人类，2026-08-07）**：
+   声明指纹取 `PairingResult.peerDeclaredCertificateFingerprint`（配对验签结果），
+   **不取** SDP `a=fingerprint`。`connect`/`advertise` 握手内部**必须先跑
+   `DevicePairingProtocol`** 拿 `PairingResult`，再用其 `peerDeclaredCertificateFingerprint`
+   与 DTLS 握手后观测到的对端证书指纹一并传入 `enforceChannelBindingMatches`。
+   这不超出本任务范围，正是 channel binding 落地形态。已同步进 §五.步骤3 关键动作。
 3. **步骤 1 是否接认证**：框架计划 §步骤1 明写「此步不接认证，connect 的 keys 先收下不使用」，
    但裁定丙禁止交出未认证 PeerSession —— 步骤 1 若 connect 返回 PeerSession 即违反。
    本 ACT 的读法：步骤 1 只验证「管道通」（DataChannel 建立），**不产出 PeerSession**，
