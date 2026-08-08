@@ -1,7 +1,7 @@
 # 交接信封 —— storage-s3c-c-webrtc-impl（执行阶段）
 
-> 生成 2026-08-07 ｜ 执行中：**步骤 2（接 LocalSignaling 真信令后端）已完成**。
-> 下一步：步骤 3（灵魂：channel binding）。每完成一个阶段更新本 HANDOFF，不停下询问。
+> 生成 2026-08-07 ｜ 执行中：**步骤 3（灵魂：channel binding）已完成**。
+> 下一步：步骤 4（TURN 兜底，无服务则标记延后）。每完成一个阶段更新本 HANDOFF，不停下询问。
 
 ## 当前分支与提交
 
@@ -11,7 +11,8 @@
   - `4de6b5b` 按人类裁定钉死步骤3声明指纹来源 + 记录任务分工
   - `dca9b84` 前置① DTLS 指纹探路完成（③ 观测指纹实测可得）
   - `1502585` 步骤1 完成（WebRtcTransport 骨架 + A7 守卫收窄 + DataChannel 集成测试）
-  - 本批（步骤2）：advertise 信令注册 + LocalSignaling 集成测试
+  - `d86a23a` 步骤2 完成（advertise 信令注册 + LocalSignaling 集成测试）
+  - 本批（步骤3）：SocketPairingChannel 生产承载 + WebRtcPeerSession/PeerStream + 握手内嵌配对 + enforceChannelBindingMatches + A5 MITM 测试
 
 ## 任务分工（人类 2026-08-07 指定，详见 ACT 头部）
 
@@ -59,8 +60,33 @@
       - 验证：p2p `flutter analyze` 全绿；p2p 全量测试 62+4 全绿（含
         `local_signaling_contract_test.dart` 契约套件 12 条）；
         步骤1 Chrome 集成测试无回归（DataChannel 互发仍绿）
+- [x] **步骤 3（灵魂：channel binding）完成（Chrome 实测全绿）**：
+      - `p2p/lib/socket_pairing_channel.dart`：补齐 `PairingChannel` 生产承载
+        （socket 直连，结构同 LocalSignaling：ServerSocket + LanDiscovery +
+        方向仲裁 + 行分隔 JSON 交换 PairingEnvelope；配对/信令 fabric 用
+        `kind=pairing` 标记隔离）—— 承载缺口已补，非契约变更
+      - `p2p/lib/web_rtc_peer_session.dart`：`WebRtcPeerSession`/`WebRtcPeerStream`
+        （一条会话 = 一条 RTCPeerConnection；每条逻辑流 = 一条 RTCDataChannel，
+        天然背压隔离；send 分块 16KB 安全线、wait 策略挂起）
+      - `web_rtc_transport.dart` 握手内嵌认证（人类裁定落地）：
+        `connect`/`advertise` 内部先跑 `DevicePairingProtocol` 拿
+        `PairingResult`，声明指纹取 `peerDeclaredCertificateFingerprint`
+        （配对验签结果，**不取** SDP 明文），DTLS 完成后取观测指纹
+        （getStats → transport.remoteCertificateId → certificate.fingerprint
+        + 拼 fingerprintAlgorithm 前缀），一并传入
+        `enforceChannelBindingMatches` —— 通过才产出已认证 PeerSession
+      - A5 MITM 集成测试 `web_rtc_channel_binding_integration_test.dart`
+        （Chrome 真 WebRTC 路径）：
+        - 正向：握手内跑配对 + channel binding，产出已认证 PeerSession
+          （remote 绑定 + channelBinding 就位）
+        - 负向：攻击者替换传输层证书（双方观测指纹被换为攻击者指纹）
+          → bob 抛 `PairingBindingMismatchError`、接听侧不产出会话
+        - **变异自检通过**：注释掉 `enforceChannelBindingMatches` 调用 →
+          MITM 测试红在断言（Expected throws PairingBindingMismatchError,
+          Actual _Future<PeerSession>）；恢复后绿
+      - 验证：p2p `flutter analyze` 全绿；A5 集成测试 `+2` 全绿
 
-## 下一步（步骤 3 · 灵魂）
+## 下一步（步骤 4 · TURN 兜底）
 
 ## 待审核决策点（已在 ACT §十一，审核重点）
 

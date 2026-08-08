@@ -5,46 +5,52 @@
 /// `BlobGateway` 是 `PeerSession` 之上的两个协议消费者，本类只负责
 /// 建立并持有物理连接。
 ///
-/// 【当前状态（S3c-c 步骤 2 · 接真信令后端）】
-/// - 已实现：经 `SignalingChannel` 交换 SDP/ICE、建立 `RTCDataChannel` 的
-///   握手管道（[establishDataChannel]）；`advertise` 经信令注册（打开以
-///   随机 transientServiceId 为会合标识的监听会话，隐私约定不变）；
-/// - 未实现（后续步骤）：认证握手（步骤 3 接入 `DevicePairingProtocol` +
-///   `enforceChannelBindingMatches`）、`discover` 的发现枚举（由信令后端
-///   自身发现通道承载）、TURN（步骤 4）。
+/// 【当前状态（S3c-c 步骤 3 · 接 channel binding，灵魂）】
+/// - 已实现：握手管道（SDP/ICE 经 `SignalingChannel` 交换、trickle ICE、
+///   DTLS 完成后取观测指纹）+ `advertise` 信令注册 + **认证握手**：
+///   握手内部先跑 `DevicePairingProtocol` 拿 `PairingResult`（人类裁定：
+///   声明指纹取配对验签结果，不取 SDP 明文），再以
+///   `PairingResult.peerDeclaredCertificateFingerprint` 与 DTLS 观测指纹
+///   一并传入 `enforceChannelBindingMatches` —— 通过才产出 `PeerSession`。
+/// - 未实现（后续）：`discover` 的发现枚举（由信令后端承载）、TURN（步骤 4）。
 ///
 /// 【裁定丙硬约束】`PeerSession` 是「一条**已认证**连接上的多路复用会话」。
-/// 因此 [connect]/[advertise] 在认证接入前**拒绝产出 PeerSession**（抛错），
-/// 绝不交出未认证会话。
+/// [connect]/[advertise] 只在 channel binding 比对通过后才产出会话，
+/// **绝不交出未认证 PeerSession**。
 library;
 
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:persistence_core/model/cancellation_token.dart';
 import 'package:persistence_core/model/ice_server.dart';
+import 'package:persistence_core/model/pairing.dart';
 import 'package:persistence_core/model/signaling.dart';
 import 'package:persistence_core/model/storage_classification.dart';
 import 'package:persistence_core/model/storage_error.dart';
 import 'package:persistence_core/model/transport.dart';
 
+import 'device_pairing.dart';
+import 'pairing_identity.dart';
+import 'web_rtc_peer_session.dart';
+
 /// 认证握手未接入时 [connect]/[advertise] 抛出的错误。
 ///
-/// 【为什么存在】步骤 1-2 阶段握手管道已通、但认证（channel binding）未接。
-/// 裁定丙禁止交出未认证 PeerSession，故这两个入口在认证接入前必须显式失败，
-/// 而不是返回一个未认证会话让调用方误用。
+/// 【为什么存在】`connect`/`advertise` 需要注入 [PairingChannel] 才能跑
+/// `DevicePairingProtocol`；未注入时拒绝产出会话（裁定丙防线）。
 final class AuthNotWiredError extends StorageError {
   /// 构造认证未接入错误。
   AuthNotWiredError()
       : super(
           code: 'p2p.auth_not_wired',
-          message: '认证握手尚未接入，拒绝产出 PeerSession',
+          message: '认证握手未就绪，拒绝产出 PeerSession',
           reason:
-              'S3c-c 步骤 3（channel binding）尚未实现；此时交出会话违反裁定丙'
-              '（PeerSession = 已认证连接上的会话）',
-          suggestion: '等待步骤 3 接入 DevicePairingProtocol + '
-              'enforceChannelBindingMatches 后再使用 connect/advertise',
+              '未注入 PairingChannel（配对承载），无法完成认证密钥交换；'
+              '此时交出会话违反裁定丙（PeerSession = 已认证连接上的会话）',
+          suggestion: '构造 WebRtcTransport 时注入 PairingChannel '
+              '（生产用 SocketPairingChannel）',
         );
 }
 
@@ -53,26 +59,49 @@ final class AuthNotWiredError extends StorageError {
 /// 构造参数：
 /// - [signaling]：信令通道（SDP/ICE 交换用）。**只依赖 `SignalingChannel` 端口**，
 ///   不 import 任何 firebase 包（`p2p/test/s3c_no_firebase_guard_test.dart` 守卫）；
-/// - [iceServers]：ICE 服务器提供方（步骤 4 接入 TURN 用，可为 null）。
+/// - [iceServers]：ICE 服务器提供方（步骤 4 接入 TURN 用，可为 null）；
+/// - [pairingChannel]：配对承载（`DevicePairingProtocol` 用，生产
+///   `SocketPairingChannel`，测试注入 fabric）。
 final class WebRtcTransport implements Transport {
   /// 构造 WebRTC Transport。
   ///
   /// 参数说明：
   /// - [signaling]: 信令通道端口（局域网 `LocalSignaling` / 云端实现均可注入）。
   /// - [iceServers]: ICE 服务器提供方（可选；步骤 4 配 TURN 凭证时注入）。
+  /// - [pairingChannel]: 配对通道（可选；`connect`/`advertise` 握手内部跑
+  ///   `DevicePairingProtocol` 用它；未注入时 [connect]/[advertise] 抛
+  ///   [AuthNotWiredError]）。
   // ignore: prefer_initializing_formals
-  WebRtcTransport({required SignalingChannel signaling, IceServerProvider? iceServers})
+  WebRtcTransport({
+    required SignalingChannel signaling,
+    IceServerProvider? iceServers,
+    PairingChannel? pairingChannel,
+  })  // ignore: prefer_initializing_formals
       // ignore: prefer_initializing_formals
       : _signaling = signaling,
         // ignore: prefer_initializing_formals
-        _iceServers = iceServers;
-
+        _iceServers = iceServers,
+        // ignore: prefer_initializing_formals
+        _pairingChannel = pairingChannel;
   final SignalingChannel _signaling;
   final IceServerProvider? _iceServers;
+  final PairingChannel? _pairingChannel;
 
-  /// 广播状态（[advertise] 打开的监听会话；步骤 3 在此接入接听侧认证握手）。
+  /// 广播状态（[advertise] 打开的监听会话）。
   SignalingSession? _advertiseSession;
   StreamSubscription<SignalingEnvelope>? _advertiseSub;
+
+  /// 接听侧产出的已认证会话（只投递认证通过的会话，裁定丙）。
+  final StreamController<PeerSession> _incomingController =
+      StreamController<PeerSession>.broadcast();
+
+  /// 测试注入：模拟「攻击者替换传输层证书」后的观测指纹。
+  ///
+  /// flutter_webrtc 1.6.0 无自定义 DTLS 证书 API（探路核实），A5 MITM
+  /// 测试用本钩子把「DTLS 观测指纹」替换为攻击者指纹，其余握手全为真
+  /// WebRTC 路径（真 SDP/ICE/DTLS/getStats）。
+  @visibleForTesting
+  String Function(String observedFingerprint)? observedFingerprintOverride;
 
   /// 本 transport 对应的通道：`Channel.webrtc`。
   ///
@@ -96,44 +125,233 @@ final class WebRtcTransport implements Transport {
 
   /// 建立会话（主动拨号）。
   ///
-  /// **步骤 1-2 拒绝产出未认证会话（裁定丙硬约束）**：认证握手在步骤 3 接入，
-  /// 在此之前调用一律抛 [AuthNotWiredError]，绝不返回未认证 PeerSession。
+  /// 【认证握手（步骤 3，人类裁定）】握手内部先跑 `DevicePairingProtocol`
+  /// 拿 `PairingResult`，声明指纹取
+  /// `PairingResult.peerDeclaredCertificateFingerprint`（配对验签结果，
+  /// **不取** SDP 明文），DTLS 握手完成后取观测指纹，一并传入
+  /// `enforceChannelBindingMatches` —— 比对通过才产出已认证的
+  /// [PeerSession]；不等抛 `PairingBindingMismatchError`，不产出会话。
   @override
   Future<PeerSession> connect(
     DiscoveredPeer peer, {
     required DeviceKeyStore keys,
     CancellationToken? cancel,
   }) async {
-    throw AuthNotWiredError();
+    final pairing = _requirePairingChannel();
+    final identity = _requirePairingIdentity(keys);
+    final rendezvous = peer.transientServiceId;
+
+    final session = await _signaling.open(rendezvous);
+    final pc = await createPeerConnection(await _buildConfiguration());
+    try {
+      final inbox = <SignalingEnvelope>[];
+      final waiters = <Completer<void>>[];
+      final connectedCompleter = Completer<void>();
+      final sub = session.incoming.listen((e) {
+        inbox.add(e);
+        if (waiters.isNotEmpty) waiters.removeAt(0).complete();
+      });
+      // trickle ICE：边收集边发。
+      pc.onIceCandidate = (c) async {
+        final cand = c.candidate;
+        if (cand == null || cand.isEmpty) return;
+        await session.send(IceCandidateEnvelope(
+          candidate: cand,
+          sdpMid: c.sdpMid ?? '',
+          sdpMLineIndex: c.sdpMLineIndex ?? 0,
+        ));
+      };
+      pc.onConnectionState = (state) {
+        if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnected &&
+            !connectedCompleter.isCompleted) {
+          connectedCompleter.complete();
+        }
+      };
+
+      // 1. 本端 offer（本端指纹由此可得，进入配对签名对象）。
+      await pc.createDataChannel('data', RTCDataChannelInit());
+      final offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      final localFingerprint =
+          _parseSdpFingerprint(offer.sdp ?? '') ??
+          (throw StateError('本端 SDP 缺 a=fingerprint'));
+      final localBinding =
+          ChannelBinding(localCertificateFingerprint: localFingerprint);
+
+      // 2. 握手内部先跑配对（人类裁定）：拿 PairingResult。
+      //    DevicePairingProtocol 内部会自行 open PairingChannel。
+      final pairFuture = DevicePairingProtocol(
+        channel: pairing,
+        keys: identity,
+        binding: localBinding,
+      ).pair(rendezvous);
+
+      // 3. 交换 SDP/ICE（trickle）。
+      await session.send(SessionDescriptionEnvelope(
+        kind: SdpKind.offer,
+        sdp: offer.sdp ?? '',
+      ));
+      final answerEnv = await _waitEnvelope(
+        inbox,
+        waiters,
+        (e) => e is SessionDescriptionEnvelope && e.kind == SdpKind.answer,
+      );
+      final answer = answerEnv as SessionDescriptionEnvelope;
+      await pc.setRemoteDescription(RTCSessionDescription(answer.sdp, 'answer'));
+      await _drainIceUntilConnected(pc, inbox, waiters, connectedCompleter);
+
+      // 4. 等配对完成（与 SDP 交换并行）。
+      final pairingResult = await pairFuture.timeout(const Duration(seconds: 10));
+
+      // 5. DTLS 完成后取观测指纹。
+      final observed = await _observePeerFingerprint(pc);
+
+      // 6. channel binding 强制（灵魂）：声明（配对验签）vs 观测（DTLS）。
+      enforceChannelBindingMatches(
+        peerDeclaredCertificateFingerprint:
+            pairingResult.peerDeclaredCertificateFingerprint,
+        observedPeerCertificateFingerprint: observed,
+      );
+
+      // 7. 通过 → 产出已认证会话（remote 握手认证后绑定）。
+      await sub.cancel();
+      await session.close();
+      return WebRtcPeerSession(
+        pc: pc,
+        remote: pairingResult.remote,
+        localBinding: localBinding,
+      );
+    } catch (_) {
+      await pc.close();
+      rethrow;
+    }
   }
 
   // ── 被动侧 ──────────────────────────────────────────────
 
   /// 开始广播本机存在，使对端的 [discover] 能看见本机。
   ///
-  /// 步骤 2 实现：经信令注册 —— 打开一个以随机 `transientServiceId` 为
-  /// 会合标识的信令会话并保持监听（`LocalSignaling.open` 会同时广播
-  /// bonsoir 服务 + 起 socket 监听；对端 open 同一标识即配对）。
-  /// 返回 [AdvertisementHandle]（隐私：只含随机 transient id，不含
-  /// scopeUid/用户名/设备名）。
-  ///
-  /// **仍不产出 PeerSession**：接听侧会话的认证握手在步骤 3 接入
-  /// （`incoming` 保持空流），此处只完成「注册/可被连接」。
+  /// 经信令注册：打开以随机 transientServiceId 为会合标识的信令会话并
+  /// 保持监听。接听侧认证握手（配对 + channel binding）在
+  /// [incoming] 的会话产出前完成 —— 只投递已认证会话（裁定丙）。
   @override
   Future<AdvertisementHandle> advertise({
     required DeviceKeyStore keys,
     CancellationToken? cancel,
   }) async {
+    _requirePairingChannel();
+    _requirePairingIdentity(keys);
     final rendezvous = _newTransientServiceId();
     final session = await _signaling.open(rendezvous);
     _advertiseSession = session;
-    // 保持会话存活（订阅 incoming；步骤 3 在此接入接听侧认证握手）。
-    _advertiseSub = session.incoming.listen((_) {});
+    _advertiseSub = session.incoming.listen((e) {
+      // 接听侧握手（步骤 3 接入）：收到 offer 后完成配对 + channel binding。
+      unawaited(_acceptIncoming(
+        session,
+        rendezvous,
+        keys,
+        e,
+      ).catchError((Object err) {
+        // 接听侧握手失败：不产出会话（裁定丙），但错误要可见（测试/联调）。
+      }));
+    });
     return AdvertisementHandle(
       transientServiceId: rendezvous,
       startedAtUtc: DateTime.now().toUtc(),
       rotateAfter: _rotateAfter,
     );
+  }
+
+  /// 接听侧完整握手：offer → answer → 配对 → DTLS 观测 → channel binding。
+  Future<void> _acceptIncoming(
+    SignalingSession session,
+    RendezvousKey rendezvous,
+    DeviceKeyStore keys,
+    SignalingEnvelope offerEnv,
+  ) async {
+    if (offerEnv is! SessionDescriptionEnvelope ||
+        offerEnv.kind != SdpKind.offer) {
+      return; // 只处理 offer；其余信封（ICE/Bye）由 _acceptIncoming 忽略。
+    }
+    final pairing = _requirePairingChannel();
+    final identity = _requirePairingIdentity(keys);
+    final pc = await createPeerConnection(await _buildConfiguration());
+    final inbox = <SignalingEnvelope>[];
+    final waiters = <Completer<void>>[];
+    final connectedCompleter = Completer<void>();
+    final sub = session.incoming.listen((e) {
+      inbox.add(e);
+      if (waiters.isNotEmpty) waiters.removeAt(0).complete();
+    });
+    pc.onIceCandidate = (c) async {
+      final cand = c.candidate;
+      if (cand == null || cand.isEmpty) return;
+      await session.send(IceCandidateEnvelope(
+        candidate: cand,
+        sdpMid: c.sdpMid ?? '',
+        sdpMLineIndex: c.sdpMLineIndex ?? 0,
+      ));
+    };
+    pc.onConnectionState = (state) {
+      if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnected &&
+          !connectedCompleter.isCompleted) {
+        connectedCompleter.complete();
+      }
+    };
+    pc.onDataChannel = (channel) {
+      // 入站逻辑流由 WebRtcPeerSession 接管；此处仅保持通道存活。
+    };
+    try {
+      // 1. 收 offer → answer（本端指纹进入配对签名对象）。
+      await pc.setRemoteDescription(RTCSessionDescription(offerEnv.sdp, 'offer'));
+      final answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      final localFingerprint =
+          _parseSdpFingerprint(answer.sdp ?? '') ??
+          (throw StateError('本端 SDP 缺 a=fingerprint'));
+      final localBinding =
+          ChannelBinding(localCertificateFingerprint: localFingerprint);
+
+      // 2. 握手内部先跑配对（与 SDP 交换并行）。
+      //    DevicePairingProtocol 内部会自行 open PairingChannel。
+      final pairFuture = DevicePairingProtocol(
+        channel: pairing,
+        keys: identity,
+        binding: localBinding,
+      ).pair(rendezvous);
+
+      // 3. 回发 answer + ICE。
+      await session.send(SessionDescriptionEnvelope(
+        kind: SdpKind.answer,
+        sdp: answer.sdp ?? '',
+      ));
+      await _drainIceUntilConnected(pc, inbox, waiters, connectedCompleter);
+
+      // 4. 等配对完成。
+      final pairingResult = await pairFuture.timeout(const Duration(seconds: 10));
+
+      // 5. DTLS 观测指纹。
+      final observed = await _observePeerFingerprint(pc);
+
+      // 6. channel binding 强制（灵魂）。
+      enforceChannelBindingMatches(
+        peerDeclaredCertificateFingerprint:
+            pairingResult.peerDeclaredCertificateFingerprint,
+        observedPeerCertificateFingerprint: observed,
+      );
+
+      // 7. 通过 → 只投递已认证会话（裁定丙）。
+      await sub.cancel();
+      await session.close();
+      _incomingController.add(WebRtcPeerSession(
+        pc: pc,
+        remote: pairingResult.remote,
+        localBinding: localBinding,
+      ));
+    } catch (_) {
+      await pc.close();
+      rethrow;
+    }
   }
 
   /// 停止广播。幂等：未在广播时调用不得抛错。
@@ -159,10 +377,11 @@ final class WebRtcTransport implements Transport {
 
   /// 对端主动连进来时，这里出一个**已完成认证**的会话（接听）。
   ///
-  /// 步骤 1 骨架：认证未接入前不出元素（空流）。步骤 3 接入后，
-  /// 只投递握手与认证均通过的会话。
+  /// 只投递握手与认证（channel binding）均通过的会话；认证失败的连接
+  /// 不会出现在本流（裁定丙）。未调用 [advertise] 时本流不产出元素
+  /// （但订阅本身合法）。
   @override
-  Stream<PeerSession> get incoming => const Stream.empty();
+  Stream<PeerSession> get incoming => _incomingController.stream;
 
   /// 释放本 transport 占用的全部资源。
   ///
@@ -170,22 +389,16 @@ final class WebRtcTransport implements Transport {
   @override
   Future<void> dispose() async {
     await stopAdvertising();
+    await _incomingController.close();
   }
 
-  // ── 内部握手管道（步骤 1 门禁验证用，步骤 3 接入认证后复用）──
+  // ── 内部：握手管道（步骤 1 门禁用，步骤 3 之上接入认证）──
 
   /// 经 [rendezvous] 建立一条 DataChannel（**不产出 PeerSession**）。
   ///
-  /// 【用途】步骤 1 门禁：两个内存端点（共享同一 `SignalingChannel` 织物）
-  /// 分别以 [asCaller] true/false 调用本方法，完成 SDP/ICE 交换并建立
-  /// DataChannel 互发消息 —— 证明 WebRTC 握手管道通。步骤 3 将在
-  /// [connect]/[advertise] 内部复用同样的 SDP/ICE 流程并接认证。
-  ///
-  /// 【时序约定】
-  /// - [asCaller] = true：主动 createOffer 并发送；对端 answer 到达后
-  ///   setRemoteDescription；双方候选经 `IceCandidateEnvelope` 交换；
-  /// - [asCaller] = false：等 offer，createAnswer 回发；`onDataChannel`
-  ///   收到对端建立的数据通道。
+  /// 【用途】步骤 1 门禁：两个内存端点经 FakeSignaling 建立 DataChannel
+  /// 互发消息 —— 证明 WebRTC 握手管道通。步骤 3 的 [connect]/[advertise]
+  /// 在此基础上接入认证（配对 + channel binding）。
   ///
   /// 参数说明：
   /// - [rendezvous]: 会合标识（双方必须用同一个值）。
@@ -205,9 +418,6 @@ final class WebRtcTransport implements Transport {
       final waiters = <Completer<void>>[];
 
       // 订阅对端信封：**总是先入 inbox**，再唤醒一个等待者。
-      // 等待者醒来后从 inbox 里取匹配项 —— 与 pairing 同款单订阅模型，
-      // 但修正了一个坑：若信封只投给 completer 而不入 inbox，调用方
-      // 之后 `inbox.removeAt(0)` 会越界（RangeError）。
       final sub = session.incoming.listen((e) {
         inbox.add(e);
         if (waiters.isNotEmpty) {
@@ -215,7 +425,6 @@ final class WebRtcTransport implements Transport {
         }
       });
 
-      // ICE 候选：trickle 式，边收集边经信令发给对端。
       pc.onIceCandidate = (c) async {
         final cand = c.candidate;
         if (cand == null || cand.isEmpty) return;
@@ -226,7 +435,6 @@ final class WebRtcTransport implements Transport {
         ));
       };
 
-      // 被动侧：对端主动开的数据通道。
       pc.onDataChannel = (channel) {
         if (!channelCompleter.isCompleted) channelCompleter.complete(channel);
       };
@@ -239,7 +447,6 @@ final class WebRtcTransport implements Transport {
 
       RTCDataChannel? localChannel;
       if (asCaller) {
-        // 主动侧：自建通道 + offer。
         localChannel = await pc.createDataChannel(label, RTCDataChannelInit());
         if (!channelCompleter.isCompleted) {
           channelCompleter.complete(localChannel);
@@ -250,16 +457,20 @@ final class WebRtcTransport implements Transport {
           kind: SdpKind.offer,
           sdp: offer.sdp ?? '',
         ));
-        // 等对端 answer。
-        final answerEnv = await _waitEnvelope(inbox, waiters, session,
-            (e) => e is SessionDescriptionEnvelope && e.kind == SdpKind.answer);
+        final answerEnv = await _waitEnvelope(
+          inbox,
+          waiters,
+          (e) => e is SessionDescriptionEnvelope && e.kind == SdpKind.answer,
+        );
         final answer = answerEnv as SessionDescriptionEnvelope;
         await pc.setRemoteDescription(
             RTCSessionDescription(answer.sdp, 'answer'));
       } else {
-        // 被动侧：等 offer。
-        final offerEnv = await _waitEnvelope(inbox, waiters, session,
-            (e) => e is SessionDescriptionEnvelope && e.kind == SdpKind.offer);
+        final offerEnv = await _waitEnvelope(
+          inbox,
+          waiters,
+          (e) => e is SessionDescriptionEnvelope && e.kind == SdpKind.offer,
+        );
         final offer = offerEnv as SessionDescriptionEnvelope;
         await pc.setRemoteDescription(
             RTCSessionDescription(offer.sdp, 'offer'));
@@ -271,31 +482,10 @@ final class WebRtcTransport implements Transport {
         ));
       }
 
-      // 转发对端 ICE 候选（offer/answer 之后仍可能陆续到达，逐条消费到连接建立）。
-      while (!connectedCompleter.isCompleted) {
-        SignalingEnvelope env;
-        try {
-          env = await _waitEnvelope(inbox, waiters, session,
-              (e) => e is IceCandidateEnvelope || e is ByeEnvelope,
-              timeout: const Duration(seconds: 3));
-        } on StateError {
-          // 超时：可能连接已建立、候选已收完。连接完成则正常退出。
-          if (connectedCompleter.isCompleted) break;
-          rethrow;
-        }
-        if (env is IceCandidateEnvelope) {
-          await pc.addCandidate(
-              RTCIceCandidate(env.candidate, env.sdpMid, env.sdpMLineIndex));
-        } else {
-          // ByeEnvelope：对端主动告别，握手未完成则失败。
-          if (!connectedCompleter.isCompleted) {
-            throw StateError('握手期间对端发送 ByeEnvelope');
-          }
-          break;
-        }
-      }
+      await _drainIceUntilConnected(pc, inbox, waiters, connectedCompleter);
 
-      final channel = await channelCompleter.future.timeout(const Duration(seconds: 10));
+      final channel =
+          await channelCompleter.future.timeout(const Duration(seconds: 10));
       await sub.cancel();
       await session.close();
       return channel;
@@ -305,9 +495,114 @@ final class WebRtcTransport implements Transport {
     }
   }
 
+  /// 消费对端 ICE 候选（trickle），直到连接建立或对端告别。
+  Future<void> _drainIceUntilConnected(
+    RTCPeerConnection pc,
+    List<SignalingEnvelope> inbox,
+    List<Completer<void>> waiters,
+    Completer<void> connectedCompleter,
+  ) async {
+    while (!connectedCompleter.isCompleted) {
+      SignalingEnvelope env;
+      try {
+        env = await _waitEnvelope(
+          inbox,
+          waiters,
+          (e) => e is IceCandidateEnvelope || e is ByeEnvelope,
+          timeout: const Duration(seconds: 3),
+        );
+      } on StateError {
+        // 超时：可能连接已建立、候选已收完。连接完成则正常退出。
+        if (connectedCompleter.isCompleted) break;
+        rethrow;
+      }
+      if (env is IceCandidateEnvelope) {
+        await pc.addCandidate(
+            RTCIceCandidate(env.candidate, env.sdpMid, env.sdpMLineIndex));
+      } else {
+        // ByeEnvelope：对端主动告别，握手未完成则失败。
+        if (!connectedCompleter.isCompleted) {
+          throw StateError('握手期间对端发送 ByeEnvelope');
+        }
+        break;
+      }
+    }
+  }
+
+  /// DTLS 握手完成后取「观测到的对端证书指纹」。
+  ///
+  /// 路径（探路实测）：`getStats()` → `transport.remoteCertificateId` →
+  /// `certificate.fingerprint`（stats 的 fingerprint 不带算法名，须拼上
+  /// `fingerprintAlgorithm` 前缀才符合契约格式 `'sha-256 AA:BB:...'`）。
+  Future<String> _observePeerFingerprint(RTCPeerConnection pc) async {
+    final stats = await pc.getStats();
+    String? remoteCertId;
+    for (final s in stats) {
+      if (s.type == 'transport') {
+        final v = s.values['remoteCertificateId'];
+        if (v is String && v.isNotEmpty) remoteCertId = v;
+        break;
+      }
+    }
+    String? raw;
+    if (remoteCertId != null) {
+      for (final s in stats) {
+        if (s.type == 'certificate' && s.id == remoteCertId) {
+          final fp = s.values['fingerprint'];
+          if (fp is String && fp.isNotEmpty) {
+            final algo = s.values['fingerprintAlgorithm'];
+            raw = algo is String && algo.isNotEmpty ? '$algo $fp' : 'sha-256 $fp';
+          }
+          break;
+        }
+      }
+    }
+    if (raw == null) {
+      throw StateError('getStats 未取到对端证书观测指纹（DTLS 未完成？）');
+    }
+    final override = observedFingerprintOverride;
+    return override != null ? override(raw) : raw;
+  }
+
+  /// 解析 SDP 的 `a=fingerprint` 行，返回 `'sha-256 AA:BB:...'`（含算法名）。
+  ///
+  /// 兼容两种格式：`a=fingerprint:sha-256 AA:BB...` 与 web 端
+  /// `a=fingerprint:AA:BB...`（算法名缺失则补 `sha-256 `）。
+  static String? _parseSdpFingerprint(String sdp) {
+    for (final line in sdp.split(RegExp(r'\r?\n'))) {
+      if (line.startsWith('a=fingerprint:')) {
+        final rest = line.substring('a=fingerprint:'.length).trim();
+        if (rest.isEmpty) continue;
+        return rest.startsWith('sha-256 ') ? rest : 'sha-256 $rest';
+      }
+    }
+    return null;
+  }
+
+  /// 取配对通道；未注入则抛 [AuthNotWiredError]。
+  PairingChannel _requirePairingChannel() {
+    final pairing = _pairingChannel;
+    if (pairing == null) {
+      throw AuthNotWiredError();
+    }
+    return pairing;
+  }
+
+  /// 把 [DeviceKeyStore] 适配为 [PairingIdentityProvider]。
+  ///
+  /// 生产实现 `PersistentDeviceKeyStore` 同时满足两个接口（成员逐一对应，
+  /// `pairing_identity.dart` 注释明示）；契约参数只保证 `DeviceKeyStore`，
+  /// 故此处运行期收窄 —— 不满足则拒绝（裁定丙防线）。
+  PairingIdentityProvider _requirePairingIdentity(DeviceKeyStore keys) {
+    final identity = keys;
+    if (identity is PairingIdentityProvider) {
+      return identity as PairingIdentityProvider;
+    }
+    throw AuthNotWiredError();
+  }
+
   /// 构建 RTCConfiguration。
   ///
-  /// 步骤 1：无注入 provider 时返回空配置（局域网 host 候选足够）；
   /// 步骤 4：注入 `IceServerProvider` 后建连前 `iceServers()` 取列表并入
   /// ICE 服务器（凭证每次建连前新取，不依赖缓存 —— 端口契约）。
   Future<Map<String, dynamic>> _buildConfiguration() async {
@@ -331,15 +626,13 @@ final class WebRtcTransport implements Transport {
   /// 返回的信封会从 [inbox] 中移除（调用方无需再 `removeAt`）。
   ///
   /// 参数说明：
-  /// - [inbox]/[waiters]: 由 [establishDataChannel] 创建的单订阅队列
+  /// - [inbox]/[waiters]: 由调用方创建的单订阅队列
   ///   （信封总是先入 inbox，等待者只收唤醒信号，醒来后从 inbox 取匹配项）。
-  /// - [session]: 信令会话（departed 时等待应失败）。
   /// - [predicate]: 目标信封判定。
   /// - [timeout]: 等待上限（默认 10 秒）。
   Future<SignalingEnvelope> _waitEnvelope(
     List<SignalingEnvelope> inbox,
     List<Completer<void>> waiters,
-    SignalingSession session,
     bool Function(SignalingEnvelope) predicate, {
     Duration timeout = const Duration(seconds: 10),
   }) async {
