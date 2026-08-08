@@ -68,6 +68,8 @@ DatasetRegistry -> DatasetInstaller -> drift 落库 -> 领域 Repository 取用�
   - prebuilt：qizheng.star_position_status（97 行表）、qizheng.ge_ju（sqlite 5 表 1005 行导出 *.sql）
   - raw：qizheng.zhou_tian（ecliptic_tropical_*.json ×3）、qizheng.ephemeris（其余星历 JSON）、qizheng.shen_sha / qizheng.hua_yao（74_* ×9）、qizheng.ge_ju_rules / qizheng.ge_ju_content（rules/content JSON ×26，非表形）
   - 待阶段 5 判定：ge_ju 的 rules/content JSON（raw）与 sqlite（prebuilt）可能为同批数据的两种形态，消费方目前两者都读。
+- 2026-08-07 阶段 2 修订（commit 0b37ea3）：人类裁定非表形数据以「JSON 文档表」落地（file_name + payload_json），满足协议 prebuilt 硬约束（DatasetRegistry 拒绝内置 rawText，dataset_protocol_test.dart:180-186 锁定）。6 个文档表统一 `_document` 后缀避免与 ge_ju.sql 表名冲突；8 个 *.sql 全部通过 sqlite3 重放 + 同库共存验证。
+- 2026-08-07 阶段 3 完成（commit 97c9768）：XRAP 注册 8 个 DatasetDescriptor + QizhengSqlMaterializer；drift 13 表 + QizhengsiyuDatabase（schemaVersion 1）；DriftDatasetInstaller；XrapQiZheng*Repository 实现接口包 6 端口（StarPositionStatus / ZhouTian / EphemerisResource / ShenSha / HuaYao / GeJuBuiltInDataSource）。dart analyze lib/qizhengsiyu 零 issue。工作区切换独立 worktree 后需建 gitignored `assets/pubspec_overrides.yaml`（照 geo worktree 抄录，路径深度 +2）。
 
 ## 踩坑墓地
 
