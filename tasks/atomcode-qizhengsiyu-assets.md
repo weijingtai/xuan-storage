@@ -72,6 +72,11 @@ DatasetRegistry -> DatasetInstaller -> drift 落库 -> 领域 Repository 取用�
 - 2026-08-07 阶段 3 完成（commit 97c9768）：XRAP 注册 8 个 DatasetDescriptor + QizhengSqlMaterializer；drift 13 表 + QizhengsiyuDatabase（schemaVersion 1）；DriftDatasetInstaller；XrapQiZheng*Repository 实现接口包 6 端口（StarPositionStatus / ZhouTian / EphemerisResource / ShenSha / HuaYao / GeJuBuiltInDataSource）。dart analyze lib/qizhengsiyu 零 issue。工作区切换独立 worktree 后需建 gitignored `assets/pubspec_overrides.yaml`（照 geo worktree 抄录，路径深度 +2）。
 - 2026-08-08 阶段 4 完成（commit d67ac83）：qizhengsiyu_datasets_test（A1 注册 8 数据集 + A2 运行期加载 sha256）+ qizhengsiyu_full_chain_test（A1-A4 全链路真实查询）全绿（+47）；core 测试 +290 全绿；s1a analyze 门禁 ✅；monorepo 惯例检查 ✅。修复：ge_ju.sql DDL 规范化 IF NOT EXISTS；QizhengDatasetGenerations / QizhengDriftDatasetInstaller 类名前缀消除 barrel 同名冲突；_loadJsonList 分表查询。
 - 2026-08-08 ⚠ 预存失败报告（非我引入，按派工单 §七不擅自改门禁）：`assets/test/taiyishenshu/taiyi_school_assets_repository_test.dart` 失败——测试 FakeAssetBundle 的键缺 `packages/taiyishenshu/` 前缀，而 `official_json_repository.dart`（main 与当前分支一致，git diff 证实我未改动任何 taiyishenshu 文件）要求该前缀（fix/storage-assets-prefix 移除兜底后测试未同步）。影响 A4「assets 测试全绿」验收项，待人类裁定。
+- 2026-08-08 阶段 5 完成（commit 10962e7）：
+  - 旧实现 `assets_qizheng_official_data_repositories.dart` 全部 6 类标注 @Deprecated（消费方未切换，保留过渡；新代码禁止引用）。
+  - 人类授权修复 taiyishenshu 预存失败（FakeAssetBundle 键补 `packages/taiyishenshu/` 前缀），assets 全量测试恢复 +102 全绿。
+  - 消费方待切清单：xuan-qizhengsiyu `lib/main.dart:96-101`、`example/lib/main.dart:134-139` 仍用旧 AssetsQiZheng*Repository，切换为 XRAP 链路属跨仓后续任务。
+- 2026-08-08 交接报告落盘：`~/Downloads/storage_refactor/MIGRATION-QIZHENGSIYU-ASSETS-REPORT.md`（含每步命令/exit code/改动统计/验收 8 条逐条证据/未决问题 7 项）。全部 6 阶段完成。
 
 ## 踩坑墓地
 
