@@ -61,6 +61,13 @@ DatasetRegistry -> DatasetInstaller -> drift 落库 -> 领域 Repository 取用�
   3. 不迁项全部确认：dataset/（geo 边界 2886 + 6 大文件）、ephe/sefstars.txt、ge_ju/backup/ 8 JSON、sql/initial_data.sql 均保持原位。
   4. historical_ephemeris / historical_definitions 数据缺失：本期不注册该数据集；旧实现端口标注 deprecated，缺失记录入交接报告。
 - 2026-08-07 待人类确认执行项（阶段 1 开工门禁）：源仓 xuan-qizhengsiyu 删除已迁文件需在哪个分支 commit（该仓当前在 main，且项目铁律要求主分支操作须人类下令）。
+- 2026-08-07 人类裁定执行项：源仓也开新分支 `feat/qizhengsiyu-assets-xrap` 做删除 commit（已执行，commit 4f559f7）。
+- 2026-08-07 HAND-OFF 1 确认：人类确认进入阶段 2，并授权回退误落分支。
+- 2026-08-07 分支事故（已处置）：阶段 1 commit 曾误落 `feat/s3c-c-webrtc-impl`（共享工作区被并发任务切换所致），已 cherry-pick 归位到 `feat/qizhengsiyu-assets-xrap`（4ea6a36），误落 commit 经人类授权回退移除。此后改用独立 worktree `.worktrees/atomcode-qizhengsiyu-assets` 工作（派工单环境铁律 §八.5）。
+- 2026-08-07 阶段 2 完成（commit 150930c）：payloadFormat 决策——
+  - prebuilt：qizheng.star_position_status（97 行表）、qizheng.ge_ju（sqlite 5 表 1005 行导出 *.sql）
+  - raw：qizheng.zhou_tian（ecliptic_tropical_*.json ×3）、qizheng.ephemeris（其余星历 JSON）、qizheng.shen_sha / qizheng.hua_yao（74_* ×9）、qizheng.ge_ju_rules / qizheng.ge_ju_content（rules/content JSON ×26，非表形）
+  - 待阶段 5 判定：ge_ju 的 rules/content JSON（raw）与 sqlite（prebuilt）可能为同批数据的两种形态，消费方目前两者都读。
 
 ## 踩坑墓地
 
