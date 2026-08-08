@@ -621,6 +621,15 @@ final class WebRtcTransport implements Transport {
     return <String, dynamic>{'iceServers': servers};
   }
 
+  /// 测试入口：暴露 [IceServerProvider] 注入后的 RTCConfiguration 生成结果。
+  ///
+  /// 步骤 4 门禁：验证「建连前 `iceServers()` 取列表并入配置、凭证每次
+  /// 新取」的接入逻辑（不依赖缓存 —— 端口契约）。生产路径
+  /// [establishDataChannel]/[connect] 内部同样走 [_buildConfiguration]。
+  @visibleForTesting
+  Future<Map<String, dynamic>> buildConfigurationForTest() =>
+      _buildConfiguration();
+
   /// 等待 inbox 中出现满足 [predicate] 的信封并**返回它**；没有则注册等待者。
   ///
   /// 返回的信封会从 [inbox] 中移除（调用方无需再 `removeAt`）。

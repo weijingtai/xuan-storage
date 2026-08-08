@@ -1,7 +1,8 @@
 # 交接信封 —— storage-s3c-c-webrtc-impl（执行阶段）
 
-> 生成 2026-08-07 ｜ 执行中：**步骤 3（灵魂：channel binding）已完成**。
-> 下一步：步骤 4（TURN 兜底，无服务则标记延后）。每完成一个阶段更新本 HANDOFF，不停下询问。
+> 生成 2026-08-07 ｜ **全部四步 + 探路已完成，验收全绿**。交接报告：
+> `~/Downloads/storage_refactor/IMPL-S3c-c-WEBRTC-REPORT.md`。剩余未决：
+> TURN 跨网络联调（需人类部署）+ 原生平台观测指纹实机验证。
 
 ## 当前分支与提交
 
@@ -12,7 +13,8 @@
   - `dca9b84` 前置① DTLS 指纹探路完成（③ 观测指纹实测可得）
   - `1502585` 步骤1 完成（WebRtcTransport 骨架 + A7 守卫收窄 + DataChannel 集成测试）
   - `d86a23a` 步骤2 完成（advertise 信令注册 + LocalSignaling 集成测试）
-  - 本批（步骤3）：SocketPairingChannel 生产承载 + WebRtcPeerSession/PeerStream + 握手内嵌配对 + enforceChannelBindingMatches + A5 MITM 测试
+  - `23678ca` 步骤3 完成（握手内嵌配对 + channel binding + A5 MITM 测试）
+  - 本批（步骤4 + 最终验收）：IceServerProvider 单测 + IMPL 报告
 
 ## 任务分工（人类 2026-08-07 指定，详见 ACT 头部）
 
@@ -85,8 +87,25 @@
           MITM 测试红在断言（Expected throws PairingBindingMismatchError,
           Actual _Future<PeerSession>）；恢复后绿
       - 验证：p2p `flutter analyze` 全绿；A5 集成测试 `+2` 全绿
+- [x] **步骤 4（TURN 兜底）+ 最终验收完成**：
+      - `IceServerProvider` 接入 RTCConfiguration（`_buildConfiguration`）：
+        建连前 `iceServers()` 取列表并入，**凭证每次建连前新取不缓存**
+        （端口契约）；单测 `web_rtc_ice_servers_test.dart` 3 条全绿
+        （配置含 urls/username/credential + 凭证 fetchCount==2 不缓存 +
+        无 provider 返回空列表）
+      - **TURN 跨网络联调延后**（需人类部署/签约，框架计划停止条件允许
+        步骤 1-3 先行验收）
+      - 最终验收全绿：core 290 / p2p 65+5 / firebase 148+4；
+        三条门禁 exit 0（s1a dartdoc 下限 161 / s1b 基线 20 / monorepo）；
+        Chrome 三套集成测试全绿（spike + 步骤1 DataChannel + 步骤3 A5）
+      - 交接报告：`~/Downloads/storage_refactor/IMPL-S3c-c-WEBRTC-REPORT.md`
 
-## 下一步（步骤 4 · TURN 兜底）
+## 未决问题（交还人类）
+
+1. TURN 部署/签约（Cloudflare Calls 首选）→ 步骤 4 跨网络联调
+2. 原生平台（Android/iOS/macOS）观测指纹未实机验证（Chrome 已实测；
+   原生经源码核实，联调时若 `remoteCertificateId` 缺位按停止条件上报）
+3. 平台权限配置文件在消费方 `xuan-qizhengsiyu`（本仓不跨仓改，真机联调前需补）
 
 ## 待审核决策点（已在 ACT §十一，审核重点）
 
