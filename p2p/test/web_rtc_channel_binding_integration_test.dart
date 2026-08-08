@@ -1,4 +1,4 @@
-@Tags(['integration'])
+@OnPlatform({'vm': Skip('flutter_webrtc native 需 platform channel，仅 Chrome/真机可跑')})
 library;
 
 import 'dart:async';
@@ -33,9 +33,12 @@ import 'package:uuid/uuid.dart';
 /// （攻击成功而门禁不响）→ 恢复后绿。红在断言（expectLater throwsA），
 /// 非编译失败。
 ///
-/// 【运行平台】flutter_webrtc 需要平台通道，须在 Chrome 上跑：
+/// 【运行平台】本测试的信令/配对是纯内存织物（零 mDNS/bonsoir/dart:io），
+/// 不需要网络；唯一限制是 flutter_webrtc native factory 需 platform
+/// channel，仅 Chrome/真机可跑 —— 故用 `@OnPlatform({'vm': Skip(...)})`
+/// 平台限定：**VM 上 skip、Chrome 上默认跑**（无需 `--run-skipped`）。
 /// ```bash
-/// cd p2p && flutter test --platform chrome --run-skipped \
+/// cd p2p && flutter test -d chrome --platform chrome \
 ///   test/web_rtc_channel_binding_integration_test.dart
 /// ```
 void main() {

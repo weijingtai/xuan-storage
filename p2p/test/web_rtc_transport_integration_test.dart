@@ -1,4 +1,4 @@
-@Tags(['integration'])
+@OnPlatform({'vm': Skip('flutter_webrtc native 需 platform channel，仅 Chrome/真机可跑')})
 library;
 
 import 'dart:async';
@@ -16,13 +16,14 @@ import 'package:persistence_p2p/web_rtc_transport.dart';
 /// 真的（WebRTC 握手 + DTLS + DataChannel），只有「信令搬运」是内存的。
 /// 这正是步骤 1 的验证目标：WebRTC 握手管道通。
 ///
-/// 【运行环境】flutter_webrtc 需要平台通道，纯 VM 测试跑不了，必须在
-/// Chrome（或真机）上跑：
+/// 【运行环境】本测试的信令是内存织物（零 mDNS/bonsoir/dart:io），
+/// 不需要网络；唯一限制是 flutter_webrtc native factory 需 platform
+/// channel，仅 Chrome/真机可跑 —— 故用 `@OnPlatform({'vm': Skip(...)})`
+/// 平台限定：**VM 上 skip、Chrome 上默认跑**（无需 `--run-skipped`）。
 /// ```bash
-/// cd p2p && flutter test --platform chrome --run-skipped \
+/// cd p2p && flutter test -d chrome --platform chrome \
 ///   test/web_rtc_transport_integration_test.dart
 /// ```
-/// `dart_test.yaml` 默认排除 integration tag，不带 `--run-skipped` 不跑。
 void main() {
   test('两个内存端点经 FakeSignaling 建立 DataChannel 互发一条消息', () async {
     final fabric = _MemorySignalingFabric();
