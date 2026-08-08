@@ -1,6 +1,6 @@
 # qizhengsiyu 数据 SQL 构建报告
 
-- 构建时间：2026-08-08 04:54:12 UTC
+- 构建时间：2026-08-08 06:25:59 UTC
 - 构建脚本：assets/tool/build_qizhengsiyu_sql.py
 - 源数据：star_position_status.json（表形 97 行）+ ge_ju/ge_ju_database.sqlite（预构建 SQLite）
 
@@ -10,6 +10,12 @@
 |---|---|---|---|---|
 | star_position_status.sql | star_position_status | 97 | 15601 | 243db078fb6681344414e4227ee298a0d309baafd97409265ff4c05cde1825a5 |
 | ge_ju.sql | ge_ju(5表) | 1005 | 532740 | 883672801951ed621203676b4c9b93dd461fb8364e6ed4b9e0e308d9dc755c7f |
+| zhou_tian_document.sql | zhou_tian_document(文档表) | 3 | 9128 | 2227d006af44b0d98818ba4db0662d8955beb2e8efc3c64640043d4d68e895e9 |
+| ephemeris_document.sql | ephemeris_document(文档表) | 17 | 52572 | 83a4bc14573d6352ce881b8d8b149d14408e9f5ca6c36427cade97fb0ed08925 |
+| shen_sha_document.sql | shen_sha_document(文档表) | 6 | 48540 | 2bd3a0d25d615b166ddfc7b8d903bd60ded853382fab812233cf271c4cbe3acb |
+| hua_yao_document.sql | hua_yao_document(文档表) | 3 | 21591 | e082234a001660c9be64328ec85f5d34e210d2fb3c5b0bb9a67ab408e3d488b6 |
+| ge_ju_rules_document.sql | ge_ju_rules_document(文档表) | 13 | 235092 | cd88a8379dd364c51d9723c13f0acfc1d16ef7eecf510a4d139d279ba68f9df7 |
+| ge_ju_content_document.sql | ge_ju_content_document(文档表) | 13 | 287858 | 35da58c353099d4792568065cdbf5a773478b07a4a6d3d8b4968e3e5c4284ee7 |
 
 ## 验证
 

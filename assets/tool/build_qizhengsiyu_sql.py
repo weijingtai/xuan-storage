@@ -41,6 +41,32 @@ GE_JU_TABLES = [
     'ge_ju_versions',
 ]
 
+# ------------------------------------------------- 非表形数据 -> JSON 文档表
+#
+# 协议强制内置数据集 payloadFormat 必须 prebuilt（dataset_registry.dart 注册期
+# 校验，rawText 会被拒绝）。非表形 JSON（嵌套对象/数组，无法拆成字段级表）按
+# 人类裁定 2026-08-07 以「JSON 文档表」落地：每类建一张
+# `file_name + payload_json` 表，构建期生成 SQL，设备侧执行恢复表即零解析，
+# 领域 Repository 从 drift 表读整段 JSON 再 decode（decode 属领域层职责）。
+#
+# 每项：(sql 文件名, 表名, 数据集 id, 源文件相对 QZ_DIR 的 glob)
+# 表名统一加 `_document` 后缀：避免与 ge_ju.sql 内 `ge_ju_rules` 等表同名冲突。
+DOCUMENT_DATASETS = [
+    ('zhou_tian', 'zhou_tian_document', 'qizheng.zhou_tian', ['ecliptic_tropical_*.json']),
+    ('ephemeris', 'ephemeris_document', 'qizheng.ephemeris', ['ecliptic_ancient_365.json', 'ecliptic_tuihuangdao.json', 'four_season.json', 'han_chidao_hengxin.json', 'han_chidao_hengxin.v2.json', 'yuan_chidao_hengxing.json', 'yuan_chidao_hengxing.v2.json', 'yuan_shoushi_chidao_hengxin.json', 'yuan_sky_equatorial_sidereal.json', 'ming_si_huangdao_hengxing.json', 'ming_si_huangdao_hengxing.v2.json', 'song_sanchentongzai.json', 'huangdao_huigui_gu.json', 'huangdao_huigui_gu_corrected.json', 'huangdao_huigui_gu_now.json', 'stars_four_relationship.json', 'zheng_shi_xing_an.json']),
+    ('shen_sha', 'shen_sha_document', 'qizheng.shen_sha', ['shen_sha/74_shensha_*.json']),
+    ('hua_yao', 'hua_yao_document', 'qizheng.hua_yao', ['shen_sha/74_huayao_*.json']),
+    ('ge_ju_rules', 'ge_ju_rules_document', 'qizheng.ge_ju_rules', ['ge_ju/rules/*.json']),
+    ('ge_ju_content', 'ge_ju_content_document', 'qizheng.ge_ju_content', ['ge_ju/content/*.json']),
+]
+
+DOCUMENT_TABLE_DDL = (
+    'CREATE TABLE IF NOT EXISTS {table} ('
+    '  file_name TEXT PRIMARY KEY,'
+    '  payload_json TEXT NOT NULL'
+    ')'
+)
+
 
 def _sql_str(v) -> str:
     """Python 值 -> SQL 字面量（None -> NULL；字符串单引号转义；数字直出）。"""
@@ -211,6 +237,37 @@ def build_ge_ju() -> dict:
     return _stat(sql_path, 'ge_ju(5表)', expected_total)
 
 
+def build_document_dataset(table: str, dataset_id: str, patterns: list) -> dict:
+    """非表形 JSON -> JSON 文档表（file_name + payload_json）。
+
+    按人类裁定 2026-08-07：协议强制内置 payloadFormat 必须 prebuilt，
+    非表形数据以文档表落地，满足「构建期结构化、设备零解析」。
+    """
+    sql_path = OUT_DIR / f'{table}.sql'
+    ddl = [DOCUMENT_TABLE_DDL.format(table=table)]
+
+    files = []
+    for pat in patterns:
+        files.extend(sorted(QZ_DIR.glob(pat)))
+    if not files:
+        raise RuntimeError(f'{dataset_id}: 源 JSON 匹配 0 个文件，停下报告')
+    if len(files) != len(patterns) and not any('*' in p for p in patterns):
+        # 无通配符时应一一对应；有通配符时数量由 glob 决定
+        raise RuntimeError(
+            f'{dataset_id}: 显式源文件数 {len(patterns)} 与匹配数 {len(files)} 不符'
+        )
+
+    rows = []
+    for f in files:
+        payload = f.read_text(encoding='utf-8')
+        rows.append((f.name, payload))
+
+    inserts = _insert_lines(table, ['file_name', 'payload_json'], rows)
+    sql_text = _wrap_sql(ddl, inserts)
+    sql_path.write_text(sql_text, encoding='utf-8')
+    return _stat(sql_path, f'{table}(文档表)', len(rows))
+
+
 def main():
     print('=' * 60)
     print('qizhengsiyu 数据 SQL 构建')
@@ -219,6 +276,8 @@ def main():
         build_star_position_status(),
         build_ge_ju(),
     ]
+    for sql_name, table, dataset_id, patterns in DOCUMENT_DATASETS:
+        results.append(build_document_dataset(table, dataset_id, patterns))
     for r in results:
         print(f"\n-- {r['table']} --")
         print(f"   产物: {r['sql_path']}")
