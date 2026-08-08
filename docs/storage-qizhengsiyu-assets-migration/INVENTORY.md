@@ -129,17 +129,16 @@ git 跟踪 1 个（ge_ju_1.txt），其余为未跟踪转换产物。
 
 ---
 
-## 3. 归类决策（建议，待人类确认）
+## 3. 归类决策（人类 2026-08-07 已裁定 ✅）
 
-| 类别 | 内容 | 建议动作 |
+| 类别 | 内容 | 裁定 |
 |---|---|---|
-| A. 明确迁入 | qizhengsiyu/ 顶层 21 JSON + ge_ju/rules 13 + ge_ju/content 13 + ge_ju_database.sqlite（v1） | 迁入 `assets/lib/qizhengsiyu/assets/`，XRAP 注册 |
-| B. 待裁定 | companion_system sqlite（v3） | 与 v1 归一后迁一份（或确认 v3 为权威源） |
-| C. 待裁定 | ge_ju/backup/ 8 JSON（无代码引用） | 备份性质，建议不迁；若人类要求保留则随迁 |
-| D. 待裁定 | shen_sha/（74_shensha 6 + 74_huayao 3 有代码引用；6_shensha 9 + 其余无引用） | 若裁定为数据：迁有引用的 9 个；无引用的待人类定去留 |
-| E. 待裁定 | ephe/sefstars.txt | 疑似冗余副本，待裁定是否随迁/删除 |
-| F. 判断不迁 | dataset/（geo 边界 2886 + 6 大文件）、sql/initial_data.sql | 非七政四余域；需人类确认 |
-| G. 明确不迁 | UI 五目录、tmp/ | 派工单 §六.8 |
+| A. 迁入（主体） | qizhengsiyu/ 顶层 21 JSON + ge_ju/rules 13 + ge_ju/content 13 + ge_ju_database.sqlite | 迁入 `assets/lib/qizhengsiyu/assets/`，XRAP 注册 |
+| B. 格局库双版本 | example v1 vs companion_system v3 | **以 example v1 为权威源迁入**；companion_system v3 保留原位，其消费方切换记为阶段 5 待切项 |
+| C. 迁入（神煞/化曜） | shen_sha/74_shensha_* 6 + 74_huayao_* 3（有代码引用） | **迁入**，注册 qizheng.shen_sha / qizheng.hua_yao；6_shensha_* 9、huayao_shensha.json、incorrect.json 无引用，不迁 |
+| D. 不迁 | ge_ju/backup/ 8 JSON（无引用）、ephe/sefstars.txt、dataset/（geo 边界 2886 + 6 大文件）、sql/initial_data.sql | **全部不迁、保持原位**（人类确认） |
+| E. 不迁 | UI 五目录、tmp/ | 派工单 §六.8 |
+| F. 数据缺失 | historical_ephemeris/sun_speeds.json、historical_definitions/ 不存在 | **本期不注册该数据集**；端口保留旧实现并标注 deprecated，缺失记录入交接报告 |
 
 ---
 

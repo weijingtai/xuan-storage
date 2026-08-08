@@ -55,7 +55,12 @@ DatasetRegistry -> DatasetInstaller -> drift 落库 -> 领域 Repository 取用�
 ## 决定记录
 
 - 2026-08-07 派工单 + 参考文档读毕；盘点完成；分支已建；INVENTORY.md 落盘。
-- 2026-08-07 归类歧义 6 项提交人类裁定，未擅自决定（shen_sha / sqlite 双版本 / dataset / ephe / backup / historical 缺失）。
+- 2026-08-07 人类裁定（4 项，均已写入 INVENTORY.md §3）：
+  1. shen_sha/ 按数据资源迁入：只迁有代码引用的 74_shensha_* 6 个 + 74_huayao_* 3 个，注册 qizheng.shen_sha / qizheng.hua_yao；6_shensha_* 9 个等无引用文件不迁。
+  2. 格局 SQLite 以 example v1（example/assets/qizhengsiyu/ge_ju/ge_ju_database.sqlite）为权威源迁入；companion_system v3 保留原位，其消费方切换记为阶段 5 待切项。
+  3. 不迁项全部确认：dataset/（geo 边界 2886 + 6 大文件）、ephe/sefstars.txt、ge_ju/backup/ 8 JSON、sql/initial_data.sql 均保持原位。
+  4. historical_ephemeris / historical_definitions 数据缺失：本期不注册该数据集；旧实现端口标注 deprecated，缺失记录入交接报告。
+- 2026-08-07 待人类确认执行项（阶段 1 开工门禁）：源仓 xuan-qizhengsiyu 删除已迁文件需在哪个分支 commit（该仓当前在 main，且项目铁律要求主分支操作须人类下令）。
 
 ## 踩坑墓地
 
