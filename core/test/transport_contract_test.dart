@@ -195,13 +195,21 @@ void main() {
     });
   });
 
-  group('A7 · 全仓仍零 Transport 实现', () {
-    test('全仓各包 lib/ 下不存在任何 implements Transport 的实现', () {
+  group('A7 · 全仓仅白名单 Transport 实现', () {
+    test('全仓各包 lib/ 下不存在白名单外的 implements Transport 实现', () {
       // S3c-c-pre 本轮零实现：只有契约与契约测试，不写任何传输实现。
       // S3c-c-preflight 方案丙：放行 `test_support/` 下的 test-only fake
       // （如 FakeTransport）—— 它们不是产品实现，契约测试需要它们。
+      // S3c-c（B 层）：交付第一个生产实现 `p2p/lib/web_rtc_transport.dart`，
+      // 守卫随交付收窄为「白名单内生产实现 + test_support 放行，其余仍零实现」。
       // 守卫遍历仓库根下所有包的 lib/（不止 core/lib）—— 否则有人在
       // p2p/lib 里写了实现，只扫 core/lib 的守卫照样绿。
+      // 白名单：S3c-c 交付的 WebRtcTransport（本任务是唯一生产实现）。
+      // 变异自检：临时把该条目从白名单删除 → 本测试必须红（命中实现）；
+      // 白名单外新增任何 `implements Transport` 的实现 → 同样必须红。
+      const allowlist = <String>{
+        'p2p/lib/web_rtc_transport.dart',
+      };
       final hits = <String>[];
       void walk(Directory d) {
         for (final e in d.listSync(followLinks: false)) {
@@ -217,7 +225,10 @@ void main() {
           } else if (e is File && e.path.endsWith('.dart')) {
             final src = e.readAsStringSync();
             if (RegExp(r'implements\s+Transport\b').hasMatch(src)) {
-              hits.add(e.path);
+              final rel = e.path.startsWith('../') ? e.path.substring(3) : e.path;
+              if (!allowlist.contains(rel)) {
+                hits.add(e.path);
+              }
             }
           }
         }
@@ -237,8 +248,8 @@ void main() {
           walk(lib);
         }
       }
-      expect(hits, isEmpty, reason: '全仓 lib/ 下不得出现 Transport 实现（本轮零实现）：'
-          '${hits.join(', ')}');
+      expect(hits, isEmpty, reason: '全仓 lib/ 下不得出现白名单外的 Transport 实现：'
+          '${hits.join(', ')}（白名单：$allowlist）');
     });
   });
 }

@@ -1,7 +1,7 @@
 # 交接信封 —— storage-s3c-c-webrtc-impl（执行阶段）
 
-> 生成 2026-08-07 ｜ 执行中：**前置① 探路已完成**（最大未知数探明：③ 观测指纹可得，步骤 3 不阻断）。
-> 下一步：步骤 1（依赖与连通骨架）。每完成一个阶段更新本 HANDOFF，不停下询问。
+> 生成 2026-08-07 ｜ 执行中：**步骤 1（依赖与连通骨架）已完成**。
+> 下一步：步骤 2（接 LocalSignaling 真信令后端）。每完成一个阶段更新本 HANDOFF，不停下询问。
 
 ## 当前分支与提交
 
@@ -9,7 +9,8 @@
 - 已有提交：
   - `7119722` 细化 ACT 协议文档 + 交接信封（计划阶段）
   - `4de6b5b` 按人类裁定钉死步骤3声明指纹来源 + 记录任务分工
-  - 本批（探路）：flutter_webrtc 1.6.0 依赖 + spike 测试 + DTLS-FINGERPRINT-SPIKE.md
+  - `dca9b84` 前置① DTLS 指纹探路完成（③ 观测指纹实测可得）
+  - 本批（步骤1）：WebRtcTransport 骨架 + A7 守卫收窄 + FakeSignaling DataChannel 集成测试
 
 ## 任务分工（人类 2026-08-07 指定，详见 ACT 头部）
 
@@ -32,19 +33,20 @@
       `fingerprintAlgorithm` 前缀才符合契约格式）。报告：
       `docs/opsx/changes/s3c-c-webrtc-impl/DTLS-FINGERPRINT-SPIKE.md`；
       spike 测试：`p2p/test/dtls_fingerprint_spike_test.dart`（integration tag 默认跳过）
+- [x] **步骤 1（依赖与连通骨架）完成（实测）**：
+      - `p2p/lib/web_rtc_transport.dart`：`WebRtcTransport implements Transport`
+        （Channel.webrtc；构造注入 SignalingChannel + 可选 IceServerProvider），
+        握手管道 `establishDataChannel`（SDP/ICE 经 SignalingChannel 信封交换，
+        trickle ICE；不产出 PeerSession）
+      - `connect`/`advertise` 在认证接入前抛 `AuthNotWiredError`（裁定丙防线，
+        绝不交出未认证 PeerSession）
+      - A7 守卫收窄（`core/test/transport_contract_test.dart` 白名单
+        `p2p/lib/web_rtc_transport.dart`），变异自检通过（删白名单 → 红，恢复 → 绿）
+      - 集成测试 `p2p/test/web_rtc_transport_integration_test.dart`：
+        两个内存端点经 FakeSignaling 建立 DataChannel 互发两条消息（Chrome 实测全绿）
+      - p2p `flutter analyze` 全绿；core `transport_contract_test.dart` 30 条全绿
 
-## 下一步（步骤 1）
-
-1. `WebRtcTransport implements Transport` 落 `p2p/lib/web_rtc_transport.dart`（构造注入
-   `SignalingChannel` + 可选 `IceServerProvider`），最简 SDP 交换路径经 FakeSignaling
-   建立 DataChannel 互发消息（此步不接认证、不产出 PeerSession）
-2. 收窄 A7 守卫（`core/test/transport_contract_test.dart`）为白名单排除
-   `p2p/lib/web_rtc_transport.dart`，变异自检（临时删白名单 → 红）
-3. 步骤 2：接 LocalSignaling（信令契约套件对真 transport 绿）
-4. 步骤 3（灵魂）：握手内先跑 `DevicePairingProtocol` → `enforceChannelBindingMatches`
-   （声明指纹取配对验签结果 + DTLS 观测指纹）→ A5 MITM 真路径 + 变异自检
-5. 步骤 4：IceServerProvider 接入（无 TURN 服务则延后）
-6. 完成交接报告 `~/Downloads/storage_refactor/IMPL-S3c-c-WEBRTC-REPORT.md`
+## 下一步（步骤 2）
 
 ## 待审核决策点（已在 ACT §十一，审核重点）
 
