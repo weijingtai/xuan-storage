@@ -1,7 +1,7 @@
 # 交接信封 —— storage-s3c-c-webrtc-impl（执行阶段）
 
-> 生成 2026-08-07 ｜ 执行中：**步骤 1（依赖与连通骨架）已完成**。
-> 下一步：步骤 2（接 LocalSignaling 真信令后端）。每完成一个阶段更新本 HANDOFF，不停下询问。
+> 生成 2026-08-07 ｜ 执行中：**步骤 2（接 LocalSignaling 真信令后端）已完成**。
+> 下一步：步骤 3（灵魂：channel binding）。每完成一个阶段更新本 HANDOFF，不停下询问。
 
 ## 当前分支与提交
 
@@ -10,7 +10,8 @@
   - `7119722` 细化 ACT 协议文档 + 交接信封（计划阶段）
   - `4de6b5b` 按人类裁定钉死步骤3声明指纹来源 + 记录任务分工
   - `dca9b84` 前置① DTLS 指纹探路完成（③ 观测指纹实测可得）
-  - 本批（步骤1）：WebRtcTransport 骨架 + A7 守卫收窄 + FakeSignaling DataChannel 集成测试
+  - `1502585` 步骤1 完成（WebRtcTransport 骨架 + A7 守卫收窄 + DataChannel 集成测试）
+  - 本批（步骤2）：advertise 信令注册 + LocalSignaling 集成测试
 
 ## 任务分工（人类 2026-08-07 指定，详见 ACT 头部）
 
@@ -45,8 +46,21 @@
       - 集成测试 `p2p/test/web_rtc_transport_integration_test.dart`：
         两个内存端点经 FakeSignaling 建立 DataChannel 互发两条消息（Chrome 实测全绿）
       - p2p `flutter analyze` 全绿；core `transport_contract_test.dart` 30 条全绿
+- [x] **步骤 2（接 LocalSignaling 真信令后端）完成**：
+      - `advertise` 经信令注册：打开以随机 transientServiceId 为会合标识的
+        `SignalingChannel` 监听会话（隐私约定不变：广播只含随机 id）；
+        `stopAdvertising`/`dispose` 关闭会话；幂等
+      - `discover` 语义钉死：发现经信令后端自身发现通道（bonsoir/RTDB
+        presence）承载，本方法不重复枚举（框架计划 §步骤2），返回空流
+      - 集成测试 `p2p/test/web_rtc_transport_local_signaling_integration_test.dart`：
+        WebRtcTransport × 真 LocalSignaling（FakeLanDiscovery 内存发现 +
+        真实 loopback socket）建立 DataChannel 互发消息 —— 需 macOS 桌面/
+        真机跑（LocalSignaling 用 dart:io，不能跑 Chrome），默认跳过人工触发
+      - 验证：p2p `flutter analyze` 全绿；p2p 全量测试 62+4 全绿（含
+        `local_signaling_contract_test.dart` 契约套件 12 条）；
+        步骤1 Chrome 集成测试无回归（DataChannel 互发仍绿）
 
-## 下一步（步骤 2）
+## 下一步（步骤 3 · 灵魂）
 
 ## 待审核决策点（已在 ACT §十一，审核重点）
 

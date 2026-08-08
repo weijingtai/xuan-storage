@@ -5,11 +5,13 @@
 /// `BlobGateway` 是 `PeerSession` 之上的两个协议消费者，本类只负责
 /// 建立并持有物理连接。
 ///
-/// 【当前状态（S3c-c 步骤 1 · 连通骨架）】
+/// 【当前状态（S3c-c 步骤 2 · 接真信令后端）】
 /// - 已实现：经 `SignalingChannel` 交换 SDP/ICE、建立 `RTCDataChannel` 的
-///   握手管道（见 [establishDataChannel]，步骤 1 门禁用它验证「管道通」）；
+///   握手管道（[establishDataChannel]）；`advertise` 经信令注册（打开以
+///   随机 transientServiceId 为会合标识的监听会话，隐私约定不变）；
 /// - 未实现（后续步骤）：认证握手（步骤 3 接入 `DevicePairingProtocol` +
-///   `enforceChannelBindingMatches`）、信令注册/发现（步骤 2）、TURN（步骤 4）。
+///   `enforceChannelBindingMatches`）、`discover` 的发现枚举（由信令后端
+///   自身发现通道承载）、TURN（步骤 4）。
 ///
 /// 【裁定丙硬约束】`PeerSession` 是「一条**已认证**连接上的多路复用会话」。
 /// 因此 [connect]/[advertise] 在认证接入前**拒绝产出 PeerSession**（抛错），
@@ -17,6 +19,7 @@
 library;
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:persistence_core/model/cancellation_token.dart';
@@ -67,6 +70,10 @@ final class WebRtcTransport implements Transport {
   final SignalingChannel _signaling;
   final IceServerProvider? _iceServers;
 
+  /// 广播状态（[advertise] 打开的监听会话；步骤 3 在此接入接听侧认证握手）。
+  SignalingSession? _advertiseSession;
+  StreamSubscription<SignalingEnvelope>? _advertiseSub;
+
   /// 本 transport 对应的通道：`Channel.webrtc`。
   ///
   /// 一个 `Channel` 值对应恰好一个 Transport 实现（契约 §3.5）。
@@ -77,9 +84,13 @@ final class WebRtcTransport implements Transport {
 
   /// 发现可达对端。
   ///
-  /// 步骤 1 骨架：真发现走信令注册/查询（步骤 2 接入 `SignalingChannel`
-  /// 的注册/发现后细化）。当前返回空流 —— 不凭空造出对端（呼应
-  /// `discover_sees_nothing_before_advertise` 的「发现必须真实」语义）。
+  /// 步骤 2 说明：WebRTC 的对端发现**经信令后端**（`LocalSignaling` 的
+  /// bonsoir 发现 / 云端 RTDB presence），`SignalingChannel` 端口本身不
+  /// 提供「枚举对端」的能力 —— 发现结果由信令后端自身的发现通道产出，
+  /// 本方法不做 mDNS 直连（框架计划 §步骤2）。调用方拿到
+  /// [DiscoveredPeer.transientServiceId] 后直接传给 [connect]。
+  ///
+  /// 当前返回空流（发现由信令层承载，不在此重复实现）。
   @override
   Stream<DiscoveredPeer> discover({Duration? timeout}) => const Stream.empty();
 
@@ -100,21 +111,51 @@ final class WebRtcTransport implements Transport {
 
   /// 开始广播本机存在，使对端的 [discover] 能看见本机。
   ///
-  /// 步骤 1 骨架：信令注册/发现（步骤 2）接入前，广播不可用，抛
-  /// [AuthNotWiredError]（同为裁定丙防线：接听侧同样不得交出未认证会话）。
+  /// 步骤 2 实现：经信令注册 —— 打开一个以随机 `transientServiceId` 为
+  /// 会合标识的信令会话并保持监听（`LocalSignaling.open` 会同时广播
+  /// bonsoir 服务 + 起 socket 监听；对端 open 同一标识即配对）。
+  /// 返回 [AdvertisementHandle]（隐私：只含随机 transient id，不含
+  /// scopeUid/用户名/设备名）。
+  ///
+  /// **仍不产出 PeerSession**：接听侧会话的认证握手在步骤 3 接入
+  /// （`incoming` 保持空流），此处只完成「注册/可被连接」。
   @override
   Future<AdvertisementHandle> advertise({
     required DeviceKeyStore keys,
     CancellationToken? cancel,
   }) async {
-    throw AuthNotWiredError();
+    final rendezvous = _newTransientServiceId();
+    final session = await _signaling.open(rendezvous);
+    _advertiseSession = session;
+    // 保持会话存活（订阅 incoming；步骤 3 在此接入接听侧认证握手）。
+    _advertiseSub = session.incoming.listen((_) {});
+    return AdvertisementHandle(
+      transientServiceId: rendezvous,
+      startedAtUtc: DateTime.now().toUtc(),
+      rotateAfter: _rotateAfter,
+    );
   }
 
   /// 停止广播。幂等：未在广播时调用不得抛错。
-  ///
-  /// 步骤 1 骨架：当前无广播状态，恒为幂等空操作。
   @override
-  Future<void> stopAdvertising() async {}
+  Future<void> stopAdvertising() async {
+    final sub = _advertiseSub;
+    final session = _advertiseSession;
+    _advertiseSub = null;
+    _advertiseSession = null;
+    await sub?.cancel();
+    await session?.close();
+  }
+
+  /// 广播轮换周期（隐私：transient id 到期须换新，防长期追踪）。
+  static const Duration _rotateAfter = Duration(minutes: 15);
+
+  /// 随机 transient service id（隐私，A7）：不含 scopeUid / 用户名 / 设备名。
+  static String _newTransientServiceId() {
+    final r = Random();
+    final hex = List.generate(6, (_) => r.nextInt(16).toRadixString(16)).join();
+    return 'tr-$hex';
+  }
 
   /// 对端主动连进来时，这里出一个**已完成认证**的会话（接听）。
   ///
@@ -125,9 +166,11 @@ final class WebRtcTransport implements Transport {
 
   /// 释放本 transport 占用的全部资源。
   ///
-  /// 步骤 1 骨架：无长驻资源，空操作。步骤 2+ 接入信令会话后在此关闭。
+  /// 含仍在进行的广播（[stopAdvertising]）与信令会话。
   @override
-  Future<void> dispose() async {}
+  Future<void> dispose() async {
+    await stopAdvertising();
+  }
 
   // ── 内部握手管道（步骤 1 门禁验证用，步骤 3 接入认证后复用）──
 
