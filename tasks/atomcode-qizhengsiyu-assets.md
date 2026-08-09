@@ -112,3 +112,29 @@ DatasetRegistry -> DatasetInstaller -> drift 落库 -> 领域 Repository 取用�
 4. 禁止改 repository-interface-qizhengsiyu 契约 5. 禁止改 pubspec 依赖版本（只加 flutter.assets 注册项）
 6. 禁止 push（本地 commit 即可）7. 禁止擅自处置 ephe/ 8. 禁止迁 UI 资源
 9. 禁止改 xuan-storage 的 core/drift/firebase/p2p 包 10. 禁止 git push --force / stash drop / 破坏性操作
+
+---
+
+## 2026-08-09 跨仓 Web 运行时修复（三仓全部合并回主分支）
+
+### 原因
+
+Shell 集成 qizhengsiyu 后，`flutter run -d chrome` 打开七政四余页面依次暴露多条 Web 端运行时崩溃链（此前 Web 编译都过不了，运行期问题从未暴露）。逐项修复并合并回各仓主分支。
+
+### 涉及包与变更（均已合并到主分支）
+
+| 仓 | 主分支 commit | 修复内容 |
+|---|---|---|
+| **xuan-qizhengsiyu** | main = `11e0382` | ① `di.dart`：`tz.initializeTimeZones()` + `ensureChinaTimeZoneAlias()`（timezone 未初始化 / Asia/Beijing 别名未注册 → LocationNotFound）；② `sweph_engine.dart`：幂等懒初始化 `Sweph.init`（static late `_bindings` 未初始化 → LateInitializationError）；③ `ge_ju_builtin_database.dart`：schemaVersion 1→2 + onCreate/onUpgrade 均 `createAll()`（Web 空库/旧库无表 → no such table: ge_ju_patterns）；④ `qizhengsiyu_module_manifest.dart`：回退错误位置的初始化；⑤ pubspec 声明 `http` |
+| **xuan-shell** | main = `e2a86f1` | ① `geo_database_executor{,_native,_web}.dart`：条件导入隔离 drift/native 的 dart:ffi（Web 编译即失败）；② `xuan_shell_app.dart`：geo 异步初始化 loading 守卫（providers 数量恒定，避免 Navigator/focus 树重建 _FocusInheritedScope 崩溃）、TimezoneLocationViewModel 改 ChangeNotifierProvider、注册 AppInkTheme 主题扩展（yun_liu 组件强解包崩溃）；③ `qizhengsiyu_module_entry.dart`：注册 qizhengsiyu 包 AppLocalizations delegate（页面 l10n 强解包 null）；④ `shell_playground_bootstrap.dart`：适配 firebase 三层架构（Cached 包装类）；⑤ pubspec 声明 sqlite3/xuan_four_zhu_card |
+| **xuan-time-location** | master = `40cb164` | `UnavailableReverseGeocoder` 内置兜底：geocoding 包无 Web 平台实现（GeocodingPlatformFactory.instance 为 null），Web 上 GeoLocationMomentService/CountryBasedTimeZoneResolver 默认构造自动改用 null-return 实现，native 不变 |
+
+### 合并方式
+
+三仓主分支均为 fast-forward（main/master 是修复分支祖先），无 merge commit 冲突；工作区他人未提交改动（l10n/home_page/companion_system 等）均未卷入。
+
+### 验证
+
+- 各仓 `dart analyze` 修复文件：No issues found
+- 单测：composition_root/provider_bootstrap（+7）、evaluate_qizheng_ge_ju_usecase（+4）等全绿
+- Web 运行期验证（flutter run -d chrome）未执行（人类此前禁止 flutter build web），留待人类确认
