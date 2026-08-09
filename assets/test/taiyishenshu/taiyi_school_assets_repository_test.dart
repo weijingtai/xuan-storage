@@ -52,8 +52,8 @@ void main() {
     ''';
 
     final bundle = FakeAssetBundle({
-      'assets/schools/ji-cheng.json': schoolJson,
-      'assets/deities/tai-yi.json': deityJson,
+      'packages/taiyishenshu/assets/schools/ji-cheng.json': schoolJson,
+      'packages/taiyishenshu/assets/deities/tai-yi.json': deityJson,
     });
 
     final repo = OfficialJsonSchoolRepository(

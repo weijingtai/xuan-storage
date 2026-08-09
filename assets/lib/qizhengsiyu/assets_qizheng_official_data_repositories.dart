@@ -2,6 +2,13 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:repository_interface_qizhengsiyu/repository_interface_qizhengsiyu.dart';
 
+/// ⚠️ 旧实现（deprecated）：直接 rootBundle 直读 asset JSON，不走 XRAP。
+///
+/// 七政四余数据资源已迁入 persistence_assets 并按 XRAP 协议注册
+/// （见 `qizhengsiyu_datasets.dart` + `xrap_qizhengsiyu_repositories.dart`）。
+/// 本文件保留仅为消费方（xuan-qizhengsiyu 仓 main.dart）切换过渡期兼容，
+/// 消费方应改用 XRAP 版 Repository（XrapQiZheng*）。新代码不得引用本文件。
+@Deprecated('用 XrapQiZheng*Repository（XRAP 协议链路）替代，见 qizhengsiyu_datasets.dart')
 class AssetsQiZhengStarPositionStatusRepository
     implements QiZhengStarPositionStatusRepository {
   final String _assetPath;
@@ -24,6 +31,7 @@ class AssetsQiZhengStarPositionStatusRepository
   }
 }
 
+@Deprecated('用 XrapQiZhengHistoricalEphemerisRepository 替代；源数据缺失，本期不注册该数据集')
 class AssetsQiZhengHistoricalEphemerisRepository
     implements QiZhengHistoricalEphemerisRepository {
   final String _assetPath;
@@ -43,6 +51,7 @@ class AssetsQiZhengHistoricalEphemerisRepository
   }
 }
 
+@Deprecated('用 XrapQiZhengEphemerisResourceRepository（XRAP 协议链路）替代')
 class AssetsQiZhengEphemerisResourceRepository
     implements QiZhengEphemerisResourceRepository {
   final String _prefix;
@@ -62,6 +71,7 @@ class AssetsQiZhengEphemerisResourceRepository
   }
 }
 
+@Deprecated('用 XrapQiZhengZhouTianModelRepository（XRAP 协议链路）替代')
 class AssetsQiZhengZhouTianModelRepository
     implements QiZhengZhouTianModelRepository {
   final List<String> _assetPaths;
@@ -90,6 +100,7 @@ class AssetsQiZhengZhouTianModelRepository
   }
 }
 
+@Deprecated('用 XrapQiZhengShenShaRepository（XRAP 协议链路）替代')
 class AssetsQiZhengShenShaRepository implements QiZhengShenShaRepository {
   const AssetsQiZhengShenShaRepository();
 
@@ -126,6 +137,7 @@ class AssetsQiZhengShenShaRepository implements QiZhengShenShaRepository {
       _loadFromAsset('assets/shen_sha/74_shensha_others.json');
 }
 
+@Deprecated('用 XrapQiZhengHuaYaoRepository（XRAP 协议链路）替代')
 class AssetsQiZhengHuaYaoRepository implements QiZhengHuaYaoRepository {
   const AssetsQiZhengHuaYaoRepository();
 
