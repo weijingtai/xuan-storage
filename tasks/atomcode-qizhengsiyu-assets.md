@@ -82,6 +82,11 @@ DatasetRegistry -> DatasetInstaller -> drift 落库 -> 领域 Repository 取用�
   - 预存依赖冲突处置：shell 的 pub get 被 `yijing(vibration ^1.8.3) → vibration_platform_interface 0.0.x → device_info_plus <12 → win32 ^5.11.0` 与 `xuan_time_location → geolocator → package_info_plus → win32 ^6.0.1` 互斥阻塞（A/B 证实与 worktree 指向无关，改回原指向同样失败）。人类提示「不应锁定 win32」，正确处置为升级 vibration 至 ^3.2.0（→ vibration_platform_interface ^0.1.1 → device_info_plus 13.x → win32 ^6.0.1，两条链统一），API 兼容已验证（`Vibration.vibrate(duration:)` 在 3.x 保留）。pub get 通过；lock 解析为 vibration 3.2.0 / win32 6.4.0。
   - `flutter build web --debug` 报 `dart:ffi` 不可用（drift→sqlite3 链）——A/B 证实为 shell 预存问题（恢复原指向同样失败），与本次改动无关，未处理。
   - shell 侧工作区存在大量他人未提交改动（lib/app/xuan_shell_dependencies.dart 等），按 T1 教训未卷入；pubspec.lock 有 378 行变化（vibration/win32 升级所致），属本地 worktree 临时解析产物，未 commit。
+- 2026-08-08 xuan-shell Web FFI 修复（人类指令「结合 xuan-storage 报告文档修复 xuan-shell 的 FFI/Web 问题」）：
+  - 依据报告：`docs/integration/unverified-ai-completed-features-20260714.md`「用条件导入隔离 Drift FFI 依赖，以修复 Web 编译问题」+ 样板 `drift/lib/four_zhu_card_templates/connection.dart`（`export 'unsupported.dart' if (dart.library.js_interop) 'web.dart' if (dart.library.ffi) 'native.dart';`）。
+  - 根因：`xuan-shell/lib/app/xuan_shell_app.dart` 无条件 `import 'package:drift/native.dart'` + `NativeDatabase.memory()` 建 geo 内存库——drift/native 依赖 sqlite3 → `dart:ffi`，Web 端不可用。
+  - 修复（shell 分支 `fix/shell-web-ffi`）：新建 `lib/app/geo_database_executor.dart`（条件导入分发）+ `_native.dart`（NativeDatabase.memory）+ `_web.dart`（`WasmSqlite3.loadFromUrl('sqlite3.wasm')` → `WasmDatabase.inMemory`，shell/web/ 已有 sqlite3.wasm）；`xuan_shell_app.dart` 删除 drift/native import，`_createGeoRepo` 异步化 + `_initGeoRepo`，两处 `_geoRepo!` 改空安全（未就绪显示 loading / 不注册 Provider）；pubspec 显式声明 `sqlite3: ^2.6.0`（消除 depend_on_referenced_packages）。
+  - 验证：`flutter pub get` ✅；我的 4 个文件 `dart analyze` 零 issue ✅；web 分支无 dart:ffi/drift/native 引用 ✅。**未跑 `flutter build web`（人类明确禁止）**，完整 Web 编译验证留待人类自行执行。
 
 ## 踩坑墓地
 
