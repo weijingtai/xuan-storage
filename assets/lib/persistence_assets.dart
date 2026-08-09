@@ -6,6 +6,10 @@ library;
 
 export 'qimendunjia/assets_qimendunjia_official_rule_repository.dart';
 export 'tiebanshenshu/assets_tiao_wen_repository.dart';
+export 'tiebanshenshu/tiebanshenshu_datasets.dart';
+export 'tiebanshenshu/xrap_tiebanshenshu_repositories.dart';
+export 'tiebanshenshu/drift/tiebanshenshu_database.dart';
+export 'tiebanshenshu/drift_dataset_installer.dart';
 export 'qizhengsiyu/assets_qizheng_official_data_repositories.dart';
 export 'qizhengsiyu/qizhengsiyu_datasets.dart';
 export 'qizhengsiyu/xrap_qizhengsiyu_repositories.dart';
