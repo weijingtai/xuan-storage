@@ -77,6 +77,11 @@ DatasetRegistry -> DatasetInstaller -> drift 落库 -> 领域 Repository 取用�
   - 人类授权修复 taiyishenshu 预存失败（FakeAssetBundle 键补 `packages/taiyishenshu/` 前缀），assets 全量测试恢复 +102 全绿。
   - 消费方待切清单：xuan-qizhengsiyu `lib/main.dart:96-101`、`example/lib/main.dart:134-139` 仍用旧 AssetsQiZheng*Repository，切换为 XRAP 链路属跨仓后续任务。
 - 2026-08-08 交接报告落盘：`~/Downloads/storage_refactor/MIGRATION-QIZHENGSIYU-ASSETS-REPORT.md`（含每步命令/exit code/改动统计/验收 8 条逐条证据/未决问题 7 项）。全部 6 阶段完成。
+- 2026-08-08 shell 临时接入（人类指令「shell 临时使用 storage 这个处理七政四余资源文件的 Branch」）：
+  - `xuan-shell/pubspec_overrides.yaml`（gitignored，无需 commit）5 个子包指向 worktree：persistence_core/assets/preferences/drift/firebase → `../xuan-storage/.worktrees/atomcode-qizhengsiyu-assets/...`
+  - 预存依赖冲突处置：shell 的 pub get 被 `yijing(vibration ^1.8.3) → vibration_platform_interface 0.0.x → device_info_plus <12 → win32 ^5.11.0` 与 `xuan_time_location → geolocator → package_info_plus → win32 ^6.0.1` 互斥阻塞（A/B 证实与 worktree 指向无关，改回原指向同样失败）。人类提示「不应锁定 win32」，正确处置为升级 vibration 至 ^3.2.0（→ vibration_platform_interface ^0.1.1 → device_info_plus 13.x → win32 ^6.0.1，两条链统一），API 兼容已验证（`Vibration.vibrate(duration:)` 在 3.x 保留）。pub get 通过；lock 解析为 vibration 3.2.0 / win32 6.4.0。
+  - `flutter build web --debug` 报 `dart:ffi` 不可用（drift→sqlite3 链）——A/B 证实为 shell 预存问题（恢复原指向同样失败），与本次改动无关，未处理。
+  - shell 侧工作区存在大量他人未提交改动（lib/app/xuan_shell_dependencies.dart 等），按 T1 教训未卷入；pubspec.lock 有 378 行变化（vibration/win32 升级所致），属本地 worktree 临时解析产物，未 commit。
 
 ## 踩坑墓地
 
