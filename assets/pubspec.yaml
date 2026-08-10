@@ -69,4 +69,5 @@ flutter:
     - lib/tiebanshenshu/assets/all_tiao_wen_v1.csv
     - lib/geo/
     - lib/qizhengsiyu/assets/
+    - lib/qimendunjia/assets/
     - lib/theme/
