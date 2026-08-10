@@ -7,6 +7,15 @@ import 'package:repository_interface_tiebanshenshu/repository_interface_tiebansh
 /// 条文数据仓库实现类
 ///
 /// 基于 CSV 资源文件的条文数据访问实现
+///
+/// 已由 [XrapTiaoWenRepository]（XRAP 协议 + drift）取代：
+/// 数据迁入 xuan-storage 后经 `tiebanshenshu.tiao_wen` 数据集安装进
+/// `TiebanshenshuDatabase`，查询走 SQLite。本旧桩保留供未切换消费方
+/// （xuan-tiebanshenshu main/example 与 xuan-shell）过渡，切换完成后删除。
+@Deprecated(
+  '改用 XrapTiaoWenRepository（xuan-storage assets，XRAP 协议）。'
+  '见 xuan-storage/assets/lib/tiebanshenshu/xrap_tiebanshenshu_repositories.dart',
+)
 class AssetsTiaoWenRepository implements TiaoWenRepository {
   static AssetsTiaoWenRepository? _instance;
 

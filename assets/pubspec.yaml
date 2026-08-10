@@ -67,6 +67,10 @@ flutter:
     - lib/tiebanshenshu/assets/kao_ke/
     - lib/tiebanshenshu/assets/formulas/
     - lib/tiebanshenshu/assets/all_tiao_wen_v1.csv
+    - lib/tiebanshenshu/assets/tiao_wen.sql
+    - lib/tiebanshenshu/assets/kao_ke_document.sql
+    - lib/tiebanshenshu/assets/shaozishu_document.sql
+    - lib/tiebanshenshu/assets/formulas_document.sql
     - lib/geo/
     - lib/qizhengsiyu/assets/
     - lib/qimendunjia/assets/
