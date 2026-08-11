@@ -2,8 +2,13 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:repository_interface_daliuren/repository_interface_daliuren.dart';
 
-/// Assets-backed implementation of DaLiuRenOfficialDataRepository.
-/// Reads JSON files from the daliuren module's asset bundle.
+/// ⚠️ 旧实现（deprecated）：直接 rootBundle 直读 asset JSON，不走 XRAP。
+///
+/// 大六壬数据资源已迁入 persistence_assets 并按 XRAP 协议注册
+/// （见 `daliuren_datasets.dart` + `xrap_daliuren_repositories.dart`）。
+/// 本文件保留仅为消费方（xuan-shell）切换过渡期兼容，
+/// 消费方应改用 XRAP 版 Repository（XrapDaLiuRen*）。新代码不得引用本文件。
+@Deprecated('用 XrapDaLiuRenOfficialDataRepository（XRAP 协议链路）替代，见 daliuren_datasets.dart')
 class AssetsDaLiuRenOfficialDataRepository
     implements DaLiuRenOfficialDataRepository {
   const AssetsDaLiuRenOfficialDataRepository();
@@ -37,7 +42,12 @@ class AssetsDaLiuRenOfficialDataRepository
   }
 }
 
-/// Assets-backed implementation of DaLiuRenKetiRepository.
+/// ⚠️ 旧实现（deprecated）：直接 rootBundle 直读 asset JSON，不走 XRAP。
+///
+/// 大六壬数据资源已迁入 persistence_assets 并按 XRAP 协议注册
+/// （见 `daliuren_datasets.dart` + `xrap_daliuren_repositories.dart`）。
+/// 消费方应改用 XRAP 版 Repository（XrapDaLiuRenKetiRepository）。
+@Deprecated('用 XrapDaLiuRenKetiRepository（XRAP 协议链路）替代，见 daliuren_datasets.dart')
 class AssetsDaLiuRenKetiRepository implements DaLiuRenKetiRepository {
   const AssetsDaLiuRenKetiRepository();
 
@@ -50,8 +60,12 @@ class AssetsDaLiuRenKetiRepository implements DaLiuRenKetiRepository {
   }
 }
 
-/// Assets-backed implementation of DaLiuRenShenShaDataRepository.
-/// Reads shen_sha JSON files from the daliuren module's asset bundle.
+/// ⚠️ 旧实现（deprecated）：直接 rootBundle 直读 asset JSON，不走 XRAP。
+///
+/// 大六壬数据资源已迁入 persistence_assets 并按 XRAP 协议注册
+/// （见 `daliuren_datasets.dart` + `xrap_daliuren_repositories.dart`）。
+/// 消费方应改用 XRAP 版 Repository（XrapDaLiuRenShenShaDataRepository）。
+@Deprecated('用 XrapDaLiuRenShenShaDataRepository（XRAP 协议链路）替代，见 daliuren_datasets.dart')
 class AssetsDaLiuRenShenShaDataRepository
     implements DaLiuRenShenShaDataRepository {
   const AssetsDaLiuRenShenShaDataRepository();
@@ -104,7 +118,12 @@ class AssetsDaLiuRenShenShaDataRepository
   }
 }
 
-/// Assets-backed implementation of DaLiuRenSchoolDataRepository.
+/// ⚠️ 旧实现（deprecated）：直接 rootBundle 直读 asset JSON，不走 XRAP。
+///
+/// 大六壬数据资源已迁入 persistence_assets 并按 XRAP 协议注册
+/// （见 `daliuren_datasets.dart` + `xrap_daliuren_repositories.dart`）。
+/// 消费方应改用 XRAP 版 Repository（XrapDaLiuRenSchoolDataRepository）。
+@Deprecated('用 XrapDaLiuRenSchoolDataRepository（XRAP 协议链路）替代，见 daliuren_datasets.dart')
 class AssetsDaLiuRenSchoolDataRepository
     implements DaLiuRenSchoolDataRepository {
   const AssetsDaLiuRenSchoolDataRepository();
