@@ -88,9 +88,9 @@ class _QizhengManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '65de841d0d72aeb7b7d13f92c33c5072ae1b229e72f15f374d616624e0e88372',
-    payloadBytes: 52577,
-    declaredRowCount: 17,
+        '9b60db66db4539c822f7abe85f0113b82c2b401fe222e33096598b1c0feafce2',
+    payloadBytes: 61571,
+    declaredRowCount: 20,
     publishedAtUtc: DateTime.utc(2026, 8, 7),
   );
 
