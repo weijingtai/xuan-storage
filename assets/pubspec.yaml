@@ -74,4 +74,7 @@ flutter:
     - lib/geo/
     - lib/qizhengsiyu/assets/
     - lib/qimendunjia/assets/
+    - lib/daliuren/assets/da_liu_ren/
+    - lib/daliuren/assets/shen_sha/
+    - lib/daliuren/assets/dataset/
     - lib/theme/
