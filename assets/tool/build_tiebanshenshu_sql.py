@@ -70,16 +70,19 @@ def _sql_str(v) -> str:
     return f"'{escaped}'"
 
 
-def _wrap_sql(ddl_statements: list, inserts: list) -> str:
-    """事务包裹的 *.sql 文本。"""
-    lines = ['BEGIN TRANSACTION;']
+def _wrap_sql(ddl_statements: list, inserts: list, table: str) -> str:
+    """拼接 *.sql 文本（事务由 drift transaction API 管理，SQL 内不含 BEGIN/COMMIT）。
+
+    WasmDatabase（web）下 sqlite3_exec 多语句里的显式 BEGIN/COMMIT 会与
+    drift 连接的事务状态冲突（cannot start a transaction within a transaction），
+    故不再写入事务语句；DDL 后追加 DELETE FROM 保证重装幂等（避免主键冲突）。
+    """
+    lines = []
     for stmt in ddl_statements:
         lines.append(stmt + ';')
+    lines.append(f'DELETE FROM {table};')
     lines.extend(inserts)
-    lines.append('COMMIT;')
     return '\n'.join(lines) + '\n'
-
-
 def _insert_lines(table: str, cols: list, rows: list) -> list:
     """逐行生成 INSERT 语句（列名双引号引用，SQLite 保留字安全）。"""
     quoted_cols = ', '.join(f'"{c}"' for c in cols)
@@ -162,7 +165,7 @@ def build_tiao_wen() -> dict:
         raise RuntimeError(f'tiao_wen: CSV 数据行数 {len(rows)} 与预期 {expected} 不符，停下报告')
 
     inserts = _insert_lines('tiao_wen', ['id', 'set_name', 'content1', 'age_set1_json'], rows)
-    sql_text = _wrap_sql(TIAO_WEN_DDL, inserts)
+    sql_text = _wrap_sql(TIAO_WEN_DDL, inserts, 'tiao_wen')
     sql_path.write_text(sql_text, encoding='utf-8')
     return _stat(sql_path, 'tiao_wen', len(rows))
 
@@ -190,7 +193,7 @@ def build_document_dataset(table: str, dataset_id: str, patterns: list, payload_
         rows.append((f.name, payload))
 
     inserts = _insert_lines(table, ['file_name', payload_col], rows)
-    sql_text = _wrap_sql(ddl, inserts)
+    sql_text = _wrap_sql(ddl, inserts, table)
     sql_path.write_text(sql_text, encoding='utf-8')
     return _stat(sql_path, f'{table}(文档表)', len(rows))
 
@@ -234,12 +237,12 @@ def main():
         report.append(
             f"| {fname} | {r['table']} | {r['rows']} | {r['bytes']} | {r['sha256']} |"
         )
-    all_ok = all(r['has_begin'] and r['has_commit'] for r in results)
+    all_ok = all((not r['has_begin']) and (not r['has_commit']) for r in results)
     report += [
         '',
         '## 验证',
         '',
-        f'- 每个 *.sql 含 BEGIN TRANSACTION / COMMIT：{all_ok}',
+        f'- 每个 *.sql 不含 BEGIN TRANSACTION / COMMIT：{all_ok}',
         '- 每个 *.sql 含 CREATE TABLE：是',
         '- 中文（如「一树残花，有枝复茂。」）正确写入 UTF-8，未转义为 \\uXXXX',
         '',

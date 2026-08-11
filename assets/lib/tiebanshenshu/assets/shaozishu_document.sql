@@ -1,5 +1,5 @@
-BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS shaozishu_document (  file_name TEXT PRIMARY KEY,  payload_text TEXT NOT NULL);
+DELETE FROM shaozishu_document;
 INSERT INTO shaozishu_document ("file_name", "payload_text") VALUES ('丑.txt', '2111 子時三刻妻有妨/妻配火命必姓張 子立水土方存保 父金母土母先傷
 2112 二千一百遇伴宮 父命屬牛壽先終 慈母屬馬高堂樂 壽比南山不老松
 2113 運行乙丑主清閒 滿門喜氣有餘歡 萬朵紅花開雨後 一輪明月出雲端
@@ -6143,4 +6143,5 @@ INSERT INTO shaozishu_document ("file_name", "payload_text") VALUES ('酉.txt', 
 10886 數中定命自分明 衣祿全憑遇貴人 尊酒綺延嬌待夜 吹彈歌舞倍精神
 10887 酉月生人金水清 身膺冠帶自崢嶸 姓名未登甲乙榜 從來亦自有賢名
 10888 女命酉時定得清 原來龍享是前生 老陽少陰天配就 莫怨衾稠賦小星');
-COMMIT;
+
+

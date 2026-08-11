@@ -43,8 +43,8 @@ class _TiebanshenshuManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        'f9978642d783e9a388a99b3b998976e0c5adb9ffd82b05eac558157c08c0234e',
-    payloadBytes: 1645508,
+        'd4e1a78d2123d7dcba047d3a96ac32986754d7e45c3b9660995ece68bac614fe',
+    payloadBytes: 1645505,
     declaredRowCount: 12000,
     publishedAtUtc: DateTime.utc(2026, 8, 9),
   );
@@ -56,8 +56,8 @@ class _TiebanshenshuManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '73c2d46761555a7c51f919c432f35815015554f94c87c3ddc756ab30973cd57b',
-    payloadBytes: 80590,
+        '8adb5d175b030dadf66dc1ffe12ce3198e38c97a7f5f494efe991d8245bef7de',
+    payloadBytes: 80594,
     declaredRowCount: 21,
     publishedAtUtc: DateTime.utc(2026, 8, 9),
   );
@@ -69,8 +69,8 @@ class _TiebanshenshuManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        'ff5d448ad192dcb463a3a55b50609b5aaf81b1c5a8855cbf1f1386a80b987895',
-    payloadBytes: 573977,
+        '79d797fad365015af2303c0fb6b044242672b1e1baa88ca2b4ef1982f49e4ad3',
+    payloadBytes: 573984,
     declaredRowCount: 12,
     publishedAtUtc: DateTime.utc(2026, 8, 9),
   );
@@ -82,8 +82,8 @@ class _TiebanshenshuManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        'efd9536635545a5b7d1c7b4deb03b3c47a2154e91d2143f1c154c89078f282a5',
-    payloadBytes: 29677,
+        '5202f57b9e99c310333dd2cba808d30fa2df248a90aa1f0910320da94abb5305',
+    payloadBytes: 29683,
     declaredRowCount: 3,
     publishedAtUtc: DateTime.utc(2026, 8, 9),
   );
@@ -215,6 +215,9 @@ class TiebanshenshuSqlMaterializer implements AssetBackedMaterializer {
     final sqlText = utf8.decode(bytes);
 
     // 执行 .sql 脚本进 drift 库（事务包裹在 .sql 内）。
+    // 注意：WasmDatabase（web）下 SQL 内显式 BEGIN/COMMIT 会与连接事务状态
+    // 冲突（cannot start a transaction within a transaction），故 *.sql 不含
+    // BEGIN/COMMIT，语句在 autocommit 下逐条落地（见 tool/build_tiebanshenshu_sql.py）。
     await db.customStatement(sqlText);
 
     // 统计实际落地行数（I4 自检）。

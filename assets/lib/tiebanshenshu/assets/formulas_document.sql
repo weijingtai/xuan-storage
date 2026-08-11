@@ -1,5 +1,5 @@
-BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS formulas_document (  file_name TEXT PRIMARY KEY,  payload_json TEXT NOT NULL);
+DELETE FROM formulas_document;
 INSERT INTO formulas_document ("file_name", "payload_json") VALUES ('huang_ji_1_formula.json', '{
   "id": 1,
   "name": "皇极取数法一",
@@ -866,4 +866,5 @@ INSERT INTO formulas_document ("file_name", "payload_json") VALUES ('huang_ji_3_
     }
   ]
 }');
-COMMIT;
+
+

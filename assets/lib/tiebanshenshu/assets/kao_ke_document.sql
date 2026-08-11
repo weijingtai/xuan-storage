@@ -1,5 +1,5 @@
-BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS kao_ke_document (  file_name TEXT PRIMARY KEY,  payload_json TEXT NOT NULL);
+DELETE FROM kao_ke_document;
 INSERT INTO kao_ke_document ("file_name", "payload_json") VALUES ('geng_mu_jia_liu_du.json', '{
     "name": "庚木甲流度",
     "description": "推查男的结四次婚，娶四妻的先天定数",
@@ -2435,4 +2435,5 @@ INSERT INTO kao_ke_document ("file_name", "payload_json") VALUES ('wu_mu_jia_liu
         "亥": {"chiperText": "甲月丁戊丙", "chiperNumber": 10732}
     }
 }');
-COMMIT;
+
+

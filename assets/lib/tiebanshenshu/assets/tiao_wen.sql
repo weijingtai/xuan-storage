@@ -1,5 +1,5 @@
-BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS tiao_wen (  id INTEGER PRIMARY KEY,  set_name TEXT NOT NULL,  content1 TEXT NOT NULL,  age_set1_json TEXT);
+DELETE FROM tiao_wen;
 INSERT INTO tiao_wen ("id", "set_name", "content1", "age_set1_json") VALUES (1001, '子', '一树残花，有枝复茂。', '[47]');
 INSERT INTO tiao_wen ("id", "set_name", "content1", "age_set1_json") VALUES (1002, '子', '寄人廊庙，何如自立门户。', NULL);
 INSERT INTO tiao_wen ("id", "set_name", "content1", "age_set1_json") VALUES (1003, '子', '家业消耗，独守为难。', NULL);
@@ -12000,4 +12000,5 @@ INSERT INTO tiao_wen ("id", "set_name", "content1", "age_set1_json") VALUES (129
 INSERT INTO tiao_wen ("id", "set_name", "content1", "age_set1_json") VALUES (12998, '亥', '运交胜从前，积玉堆金广置田。', '[63, 64]');
 INSERT INTO tiao_wen ("id", "set_name", "content1", "age_set1_json") VALUES (12999, '亥', '夫死之年，人生不幸。', '[52]');
 INSERT INTO tiao_wen ("id", "set_name", "content1", "age_set1_json") VALUES (13000, '亥', '万象更新，周而复始。', NULL);
-COMMIT;
+
+
