@@ -25,3 +25,8 @@ export 'geo/geo_datasets.dart';
 export 'geo/xrap_geo_location_repository.dart';
 export 'geo/drift/geo_database.dart';
 export 'geo/drift_dataset_installer.dart';
+export 'taiyishenshu/official_json_repository.dart';
+export 'taiyishenshu/taiyishenshu_datasets.dart';
+export 'taiyishenshu/xrap_taiyishenshu_repositories.dart';
+export 'taiyishenshu/drift/taiyishenshu_database.dart';
+export 'taiyishenshu/drift_dataset_installer.dart';
