@@ -1,5 +1,5 @@
-BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS keti_document (  file_name TEXT PRIMARY KEY,  payload_json TEXT NOT NULL);
+DELETE FROM keti_document;
 INSERT INTO keti_document ("file_name", "payload_json") VALUES ('keti_data.json', '[
   {
     "id": 1,
@@ -1473,4 +1473,3 @@ INSERT INTO keti_document ("file_name", "payload_json") VALUES ('keti_data.json'
     "subLessons": []
   }
 ]');
-COMMIT;

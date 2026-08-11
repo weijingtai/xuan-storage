@@ -1,5 +1,5 @@
-BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS official_data_document (  file_name TEXT PRIMARY KEY,  payload_json TEXT NOT NULL);
+DELETE FROM official_data_document;
 INSERT INTO official_data_document ("file_name", "payload_json") VALUES ('御定大六壬.json', '[
   {
     "details": {
@@ -274064,4 +274064,3 @@ INSERT INTO official_data_document ("file_name", "payload_json") VALUES ('甲午
     }
   }
 ]');
-COMMIT;

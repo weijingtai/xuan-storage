@@ -1,6 +1,6 @@
 # daliuren 数据 SQL 构建报告
 
-- 构建时间：2026-08-11 04:17:25 UTC
+- 构建时间：2026-08-11 04:59:08 UTC
 - 构建脚本：assets/tool/build_daliuren_sql.py
 - 源数据：da_liu_ren/ ×5 + shen_sha/6_shensha_* ×9 + dataset/daliuren_dataset.json（全部 JSON 文档表）
 
@@ -8,15 +8,16 @@
 
 | 文件 | 表名 | 行数 | 字节数 | sha256 |
 |---|---|---|---|---|
-| official_data_document.sql | official_data_document(文档表) | 4 | 7228354 | e436e91bc8282f0cbabe7f688eaa16cd961e6790a7413a9d9e988f86daac79c5 |
-| keti_document.sql | keti_document(文档表) | 1 | 87321 | 3fb7d328a5a20e4bca9920b38e9a45499604bd444f18e7f8988decb9d20ce5e1 |
-| shen_sha_document.sql | shen_sha_document(文档表) | 9 | 138273 | 89522b9a705ceda29fd968e73e8cd802493d858b39ee4298ecb054f3d06e5395 |
-| school_dataset_document.sql | school_dataset_document(文档表) | 1 | 584 | 8e75ed2a336341572fcece2418419a52200160151d8e1484640af668be4cd3f1 |
+| official_data_document.sql | official_data_document(文档表) | 4 | 7228363 | dc4778d5db5a7faf8b525fca11263d2739d6599cb5776010971dcd722ac1386b |
+| keti_document.sql | keti_document(文档表) | 1 | 87321 | 93c0a93406d04463e214bb74b31f0b8ce90b8967e7278e6536fe2e67c03227db |
+| shen_sha_document.sql | shen_sha_document(文档表) | 9 | 138277 | caffd13b1c4577c2cadeac209b7d5c11aa0143ec181c2ba607c35921f5998249 |
+| school_dataset_document.sql | school_dataset_document(文档表) | 1 | 594 | 5568dcb65ef5f585d30e2c462fffb69a5bd801ab430a597af5e64d76a64ed2ef |
 
 ## 验证
 
-- 每个 *.sql 含 BEGIN TRANSACTION / COMMIT：True
+- 每个 *.sql 不含显式 BEGIN/COMMIT（事务由 drift transaction API 管理，修复 Web/WasmDatabase 嵌套事务冲突，照 tiebanshenshu 0f3c6dd）：True
 - 每个 *.sql 含 CREATE TABLE：是
+- 每个 *.sql 含 DELETE FROM（重装幂等）：是
 - 中文（如「御定大六壬」「甲午庚牛羊」）正确写入 UTF-8，未转义为 \uXXXX
 
 ## payloadFormat 决策

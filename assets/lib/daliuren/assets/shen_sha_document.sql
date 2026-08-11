@@ -1,5 +1,5 @@
-BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS shen_sha_document (  file_name TEXT PRIMARY KEY,  payload_json TEXT NOT NULL);
+DELETE FROM shen_sha_document;
 INSERT INTO shen_sha_document ("file_name", "payload_json") VALUES ('6_shensha_gan.json', '[
   {
     "name": "干德",
@@ -5385,4 +5385,3 @@ INSERT INTO shen_sha_document ("file_name", "payload_json") VALUES ('6_shensha_z
             "locationDescriptionList": ["通过日支十二地支对应，体现雷电神煞带来突发不利的位置关联"]
         }
 ]');
-COMMIT;

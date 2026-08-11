@@ -1,5 +1,5 @@
-BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS school_dataset_document (  file_name TEXT PRIMARY KEY,  payload_json TEXT NOT NULL);
+DELETE FROM school_dataset_document;
 INSERT INTO school_dataset_document ("file_name", "payload_json") VALUES ('daliuren_dataset.json', '{
   "version": "1.0.0",
   "description": "大六壬数据集",
@@ -30,4 +30,3 @@ INSERT INTO school_dataset_document ("file_name", "payload_json") VALUES ('daliu
     "亥"
   ]
 }');
-COMMIT;

@@ -25,23 +25,23 @@ import 'package:persistence_core/persistence_core.dart';
 /// 若 *.sql 被重新构建，此处需同步更新，否则 sha256 断言变红——这正是门禁要的。
 const _kTruth = <String, ({String sha256, int bytes, int rows})>{
   'daliuren.official_data': (
-    sha256: 'e436e91bc8282f0cbabe7f688eaa16cd961e6790a7413a9d9e988f86daac79c5',
-    bytes: 7228354,
+    sha256: 'dc4778d5db5a7faf8b525fca11263d2739d6599cb5776010971dcd722ac1386b',
+    bytes: 7228363,
     rows: 4,
   ),
   'daliuren.keti': (
-    sha256: '3fb7d328a5a20e4bca9920b38e9a45499604bd444f18e7f8988decb9d20ce5e1',
+    sha256: '93c0a93406d04463e214bb74b31f0b8ce90b8967e7278e6536fe2e67c03227db',
     bytes: 87321,
     rows: 1,
   ),
   'daliuren.shen_sha': (
-    sha256: '89522b9a705ceda29fd968e73e8cd802493d858b39ee4298ecb054f3d06e5395',
-    bytes: 138273,
+    sha256: 'caffd13b1c4577c2cadeac209b7d5c11aa0143ec181c2ba607c35921f5998249',
+    bytes: 138277,
     rows: 9,
   ),
   'daliuren.school_dataset': (
-    sha256: '8e75ed2a336341572fcece2418419a52200160151d8e1484640af668be4cd3f1',
-    bytes: 584,
+    sha256: '5568dcb65ef5f585d30e2c462fffb69a5bd801ab430a597af5e64d76a64ed2ef',
+    bytes: 594,
     rows: 1,
   ),
 };
@@ -136,12 +136,15 @@ void main() {
       });
     }
 
-    test('official_data_document.sql 内容含 CREATE TABLE / INSERT / 中文', () async {
+    test('official_data_document.sql 内容含 CREATE TABLE / INSERT / 中文（无显式事务）', () async {
       final bytes =
           await _loadAssetBytes(_kAssetPath['daliuren.official_data']!);
       final text = utf8.decode(bytes);
-      expect(text.contains('BEGIN TRANSACTION;'), isTrue);
-      expect(text.contains('COMMIT;'), isTrue);
+      // Web/WasmDatabase 嵌套事务冲突修复（照 tiebanshenshu 0f3c6dd）：
+      // SQL 内不再含显式 BEGIN/COMMIT，DDL 后追加 DELETE FROM 保证重装幂等。
+      expect(text.contains('BEGIN TRANSACTION;'), isFalse);
+      expect(text.contains('COMMIT;'), isFalse);
+      expect(text.contains('DELETE FROM official_data_document;'), isTrue);
       expect(text.contains('CREATE TABLE'), isTrue);
       expect(text.contains('INSERT INTO'), isTrue);
       // 中文未转义
