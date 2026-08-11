@@ -1,5 +1,5 @@
-BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS ge_ju_content_document (  file_name TEXT PRIMARY KEY,  payload_json TEXT NOT NULL);
+DELETE FROM ge_ju_content_document;
 INSERT INTO ge_ju_content_document ("file_name", "payload_json") VALUES ('common_ge_ju_content.json', '[
   {
     "id": "common_001_ri_yue_jia_ming",
@@ -9254,4 +9254,3 @@ INSERT INTO ge_ju_content_document ("file_name", "payload_json") VALUES ('xing_g
     ]
   }
 ]');
-COMMIT;

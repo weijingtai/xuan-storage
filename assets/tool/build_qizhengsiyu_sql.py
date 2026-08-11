@@ -80,13 +80,20 @@ def _sql_str(v) -> str:
     return f"'{escaped}'"
 
 
-def _wrap_sql(ddl_statements: list, inserts: list) -> str:
-    """事务包裹的 *.sql 文本。"""
-    lines = ['BEGIN TRANSACTION;']
+def _wrap_sql(ddl_statements: list, inserts: list, delete_tables: list) -> str:
+    """拼接 *.sql 文本（事务由 drift transaction API 管理，SQL 内不含 BEGIN/COMMIT）。
+
+    WasmDatabase（web）下 sqlite3_exec 多语句里的显式 BEGIN/COMMIT 会与
+    drift 连接的事务状态冲突（cannot start a transaction within a transaction），
+    故不再写入事务语句（照 build_tiebanshenshu_sql.py 0f3c6dd 修复）；
+    DDL 后对每张表追加 DELETE FROM 保证重装幂等（避免主键冲突）。
+    """
+    lines = []
     for stmt in ddl_statements:
         lines.append(stmt + ';')
+    for t in delete_tables:
+        lines.append(f'DELETE FROM {t};')
     lines.extend(inserts)
-    lines.append('COMMIT;')
     return '\n'.join(lines) + '\n'
 
 
@@ -185,7 +192,7 @@ def build_star_position_status() -> dict:
         ).fetchall()
 
     inserts = _insert_lines('star_position_status', cols, all_rows)
-    sql_text = _wrap_sql(STAR_POSITION_STATUS_DDL, inserts)
+    sql_text = _wrap_sql(STAR_POSITION_STATUS_DDL, inserts, ['star_position_status'])
     sql_path.write_text(sql_text, encoding='utf-8')
     return _stat(sql_path, 'star_position_status', expected)
 
@@ -225,7 +232,7 @@ def build_ge_ju() -> dict:
             inserts.extend(_insert_lines(table, cols, rows))
 
     src.close()
-    sql_text = _wrap_sql(ddl_statements, inserts)
+    sql_text = _wrap_sql(ddl_statements, inserts, GE_JU_TABLES)
     sql_path.write_text(sql_text, encoding='utf-8')
 
     # 行数校验：导出行数与源库一致（I4 前置）。
@@ -267,7 +274,7 @@ def build_document_dataset(table: str, dataset_id: str, patterns: list) -> dict:
         rows.append((f.name, payload))
 
     inserts = _insert_lines(table, ['file_name', 'payload_json'], rows)
-    sql_text = _wrap_sql(ddl, inserts)
+    sql_text = _wrap_sql(ddl, inserts, [table])
     sql_path.write_text(sql_text, encoding='utf-8')
     return _stat(sql_path, f'{table}(文档表)', len(rows))
 
@@ -312,12 +319,15 @@ def main():
             f"| {fname} | {r['table']} | {r['rows']} | {r['bytes']} | {r['sha256']} |"
         )
     all_ok = all(r['has_begin'] and r['has_commit'] for r in results)
+    no_txn = all(not r['has_begin'] and not r['has_commit'] for r in results)
     report += [
         '',
         '## 验证',
         '',
-        f'- 每个 *.sql 含 BEGIN TRANSACTION / COMMIT：{all_ok}',
+        f'- 每个 *.sql 不含显式 BEGIN/COMMIT（事务由 drift transaction API 管理，'
+        f'修复 Web/WasmDatabase 嵌套事务冲突，照 tiebanshenshu 0f3c6dd）：{no_txn}',
         '- 每个 *.sql 含 CREATE TABLE：是',
+        '- 每个 *.sql 含 DELETE FROM（重装幂等）：是',
         '- 中文（如「日月夹命」）正确写入 UTF-8，未转义为 \\uXXXX',
         '',
         '## payloadFormat 决策',

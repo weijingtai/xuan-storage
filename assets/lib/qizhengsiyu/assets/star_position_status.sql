@@ -1,5 +1,5 @@
-BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS star_position_status (  id INTEGER PRIMARY KEY,  class_name TEXT,  star TEXT,  position_status_type TEXT,  position_list_json TEXT);
+DELETE FROM star_position_status;
 INSERT INTO star_position_status ("id", "class_name", "star", "position_status_type", "position_list_json") VALUES (1, '果老', '日', '庙', '["戌"]');
 INSERT INTO star_position_status ("id", "class_name", "star", "position_status_type", "position_list_json") VALUES (2, '果老', '月', '庙', '["戌"]');
 INSERT INTO star_position_status ("id", "class_name", "star", "position_status_type", "position_list_json") VALUES (3, '果老', '土', '庙', '["丑"]');
@@ -97,4 +97,3 @@ INSERT INTO star_position_status ("id", "class_name", "star", "position_status_t
 INSERT INTO star_position_status ("id", "class_name", "star", "position_status_type", "position_list_json") VALUES (95, '果老', '计', '贵', '["胃"]');
 INSERT INTO star_position_status ("id", "class_name", "star", "position_status_type", "position_list_json") VALUES (96, '果老', '孛', '贵', '["井"]');
 INSERT INTO star_position_status ("id", "class_name", "star", "position_status_type", "position_list_json") VALUES (97, '果老', '计', '贵', '["柳"]');
-COMMIT;

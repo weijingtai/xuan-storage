@@ -1,5 +1,5 @@
-BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS hua_yao_document (  file_name TEXT PRIMARY KEY,  payload_json TEXT NOT NULL);
+DELETE FROM hua_yao_document;
 INSERT INTO hua_yao_document ("file_name", "payload_json") VALUES ('74_huayao_dizhi.json', '[
         
 
@@ -781,4 +781,3 @@ INSERT INTO hua_yao_document ("file_name", "payload_json") VALUES ('74_huayao_ti
     "type":"天干"
 }
 ]');
-COMMIT;

@@ -1,5 +1,5 @@
-BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS ephemeris_document (  file_name TEXT PRIMARY KEY,  payload_json TEXT NOT NULL);
+DELETE FROM ephemeris_document;
 INSERT INTO ephemeris_document ("file_name", "payload_json") VALUES ('ecliptic_ancient_365.json', '{
   "systemType": "ecliptic_tropical",
   "constellationSystemType": "ancient",
@@ -1747,4 +1747,3 @@ INSERT INTO ephemeris_document ("file_name", "payload_json") VALUES ('zheng_shi_
         "来自moira, 郑氏星案"
       ]
   }');
-COMMIT;

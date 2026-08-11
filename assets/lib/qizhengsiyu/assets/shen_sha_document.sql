@@ -1,5 +1,5 @@
-BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS shen_sha_document (  file_name TEXT PRIMARY KEY,  payload_json TEXT NOT NULL);
+DELETE FROM shen_sha_document;
 INSERT INTO shen_sha_document ("file_name", "payload_json") VALUES ('74_shensha_bundle.json', '[
     {
         "name": "剑锋",
@@ -1541,4 +1541,3 @@ INSERT INTO shen_sha_document ("file_name", "payload_json") VALUES ('74_shensha_
         ]
     }
 ]');
-COMMIT;

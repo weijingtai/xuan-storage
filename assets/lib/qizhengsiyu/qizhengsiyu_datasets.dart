@@ -49,8 +49,8 @@ class _QizhengManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '243db078fb6681344414e4227ee298a0d309baafd97409265ff4c05cde1825a5',
-    payloadBytes: 15601,
+        '7d59428dec52ec814b12cc259f0b3d3c7cdb70dc07fdcdefe5918a36c3b6f5bc',
+    payloadBytes: 15608,
     declaredRowCount: 97,
     publishedAtUtc: DateTime.utc(2026, 8, 7),
   );
@@ -62,8 +62,8 @@ class _QizhengManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '40a8fa09e1002987e9e32407b61f38c0feb515ccd9d4f0a9c92ef1ef13ae62c0',
-    payloadBytes: 532810,
+        'c265f87b85ba3a2c78b45b4fc89998f75018ddd81d4bb9b9c6f163519cb747f0',
+    payloadBytes: 532921,
     declaredRowCount: 1005,
     publishedAtUtc: DateTime.utc(2026, 8, 7),
   );
@@ -75,8 +75,8 @@ class _QizhengManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '2227d006af44b0d98818ba4db0662d8955beb2e8efc3c64640043d4d68e895e9',
-    payloadBytes: 9128,
+        '0d9b7831aa4528019f029495f8871155da885ef244c4bf2f02d2e5aa5dd17b4d',
+    payloadBytes: 9133,
     declaredRowCount: 3,
     publishedAtUtc: DateTime.utc(2026, 8, 7),
   );
@@ -88,8 +88,8 @@ class _QizhengManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '83a4bc14573d6352ce881b8d8b149d14408e9f5ca6c36427cade97fb0ed08925',
-    payloadBytes: 52572,
+        '65de841d0d72aeb7b7d13f92c33c5072ae1b229e72f15f374d616624e0e88372',
+    payloadBytes: 52577,
     declaredRowCount: 17,
     publishedAtUtc: DateTime.utc(2026, 8, 7),
   );
@@ -101,8 +101,8 @@ class _QizhengManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '2bd3a0d25d615b166ddfc7b8d903bd60ded853382fab812233cf271c4cbe3acb',
-    payloadBytes: 48540,
+        '0d05ff7d53c78581e711f118ea75fba1e29b13164a7a37a2adb805421a8cc9dd',
+    payloadBytes: 48544,
     declaredRowCount: 6,
     publishedAtUtc: DateTime.utc(2026, 8, 7),
   );
@@ -114,8 +114,8 @@ class _QizhengManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        'e082234a001660c9be64328ec85f5d34e210d2fb3c5b0bb9a67ab408e3d488b6',
-    payloadBytes: 21591,
+        '7780c48e0f4aa7fb9fb30a83d97cc9fc77cc8ec9f8ad553b914cdadaaeffdb0e',
+    payloadBytes: 21594,
     declaredRowCount: 3,
     publishedAtUtc: DateTime.utc(2026, 8, 7),
   );
@@ -127,8 +127,8 @@ class _QizhengManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        'cd88a8379dd364c51d9723c13f0acfc1d16ef7eecf510a4d139d279ba68f9df7',
-    payloadBytes: 235092,
+        '2ad683c610b29f816ac1bc36a5426a3cf4c5e79af0f0264bb292540db2deaca1',
+    payloadBytes: 235099,
     declaredRowCount: 13,
     publishedAtUtc: DateTime.utc(2026, 8, 7),
   );
@@ -140,8 +140,8 @@ class _QizhengManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '35da58c353099d4792568065cdbf5a773478b07a4a6d3d8b4968e3e5c4284ee7',
-    payloadBytes: 287858,
+        '70feb55ec2b524459e1f0892fa40a7090a59dad6985f31b9c234383bc388e337',
+    payloadBytes: 287867,
     declaredRowCount: 13,
     publishedAtUtc: DateTime.utc(2026, 8, 7),
   );

@@ -1,5 +1,5 @@
-BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS zhou_tian_document (  file_name TEXT PRIMARY KEY,  payload_json TEXT NOT NULL);
+DELETE FROM zhou_tian_document;
 INSERT INTO zhou_tian_document ("file_name", "payload_json") VALUES ('ecliptic_tropical_classical.json', '{
       "systemType": "黄道制",
       "constellationSystemType": "古宿制",
@@ -216,4 +216,3 @@ INSERT INTO zhou_tian_document ("file_name", "payload_json") VALUES ('ecliptic_t
         "来自moira, 室宿12.7° 戌白羊0° 春分点, 黄经0°，岁差为0°已矫正"
       ]
   }');
-COMMIT;

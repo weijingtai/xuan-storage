@@ -25,43 +25,43 @@ import 'package:persistence_core/persistence_core.dart';
 /// 若 *.sql 被重新构建，此处需同步更新，否则 sha256 断言变红——这正是门禁要的。
 const _kTruth = <String, ({String sha256, int bytes, int rows})>{
   'qizheng.star_position_status': (
-    sha256: '243db078fb6681344414e4227ee298a0d309baafd97409265ff4c05cde1825a5',
-    bytes: 15601,
+    sha256: '7d59428dec52ec814b12cc259f0b3d3c7cdb70dc07fdcdefe5918a36c3b6f5bc',
+    bytes: 15608,
     rows: 97,
   ),
   'qizheng.ge_ju': (
-    sha256: '40a8fa09e1002987e9e32407b61f38c0feb515ccd9d4f0a9c92ef1ef13ae62c0',
-    bytes: 532810,
+    sha256: 'c265f87b85ba3a2c78b45b4fc89998f75018ddd81d4bb9b9c6f163519cb747f0',
+    bytes: 532921,
     rows: 1005,
   ),
   'qizheng.zhou_tian': (
-    sha256: '2227d006af44b0d98818ba4db0662d8955beb2e8efc3c64640043d4d68e895e9',
-    bytes: 9128,
+    sha256: '0d9b7831aa4528019f029495f8871155da885ef244c4bf2f02d2e5aa5dd17b4d',
+    bytes: 9133,
     rows: 3,
   ),
   'qizheng.ephemeris': (
-    sha256: '83a4bc14573d6352ce881b8d8b149d14408e9f5ca6c36427cade97fb0ed08925',
-    bytes: 52572,
+    sha256: '65de841d0d72aeb7b7d13f92c33c5072ae1b229e72f15f374d616624e0e88372',
+    bytes: 52577,
     rows: 17,
   ),
   'qizheng.shen_sha': (
-    sha256: '2bd3a0d25d615b166ddfc7b8d903bd60ded853382fab812233cf271c4cbe3acb',
-    bytes: 48540,
+    sha256: '0d05ff7d53c78581e711f118ea75fba1e29b13164a7a37a2adb805421a8cc9dd',
+    bytes: 48544,
     rows: 6,
   ),
   'qizheng.hua_yao': (
-    sha256: 'e082234a001660c9be64328ec85f5d34e210d2fb3c5b0bb9a67ab408e3d488b6',
-    bytes: 21591,
+    sha256: '7780c48e0f4aa7fb9fb30a83d97cc9fc77cc8ec9f8ad553b914cdadaaeffdb0e',
+    bytes: 21594,
     rows: 3,
   ),
   'qizheng.ge_ju_rules': (
-    sha256: 'cd88a8379dd364c51d9723c13f0acfc1d16ef7eecf510a4d139d279ba68f9df7',
-    bytes: 235092,
+    sha256: '2ad683c610b29f816ac1bc36a5426a3cf4c5e79af0f0264bb292540db2deaca1',
+    bytes: 235099,
     rows: 13,
   ),
   'qizheng.ge_ju_content': (
-    sha256: '35da58c353099d4792568065cdbf5a773478b07a4a6d3d8b4968e3e5c4284ee7',
-    bytes: 287858,
+    sha256: '70feb55ec2b524459e1f0892fa40a7090a59dad6985f31b9c234383bc388e337',
+    bytes: 287867,
     rows: 13,
   ),
 };
@@ -167,12 +167,15 @@ void main() {
       });
     }
 
-    test('star_position_status.sql 内容含 CREATE TABLE / INSERT / 中文', () async {
+    test('star_position_status.sql 内容含 CREATE TABLE / INSERT / 中文（无显式事务）', () async {
       final bytes =
           await _loadAssetBytes(_kAssetPath['qizheng.star_position_status']!);
       final text = utf8.decode(bytes);
-      expect(text.contains('BEGIN TRANSACTION;'), isTrue);
-      expect(text.contains('COMMIT;'), isTrue);
+      // Web/WasmDatabase 嵌套事务冲突修复（照 tiebanshenshu 0f3c6dd）：
+      // SQL 内不再含显式 BEGIN/COMMIT，DDL 后追加 DELETE FROM 保证重装幂等。
+      expect(text.contains('BEGIN TRANSACTION;'), isFalse);
+      expect(text.contains('COMMIT;'), isFalse);
+      expect(text.contains('DELETE FROM star_position_status;'), isTrue);
       expect(text.contains('CREATE TABLE'), isTrue);
       expect(text.contains('INSERT INTO'), isTrue);
       // 中文未转义
