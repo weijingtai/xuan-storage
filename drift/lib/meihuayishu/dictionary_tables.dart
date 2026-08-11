@@ -37,3 +37,24 @@ class Etymologies extends Table {
   TextColumn get type => text().nullable()();
   TextColumn get hint => text().nullable()();
 }
+
+/// XRAP 数据集世代记录（照 daliuren/qizhengsiyu 样板）。
+@DataClassName('MeihuaDatasetGenerationEntry')
+class MeihuaDatasetGenerations extends Table {
+  @override
+  String get tableName => 'dataset_generation';
+
+  TextColumn get datasetId => text().named('dataset_id')();
+  IntColumn get generation => integer()();
+  TextColumn get payloadSha256 => text().named('payload_sha256')();
+  IntColumn get payloadBytes => integer().named('payload_bytes')();
+  IntColumn get declaredRowCount =>
+      integer().named('declared_row_count').nullable()();
+  TextColumn get status => text()();
+  TextColumn get sourceId => text().named('source_id')();
+  DateTimeColumn get installedAtUtc =>
+      dateTime().named('installed_at_utc').nullable()();
+
+  @override
+  Set<Column> get primaryKey => {datasetId, generation};
+}

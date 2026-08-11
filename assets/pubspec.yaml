@@ -79,4 +79,5 @@ flutter:
     - lib/daliuren/assets/da_liu_ren/
     - lib/daliuren/assets/shen_sha/
     - lib/daliuren/assets/dataset/
+    - lib/meihuayishu/assets/
     - lib/theme/

@@ -8,7 +8,7 @@ import 'dictionary_tables.dart';
 part 'dictionary_database.g.dart';
 
 /// 字典数据库
-@DriftDatabase(tables: [Characters, Pinyins, Etymologies])
+@DriftDatabase(tables: [Characters, Pinyins, Etymologies, MeihuaDatasetGenerations])
 class DictionaryDatabase extends _$DictionaryDatabase {
   DictionaryDatabase([QueryExecutor? executor]) : super(executor ?? createDictionaryConnection());
 
