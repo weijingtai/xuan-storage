@@ -6,6 +6,13 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
+/// 旧实现：整库拷贝连接（已废弃）。
+///
+/// XRAP 迁移后（2026-08-11）字典数据以 `meihua.dictionary` 数据集
+/// （dictionary_database.sql 载荷）灌入 [DictionaryDatabase]，不再整库拷贝
+/// 二进制 db。默认构造保留以兼容旧调用，但新装配一律显式传 executor +
+/// [MeihuaDriftDatasetInstaller]。
+@Deprecated('改用 XRAP：DictionaryDatabase(executor) + registerMeihuaDatasets + MeihuaDriftDatasetInstaller')
 QueryExecutor createDictionaryConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
