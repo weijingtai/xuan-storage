@@ -130,7 +130,10 @@ class XrapZiweiStarRepository implements ZiweiStarRepository {
           ..where((t) => t.fileName.equals('stars.csv')))
         .getSingleOrNull();
     if (row == null) {
-      throw const NotFound('stars.csv');
+      throw const ZiweiRepositoryError(
+        code: ZiweiErrorCode.starNotFound,
+        message: 'stars.csv 未安装（ziwei.star_catalog）',
+      );
     }
     return row.payloadJson;
   }
