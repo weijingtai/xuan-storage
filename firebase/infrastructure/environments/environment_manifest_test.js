@@ -15,6 +15,7 @@ test('manifest schema and environment set are explicit and closed', () => {
 
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   assert.equal(manifest.schemaVersion, 1);
+  assert.equal(manifest.functionsRegion, 'asia-east1');
   assert.deepEqual(Object.keys(manifest.environments).sort(), [
     'development',
     'production',
@@ -104,6 +105,7 @@ test('README documents the external LAN deployment and safety boundary', () => {
     'must remain behind a trusted LAN boundary or firewall',
     'must never be exposed to the public internet or an untrusted network',
     'allow-all rules let any client that can reach the emulator read and write development and test data',
+    'All callable Functions must be deployed to and invoked in `asia-east1`.',
   ]) {
     assert.match(readme, new RegExp(requiredText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }

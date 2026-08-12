@@ -3,6 +3,8 @@
 `firebase-environments.json` is the source of truth for selecting Firebase
 projects and emulator endpoints in this repository.
 
+All callable Functions must be deployed to and invoked in `asia-east1`.
+
 | Environment | Firebase project | Runtime target |
 | --- | --- | --- |
 | Development | `demo-xuan` | LAN Emulator Suite at `192.168.0.165` |
