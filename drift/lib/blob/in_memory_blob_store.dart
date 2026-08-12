@@ -46,7 +46,20 @@ final class InMemoryBlobStore implements LocalBlobStore {
   @override
   Future<void> reconcileRefs({required String ownerRecordUuid, required Set<BlobHandle> handles}) async { _refs[ownerRecordUuid] = Set.of(handles); }
   @override
-  Future<void> evictByExternalId(String externalId) async {}
+  Future<void> evictByExternalId(String externalId) async {
+    // 按业务外部 id（相法侧传入 refId = cipherManifestId）删除实际资源。
+    // 语义与 DriftLocalBlobStore.evictByExternalId 兼容：命中则删除 blob。
+    final matches = _chunks.keys
+        .where((h) => h.cipherManifestId == externalId);
+    for (final h in matches.toList()) {
+      _chunks.remove(h);
+      _tiers.remove(h);
+      _access.remove(h);
+      for (final owner in _refs.keys.toList()) {
+        _refs[owner]?.remove(h);
+      }
+    }
+  }
   @override
   Future<({int freed, int unreclaimable})> evictCache({required int targetFreeBytes}) async { var freed = 0; for (final h in _chunks.keys.toList()) { if (_tiers[h] == BlobTier.cache && freed < targetFreeBytes && !_refs.values.any((s) => s.contains(h))) { freed += h.totalBytes; _chunks.remove(h); _tiers.remove(h); } } return (freed: freed, unreclaimable: 0); }
 }
