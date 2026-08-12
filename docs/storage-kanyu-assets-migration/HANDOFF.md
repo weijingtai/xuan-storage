@@ -1,7 +1,7 @@
 # HANDOFF · M8 kanyu 资源迁移（未完成交接）
 
 > 2026-08-11｜交接 agent：pi（预算耗尽触发迭代内交接协议）
-> 状态：**源仓 rm 完成（0ff97e6）；storage 接入代码完成并 commit（eb8f0d7）；build_runner .g.dart 未跑、测试未写、shell 未查**
+> 状态：**storage 侧 100% 完成（20 测试全绿 + analyze 65 基线）；shell 确认无 kanyu 模块 → 跳过 shell 切换；待用户授权合并**
 
 ## 已完成
 
@@ -25,9 +25,9 @@
    - A1 注册：3 id lookup + manifest 真值（sha256/bytes/rows 见上）+ 重复注册 + 数量门禁 3
    - A2 差分：loadRuleConfig('fan-gua-water-v1') → RuleSetManifestContract.ruleSetId=='fan-gua-water-v1'；listAvailableRules()==6；validateConfigPackage（schemaValid/hashMatched true）；loadRuleConfigRaw 逐字节 == 源文件；static_data 16 行
 3. **storage 门禁**：`flutter test test/kanyu/` 全绿 + `flutter test` 全量（qizhengsiyu ephemeris 3 失败为 main 既有）
-4. **shell 消费方**：查 `xuan-shell/lib/modules/` 是否有 kanyu entry（预盘点无；若 shell 未接入 kanyu 模块 → **跳过 shell 切换，报告清单**，M8 只在 storage 侧交付）
-5. **用户验证**：若 shell 有 kanyu 模块 → shell worktree + overrides path + flutter run -d chrome；无则 storage 测试全绿即验收
-6. **人类授权后合并**：源仓 → master（注意 kanyu 默认分支 main，查 `git symbolic-ref refs/remotes/origin/HEAD`）+ push；storage → main + push（gitea+github）；shell 若有改动 → main；清理 worktree + 分支 + Todo.md 勾选 M8
+4. **shell 消费方**：✅ 已确认 `xuan-shell` 无 kanyu 模块（依赖清单无 kanyu，modules/ 无 entry）→ **跳过 shell 切换**，M8 在 storage 侧交付
+5. **用户验证**：已向用户说明 shell 无 kanyu 入口，无法 Chrome 验证；验收证据 = storage 20 测试全绿 + analyze 65 基线
+6. **人类授权后合并**：源仓 → main（kanyu 默认分支是 main）+ push（gitea）；storage → main + push（gitea+github）；清理 worktree + 分支 + Todo.md 勾选 M8
 
 ## 关键决策（已核实）
 
