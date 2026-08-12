@@ -39,6 +39,9 @@ dependencies:
   repository_interface_daliuren:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-daliuren.git
+  repository_interface_four_zhu_card:
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-four-zhu-card.git
   enumeration:
     git:
       url: http://192.168.0.165:3000/xuan/enumeration.git
