@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "environments": {
+    "development": {
+      "projectId": "demo-xuan",
+      "emulator": {
+        "host": "192.168.0.165",
+        "ports": {
+          "auth": 9099,
+          "firestore": 8080,
+          "storage": 9199,
+          "functions": 5001,
+          "pubsub": 8085,
+          "ui": 4000,
+          "hub": 4400,
+          "logging": 4500
+        },
+        "allowAllRules": true
+      }
+    },
+    "test": {
+      "projectId": "demo-xuan",
+      "emulator": {
+        "host": "192.168.0.165",
+        "ports": {
+          "auth": 9099,
+          "firestore": 8080,
+          "storage": 9199,
+          "functions": 5001,
+          "pubsub": 8085,
+          "ui": 4000,
+          "hub": 4400,
+          "logging": 4500
+        },
+        "allowAllRules": true
+      }
+    },
+    "staging": {
+      "projectId": "xuan-staging",
+      "emulator": null
+    },
+    "production": {
+      "projectId": "xuan-production",
+      "emulator": null
+    }
+  }
+}
