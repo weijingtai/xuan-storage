@@ -66,7 +66,7 @@ class XrapKanyuRuleConfigRepository implements RuleConfigRepository {
     return db.select(db.kanyuRuleDocuments).get();
   }
 
-  /// 按 ruleSetId 找规则行（fileName 存相对路径 rules/<dir>/<file>.json）。
+  /// 按 ruleSetId 找规则行（fileName 存相对路径 `rules/<dir>/<file>.json`）。
   Future<KanyuRuleDocumentEntry?> _ruleRowByRuleSetId(String ruleSetId) async {
     final rows = await _allRules();
     for (final row in rows) {
@@ -154,20 +154,21 @@ class XrapKanyuRuleConfigRepository implements RuleConfigRepository {
   ///
   /// dataRefs 解析（rules 的 dataRefs 指向 data 文件 id）与 schema 校验用。
   Future<String?> loadDocumentRaw(String datasetId, String fileName) async {
-    final table = switch (datasetId) {
-      'kanyu.static_data' => db.kanyuStaticDataDocuments,
-      'kanyu.schema' => db.kanyuSchemaDocuments,
-      _ => throw ArgumentError('未知 datasetId: $datasetId'),
-    };
-    final ensure = switch (datasetId) {
-      'kanyu.static_data' => _dataEnsure,
-      'kanyu.schema' => _schemaEnsure,
-      _ => _dataEnsure,
-    };
-    await ensure.ensure();
-    final row = await (db.select(table)
-          ..where((t) => t.fileName.equals(fileName)))
-        .getSingleOrNull();
-    return row?.payloadJson;
+    switch (datasetId) {
+      case 'kanyu.static_data':
+        await _dataEnsure.ensure();
+        final dataRow = await (db.select(db.kanyuStaticDataDocuments)
+              ..where((t) => t.fileName.equals(fileName)))
+            .getSingleOrNull();
+        return dataRow?.payloadJson;
+      case 'kanyu.schema':
+        await _schemaEnsure.ensure();
+        final schemaRow = await (db.select(db.kanyuSchemaDocuments)
+              ..where((t) => t.fileName.equals(fileName)))
+            .getSingleOrNull();
+        return schemaRow?.payloadJson;
+      default:
+        throw ArgumentError('未知 datasetId: $datasetId');
+    }
   }
 }
