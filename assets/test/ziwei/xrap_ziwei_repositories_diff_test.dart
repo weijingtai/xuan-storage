@@ -12,7 +12,6 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:persistence_assets/ziwei/drift/ziwei_database.dart';
@@ -91,7 +90,7 @@ void main() {
   });
 
   /// 读源 JSON 并按参照映射解码（flutter_test 工作目录 = assets 包根）。
-  Future<List<ZiweiStar>> _srcStars(String relPath) async {
+  Future<List<ZiweiStar>> srcStars(String relPath) async {
     final raw = await File(relPath).readAsString(encoding: utf8);
     final json = jsonDecode(raw) as Map<String, dynamic>;
     final stars = json['stars'] as List<dynamic>;
@@ -112,7 +111,7 @@ void main() {
     test('主星：getAllMainStars = 14，逐字段与源 stars_main 一致', () async {
       final repo = XrapZiweiStarRepository(db: db, installer: installer);
       final all = await repo.getAllMainStars();
-      final src = await _srcStars('lib/ziwei/assets/ziwei_stars_main.json');
+      final src = await srcStars('lib/ziwei/assets/ziwei_stars_main.json');
       expect(all, hasLength(src.length), reason: '主星数应与源一致（14）');
       expect(all, src, reason: '主星逐字段一致（name/category/element/yinYang/brightness）');
     });
@@ -120,7 +119,7 @@ void main() {
     test('辅星：getAllAuxiliaryStars = minor_auspicious + baleful，与源一致', () async {
       final repo = XrapZiweiStarRepository(db: db, installer: installer);
       final all = await repo.getAllAuxiliaryStars();
-      final src = await _srcStars('lib/ziwei/assets/ziwei_stars_minor.json');
+      final src = await srcStars('lib/ziwei/assets/ziwei_stars_minor.json');
       final expected = src
           .where((s) =>
               s.category == StarCategory.auxiliaryStar)
