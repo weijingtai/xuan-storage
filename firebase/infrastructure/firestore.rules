@@ -156,14 +156,15 @@ service cloud.firestore {
     }
 
     // ============================
-    // playground_messages（私聊消息）
+    // playground_messages（私聊消息）— Functions only
+    // 原规则允许认证用户直写并伪造 sender_provider_uid；sendMessage 已走
+    // callable（conversations.ts），故 create/update/delete 全部收紧为 if false。
     // ============================
     match /playground_messages/{messageId} {
       allow read: if request.auth != null
                   && (resource.data.sender_provider_uid == request.auth.uid
                       || resource.data.recipient_provider_uid == request.auth.uid);
-      allow create: if request.auth != null
-                    && request.resource.data.sender_provider_uid == request.auth.uid;
+      allow write: if false;
     }
 
     // ============================

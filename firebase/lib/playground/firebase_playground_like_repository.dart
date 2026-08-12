@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
 import 'package:persistence_core/persistence_core.dart';
@@ -13,13 +14,16 @@ final class FirebasePlaygroundLikeRepository
     required FirebaseFirestore firestore,
     required FirebaseAuth auth,
     required FirebasePlaygroundIdentityResolver identityResolver,
+    FirebaseFunctions? functions,
   })  : _firestore = firestore,
         _auth = auth,
-        _identityResolver = identityResolver;
+        _identityResolver = identityResolver,
+        _functions = functions ?? FirebaseFunctions.instance;
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
   final FirebasePlaygroundIdentityResolver _identityResolver;
+  final FirebaseFunctions _functions;
 
   String _likeDocId({PlaygroundPostId? postId, PlaygroundReplyId? replyId}) {
     final user = _auth.currentUser;
@@ -32,27 +36,16 @@ final class FirebasePlaygroundLikeRepository
   @override
   Future<void> setLike(SetLikeCommand command) async {
     try {
-      final docId = _likeDocId(
-          postId: command.postId, replyId: command.replyId);
-      final docRef =
-          _firestore.collection(PlaygroundFirestoreSchema.likes).doc(docId);
-
-      if (command.liked) {
-        final user = _auth.currentUser;
-        final actor = await _identityResolver.resolveActor();
-        await docRef.set({
-          'user_provider_uid': user?.uid,
-          'user_app_user_id': actor.value,
-          'target_type': command.postId != null ? 'post' : 'reply',
-          'target_id':
-              command.postId?.value ?? command.replyId?.value ?? '',
-          'post_id': command.postId?.value,
-          'reply_id': command.replyId?.value,
-          'created_at': FieldValue.serverTimestamp(),
-        });
-      } else {
-        await docRef.delete();
-      }
+      // BLOCK-01：敏感写走受信 Functions `setLike`。
+      // 客户端只传业务参数 + idempotency_key，绝不传可伪造身份字段。
+      final params = <String, dynamic>{
+        'action': command.liked ? 'like' : 'unlike',
+        if (command.postId != null) 'postId': command.postId!.value,
+        if (command.replyId != null) 'replyId': command.replyId!.value,
+        if (command.idempotencyKey != null)
+          'idempotency_key': command.idempotencyKey,
+      };
+      await _functions.httpsCallable('setLike').call(params);
     } catch (e) {
       throw FirebasePlaygroundErrorMapper.map(e);
     }
@@ -62,6 +55,7 @@ final class FirebasePlaygroundLikeRepository
   Future<bool> isLiked(
       {PlaygroundPostId? postId, PlaygroundReplyId? replyId}) async {
     try {
+      // 读路径保持直连（Rules `allow read: if request.auth != null`）。
       final docId = _likeDocId(postId: postId, replyId: replyId);
       final snap = await _firestore
           .collection(PlaygroundFirestoreSchema.likes)
@@ -77,6 +71,7 @@ final class FirebasePlaygroundLikeRepository
   Future<int> getLikeCount(
       {PlaygroundPostId? postId, PlaygroundReplyId? replyId}) async {
     try {
+      // 读路径保持直连。
       final targetId = postId?.value ?? replyId?.value ?? '';
       final snaps = await _firestore
           .collection(PlaygroundFirestoreSchema.likes)

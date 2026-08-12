@@ -413,3 +413,83 @@ describe('playground_media', () => {
     );
   });
 });
+
+// ==============================
+// playground_messages — Functions only（BLOCK-01 收紧）
+// ==============================
+
+describe('playground_messages', () => {
+  test('deny: 客户端直接创建消息（即使 sender 为自己的 uid）', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db.firestore().collection('playground_messages').doc('msg-1').set({
+        conversation_id: 'conv-1',
+        sender_provider_uid: 'alice-uid',
+        text: '你好',
+        sent_at: new Date(),
+      }),
+    );
+  });
+
+  test('deny: 客户端更新消息', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db.firestore().collection('playground_messages').doc('msg-2').update({
+        text: '被篡改',
+      }),
+    );
+  });
+
+  test('deny: 客户端删除消息', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db.firestore().collection('playground_messages').doc('msg-3').delete(),
+    );
+  });
+
+  test('deny: 客户端伪造 sender 创建消息（伪造他人 uid）', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db.firestore().collection('playground_messages').doc('msg-4').set({
+        conversation_id: 'conv-1',
+        sender_provider_uid: 'bob-uid',
+        text: '伪造 sender',
+        sent_at: new Date(),
+      }),
+    );
+  });
+});
+
+// ==============================
+// playground_idempotency — Functions only
+// ==============================
+
+describe('playground_idempotency', () => {
+  test('deny: 客户端直接写幂等记录', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db.firestore().collection('playground_idempotency').doc('idem-1').set({
+        payload_hash: 'fake',
+        result: {},
+      }),
+    );
+  });
+});
+
+// ==============================
+// identity_map — Functions only（BLOCK-01 resolveMyIdentity）
+// ==============================
+
+describe('identity_map', () => {
+  test('deny: 客户端直接写身份映射（伪造 appUserId）', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db.firestore().collection('identity_map').doc('alice-uid').set({
+        app_user_id: 'app-forged',
+        provider_uid: 'alice-uid',
+        provider_id: 'firebase',
+      }),
+    );
+  });
+});
+

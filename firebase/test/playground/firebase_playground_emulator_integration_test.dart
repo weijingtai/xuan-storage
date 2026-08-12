@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
@@ -91,9 +92,13 @@ void main() {
       // 4. 匿名登录
       await auth.signInAnonymously();
 
+      // 5. Functions callable（resolveMyIdentity 等）指向本地 Functions emulator。
+      FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
+
       identityResolver = FirebasePlaygroundIdentityResolver(
         firestore: firestore,
         auth: auth,
+        functions: FirebaseFunctions.instance,
       );
       postRepo = FirebasePlaygroundPostRepository(
         firestore: firestore,
@@ -109,6 +114,7 @@ void main() {
         firestore: firestore,
         auth: auth,
         identityResolver: identityResolver,
+        functions: FirebaseFunctions.instance,
       );
     });
 

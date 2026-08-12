@@ -119,37 +119,41 @@ export const revokeVerification = onCall({ region: 'asia-east1' }, async (reques
     throw new HttpsError('invalid-argument', 'rootReplyId 不能为空');
   }
 
-  const verificationQuery = await db
-    .collection(COLLECTIONS.verifications)
-    .where('post_id', '==', postId)
-    .where('root_reply_id', '==', rootReplyId)
-    .where('verifier_app_user_id', '==', appUserId)
-    .where('revoked_at', '==', null)
-    .limit(1)
-    .get();
+  const payloadHash = hashPayload(request.data);
 
-  if (verificationQuery.empty) {
-    throw new HttpsError('not-found', '没有有效的应验记录');
-  }
+  return withIdempotency(request.data.idempotency_key, payloadHash, async () => {
+    const verificationQuery = await db
+      .collection(COLLECTIONS.verifications)
+      .where('post_id', '==', postId)
+      .where('root_reply_id', '==', rootReplyId)
+      .where('verifier_app_user_id', '==', appUserId)
+      .where('revoked_at', '==', null)
+      .limit(1)
+      .get();
 
-  const verificationDoc = verificationQuery.docs[0];
-  const now = admin.firestore.FieldValue.serverTimestamp();
+    if (verificationQuery.empty) {
+      throw new HttpsError('not-found', '没有有效的应验记录');
+    }
 
-  await verificationDoc.ref.update({ revoked_at: now } as any);
+    const verificationDoc = verificationQuery.docs[0];
+    const now = admin.firestore.FieldValue.serverTimestamp();
 
-  await db.collection(COLLECTIONS.replies).doc(rootReplyId).update({
-    verification: null,
-  } as any);
+    await verificationDoc.ref.update({ revoked_at: now } as any);
 
-  const outboxRef = db.collection(COLLECTIONS.outbox).doc();
-  await outboxRef.set({
-    id: outboxRef.id,
-    event_type: 'verification_revoked',
-    post_id: postId,
-    reply_id: rootReplyId,
-    verifier_app_user_id: appUserId,
-    created_at: now,
+    await db.collection(COLLECTIONS.replies).doc(rootReplyId).update({
+      verification: null,
+    } as any);
+
+    const outboxRef = db.collection(COLLECTIONS.outbox).doc();
+    await outboxRef.set({
+      id: outboxRef.id,
+      event_type: 'verification_revoked',
+      post_id: postId,
+      reply_id: rootReplyId,
+      verifier_app_user_id: appUserId,
+      created_at: now,
+    });
+
+    return { success: true };
   });
-
-  return { success: true };
 });

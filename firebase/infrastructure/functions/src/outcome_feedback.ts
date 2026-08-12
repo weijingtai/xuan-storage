@@ -2,6 +2,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
 import { db, COLLECTIONS } from './index';
 import { resolveAppUserId, requireAuthUid } from './identity';
+import { withIdempotency } from './idempotency';
 import { hashPayload } from './utils';
 
 export const setOutcomeFeedback = onCall({ region: 'asia-east1' }, async (request) => {
@@ -16,50 +17,54 @@ export const setOutcomeFeedback = onCall({ region: 'asia-east1' }, async (reques
     throw new HttpsError('invalid-argument', 'outcome_description 不能为空');
   }
 
-  const postSnap = await db.collection(COLLECTIONS.posts).doc(postId).get();
-  if (!postSnap.exists || postSnap.get('status') !== 'active') {
-    throw new HttpsError('not-found', '帖子不存在或已失效');
-  }
-  const postData = postSnap.data()!;
-  if (postData.author_provider_uid !== uid) {
-    throw new HttpsError('permission-denied', '只有帖子作者可以设置最终反馈');
-  }
+  const payloadHash = hashPayload(request.data);
 
-  const existingQuery = await db
-    .collection(COLLECTIONS.outcomeFeedback)
-    .where('post_id', '==', postId)
-    .where('deleted_at', '==', null)
-    .get();
+  return withIdempotency(request.data.idempotency_key, payloadHash, async () => {
+    const postSnap = await db.collection(COLLECTIONS.posts).doc(postId).get();
+    if (!postSnap.exists || postSnap.get('status') !== 'active') {
+      throw new HttpsError('not-found', '帖子不存在或已失效');
+    }
+    const postData = postSnap.data()!;
+    if (postData.author_provider_uid !== uid) {
+      throw new HttpsError('permission-denied', '只有帖子作者可以设置最终反馈');
+    }
 
-  if (!existingQuery.empty) {
-    throw new HttpsError('already-exists', '已有有效的最终反馈');
-  }
+    const existingQuery = await db
+      .collection(COLLECTIONS.outcomeFeedback)
+      .where('post_id', '==', postId)
+      .where('deleted_at', '==', null)
+      .get();
 
-  const feedbackRef = db.collection(COLLECTIONS.outcomeFeedback).doc();
-  const now = admin.firestore.FieldValue.serverTimestamp();
+    if (!existingQuery.empty) {
+      throw new HttpsError('already-exists', '已有有效的最终反馈');
+    }
 
-  const feedbackData = {
-    id: feedbackRef.id,
-    post_id: postId,
-    author_provider_uid: uid,
-    author_app_user_id: appUserId,
-    outcome_description: outcome_description.trim(),
-    deleted_at: null,
-    created_at: now,
-  };
+    const feedbackRef = db.collection(COLLECTIONS.outcomeFeedback).doc();
+    const now = admin.firestore.FieldValue.serverTimestamp();
 
-  await feedbackRef.set(feedbackData);
-  await db.collection(COLLECTIONS.posts).doc(postId).update({
-    has_outcome_feedback: true,
-  } as any);
+    const feedbackData = {
+      id: feedbackRef.id,
+      post_id: postId,
+      author_provider_uid: uid,
+      author_app_user_id: appUserId,
+      outcome_description: outcome_description.trim(),
+      deleted_at: null,
+      created_at: now,
+    };
 
-  return {
-    id: feedbackRef.id,
-    post_id: postId,
-    author_app_user_id: appUserId,
-    outcome_description: feedbackData.outcome_description,
-    created_at: new Date().toISOString(),
-  };
+    await feedbackRef.set(feedbackData);
+    await db.collection(COLLECTIONS.posts).doc(postId).update({
+      has_outcome_feedback: true,
+    } as any);
+
+    return {
+      id: feedbackRef.id,
+      post_id: postId,
+      author_app_user_id: appUserId,
+      outcome_description: feedbackData.outcome_description,
+      created_at: new Date().toISOString(),
+    };
+  });
 });
 
 export const revokeOutcomeFeedback = onCall({ region: 'asia-east1' }, async (request) => {
@@ -71,24 +76,28 @@ export const revokeOutcomeFeedback = onCall({ region: 'asia-east1' }, async (req
     throw new HttpsError('invalid-argument', 'postId 不能为空');
   }
 
-  const feedbackQuery = await db
-    .collection(COLLECTIONS.outcomeFeedback)
-    .where('post_id', '==', postId)
-    .where('author_app_user_id', '==', appUserId)
-    .where('deleted_at', '==', null)
-    .limit(1)
-    .get();
+  const payloadHash = hashPayload(request.data);
 
-  if (feedbackQuery.empty) {
-    throw new HttpsError('not-found', '没有有效的最终反馈');
-  }
+  return withIdempotency(request.data.idempotency_key, payloadHash, async () => {
+    const feedbackQuery = await db
+      .collection(COLLECTIONS.outcomeFeedback)
+      .where('post_id', '==', postId)
+      .where('author_app_user_id', '==', appUserId)
+      .where('deleted_at', '==', null)
+      .limit(1)
+      .get();
 
-  const now = admin.firestore.FieldValue.serverTimestamp();
+    if (feedbackQuery.empty) {
+      throw new HttpsError('not-found', '没有有效的最终反馈');
+    }
 
-  await feedbackQuery.docs[0].ref.update({ deleted_at: now } as any);
-  await db.collection(COLLECTIONS.posts).doc(postId).update({
-    has_outcome_feedback: false,
-  } as any);
+    const now = admin.firestore.FieldValue.serverTimestamp();
 
-  return { success: true };
+    await feedbackQuery.docs[0].ref.update({ deleted_at: now } as any);
+    await db.collection(COLLECTIONS.posts).doc(postId).update({
+      has_outcome_feedback: false,
+    } as any);
+
+    return { success: true };
+  });
 });

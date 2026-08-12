@@ -105,6 +105,17 @@ void main() {
       expect(mapped.machineCode, 'firestore/deadline-exceeded');
     });
 
+    test('failed-precondition → conflict', () {
+      final error = FirebaseException(
+        plugin: 'cloud_functions',
+        code: 'failed-precondition',
+        message: '对话未激活',
+      );
+      final mapped = FirebasePlaygroundErrorMapper.map(error);
+      expect(mapped.code, PlaygroundErrorCode.conflict);
+      expect(mapped.machineCode, 'functions/failed-precondition');
+    });
+
     test('unknown code → unknown', () {
       final error = FirebaseException(
         plugin: 'cloud_firestore',

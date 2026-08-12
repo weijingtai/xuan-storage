@@ -1,4 +1,5 @@
-import { HttpsError } from 'firebase-functions/v2/https';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import * as admin from 'firebase-admin';
 import { db, COLLECTIONS } from './index';
 
 /**
@@ -48,4 +49,17 @@ export function requireAuthUid(uid: string | undefined): string {
   return uid;
 }
 
-import * as admin from 'firebase-admin';
+/**
+ * resolveMyIdentity：基于 Firebase Auth context 返回当前用户的 appUserId。
+ *
+ * 客户端不再直写/直读 identity_map；身份映射的解析/创建完全由受信
+ * Functions 负责。仅返回 { appUserId }，不接受任何客户端身份值。
+ */
+export const resolveMyIdentity = onCall(
+  { region: 'asia-east1' },
+  async (request) => {
+    const uid = requireAuthUid(request.auth?.uid);
+    const appUserId = await resolveAppUserId(uid);
+    return { appUserId };
+  },
+);

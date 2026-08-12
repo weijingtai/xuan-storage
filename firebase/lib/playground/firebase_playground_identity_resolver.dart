@@ -1,72 +1,61 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
-import 'firebase_playground_schema.dart';
+import 'firebase_playground_error_mapper.dart';
 
 /// 从 Firebase Auth session 解析 actor [PlaygroundUserId]。
 ///
-/// 复用现有 identity_map/{providerUserId} → appUserId 模式。
-/// 不信任客户端传入的 authorId/posterId/appUserId。
+/// 流程：
+/// 1. 从 FirebaseAuth.currentUser 获取 uid（providerUserId）
+/// 2. 调用 Functions callable `resolveMyIdentity`（服务端基于 Auth context
+///    解析/创建 identity_map → appUserId）
+/// 3. 返回 PlaygroundUserId(appUserId)
+///
+/// 客户端不再直写/直读 identity_map（Rules 下 `write: if false`）；
+/// 身份映射的创建与解析完全由受信 Functions 负责。
+///
+/// 抛出 [PlaygroundError.unauthenticated] 当用户未登录。
 final class FirebasePlaygroundIdentityResolver {
-  final FirebaseFirestore _firestore;
+  final FirebaseFunctions _functions;
   final FirebaseAuth _auth;
 
+  /// [firestore] 参数保留以兼容既有 composition root（xuan-shell bootstrap）
+  /// 与旧测试签名；本实现不再依赖 Firestore，identity_map 读写均在 Functions。
   FirebasePlaygroundIdentityResolver({
-    required FirebaseFirestore firestore,
+    FirebaseFirestore? firestore,
     required FirebaseAuth auth,
-  })  : _firestore = firestore,
-        _auth = auth;
+    FirebaseFunctions? functions,
+  })  : _auth = auth,
+        _functions = functions ?? FirebaseFunctions.instance;
 
   /// 从当前认证 session 解析展示用 [PlaygroundUserId]。
   ///
-  /// 流程：
-  /// 1. 从 FirebaseAuth.currentUser 获取 uid（providerUserId）
-  /// 2. 读取 identity_map/{uid} → 获取 appUserId
-  /// 3. 若映射不存在，在事务中原子创建（UUID v4 → appUserId）
-  /// 4. 返回 PlaygroundUserId(appUserId)
-  ///
-  /// 抛出 [PlaygroundError.unauthenticated] 当用户未登录。
+  /// 通过 Functions callable `resolveMyIdentity` 获取服务端权威的 appUserId，
+  /// 不接受客户端任何身份值。
   Future<PlaygroundUserId> resolveActor() async {
-    final user = _auth.currentUser;
-    if (user == null) {
-      throw const PlaygroundError(
-        code: PlaygroundErrorCode.unauthenticated,
-        message: '未登录，请先注册或匿名登录',
-        machineCode: 'auth/unauthenticated',
-      );
-    }
-    final providerUserId = user.uid;
-    final doc =
-        _firestore.collection(PlaygroundFirestoreSchema.identityMap).doc(providerUserId);
-
-    final appUserId = await _firestore.runTransaction<String>((tx) async {
-      final snap = await tx.get(doc);
-      if (snap.exists) {
-        return snap.get('app_user_id') as String;
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw const PlaygroundError(
+          code: PlaygroundErrorCode.unauthenticated,
+          message: '未登录，请先注册或匿名登录',
+          machineCode: 'auth/unauthenticated',
+        );
       }
-      final newAppUserId = _generateAppUserId();
-      tx.set(doc, {
-        'app_user_id': newAppUserId,
-        'provider_uid': providerUserId,
-        'provider_id': 'firebase',
-        'created_at': FieldValue.serverTimestamp(),
-      });
-      return newAppUserId;
-    });
-
-    return PlaygroundUserId(appUserId);
-  }
-
-  /// 校验请求中的 actor 是否与当前 session 一致。
-  /// 用于 Functions 侧二次验证；adapter 中用于调试断言。
-  bool isActor(PlaygroundUserId userId) {
-    return _auth.currentUser?.uid == userId.value;
-  }
-
-  /// 生成 UUID v4 风格的 appUserId。
-  String _generateAppUserId() {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    final random = (now * 1103515245 + 12345) & 0x7fffffff;
-    return 'app-${now.toRadixString(36)}-${random.toRadixString(36)}';
+      final callable = _functions.httpsCallable('resolveMyIdentity');
+      final result = await callable.call<Map<String, dynamic>>();
+      final appUserId = result.data['appUserId'] as String;
+      if (appUserId.isEmpty) {
+        throw const PlaygroundError(
+          code: PlaygroundErrorCode.unknown,
+          message: '身份解析失败：服务端未返回 appUserId',
+          machineCode: 'identity/empty-app-user-id',
+        );
+      }
+      return PlaygroundUserId(appUserId);
+    } catch (e) {
+      throw FirebasePlaygroundErrorMapper.map(e);
+    }
   }
 }
