@@ -8,6 +8,7 @@ import '../taiyishenshu/taiyishenshu_module_registry.dart';
 import '../tiebanshenshu/tiebanshenshu_module_registry.dart';
 import '../ziweidoushu/ziweidoushu_module_registry.dart';
 import '../seeker/seeker_module_registry.dart';
+import '../xiang/xiang_module_registry.dart';
 import '../xiang/xiang_record_codec.dart';
 
 /// 中央记录模块注册表 — 聚合全部 9 个占测模块 + 1 个 seeker 模块。
@@ -50,6 +51,8 @@ class RecordModuleRegistry {
         return TaiyishenshuModuleRegistry.repository(store: store);
       case 'tiebanshenshu':
         return TiebanshenshuModuleRegistry.repository(store: store);
+      case 'xiang':
+        return XiangModuleRegistry.repository(store: store);
       case 'ziweidoushu':
         return ZiweidoushuModuleRegistry.repository(store: store);
       case 'seeker':
