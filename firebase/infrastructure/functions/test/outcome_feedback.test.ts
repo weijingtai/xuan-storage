@@ -105,7 +105,7 @@ describe('setOutcomeFeedback', () => {
     );
 
     const replyResult = await createRootReply(
-      makeReq({ postId: 'post-1', text: '反馈后回复', idempotency_key: 'rr-feedback-1' }, 'user-2'),
+      makeReq({ postId: 'post-1', body: '反馈后回复', idempotency_key: 'rr-feedback-1' }, 'user-2'),
     );
     expect(replyResult.id).toBeTruthy();
   });

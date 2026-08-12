@@ -8,10 +8,10 @@ import { hashPayload } from './utils';
 export const createRootReply = onCall({ region: 'asia-east1' }, async (request) => {
   const uid = requireAuthUid(request.auth?.uid);
   const appUserId = await resolveAppUserId(uid);
-  const { postId, text } = request.data;
+  const { postId, body } = request.data;
 
-  if (!text || typeof text !== 'string' || text.trim().length === 0) {
-    throw new HttpsError('invalid-argument', 'text 不能为空');
+  if (!body || typeof body !== 'string' || body.trim().length === 0) {
+    throw new HttpsError('invalid-argument', 'body 不能为空');
   }
   if (!postId || typeof postId !== 'string') {
     throw new HttpsError('invalid-argument', 'postId 不能为空');
@@ -36,7 +36,7 @@ export const createRootReply = onCall({ region: 'asia-east1' }, async (request) 
       depth: 0,
       author_provider_uid: uid,
       author_app_user_id: appUserId,
-      text: text.trim(),
+      body: body.trim(),
       is_tombstoned: false,
       verification: null,
       created_at: now,
@@ -51,7 +51,7 @@ export const createRootReply = onCall({ region: 'asia-east1' }, async (request) 
       root_reply_id: replyData.root_reply_id,
       depth: replyData.depth,
       author_app_user_id: replyData.author_app_user_id,
-      text: replyData.text,
+      body: replyData.body,
       is_tombstoned: replyData.is_tombstoned,
       verification: replyData.verification,
       created_at: new Date().toISOString(),
@@ -62,10 +62,10 @@ export const createRootReply = onCall({ region: 'asia-east1' }, async (request) 
 export const createDiscussionReply = onCall({ region: 'asia-east1' }, async (request) => {
   const uid = requireAuthUid(request.auth?.uid);
   const appUserId = await resolveAppUserId(uid);
-  const { postId, rootReplyId, text } = request.data;
+  const { postId, rootReplyId, body } = request.data;
 
-  if (!text || typeof text !== 'string' || text.trim().length === 0) {
-    throw new HttpsError('invalid-argument', 'text 不能为空');
+  if (!body || typeof body !== 'string' || body.trim().length === 0) {
+    throw new HttpsError('invalid-argument', 'body 不能为空');
   }
   if (!postId || typeof postId !== 'string') {
     throw new HttpsError('invalid-argument', 'postId 不能为空');
@@ -107,7 +107,7 @@ export const createDiscussionReply = onCall({ region: 'asia-east1' }, async (req
       depth: 1,
       author_provider_uid: uid,
       author_app_user_id: appUserId,
-      text: text.trim(),
+      body: body.trim(),
       is_tombstoned: false,
       verification: null,
       created_at: now,
@@ -122,7 +122,7 @@ export const createDiscussionReply = onCall({ region: 'asia-east1' }, async (req
       root_reply_id: replyData.root_reply_id,
       depth: replyData.depth,
       author_app_user_id: replyData.author_app_user_id,
-      text: replyData.text,
+      body: replyData.body,
       is_tombstoned: replyData.is_tombstoned,
       verification: replyData.verification,
       created_at: new Date().toISOString(),

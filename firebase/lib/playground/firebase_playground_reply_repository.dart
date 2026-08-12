@@ -20,23 +20,29 @@ final class FirebasePlaygroundReplyRepository
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
+  // BLOCK-02 后 reply 直写路径不再解析 appUserId（作者字段只写
+  // author_provider_uid，decode 回退 author_provider_uid）。字段保留以兼容
+  // 既有 composition root（xuan-shell bootstrap）构造签名；presentation
+  // identity 的服务端解析属 BLOCK-03/未来工作。
+  // ignore: unused_field
   final FirebasePlaygroundIdentityResolver _identityResolver;
 
   @override
   Future<PlaygroundRootReply> createRootReply(CreateRootReplyCommand command) async {
     try {
-      final actor = await _identityResolver.resolveActor();
       final user = _auth.currentUser!;
       final docRef =
           _firestore.collection(PlaygroundFirestoreSchema.replies).doc();
 
+      // 写 payload 键集合恰好等于 Rules replyCreateFieldsOk allowlist
+      // （覆盖矩阵 §2.1 / PHASE-4 §3）：body + is_tombstoned 唯一权威，
+      // 零 status / is_root / author_app_user_id / text。
       final data = <String, dynamic>{
         'post_id': command.postId.value,
         'author_provider_uid': user.uid,
-        'author_app_user_id': actor.value,
         'depth': 0,
         'body': command.body,
-        'is_root': true,
+        'is_tombstoned': false,
         'root_reply_id': null,
         'reply_to_reply_id': null,
         'technique_tags': command.techniqueTags,
@@ -44,9 +50,9 @@ final class FirebasePlaygroundReplyRepository
             command.chartAttachment != null ? _attachmentToMap(command.chartAttachment!) : null,
         'media_attachments':
             command.mediaAttachments.map(_attachmentToMap).toList(),
-        'status': 'active',
+        'presentation_identity_id': null,
         'created_at': FieldValue.serverTimestamp(),
-        'updated_at': null,
+        'updated_at': FieldValue.serverTimestamp(),
         'revisions': <Map<String, dynamic>>[],
       };
 
@@ -66,7 +72,6 @@ final class FirebasePlaygroundReplyRepository
   Future<PlaygroundDiscussionReply> createDiscussionReply(
       CreateDiscussionReplyCommand command) async {
     try {
-      final actor = await _identityResolver.resolveActor();
       final user = _auth.currentUser!;
       final docRef =
           _firestore.collection(PlaygroundFirestoreSchema.replies).doc();
@@ -74,19 +79,18 @@ final class FirebasePlaygroundReplyRepository
       final data = <String, dynamic>{
         'post_id': command.postId.value,
         'author_provider_uid': user.uid,
-        'author_app_user_id': actor.value,
         'depth': 1,
         'body': command.body,
-        'is_root': false,
+        'is_tombstoned': false,
         'root_reply_id': command.rootReplyId.value,
         'reply_to_reply_id': command.replyToReplyId?.value,
         'technique_tags': <String>[],
         'chart_attachment': null,
         'media_attachments':
             command.mediaAttachments.map(_attachmentToMap).toList(),
-        'status': 'active',
+        'presentation_identity_id': null,
         'created_at': FieldValue.serverTimestamp(),
-        'updated_at': null,
+        'updated_at': FieldValue.serverTimestamp(),
         'revisions': <Map<String, dynamic>>[],
       };
 
@@ -161,11 +165,12 @@ final class FirebasePlaygroundReplyRepository
   @override
   Future<void> deleteReply(DeleteReplyCommand command) async {
     try {
+      // tombstone 唯一语义 = is_tombstoned:true；写路径零 status。
       await _firestore
           .collection(PlaygroundFirestoreSchema.replies)
           .doc(command.replyId.value)
           .update({
-        'status': 'tombstoned',
+        'is_tombstoned': true,
         'updated_at': FieldValue.serverTimestamp(),
       });
     } catch (e) {
@@ -176,10 +181,11 @@ final class FirebasePlaygroundReplyRepository
   @override
   Future<PlaygroundPage<Object>> getReplies(GetRepliesQuery query) async {
     try {
+      // 查询条件必须与 Rules list 语义一致：is_tombstoned==false（PHASE-4 §3.5）。
       var q = _firestore
           .collection(PlaygroundFirestoreSchema.replies)
           .where('post_id', isEqualTo: query.postId.value)
-          .where('status', isEqualTo: 'active')
+          .where('is_tombstoned', isEqualTo: false)
           .orderBy('depth', descending: false)
           .orderBy('created_at', descending: false)
           .limit(query.limit);
@@ -198,7 +204,8 @@ final class FirebasePlaygroundReplyRepository
 
       for (final snap in snaps.docs) {
         final d = snap.data();
-        final isRoot = d['is_root'] as bool? ?? true;
+        // root/discussion 判别改 depth（0=root，1=discussion）；is_root 已从写 payload 移除。
+        final isRoot = (d['depth'] as int? ?? 0) == 0;
         if (isRoot) {
           items.add(_docToRootReply(d, snap.id));
         } else {
@@ -240,7 +247,9 @@ final class FirebasePlaygroundReplyRepository
       revisions: _parseRevisions(d['revisions']),
       createdAt: timestamp?.toDate() ?? DateTime.now(),
       updatedAt: updatedTs?.toDate(),
-      isTombstoned: d['status'] == 'tombstoned',
+      // is_tombstoned 唯一权威；status=='tombstoned' 仅为一次性兼容读（§2.2），
+      // 写路径零 status。
+      isTombstoned: d['is_tombstoned'] == true || d['status'] == 'tombstoned',
     );
   }
 
@@ -261,7 +270,9 @@ final class FirebasePlaygroundReplyRepository
       revisions: _parseRevisions(d['revisions']),
       createdAt: timestamp?.toDate() ?? DateTime.now(),
       updatedAt: updatedTs?.toDate(),
-      isTombstoned: d['status'] == 'tombstoned',
+      // is_tombstoned 唯一权威；status=='tombstoned' 仅为一次性兼容读（§2.2），
+      // 写路径零 status。
+      isTombstoned: d['is_tombstoned'] == true || d['status'] == 'tombstoned',
     );
   }
 

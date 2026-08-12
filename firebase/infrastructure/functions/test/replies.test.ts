@@ -63,7 +63,7 @@ async function seedReply(replyId: string, postId: string, authorUid: string = 'a
     root_reply_id: null,
     depth: 0,
     author_provider_uid: authorUid,
-    text: '测试回复',
+    body: '测试回复',
     is_tombstoned: false,
     verification: null,
     created_at: new Date().toISOString(),
@@ -75,7 +75,7 @@ describe('createRootReply', () => {
   it('创建根回复成功', async () => {
     await seedPost('post-1');
     const result = await createRootReply(
-      makeReq({ postId: 'post-1', text: '根回复内容', idempotency_key: 'rr-1' }, 'user-2'),
+      makeReq({ postId: 'post-1', body: '根回复内容', idempotency_key: 'rr-1' }, 'user-2'),
     );
 
     expect(result.id).toBeTruthy();
@@ -91,13 +91,13 @@ describe('createRootReply', () => {
 
   it('帖子不存在应拒绝', async () => {
     await expect(
-      createRootReply(makeReq({ postId: 'nonexistent', text: '回复' }, 'user-1')),
+      createRootReply(makeReq({ postId: 'nonexistent', body: '回复' }, 'user-1')),
     ).rejects.toThrow(HttpsError);
   });
 
   it('未认证用户应拒绝', async () => {
     await expect(
-      createRootReply(makeReq({ postId: 'post-1', text: '回复' })),
+      createRootReply(makeReq({ postId: 'post-1', body: '回复' })),
     ).rejects.toThrow(HttpsError);
   });
 });
@@ -108,7 +108,7 @@ describe('createDiscussionReply', () => {
     await seedReply('reply-1', 'post-1', 'user-2');
 
     const result = await createDiscussionReply(
-      makeReq({ postId: 'post-1', rootReplyId: 'reply-1', text: '讨论回复', idempotency_key: 'dr-1' }, 'user-3'),
+      makeReq({ postId: 'post-1', rootReplyId: 'reply-1', body: '讨论回复', idempotency_key: 'dr-1' }, 'user-3'),
     );
 
     expect(result.id).toBeTruthy();
@@ -123,7 +123,7 @@ describe('createDiscussionReply', () => {
 
     await expect(
       createDiscussionReply(
-        makeReq({ postId: 'post-1', rootReplyId: 'reply-1', text: '三级回复' }, 'user-3'),
+        makeReq({ postId: 'post-1', rootReplyId: 'reply-1', body: '三级回复' }, 'user-3'),
       ),
     ).resolves.toBeDefined();
 
@@ -137,7 +137,7 @@ describe('createDiscussionReply', () => {
       // 而讨论回复的 depth=1，不是根回复
       await expect(
         createDiscussionReply(
-          makeReq({ postId: 'post-1', rootReplyId: discussionReplyId, text: '三级' }, 'user-4'),
+          makeReq({ postId: 'post-1', rootReplyId: discussionReplyId, body: '三级' }, 'user-4'),
         ),
       ).rejects.toThrow(HttpsError);
     }
@@ -150,7 +150,7 @@ describe('createDiscussionReply', () => {
 
     await expect(
       createDiscussionReply(
-        makeReq({ postId: 'post-2', rootReplyId: 'reply-1', text: '跨帖' }, 'user-3'),
+        makeReq({ postId: 'post-2', rootReplyId: 'reply-1', body: '跨帖' }, 'user-3'),
       ),
     ).rejects.toThrow(HttpsError);
   });
@@ -159,7 +159,7 @@ describe('createDiscussionReply', () => {
     await seedPost('post-1');
     await expect(
       createDiscussionReply(
-        makeReq({ postId: 'post-1', rootReplyId: 'nonexistent', text: '回复' }, 'user-2'),
+        makeReq({ postId: 'post-1', rootReplyId: 'nonexistent', body: '回复' }, 'user-2'),
       ),
     ).rejects.toThrow(HttpsError);
   });

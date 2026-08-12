@@ -493,3 +493,248 @@ describe('identity_map', () => {
   });
 });
 
+// ==============================
+// BLOCK-02 · playground_replies · production payload 契约（RED-B）
+// 与 RED-A（Dart payload 契约测试）同一字段集，真 emulator 下验证
+// production Rules 的 allow/deny 矩阵。跨帖/深度由 Functions + Rules 双层：
+// rules 静态层 depth≤1；跨帖（reply_to_reply_id 不同 post）由 Functions
+// createDiscussionReply 校验（Dart 直写路径由查询约束 post_id）。
+// ==============================
+
+describe('BLOCK-02 · replies · production payload（RED-B）', () => {
+  function productionRootReplyPayload(overrides: Record<string, any> = {}) {
+    return {
+      body: '根回复正文',
+      post_id: 'p-payload-1',
+      root_reply_id: null,
+      reply_to_reply_id: null,
+      depth: 0,
+      technique_tags: ['六爻'],
+      chart_attachment: null,
+      media_attachments: [],
+      author_provider_uid: 'alice-uid',
+      presentation_identity_id: 'anon-1',
+      is_tombstoned: false,
+      revisions: [],
+      created_at: new Date(),
+      updated_at: new Date(),
+      idempotency_key: 'rk-1',
+      ...overrides,
+    };
+  }
+
+  test('allow: production root reply payload create（depth=0）', async () => {
+    const db = aliceContext();
+    await assertSucceeds(
+      db
+        .firestore()
+        .collection('playground_replies')
+        .doc('pr-payload-1')
+        .set(productionRootReplyPayload()),
+    );
+  });
+
+  test('allow: production discussion reply payload create（depth=1 同 post 同 root）', async () => {
+    const db = aliceContext();
+    await assertSucceeds(
+      db
+        .firestore()
+        .collection('playground_replies')
+        .doc('pd-payload-1')
+        .set({
+          ...productionRootReplyPayload(),
+          depth: 1,
+          root_reply_id: 'pr-payload-1',
+          reply_to_reply_id: 'pr-payload-1',
+          technique_tags: [],
+          chart_attachment: null,
+        }),
+    );
+  });
+
+  test('deny: create 携带 status 被 allowlist 拒绝', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db
+        .firestore()
+        .collection('playground_replies')
+        .doc('pr-payload-2')
+        .set(productionRootReplyPayload({ status: 'active' })),
+    );
+  });
+
+  test('deny: create 携带 is_root 被拒绝', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db
+        .firestore()
+        .collection('playground_replies')
+        .doc('pr-payload-3')
+        .set(productionRootReplyPayload({ is_root: true })),
+    );
+  });
+
+  test('deny: create 携带 author_app_user_id 被拒绝', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db
+        .firestore()
+        .collection('playground_replies')
+        .doc('pr-payload-4')
+        .set(productionRootReplyPayload({ author_app_user_id: 'app-1' })),
+    );
+  });
+
+  test('deny: create 携带 text 被拒绝（reply 正文字段唯一为 body）', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db
+        .firestore()
+        .collection('playground_replies')
+        .doc('pr-payload-5')
+        .set(productionRootReplyPayload({ text: '旧字段' })),
+    );
+  });
+
+  test('deny: depth=2 第三层被拒绝', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db
+        .firestore()
+        .collection('playground_replies')
+        .doc('pr-payload-6')
+        .set(productionRootReplyPayload({ depth: 2 })),
+    );
+  });
+
+  test('allow: list where(is_tombstoned == false)（生产 getReplies 同款过滤）', async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      const fs = ctx.firestore();
+      await fs
+        .collection('playground_replies')
+        .doc('pr-list-1')
+        .set({
+          ...productionRootReplyPayload(),
+          post_id: 'p-list',
+          created_at: new Date('2026-01-01T00:00:00Z'),
+        });
+      await fs
+        .collection('playground_replies')
+        .doc('pr-list-2')
+        .set({
+          ...productionRootReplyPayload(),
+          post_id: 'p-list',
+          depth: 1,
+          is_tombstoned: false,
+          root_reply_id: 'pr-list-1',
+          reply_to_reply_id: 'pr-list-1',
+          created_at: new Date('2026-01-02T00:00:00Z'),
+        });
+    });
+    const db = aliceContext();
+    await assertSucceeds(
+      db
+        .firestore()
+        .collection('playground_replies')
+        .where('post_id', '==', 'p-list')
+        .where('is_tombstoned', '==', false)
+        .orderBy('depth')
+        .orderBy('created_at')
+        .get(),
+    );
+  });
+
+  test('allow: get 单条（非 tombstone）', async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await ctx
+        .firestore()
+        .collection('playground_replies')
+        .doc('pr-get-1')
+        .set(productionRootReplyPayload());
+    });
+    const db = aliceContext();
+    await assertSucceeds(
+      db.firestore().collection('playground_replies').doc('pr-get-1').get(),
+    );
+  });
+
+  test('allow: 作者可读自己的 tombstone', async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await ctx
+        .firestore()
+        .collection('playground_replies')
+        .doc('pr-tomb-1')
+        .set({ ...productionRootReplyPayload(), is_tombstoned: true });
+    });
+    const db = aliceContext();
+    await assertSucceeds(
+      db.firestore().collection('playground_replies').doc('pr-tomb-1').get(),
+    );
+  });
+
+  test('deny: 非作者读他人 tombstone', async () => {
+    // productionRootReplyPayload 默认 author_provider_uid=alice-uid；
+    // bob 读 alice 的 tombstone 必须被拒。
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await ctx
+        .firestore()
+        .collection('playground_replies')
+        .doc('pr-tomb-2')
+        .set({ ...productionRootReplyPayload(), is_tombstoned: true });
+    });
+    const bobDb = bobContext();
+    await assertFails(
+      bobDb
+        .firestore()
+        .collection('playground_replies')
+        .doc('pr-tomb-2')
+        .get(),
+    );
+  });
+});
+
+// ==============================
+// BLOCK-02 · playground_posts · production payload 契约（RED-B）
+// ==============================
+
+describe('BLOCK-02 · posts · production payload（RED-B）', () => {
+  function productionPostPayload(overrides: Record<string, any> = {}) {
+    return {
+      text: '帖子正文',
+      author_provider_uid: 'alice-uid',
+      status: 'active',
+      allowed_chart_technique_ids: ['六爻'],
+      attachments: [],
+      created_at: new Date(),
+      updated_at: new Date(),
+      revisions: [],
+      has_outcome_feedback: false,
+      idempotency_key: 'pk-1',
+      ...overrides,
+    };
+  }
+
+  test('allow: production post payload create', async () => {
+    const db = aliceContext();
+    await assertSucceeds(
+      db
+        .firestore()
+        .collection('playground_posts')
+        .doc('p-payload-1')
+        .set(productionPostPayload()),
+    );
+  });
+
+  test('deny: create 携带 author_app_user_id 被拒绝（客户端不写作者 app id）', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db
+        .firestore()
+        .collection('playground_posts')
+        .doc('p-payload-2')
+        .set(productionPostPayload({ author_app_user_id: 'app-1' })),
+    );
+  });
+});
+
+

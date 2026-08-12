@@ -30,7 +30,9 @@ service cloud.firestore {
       // 字段 allowlist — 客户端只能写这些字段
       function postCreateFieldsOk() {
         let allowed = ['text', 'allowed_chart_technique_ids', 'attachments',
-                       'author_provider_uid', 'status', 'idempotency_key'];
+                       'author_provider_uid', 'status', 'idempotency_key',
+                       'created_at', 'updated_at', 'revisions',
+                       'has_outcome_feedback'];
         return request.resource.data.keys().hasOnly(allowed);
       }
 
@@ -62,7 +64,9 @@ service cloud.firestore {
         let allowed = ['body', 'post_id', 'root_reply_id', 'reply_to_reply_id',
                        'depth', 'technique_tags', 'chart_attachment',
                        'media_attachments', 'author_provider_uid',
-                       'is_tombstoned', 'idempotency_key'];
+                       'presentation_identity_id', 'is_tombstoned',
+                       'revisions', 'created_at', 'updated_at',
+                       'idempotency_key'];
         return request.resource.data.keys().hasOnly(allowed);
       }
 
