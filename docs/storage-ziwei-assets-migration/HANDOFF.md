@@ -1,47 +1,47 @@
-# HANDOFF · M4 ziwei 资源迁移（未完成交接）
+# HANDOFF · M4 ziwei 资源迁移（未完成交接 #2）
 
 > 2026-08-11｜交接 agent：pi（预算耗尽触发迭代内交接协议）
-> 状态：**步骤 0 盘点完成并落盘，worktree 已建，代码迁移未开工**
+> 状态：**storage 迁移代码已基本完成并 commit（2709db0），1 个 analyze error 待修，测试未写，shell 未切换**
 
-## 已完成
+## 已完成（本轮）
 
-1. **盘点落盘**（storage main，commit `XXXX` 待确认 —— 实际提交信息 `docs(ziwei): M4 盘点落盘 INVENTORY + 任务书（待开工）`，含 2 文件）：
-   - `xuan-storage/docs/storage-ziwei-assets-migration/INVENTORY.md`
-   - `xuan-storage/tasks/pi-ziwei-assets.md`
-2. **worktree 已建**（分支均 `feat/ziwei-assets-xrap`）：
-   - 源仓 `xuan-ziweidoushu/.worktrees/pi-ziwei-assets-rm` @ `bee2af2`（注意：ziweidoushu 默认分支是 **master** 不是 main，HEAD 原 detached at fb9cec5 = master 前一个）
-   - storage `xuan-storage/.worktrees/pi-ziwei-assets` @ `b1daf71`
+### 源仓 worktree `xuan-ziweidoushu/.worktrees/pi-ziwei-assets-rm`（分支 feat/ziwei-assets-xrap）
+- commit `b7445b0`：git rm 6 文件（stars.csv + 5 data JSON 除 charting_algorithm）+ pubspec 移除 stars.csv 注册
+- 保留：charting_algorithm.json + .gitkeep + fixtures/（测试证据）；.android/.ios 72 处工作区删除未卷入 ✓
 
-## 关键结论（已核实，直接可开工）
+### storage worktree `xuan-storage/.worktrees/pi-ziwei-assets`（分支 feat/ziwei-assets-xrap）
+- commit `2709db0`：完整 XRAP 接入
+  - 物理：`assets/lib/ziwei/assets/`（stars.csv、main/minor、four_transformations、brightness/(D4)、palaces/(D4)）
+  - `tool/build_ziwei_sql.py` → 3 SQL（star_catalog 11013B/1行、star_metadata 21947B/2行、four_transformations 4390B/1行）+ BUILD-REPORT.md
+  - drift 三件套 + `.g.dart`（build_runner 已跑通）
+  - `ziwei_datasets.dart`（manifest 真值 sha256：612e61…/8b8a1f…/099d10…，字节/行数见 BUILD-REPORT）
+  - `xrap_ziwei_repositories.dart`（XrapZiweiStarRepository 4 方法 + loadStarCatalogCsv）
+  - 旧桩 @Deprecated；barrel 4 行 export；pubspec 加 repository_interface_ziweidoushu 依赖 + lib/ziwei/assets/ 注册
+- worktree 专属 `assets/pubspec_overrides.yaml`（gitignored，已修 4 级 path：`../../../../xuan-time-location`），`flutter pub get` ✓
 
-- **前置阻塞已消除**：源仓 72 处未提交改动 = 100% `.android/` + `.ios/` 平台目录删除，与资源零重叠，git rm 指定文件安全
-- **契约**：`ZiweiStarRepository` 4 方法（getAllMainStars/getAllAuxiliaryStars/getStarByName/getFourTransformations），模型手写 Equatable **无 fromJson** → Xrap 实现需手写 JSON→契约映射
-- **3 数据集裁定**（全部 JSON 文档表 prebuilt，照 M3 taiyishenshu 样板）：
-  - `ziwei.star_catalog`：stars.csv 原文 1 行（shell 旧桩 `AssetsStarCatalogRepository.loadStarCatalogCsv` 读 `packages/ziwei/assets/stars.csv` → 迁移后路径失效，shell 必须切换）
-  - `ziwei.star_metadata`：stars_main.json + stars_minor.json 2 行
-  - `ziwei.four_transformations`：four_transformations.json 1 行（用 sanhe 派表，天干 `['甲'..'癸'][index]`，化禄/权/科/忌 → lu/quan/ke/ji）
-- **D4 物理迁入不注册**：`ziwei_star_brightness.json` → `assets/brightness/`；`ziwei_palaces.json` → `assets/palaces/`（均无契约端口）
-- **不迁**：`ziwei_charting_algorithm.json`（算法配置）、`assets/fixtures/` ×5（源仓 `test/domain/fixture_evidence_test.dart` 依赖，保留可保源仓测试绿）
-- **category 映射**：main→mainStar、minor_auspicious/baleful→auxiliaryStar、miscellaneous→miscellaneousStar；five_elements 金木水火土→metal/wood/water/fire/earth；yin_yang 阴/阳→yin/yang；**ZiweiStar.brightness 保持 null**（契约单值无 2D 端口源）
+## 待办（下一步从这开始）
 
-## 未完成（下一步执行序）
+1. **修 analyze error（阻塞）**：`lib/ziwei/xrap_ziwei_repositories.dart:133` `NotFound` 类不存在（persistence_core 无此类，daliuren 的同名引用来源未证实）。**建议**：改用契约仓 `repository_interface_ziweidoushu` 的 `ZiweiRepositoryError`（code: starNotFound/fourTransformationNotFound，见 lib/src/errors/ziwei_repository_error.dart），替换 2 处 `throw const NotFound('stars.csv')`（133 行）
+2. **写测试** `assets/test/ziwei/`（照 taiyishenshu 测试样板）：
+   - A1 注册测试：registerZiweiDatasets 后 3 id lookup + manifest sha256/bytes/rowCount 与 BUILD-REPORT 一致 + 重复注册抛 DatasetRegistrationError + fail closed
+   - A2 差分：XrapZiweiStarRepository.loadStarCatalogCsv() 输出 == 源 stars.csv 原文（逐字节）；getAllMainStars 14 个、getAllAuxiliaryStars 数量、getFourTransformations(0) 甲 4 条 entries（廉贞/破军/武曲/太阳，lu/quan/ke/ji）
+3. **storage 门禁**：`flutter analyze` 无新增 error + `flutter test test/ziwei/` 全绿 → storage commit
+4. **shell 切换**（照 taiyishenshu `_TaiyiXrapSingleton` 样板，模板文件在 xuan-shell/lib/app/）：
+   - `lib/app/ziwei_database_executor{,_native,_web}.dart`（条件导入，native=NativeDatabase.memory，web=WasmDatabase.inMemory + registerVirtualFileSystem）
+   - `lib/storage/shell_scoped_storage_runtime.dart`：`ziweiStarCatalogCsv: await const AssetsStarCatalogRepository().loadStarCatalogCsv()` → 改为 `_ZiweiXrapSingleton` 的 `XrapZiweiStarRepository.loadStarCatalogCsv()`（保持 String 接口不变，StarCatalog.parse 消费不变）
+   - shell worktree pubspec_overrides.yaml 指向两个 worktree path（照 M3 模式）
+5. **验收**：shell worktree `flutter run -d chrome` 用户自己跑；全绿后人类授权三仓合并（ziweidoushu 1 commit、storage 1 commit、shell 1 commit）+ push + 清理 worktree + Todo.md 勾选
 
-1. 源仓 worktree：`git rm` 6 文件（stars.csv + 5 data JSON 除 charting_algorithm，保留 .gitkeep）+ 移除 pubspec flutter.assets 注册（`assets/stars.csv` 与 `assets/data/` 两行，注意 data/ 目录还有 charting_algorithm 与 .gitkeep → 需改为只注册剩余文件或整体移除）→ commit
-2. storage worktree 物理迁入 `assets/lib/ziwei/assets/`（stars.csv、stars_main/minor、four_transformations、brightness/、palaces/）
-3. `tool/build_ziwei_sql.py` 照 `build_taiyishenshu_sql.py` → 3 SQL + BUILD-REPORT.md
-4. drift 三件套（document_tables/database/generations）+ build_runner .g.dart
-5. `ziwei_datasets.dart`（manifest sha256 从 BUILD-REPORT 取，三处真值同步：datasets/BUILD-REPORT/测试）
-6. `xrap_ziwei_repositories.dart`（XrapZiweiStarRepository 4 方法 + 暴露 CSV 原文供 shell 复用，保持 shell `ziweiStarCatalogCsv: String` 接口）
-7. 旧桩 @Deprecated + barrel export + pubspec（加 repository_interface_ziweidoushu 依赖 + `lib/ziwei/assets/` 注册）
-8. 测试（A1 注册 + A2 差分 vs 旧桩 CSV 原文）
-9. shell 切换（`_ZiweiXrapSingleton` + executor 三分文件照 taiyishenshu_database_executor 样板）
-10. 门禁（analyze + storage flutter test + core + convention）+ 验收
+## 关键决策（已核实）
 
-## 停止条件
-
-- 契约端口不足 → 停
-- 源仓 git rm 卷入 .android/.ios → 停（绝不用 git add -A）
+- ziweidoushu 默认分支 **master**（非 main），HEAD detached fb9cec5
+- 契约模型手写 Equatable **无 fromJson** → 手写映射（_mapStar/_elementOf/_yinYangOf/_categoryOf）
+- category：main→mainStar、minor_auspicious/baleful→auxiliaryStar、misc→miscellaneousStar
+- 四化：sanhe 派表，`['甲'..'癸'][tianGanIndex]`，化禄/权/科/忌→lu/quan/ke/ji（4 条 entries）
+- **ZiweiStar.brightness 恒 null**（源 brightness_map 是 2D 表，契约单值无端口，D4）
+- star_metadata 文档表 2 行（main/minor 各一行），getAllMainStars 过滤 category=='main'，getAllAuxiliaryStars 过滤 minor_auspicious/baleful
+- storage worktree 深度差 4 级：assets → ../../../../xuan-time-location
 
 ## 禁止
 
-- push（人类决定）；改契约；碰已迁模块；动 fixtures/charting_algorithm
+- push（人类决定）；改契约；碰已迁模块；git add -A 于源仓（.android/.ios 会卷入）；动 fixtures/charting_algorithm
