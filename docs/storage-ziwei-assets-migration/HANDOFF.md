@@ -1,7 +1,7 @@
 # HANDOFF · M4 ziwei 资源迁移（未完成交接 #3）
 
 > 2026-08-11｜交接 agent：pi（预算耗尽触发迭代内交接协议）
-> 状态：**storage 侧 100% 完成（19 测试全绿 + analyze 全绿）；shell 切换进行中（executor 三分文件已提交，runtime 单例/装配未完成）**
+> 状态：**三仓全部完成：storage 19 测试全绿 + analyze 全绿；shell 切换完成（56e376c，analyze 0 error）；worktree overrides 已建（用户 flutter run 报 xuan_xiang path 错已修）。待用户 Chrome 验证 + 授权合并**
 
 ## 已完成
 
