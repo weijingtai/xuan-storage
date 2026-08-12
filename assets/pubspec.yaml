@@ -92,4 +92,5 @@ flutter:
     - lib/taiyishenshu/assets/
     - lib/ziwei/assets/
     - lib/kanyu/assets/
+    - lib/four_zhu_card/assets/
     - lib/theme/
