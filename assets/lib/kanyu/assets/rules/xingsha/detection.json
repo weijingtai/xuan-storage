@@ -1,0 +1,36 @@
+{
+  "$schema": "../../schema/layer-b-rule-config.schema.json",
+  "configType": "rule",
+  "layer": "B",
+  "ruleId": "xingsha-detection-v1",
+  "name": "形煞几何检测",
+  "version": "1.0.0",
+  "source": "传统堪舆形煞理论",
+  "authorType": "built-in",
+  "category": "yinzai",
+  "description": "从地图几何数据检测五类形煞，输出几何候选+置信度。吉凶解释由独立RuleSet完成",
+  "parameters": [
+    {"name": "centerPoint", "type": "Coordinate2D", "required": true, "description": "太极点坐标"},
+    {"name": "buildingAxis", "type": "Degree", "required": true, "description": "建筑中轴线角度"},
+    {"name": "waterGeometries", "type": "array", "required": false, "description": "水路几何数据（线/面）"},
+    {"name": "buildingGeometries", "type": "array", "required": false, "description": "周边建筑/山体几何数据"}
+  ],
+  "dataRefs": ["xingsha-geometry-v1"],
+  "pipeline": [
+    {"step": 1, "name": "建立极坐标系", "action": "compute", "description": "以太极点为原点，建筑中轴线为0°建立极坐标", "input": {"center": "{{parameters.centerPoint}}", "axis": "{{parameters.buildingAxis}}"}, "output": "polarSystem"},
+    {"step": 2, "name": "逐煞检测", "action": "compute", "description": "对每个形煞类型套用几何条件判定", "input": {"polarSystem": "{{polarSystem}}", "geometries": "{{parameters}}"}, "ref": "xingsha-geometry-v1", "output": "candidates"},
+    {"step": 3, "name": "置信度评估", "action": "classify", "description": "按几何条件匹配度计算置信度", "input": {"candidates": "{{candidates}}"}, "output": "scoredCandidates"}
+  ],
+  "outputs": {
+    "candidates": {
+      "type": "array",
+      "items": {
+        "xingshaType": {"type": "string"},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "evidence": {"type": "object", "description": "几何证据"},
+        "status": {"type": "string", "enum": ["candidate_unconfirmed", "user_confirmed", "rejected"]}
+      }
+    }
+  },
+  "note": "形煞只输出候选，吉凶解释由独立版本化RuleSet完成。人工确认后才进入正式解释。检测条件见xingsha-geometry-v1"
+}

@@ -1,0 +1,41 @@
+{
+  "$schema": "../../schema/layer-a-static-data.schema.json",
+  "configType": "static",
+  "layer": "A",
+  "id": "three-pans-v1",
+  "name": "地盘·人盘·天盘三针",
+  "version": "1.0.0",
+  "source": "杨公三合罗盘·赖布衣/杨救贫",
+  "description": "三盘偏移量与用途。基准：地盘正针=0°（地磁子午）",
+  "pans": [
+    {
+      "name": "地盘",
+      "fullName": "地盘正针",
+      "offsetDegrees": 0.0,
+      "creator": "古制",
+      "purposes": ["格龙", "立坐向", "120分金", "七十二龙", "二十四山"],
+      "conversionFormula": "angle = rawAngle"
+    },
+    {
+      "name": "人盘",
+      "fullName": "人盘中针",
+      "offsetDegrees": -7.5,
+      "creator": "赖布衣",
+      "purposes": ["消砂", "二十八宿五行论山峰生克"],
+      "conversionFormula": "angle = rawAngle - 7.5; if angle < 0 then angle + 360"
+    },
+    {
+      "name": "天盘",
+      "fullName": "天盘缝针",
+      "offsetDegrees": 7.5,
+      "creator": "杨救贫",
+      "purposes": ["纳水", "四大局", "十二长生水法"],
+      "conversionFormula": "angle = rawAngle + 7.5; if angle >= 360 then angle - 360"
+    }
+  ],
+  "testFixtures": [
+    {"input": 0.0, "expectedDipan": 0.0, "expectedRenpan": 352.5, "expectedTianpan": 7.5, "description": "正北点"},
+    {"input": 355.0, "expectedDipan": 355.0, "expectedRenpan": 347.5, "expectedTianpan": 2.5, "description": "越界回绕"},
+    {"input": 180.0, "expectedDipan": 180.0, "expectedRenpan": 172.5, "expectedTianpan": 187.5, "description": "正南点"}
+  ]
+}

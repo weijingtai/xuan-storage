@@ -1,0 +1,72 @@
+{
+  "$schema": "../../schema/layer-a-static-data.schema.json",
+  "configType": "static",
+  "layer": "A",
+  "id": "four-bureaus-v1",
+  "name": "四大局·长生十二宫",
+  "version": "1.0.0",
+  "source": "杨公三合风水·阴宅核心",
+  "description": "四大局判定（天盘看水口定局）、十二长生固定序列、顺逆行规则",
+  "fourBureaus": {
+    "water": {
+      "name": "水局",
+      "combinedEarthly": ["申", "子", "辰"],
+      "description": "辛壬会而聚辰",
+      "muKu": "乙辰",
+      "changShengStart": "坤申",
+      "diWang": "壬子"
+    },
+    "fire": {
+      "name": "火局",
+      "combinedEarthly": ["寅", "午", "戌"],
+      "description": "乙丙交而趋戌",
+      "muKu": "辛戌",
+      "changShengStart": "艮寅",
+      "diWang": "丙午"
+    },
+    "metal": {
+      "name": "金局",
+      "combinedEarthly": ["巳", "酉", "丑"],
+      "description": "斗牛纳丁庚之气",
+      "muKu": "癸丑",
+      "changShengStart": "巽巳",
+      "diWang": "庚酉"
+    },
+    "wood": {
+      "name": "木局",
+      "combinedEarthly": ["亥", "卯", "未"],
+      "description": "金羊收癸甲之灵",
+      "muKu": "丁未",
+      "changShengStart": "乾亥",
+      "diWang": "甲卯"
+    }
+  },
+  "twelveGrowthSequence": ["长生", "沐浴", "冠带", "临官", "帝旺", "衰", "病", "死", "墓", "绝", "胎", "养"],
+  "forwardReverseRule": {
+    "yinZhai": {
+      "description": "阴宅古法：龙属阳顺行，水属阴逆行",
+      "dragonDirection": "顺排",
+      "waterDirection": "逆排"
+    },
+    "yangZhaiPingYang": {
+      "description": "阳宅平洋：部分流派统一顺排，不论龙顺逆",
+      "switchParameter": "yangZhaiUnifiedForward",
+      "default": false
+    }
+  },
+  "waterAssessment": {
+    "rule": "来水宜生旺；去水宜墓绝。生旺出水为凶，墓绝来水为凶。",
+    "goodIncomingWaterPhases": ["长生", "沐浴", "冠带", "临官", "帝旺"],
+    "goodOutgoingWaterPhases": ["衰", "病", "死", "墓", "绝"],
+    "badIncomingWaterPhases": ["墓", "绝"],
+    "badOutgoingWaterPhases": ["长生", "帝旺"]
+  },
+  "testFixtures": [
+    {"inputMouth": "乙辰", "expectedBureau": "水局"},
+    {"inputMouth": "辛戌", "expectedBureau": "火局"},
+    {"inputMouth": "癸丑", "expectedBureau": "金局"},
+    {"inputMouth": "丁未", "expectedBureau": "木局"},
+    {"inputBureau": "水局", "expectedChangSheng": "坤申", "expectedDiWang": "壬子"},
+    {"inputBureau": "木局", "expectedChangSheng": "乾亥", "expectedDiWang": "甲卯"}
+  ]
+}

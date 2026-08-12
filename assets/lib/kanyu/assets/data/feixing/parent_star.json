@@ -1,0 +1,33 @@
+{
+  "$schema": "../../schema/layer-a-static-data.schema.json",
+  "configType": "static",
+  "layer": "A",
+  "id": "parent-star-mapping-v1",
+  "name": "大玄空阴宅父母星对照表",
+  "version": "1.0.0",
+  "source": "大玄空阴宅挨星（与沈氏玄空飞星体系互不通用）",
+  "description": "本山星逆数四位得父母星。公式：父母星=(本山星+5) mod 9 + 1",
+  "formula": {
+    "chinese": "父母星=本山星逆数四位",
+    "computed": "parentStar = (mountainStar + 5) mod 9 + 1",
+    "note": "九星数字序列1,2,3,4,5,6,7,8,9循环逆推"
+  },
+  "lookupTable": [
+    {"mountainStarNumber": 1, "mountainStarName": "一白·贪狼", "parentStarNumber": 7, "parentStarName": "七赤·破军"},
+    {"mountainStarNumber": 2, "mountainStarName": "二黑·巨门", "parentStarNumber": 8, "parentStarName": "八白·左辅"},
+    {"mountainStarNumber": 3, "mountainStarName": "三碧·禄存", "parentStarNumber": 9, "parentStarName": "九紫·右弼"},
+    {"mountainStarNumber": 4, "mountainStarName": "四绿·文曲", "parentStarNumber": 1, "parentStarName": "一白·贪狼"},
+    {"mountainStarNumber": 5, "mountainStarName": "五黄·廉贞", "parentStarNumber": 2, "parentStarName": "二黑·巨门"},
+    {"mountainStarNumber": 6, "mountainStarName": "六白·武曲", "parentStarNumber": 3, "parentStarName": "三碧·禄存"},
+    {"mountainStarNumber": 7, "mountainStarName": "七赤·破军", "parentStarNumber": 4, "parentStarName": "四绿·文曲"},
+    {"mountainStarNumber": 8, "mountainStarName": "八白·左辅", "parentStarNumber": 5, "parentStarName": "五黄·廉贞"},
+    {"mountainStarNumber": 9, "mountainStarName": "九紫·右弼", "parentStarNumber": 6, "parentStarName": "六白·武曲"}
+  ],
+  "operationalRule": "阴宅不以运盘坐山星入中，改用父母星入中宫，再依三元龙阴阳顺逆飞布九宫",
+  "testFixtures": [
+    {"inputMountainStar": 2, "expectedParentStar": 8},
+    {"inputMountainStar": 1, "expectedParentStar": 7},
+    {"inputMountainStar": 9, "expectedParentStar": 6},
+    {"inputMountainStar": 5, "expectedParentStar": 2}
+  ]
+}

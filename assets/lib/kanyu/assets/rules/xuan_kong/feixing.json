@@ -1,0 +1,107 @@
+{
+  "$schema": "../../schema/layer-b-rule-config.schema.json",
+  "configType": "rule",
+  "layer": "B",
+  "ruleId": "xuan-kong-feixing-v1",
+  "name": "沈氏玄空飞星基础盘",
+  "version": "1.0.0",
+  "source": "《沈氏玄空学》",
+  "authorType": "built-in",
+  "category": "common",
+  "description": "排运盘→山盘→向盘→断局。与阴宅大玄空父母星体系互不通用",
+  "note": "沈氏玄空（阳宅主流）≠大玄空（阴宅父母星体系）。本配置为沈氏玄空，用于阳宅和阴宅玄空的基础盘",
+  "parameters": [
+    {"name": "currentYun", "type": "integer", "required": true, "description": "当前元运编号（1-9），可通过sanyuan-nine-yun-v1从年份推算"},
+    {"name": "sittingMountain", "type": "Mountain24", "required": true, "description": "坐山"},
+    {"name": "facingMountain", "type": "Mountain24", "required": true, "description": "向首（坐山的对宫）"}
+  ],
+  "dataRefs": ["bearing-24-mountains-v1", "feixing-sanyuan-dragon-v1", "bagua-nine-palace-v1"],
+  "pipeline": [
+    {
+      "step": 1, "name": "排运盘", "action": "compute",
+      "description": "当运星入中宫，永久顺飞九宫",
+      "input": {"currentYun": "{{parameters.currentYun}}"},
+      "flyTrack": "中→乾→兑→艮→离→坎→坤→震→巽",
+      "flyDirection": "顺飞",
+      "output": "yunPan"
+    },
+    {
+      "step": 2, "name": "取山星原点", "action": "lookup",
+      "description": "在运盘中读取坐山方位之星作为山星原点",
+      "input": {"yunPan": "{{yunPan}}", "sittingMountain": "{{parameters.sittingMountain}}"},
+      "ref": "bearing-24-mountains-v1",
+      "output": "mountainStarOrigin"
+    },
+    {
+      "step": 3, "name": "取向星原点", "action": "lookup",
+      "description": "在运盘中读取向首方位之星作为向星原点",
+      "input": {"yunPan": "{{yunPan}}", "facingMountain": "{{parameters.facingMountain}}"},
+      "ref": "bearing-24-mountains-v1",
+      "output": "facingStarOrigin"
+    },
+    {
+      "step": 4, "name": "判定山星顺逆", "action": "classify",
+      "description": "根据坐山所属三元龙阴阳判定顺飞/逆飞",
+      "input": {"mountain": "{{parameters.sittingMountain}}"},
+      "ref": "feixing-sanyuan-dragon-v1",
+      "output": "mountainFlyDirection"
+    },
+    {
+      "step": 5, "name": "排山盘", "action": "compute",
+      "description": "山星原点入中宫，按三元龙阴阳飞布",
+      "input": {"starOrigin": "{{mountainStarOrigin}}", "flyDirection": "{{mountainFlyDirection}}"},
+      "flyTrack": "中→乾→兑→艮→离→坎→坤→震→巽",
+      "output": "shanPan"
+    },
+    {
+      "step": 6, "name": "判定向星顺逆", "action": "classify",
+      "description": "根据向首所属三元龙阴阳判定顺飞/逆飞",
+      "input": {"mountain": "{{parameters.facingMountain}}"},
+      "ref": "feixing-sanyuan-dragon-v1",
+      "output": "facingFlyDirection"
+    },
+    {
+      "step": 7, "name": "排向盘", "action": "compute",
+      "description": "向星原点入中宫，按三元龙阴阳飞布",
+      "input": {"starOrigin": "{{facingStarOrigin}}", "flyDirection": "{{facingFlyDirection}}"},
+      "flyTrack": "中→乾→兑→艮→离→坎→坤→震→巽",
+      "output": "xiangPan"
+    },
+    {
+      "step": 8, "name": "断局", "action": "condition",
+      "description": "山上龙神不下水，水里龙神不上山。判定旺山旺向/双星到坐/双星到向/上山下水",
+      "input": {"yunPan": "{{yunPan}}", "shanPan": "{{shanPan}}", "xiangPan": "{{xiangPan}}", "sittingPalace": "{{sittingPalace}}", "facingPalace": "{{facingPalace}}"},
+      "conditions": {
+        "type": "and",
+        "conditions": [
+          {
+            "when": "currentStar.mountainPalace == sittingPalace AND currentStar.facingPalace == facingPalace",
+            "then": "旺山旺向·最吉"
+          },
+          {
+            "when": "currentStar.mountainPalace == sittingPalace AND currentStar.facingPalace == sittingPalace",
+            "then": "双星到坐·旺丁不旺财"
+          },
+          {
+            "when": "currentStar.mountainPalace == facingPalace AND currentStar.facingPalace == facingPalace",
+            "then": "双星到向·旺财不旺丁"
+          },
+          {
+            "when": "currentStar.mountainPalace == facingPalace AND currentStar.facingPalace == sittingPalace",
+            "then": "上山下水·大凶"
+          }
+        ]
+      },
+      "output": "judgment"
+    }
+  ],
+  "outputs": {
+    "yunPan": {"type": "object", "description": "运盘九宫->星数映射"},
+    "shanPan": {"type": "object", "description": "山盘九宫->星数映射"},
+    "xiangPan": {"type": "object", "description": "向盘九宫->星数映射"},
+    "judgment": {"type": "string", "description": "断局结论"}
+  },
+  "testFixtures": [
+    {"input": {"currentYun": 9, "sittingMountain": "壬", "facingMountain": "丙"}, "expected": {"说明": "九运壬山丙向样例——具体期望值需专家验证后填入"}, "description": "九运壬山丙向基础排盘"}
+  ]
+}

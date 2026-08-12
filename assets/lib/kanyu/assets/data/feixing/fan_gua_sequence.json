@@ -1,0 +1,59 @@
+{
+  "$schema": "../../schema/layer-a-static-data.schema.json",
+  "configType": "static",
+  "layer": "A",
+  "id": "fan-gua-sequence-v1",
+  "name": "辅星翻卦·中爻起翻",
+  "version": "1.0.0",
+  "source": "黄石公辅星水法·地母卦",
+  "description": "中爻起翻完整推算步骤：中→下→中→上→中→下→中，7次变爻完成八星排布",
+  "dependsOn": ["bagua-najia-v1"],
+  "variantSteps": {
+    "description": "固定变爻顺序",
+    "steps": ["中", "下", "中", "上", "中", "下", "中"],
+    "totalSteps": 7
+  },
+  "starSequence": {
+    "description": "地母卦·辅星水法九星固定序列",
+    "stars": [
+      {"index": 0, "name": "辅弼", "luck": "吉", "description": "本宫起点"},
+      {"index": 1, "name": "武曲", "luck": "吉", "description": "财帛官禄"},
+      {"index": 2, "name": "破军", "luck": "凶", "description": "破败争斗"},
+      {"index": 3, "name": "廉贞", "luck": "凶", "description": "火灾恶疾"},
+      {"index": 4, "name": "贪狼", "luck": "吉", "description": "旺丁旺财"},
+      {"index": 5, "name": "巨门", "luck": "吉", "description": "富贵长寿"},
+      {"index": 6, "name": "禄存", "luck": "凶", "description": "官非疾病"},
+      {"index": 7, "name": "文曲", "luck": "凶", "description": "桃花淫乱"}
+    ]
+  },
+  "example_qianJiaXiang": {
+    "description": "乾甲向示例推演过程",
+    "facingDirection": "乾甲",
+    "startingTrigram": "乾",
+    "steps": [
+      {"variantYao": "中", "fromTrigram": "乾", "toTrigram": "离", "starIndex": 1, "star": "武曲"},
+      {"variantYao": "下", "fromTrigram": "离", "toTrigram": "艮", "starIndex": 2, "star": "破军"},
+      {"variantYao": "中", "fromTrigram": "艮", "toTrigram": "巽", "starIndex": 3, "star": "廉贞"},
+      {"variantYao": "上", "fromTrigram": "巽", "toTrigram": "坎", "starIndex": 4, "star": "贪狼"},
+      {"variantYao": "中", "fromTrigram": "坎", "toTrigram": "坤", "starIndex": 5, "star": "巨门"},
+      {"variantYao": "下", "fromTrigram": "坤", "toTrigram": "震", "starIndex": 6, "star": "禄存"},
+      {"variantYao": "中", "fromTrigram": "震", "toTrigram": "兑", "starIndex": 7, "star": "文曲"}
+    ],
+    "finalMapping": {
+      "乾": "辅弼", "离": "武曲", "艮": "破军", "巽": "廉贞",
+      "坎": "贪狼", "坤": "巨门", "震": "禄存", "兑": "文曲"
+    }
+  },
+  "variantRule": {
+    "description": "爻位编号：上爻=2, 中爻=1, 下爻=0。变爻即翻转该爻阴阳（阳变阴、阴变阳）",
+    "trigramYaoEncoding": {
+      "乾": [1, 1, 1], "兑": [1, 1, 0], "离": [1, 0, 1], "震": [1, 0, 0],
+      "巽": [0, 1, 1], "坎": [0, 1, 0], "艮": [0, 0, 1], "坤": [0, 0, 0]
+    }
+  },
+  "note": "天父卦用于论山龙；地母卦（上述）专论水法。本配置为地母卦",
+  "testFixtures": [
+    {"inputFacing": "乾", "expectedStep2Star": "武曲", "expectedStep8Trigram": "兑", "expectedStep8Star": "文曲"},
+    {"inputFacing": "乾", "expectedStartTrigram": "乾", "expectedStarAtQian": "辅弼"}
+  ]
+}

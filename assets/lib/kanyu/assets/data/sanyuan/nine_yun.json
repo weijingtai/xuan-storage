@@ -1,0 +1,37 @@
+{
+  "$schema": "../../schema/layer-a-static-data.schema.json",
+  "configType": "static",
+  "layer": "A",
+  "id": "sanyuan-nine-yun-v1",
+  "name": "三元九运表",
+  "version": "1.0.0",
+  "source": "玄空通用·近代180年周期",
+  "description": "三元九运完整周期表。重构时复用 xuan-metaphysics-core 的 ThreeYuanNineYunInfo.fromYear()",
+  "reuses": "xuan-metaphysics-core/lib/models/yun_yun_info.dart",
+  "cycleBase": {"epochYear": 1864, "yunDurationYears": 20, "yuanDurationYears": 60, "grandCycleYears": 180},
+  "yuns": [
+    {"yunNumber": 1, "starName": "一白·贪狼", "starNumber": 1, "trigram": "坎", "element": "水", "yuan": "上元", "startYear": 1864, "endYear": 1883},
+    {"yunNumber": 2, "starName": "二黑·巨门", "starNumber": 2, "trigram": "坤", "element": "土", "yuan": "上元", "startYear": 1884, "endYear": 1903},
+    {"yunNumber": 3, "starName": "三碧·禄存", "starNumber": 3, "trigram": "震", "element": "木", "yuan": "上元", "startYear": 1904, "endYear": 1923},
+    {"yunNumber": 4, "starName": "四绿·文曲", "starNumber": 4, "trigram": "巽", "element": "木", "yuan": "中元", "startYear": 1924, "endYear": 1943},
+    {"yunNumber": 5, "starName": "五黄·廉贞", "starNumber": 5, "trigram": null, "element": "土", "yuan": "中元", "startYear": 1944, "endYear": 1963},
+    {"yunNumber": 6, "starName": "六白·武曲", "starNumber": 6, "trigram": "乾", "element": "金", "yuan": "中元", "startYear": 1964, "endYear": 1983},
+    {"yunNumber": 7, "starName": "七赤·破军", "starNumber": 7, "trigram": "兑", "element": "金", "yuan": "下元", "startYear": 1984, "endYear": 2003},
+    {"yunNumber": 8, "starName": "八白·左辅", "starNumber": 8, "trigram": "艮", "element": "土", "yuan": "下元", "startYear": 2004, "endYear": 2023},
+    {"yunNumber": 9, "starName": "九紫·右弼", "starNumber": 9, "trigram": "离", "element": "火", "yuan": "下元", "startYear": 2024, "endYear": 2043}
+  ],
+  "yunSwitchRule": {
+    "description": "流派存在两种换运规则，建模须内置可配置参数",
+    "options": [
+      {"name": "立春换运", "trigger": "交立春节气具体时刻", "precision": "分钟级", "default": true, "school": "玄空主流"},
+      {"name": "元旦换运", "trigger": "公历1月1日0点整", "precision": "秒级", "default": false, "school": "部分流派"}
+    ]
+  },
+  "cycleRule": "2044年起重新进入上元一运，无限循环",
+  "testFixtures": [
+    {"inputYear": 1864, "expectedYun": 1, "expectedStar": "一白·贪狼", "expectedYuan": "上元"},
+    {"inputYear": 2024, "expectedYun": 9, "expectedStar": "九紫·右弼", "expectedYuan": "下元"},
+    {"inputYear": 2023, "expectedYun": 8, "expectedStar": "八白·左辅", "expectedYuan": "下元"},
+    {"inputYear": 2004, "expectedYun": 8, "expectedStar": "八白·左辅", "expectedYuan": "下元"}
+  ]
+}

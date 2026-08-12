@@ -1,0 +1,62 @@
+{
+  "$schema": "../../schema/layer-a-static-data.schema.json",
+  "configType": "static",
+  "layer": "A",
+  "id": "feixing-sanyuan-dragon-v1",
+  "name": "玄空飞星·三元龙阴阳判定表",
+  "version": "1.0.0",
+  "source": "沈氏玄空·三元龙（天元/地元/人元）",
+  "description": "二十四山三元龙阴阳归属，用于飞星排盘时判定顺飞/逆飞。阳顺飞，阴逆飞",
+  "dependsOn": ["bearing-24-mountains-v1"],
+  "flyingStarTrack": {
+    "description": "飞星固定轨迹，九宫位序",
+    "sequence": ["中", "乾", "兑", "艮", "离", "坎", "坤", "震", "巽"]
+  },
+  "threeYuanDragon": {
+    "tianYuan": {
+      "name": "天元龙",
+      "mountains": ["子", "午", "卯", "酉", "乾", "坤", "艮", "巽"],
+      "details": [
+        {"mountain": "乾", "yinYang": "阳"}, {"mountain": "艮", "yinYang": "阳"},
+        {"mountain": "坤", "yinYang": "阴"}, {"mountain": "巽", "yinYang": "阴"},
+        {"mountain": "子", "yinYang": "阴"}, {"mountain": "午", "yinYang": "阴"},
+        {"mountain": "卯", "yinYang": "阴"}, {"mountain": "酉", "yinYang": "阴"}
+      ]
+    },
+    "diYuan": {
+      "name": "地元龙",
+      "mountains": ["辰", "戌", "丑", "未", "甲", "庚", "壬", "丙"],
+      "details": [
+        {"mountain": "甲", "yinYang": "阳"}, {"mountain": "庚", "yinYang": "阳"},
+        {"mountain": "壬", "yinYang": "阳"}, {"mountain": "丙", "yinYang": "阳"},
+        {"mountain": "辰", "yinYang": "阴"}, {"mountain": "戌", "yinYang": "阴"},
+        {"mountain": "丑", "yinYang": "阴"}, {"mountain": "未", "yinYang": "阴"}
+      ]
+    },
+    "renYuan": {
+      "name": "人元龙",
+      "mountains": ["寅", "申", "巳", "亥", "乙", "丁", "辛", "癸"],
+      "details": [
+        {"mountain": "寅", "yinYang": "阳"}, {"mountain": "申", "yinYang": "阳"},
+        {"mountain": "巳", "yinYang": "阳"}, {"mountain": "亥", "yinYang": "阳"},
+        {"mountain": "乙", "yinYang": "阴"}, {"mountain": "丁", "yinYang": "阴"},
+        {"mountain": "辛", "yinYang": "阴"}, {"mountain": "癸", "yinYang": "阴"}
+      ]
+    }
+  },
+  "flyingDirectionRule": {
+    "description": "三元龙阳=顺飞，阴=逆飞",
+    "yang": {"direction": "顺飞", "description": "沿固定轨迹正向排布"},
+    "yin": {"direction": "逆飞", "description": "沿固定轨迹逆向排布"}
+  },
+  "starSequence": {
+    "description": "九星飞布用数字序列",
+    "numbers": [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  },
+  "testFixtures": [
+    {"inputMountain": "子", "expectedDragonType": "天元龙", "expectedYinYang": "阴", "expectedFlyDirection": "逆飞"},
+    {"inputMountain": "甲", "expectedDragonType": "地元龙", "expectedYinYang": "阳", "expectedFlyDirection": "顺飞"},
+    {"inputMountain": "寅", "expectedDragonType": "人元龙", "expectedYinYang": "阳", "expectedFlyDirection": "顺飞"},
+    {"inputMountain": "乙", "expectedDragonType": "人元龙", "expectedYinYang": "阴", "expectedFlyDirection": "逆飞"}
+  ]
+}

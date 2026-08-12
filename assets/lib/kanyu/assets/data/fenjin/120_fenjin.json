@@ -1,0 +1,53 @@
+{
+  "$schema": "../../schema/layer-a-static-data.schema.json",
+  "configType": "static",
+  "layer": "A",
+  "id": "fenjin-120-v1",
+  "name": "120分金表",
+  "version": "1.0.0",
+  "source": "《罗经透解》·地盘正针分金",
+  "description": "二十四山每山均分5份，每份3°，合计120分金。阳支配甲丙戊庚壬，阴支配乙丁己辛癸。行业通用只取丙丁庚辛48旺相分金",
+  "dependsOn": ["bearing-24-mountains-v1"],
+  "fenjinPerMountain": 5,
+  "widthPerFenjinDegrees": 3.0,
+  "selectionRules": {
+    "wangXiang": {
+      "description": "旺相分金（推荐使用）",
+      "allowedGanZhi": ["丙", "丁", "庚", "辛"],
+      "count": 48
+    },
+    "guiJia": {
+      "description": "龟甲空亡（禁用）",
+      "allowedGanZhi": ["戊", "己"],
+      "count": 24
+    },
+    "guXu": {
+      "description": "孤虚（一般不用）",
+      "allowedGanZhi": ["甲", "乙", "壬", "癸"],
+      "count": 48
+    }
+  },
+  "ganZhiSequence": {
+    "yangBranches": {
+      "branches": ["子", "寅", "辰", "午", "申", "戌"],
+      "ganSequence": ["甲", "丙", "戊", "庚", "壬"],
+      "description": "阳支：甲丙戊庚壬"
+    },
+    "yinBranches": {
+      "branches": ["丑", "卯", "巳", "未", "酉", "亥"],
+      "ganSequence": ["乙", "丁", "己", "辛", "癸"],
+      "description": "阴支：乙丁己辛癸"
+    },
+    "eightGanAndFourWei": {
+      "description": "八干四维从前山取分金序列",
+      "ganWei": ["壬", "癸", "甲", "乙", "丙", "丁", "庚", "辛", "乾", "艮", "巽", "坤"]
+    }
+  },
+  "testFixtures": [
+    {"input": 0.0, "expectedIndex": 3, "expectedGanZhi": "戊子", "expectedType": "龟甲空亡", "description": "子山中点=戊子=龟甲"},
+    {"input": 2.0, "expectedIndex": 4, "expectedGanZhi": "庚子", "expectedType": "旺相", "description": "子山第4格=庚子=旺相"},
+    {"input": 3.0, "expectedIndex": 5, "expectedGanZhi": "壬子", "expectedType": "孤虚", "description": "子山第5格=壬子=孤虚"},
+    {"input": 352.5, "expectedIndex": null, "expectedType": "小空亡", "description": "亥壬交界"},
+    {"input": 7.5, "expectedIndex": null, "expectedType": "小空亡", "description": "子癸交界"}
+  ]
+}

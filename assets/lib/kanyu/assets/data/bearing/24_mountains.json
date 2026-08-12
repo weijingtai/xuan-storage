@@ -1,0 +1,73 @@
+{
+  "$schema": "../schema/layer-a-static-data.schema.json",
+  "configType": "static",
+  "layer": "A",
+  "id": "bearing-24-mountains-v1",
+  "name": "二十四山边界表",
+  "version": "1.0.0",
+  "source": "《罗经透解》·地盘正针",
+  "description": "二十四山度数边界，地盘正针基准，正北子山中线=0°(360°)，顺时针递增",
+  "bearingStandard": {
+    "zeroPoint": "正北·子山中线",
+    "zeroDegree": 0,
+    "direction": "clockwise",
+    "totalDegree": 360,
+    "precision": "至少百万分之一度（定点数）",
+    "plateType": "地盘正针",
+    "offsetFromTrueNorth": 0
+  },
+  "boundaryRule": {
+    "type": "half-open",
+    "description": "每山中线±7.5°，下界包含、上界不包含；界线值触发小空亡警告",
+    "toleranceForBoundary": 0.000001
+  },
+  "compatibility": {
+    "reuses": [],
+    "reusedBy": [
+      "fenjin-120-v1",
+      "kongwang-lines-v1",
+      "feixing-sanyuan-dragon-v1",
+      "fan-gua-sequence-v1"
+    ]
+  },
+  "testFixtures": [
+    {"input": 0.0, "expectedMountain": "子", "description": "正北中点"},
+    {"input": 7.49, "expectedMountain": "子", "description": "子山上界内部"},
+    {"input": 7.5, "expectedMountain": null, "expectedWarning": "小空亡", "description": "子癸交界"},
+    {"input": 22.49, "expectedMountain": "癸", "description": "癸山下界内部"},
+    {"input": 359.999, "expectedMountain": "子", "description": "周期回绕"},
+    {"input": 361.0, "expectedMountain": "子", "description": "归一化回绕"}
+  ],
+  "mountains": [
+    {"index": 1, "name": "壬", "startDegree": 337.5, "endDegree": 352.5, "midDegree": 345.0, "trigram": "坎", "baguaNumber": 1, "element": "水", "yinYang": "阳", "threeYuanDragon": "地元龙", "shanType": "天干"},
+    {"index": 2, "name": "子", "startDegree": 352.5, "endDegree": 7.5, "midDegree": 0.0, "trigram": "坎", "baguaNumber": 1, "element": "水", "yinYang": "阴", "threeYuanDragon": "天元龙", "shanType": "地支"},
+    {"index": 3, "name": "癸", "startDegree": 7.5, "endDegree": 22.5, "midDegree": 15.0, "trigram": "坎", "baguaNumber": 1, "element": "水", "yinYang": "阴", "threeYuanDragon": "人元龙", "shanType": "天干"},
+    {"index": 4, "name": "丑", "startDegree": 22.5, "endDegree": 37.5, "midDegree": 30.0, "trigram": "艮", "baguaNumber": 8, "element": "土", "yinYang": "阴", "threeYuanDragon": "地元龙", "shanType": "地支"},
+    {"index": 5, "name": "艮", "startDegree": 37.5, "endDegree": 52.5, "midDegree": 45.0, "trigram": "艮", "baguaNumber": 8, "element": "土", "yinYang": "阳", "threeYuanDragon": "天元龙", "shanType": "四维"},
+    {"index": 6, "name": "寅", "startDegree": 52.5, "endDegree": 67.5, "midDegree": 60.0, "trigram": "艮", "baguaNumber": 8, "element": "木", "yinYang": "阳", "threeYuanDragon": "人元龙", "shanType": "地支"},
+    {"index": 7, "name": "甲", "startDegree": 67.5, "endDegree": 82.5, "midDegree": 75.0, "trigram": "震", "baguaNumber": 3, "element": "木", "yinYang": "阳", "threeYuanDragon": "地元龙", "shanType": "天干"},
+    {"index": 8, "name": "卯", "startDegree": 82.5, "endDegree": 97.5, "midDegree": 90.0, "trigram": "震", "baguaNumber": 3, "element": "木", "yinYang": "阴", "threeYuanDragon": "天元龙", "shanType": "地支"},
+    {"index": 9, "name": "乙", "startDegree": 97.5, "endDegree": 112.5, "midDegree": 105.0, "trigram": "震", "baguaNumber": 3, "element": "木", "yinYang": "阴", "threeYuanDragon": "人元龙", "shanType": "天干"},
+    {"index": 10, "name": "辰", "startDegree": 112.5, "endDegree": 127.5, "midDegree": 120.0, "trigram": "巽", "baguaNumber": 4, "element": "土", "yinYang": "阴", "threeYuanDragon": "地元龙", "shanType": "地支"},
+    {"index": 11, "name": "巽", "startDegree": 127.5, "endDegree": 142.5, "midDegree": 135.0, "trigram": "巽", "baguaNumber": 4, "element": "木", "yinYang": "阴", "threeYuanDragon": "天元龙", "shanType": "四维"},
+    {"index": 12, "name": "巳", "startDegree": 142.5, "endDegree": 157.5, "midDegree": 150.0, "trigram": "巽", "baguaNumber": 4, "element": "火", "yinYang": "阳", "threeYuanDragon": "人元龙", "shanType": "地支"},
+    {"index": 13, "name": "丙", "startDegree": 157.5, "endDegree": 172.5, "midDegree": 165.0, "trigram": "离", "baguaNumber": 9, "element": "火", "yinYang": "阳", "threeYuanDragon": "地元龙", "shanType": "天干"},
+    {"index": 14, "name": "午", "startDegree": 172.5, "endDegree": 187.5, "midDegree": 180.0, "trigram": "离", "baguaNumber": 9, "element": "火", "yinYang": "阴", "threeYuanDragon": "天元龙", "shanType": "地支"},
+    {"index": 15, "name": "丁", "startDegree": 187.5, "endDegree": 202.5, "midDegree": 195.0, "trigram": "离", "baguaNumber": 9, "element": "火", "yinYang": "阴", "threeYuanDragon": "人元龙", "shanType": "天干"},
+    {"index": 16, "name": "未", "startDegree": 202.5, "endDegree": 217.5, "midDegree": 210.0, "trigram": "坤", "baguaNumber": 2, "element": "土", "yinYang": "阴", "threeYuanDragon": "地元龙", "shanType": "地支"},
+    {"index": 17, "name": "坤", "startDegree": 217.5, "endDegree": 232.5, "midDegree": 225.0, "trigram": "坤", "baguaNumber": 2, "element": "土", "yinYang": "阴", "threeYuanDragon": "天元龙", "shanType": "四维"},
+    {"index": 18, "name": "申", "startDegree": 232.5, "endDegree": 247.5, "midDegree": 240.0, "trigram": "坤", "baguaNumber": 2, "element": "金", "yinYang": "阳", "threeYuanDragon": "人元龙", "shanType": "地支"},
+    {"index": 19, "name": "庚", "startDegree": 247.5, "endDegree": 262.5, "midDegree": 255.0, "trigram": "兑", "baguaNumber": 7, "element": "金", "yinYang": "阳", "threeYuanDragon": "地元龙", "shanType": "天干"},
+    {"index": 20, "name": "酉", "startDegree": 262.5, "endDegree": 277.5, "midDegree": 270.0, "trigram": "兑", "baguaNumber": 7, "element": "金", "yinYang": "阴", "threeYuanDragon": "天元龙", "shanType": "地支"},
+    {"index": 21, "name": "辛", "startDegree": 277.5, "endDegree": 292.5, "midDegree": 285.0, "trigram": "兑", "baguaNumber": 7, "element": "金", "yinYang": "阴", "threeYuanDragon": "人元龙", "shanType": "天干"},
+    {"index": 22, "name": "戌", "startDegree": 292.5, "endDegree": 307.5, "midDegree": 300.0, "trigram": "乾", "baguaNumber": 6, "element": "土", "yinYang": "阴", "threeYuanDragon": "地元龙", "shanType": "地支"},
+    {"index": 23, "name": "乾", "startDegree": 307.5, "endDegree": 322.5, "midDegree": 315.0, "trigram": "乾", "baguaNumber": 6, "element": "金", "yinYang": "阳", "threeYuanDragon": "天元龙", "shanType": "四维"},
+    {"index": 24, "name": "亥", "startDegree": 322.5, "endDegree": 337.5, "midDegree": 330.0, "trigram": "乾", "baguaNumber": 6, "element": "水", "yinYang": "阳", "threeYuanDragon": "人元龙", "shanType": "地支"}
+  ],
+  "categorization": {
+    "threeLucky": ["艮", "巽", "卯"],
+    "sixExcellent": ["丙", "丁", "庚", "辛", "艮", "巽"],
+    "threeEvil": ["乾", "坤", "午"],
+    "sixHarmful": ["子", "丑", "寅", "卯", "辰", "巳"]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "$schema": "../../schema/layer-b-rule-config.schema.json",
+  "configType": "rule",
+  "layer": "B",
+  "ruleId": "san-he-three-pan-v1",
+  "name": "杨公三合·三盘消砂纳水",
+  "version": "1.0.0",
+  "source": "杨公三合风水·阴宅版",
+  "authorType": "built-in",
+  "category": "yinzai",
+  "description": "根据坐山、水口和砂峰输出四大局判定、十二长生排布、三盘消砂纳水",
+  "parameters": [
+    {"name": "sittingMountain", "type": "Mountain24", "required": true, "description": "地盘坐山"},
+    {"name": "waterMouth", "type": "Mountain24", "required": true, "description": "天盘水口方位"},
+    {"name": "sandPeaks", "type": "array", "required": false, "description": "砂峰数组[{方位, 五行}]"},
+    {"name": "mode", "type": "enum:yinZhai|yangZhaiPingYang", "required": false, "default": "yinZhai", "description": "阴宅古法/阳宅平洋"},
+    {"name": "unifiedForward", "type": "boolean", "required": false, "default": false, "description": "阳宅平洋统一顺排开关"}
+  ],
+  "dataRefs": ["bearing-24-mountains-v1", "double-mountains-v1", "four-bureaus-v1", "three-pans-v1"],
+  "pipeline": [
+    {"step": 1, "name": "天盘纳水定局", "action": "lookup", "description": "将水口转为天盘角度，查四大局归属", "input": {"waterMouth": "{{parameters.waterMouth}}"}, "ref": "four-bureaus-v1", "output": "bureau"},
+    {"step": 2, "name": "排十二长生", "action": "compute", "description": "从本局长生起点按顺逆行排十二宫", "input": {"bureau": "{{bureau}}", "mode": "{{parameters.mode}}", "unifiedForward": "{{parameters.unifiedForward}}"}, "ref": "four-bureaus-v1", "output": "twelveGrowth"},
+    {"step": 3, "name": "纳水判定", "action": "condition", "description": "来水生旺、去水墓绝为吉", "input": {"twelveGrowth": "{{twelveGrowth}}"}, "ref": "four-bureaus-v1.waterAssessment", "output": "waterJudgment"},
+    {"step": 4, "name": "人盘消砂", "action": "compute", "description": "砂峰转人盘角度，论生克", "input": {"sandPeaks": "{{parameters.sandPeaks}}", "sittingMountain": "{{parameters.sittingMountain}}"}, "ref": "three-pans-v1", "output": "sandJudgment"}
+  ],
+  "outputs": {
+    "bureau": {"type": "string", "enum": ["水局", "火局", "金局", "木局"]},
+    "twelveGrowthPalaces": {"type": "object"},
+    "waterJudgment": {"type": "string"},
+    "sandJudgment": {"type": "array"}
+  },
+  "testFixtures": [
+    {"input": {"sittingMountain": "子", "waterMouth": "乙辰", "mode": "yinZhai"}, "expected": {"bureau": "水局"}, "description": "水口乙辰=水局"}
+  ]
+}

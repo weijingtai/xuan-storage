@@ -1,0 +1,97 @@
+{
+  "$schema": "../../schema/layer-a-static-data.schema.json",
+  "configType": "static",
+  "layer": "A",
+  "id": "xingsha-geometry-v1",
+  "name": "五类形煞几何判定标准",
+  "version": "1.0.0",
+  "source": "传统堪舆形煞理论·量化定义",
+  "description": "五类形煞的几何判定量化标准，以建筑太极点为中心建立极坐标系进行检测。只做几何候选，吉凶解释由RuleSet完成",
+  "measurementBaseline": {
+    "origin": "建筑太极点（几何中心）",
+    "coordinateSystem": "极坐标（r, θ），以建筑中轴线为0°方向",
+    "distanceFrom": "建筑外墙或地基外缘",
+    "heightFrom": "室内±0标高",
+    "angleReference": "太极点指向形煞物体质心的连线与建筑中轴线夹角"
+  },
+  "xingshaTypes": [
+    {
+      "id": "ge-jiao-shui",
+      "name": "割脚水",
+      "geometryConditions": {
+        "waterDistance": {"max": 3.0, "unit": "m", "description": "水流/道路线性边界与建筑外墙最小水平投影距离≤3m"},
+        "waterShape": "平行或半环绕基底",
+        "waterElevation": "水体高程接近±0标高",
+        "distinction": "环抱水距离＞5m为吉"
+      },
+      "testFixture": {
+        "distance": 2.0,
+        "shape": "parallel",
+        "expected": "割脚水候选"
+      }
+    },
+    {
+      "id": "fan-gong-shui",
+      "name": "反弓水（反弓煞）",
+      "geometryConditions": {
+        "waterShape": "河道/道路呈圆弧曲线",
+        "convexSide": "圆弧外侧（弓背）朝向太极点",
+        "curvatureCenter": "曲率中心远离建筑",
+        "oppositeGood": "玉带水：圆弧内侧环抱建筑为吉"
+      },
+      "testFixture": {
+        "arcDirection": "convexTowardBuilding",
+        "expected": "反弓煞候选"
+      }
+    },
+    {
+      "id": "bai-hu-chui-xiong",
+      "name": "白虎捶胸",
+      "geometryConditions": {
+        "direction": "建筑右侧（白虎方，兑卦）",
+        "rightSideObject": "山体或建筑物",
+        "protrusion": "形体向前突出，水平投影侵入明堂范围",
+        "targetedAt": "突出部分正对房屋中部（胸线高度）",
+        "leftSideCondition": "青龙方低矮无环抱"
+      },
+      "testFixture": {
+        "directionSector": "rightWhiteTiger",
+        "protrusionIntoMingTang": true,
+        "expected": "白虎捶胸候选"
+      }
+    },
+    {
+      "id": "jian-shui",
+      "name": "箭水（直冲水）",
+      "geometryConditions": {
+        "waterPath": "水流呈近似直线",
+        "directionTarget": "流向太极点",
+        "angleTolerance": {"max": 15.0, "unit": "度", "description": "水流方向与太极点→建筑中轴连线夹角偏差＜15°"},
+        "bufferCheck": "无弯曲缓冲，直射明堂"
+      },
+      "testFixture": {
+        "angle": 8.0,
+        "expected": "箭水候选"
+      }
+    },
+    {
+      "id": "xie-fei-shui",
+      "name": "斜飞水",
+      "geometryConditions": {
+        "condition": "水流抵达明堂前发生分叉、斜向撇出",
+        "dispersion": "水流不向远处交汇，向外离散散开",
+        "noConvergence": "无合襟"
+      },
+      "testFixture": {
+        "branchBeforeMingTang": true,
+        "expected": "斜飞水候选"
+      }
+    }
+  ],
+  "pipelineRule": {
+    "description": "形煞只产生几何候选+置信度，吉凶解释由版本化RuleSet完成。人工确认后才进入正式解释",
+    "outputType": "geometricCandidate",
+    "requireManualConfirmation": true
+  },
+  "extendedReserved": ["天斩煞", "路冲", "孤峰", "探头砂"]
+}
