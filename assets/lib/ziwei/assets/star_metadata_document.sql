@@ -1,0 +1,778 @@
+CREATE TABLE IF NOT EXISTS star_metadata_document (  file_name TEXT PRIMARY KEY,  payload_json TEXT NOT NULL);
+DELETE FROM star_metadata_document;
+INSERT INTO star_metadata_document ("file_name", "payload_json") VALUES ('ziwei_stars_main.json', '{
+  "description": "紫微斗数十四主星完整数据",
+  "version": "1.0.0",
+  "stars": [
+    {
+      "name": "紫微",
+      "name_en": "Ziwei",
+      "category": "main",
+      "system": "ziwei_series",
+      "index": 1,
+      "five_elements": "土",
+      "yin_yang": "阴",
+      "nature": "帝王之星，尊贵威严",
+      "traits": "领导力强，自尊心强，好面子，有统御才能",
+      "four_transformations": {
+        "化禄": [],
+        "化权": ["壬"],
+        "化科": ["乙"],
+        "化忌": []
+      },
+      "school_comparison": {
+        "sanhe": "重视三方四正格局，如紫微在午为极向离明格",
+        "yinpan": "不看庙旺，看落宫与邻宫对宫关系"
+      }
+    },
+    {
+      "name": "天机",
+      "name_en": "Tianji",
+      "category": "main",
+      "system": "ziwei_series",
+      "index": 2,
+      "five_elements": "木",
+      "yin_yang": "阴",
+      "nature": "智慧之星，善谋略",
+      "traits": "聪明灵动，思维敏捷，善于策划，但多思多虑",
+      "four_transformations": {
+        "化禄": ["乙"],
+        "化权": ["丙"],
+        "化科": ["丁"],
+        "化忌": ["戊"]
+      },
+      "school_comparison": {
+        "sanhe": "喜会文昌文曲，增强智谋",
+        "yinpan": "看串宫压运中天机所在宫位对命主的影响"
+      }
+    },
+    {
+      "name": "太阳",
+      "name_en": "Taiyang",
+      "category": "main",
+      "system": "ziwei_series",
+      "index": 3,
+      "five_elements": "火",
+      "yin_yang": "阳",
+      "nature": "光明之星，热情博爱",
+      "traits": "光明磊落，热情大方，乐于助人，但有时过于张扬",
+      "four_transformations": {
+        "化禄": ["庚"],
+        "化权": ["辛"],
+        "化科": [],
+        "化忌": ["甲"]
+      },
+      "school_comparison": {
+        "sanhe": "重视庙旺利陷，旺在寅卯辰巳午，陷在酉戌亥子丑",
+        "yinpan": "不看庙旺，重视翻宫法中太阳所在位置"
+      }
+    },
+    {
+      "name": "武曲",
+      "name_en": "Wuqu",
+      "category": "main",
+      "system": "ziwei_series",
+      "index": 4,
+      "five_elements": "金",
+      "yin_yang": "阴",
+      "nature": "财星，刚毅果断",
+      "traits": "刚强果断，执行力强，善于理财，但有时过于刚硬",
+      "four_transformations": {
+        "化禄": ["己"],
+        "化权": ["庚"],
+        "化科": ["甲"],
+        "化忌": ["壬"]
+      },
+      "school_comparison": {
+        "sanhe": "武曲为财帛主，入财帛宫为得位",
+        "yinpan": "武曲在阴盘中不看庙陷，看与邻宫关系"
+      }
+    },
+    {
+      "name": "天同",
+      "name_en": "Tiantong",
+      "category": "main",
+      "system": "ziwei_series",
+      "index": 5,
+      "five_elements": "水",
+      "yin_yang": "阳",
+      "nature": "福星，温和享乐",
+      "traits": "性格温和，知足常乐，善于享受生活，但缺乏进取心",
+      "four_transformations": {
+        "化禄": ["丙"],
+        "化权": ["丁"],
+        "化科": [],
+        "化忌": ["庚"]
+      },
+      "school_comparison": {
+        "sanhe": "天同为福德宫主星，喜安静",
+        "yinpan": "天同在阴盘中重翻宫看过去现在"
+      }
+    },
+    {
+      "name": "廉贞",
+      "name_en": "Lianzhen",
+      "category": "main",
+      "system": "ziwei_series",
+      "index": 6,
+      "five_elements": "火",
+      "yin_yang": "阴",
+      "nature": "次桃花星，刚烈正直",
+      "traits": "正直刚烈，原则性强，桃花缘重，但易固执",
+      "four_transformations": {
+        "化禄": ["甲"],
+        "化权": [],
+        "化科": [],
+        "化忌": ["丙"]
+      },
+      "school_comparison": {
+        "sanhe": "廉贞为囚星，独坐时须看对宫",
+        "yinpan": "廉贞在阴盘重翻宫断事"
+      }
+    },
+    {
+      "name": "天府",
+      "name_en": "Tianfu",
+      "category": "main",
+      "system": "tianfu_series",
+      "index": 1,
+      "five_elements": "土",
+      "yin_yang": "阳",
+      "nature": "库星，稳重包容",
+      "traits": "稳重包容，善于收纳管理，为人忠厚，但保守",
+      "four_transformations": {
+        "化禄": [],
+        "化权": [],
+        "化科": [],
+        "化忌": []
+      },
+      "school_comparison": {
+        "sanhe": "天府为财库之主，三方见禄存为佳",
+        "yinpan": "天府在阴盘中无特殊化忌，重串宫"
+      }
+    },
+    {
+      "name": "太阴",
+      "name_en": "Taiyin",
+      "category": "main",
+      "system": "tianfu_series",
+      "index": 2,
+      "five_elements": "水",
+      "yin_yang": "阴",
+      "nature": "母星，温柔细腻",
+      "traits": "温柔细腻，感情丰富，善解人意，但多愁善感",
+      "four_transformations": {
+        "化禄": ["丁"],
+        "化权": ["戊"],
+        "化科": ["庚", "癸"],
+        "化忌": ["乙"]
+      },
+      "school_comparison": {
+        "sanhe": "太阴喜夜生人，入庙在酉戌亥子丑",
+        "yinpan": "阴盘不看昼夜生人"
+      }
+    },
+    {
+      "name": "贪狼",
+      "name_en": "Tanlang",
+      "category": "main",
+      "system": "tianfu_series",
+      "index": 3,
+      "five_elements": "木",
+      "yin_yang": "阳",
+      "nature": "桃花主，多才多艺",
+      "traits": "多才多艺，欲望强烈，社交手腕强，但易放纵",
+      "four_transformations": {
+        "化禄": ["戊"],
+        "化权": ["己"],
+        "化科": [],
+        "化忌": ["癸"]
+      },
+      "school_comparison": {
+        "sanhe": "贪狼为第一大桃花星，喜会火铃为火贪格",
+        "yinpan": "阴盘重翻宫看贪狼动向"
+      }
+    },
+    {
+      "name": "巨门",
+      "name_en": "Jumen",
+      "category": "main",
+      "system": "tianfu_series",
+      "index": 4,
+      "five_elements": "水",
+      "yin_yang": "阴",
+      "nature": "暗星，口才好辩",
+      "traits": "口才佳，善于分析，是非分明，但易生口舌是非",
+      "four_transformations": {
+        "化禄": ["辛"],
+        "化权": ["癸"],
+        "化科": [],
+        "化忌": ["丁"]
+      },
+      "school_comparison": {
+        "sanhe": "巨门为暗曜，需太阳照或禄存解暗",
+        "yinpan": "巨门在阴盘重串宫看口舌"
+      }
+    },
+    {
+      "name": "天相",
+      "name_en": "Tianxiang",
+      "category": "main",
+      "system": "tianfu_series",
+      "index": 5,
+      "five_elements": "水",
+      "yin_yang": "阳",
+      "nature": "印星，公正辅佐",
+      "traits": "公正无私，善于辅佐，注重形象，但缺乏主见",
+      "four_transformations": {
+        "化禄": [],
+        "化权": [],
+        "化科": [],
+        "化忌": []
+      },
+      "school_comparison": {
+        "sanhe": "天相为印星，最怕煞忌冲破",
+        "yinpan": "天相在阴盘无化"
+      }
+    },
+    {
+      "name": "天梁",
+      "name_en": "Tianliang",
+      "category": "main",
+      "system": "tianfu_series",
+      "index": 6,
+      "five_elements": "土",
+      "yin_yang": "阳",
+      "nature": "寿星，正直慈悲",
+      "traits": "正直慈悲，乐于助人，有长者风范，但好管闲事",
+      "four_transformations": {
+        "化禄": ["壬"],
+        "化权": ["乙"],
+        "化科": ["己"],
+        "化忌": []
+      },
+      "school_comparison": {
+        "sanhe": "天梁为荫星，喜在命宫或福德宫",
+        "yinpan": "天梁在阴盘中重视翻宫"
+      }
+    },
+    {
+      "name": "七杀",
+      "name_en": "Qisha",
+      "category": "main",
+      "system": "tianfu_series",
+      "index": 7,
+      "five_elements": "金",
+      "yin_yang": "阳",
+      "nature": "将星，勇猛刚烈",
+      "traits": "勇敢果断，有魄力，敢作敢为，但冲动急躁",
+      "four_transformations": {
+        "化禄": [],
+        "化权": [],
+        "化科": [],
+        "化忌": []
+      },
+      "school_comparison": {
+        "sanhe": "七杀为将星，喜会紫微天府增其威",
+        "yinpan": "阴盘七杀重翻宫看冲动之事"
+      }
+    },
+    {
+      "name": "破军",
+      "name_en": "Pojun",
+      "category": "main",
+      "system": "tianfu_series",
+      "index": 8,
+      "five_elements": "水",
+      "yin_yang": "阴",
+      "nature": "耗星，改革先锋",
+      "traits": "改革先锋，敢破敢立，行动力强，但不稳定",
+      "four_transformations": {
+        "化禄": ["癸"],
+        "化权": ["甲"],
+        "化科": [],
+        "化忌": []
+      },
+      "school_comparison": {
+        "sanhe": "破军为先锋，先破后成",
+        "yinpan": "阴盘破军重串宫压运"
+      }
+    }
+  ]
+}
+');
+INSERT INTO star_metadata_document ("file_name", "payload_json") VALUES ('ziwei_stars_minor.json', '{
+  "description": "紫微斗数辅星与杂曜完整数据",
+  "version": "1.0.0",
+  "stars": [
+    {
+      "name": "左辅",
+      "name_en": "Zuofu",
+      "category": "minor_auspicious",
+      "five_elements": "土",
+      "yin_yang": "阳",
+      "nature": "辅佐吉星",
+      "traits": "善于辅佐，贵人运强，增福添利"
+    },
+    {
+      "name": "右弼",
+      "name_en": "Youbi",
+      "category": "minor_auspicious",
+      "five_elements": "水",
+      "yin_yang": "阴",
+      "nature": "辅佐吉星",
+      "traits": "暗中帮助，智谋辅助，有幕后贵人"
+    },
+    {
+      "name": "文昌",
+      "name_en": "Wenchang",
+      "category": "minor_auspicious",
+      "five_elements": "金",
+      "yin_yang": "阳",
+      "nature": "文星",
+      "traits": "文采斐然，学业有成，科甲功名"
+    },
+    {
+      "name": "文曲",
+      "name_en": "Wenqu",
+      "category": "minor_auspicious",
+      "five_elements": "水",
+      "yin_yang": "阴",
+      "nature": "文星，异路功名",
+      "traits": "才艺出众，口才佳，有艺术天赋"
+    },
+    {
+      "name": "天魁",
+      "name_en": "Tiankui",
+      "category": "minor_auspicious",
+      "five_elements": "火",
+      "yin_yang": "阳",
+      "nature": "贵人星，科甲",
+      "traits": "贵人相助，高中科举，正直权威之贵人"
+    },
+    {
+      "name": "天钺",
+      "name_en": "Tianyue",
+      "category": "minor_auspicious",
+      "five_elements": "火",
+      "yin_yang": "阴",
+      "nature": "贵人星，科甲",
+      "traits": "暗中贵人，异性贵人，温雅之助"
+    },
+    {
+      "name": "禄存",
+      "name_en": "Lucun",
+      "category": "minor_auspicious",
+      "five_elements": "土",
+      "yin_yang": "阴",
+      "nature": "财星",
+      "traits": "财源稳定，积蓄丰厚，但保守"
+    },
+    {
+      "name": "天马",
+      "name_en": "Tianma",
+      "category": "minor_auspicious",
+      "five_elements": "火",
+      "yin_yang": "阳",
+      "nature": "驿马星",
+      "traits": "奔波劳碌，动中得财，迁移变动"
+    },
+    {
+      "name": "擎羊",
+      "name_en": "Qingyang",
+      "category": "baleful",
+      "five_elements": "金",
+      "yin_yang": "阳",
+      "nature": "刑星",
+      "traits": "刚强冲动，刑伤争斗，但能开创"
+    },
+    {
+      "name": "陀罗",
+      "name_en": "Tuoluo",
+      "category": "baleful",
+      "five_elements": "金",
+      "yin_yang": "阴",
+      "nature": "忌星",
+      "traits": "拖延反复，暗中阻碍，慢性困扰"
+    },
+    {
+      "name": "火星",
+      "name_en": "Huoxing",
+      "category": "baleful",
+      "five_elements": "火",
+      "yin_yang": "阳",
+      "nature": "煞星",
+      "traits": "突然爆发，来得快去得快，急躁"
+    },
+    {
+      "name": "铃星",
+      "name_en": "Lingxing",
+      "category": "baleful",
+      "five_elements": "火",
+      "yin_yang": "阴",
+      "nature": "煞星",
+      "traits": "暗中折磨，慢性消耗，忍耐后爆发"
+    },
+    {
+      "name": "地空",
+      "name_en": "Dikong",
+      "category": "baleful",
+      "five_elements": "火",
+      "yin_yang": "阴",
+      "nature": "空亡星",
+      "traits": "理想破灭，不切实际，精神空虚"
+    },
+    {
+      "name": "地劫",
+      "name_en": "Dijie",
+      "category": "baleful",
+      "five_elements": "火",
+      "yin_yang": "阳",
+      "nature": "劫煞星",
+      "traits": "意外波折，财物损耗，突发变故"
+    },
+    {
+      "name": "天刑",
+      "name_en": "Tianxing",
+      "category": "miscellaneous",
+      "five_elements": "火",
+      "yin_yang": "阳",
+      "nature": "刑星",
+      "traits": "刑罚官司，刚正不阿，自律严格"
+    },
+    {
+      "name": "天姚",
+      "name_en": "Tianyao",
+      "category": "miscellaneous",
+      "five_elements": "水",
+      "yin_yang": "阴",
+      "nature": "桃花星",
+      "traits": "情感丰富，桃花缘重，浪漫多情"
+    },
+    {
+      "name": "红鸾",
+      "name_en": "Hongluan",
+      "category": "miscellaneous",
+      "five_elements": "水",
+      "yin_yang": "阴",
+      "nature": "桃花星，婚喜",
+      "traits": "婚姻喜事，姻缘佳，喜庆之事"
+    },
+    {
+      "name": "天喜",
+      "name_en": "Tianxi",
+      "category": "miscellaneous",
+      "five_elements": "水",
+      "yin_yang": "阳",
+      "nature": "喜庆星",
+      "traits": "添丁进口，喜事临门，开心愉悦"
+    },
+    {
+      "name": "咸池",
+      "name_en": "Xianchi",
+      "category": "miscellaneous",
+      "five_elements": "水",
+      "yin_yang": "阴",
+      "nature": "桃花煞",
+      "traits": "酒色桃花，情感纠葛，欲望强烈"
+    },
+    {
+      "name": "龙池",
+      "name_en": "Longchi",
+      "category": "miscellaneous",
+      "five_elements": "水",
+      "yin_yang": "阳",
+      "nature": "科甲辅助",
+      "traits": "才艺出众，贵人提携，文雅气质"
+    },
+    {
+      "name": "凤阁",
+      "name_en": "Fengge",
+      "category": "miscellaneous",
+      "five_elements": "土",
+      "yin_yang": "阴",
+      "nature": "科甲辅助",
+      "traits": "才华横溢，文章锦绣，美丽高雅"
+    },
+    {
+      "name": "三台",
+      "name_en": "Santai",
+      "category": "miscellaneous",
+      "five_elements": "土",
+      "yin_yang": "阳",
+      "nature": "贵星",
+      "traits": "地位提升，掌握权力，车马仪仗"
+    },
+    {
+      "name": "八座",
+      "name_en": "Bazuo",
+      "category": "miscellaneous",
+      "five_elements": "土",
+      "yin_yang": "阴",
+      "nature": "贵星",
+      "traits": "地位尊崇，管理众人，权威显赫"
+    },
+    {
+      "name": "恩光",
+      "name_en": "Enguang",
+      "category": "miscellaneous",
+      "five_elements": "火",
+      "yin_yang": "阳",
+      "nature": "荫星",
+      "traits": "祖上荫庇，受恩于人，光耀门楣"
+    },
+    {
+      "name": "天贵",
+      "name_en": "Tiangui",
+      "category": "miscellaneous",
+      "five_elements": "土",
+      "yin_yang": "阳",
+      "nature": "贵星",
+      "traits": "天生贵气，受人尊敬，品行高洁"
+    },
+    {
+      "name": "天官",
+      "name_en": "Tianguan",
+      "category": "miscellaneous",
+      "five_elements": "火",
+      "yin_yang": "阳",
+      "nature": "官星",
+      "traits": "官运亨通，职位晋升，仕途顺利"
+    },
+    {
+      "name": "天福",
+      "name_en": "Tianfu_star",
+      "category": "miscellaneous",
+      "five_elements": "土",
+      "yin_yang": "阳",
+      "nature": "福星",
+      "traits": "福气临门，享乐安逸，生活舒适"
+    },
+    {
+      "name": "天厨",
+      "name_en": "Tianchu",
+      "category": "miscellaneous",
+      "five_elements": "土",
+      "yin_yang": "阳",
+      "nature": "食禄星",
+      "traits": "饮食口福，厨艺精湛，生活享受"
+    },
+    {
+      "name": "天哭",
+      "name_en": "Tianku",
+      "category": "miscellaneous",
+      "five_elements": "金",
+      "yin_yang": "阴",
+      "nature": "悲伤星",
+      "traits": "悲伤痛苦，多愁善感，内心凄苦"
+    },
+    {
+      "name": "天虚",
+      "name_en": "Tianxu",
+      "category": "miscellaneous",
+      "five_elements": "土",
+      "yin_yang": "阴",
+      "nature": "虚耗星",
+      "traits": "虚弱无力，空虚寂寞，消耗身心"
+    },
+    {
+      "name": "孤辰",
+      "name_en": "Guchen",
+      "category": "miscellaneous",
+      "five_elements": "火",
+      "yin_yang": "阳",
+      "nature": "孤星",
+      "traits": "孤独感强，独来独往，性格孤僻"
+    },
+    {
+      "name": "寡宿",
+      "name_en": "Guasu",
+      "category": "miscellaneous",
+      "five_elements": "火",
+      "yin_yang": "阴",
+      "nature": "寡星",
+      "traits": "独守空房，婚姻不顺，缺乏陪伴"
+    },
+    {
+      "name": "蜚廉",
+      "name_en": "Feilian",
+      "category": "miscellaneous",
+      "five_elements": "火",
+      "yin_yang": "阳",
+      "nature": "小人星",
+      "traits": "口舌是非，小人暗算，流言蜚语"
+    },
+    {
+      "name": "破碎",
+      "name_en": "Posui",
+      "category": "miscellaneous",
+      "five_elements": "火",
+      "yin_yang": "阴",
+      "nature": "破败星",
+      "traits": "物品损坏，关系破裂，破碎不全"
+    },
+    {
+      "name": "天才",
+      "name_en": "Tiancai",
+      "category": "miscellaneous",
+      "five_elements": "水",
+      "yin_yang": "阳",
+      "nature": "才智星",
+      "traits": "聪明才智，天赋异禀，举一反三"
+    },
+    {
+      "name": "天寿",
+      "name_en": "Tianshou",
+      "category": "miscellaneous",
+      "five_elements": "土",
+      "yin_yang": "阳",
+      "nature": "寿星",
+      "traits": "长寿健康，福寿绵长，养生有道"
+    },
+    {
+      "name": "阴煞",
+      "name_en": "Yinsha",
+      "category": "miscellaneous",
+      "five_elements": "水",
+      "yin_yang": "阴",
+      "nature": "阴星",
+      "traits": "阴气重，易见鬼神，直觉敏锐"
+    },
+    {
+      "name": "华盖",
+      "name_en": "Huagai",
+      "category": "miscellaneous",
+      "five_elements": "土",
+      "yin_yang": "阳",
+      "nature": "孤高星",
+      "traits": "才华横溢，孤芳自赏，有艺术/宗教倾向"
+    },
+    {
+      "name": "劫煞",
+      "name_en": "Jiesha",
+      "category": "miscellaneous",
+      "five_elements": "火",
+      "yin_yang": "阳",
+      "nature": "劫煞星",
+      "traits": "意外劫难，抢夺损失，突发事故"
+    },
+    {
+      "name": "灾煞",
+      "name_en": "Zaisha",
+      "category": "miscellaneous",
+      "five_elements": "金",
+      "yin_yang": "阴",
+      "nature": "灾星",
+      "traits": "灾难不幸，飞来横祸，疾病灾厄"
+    },
+    {
+      "name": "白虎",
+      "name_en": "Baihu",
+      "category": "miscellaneous",
+      "five_elements": "金",
+      "yin_yang": "阳",
+      "nature": "凶星",
+      "traits": "血光之灾，凶险之事，伤灾骨折"
+    },
+    {
+      "name": "丧门",
+      "name_en": "Sangmen",
+      "category": "miscellaneous",
+      "five_elements": "水",
+      "yin_yang": "阴",
+      "nature": "丧星",
+      "traits": "丧事孝服，亲人离世，哀伤之事"
+    },
+    {
+      "name": "吊客",
+      "name_en": "Diaoke",
+      "category": "miscellaneous",
+      "five_elements": "火",
+      "yin_yang": "阴",
+      "nature": "吊丧星",
+      "traits": "吊唁之事，慰问丧家，哀悼送别"
+    },
+    {
+      "name": "将军",
+      "name_en": "Jiangjun",
+      "category": "miscellaneous",
+      "five_elements": "木",
+      "yin_yang": "阳",
+      "nature": "威权星",
+      "traits": "威武霸气，掌控局面，统领一方"
+    },
+    {
+      "name": "奏书",
+      "name_en": "Zoushu",
+      "category": "miscellaneous",
+      "five_elements": "金",
+      "yin_yang": "阳",
+      "nature": "文书星",
+      "traits": "文书往来，消息传递，请柬聘书"
+    },
+    {
+      "name": "飞廉",
+      "name_en": "Feilian_star",
+      "category": "miscellaneous",
+      "five_elements": "火",
+      "yin_yang": "阳",
+      "nature": "孤克星",
+      "traits": "孤独克害，亲缘淡薄，漂泊不定"
+    },
+    {
+      "name": "喜神",
+      "name_en": "Xishen",
+      "category": "miscellaneous",
+      "five_elements": "火",
+      "yin_yang": "阳",
+      "nature": "喜庆星",
+      "traits": "欢喜临门，心情愉悦，好事将近"
+    },
+    {
+      "name": "病符",
+      "name_en": "Bingfu",
+      "category": "miscellaneous",
+      "five_elements": "水",
+      "yin_yang": "阴",
+      "nature": "病星",
+      "traits": "疾病缠身，身体不适，健康警示"
+    },
+    {
+      "name": "大耗",
+      "name_en": "Dahao",
+      "category": "miscellaneous",
+      "five_elements": "火",
+      "yin_yang": "阳",
+      "nature": "大耗星",
+      "traits": "大笔破财，浪费挥霍，消耗巨大"
+    },
+    {
+      "name": "小耗",
+      "name_en": "Xiaohao",
+      "category": "miscellaneous",
+      "five_elements": "火",
+      "yin_yang": "阴",
+      "nature": "小耗星",
+      "traits": "小破财，日常浪费，琐碎开销"
+    },
+    {
+      "name": "年解",
+      "name_en": "Nianjie",
+      "category": "miscellaneous",
+      "five_elements": "木",
+      "yin_yang": "阳",
+      "nature": "解脱星",
+      "traits": "解除灾难，化解困厄，脱困而出"
+    },
+    {
+      "name": "月解",
+      "name_en": "Yuejie",
+      "category": "miscellaneous",
+      "five_elements": "水",
+      "yin_yang": "阴",
+      "nature": "化解星",
+      "traits": "月度化解，短期脱困，缓释压力"
+    }
+  ]
+}
+');

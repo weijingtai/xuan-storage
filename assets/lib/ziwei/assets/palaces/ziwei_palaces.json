@@ -1,0 +1,115 @@
+{
+  "description": "紫微斗数十二宫位数据",
+  "version": "1.0.0",
+  "palaces": [
+    {
+      "index": 1,
+      "name": "命宫",
+      "name_en": "Ming",
+      "meaning": "命主的先天根基、性格、天赋、一生运势总纲",
+      "category": "核心",
+      "represents": "自我 / 性格 / 先天禀赋"
+    },
+    {
+      "index": 2,
+      "name": "兄弟",
+      "name_en": "Xiongdi",
+      "meaning": "兄弟姐妹缘份、平辈关系、合作合伙",
+      "category": "六亲",
+      "represents": "兄弟姐妹 / 平辈 / 合作者"
+    },
+    {
+      "index": 3,
+      "name": "夫妻",
+      "name_en": "Fuqi",
+      "meaning": "婚姻对象、配偶品性、感情婚姻状况",
+      "category": "六亲",
+      "represents": "配偶 / 婚姻 / 感情"
+    },
+    {
+      "index": 4,
+      "name": "子女",
+      "name_en": "Zinv",
+      "meaning": "子女缘份、晚辈关系、生育能力、桃花",
+      "category": "六亲",
+      "represents": "子女 / 晚辈 / 桃花 / 生育"
+    },
+    {
+      "index": 5,
+      "name": "财帛",
+      "name_en": "Caibo",
+      "meaning": "赚钱能力、金钱观念、财运吉凶",
+      "category": "财禄",
+      "represents": "财富 / 赚钱方式 / 消费观"
+    },
+    {
+      "index": 6,
+      "name": "疾厄",
+      "name_en": "Jie",
+      "meaning": "先天体质、疾病隐患、健康吉凶",
+      "category": "健康",
+      "represents": "健康 / 疾病 / 身体"
+    },
+    {
+      "index": 7,
+      "name": "迁移",
+      "name_en": "Qianyi",
+      "meaning": "外出运势、远行、社交形象、对外关系",
+      "category": "外环境",
+      "represents": "外出 / 社会形象 / 远行"
+    },
+    {
+      "index": 8,
+      "name": "交友",
+      "name_en": "Jiaoyou",
+      "meaning": "朋友人脉、同事下属、人际关系网",
+      "category": "人际关系",
+      "represents": "朋友 / 同事 / 下属 / 人脉"
+    },
+    {
+      "index": 9,
+      "name": "官禄",
+      "name_en": "Guanlu",
+      "meaning": "事业运势、工作能力、职场发展",
+      "category": "事业",
+      "represents": "事业 / 工作 / 官运"
+    },
+    {
+      "index": 10,
+      "name": "田宅",
+      "name_en": "Tianzhai",
+      "meaning": "不动产、家庭环境、祖业继承、家居风水",
+      "category": "财禄",
+      "represents": "房产 / 家庭 / 祖业"
+    },
+    {
+      "index": 11,
+      "name": "福德",
+      "name_en": "Fude",
+      "meaning": "精神享受、兴趣爱好、晚年运势、福报",
+      "category": "精神",
+      "represents": "精神 / 福报 / 兴趣 / 晚年"
+    },
+    {
+      "index": 12,
+      "name": "父母",
+      "name_en": "Fumu",
+      "meaning": "父母缘份、长辈关系、上司师长、文书学业",
+      "category": "六亲",
+      "represents": "父母 / 长辈 / 上司 / 学业"
+    }
+  ],
+  "school_comparison": {
+    "sanhe": "传统十二宫固定排列，以身宫另立一宫（与命宫不同宫位）",
+    "yinpan": "阴盘无身宫，十二宫定义相同但名称有微调，如'交友'阴盘常称'奴仆'"
+  },
+  "triple_combination": {
+    "description": "三方四正体系：每宫的对宫 + 两个三合宫构成三方四正",
+    "groups": {
+      "命宫三方": ["命宫", "财帛", "官禄"],
+      "兄弟三方": ["兄弟", "疾厄", "田宅"],
+      "夫妻三方": ["夫妻", "迁移", "福德"],
+      "子女三方": ["子女", "交友", "父母"]
+    }
+  }
+}
