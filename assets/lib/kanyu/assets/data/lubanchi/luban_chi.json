@@ -1,0 +1,50 @@
+{
+  "$schema": "../../schema/layer-a-static-data.schema.json",
+  "configType": "static",
+  "layer": "A",
+  "id": "luban-chi-v1",
+  "name": "鲁班尺算法（阳尺+阴尺）",
+  "version": "1.0.0",
+  "source": "传统营造法式·门光尺/丁兰尺",
+  "description": "阳尺门光尺（46.08cm周期，8格）和阴尺丁兰尺（39.6cm周期，10格）。Phase 7实现，Phase 1暂不纳入核心开发范围",
+  "phase": "Phase 7",
+  "yangChi": {
+    "name": "阳尺·门光尺",
+    "usage": "阳宅门窗尺寸",
+    "cycleLengthCm": 46.08,
+    "toleranceCm": 0.3,
+    "grids": [
+      {"index": 0, "name": "财", "startCm": 0.0, "endCm": 5.76, "luck": "吉", "subMeanings": ["财德", "宝库", "六合", "迎福"]},
+      {"index": 1, "name": "病", "startCm": 5.76, "endCm": 11.52, "luck": "凶", "subMeanings": ["失脱", "官鬼", "劫财", "孤寡"]},
+      {"index": 2, "name": "离", "startCm": 11.52, "endCm": 17.28, "luck": "凶", "subMeanings": ["长库", "劫财", "官鬼", "失脱"]},
+      {"index": 3, "name": "义", "startCm": 17.28, "endCm": 23.04, "luck": "吉", "subMeanings": ["添丁", "益利", "贵子", "大吉"]},
+      {"index": 4, "name": "官", "startCm": 23.04, "endCm": 28.80, "luck": "吉", "subMeanings": ["顺科", "横财", "进益", "富贵"]},
+      {"index": 5, "name": "劫", "startCm": 28.80, "endCm": 34.56, "luck": "凶", "subMeanings": ["死别", "退口", "离乡", "财失"]},
+      {"index": 6, "name": "害", "startCm": 34.56, "endCm": 40.32, "luck": "凶", "subMeanings": ["灾至", "死绝", "病临", "口舌"]},
+      {"index": 7, "name": "本", "startCm": 40.32, "endCm": 46.08, "luck": "吉", "subMeanings": ["财德", "宝库", "六合", "迎福"]}
+    ],
+    "formula": "Rem = L mod 46.08; 按余数查表判定格位和吉凶",
+    "alternativeVersion": {
+      "name": "市面流行42.9cm版本",
+      "cycleLengthCm": 42.9,
+      "note": "提供切换参数"
+    }
+  },
+  "yinChi": {
+    "name": "阴尺·丁兰尺",
+    "usage": "墓地、墓碑、灵位、神龛",
+    "cycleLengthCm": 39.6,
+    "grids": [
+      {"name": "丁", "luck": "吉"}, {"name": "害", "luck": "凶"}, {"name": "旺", "luck": "吉"},
+      {"name": "苦", "luck": "凶"}, {"name": "义", "luck": "吉"}, {"name": "官", "luck": "吉"},
+      {"name": "死", "luck": "凶"}, {"name": "兴", "luck": "吉"}, {"name": "失", "luck": "凶"},
+      {"name": "财", "luck": "吉"}
+    ]
+  },
+  "usageRule": "阳宅门窗用阳尺；墓地墓碑用阴尺；不可混用",
+  "testFixtures": [
+    {"inputCm": 46.08, "expectedGrid": "财", "expectedLuck": "吉", "note": "正好一个周期"},
+    {"inputCm": 50.0, "expectedGrid": "财", "expectedLuck": "吉", "note": "余数3.92落在财格"},
+    {"inputCm": 55.0, "expectedGrid": "病", "expectedLuck": "凶", "note": "余数8.92落在病格"}
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "$schema": "../../schema/layer-a-static-data.schema.json",
+  "configType": "static",
+  "layer": "A",
+  "id": "minggua-formula-v1",
+  "name": "命卦计算公式",
+  "version": "1.0.0",
+  "source": "《八宅明镜》八宅派标准命卦公式（不以2000年分割）",
+  "description": "年命卦计算公式，东西四命划分。重构时复用 xuan-taiyishenshu 的 MingGuaEngine",
+  "reuses": "xuan-taiyishenshu/lib/minggua/core/ming_gua_engine.dart",
+  "starNumberMapping": {
+    "1": {"trigram": "坎", "element": "水"},
+    "2": {"trigram": "坤", "element": "土"},
+    "3": {"trigram": "震", "element": "木"},
+    "4": {"trigram": "巽", "element": "木"},
+    "5": {"trigram": null, "element": "土", "note": "中宫寄宫"},
+    "6": {"trigram": "乾", "element": "金"},
+    "7": {"trigram": "兑", "element": "金"},
+    "8": {"trigram": "艮", "element": "土"},
+    "9": {"trigram": "离", "element": "火"}
+  },
+  "formula": {
+    "source": "《八宅明镜》原文",
+    "maleRemainder": "remainder = (100 - Y) mod 9",
+    "femaleRemainder": "remainder = (Y - 4) mod 9",
+    "yDefinition": "公历出生年份后两位数字",
+    "postProcessing": {
+      "remainderZero": "替换为9",
+      "remainderFive": {"male": "寄坤2", "female": "寄艮8"}
+    }
+  },
+  "groups": {
+    "eastFour": {"name": "东四命", "numbers": [1, 3, 4, 9], "trigrams": ["坎", "震", "巽", "离"]},
+    "westFour": {"name": "西四命", "numbers": [2, 6, 7, 8], "trigrams": ["坤", "乾", "兑", "艮"]}
+  },
+  "versionSwitch": {
+    "description": "部分现代流派使用2000年分界修正公式，预留参数开关",
+    "versions": [
+      {"name": "八宅明镜原版", "id": "pre-2000-classic", "cutoffYear": null, "default": true},
+      {"name": "2000年分界修正版", "id": "post-2000-modern", "cutoffYear": 2000, "default": false}
+    ]
+  },
+  "testFixtures": [
+    {"inputYear": 1984, "inputGender": "male", "expectedNumber": 3, "expectedTrigram": "震", "expectedGroup": "东四命"},
+    {"inputYear": 1984, "inputGender": "female", "expectedNumber": 2, "expectedTrigram": "坤", "expectedGroup": "西四命"},
+    {"inputYear": 1990, "inputGender": "male", "expectedNumber": 1, "expectedTrigram": "坎", "expectedGroup": "东四命"},
+    {"inputYear": 2000, "inputGender": "male", "expectedNumber": 9, "expectedTrigram": "离", "expectedGroup": "东四命"}
+  ]
+}

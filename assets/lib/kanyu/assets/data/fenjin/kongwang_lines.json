@@ -1,0 +1,54 @@
+{
+  "$schema": "../../schema/layer-a-static-data.schema.json",
+  "configType": "static",
+  "layer": "A",
+  "id": "kongwang-lines-v1",
+  "name": "空亡线定义",
+  "version": "1.0.0",
+  "source": "《罗经透解》·空亡禁忌",
+  "description": "大空亡、小空亡、龟甲空亡、孤虚的精确度数定义",
+  "dependsOn": ["bearing-24-mountains-v1", "fenjin-120-v1"],
+  "smallKongWang": {
+    "description": "二十四山两山交界线，气驳杂",
+    "degreeList": [22.5, 37.5, 52.5, 67.5, 82.5, 97.5, 112.5, 127.5, 142.5, 157.5, 172.5, 187.5, 202.5, 217.5, 232.5, 247.5, 262.5, 277.5, 292.5, 307.5, 322.5, 337.5, 352.5, 7.5],
+    "offsetRecommendation": "偏离界线至少1.5°（半个分金格）"
+  },
+  "largeKongWang": {
+    "description": "八干四维每山正中7.5°中线为核心红线；部分师门含子午卯酉",
+    "coreLines": [
+      {"mountain": "壬", "midDegree": 345.0, "forbiddenRange": [342.5, 347.5]},
+      {"mountain": "癸", "midDegree": 15.0, "forbiddenRange": [12.5, 17.5]},
+      {"mountain": "甲", "midDegree": 75.0, "forbiddenRange": [72.5, 77.5]},
+      {"mountain": "乙", "midDegree": 105.0, "forbiddenRange": [102.5, 107.5]},
+      {"mountain": "丙", "midDegree": 165.0, "forbiddenRange": [162.5, 167.5]},
+      {"mountain": "丁", "midDegree": 195.0, "forbiddenRange": [192.5, 197.5]},
+      {"mountain": "庚", "midDegree": 255.0, "forbiddenRange": [252.5, 257.5]},
+      {"mountain": "辛", "midDegree": 285.0, "forbiddenRange": [282.5, 287.5]},
+      {"mountain": "乾", "midDegree": 315.0, "forbiddenRange": [312.5, 317.5]},
+      {"mountain": "坤", "midDegree": 225.0, "forbiddenRange": [222.5, 227.5]},
+      {"mountain": "艮", "midDegree": 45.0, "forbiddenRange": [42.5, 47.5]},
+      {"mountain": "巽", "midDegree": 135.0, "forbiddenRange": [132.5, 137.5]}
+    ],
+    "extendedParameter": {
+      "includeZiWuMaoYou": false,
+      "description": "部分师门将子午卯酉地支中线亦纳入大空亡；开关默认关闭"
+    }
+  },
+  "guiJiaKongWang": {
+    "description": "地支正中分金带戊己干支，每山第3格（±1.5°）",
+    "rule": "每山中线±1.5°为龟甲禁区",
+    "example": "子山中线0°，龟甲空亡区间358.5°~1.5°"
+  },
+  "guXuLine": {
+    "description": "孤阳甲壬、孤阴乙癸对应的分金区间，常紧邻大空亡两侧",
+    "guYang": ["甲", "壬"],
+    "guYin": ["乙", "癸"]
+  },
+  "testFixtures": [
+    {"input": 7.5, "expectedKongWangType": "小空亡", "description": "子癸交界=小空亡"},
+    {"input": 45.0, "expectedKongWangType": "大空亡", "description": "艮山中线=大空亡"},
+    {"input": 1.5, "expectedKongWangType": "龟甲空亡", "description": "子山龟甲上界"},
+    {"input": 358.5, "expectedKongWangType": "龟甲空亡", "description": "子山龟甲下界"},
+    {"input": 0.0, "expectedKongWangType": "龟甲空亡", "description": "子山中线=戊子龟甲"}
+  ]
+}

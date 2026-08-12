@@ -1,0 +1,53 @@
+{
+  "$schema": "../../schema/layer-a-static-data.schema.json",
+  "configType": "static",
+  "layer": "A",
+  "id": "bagua-najia-v1",
+  "name": "八卦纳甲表（两套体系）",
+  "version": "1.0.0",
+  "source": "京房纳甲（《京氏易传》）+ 风水净阴净阳纳甲",
+  "description": "两套纳甲体系并存：京房原始纳甲（六爻通用）和风水净阴净阳纳甲（辅星翻卦使用）。重构时优先复用 xuan-gua-core/gua_constants.dart 的 yinGuaYaoTianGan/yangGuaYaoTianGan 常量",
+  "reuses": "xuan-gua-core/lib/constants/gua_constants.dart",
+  "system1_jingFangNajia": {
+    "name": "京房原始纳甲",
+    "usage": "六爻、天星通用",
+    "mappings": [
+      {"trigram": "乾", "trigramName": "乾", "najia": ["甲", "壬"]},
+      {"trigram": "坤", "trigramName": "坤", "najia": ["乙", "癸"]},
+      {"trigram": "震", "trigramName": "震", "najia": ["庚"]},
+      {"trigram": "巽", "trigramName": "巽", "najia": ["辛"]},
+      {"trigram": "坎", "trigramName": "坎", "najia": ["戊"]},
+      {"trigram": "离", "trigramName": "离", "najia": ["己"]},
+      {"trigram": "艮", "trigramName": "艮", "najia": ["丙"]},
+      {"trigram": "兑", "trigramName": "兑", "najia": ["丁"]}
+    ]
+  },
+  "system2_fengShuiJingYinJingYang": {
+    "name": "风水净阴净阳纳甲",
+    "usage": "三合、辅星翻卦使用",
+    "rule": "立向优先净阴配阴龙、净阳配阳龙，阴阳不交为凶",
+    "yangGua": {
+      "label": "净阳",
+      "mappings": [
+        {"trigram": "乾", "najia": ["甲"]},
+        {"trigram": "坤", "najia": ["乙"]},
+        {"trigram": "坎", "najia": ["癸", "申", "子", "辰"]},
+        {"trigram": "离", "najia": ["壬", "寅", "午", "戌"]}
+      ]
+    },
+    "yinGua": {
+      "label": "净阴",
+      "mappings": [
+        {"trigram": "艮", "najia": ["丙"]},
+        {"trigram": "巽", "najia": ["辛"]},
+        {"trigram": "震", "najia": ["庚", "亥", "卯", "未"]},
+        {"trigram": "兑", "najia": ["丁", "巳", "酉", "丑"]}
+      ]
+    }
+  },
+  "testFixtures": [
+    {"inputTrigram": "乾", "expectedJingFang": ["甲", "壬"], "expectedYinYang": "净阳"},
+    {"inputTrigram": "震", "expectedJingFang": ["庚"], "expectedYinYang": "净阴"},
+    {"inputTrigram": "离", "expectedJingFang": ["己"], "expectedYinYang": "净阳"}
+  ]
+}

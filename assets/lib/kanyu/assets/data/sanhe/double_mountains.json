@@ -1,0 +1,35 @@
+{
+  "$schema": "../../schema/layer-a-static-data.schema.json",
+  "configType": "static",
+  "layer": "A",
+  "id": "double-mountains-v1",
+  "name": "双山五行表",
+  "version": "1.0.0",
+  "source": "杨公三合风水·天盘纳水专用",
+  "description": "相邻一干一支合并为一组，共12组，对应十二长生。天盘纳水专用，地盘立向不用此表",
+  "dependsOn": [],
+  "doubleMountains": [
+    {"pair": "壬子", "elements": ["壬", "子"], "wuxing": "水", "bureau": "水局", "role": null},
+    {"pair": "癸丑", "elements": ["癸", "丑"], "wuxing": "金", "bureau": "金局", "role": "墓库"},
+    {"pair": "艮寅", "elements": ["艮", "寅"], "wuxing": "火", "bureau": "火局", "role": "长生"},
+    {"pair": "甲卯", "elements": ["甲", "卯"], "wuxing": "木", "bureau": "木局", "role": "帝旺"},
+    {"pair": "乙辰", "elements": ["乙", "辰"], "wuxing": "水", "bureau": "水局", "role": "墓库"},
+    {"pair": "巽巳", "elements": ["巽", "巳"], "wuxing": "金", "bureau": "金局", "role": "长生"},
+    {"pair": "丙午", "elements": ["丙", "午"], "wuxing": "火", "bureau": "火局", "role": "帝旺"},
+    {"pair": "丁未", "elements": ["丁", "未"], "wuxing": "木", "bureau": "木局", "role": "墓库"},
+    {"pair": "坤申", "elements": ["坤", "申"], "wuxing": "水", "bureau": "水局", "role": "长生"},
+    {"pair": "庚酉", "elements": ["庚", "酉"], "wuxing": "金", "bureau": "金局", "role": "帝旺"},
+    {"pair": "辛戌", "elements": ["辛", "戌"], "wuxing": "火", "bureau": "火局", "role": "墓库"},
+    {"pair": "乾亥", "elements": ["乾", "亥"], "wuxing": "木", "bureau": "木局", "role": "长生"}
+  ],
+  "quickLookupFormula": {
+    "description": "三合五行起长生诀，用于快速判定四大局归属",
+    "formula": "坤壬乙→水局, 艮丙辛→火局, 巽庚癸→金局, 乾甲丁→木局"
+  },
+  "testFixtures": [
+    {"input": "壬子", "expectedWuxing": "水", "expectedBureau": "水局"},
+    {"input": "癸丑", "expectedWuxing": "金", "expectedBureau": "金局"},
+    {"input": "艮寅", "expectedWuxing": "火", "expectedBureau": "火局"},
+    {"input": "甲卯", "expectedWuxing": "木", "expectedBureau": "木局"}
+  ]
+}

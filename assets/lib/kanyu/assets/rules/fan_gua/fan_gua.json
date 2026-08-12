@@ -1,0 +1,29 @@
+{
+  "$schema": "../../schema/layer-b-rule-config.schema.json",
+  "configType": "rule",
+  "layer": "B",
+  "ruleId": "fan-gua-water-v1",
+  "name": "辅星翻卦水法",
+  "version": "1.0.0",
+  "source": "黄石公辅星水法·地母卦",
+  "authorType": "built-in",
+  "category": "yinzai",
+  "description": "根据二十四山立向输出纳甲映射、翻卦步骤、九星方位分布",
+  "parameters": [
+    {"name": "facingMountain", "type": "Mountain24", "required": true, "description": "立向（向上纳甲）"}
+  ],
+  "dataRefs": ["bearing-24-mountains-v1", "bagua-najia-v1", "fan-gua-sequence-v1"],
+  "pipeline": [
+    {"step": 1, "name": "向上纳甲取本卦", "action": "lookup", "description": "取向上纳甲之卦为本宫辅弼起点", "input": {"facingMountain": "{{parameters.facingMountain}}"}, "ref": "bagua-najia-v1.system2_fengShuiJingYinJingYang", "output": "baseTrigram"},
+    {"step": 2, "name": "逐爻变卦推演", "action": "compute", "description": "按中下中上下中顺序7次变爻", "input": {"baseTrigram": "{{baseTrigram}}"}, "ref": "fan-gua-sequence-v1", "output": "starPositions"},
+    {"step": 3, "name": "九星八宫分布", "action": "compose", "description": "将九星分配到对应八卦宫位", "input": {"starPositions": "{{starPositions}}"}, "output": "result"}
+  ],
+  "outputs": {
+    "baseTrigram": {"type": "string"},
+    "steps": {"type": "array", "items": {"fromTrigram": "string", "toTrigram": "string", "variantYao": "string", "starName": "string", "luck": "吉|凶"}},
+    "palaceStars": {"type": "object", "description": "八卦宫->九星名+吉凶映射"}
+  },
+  "testFixtures": [
+    {"input": {"facingMountain": "乾"}, "expected": {"baseTrigram": "乾"}, "description": "乾甲向→本卦乾→辅弼"}
+  ]
+}

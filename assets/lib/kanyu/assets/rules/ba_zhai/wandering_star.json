@@ -1,0 +1,65 @@
+{
+  "$schema": "../../schema/layer-b-rule-config.schema.json",
+  "configType": "rule",
+  "layer": "B",
+  "ruleId": "ba-zhai-you-nian-v1",
+  "name": "八宅游年九星·坐山起伏位法",
+  "version": "1.0.0",
+  "source": "《八宅明镜》",
+  "authorType": "built-in",
+  "category": "yangzhai",
+  "description": "以坐山为伏位，按大游年歌诀排布八宫九星。支持坐山起伏位和大门起伏位双模式切换",
+  "parameters": [
+    {"name": "sittingMountain", "type": "Mountain24", "required": true, "description": "宅坐山（二十四山之一）"},
+    {"name": "mode", "type": "enum:sittingMountain|mainDoor", "required": false, "default": "sittingMountain", "description": "起伏位模式"},
+    {"name": "mainDoorDirection", "type": "Mountain24", "required": false, "description": "大门朝向（mode=mainDoor时必填）"}
+  ],
+  "dataRefs": ["bagua-wandering-star-v1", "bearing-24-mountains-v1", "bagua-nine-palace-v1"],
+  "pipeline": [
+    {
+      "step": 1, "name": "确定伏位宫", "action": "classify",
+      "description": "根据mode参数确定伏位所在的八卦宫",
+      "input": {"mode": "{{parameters.mode}}", "sittingMountain": "{{parameters.sittingMountain}}", "mainDoorDirection": "{{parameters.mainDoorDirection}}"},
+      "ref": "bearing-24-mountains-v1",
+      "output": "fuweiTrigram"
+    },
+    {
+      "step": 2, "name": "查大游年映射表", "action": "lookup",
+      "description": "以伏位宫为行，遍历八宫列为目标，查大游年歌矩阵",
+      "input": {"fuweiTrigram": "{{fuweiTrigram}}"},
+      "ref": "bagua-wandering-star-v1",
+      "output": "palaceStarMapping"
+    },
+    {
+      "step": 3, "name": "分类吉凶", "action": "classify",
+      "description": "将每个宫的九星归类为吉或凶",
+      "input": {"palaceStars": "{{palaceStarMapping}}"},
+      "ref": "bagua-wandering-star-v1.starClassification",
+      "output": "palaceLuckMapping"
+    },
+    {
+      "step": 4, "name": "组装输出", "action": "compose",
+      "description": "将结果组装为结构化输出",
+      "output": "result"
+    }
+  ],
+  "outputs": {
+    "mansionType": {"type": "string", "description": "宅型（乾宅/坎宅/...）"},
+    "fuweiPalace": {"type": "string", "description": "伏位所在八卦宫"},
+    "mode": {"type": "string", "description": "使用的起伏位模式"},
+    "palaceResults": {
+      "type": "array",
+      "items": {
+        "palace": {"type": "string"},
+        "star": {"type": "string"},
+        "luck": {"type": "string", "enum": ["吉", "凶"]},
+        "description": {"type": "string"}
+      }
+    }
+  },
+  "testFixtures": [
+    {"input": {"sittingMountain": "乾", "mode": "sittingMountain"}, "expected": {"mansionType": "乾宅", "fuweiPalace": "乾"}, "description": "乾宅坐山法"},
+    {"input": {"sittingMountain": "坎", "mode": "sittingMountain"}, "expected": {"mansionType": "坎宅", "fuweiPalace": "坎"}, "description": "坎宅坐山法"},
+    {"input": {"sittingMountain": "兑", "mode": "sittingMountain"}, "expected": {"mansionType": "兑宅"}, "description": "兑宅坐山法"}
+  ]
+}

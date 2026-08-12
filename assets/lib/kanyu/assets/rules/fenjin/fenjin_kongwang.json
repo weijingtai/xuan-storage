@@ -1,0 +1,36 @@
+{
+  "$schema": "../../schema/layer-b-rule-config.schema.json",
+  "configType": "rule",
+  "layer": "B",
+  "ruleId": "fenjin-kongwang-v1",
+  "name": "120分金·空亡判定",
+  "version": "1.0.0",
+  "source": "《罗经透解》",
+  "authorType": "built-in",
+  "category": "yinzai",
+  "description": "根据坐向度数输出二十四山归属、分金干支序号、空亡类型判定",
+  "parameters": [
+    {"name": "bearingDegree", "type": "Degree", "required": true, "description": "地盘坐向角度（0-359.999...°）"}
+  ],
+  "dataRefs": ["bearing-24-mountains-v1", "fenjin-120-v1", "kongwang-lines-v1"],
+  "pipeline": [
+    {"step": 1, "name": "二十四山归属", "action": "lookup", "description": "根据度数查表确定所属二十四山", "input": {"degree": "{{parameters.bearingDegree}}"}, "ref": "bearing-24-mountains-v1", "output": "mountainInfo"},
+    {"step": 2, "name": "分金序号与干支", "action": "compute", "description": "在山内5等份中确定分金序号和干支", "input": {"degree": "{{parameters.bearingDegree}}", "mountainInfo": "{{mountainInfo}}"}, "ref": "fenjin-120-v1", "output": "fenjinInfo"},
+    {"step": 3, "name": "空亡判定", "action": "condition", "description": "按大空亡→小空亡→龟甲→孤虚优先级逐级判定", "input": {"degree": "{{parameters.bearingDegree}}", "mountainInfo": "{{mountainInfo}}", "fenjinInfo": "{{fenjinInfo}}"}, "ref": "kongwang-lines-v1", "output": "kongwangType"},
+    {"step": 4, "name": "可用性判定", "action": "classify", "description": "综合空亡和孤虚判定分金是否可用", "input": {"fenjinInfo": "{{fenjinInfo}}", "kongwangType": "{{kongwangType}}"}, "output": "usability"}
+  ],
+  "outputs": {
+    "mountainName": {"type": "string"},
+    "fenjinIndex": {"type": "integer", "description": "1-5"},
+    "fenjinGanZhi": {"type": "string"},
+    "kongwangType": {"type": "string", "enum": ["无", "小空亡", "大空亡", "龟甲空亡", "孤虚"]},
+    "usable": {"type": "boolean"},
+    "recommendation": {"type": "string"}
+  },
+  "testFixtures": [
+    {"input": {"bearingDegree": 0.0}, "expected": {"kongwangType": "龟甲空亡", "usable": false}, "description": "子山中线=戊子龟甲"},
+    {"input": {"bearingDegree": 3.0}, "expected": {"fenjinGanZhi": "庚子", "usable": true}, "description": "子山第4格=庚子旺相"},
+    {"input": {"bearingDegree": 7.5}, "expected": {"kongwangType": "小空亡"}, "description": "子癸交界小空亡"},
+    {"input": {"bearingDegree": 45.0}, "expected": {"kongwangType": "大空亡", "usable": false}, "description": "艮山中线大空亡"}
+  ]
+}

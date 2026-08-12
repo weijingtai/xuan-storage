@@ -1,0 +1,58 @@
+{
+  "$schema": "../../schema/layer-a-static-data.schema.json",
+  "configType": "static",
+  "layer": "A",
+  "id": "bagua-wandering-star-v1",
+  "name": "八宅游年九星·大游年歌",
+  "version": "1.0.0",
+  "source": "《八宅明镜》·大游年歌诀",
+  "description": "坐山起伏位法，八宫九星完整映射表。分支差异：《阳宅三要》大门起伏位；《八宅明镜》坐山起伏位，双模式预留",
+  "starClassification": {
+    "auspicious": {
+      "name": "四吉星",
+      "stars": [
+        {"name": "伏位", "description": "宅之本体，平稳"},
+        {"name": "生气", "description": "旺丁旺财，上吉"},
+        {"name": "延年", "description": "夫妻和睦，长寿"},
+        {"name": "天医", "description": "身体健康，祛病"}
+      ]
+    },
+    "inauspicious": {
+      "name": "四凶星",
+      "stars": [
+        {"name": "五鬼", "description": "口舌是非，火灾"},
+        {"name": "绝命", "description": "破败伤丁，最凶"},
+        {"name": "祸害", "description": "官非败财"},
+        {"name": "六煞", "description": "桃花淫乱"}
+      ]
+    }
+  },
+  "modeSwitch": {
+    "default": "sittingMountain",
+    "options": [
+      {"mode": "sittingMountain", "description": "坐山起伏位（《八宅明镜》法）"},
+      {"mode": "mainDoor", "description": "大门起伏位（《阳宅三要》法）"}
+    ]
+  },
+  "mansionStarMapping": {
+    "description": "行=坐山(伏位宫)，列=目标宫(后天八卦序：乾坎艮震巽离坤兑)",
+    "columns": ["乾", "坎", "艮", "震", "巽", "离", "坤", "兑"],
+    "rows": [
+      {"sittingTrigram": "乾", "mansion": "乾宅", "stars": ["伏位", "六煞", "天医", "五鬼", "祸害", "绝命", "延年", "生气"]},
+      {"sittingTrigram": "坎", "mansion": "坎宅", "stars": ["五鬼", "伏位", "天医", "生气", "延年", "绝命", "祸害", "六煞"]},
+      {"sittingTrigram": "艮", "mansion": "艮宅", "stars": ["六煞", "绝命", "伏位", "祸害", "生气", "延年", "天医", "五鬼"]},
+      {"sittingTrigram": "震", "mansion": "震宅", "stars": ["延年", "生气", "祸害", "伏位", "绝命", "五鬼", "六煞", "天医"]},
+      {"sittingTrigram": "巽", "mansion": "巽宅", "stars": ["天医", "五鬼", "六煞", "祸害", "伏位", "生气", "绝命", "延年"]},
+      {"sittingTrigram": "离", "mansion": "离宅", "stars": ["六煞", "五鬼", "绝命", "延年", "祸害", "伏位", "生气", "天医"]},
+      {"sittingTrigram": "坤", "mansion": "坤宅", "stars": ["天医", "延年", "绝命", "生气", "祸害", "五鬼", "伏位", "六煞"]},
+      {"sittingTrigram": "兑", "mansion": "兑宅", "stars": ["生气", "祸害", "延年", "绝命", "六煞", "天医", "五鬼", "伏位"]}
+    ]
+  },
+  "testFixtures": [
+    {"inputSitting": "乾", "inputTarget": "兑", "expectedStar": "生气", "expectedLuck": "吉"},
+    {"inputSitting": "乾", "inputTarget": "离", "expectedStar": "绝命", "expectedLuck": "凶"},
+    {"inputSitting": "坎", "inputTarget": "震", "expectedStar": "生气", "expectedLuck": "吉"},
+    {"inputSitting": "震", "inputTarget": "兑", "expectedStar": "天医", "expectedLuck": "吉"},
+    {"inputSitting": "坤", "inputTarget": "坎", "expectedStar": "祸害", "expectedLuck": "凶"}
+  ]
+}
