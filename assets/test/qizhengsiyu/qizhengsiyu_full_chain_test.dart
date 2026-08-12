@@ -102,11 +102,11 @@ void main() {
       expect((outcome as InstallInstalled).installed.actualRowCount, 3);
     });
 
-    test('ephemeris 文档表安装成功，行数自检 17', () async {
+    test('ephemeris 文档表安装成功，行数自检 20', () async {
       registerQizhengDatasets(db: db);
       final outcome = await installer.ensureInstalled('qizheng.ephemeris');
       expect(outcome, isA<InstallInstalled>());
-      expect((outcome as InstallInstalled).installed.actualRowCount, 17);
+      expect((outcome as InstallInstalled).installed.actualRowCount, 20);
     });
 
     test('重复 ensureInstalled 返回 alreadyCurrent（P4 零网络）', () async {
