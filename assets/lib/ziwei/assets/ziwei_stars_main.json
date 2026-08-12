@@ -1,0 +1,300 @@
+{
+  "description": "紫微斗数十四主星完整数据",
+  "version": "1.0.0",
+  "stars": [
+    {
+      "name": "紫微",
+      "name_en": "Ziwei",
+      "category": "main",
+      "system": "ziwei_series",
+      "index": 1,
+      "five_elements": "土",
+      "yin_yang": "阴",
+      "nature": "帝王之星，尊贵威严",
+      "traits": "领导力强，自尊心强，好面子，有统御才能",
+      "four_transformations": {
+        "化禄": [],
+        "化权": ["壬"],
+        "化科": ["乙"],
+        "化忌": []
+      },
+      "school_comparison": {
+        "sanhe": "重视三方四正格局，如紫微在午为极向离明格",
+        "yinpan": "不看庙旺，看落宫与邻宫对宫关系"
+      }
+    },
+    {
+      "name": "天机",
+      "name_en": "Tianji",
+      "category": "main",
+      "system": "ziwei_series",
+      "index": 2,
+      "five_elements": "木",
+      "yin_yang": "阴",
+      "nature": "智慧之星，善谋略",
+      "traits": "聪明灵动，思维敏捷，善于策划，但多思多虑",
+      "four_transformations": {
+        "化禄": ["乙"],
+        "化权": ["丙"],
+        "化科": ["丁"],
+        "化忌": ["戊"]
+      },
+      "school_comparison": {
+        "sanhe": "喜会文昌文曲，增强智谋",
+        "yinpan": "看串宫压运中天机所在宫位对命主的影响"
+      }
+    },
+    {
+      "name": "太阳",
+      "name_en": "Taiyang",
+      "category": "main",
+      "system": "ziwei_series",
+      "index": 3,
+      "five_elements": "火",
+      "yin_yang": "阳",
+      "nature": "光明之星，热情博爱",
+      "traits": "光明磊落，热情大方，乐于助人，但有时过于张扬",
+      "four_transformations": {
+        "化禄": ["庚"],
+        "化权": ["辛"],
+        "化科": [],
+        "化忌": ["甲"]
+      },
+      "school_comparison": {
+        "sanhe": "重视庙旺利陷，旺在寅卯辰巳午，陷在酉戌亥子丑",
+        "yinpan": "不看庙旺，重视翻宫法中太阳所在位置"
+      }
+    },
+    {
+      "name": "武曲",
+      "name_en": "Wuqu",
+      "category": "main",
+      "system": "ziwei_series",
+      "index": 4,
+      "five_elements": "金",
+      "yin_yang": "阴",
+      "nature": "财星，刚毅果断",
+      "traits": "刚强果断，执行力强，善于理财，但有时过于刚硬",
+      "four_transformations": {
+        "化禄": ["己"],
+        "化权": ["庚"],
+        "化科": ["甲"],
+        "化忌": ["壬"]
+      },
+      "school_comparison": {
+        "sanhe": "武曲为财帛主，入财帛宫为得位",
+        "yinpan": "武曲在阴盘中不看庙陷，看与邻宫关系"
+      }
+    },
+    {
+      "name": "天同",
+      "name_en": "Tiantong",
+      "category": "main",
+      "system": "ziwei_series",
+      "index": 5,
+      "five_elements": "水",
+      "yin_yang": "阳",
+      "nature": "福星，温和享乐",
+      "traits": "性格温和，知足常乐，善于享受生活，但缺乏进取心",
+      "four_transformations": {
+        "化禄": ["丙"],
+        "化权": ["丁"],
+        "化科": [],
+        "化忌": ["庚"]
+      },
+      "school_comparison": {
+        "sanhe": "天同为福德宫主星，喜安静",
+        "yinpan": "天同在阴盘中重翻宫看过去现在"
+      }
+    },
+    {
+      "name": "廉贞",
+      "name_en": "Lianzhen",
+      "category": "main",
+      "system": "ziwei_series",
+      "index": 6,
+      "five_elements": "火",
+      "yin_yang": "阴",
+      "nature": "次桃花星，刚烈正直",
+      "traits": "正直刚烈，原则性强，桃花缘重，但易固执",
+      "four_transformations": {
+        "化禄": ["甲"],
+        "化权": [],
+        "化科": [],
+        "化忌": ["丙"]
+      },
+      "school_comparison": {
+        "sanhe": "廉贞为囚星，独坐时须看对宫",
+        "yinpan": "廉贞在阴盘重翻宫断事"
+      }
+    },
+    {
+      "name": "天府",
+      "name_en": "Tianfu",
+      "category": "main",
+      "system": "tianfu_series",
+      "index": 1,
+      "five_elements": "土",
+      "yin_yang": "阳",
+      "nature": "库星，稳重包容",
+      "traits": "稳重包容，善于收纳管理，为人忠厚，但保守",
+      "four_transformations": {
+        "化禄": [],
+        "化权": [],
+        "化科": [],
+        "化忌": []
+      },
+      "school_comparison": {
+        "sanhe": "天府为财库之主，三方见禄存为佳",
+        "yinpan": "天府在阴盘中无特殊化忌，重串宫"
+      }
+    },
+    {
+      "name": "太阴",
+      "name_en": "Taiyin",
+      "category": "main",
+      "system": "tianfu_series",
+      "index": 2,
+      "five_elements": "水",
+      "yin_yang": "阴",
+      "nature": "母星，温柔细腻",
+      "traits": "温柔细腻，感情丰富，善解人意，但多愁善感",
+      "four_transformations": {
+        "化禄": ["丁"],
+        "化权": ["戊"],
+        "化科": ["庚", "癸"],
+        "化忌": ["乙"]
+      },
+      "school_comparison": {
+        "sanhe": "太阴喜夜生人，入庙在酉戌亥子丑",
+        "yinpan": "阴盘不看昼夜生人"
+      }
+    },
+    {
+      "name": "贪狼",
+      "name_en": "Tanlang",
+      "category": "main",
+      "system": "tianfu_series",
+      "index": 3,
+      "five_elements": "木",
+      "yin_yang": "阳",
+      "nature": "桃花主，多才多艺",
+      "traits": "多才多艺，欲望强烈，社交手腕强，但易放纵",
+      "four_transformations": {
+        "化禄": ["戊"],
+        "化权": ["己"],
+        "化科": [],
+        "化忌": ["癸"]
+      },
+      "school_comparison": {
+        "sanhe": "贪狼为第一大桃花星，喜会火铃为火贪格",
+        "yinpan": "阴盘重翻宫看贪狼动向"
+      }
+    },
+    {
+      "name": "巨门",
+      "name_en": "Jumen",
+      "category": "main",
+      "system": "tianfu_series",
+      "index": 4,
+      "five_elements": "水",
+      "yin_yang": "阴",
+      "nature": "暗星，口才好辩",
+      "traits": "口才佳，善于分析，是非分明，但易生口舌是非",
+      "four_transformations": {
+        "化禄": ["辛"],
+        "化权": ["癸"],
+        "化科": [],
+        "化忌": ["丁"]
+      },
+      "school_comparison": {
+        "sanhe": "巨门为暗曜，需太阳照或禄存解暗",
+        "yinpan": "巨门在阴盘重串宫看口舌"
+      }
+    },
+    {
+      "name": "天相",
+      "name_en": "Tianxiang",
+      "category": "main",
+      "system": "tianfu_series",
+      "index": 5,
+      "five_elements": "水",
+      "yin_yang": "阳",
+      "nature": "印星，公正辅佐",
+      "traits": "公正无私，善于辅佐，注重形象，但缺乏主见",
+      "four_transformations": {
+        "化禄": [],
+        "化权": [],
+        "化科": [],
+        "化忌": []
+      },
+      "school_comparison": {
+        "sanhe": "天相为印星，最怕煞忌冲破",
+        "yinpan": "天相在阴盘无化"
+      }
+    },
+    {
+      "name": "天梁",
+      "name_en": "Tianliang",
+      "category": "main",
+      "system": "tianfu_series",
+      "index": 6,
+      "five_elements": "土",
+      "yin_yang": "阳",
+      "nature": "寿星，正直慈悲",
+      "traits": "正直慈悲，乐于助人，有长者风范，但好管闲事",
+      "four_transformations": {
+        "化禄": ["壬"],
+        "化权": ["乙"],
+        "化科": ["己"],
+        "化忌": []
+      },
+      "school_comparison": {
+        "sanhe": "天梁为荫星，喜在命宫或福德宫",
+        "yinpan": "天梁在阴盘中重视翻宫"
+      }
+    },
+    {
+      "name": "七杀",
+      "name_en": "Qisha",
+      "category": "main",
+      "system": "tianfu_series",
+      "index": 7,
+      "five_elements": "金",
+      "yin_yang": "阳",
+      "nature": "将星，勇猛刚烈",
+      "traits": "勇敢果断，有魄力，敢作敢为，但冲动急躁",
+      "four_transformations": {
+        "化禄": [],
+        "化权": [],
+        "化科": [],
+        "化忌": []
+      },
+      "school_comparison": {
+        "sanhe": "七杀为将星，喜会紫微天府增其威",
+        "yinpan": "阴盘七杀重翻宫看冲动之事"
+      }
+    },
+    {
+      "name": "破军",
+      "name_en": "Pojun",
+      "category": "main",
+      "system": "tianfu_series",
+      "index": 8,
+      "five_elements": "水",
+      "yin_yang": "阴",
+      "nature": "耗星，改革先锋",
+      "traits": "改革先锋，敢破敢立，行动力强，但不稳定",
+      "four_transformations": {
+        "化禄": ["癸"],
+        "化权": ["甲"],
+        "化科": [],
+        "化忌": []
+      },
+      "school_comparison": {
+        "sanhe": "破军为先锋，先破后成",
+        "yinpan": "阴盘破军重串宫压运"
+      }
+    }
+  ]
+}

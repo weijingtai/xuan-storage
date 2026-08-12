@@ -30,6 +30,9 @@ dependencies:
   repository_interface_qizhengsiyu:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-qizhengsiyu.git
+  repository_interface_ziweidoushu:
+    git:
+      url: http://192.168.0.165:3000/xuan/repository-interface-ziweidoushu.git
   repository_interface_daliuren:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-daliuren.git
@@ -81,4 +84,5 @@ flutter:
     - lib/daliuren/assets/dataset/
     - lib/meihuayishu/assets/
     - lib/taiyishenshu/assets/
+    - lib/ziwei/assets/
     - lib/theme/
