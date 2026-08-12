@@ -18,6 +18,7 @@ void main() {
     final allowed = <String>[
       'package:cloud_firestore',
       'package:firebase_auth',
+      'package:cloud_functions',
     ];
 
     final allFiles = libDir
