@@ -17,12 +17,10 @@ final class FirebasePlaygroundLikeRepository
     FirebaseFunctions? functions,
   })  : _firestore = firestore,
         _auth = auth,
-        _identityResolver = identityResolver,
         _functions = functions ?? FirebaseFunctions.instance;
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
-  final FirebasePlaygroundIdentityResolver _identityResolver;
   final FirebaseFunctions _functions;
 
   String _likeDocId({PlaygroundPostId? postId, PlaygroundReplyId? replyId}) {

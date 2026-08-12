@@ -15,12 +15,6 @@ void main() {
       'dart:io',
     ];
 
-    final allowed = <String>[
-      'package:cloud_firestore',
-      'package:firebase_auth',
-      'package:cloud_functions',
-    ];
-
     final allFiles = libDir
         .listSync(recursive: true)
         .whereType<File>()

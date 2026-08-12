@@ -15,12 +15,10 @@ final class FirebasePlaygroundVerificationRepository
     required FirebasePlaygroundIdentityResolver identityResolver,
     FirebaseFunctions? functions,
   })  : _firestore = firestore,
-        _auth = auth,
         _identityResolver = identityResolver,
         _functions = functions ?? FirebaseFunctions.instance;
 
   final FirebaseFirestore _firestore;
-  final FirebaseAuth _auth;
   final FirebasePlaygroundIdentityResolver _identityResolver;
   final FirebaseFunctions _functions;
 
