@@ -93,4 +93,7 @@ flutter:
     - lib/ziwei/assets/
     - lib/kanyu/assets/
     - lib/four_zhu_card/assets/
+    - lib/four_zhu_card/assets/colors/
+    - lib/four_zhu_card/assets/templates/
+    - lib/four_zhu_card/assets/templates/chinese/
     - lib/theme/
