@@ -737,4 +737,107 @@ describe('BLOCK-02 · posts · production payload（RED-B）', () => {
   });
 });
 
+// ==============================
+// BLOCK-03 · 游客代表性回复 · 反绕过第一道闸（Rules 游客直连 deny）
+// 游客完整回复读取只能走受信 Functions `getGuestRepresentativeReplies`；
+// 客户端直连 playground_replies 的 list/get 在未认证下必须全部 DENY。
+// ==============================
+
+describe('BLOCK-03 · guest · 游客直连 replies 被 Rules 拒绝', () => {
+  function guestRootReplyPayload(overrides: Record<string, any> = {}) {
+    return {
+      body: '根回复正文',
+      post_id: 'p-guest-1',
+      root_reply_id: null,
+      reply_to_reply_id: null,
+      depth: 0,
+      technique_tags: ['六爻'],
+      chart_attachment: null,
+      media_attachments: [],
+      author_provider_uid: 'alice-uid',
+      presentation_identity_id: 'anon-1',
+      is_tombstoned: false,
+      revisions: [],
+      created_at: new Date('2026-01-01T00:00:00Z'),
+      updated_at: new Date('2026-01-01T00:00:00Z'),
+      idempotency_key: 'grk-1',
+      ...overrides,
+    };
+  }
+
+  test('deny: 未认证用户 list playground_replies（游客不能分页绕过）', async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await ctx
+        .firestore()
+        .collection('playground_replies')
+        .doc('guest-list-1')
+        .set(guestRootReplyPayload());
+    });
+    const guestDb = unauthContext();
+    await assertFails(
+      guestDb
+        .firestore()
+        .collection('playground_replies')
+        .where('post_id', '==', 'p-guest-1')
+        .where('is_tombstoned', '==', false)
+        .get(),
+    );
+  });
+
+  test('deny: 未认证用户 get 单条非墓碑 reply（游客不能直连读取）', async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await ctx
+        .firestore()
+        .collection('playground_replies')
+        .doc('guest-get-1')
+        .set(guestRootReplyPayload());
+    });
+    const guestDb = unauthContext();
+    await assertFails(
+      guestDb
+        .firestore()
+        .collection('playground_replies')
+        .doc('guest-get-1')
+        .get(),
+    );
+  });
+
+  test('deny: 未认证用户 get 墓碑 reply（游客不可见）', async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await ctx
+        .firestore()
+        .collection('playground_replies')
+        .doc('guest-tomb-1')
+        .set(guestRootReplyPayload({ is_tombstoned: true }));
+    });
+    const guestDb = unauthContext();
+    await assertFails(
+      guestDb
+        .firestore()
+        .collection('playground_replies')
+        .doc('guest-tomb-1')
+        .get(),
+    );
+  });
+
+  test('allow: 认证用户（注册后）list 同款查询（注册用户正常分页）', async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await ctx
+        .firestore()
+        .collection('playground_replies')
+        .doc('guest-reg-1')
+        .set(guestRootReplyPayload());
+    });
+    const db = aliceContext();
+    await assertSucceeds(
+      db
+        .firestore()
+        .collection('playground_replies')
+        .where('post_id', '==', 'p-guest-1')
+        .where('is_tombstoned', '==', false)
+        .get(),
+    );
+  });
+});
+
 

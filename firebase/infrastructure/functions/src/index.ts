@@ -40,6 +40,7 @@ export { createRootReply, createDiscussionReply, deleteReply } from './replies';
 export { verifyRootReply, revokeVerification } from './verifications';
 export { setOutcomeFeedback, revokeOutcomeFeedback } from './outcome_feedback';
 export { setLike } from './likes';
+export { getGuestRepresentativeReplies } from './guest_replies';
 export { resolveMyIdentity } from './identity';
 export { setBookmark } from './bookmarks';
 export { sendDmRequest, respondDmRequest, sendMessage, blockUser, unblockUser } from './conversations';

@@ -17,3 +17,4 @@ export 'firebase_playground_conversation_repository.dart';
 export 'firebase_playground_moderation_repository.dart';
 export 'firebase_playground_media_repository.dart';
 export 'firebase_playground_realtime_repository.dart';
+export 'firebase_playground_thread_query_repository.dart';
