@@ -1,4 +1,83 @@
 import { db, COLLECTIONS } from './index';
+import { hashPayload } from './utils';
+
+export interface IdempotentCommand {
+  operation: string;
+  actorId: string;
+  idempotencyKey: string | undefined;
+  /** Business input only. `idempotency_key` is deliberately excluded. */
+  payload: unknown;
+}
+
+export interface IdempotentCommandContext {
+  commandId: string;
+  /** One timestamp created before entering Firestore's retryable callback. */
+  timestamp: Date;
+  outboxId: string;
+}
+
+function canonicalize(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalize);
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value as Record<string, unknown>)
+      .filter(([key]) => key !== 'idempotency_key')
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, child]) => [key, canonicalize(child)]));
+  }
+  return value;
+}
+
+/**
+ * Atomically commits domain facts, deterministic outbox records, and the
+ * completed receipt.  The callback is transaction-only: no Admin writes,
+ * random IDs, network calls, or wall-clock reads are allowed inside it.
+ */
+export async function runIdempotentCommand<T>(
+  command: IdempotentCommand,
+  execute: (tx: admin.firestore.Transaction, context: IdempotentCommandContext) => Promise<T>,
+): Promise<T> {
+  if (!command.idempotencyKey || typeof command.idempotencyKey !== 'string') {
+    throw new HttpsError('invalid-argument', 'idempotency_key 必填');
+  }
+  if (!command.operation || !command.actorId) {
+    throw new HttpsError('invalid-argument', 'operation 和 actor 必填');
+  }
+
+  const payloadHash = hashPayload(canonicalize(command.payload));
+  const commandId = hashPayload([command.operation, command.actorId, command.idempotencyKey]);
+  const context: IdempotentCommandContext = {
+    commandId,
+    outboxId: `outbox_${commandId}`,
+    timestamp: new Date(),
+  };
+  const receiptRef = db.collection(COLLECTIONS.idempotency).doc(commandId);
+
+  return db.runTransaction(async (tx) => {
+    const existing = await tx.get(receiptRef);
+    if (existing.exists) {
+      const receipt = existing.data()!;
+      if (receipt.operation !== command.operation || receipt.actor_id !== command.actorId || receipt.payload_hash !== payloadHash) {
+        throw new HttpsError('aborted', 'idempotency key conflict');
+      }
+      return receipt.result as T;
+    }
+
+    const result = await execute(tx, context);
+    tx.set(receiptRef, {
+      id: commandId,
+      command_id: commandId,
+      idempotency_key: command.idempotencyKey,
+      operation: command.operation,
+      actor_id: command.actorId,
+      payload_hash: payloadHash,
+      state: 'completed',
+      result,
+      created_at: context.timestamp,
+      completed_at: context.timestamp,
+    });
+    return result;
+  });
+}
 
 /**
  * 幂等执行包装器。
