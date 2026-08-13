@@ -13,6 +13,7 @@ export 'firebase_playground_outcome_feedback_repository.dart';
 export 'firebase_playground_like_repository.dart';
 export 'firebase_playground_bookmark_repository.dart';
 export 'firebase_playground_profile_repository.dart';
+export 'firebase_playground_profile_query_repository.dart';
 export 'firebase_playground_notification_repository.dart';
 export 'firebase_playground_conversation_repository.dart';
 export 'firebase_playground_moderation_repository.dart';
