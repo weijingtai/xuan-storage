@@ -61,7 +61,7 @@ void main() {
   late FirebasePlaygroundIdentityResolver identityResolver;
   late MockFirebaseAuth auth;
 
-  setUp(() {
+  setUp(() async {
     firestore = FakeFirebaseFirestore();
     functions = FakeFirebaseFunctions()
       ..responses['resolveMyIdentity'] = <String, dynamic>{
@@ -71,10 +71,16 @@ void main() {
       mockUser: MockUser(uid: uid, isAnonymous: false),
       signedIn: true,
     );
+    await firestore.collection('identity_map').doc(uid).set({
+      'app_user_id': appUserId,
+      'provider_uid': uid,
+      'provider_id': 'firebase',
+      'public_presentation_id': 'pub_callable_test',
+      'public_display_alias': 'callable测试',
+    });
     identityResolver = FirebasePlaygroundIdentityResolver(
       firestore: firestore,
       auth: auth,
-      functions: functions,
     );
   });
 

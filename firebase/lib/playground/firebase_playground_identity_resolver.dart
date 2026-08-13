@@ -1,38 +1,32 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
 import 'firebase_playground_error_mapper.dart';
 
 /// 从 Firebase Auth session 解析 actor [PlaygroundUserId]。
 ///
-/// 流程：
-/// 1. 从 FirebaseAuth.currentUser 获取 uid（providerUserId）
-/// 2. 调用 Functions callable `resolveMyIdentity`（服务端基于 Auth context
-///    解析/创建 identity_map → appUserId）
-/// 3. 返回 PlaygroundUserId(appUserId)
+/// 直读 Firestore identity_map（不通过 callable），读取：
+/// - `app_user_id`（snake_case，兼容 `appUserId`）
+/// - `public_presentation_id`
+/// - `public_display_alias`
 ///
-/// 客户端不再直写/直读 identity_map（Rules 下 `write: if false`）；
-/// 身份映射的创建与解析完全由受信 Functions 负责。
+/// 缺 `public_presentation_id` 或 `public_display_alias` → fail closed
+/// 抛出 PlaygroundErrorCode.unavailable + machineCode identity/not-ready。
 ///
-/// 抛出 [PlaygroundError.unauthenticated] 当用户未登录。
+/// Playground 不创建 identity_map。
 final class FirebasePlaygroundIdentityResolver {
-  final FirebaseFunctions _functions;
+  final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
 
-  /// [firestore] 参数保留以兼容既有 composition root（xuan-shell bootstrap）
-  /// 与旧测试签名；本实现不再依赖 Firestore，identity_map 读写均在 Functions。
   FirebasePlaygroundIdentityResolver({
-    FirebaseFirestore? firestore,
+    required FirebaseFirestore firestore,
     required FirebaseAuth auth,
-    FirebaseFunctions? functions,
-  })  : _auth = auth,
-        _functions = functions ?? FirebaseFunctions.instance;
+  })  : _firestore = firestore,
+        _auth = auth;
 
   /// 从当前认证 session 解析展示用 [PlaygroundUserId]。
   ///
-  /// 通过 Functions callable `resolveMyIdentity` 获取服务端权威的 appUserId，
-  /// 不接受客户端任何身份值。
+  /// 直读 Firestore `identity_map/{providerUid}`，不通过 callable。
   Future<PlaygroundUserId> resolveActor() async {
     try {
       final user = _auth.currentUser;
@@ -43,19 +37,48 @@ final class FirebasePlaygroundIdentityResolver {
           machineCode: 'auth/unauthenticated',
         );
       }
-      final callable = _functions.httpsCallable('resolveMyIdentity');
-      final result = await callable.call<Map<String, dynamic>>();
-      final appUserId = result.data['appUserId'] as String;
-      if (appUserId.isEmpty) {
+
+      final doc = await _firestore
+          .collection('identity_map')
+          .doc(user.uid)
+          .get();
+
+      if (!doc.exists) {
         throw const PlaygroundError(
-          code: PlaygroundErrorCode.unknown,
-          message: '身份解析失败：服务端未返回 appUserId',
-          machineCode: 'identity/empty-app-user-id',
+          code: PlaygroundErrorCode.unavailable,
+          message: '身份映射不存在，请完成账号初始化',
+          machineCode: 'identity/not-ready',
         );
       }
+
+      final data = doc.data()!;
+      final appUserId = _readAppUserId(data);
+      final presentationId = data['public_presentation_id'] as String?;
+      final displayAlias = data['public_display_alias'] as String?;
+
+      if (appUserId == null ||
+          presentationId == null || presentationId.isEmpty ||
+          displayAlias == null || displayAlias.isEmpty) {
+        throw const PlaygroundError(
+          code: PlaygroundErrorCode.unavailable,
+          message: '身份映射字段不完整，请完成账号初始化',
+          machineCode: 'identity/not-ready',
+        );
+      }
+
       return PlaygroundUserId(appUserId);
     } catch (e) {
+      if (e is PlaygroundError) rethrow;
       throw FirebasePlaygroundErrorMapper.map(e);
     }
+  }
+
+  /// 优先读 snake_case `app_user_id`，兼容旧 `appUserId`。
+  String? _readAppUserId(Map<String, dynamic> data) {
+    final snake = data['app_user_id'];
+    if (snake is String && snake.isNotEmpty) return snake;
+    final camel = data['appUserId'];
+    if (camel is String && camel.isNotEmpty) return camel;
+    return null;
   }
 }
