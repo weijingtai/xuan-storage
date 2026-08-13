@@ -9,7 +9,7 @@ import { withIdempotency } from './idempotency';
 /// provider UID are server-derived; neither can be selected by the caller.
 export const updateMyProfile = onCall({ region: 'asia-east1' }, async (request) => {
   const uid = requireAuthUid(request.auth?.uid);
-  const appUserId = await resolveAppUserId(uid);
+  const { appUserId } = await resolveAppUserId(uid);
   const input = request.data ?? {};
   const update: Record<string, unknown> = { updated_at: admin.firestore.FieldValue.serverTimestamp() };
   if (input.displayName !== undefined) {

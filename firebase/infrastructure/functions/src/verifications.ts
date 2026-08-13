@@ -7,7 +7,7 @@ import { hashPayload } from './utils';
 
 export const verifyRootReply = onCall({ region: 'asia-east1' }, async (request) => {
   const uid = requireAuthUid(request.auth?.uid);
-  const appUserId = await resolveAppUserId(uid);
+  const { appUserId } = await resolveAppUserId(uid);
   const { postId, rootReplyId } = request.data;
 
   if (!postId || typeof postId !== 'string') {
@@ -109,7 +109,7 @@ export const verifyRootReply = onCall({ region: 'asia-east1' }, async (request) 
 
 export const revokeVerification = onCall({ region: 'asia-east1' }, async (request) => {
   const uid = requireAuthUid(request.auth?.uid);
-  const appUserId = await resolveAppUserId(uid);
+  const { appUserId } = await resolveAppUserId(uid);
   const { postId, rootReplyId } = request.data;
 
   if (!postId || typeof postId !== 'string') {

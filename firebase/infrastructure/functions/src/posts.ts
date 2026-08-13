@@ -7,7 +7,7 @@ import { hashPayload } from './utils';
 
 export const createPost = onCall({ region: 'asia-east1' }, async (request) => {
   const uid = requireAuthUid(request.auth?.uid);
-  const appUserId = await resolveAppUserId(uid);
+  const { appUserId } = await resolveAppUserId(uid);
   const { text, allowed_chart_technique_ids, attachments, presentation_mode } = request.data;
 
   if (!text || typeof text !== 'string' || text.trim().length === 0) {

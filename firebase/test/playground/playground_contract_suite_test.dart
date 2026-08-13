@@ -95,7 +95,6 @@ void main() {
     identityResolver = FirebasePlaygroundIdentityResolver(
       firestore: firestore,
       auth: mockAuth,
-      functions: functions,
     );
     postCache = InMemoryPlaygroundPostCacheStore();
     replyCache = InMemoryPlaygroundReplyCacheStore();
@@ -106,6 +105,9 @@ void main() {
         .set({
       'app_user_id': appUserId,
       'provider_uid': testUid,
+      'provider_id': 'firebase',
+      'public_presentation_id': 'pub_contract_suite',
+      'public_display_alias': '合同测试',
     });
   });
 
@@ -151,14 +153,14 @@ void main() {
         firestore: firestore,
         auth: mockAuth,
         identityResolver: identityResolver,
-        functions: functions,
+        
       ),
     ),
     makeLikeRemote: () => FirebasePlaygroundLikeRepository(
       firestore: firestore,
       auth: mockAuth,
       identityResolver: identityResolver,
-      functions: functions,
+      
     ),
   );
 

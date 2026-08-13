@@ -7,7 +7,7 @@ import { hashPayload } from './utils';
 
 export const setOutcomeFeedback = onCall({ region: 'asia-east1' }, async (request) => {
   const uid = requireAuthUid(request.auth?.uid);
-  const appUserId = await resolveAppUserId(uid);
+  const { appUserId } = await resolveAppUserId(uid);
   const { postId, outcome_description } = request.data;
 
   if (!postId || typeof postId !== 'string') {
@@ -69,7 +69,7 @@ export const setOutcomeFeedback = onCall({ region: 'asia-east1' }, async (reques
 
 export const revokeOutcomeFeedback = onCall({ region: 'asia-east1' }, async (request) => {
   const uid = requireAuthUid(request.auth?.uid);
-  const appUserId = await resolveAppUserId(uid);
+  const { appUserId } = await resolveAppUserId(uid);
   const { postId } = request.data;
 
   if (!postId || typeof postId !== 'string') {

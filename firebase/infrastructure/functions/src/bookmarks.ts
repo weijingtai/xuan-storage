@@ -7,7 +7,7 @@ import { hashPayload } from './utils';
 
 export const setBookmark = onCall({ region: 'asia-east1' }, async (request) => {
   const uid = requireAuthUid(request.auth?.uid);
-  const appUserId = await resolveAppUserId(uid);
+  const { appUserId } = await resolveAppUserId(uid);
   const { postId, action } = request.data;
 
   if (!postId || typeof postId !== 'string') {

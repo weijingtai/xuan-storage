@@ -7,7 +7,7 @@ import { hashPayload, nowISO } from './utils';
 
 export const sendDmRequest = onCall({ region: 'asia-east1' }, async (request) => {
   const uid = requireAuthUid(request.auth?.uid);
-  const appUserId = await resolveAppUserId(uid);
+  const { appUserId } = await resolveAppUserId(uid);
   const { targetAppUserId, initialMessage } = request.data;
 
   if (!targetAppUserId || typeof targetAppUserId !== 'string') {
@@ -77,7 +77,7 @@ export const sendDmRequest = onCall({ region: 'asia-east1' }, async (request) =>
 
 export const respondDmRequest = onCall({ region: 'asia-east1' }, async (request) => {
   const uid = requireAuthUid(request.auth?.uid);
-  const appUserId = await resolveAppUserId(uid);
+  const { appUserId } = await resolveAppUserId(uid);
   const { conversationId, accept } = request.data;
 
   if (!conversationId || typeof conversationId !== 'string') {
@@ -131,7 +131,7 @@ export const respondDmRequest = onCall({ region: 'asia-east1' }, async (request)
 
 export const sendMessage = onCall({ region: 'asia-east1' }, async (request) => {
   const uid = requireAuthUid(request.auth?.uid);
-  const appUserId = await resolveAppUserId(uid);
+  const { appUserId } = await resolveAppUserId(uid);
   const { conversationId, text } = request.data;
 
   if (!conversationId || typeof conversationId !== 'string') {
@@ -208,7 +208,7 @@ export const sendMessage = onCall({ region: 'asia-east1' }, async (request) => {
 
 export const blockUser = onCall({ region: 'asia-east1' }, async (request) => {
   const uid = requireAuthUid(request.auth?.uid);
-  const appUserId = await resolveAppUserId(uid);
+  const { appUserId } = await resolveAppUserId(uid);
   const { targetAppUserId } = request.data;
 
   if (!targetAppUserId || typeof targetAppUserId !== 'string') {
@@ -247,7 +247,7 @@ export const blockUser = onCall({ region: 'asia-east1' }, async (request) => {
 
 export const unblockUser = onCall({ region: 'asia-east1' }, async (request) => {
   const uid = requireAuthUid(request.auth?.uid);
-  const appUserId = await resolveAppUserId(uid);
+  const { appUserId } = await resolveAppUserId(uid);
   const { targetAppUserId } = request.data;
 
   if (!targetAppUserId || typeof targetAppUserId !== 'string') {

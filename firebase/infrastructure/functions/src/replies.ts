@@ -7,7 +7,7 @@ import { hashPayload } from './utils';
 
 export const createRootReply = onCall({ region: 'asia-east1' }, async (request) => {
   const uid = requireAuthUid(request.auth?.uid);
-  const appUserId = await resolveAppUserId(uid);
+  const { appUserId } = await resolveAppUserId(uid);
   const { postId, body } = request.data;
 
   if (!body || typeof body !== 'string' || body.trim().length === 0) {
@@ -68,7 +68,7 @@ export const createRootReply = onCall({ region: 'asia-east1' }, async (request) 
 
 export const createDiscussionReply = onCall({ region: 'asia-east1' }, async (request) => {
   const uid = requireAuthUid(request.auth?.uid);
-  const appUserId = await resolveAppUserId(uid);
+  const { appUserId } = await resolveAppUserId(uid);
   const { postId, rootReplyId, replyToReplyId, body } = request.data;
 
   if (!body || typeof body !== 'string' || body.trim().length === 0) {

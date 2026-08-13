@@ -7,7 +7,7 @@ import { hashPayload } from './utils';
 
 export const setLike = onCall({ region: 'asia-east1' }, async (request) => {
   const uid = requireAuthUid(request.auth?.uid);
-  const appUserId = await resolveAppUserId(uid);
+  const { appUserId } = await resolveAppUserId(uid);
   const { postId, replyId, action } = request.data;
 
   if (!postId && !replyId) {
