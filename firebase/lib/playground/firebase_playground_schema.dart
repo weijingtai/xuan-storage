@@ -7,6 +7,8 @@ abstract final class PlaygroundFirestoreSchema {
   PlaygroundFirestoreSchema._();
 
   static const posts = 'playground_posts';
+  static const postOwners = 'playground_post_owners';
+  static const postRevisions = 'revisions';
   static const replies = 'playground_replies';
   static const verifications = 'playground_verifications';
   static const outcomeFeedback = 'playground_outcome_feedback';
