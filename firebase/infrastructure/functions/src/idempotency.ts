@@ -25,8 +25,7 @@ export async function withIdempotency<T>(
   }
 
   const idemDoc = db.collection(COLLECTIONS.idempotency).doc(idempotencyKey);
-
-  return db.runTransaction(async (tx) => {
+  const decision = await db.runTransaction(async (tx) => {
     const snap = await tx.get(idemDoc);
 
     if (snap.exists) {
@@ -34,14 +33,14 @@ export async function withIdempotency<T>(
       const expiresAt = data.expires_at?.toDate?.() ?? data.expires_at;
 
       if (expiresAt && new Date(expiresAt) < new Date()) {
-        // 幂等记录已过期，允许新建
         tx.delete(idemDoc);
       } else if (data.payload_hash === payloadHash) {
-        // 重复请求，返回缓存结果
         if (data.result) {
-          return data.result as T;
+          return { kind: 'replay' as const, result: data.result as T };
         }
-        throw new Error('idempotency record exists but result is missing');
+        // A competing caller has committed its command claim but has not yet
+        // published the result.  Do not run the command a second time.
+        throw new HttpsError('unavailable', 'idempotency command is in progress');
       } else {
         // 冲突：同一 key 但不同 payload
         throw new HttpsError(
@@ -51,20 +50,38 @@ export async function withIdempotency<T>(
       }
     }
 
-    // 执行
-    const result = await fn();
-
     const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000);
     tx.set(idemDoc, {
       idempotency_key: idempotencyKey,
       payload_hash: payloadHash,
-      result: result,
+      state: 'running',
       created_at: admin.firestore.FieldValue.serverTimestamp(),
       expires_at: expiresAt,
     });
 
-    return result;
+    return { kind: 'execute' as const, expiresAt };
   });
+
+  if (decision.kind === 'replay') return decision.result;
+
+  // Deliberately outside runTransaction: Firestore may retry the callback,
+  // while this command body can perform ordinary Admin SDK writes/outbox work.
+  // The committed claim above prevents a concurrent invocation from entering it.
+  try {
+    const result = await fn();
+    await idemDoc.set({
+      result,
+      state: 'completed',
+      completed_at: admin.firestore.FieldValue.serverTimestamp(),
+      expires_at: decision.expiresAt,
+    }, { merge: true });
+    return result;
+  } catch (error) {
+    // A failed command must be retryable; only the claimant may remove this
+    // record because another invocation observes `running` and never executes.
+    await idemDoc.delete();
+    throw error;
+  }
 }
 
 /**

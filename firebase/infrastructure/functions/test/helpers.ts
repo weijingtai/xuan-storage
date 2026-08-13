@@ -1,6 +1,7 @@
 const store = new Map<string, Map<string, Record<string, any>>>();
 
 let idCounter = 0;
+let transactionRetryCount = 0;
 function autoId(): string {
   idCounter++;
   return `auto_${idCounter}_${Date.now().toString(36)}`;
@@ -14,6 +15,11 @@ function getColl(name: string): Map<string, Record<string, any>> {
 export function clearStore(): void {
   store.clear();
   idCounter = 0;
+  transactionRetryCount = 0;
+}
+
+export function retryNextTransactions(times: number): void {
+  transactionRetryCount = times;
 }
 
 export function dumpStore(): Record<string, Record<string, any>[]> {
@@ -65,14 +71,16 @@ class MockDocRef {
     };
   }
 
-  async set(data: any) {
+  async set(data: any, options?: { merge?: boolean }) {
     const coll = getColl(this._coll);
     const sanitized: Record<string, any> = {};
     for (const [k, v] of Object.entries(data)) {
       const val = v as any;
       sanitized[k] = val?._isFieldValue ? val._value : val;
     }
-    coll.set(this._id, sanitized);
+    coll.set(this._id, options?.merge
+      ? { ...(coll.get(this._id) ?? {}), ...sanitized }
+      : sanitized);
   }
 
   async update(data: any) {
@@ -175,9 +183,13 @@ export function createAdminMock() {
   const mockFirestoreInstance: any = {
     collection: (name: string) => new MockCollectionRef(name),
     runTransaction: async (fn: Function) => {
-      const tx = new MockTransaction();
-      const result = await fn(tx);
-      tx._commit();
+      let result: any;
+      for (let attempt = 0; attempt <= transactionRetryCount; attempt++) {
+        const tx = new MockTransaction();
+        result = await fn(tx);
+        if (attempt === transactionRetryCount) tx._commit();
+      }
+      transactionRetryCount = 0;
       return result;
     },
     batch: () => new MockWriteBatch(),

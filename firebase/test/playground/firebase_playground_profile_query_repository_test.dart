@@ -95,12 +95,14 @@ void main() {
         const UpdateMyProfileCommand(
           displayName: '本人',
           commonTechniques: ['liuyao'],
+          idempotencyKey: 'profile-update-key',
         ),
       );
 
       expect(functions.calledNames, ['updateMyProfile']);
       expect(functions.calledParameters.single, {
         'displayName': '本人', 'commonTechniques': ['liuyao'],
+        'idempotency_key': 'profile-update-key',
       });
       functions.responses['updateMyProfile'] = {'success': true};
       await firestore.collection(PlaygroundFirestoreSchema.profiles).doc('session-user').set({'display_name': '本人', 'common_techniques': ['liuyao']});

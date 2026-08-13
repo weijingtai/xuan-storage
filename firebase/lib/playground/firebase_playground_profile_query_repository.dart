@@ -61,6 +61,9 @@ final class FirebasePlaygroundProfileQueryRepository
       if (command.commonTechniques != null) {
         updates['commonTechniques'] = command.commonTechniques;
       }
+      if (command.idempotencyKey != null) {
+        updates['idempotency_key'] = command.idempotencyKey;
+      }
       if (updates.isEmpty) return;
 
       await _functions.httpsCallable('updateMyProfile').call(updates);

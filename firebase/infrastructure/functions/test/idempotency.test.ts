@@ -1,4 +1,4 @@
-import { clearStore, dumpStore } from './helpers';
+import { clearStore, dumpStore, retryNextTransactions } from './helpers';
 
 jest.mock('firebase-admin', () => {
   const { createAdminMock } = require('./helpers');
@@ -30,6 +30,7 @@ jest.mock('firebase-functions/v2/scheduler', () => ({
 
 import { createPost as _createPost } from '../src/posts';
 import { HttpsError } from 'firebase-functions/v2/https';
+import { withIdempotency } from '../src/idempotency';
 const createPost = _createPost as unknown as (req: any) => Promise<any>;
 
 beforeEach(() => {
@@ -41,6 +42,39 @@ function makeReq(data: any, uid?: string) {
 }
 
 describe('idempotency', () => {
+  it('transaction retry never re-executes ordinary command side effects', async () => {
+    retryNextTransactions(1);
+    let executions = 0;
+    const result = await withIdempotency('retry-safe-1', 'payload', async () => {
+      executions++;
+      return { ok: true };
+    });
+
+    expect(result).toEqual({ ok: true });
+    expect(executions).toBe(1);
+    expect(dumpStore()['playground_idempotency']).toHaveLength(1);
+  });
+
+  it('concurrent same-key command is not executed twice while the claim runs', async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    let executions = 0;
+    const first = withIdempotency('race-safe-1', 'payload', async () => {
+      executions++;
+      await gate;
+      return { ok: true };
+    });
+
+    // Let the first call commit its claim before racing it.
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    await expect(withIdempotency('race-safe-1', 'payload', async () => {
+      executions++;
+      return { ok: true };
+    })).rejects.toThrow('in progress');
+    expect(executions).toBe(1);
+    release();
+    await expect(first).resolves.toEqual({ ok: true });
+  });
   it('首次执行返回结果并写入幂等记录', async () => {
     const result = await createPost(
       makeReq({ text: '幂等测试-首次', idempotency_key: 'idem-1' }, 'user-a'),
