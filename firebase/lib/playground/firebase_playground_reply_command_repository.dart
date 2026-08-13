@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
 
-import 'firebase_playground_schema.dart';
 import 'firebase_playground_error_mapper.dart';
 import 'firebase_playground_public_mapper.dart';
 
@@ -18,48 +18,26 @@ final class FirebasePlaygroundReplyCommandRepository
   FirebasePlaygroundReplyCommandRepository({
     required FirebaseFirestore firestore,
     required FirebaseAuth auth,
-  })  : _firestore = firestore,
-        _auth = auth,
+    FirebaseFunctions? functions,
+  }) : _functions = functions ?? FirebaseFunctions.instance,
         _mapper = FirebasePlaygroundPublicMapper(firestore: firestore, auth: auth);
 
-  final FirebaseFirestore _firestore;
-  final FirebaseAuth _auth;
+  final FirebaseFunctions _functions;
   final FirebasePlaygroundPublicMapper _mapper;
 
   @override
   Future<PublicReply> createRootReply(CreateRootReplyCommand command) async {
     try {
-      final user = _auth.currentUser!;
-      final docRef =
-          _firestore.collection(PlaygroundFirestoreSchema.replies).doc();
-
-      final data = <String, dynamic>{
+      final result = await _functions.httpsCallable('createRootReply').call<Map<String, dynamic>>({
         'post_id': command.postId.value,
-        'author_provider_uid': user.uid,
-        'depth': 0,
+        'postId': command.postId.value,
         'body': command.body,
-        'is_tombstoned': false,
-        'root_reply_id': null,
-        'reply_to_reply_id': null,
-        'technique_tags': command.techniqueTags,
-        'chart_attachment': command.chartAttachment != null
-            ? _attachmentToMap(command.chartAttachment!)
-            : null,
-        'media_attachments':
-            command.mediaAttachments.map(_attachmentToMap).toList(),
-        'presentation_identity_id': null,
-        'created_at': FieldValue.serverTimestamp(),
-        'updated_at': FieldValue.serverTimestamp(),
-        'revisions': <Map<String, dynamic>>[],
-      };
-
-      if (command.idempotencyKey != null) {
-        data['idempotency_key'] = command.idempotencyKey;
-      }
-
-      await docRef.set(data);
-      final snap = await docRef.get();
-      return _mapper.publicReplyFromDoc(docRef.id, snap.data()!);
+        'techniqueTags': command.techniqueTags,
+        'chartAttachment': command.chartAttachment == null ? null : _attachmentToMap(command.chartAttachment!),
+        'mediaAttachments': command.mediaAttachments.map(_attachmentToMap).toList(),
+        if (command.idempotencyKey != null) 'idempotency_key': command.idempotencyKey,
+      });
+      return _mapper.publicReplyFromDoc(result.data['id'] as String, result.data);
     } catch (e) {
       throw FirebasePlaygroundErrorMapper.map(e);
     }
@@ -69,35 +47,15 @@ final class FirebasePlaygroundReplyCommandRepository
   Future<PublicReply> createDiscussionReply(
       CreateDiscussionReplyCommand command) async {
     try {
-      final user = _auth.currentUser!;
-      final docRef =
-          _firestore.collection(PlaygroundFirestoreSchema.replies).doc();
-
-      final data = <String, dynamic>{
-        'post_id': command.postId.value,
-        'author_provider_uid': user.uid,
-        'depth': 1,
+      final result = await _functions.httpsCallable('createDiscussionReply').call<Map<String, dynamic>>({
+        'postId': command.postId.value,
+        'rootReplyId': command.rootReplyId.value,
+        'replyToReplyId': command.replyToReplyId?.value,
         'body': command.body,
-        'is_tombstoned': false,
-        'root_reply_id': command.rootReplyId.value,
-        'reply_to_reply_id': command.replyToReplyId?.value,
-        'technique_tags': <String>[],
-        'chart_attachment': null,
-        'media_attachments':
-            command.mediaAttachments.map(_attachmentToMap).toList(),
-        'presentation_identity_id': null,
-        'created_at': FieldValue.serverTimestamp(),
-        'updated_at': FieldValue.serverTimestamp(),
-        'revisions': <Map<String, dynamic>>[],
-      };
-
-      if (command.idempotencyKey != null) {
-        data['idempotency_key'] = command.idempotencyKey;
-      }
-
-      await docRef.set(data);
-      final snap = await docRef.get();
-      return _mapper.publicReplyFromDoc(docRef.id, snap.data()!);
+        'mediaAttachments': command.mediaAttachments.map(_attachmentToMap).toList(),
+        if (command.idempotencyKey != null) 'idempotency_key': command.idempotencyKey,
+      });
+      return _mapper.publicReplyFromDoc(result.data['id'] as String, result.data);
     } catch (e) {
       throw FirebasePlaygroundErrorMapper.map(e);
     }
@@ -106,29 +64,15 @@ final class FirebasePlaygroundReplyCommandRepository
   @override
   Future<PublicReply> editReply(EditReplyCommand command) async {
     try {
-      final docRef = _firestore
-          .collection(PlaygroundFirestoreSchema.replies)
-          .doc(command.replyId.value);
-
-      final updates = <String, dynamic>{
+      final result = await _functions.httpsCallable('editReply').call<Map<String, dynamic>>({
+        'replyId': command.replyId.value,
         'body': command.body,
-        'updated_at': FieldValue.serverTimestamp(),
-      };
-
-      if (command.techniqueTags != null) {
-        updates['technique_tags'] = command.techniqueTags;
-      }
-      if (command.chartAttachment != null) {
-        updates['chart_attachment'] = _attachmentToMap(command.chartAttachment!);
-      }
-      if (command.mediaAttachments != null) {
-        updates['media_attachments'] =
-            command.mediaAttachments!.map(_attachmentToMap).toList();
-      }
-
-      await docRef.update(updates);
-      final snap = await docRef.get();
-      return _mapper.publicReplyFromDoc(command.replyId.value, snap.data()!);
+        if (command.techniqueTags != null) 'techniqueTags': command.techniqueTags,
+        if (command.chartAttachment != null) 'chartAttachment': _attachmentToMap(command.chartAttachment!),
+        if (command.mediaAttachments != null) 'mediaAttachments': command.mediaAttachments!.map(_attachmentToMap).toList(),
+        if (command.idempotencyKey != null) 'idempotency_key': command.idempotencyKey,
+      });
+      return _mapper.publicReplyFromDoc(result.data['id'] as String? ?? command.replyId.value, result.data);
     } catch (e) {
       throw FirebasePlaygroundErrorMapper.map(e);
     }
@@ -137,13 +81,9 @@ final class FirebasePlaygroundReplyCommandRepository
   @override
   Future<void> tombstoneReply(DeleteReplyCommand command) async {
     try {
-      // tombstone 唯一语义 = is_tombstoned:true；写路径零 status。
-      await _firestore
-          .collection(PlaygroundFirestoreSchema.replies)
-          .doc(command.replyId.value)
-          .update({
-        'is_tombstoned': true,
-        'updated_at': FieldValue.serverTimestamp(),
+      await _functions.httpsCallable('deleteReply').call({
+        'replyId': command.replyId.value,
+        if (command.idempotencyKey != null) 'idempotency_key': command.idempotencyKey,
       });
     } catch (e) {
       throw FirebasePlaygroundErrorMapper.map(e);

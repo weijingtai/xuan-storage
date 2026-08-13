@@ -27,28 +27,9 @@ service cloud.firestore {
                   && resource.data.status == 'tombstoned'
                   && request.auth.uid == resource.data.author_provider_uid;
 
-      // 字段 allowlist — 客户端只能写这些字段
-      function postCreateFieldsOk() {
-        let allowed = ['text', 'allowed_chart_technique_ids', 'attachments',
-                       'author_provider_uid', 'status', 'idempotency_key',
-                       'created_at', 'updated_at', 'revisions',
-                       'has_outcome_feedback'];
-        return request.resource.data.keys().hasOnly(allowed);
-      }
-
-      allow create: if request.auth != null
-                    && request.resource.data.author_provider_uid == request.auth.uid
-                    && request.resource.data.status == 'active'
-                    && postCreateFieldsOk();
-
-      // update：仅作者可改允许字段；只检查变更的字段
-      allow update: if request.auth != null
-                    && request.auth.uid == resource.data.author_provider_uid
-                    && request.resource.data.diff(resource.data).affectedKeys()
-                       .hasOnly(['text', 'allowed_chart_technique_ids', 'attachments',
-                                 'revisions', 'status', 'updated_at']);
-
-      allow delete: if false;
+      // Canonical ownership, privacy and revision fields are minted in callable
+      // Functions.  No client write path may bypass those invariants.
+      allow write: if false;
     }
 
     // ============================
@@ -59,31 +40,8 @@ service cloud.firestore {
                   && (resource.data.is_tombstoned != true
                       || request.auth.uid == resource.data.author_provider_uid);
 
-      // 字段 allowlist
-      function replyCreateFieldsOk() {
-        let allowed = ['body', 'post_id', 'root_reply_id', 'reply_to_reply_id',
-                       'depth', 'technique_tags', 'chart_attachment',
-                       'media_attachments', 'author_provider_uid',
-                       'presentation_identity_id', 'is_tombstoned',
-                       'revisions', 'created_at', 'updated_at',
-                       'idempotency_key'];
-        return request.resource.data.keys().hasOnly(allowed);
-      }
-
-      allow create: if request.auth != null
-                    && request.resource.data.author_provider_uid == request.auth.uid
-                    && request.resource.data.depth <= 1
-                    && replyCreateFieldsOk();
-
-      // update：仅作者可改允许字段，只检查变更的字段
-      allow update: if request.auth != null
-                    && request.auth.uid == resource.data.author_provider_uid
-                    && request.resource.data.diff(resource.data).affectedKeys()
-                       .hasOnly(['body', 'technique_tags', 'chart_attachment',
-                                 'media_attachments', 'revisions', 'is_tombstoned',
-                                 'updated_at']);
-
-      allow delete: if false;
+      // Root linkage/depth and tombstones are validated by callable Functions.
+      allow write: if false;
     }
 
     // ============================
@@ -127,12 +85,7 @@ service cloud.firestore {
     // ============================
     match /playground_profiles/{userId} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null
-                    && request.resource.data.user_provider_uid == request.auth.uid;
-      allow update: if request.auth != null
-                    && request.auth.uid == resource.data.user_provider_uid
-                    && request.resource.data.keys().hasOnly(
-                        ['display_name', 'avatar_url', 'bio', 'common_techniques']);
+      allow write: if false;
     }
 
     // ============================

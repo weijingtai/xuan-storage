@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
 
 import 'firebase_playground_schema.dart';
@@ -18,44 +19,28 @@ final class FirebasePlaygroundPostCommandRepository
   FirebasePlaygroundPostCommandRepository({
     required FirebaseFirestore firestore,
     required FirebaseAuth auth,
+    FirebaseFunctions? functions,
   })  : _firestore = firestore,
-        _auth = auth,
+        _functions = functions ?? FirebaseFunctions.instance,
         _mapper = FirebasePlaygroundPublicMapper(firestore: firestore, auth: auth);
 
   final FirebaseFirestore _firestore;
-  final FirebaseAuth _auth;
+  final FirebaseFunctions _functions;
   final FirebasePlaygroundPublicMapper _mapper;
 
   @override
   Future<PublicPost> createPost(CreatePostCommand command) async {
     try {
-      final user = _auth.currentUser!;
-      final docRef =
-          _firestore.collection(PlaygroundFirestoreSchema.posts).doc();
-
-      // 写 payload 键集合恰好等于 Rules postCreateFieldsOk allowlist；
-      // 客户端不写 author_app_user_id（decode 回退 author_provider_uid）。
-      final data = <String, dynamic>{
-        'author_provider_uid': user.uid,
+      final result = await _functions.httpsCallable('createPost').call<Map<String, dynamic>>({
         'text': command.text,
         'allowed_chart_technique_ids': command.allowedChartTechniqueIds,
         'attachments': command.attachments.map(_attachmentToMap).toList(),
-        'status': PlaygroundPostStatus.active.name,
-        'created_at': FieldValue.serverTimestamp(),
-        'updated_at': FieldValue.serverTimestamp(),
-        'revisions': <Map<String, dynamic>>[],
-        'has_outcome_feedback': false,
-      };
-
-      if (command.idempotencyKey != null) {
-        data['idempotency_key'] = command.idempotencyKey;
-      }
-
-      await docRef.set(data);
-      final snap = await docRef.get();
-      final doc = snap.data()!;
+        'presentation_mode': command.presentationMode.name,
+        if (command.idempotencyKey != null) 'idempotency_key': command.idempotencyKey,
+      });
+      final doc = result.data;
       return _mapper.publicPostFromDoc(
-        docRef.id,
+        doc['id'] as String,
         doc,
         replyCount: 0,
         likeCount: 0,
@@ -71,29 +56,16 @@ final class FirebasePlaygroundPostCommandRepository
   @override
   Future<PublicPost> editPost(EditPostCommand command) async {
     try {
-      final docRef = _firestore
-          .collection(PlaygroundFirestoreSchema.posts)
-          .doc(command.postId.value);
-
-      final updates = <String, dynamic>{
+      final result = await _functions.httpsCallable('editPost').call<Map<String, dynamic>>({
+        'postId': command.postId.value,
         'text': command.text,
-        'updated_at': FieldValue.serverTimestamp(),
-      };
-
-      if (command.allowedChartTechniqueIds != null) {
-        updates['allowed_chart_technique_ids'] =
-            command.allowedChartTechniqueIds;
-      }
-      if (command.attachments != null) {
-        updates['attachments'] =
-            command.attachments!.map(_attachmentToMap).toList();
-      }
-
-      await docRef.update(updates);
-      final snap = await docRef.get();
-      final doc = snap.data()!;
+        if (command.allowedChartTechniqueIds != null) 'allowed_chart_technique_ids': command.allowedChartTechniqueIds,
+        if (command.attachments != null) 'attachments': command.attachments!.map(_attachmentToMap).toList(),
+        if (command.idempotencyKey != null) 'idempotency_key': command.idempotencyKey,
+      });
+      final doc = result.data;
       return _mapper.publicPostFromDoc(
-        command.postId.value,
+        doc['id'] as String? ?? command.postId.value,
         doc,
         replyCount: 0,
         likeCount: 0,
@@ -109,13 +81,9 @@ final class FirebasePlaygroundPostCommandRepository
   @override
   Future<void> tombstonePost(DeletePostCommand command) async {
     try {
-      // tombstone 唯一语义 = status:tombstoned（Rules post update allowlist）。
-      await _firestore
-          .collection(PlaygroundFirestoreSchema.posts)
-          .doc(command.postId.value)
-          .update({
-        'status': PlaygroundPostStatus.tombstoned.name,
-        'updated_at': FieldValue.serverTimestamp(),
+      await _functions.httpsCallable('tombstonePost').call({
+        'postId': command.postId.value,
+        if (command.idempotencyKey != null) 'idempotency_key': command.idempotencyKey,
       });
     } catch (e) {
       throw FirebasePlaygroundErrorMapper.map(e);

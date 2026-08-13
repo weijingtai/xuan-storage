@@ -35,8 +35,8 @@ export const MAX_REPLY_DEPTH = 1;
 
 // ----- 导出所有 callable Functions -----
 
-export { createPost } from './posts';
-export { createRootReply, createDiscussionReply, deleteReply } from './replies';
+export { createPost, editPost, tombstonePost } from './posts';
+export { createRootReply, createDiscussionReply, editReply, deleteReply } from './replies';
 export { verifyRootReply, revokeVerification } from './verifications';
 export { setOutcomeFeedback, revokeOutcomeFeedback } from './outcome_feedback';
 export { setLike } from './likes';

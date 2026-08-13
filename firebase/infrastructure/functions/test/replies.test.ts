@@ -59,7 +59,6 @@ async function seedReply(replyId: string, postId: string, authorUid: string = 'a
   await db.collection('playground_replies').doc(replyId).set({
     id: replyId,
     post_id: postId,
-    parent_reply_id: null,
     root_reply_id: null,
     depth: 0,
     author_provider_uid: authorUid,
@@ -81,8 +80,8 @@ describe('createRootReply', () => {
     expect(result.id).toBeTruthy();
     expect(result.post_id).toBe('post-1');
     expect(result.depth).toBe(0);
-    expect(result.parent_reply_id).toBeNull();
     expect(result.root_reply_id).toBeNull();
+    expect(result.reply_to_reply_id).toBeNull();
     expect(result.is_tombstoned).toBe(false);
 
     const store = dumpStore();
@@ -113,8 +112,8 @@ describe('createDiscussionReply', () => {
 
     expect(result.id).toBeTruthy();
     expect(result.depth).toBe(1);
-    expect(result.parent_reply_id).toBe('reply-1');
     expect(result.root_reply_id).toBe('reply-1');
+    expect(result.reply_to_reply_id).toBe('reply-1');
   });
 
   it('深度超过 MAX_REPLY_DEPTH 应拒绝', async () => {
@@ -153,6 +152,16 @@ describe('createDiscussionReply', () => {
         makeReq({ postId: 'post-2', rootReplyId: 'reply-1', body: '跨帖' }, 'user-3'),
       ),
     ).rejects.toThrow(HttpsError);
+  });
+
+  it('replyToReplyId 跨帖时应拒绝', async () => {
+    await seedPost('post-1');
+    await seedPost('post-2');
+    await seedReply('root-1', 'post-1');
+    await seedReply('other-reply', 'post-2', 'user-2', { depth: 1, root_reply_id: 'other-root' });
+    await expect(createDiscussionReply(makeReq({
+      postId: 'post-1', rootReplyId: 'root-1', replyToReplyId: 'other-reply', body: '跨帖目标',
+    }, 'user-3'))).rejects.toThrow(HttpsError);
   });
 
   it('根回复不存在应拒绝', async () => {

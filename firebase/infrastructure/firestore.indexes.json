@@ -9,6 +9,24 @@
       ]
     },
     {
+      "collectionGroup": "playground_posts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "author_app_user_id", "order": "ASCENDING"},
+        {"fieldPath": "status", "order": "ASCENDING"},
+        {"fieldPath": "presentation_mode", "order": "ASCENDING"},
+        {"fieldPath": "created_at", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "playground_replies",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "author_app_user_id", "order": "ASCENDING"},
+        {"fieldPath": "created_at", "order": "DESCENDING"}
+      ]
+    },
+    {
       "collectionGroup": "playground_replies",
       "queryScope": "COLLECTION",
       "fields": [
