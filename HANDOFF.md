@@ -1,5 +1,16 @@
 # HANDOFF: storage-build-theme（交接信封 · 第 2 轮）
 
+## Playground Firestore direct-write Design（2026-08-12）
+
+- 当前分支/worktree：`fix/playground-firebase-repairs`。
+- 刚完成：按 OpenSpec/gStack/Matt 复核意见加固
+  `docs/superpowers/specs/2026-08-12-playground-firestore-direct-write-design.md`；同步更新容器级
+  `openspec/changes/add-divination-playground` 的 proposal/design/tasks/spec delta 与 Firebase
+  authority 文档，使 Functions/通知/私信/Profile/可信游客限制后移。
+- 下一步第一件事：用户批准 Design 后重写 TDD/ACT；不得直接执行旧 TDD。
+- 已知的坑：identity schema convergence 是编码 P0 前置；旧 callable 与新 public/private schema
+  不兼容，不能作为回滚；当前 direct Phase 不交付待断/派生状态 Filter。
+
 > 交接时刻: 2026-08-06 ｜ 触发: runtime iteration budget >=80%（40/50）
 > 分支: agent/pi/storage-build-theme ｜ 基线: 62a1e4c ｜ 最新提交: 0de80b8
 > 上一轮信封: commit 8bd86e2（立项完成，待人类确认 §七）
