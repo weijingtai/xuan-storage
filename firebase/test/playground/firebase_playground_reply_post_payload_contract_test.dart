@@ -27,8 +27,6 @@ import 'package:persistence_firebase/playground/firebase_playground_reply_reposi
 import 'package:persistence_firebase/playground/firebase_playground_identity_resolver.dart';
 import 'package:persistence_firebase/playground/firebase_playground_schema.dart';
 
-import 'fake_callable_functions.dart';
-
 /// reply 字段 allowlist（覆盖矩阵 §2.1，Rules `replyCreateFieldsOk` 全量）。
 const replyAllowlist = <String>{
   'body',
@@ -67,11 +65,9 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   const uid = 'payload-test-uid';
-  const appUserId = 'payload-test-app-user';
 
   late FakeFirebaseFirestore firestore;
   late MockFirebaseAuth auth;
-  late FakeFirebaseFunctions functions;
   late FirebasePlaygroundIdentityResolver identityResolver;
 
   setUp(() {
@@ -80,14 +76,9 @@ void main() {
       mockUser: MockUser(uid: uid, isAnonymous: false),
       signedIn: true,
     );
-    functions = FakeFirebaseFunctions()
-      ..responses['resolveMyIdentity'] = <String, dynamic>{
-        'appUserId': appUserId,
-      };
     identityResolver = FirebasePlaygroundIdentityResolver(
       firestore: firestore,
       auth: auth,
-      functions: functions,
     );
   });
 

@@ -96,7 +96,6 @@ void main() {
       identityResolver = FirebasePlaygroundIdentityResolver(
         firestore: firestore,
         auth: auth,
-        functions: FirebaseFunctions.instance,
       );
       postRepo = FirebasePlaygroundPostRepository(
         firestore: firestore,

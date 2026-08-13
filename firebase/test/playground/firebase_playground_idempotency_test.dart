@@ -7,15 +7,12 @@ import 'package:persistence_firebase/playground/firebase_playground_post_reposit
 import 'package:persistence_firebase/playground/firebase_playground_identity_resolver.dart';
 import 'package:persistence_firebase/playground/firebase_playground_schema.dart';
 
-import 'fake_callable_functions.dart';
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('FirebasePlaygroundPostRepository 幂等', () {
     late FakeFirebaseFirestore firestore;
     late MockFirebaseAuth mockAuth;
-    late FakeFirebaseFunctions functions;
     late FirebasePlaygroundIdentityResolver identityResolver;
     late FirebasePlaygroundPostRepository repo;
 
@@ -27,14 +24,9 @@ void main() {
         mockUser: MockUser(uid: testUid, isAnonymous: false),
         signedIn: true,
       );
-      functions = FakeFirebaseFunctions()
-        ..responses['resolveMyIdentity'] = <String, dynamic>{
-          'appUserId': 'app-test-user',
-        };
       identityResolver = FirebasePlaygroundIdentityResolver(
         firestore: firestore,
         auth: mockAuth,
-        functions: functions,
       );
       repo = FirebasePlaygroundPostRepository(
         firestore: firestore,

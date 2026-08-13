@@ -25,10 +25,7 @@ void main() {
 
     setUp(() {
       firestore = FakeFirebaseFirestore();
-      functions = FakeFirebaseFunctions()
-        ..responses['resolveMyIdentity'] = <String, dynamic>{
-          'appUserId': appUserId,
-        };
+      functions = FakeFirebaseFunctions();
       mockAuth = MockFirebaseAuth(
         mockUser: MockUser(uid: verifierUid, isAnonymous: false),
         signedIn: true,
@@ -36,8 +33,16 @@ void main() {
       identityResolver = FirebasePlaygroundIdentityResolver(
         firestore: firestore,
         auth: mockAuth,
-        functions: functions,
       );
+      // resolver 直读 identity_map；revokeVerification 会 resolveActor，
+      // 必须预置公开身份字段，否则 fail closed。
+      firestore.collection('identity_map').doc(verifierUid).set({
+        'app_user_id': appUserId,
+        'provider_uid': verifierUid,
+        'provider_id': 'firebase',
+        'public_presentation_id': 'pub_verifier_0001',
+        'public_display_alias': '玄友0002',
+      });
     });
 
     PlaygroundVerificationRepository makeRepo() {
