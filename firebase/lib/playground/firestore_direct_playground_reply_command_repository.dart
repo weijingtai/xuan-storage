@@ -1,0 +1,625 @@
+/// Firestore 直写回复命令仓库（Task 4）。
+///
+/// Design: docs/superpowers/specs/2026-08-12-playground-firestore-direct-write-design.md
+/// - §3.3：thread presentation mapping 私有文档 + 随机 128-bit ID；
+/// - §4.1/§4.3：append-only revision；tombstone 清空公开正文；
+/// - §6.2：root/discussion 两层；跨帖/跨 root/负 depth/第三层/墓碑目标拒绝；
+/// - §8：确定性文档 ID；公开 reply 零内部 UID。
+library;
+
+import 'dart:math';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:repository_interface_playground/repository_interface_playground.dart';
+
+import 'firebase_playground_schema.dart';
+import 'firebase_playground_public_mapper.dart';
+import 'firestore_direct_playground_command_support.dart';
+
+/// 回复直写命令仓库 —— 生产装配的 provider。
+final class FirestoreDirectPlaygroundReplyCommandRepository
+    implements PlaygroundReplyCommandRepository {
+  FirestoreDirectPlaygroundReplyCommandRepository({
+    required FirebaseFirestore firestore,
+    required FirebaseAuth auth,
+  })  : _firestore = firestore,
+        _auth = auth,
+        _mapper = FirebasePlaygroundPublicMapper(firestore: firestore, auth: auth);
+
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
+  final FirebasePlaygroundPublicMapper _mapper;
+
+  static const _rootOperation = 'reply-root-create';
+  static const _discussionOperation = 'reply-discussion-create';
+  static final Random _random = Random.secure();
+
+  // ---- createRootReply ----
+
+  @override
+  Future<PublicReply> createRootReply(CreateRootReplyCommand command) async {
+    try {
+      final key = _requireIdempotencyKey(command.idempotencyKey);
+      final actor = await requireDirectActor(firestore: _firestore, auth: _auth);
+
+      final replyId = deterministicCreateId(
+        operation: _rootOperation,
+        authUid: actor.providerUid,
+        idempotencyKey: key,
+      );
+
+      final postRef = _firestore
+          .collection(PlaygroundFirestoreSchema.posts)
+          .doc(command.postId.value);
+      final replyRef = _firestore
+          .collection(PlaygroundFirestoreSchema.replies)
+          .doc(replyId);
+      final ownerRef = _firestore
+          .collection(PlaygroundFirestoreSchema.replyOwners)
+          .doc(replyId);
+      final revisionRef = replyRef
+          .collection(PlaygroundFirestoreSchema.postRevisions)
+          .doc('r0000000001');
+
+      final result = await _firestore.runTransaction((tx) async {
+        // 幂等 replay。
+        final existing = await tx.get(replyRef);
+        if (existing.exists) {
+          return existing.data()!;
+        }
+
+        // 目标 post 必须存在且 active。
+        final postSnap = await tx.get(postRef);
+        if (!postSnap.exists || postSnap.data()?['status'] != 'active') {
+          throw directPlaygroundError(
+            code: PlaygroundErrorCode.notFound,
+            machineCode: 'content/not-found',
+            message: '目标帖子不存在或已关闭',
+          );
+        }
+
+        final presentation = await _resolvePresentation(
+          tx,
+          postId: command.postId.value,
+          actor: actor,
+          mode: command.presentationMode,
+        );
+
+        final attachments =
+            command.mediaAttachments.map(_attachmentToMap).toList(growable: false);
+        final chartMap =
+            command.chartAttachment != null ? _attachmentToMap(command.chartAttachment!) : null;
+
+        final replyPayload = <String, dynamic>{
+          'id': replyId,
+          'post_id': command.postId.value,
+          'presentation_mode': presentation['presentation_mode'],
+          'presentation_identity_id': presentation['presentation_identity_id'],
+          'presentation_display_alias': presentation['presentation_display_alias'],
+          'presentation_avatar_url': presentation['presentation_avatar_url'],
+          'public_profile_ref': presentation['public_profile_ref'],
+          'depth': 0,
+          'body': command.body,
+          'is_tombstoned': false,
+          'root_reply_id': null,
+          'reply_to_reply_id': null,
+          'technique_tags': command.techniqueTags,
+          'chart_attachment': chartMap,
+          'media_attachments': attachments,
+          'revision_no': 1,
+          'current_revision_id': 'r0000000001',
+          'idempotency_key': key,
+          'payload_hash': canonicalJsonHash({
+            'post_id': command.postId.value,
+            'body': command.body,
+            'technique_tags': command.techniqueTags,
+            'chart_attachment': chartMap,
+            'media_attachments': attachments,
+            'presentation_mode': presentation['presentation_mode'],
+            'presentation_identity_id': presentation['presentation_identity_id'],
+            'presentation_display_alias': presentation['presentation_display_alias'],
+          }),
+          'created_at': FieldValue.serverTimestamp(),
+          'updated_at': FieldValue.serverTimestamp(),
+        };
+
+        final revisionPayload = _revisionPayload(
+          id: 'r0000000001',
+          parentId: '',
+          revisionNo: 1,
+          body: command.body,
+          techniqueTags: command.techniqueTags,
+          chartAttachment: chartMap,
+          mediaAttachments: attachments,
+          presentation: presentation,
+        );
+
+        tx.set(replyRef, replyPayload);
+        tx.set(ownerRef, actor.ownerPayload(contentId: replyId));
+        tx.set(revisionRef, revisionPayload);
+
+        return replyPayload;
+      });
+
+      return _mapper.publicReplyFromDoc(replyId, result);
+    } catch (e) {
+      if (e is PlaygroundError) rethrow;
+      throw directPlaygroundError(
+        code: PlaygroundErrorCode.unavailable,
+        machineCode: 'provider/unavailable',
+        message: 'Firestore 暂不可用',
+        cause: e,
+      );
+    }
+  }
+
+  // ---- createDiscussionReply ----
+
+  @override
+  Future<PublicReply> createDiscussionReply(
+      CreateDiscussionReplyCommand command) async {
+    try {
+      final key = _requireIdempotencyKey(command.idempotencyKey);
+      final actor = await requireDirectActor(firestore: _firestore, auth: _auth);
+
+      final replyId = deterministicCreateId(
+        operation: _discussionOperation,
+        authUid: actor.providerUid,
+        idempotencyKey: key,
+      );
+
+      final postRef = _firestore
+          .collection(PlaygroundFirestoreSchema.posts)
+          .doc(command.postId.value);
+      final rootRef = _firestore
+          .collection(PlaygroundFirestoreSchema.replies)
+          .doc(command.rootReplyId.value);
+      final replyRef = _firestore
+          .collection(PlaygroundFirestoreSchema.replies)
+          .doc(replyId);
+      final ownerRef = _firestore
+          .collection(PlaygroundFirestoreSchema.replyOwners)
+          .doc(replyId);
+      final revisionRef = replyRef
+          .collection(PlaygroundFirestoreSchema.postRevisions)
+          .doc('r0000000001');
+
+      final result = await _firestore.runTransaction((tx) async {
+        final existing = await tx.get(replyRef);
+        if (existing.exists) {
+          return existing.data()!;
+        }
+
+        // 目标 post 存在且 active。
+        final postSnap = await tx.get(postRef);
+        if (!postSnap.exists || postSnap.data()?['status'] != 'active') {
+          throw directPlaygroundError(
+            code: PlaygroundErrorCode.notFound,
+            machineCode: 'content/not-found',
+            message: '目标帖子不存在或已关闭',
+          );
+        }
+
+        // root 必须存在、同帖、depth=0、未墓碑。
+        final rootSnap = await tx.get(rootRef);
+        if (!rootSnap.exists) {
+          throw directPlaygroundError(
+            code: PlaygroundErrorCode.notFound,
+            machineCode: 'content/not-found',
+            message: '根回复不存在',
+          );
+        }
+        final rootData = rootSnap.data()!;
+        if (rootData['post_id'] != command.postId.value ||
+            rootData['depth'] != 0) {
+          throw directPlaygroundError(
+            code: PlaygroundErrorCode.invalidArgument,
+            machineCode: 'validation/invalid-payload',
+            message: '跨帖或非根回复',
+          );
+        }
+        if (rootData['is_tombstoned'] == true) {
+          throw directPlaygroundError(
+            code: PlaygroundErrorCode.tombstoned,
+            machineCode: 'content/tombstoned',
+            message: '根回复已删除',
+          );
+        }
+
+        // reply_to 若提供：必须存在、同帖、同 root、depth=0、未墓碑。
+        if (command.replyToReplyId != null) {
+          final replyToSnap = await tx.get(_firestore
+              .collection(PlaygroundFirestoreSchema.replies)
+              .doc(command.replyToReplyId!.value));
+          if (!replyToSnap.exists) {
+            throw directPlaygroundError(
+              code: PlaygroundErrorCode.notFound,
+              machineCode: 'content/not-found',
+              message: '被回复对象不存在',
+            );
+          }
+          final replyTo = replyToSnap.data()!;
+          final sameRoot = replyTo['root_reply_id'] ==
+              rootData['id'];
+          if (replyTo['post_id'] != command.postId.value ||
+              !sameRoot ||
+              replyTo['depth'] != 0) {
+            throw directPlaygroundError(
+              code: PlaygroundErrorCode.invalidArgument,
+              machineCode: 'validation/invalid-payload',
+              message: '跨 root 或第三层回复',
+            );
+          }
+          if (replyTo['is_tombstoned'] == true) {
+            throw directPlaygroundError(
+              code: PlaygroundErrorCode.tombstoned,
+              machineCode: 'content/tombstoned',
+              message: '被回复对象已删除',
+            );
+          }
+        }
+
+        final presentation = await _resolvePresentation(
+          tx,
+          postId: command.postId.value,
+          actor: actor,
+          mode: command.presentationMode,
+        );
+
+        final attachments =
+            command.mediaAttachments.map(_attachmentToMap).toList(growable: false);
+
+        final replyPayload = <String, dynamic>{
+          'id': replyId,
+          'post_id': command.postId.value,
+          'presentation_mode': presentation['presentation_mode'],
+          'presentation_identity_id': presentation['presentation_identity_id'],
+          'presentation_display_alias': presentation['presentation_display_alias'],
+          'presentation_avatar_url': presentation['presentation_avatar_url'],
+          'public_profile_ref': presentation['public_profile_ref'],
+          'depth': 1,
+          'body': command.body,
+          'is_tombstoned': false,
+          'root_reply_id': command.rootReplyId.value,
+          'reply_to_reply_id': command.replyToReplyId?.value,
+          'technique_tags': <String>[],
+          'chart_attachment': null,
+          'media_attachments': attachments,
+          'revision_no': 1,
+          'current_revision_id': 'r0000000001',
+          'idempotency_key': key,
+          'payload_hash': canonicalJsonHash({
+            'post_id': command.postId.value,
+            'root_reply_id': command.rootReplyId.value,
+            'reply_to_reply_id': command.replyToReplyId?.value,
+            'body': command.body,
+            'media_attachments': attachments,
+            'presentation_mode': presentation['presentation_mode'],
+            'presentation_identity_id': presentation['presentation_identity_id'],
+            'presentation_display_alias': presentation['presentation_display_alias'],
+          }),
+          'created_at': FieldValue.serverTimestamp(),
+          'updated_at': FieldValue.serverTimestamp(),
+        };
+
+        final revisionPayload = _revisionPayload(
+          id: 'r0000000001',
+          parentId: '',
+          revisionNo: 1,
+          body: command.body,
+          techniqueTags: const [],
+          chartAttachment: null,
+          mediaAttachments: attachments,
+          presentation: presentation,
+        );
+
+        tx.set(replyRef, replyPayload);
+        tx.set(ownerRef, actor.ownerPayload(contentId: replyId));
+        tx.set(revisionRef, revisionPayload);
+
+        return replyPayload;
+      });
+
+      return _mapper.publicReplyFromDoc(replyId, result);
+    } catch (e) {
+      if (e is PlaygroundError) rethrow;
+      throw directPlaygroundError(
+        code: PlaygroundErrorCode.unavailable,
+        machineCode: 'provider/unavailable',
+        message: 'Firestore 暂不可用',
+        cause: e,
+      );
+    }
+  }
+
+  // ---- editReply ----
+
+  @override
+  Future<PublicReply> editReply(EditReplyCommand command) async {
+    try {
+      _requireIdempotencyKey(command.idempotencyKey);
+      final actor = await requireDirectActor(firestore: _firestore, auth: _auth);
+      final replyId = command.replyId.value;
+
+      final replyRef = _firestore
+          .collection(PlaygroundFirestoreSchema.replies)
+          .doc(replyId);
+      final updated = await _firestore.runTransaction((tx) async {
+        await _assertReplyOwner(tx, replyId, actor.providerUid);
+        final snap = await tx.get(replyRef);
+        if (!snap.exists) {
+          throw directPlaygroundError(
+            code: PlaygroundErrorCode.notFound,
+            machineCode: 'content/not-found',
+            message: '回复不存在',
+          );
+        }
+        final current = snap.data()!;
+        if (current['is_tombstoned'] == true) {
+          throw directPlaygroundError(
+            code: PlaygroundErrorCode.tombstoned,
+            machineCode: 'content/tombstoned',
+            message: '回复已删除，无法编辑',
+          );
+        }
+
+        final revisionNo = (current['revision_no'] as int? ?? 1) + 1;
+        final revisionId = 'r${revisionNo.toString().padLeft(10, '0')}';
+        final presentation = _presentationFrom(current, actor);
+        final List<Map<String, dynamic>> attachments =
+            command.mediaAttachments != null
+                ? command.mediaAttachments!.map(_attachmentToMap).toList()
+                : (current['media_attachments'] as List<dynamic>?)
+                        ?.whereType<Map<String, dynamic>>()
+                        .toList() ??
+                    <Map<String, dynamic>>[];
+        final techniqueTags = command.techniqueTags ??
+            (current['technique_tags'] as List<dynamic>?)?.cast<String>() ??
+            <String>[];
+        final Map<String, dynamic>? chartMap = command.chartAttachment != null
+            ? _attachmentToMap(command.chartAttachment!)
+            : (current['chart_attachment'] as Map<String, dynamic>?);
+
+        tx.set(replyRef.collection(PlaygroundFirestoreSchema.postRevisions)
+            .doc(revisionId), _revisionPayload(
+          id: revisionId,
+          parentId: current['current_revision_id'] as String? ?? 'r0000000001',
+          revisionNo: revisionNo,
+          body: command.body,
+          techniqueTags: techniqueTags,
+          chartAttachment: chartMap,
+          mediaAttachments: attachments,
+          presentation: presentation,
+        ));
+        tx.update(replyRef, {
+          'body': command.body,
+          'technique_tags': techniqueTags,
+          'chart_attachment': chartMap,
+          'media_attachments': attachments,
+          'revision_no': revisionNo,
+          'current_revision_id': revisionId,
+          'updated_at': FieldValue.serverTimestamp(),
+        });
+
+        return <String, dynamic>{...current}
+          ..['body'] = command.body
+          ..['technique_tags'] = techniqueTags
+          ..['chart_attachment'] = chartMap
+          ..['media_attachments'] = attachments
+          ..['revision_no'] = revisionNo
+          ..['current_revision_id'] = revisionId;
+      });
+
+      return _mapper.publicReplyFromDoc(replyId, updated);
+    } catch (e) {
+      if (e is PlaygroundError) rethrow;
+      throw directPlaygroundError(
+        code: PlaygroundErrorCode.unavailable,
+        machineCode: 'provider/unavailable',
+        message: 'Firestore 暂不可用',
+        cause: e,
+      );
+    }
+  }
+
+  // ---- tombstoneReply ----
+
+  @override
+  Future<void> tombstoneReply(DeleteReplyCommand command) async {
+    try {
+      _requireIdempotencyKey(command.idempotencyKey);
+      final actor = await requireDirectActor(firestore: _firestore, auth: _auth);
+      final replyId = command.replyId.value;
+
+      final replyRef = _firestore
+          .collection(PlaygroundFirestoreSchema.replies)
+          .doc(replyId);
+      await _firestore.runTransaction((tx) async {
+        await _assertReplyOwner(tx, replyId, actor.providerUid);
+        final snap = await tx.get(replyRef);
+        if (!snap.exists) {
+          throw directPlaygroundError(
+            code: PlaygroundErrorCode.notFound,
+            machineCode: 'content/not-found',
+            message: '回复不存在',
+          );
+        }
+        final current = snap.data()!;
+        if (current['is_tombstoned'] == true) {
+          return; // 幂等。
+        }
+
+        // 先追加最后 revision，再清空公开正文。
+        final revisionNo = (current['revision_no'] as int? ?? 1) + 1;
+        final revisionId = 'r${revisionNo.toString().padLeft(10, '0')}';
+        final presentation = _presentationFrom(current, actor);
+
+        tx.set(replyRef.collection(PlaygroundFirestoreSchema.postRevisions)
+            .doc(revisionId), _revisionPayload(
+          id: revisionId,
+          parentId: current['current_revision_id'] as String? ?? 'r0000000001',
+          revisionNo: revisionNo,
+          body: current['body'] as String? ?? '',
+          techniqueTags: const [],
+          chartAttachment: null,
+          mediaAttachments: const [],
+          presentation: presentation,
+        ));
+
+        tx.update(replyRef, {
+          'is_tombstoned': true,
+          'body': '',
+          'technique_tags': <dynamic>[],
+          'chart_attachment': null,
+          'media_attachments': <dynamic>[],
+          'revision_no': revisionNo,
+          'current_revision_id': revisionId,
+          'updated_at': FieldValue.serverTimestamp(),
+        });
+      });
+    } catch (e) {
+      if (e is PlaygroundError) rethrow;
+      throw directPlaygroundError(
+        code: PlaygroundErrorCode.unavailable,
+        machineCode: 'provider/unavailable',
+        message: 'Firestore 暂不可用',
+        cause: e,
+      );
+    }
+  }
+
+  // ---- helpers ----
+
+  Future<void> _assertReplyOwner(
+    Transaction tx,
+    String replyId,
+    String providerUid,
+  ) async {
+    final ownerSnap = await tx.get(_firestore
+        .collection(PlaygroundFirestoreSchema.replyOwners)
+        .doc(replyId));
+    final owner = ownerSnap.data();
+    if (owner == null || owner['provider_uid'] != providerUid) {
+      throw directPlaygroundError(
+        code: PlaygroundErrorCode.forbidden,
+        machineCode: 'authorization/forbidden',
+        message: '仅回复作者可操作',
+      );
+    }
+  }
+
+  /// 解析展示身份。one-time anonymous 首次回复在同一 transaction 创建
+  /// thread presentation mapping；后续回复复用。
+  Future<Map<String, dynamic>> _resolvePresentation(
+    Transaction tx, {
+    required String postId,
+    required DirectWriteActor actor,
+    required PlaygroundPresentationMode mode,
+  }) async {
+    if (mode == PlaygroundPresentationMode.stableAlias) {
+      return actor.presentationPayload();
+    }
+
+    final mappingId = '${postId}__${actor.providerUid}';
+    final mappingRef = _firestore
+        .collection(PlaygroundFirestoreSchema.threadPresentations)
+        .doc(mappingId);
+    final mappingSnap = await tx.get(mappingRef);
+    if (mappingSnap.exists) {
+      final identityId =
+          mappingSnap.data()?['presentation_identity_id'] as String?;
+      if (identityId != null && identityId.isNotEmpty) {
+        return actor.oneTimeAnonymousPresentationPayload(identityId: identityId);
+      }
+    }
+
+    // 首次：创建随机 128-bit presentation ID（32 hex chars）。
+    final newId = _randomPresentationId();
+    tx.set(mappingRef, {
+      'post_id': postId,
+      'provider_uid': actor.providerUid,
+      'presentation_identity_id': newId,
+      'created_at': FieldValue.serverTimestamp(),
+    });
+    return actor.oneTimeAnonymousPresentationPayload(identityId: newId);
+  }
+
+  String _randomPresentationId() {
+    final bytes = List<int>.generate(16, (_) => _random.nextInt(256));
+    return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+  }
+
+  Map<String, dynamic> _presentationFrom(
+    Map<String, dynamic> current,
+    DirectWriteActor actor,
+  ) {
+    final mode = current['presentation_mode'] as String? ?? 'stableAlias';
+    return {
+      'presentation_mode': mode,
+      'presentation_identity_id':
+          current['presentation_identity_id'] ?? actor.publicPresentationId,
+      'presentation_display_alias':
+          current['presentation_display_alias'] ?? actor.publicDisplayAlias,
+      'presentation_avatar_url': current['presentation_avatar_url'],
+      'public_profile_ref': current['public_profile_ref'],
+    };
+  }
+
+  Map<String, dynamic> _revisionPayload({
+    required String id,
+    required String parentId,
+    required int revisionNo,
+    required String body,
+    required List<String> techniqueTags,
+    required Map<String, dynamic>? chartAttachment,
+    required List<Map<String, dynamic>> mediaAttachments,
+    required Map<String, dynamic> presentation,
+  }) {
+    return {
+      'id': id,
+      'parent_id': parentId,
+      'revision_no': revisionNo,
+      'body': body,
+      'presentation_mode': presentation['presentation_mode'],
+      'presentation_identity_id': presentation['presentation_identity_id'],
+      'presentation_display_alias': presentation['presentation_display_alias'],
+      'presentation_avatar_url': presentation['presentation_avatar_url'],
+      'public_profile_ref': presentation['public_profile_ref'],
+      'technique_tags': techniqueTags,
+      'chart_attachment': chartAttachment,
+      'media_attachments': mediaAttachments,
+      'created_at': FieldValue.serverTimestamp(),
+    };
+  }
+
+  static Map<String, dynamic> _attachmentToMap(PlaygroundAttachment a) {
+    return {
+      'type': a.type.name,
+      if (a.techniqueId != null) 'technique_id': a.techniqueId,
+      if (a.schoolId != null) 'school_id': a.schoolId,
+      if (a.publicChartSnapshot != null)
+        'public_chart_snapshot': a.publicChartSnapshot,
+      if (a.rendererSchemaVersion != null)
+        'renderer_schema_version': a.rendererSchemaVersion,
+      if (a.chartSource != null) 'chart_source': a.chartSource!.name,
+      if (a.mediaObjectId != null) 'media_object_id': a.mediaObjectId!.value,
+      if (a.mimeType != null) 'mime_type': a.mimeType,
+      if (a.width != null) 'width': a.width,
+      if (a.height != null) 'height': a.height,
+      if (a.durationSeconds != null) 'duration_seconds': a.durationSeconds,
+      if (a.moderationState != null) 'moderation_state': a.moderationState!.name,
+    };
+  }
+
+  static String _requireIdempotencyKey(String? key) {
+    if (key == null || key.isEmpty) {
+      throw directPlaygroundError(
+        code: PlaygroundErrorCode.invalidArgument,
+        machineCode: 'idempotency/invalid-key',
+        message: '缺少幂等键',
+      );
+    }
+    return key;
+  }
+}
