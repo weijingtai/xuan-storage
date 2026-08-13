@@ -2,258 +2,312 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 将广场列表、发帖和帖子详情的写操作切换为受 Rules 保护的 Firestore 直写，保留但停用 callable adapters。
+**Goal:** 为 Flutter 广场列表、发帖、帖子详情接通受 production Rules 保护的 Firestore 直写，同时保留但不装配 callable adapters。
 
-**Architecture:** Repository Interface 不变；新增当前端口对应的 `FirestoreDirectPlayground*Repository`。客户端从既有 identity map 解析当前 actor，以确定性文档 ID、事务和 batch 实现重试收敛；生产 Rules 是唯一规则事实源。
+**Architecture:** UI 只调用 ViewModel/UseCase/provider-neutral Repository Interface。公开 post/reply 与私有 owner/identity/thread-presentation 分离，内容版本使用 append-only revisions；应验、反馈、点赞和收藏各自保留单一关系事实。当前 Phase 不交付 Functions、通知、私信、Profile、待断/可信推荐或声望投影。
 
-**Tech Stack:** Flutter/Dart、Cloud Firestore、Firebase Auth、Firestore Security Rules；TypeScript 仅用于 `@firebase/rules-unit-testing` 安全规则测试，不新增 Functions 业务逻辑。
+**Tech Stack:** Flutter/Dart、Firebase Auth、Cloud Firestore、Firestore Security Rules、Firebase Emulator；TypeScript 只用于 `@firebase/rules-unit-testing`，不新增 Functions 业务逻辑。
 
 ---
 
-## 执行边界
+## 权威输入与禁止事项
 
-- Storage worktree：`/Users/jingtaiwei/Git/Public/xuan-migration/xuan-storage/.worktrees/playground-firebase-repairs`
-- Shell worktree：`/Users/jingtaiwei/Git/Public/xuan-migration/xuan-shell/.worktrees/playground-shell-repairs`
-- Shell 当前有其他未提交 ViewModel 改动；禁止清理、stash、覆盖或提交这些文件。
-- 不修改 Repository Interface、通知、私信、个人主页、Functions 源码或 REST 设计。
-- 不删除 callable adapters；只从 Shell 当前装配中替换五个写端口。
+- Design：`docs/superpowers/specs/2026-08-12-playground-firestore-direct-write-design.md`。
+- Storage worktree：`/Users/jingtaiwei/Git/Public/xuan-migration/xuan-storage/.worktrees/playground-firebase-repairs`。
+- RI worktree：`/Users/jingtaiwei/Git/Public/xuan-migration/repository-interface-playground/.worktrees/playground-ri-completion`。
+- Shell worktree：`/Users/jingtaiwei/Git/Public/xuan-migration/xuan-shell/.worktrees/playground-shell-repairs`。
+- Shell 有用户未提交改动：禁止 clean、stash、覆盖或顺手提交无关文件。
+- 禁止公开文档出现 provider UID、canonical `appUserId`、真实姓名或可推导稳定 ID。
+- 禁止修改/删除 callable Functions；禁止将旧 callable 作为回滚。
+- 禁止用 Fake、skip、allow-all 或默认 0 冒充 production contract。
+- 每个仓库独立提交；禁止 Agent merge main、push main 或部署。
 
-## Task 1：直写公共身份与幂等原语
+## Task 0：RI 远端合并与依赖冻结（P0，未通过不得执行 Task 1）
 
 **Files:**
+- Modify: `repository-interface-playground/lib/src/models/playground_viewer_state.dart`
+- Modify: `repository-interface-playground/lib/src/contracts/playground_repository_contracts.dart`
+- Modify: `xuan-storage/firebase/pubspec.yaml`
+- Modify: `xuan-shell/pubspec.yaml`
+- Verify: both generated `pubspec.lock`
+
+- [ ] **0.1 写 RI RED 合同测试**
+
+在合同测试中构造四态并断言新增字段：
+
+```dart
+const owner = PlaygroundPostViewerState(
+  isOwner: true,
+  canEdit: true,
+  canDelete: true,
+  canSetFeedback: true,
+  canVerify: true,
+);
+expect(owner.props, containsAll([true, true, true, true]));
+expect(const PlaygroundPostViewerState().isOwner, isFalse);
+expect(const PlaygroundPostViewerState().canEdit, isFalse);
+expect(const PlaygroundPostViewerState().canDelete, isFalse);
+expect(const PlaygroundPostViewerState().canSetFeedback, isFalse);
+```
+
+另测 owner、非 owner、未认证、owner 文档缺失全部 fail closed，只有 owner 为 true。
+
+- [ ] **0.2 运行 RED、最小扩展 RI、运行 GREEN**
+
+```bash
+cd /Users/jingtaiwei/Git/Public/xuan-migration/repository-interface-playground/.worktrees/playground-ri-completion
+dart test
+```
+
+RED 必须因四个 getter/constructor 参数不存在；实现后全部 PASS。不得更名或删除现有
+`isLiked/isBookmarked/canVerify`。
+
+- [ ] **0.3 提交 RI feature branch，交给人类合并**
+
+```bash
+git add lib/src/models/playground_viewer_state.dart lib/src/contracts/playground_repository_contracts.dart
+git commit -m "feat: expose playground viewer capabilities"
+```
+
+停止并报告 RI commit。只有人类完成 PR 合并后才能继续；Agent 不得 merge main。
+
+- [ ] **0.4 验证远端 main 并冻结依赖**
+
+```bash
+git ls-remote --heads origin main
+git merge-base --is-ancestor 756121b233c494093b2e1130163e93a5cdc57839 origin/main
+```
+
+两条 exit 0，且最终 RI commit 是 `origin/main` 祖先才通过。执行
+`git rev-parse origin/main`，把输出的 40 字符 commit 逐字记录为 `RI_MERGED_COMMIT`；随后在
+storage/firebase 和 shell 两个 `pubspec.yaml` 的同一 git dependency 下把 `ref:` 写为该
+40 字符值，执行各自
+`flutter pub get`，再验证：
+
+```bash
+rg -n "repository_interface_playground|ref:|resolved-ref:" pubspec.yaml pubspec.lock
+```
+
+两仓 `resolved-ref` 必须是同一已合并 commit；path override 不能入库。分别提交依赖冻结。
+
+## Task 1：Identity schema convergence
+
+**Files:**
+- Modify: `firebase/lib/account/firestore_app_user_id_resolver.dart`
+- Modify: `firebase/infrastructure/functions/src/identity.ts`
+- Create: `firebase/test/playground/firestore_direct_identity_contract_test.dart`
+- Create: `firebase/infrastructure/functions/test/identity_schema.test.ts`
+
+- [ ] **1.1 写 RED**
+
+fixture 必须产生：
+
+```json
+{
+  "app_user_id": "app-alice",
+  "provider_uid": "alice",
+  "provider_id": "firebase",
+  "public_presentation_id": "pub_random_128bit",
+  "public_display_alias": "玄友0001"
+}
+```
+
+断言新 reader 优先读 `app_user_id`、临时兼容旧 `appUserId`；缺公开 ID/alias 返回
+`PlaygroundErrorCode.unavailable` + `identity/not-ready`；Playground 不创建 identity_map。
+
+- [ ] **1.2 RED/GREEN 与提交**
+
+```bash
+cd firebase
+flutter test test/playground/firestore_direct_identity_contract_test.dart
+cd infrastructure/functions
+npm test -- --runInBand identity_schema.test.ts
+npm run build
+```
+
+不得删除旧字段兼容读；新写只写 snake_case。dev/test backfill 使用幂等测试 fixture，不触碰远端。
+GREEN 后只提交上述四个文件。
+
+## Task 2：Schema fixture、错误与直写 support
+
+**Files:**
+- Create: `firebase/test/playground/fixtures/direct_write_schema_v1.json`
 - Create: `firebase/lib/playground/firestore_direct_playground_command_support.dart`
 - Create: `firebase/test/playground/firestore_direct_playground_command_support_test.dart`
 - Modify: `firebase/test/playground/firebase_playground_idempotency_test.dart`
 
-- [ ] **1.1 运行 GitNexus impact**
+- [ ] **2.1 创建 schema RED fixture 测试**
 
-```bash
-cd /Users/jingtaiwei/Git/Public/xuan-migration/xuan-storage/.worktrees/playground-firebase-repairs
-node .gitnexus/run.cjs impact FirebasePlaygroundIdentityResolver upstream
-```
-
-Expected: 记录影响范围；若 runner 不存在，记录阻断但不得伪造结果。
-
-- [ ] **1.2 写 RED 测试**
-
-覆盖以下精确合同：
+fixture 必须列出 Design §4.4 每个 public/owner/relation/revision 文档的 required/nullable keys、
+enum、长度、附件判别联合和机器错误码。测试必须明确断言：
 
 ```dart
-expect(actor.providerUid, 'alice');
-expect(actor.appUserId.value, 'app-alice');
-expect(commandDocumentId('createPost', 'alice', 'key-1'), hasLength(64));
-expect(commandDocumentId('createPost', 'alice', 'key-1'),
-    commandDocumentId('createPost', 'alice', 'key-1'));
-expect(canonicalPayloadHash({'b': 2, 'a': 1}),
-    canonicalPayloadHash({'a': 1, 'b': 2}));
+expect(postKeys.where((key) => key.startsWith('author_')), isEmpty);
+expect(schema, contains('playground_post_owners'));
+expect(schema, contains('playground_thread_presentations'));
+expect(schema, contains('revision_no'));
+expect(schema, contains('public_presentation_id'));
 ```
 
-另测：未登录、identity map 缺失、空 idempotency key 均返回既有 `PlaygroundError`；旧 idempotency 测试改为“同 key 同 payload 同文档、同 key 不同 payload conflict、发帖/回复缺 key失败”。
+- [ ] **2.2 实现 support 并 GREEN**
 
-- [ ] **1.3 运行 RED**
+实现 `requireDirectActor`、canonical JSON hash、create command deterministic ID、
+`PlaygroundError(code,machineCode)` 映射。actor 同时携带内部 app ID、公开 ID/alias，但 mapper
+必须分开提供 private owner payload 与 public presentation payload。
 
 ```bash
-cd firebase
-flutter test test/playground/firestore_direct_playground_command_support_test.dart test/playground/firebase_playground_idempotency_test.dart
+flutter test test/playground/firestore_direct_playground_command_support_test.dart \
+  test/playground/firebase_playground_idempotency_test.dart
+dart analyze lib/playground/firestore_direct_playground_command_support.dart
 ```
 
-Expected: FAIL，support API 和真实 direct adapter 尚不存在；不能红在依赖解析错误。
+RED 不能红在依赖解析；GREEN 后小提交。
 
-- [ ] **1.4 最小实现并运行 GREEN**
-
-实现固定 API：
-
-```dart
-final class FirestoreDirectActor {
-  final String providerUid;
-  final PlaygroundUserId appUserId;
-}
-
-Future<FirestoreDirectActor> requireDirectActor(
-  FirebaseAuth auth,
-  FirebaseFirestore firestore,
-);
-
-String commandDocumentId(String operation, String uid, String key);
-String canonicalPayloadHash(Map<String, Object?> payload);
-```
-
-`commandDocumentId` 使用 `sha256('v1|$operation|$uid|$key')`；canonical hash 递归排序 map keys，排除时间与 `idempotency_key`。`requireDirectActor` 只读 `identity_map/{uid}`，不得 fallback callable。
-
-```bash
-flutter test test/playground/firestore_direct_playground_command_support_test.dart
-git add lib/playground/firestore_direct_playground_command_support.dart test/playground/firestore_direct_playground_command_support_test.dart
-git commit -m "feat: add direct Firestore command support"
-```
-
-## Task 2：帖子直写
+## Task 3：帖子、owner 与 append-only revision
 
 **Files:**
 - Create: `firebase/lib/playground/firestore_direct_playground_post_command_repository.dart`
 - Create: `firebase/test/playground/firestore_direct_playground_post_command_repository_test.dart`
 - Modify: `firebase/test/playground/firebase_playground_reply_post_payload_contract_test.dart`
 
-- [ ] **2.1 写 RED 测试**
+- [ ] **3.1 写 RED**
 
-创建测试断言 Design §6 的全部 post 字段；稳定别名为 `user_{appUserId}`，一次匿名为 `post_{postId}`。重复命令返回相同 ID，不同 payload conflict。`privacyContext != null` 或 `privacyConfirmations.isNotEmpty` 时 fail closed。编辑只改 allowlist 字段；删除只执行 `active -> tombstoned`；创建后 profiles/outbox 保持为空。
+同一 transaction 创建 `playground_posts/{id}`、`playground_post_owners/{id}`、
+`revisions/r0000000001`。公开 post exact keys 来自 fixture，内部 UID 命中数为 0；stable alias
+来自 identity_map，one-time post ID 为 `post_{postId}`。edit 追加连续 revision；tombstone 先保存
+最后 revision，再清空 text/attachments/techniques。
 
-```dart
-expect(data.keys.toSet(), equals(expectedPostCreateKeys));
-expect(data['author_provider_uid'], 'alice');
-expect(data['author_app_user_id'], 'app-alice');
-expect(data['presentation_identity_id'], 'post_${post.publicPostId.value}');
-```
-
-- [ ] **2.2 运行 RED**
+- [ ] **3.2 实现、GREEN、提交**
 
 ```bash
-cd firebase
-flutter test test/playground/firestore_direct_playground_post_command_repository_test.dart test/playground/firebase_playground_reply_post_payload_contract_test.dart
+flutter test test/playground/firestore_direct_playground_post_command_repository_test.dart \
+  test/playground/firebase_playground_reply_post_payload_contract_test.dart
 ```
 
-Expected: FAIL，direct post class 不存在或 direct payload 合同缺失。
+另测同 key/同 payload replay、同 key/不同 payload conflict、隐私字段 fail closed。不得 import
+`cloud_functions`。GREEN 后提交 repository 与测试。
 
-- [ ] **2.3 实现并运行 GREEN**
-
-类签名固定为：
-
-```dart
-final class FirestoreDirectPlaygroundPostCommandRepository
-    implements PlaygroundPostCommandRepository {
-  FirestoreDirectPlaygroundPostCommandRepository({
-    required FirebaseFirestore firestore,
-    required FirebaseAuth auth,
-  });
-}
-```
-
-create 使用 `runTransaction`：读取确定性 doc；同 actor/key/hash 返回原文档；冲突抛 `PlaygroundErrorCode.conflict`；不存在时写字段矩阵。edit/tombstone 事务检查 owner/status。不得 import `cloud_functions`。
-
-```bash
-flutter test test/playground/firestore_direct_playground_post_command_repository_test.dart test/playground/firebase_playground_reply_post_payload_contract_test.dart
-git add lib/playground/firestore_direct_playground_post_command_repository.dart test/playground/firestore_direct_playground_post_command_repository_test.dart test/playground/firebase_playground_reply_post_payload_contract_test.dart
-git commit -m "feat: add direct Firestore post commands"
-```
-
-## Task 3：回复直写
+## Task 4：两层回复、owner、thread presentation 与 revision
 
 **Files:**
 - Create: `firebase/lib/playground/firestore_direct_playground_reply_command_repository.dart`
 - Create: `firebase/test/playground/firestore_direct_playground_reply_command_repository_test.dart`
-- Modify: `firebase/test/playground/firebase_playground_reply_post_payload_contract_test.dart`
 
-- [ ] **3.1 写 RED 测试**
+- [ ] **4.1 写 RED**
 
-根回复必须写 `depth=0/root_reply_id=null/reply_to_reply_id=null`；讨论回复必须写 `depth=1` 和传入 root/reply-to；两者写完整作者及 presentation 字段。重复 key 合并、不同 payload conflict、缺 key失败。编辑/墓碑不得改 post、作者、depth 或 root linkage。
+覆盖 root/discussion、跨帖、跨 root、负 depth、第三层和墓碑目标。stable alias 来自 identity；
+one-time 首次回复 transaction 创建私有
+`playground_thread_presentations/{postId}__{uid}` 的随机 128-bit ID，后续回复复用；伪造、跨 actor
+复用、重复创建 mapping 失败。公开 reply/owner/revision 同批写入，公开字段零内部 UID。
 
-- [ ] **3.2 运行 RED**
-
-```bash
-cd firebase
-flutter test test/playground/firestore_direct_playground_reply_command_repository_test.dart test/playground/firebase_playground_reply_post_payload_contract_test.dart
-```
-
-Expected: FAIL，direct reply class 不存在。
-
-- [ ] **3.3 实现并运行 GREEN**
-
-```dart
-final class FirestoreDirectPlaygroundReplyCommandRepository
-    implements PlaygroundReplyCommandRepository {
-  FirestoreDirectPlaygroundReplyCommandRepository({
-    required FirebaseFirestore firestore,
-    required FirebaseAuth auth,
-  });
-}
-```
-
-create 使用 Task 1 的确定性 ID/事务；presentation identity 为 `user_{appUserId}` 或 `reply_{replyId}`；edit/tombstone 事务校验 owner。不得 import `cloud_functions`。
+- [ ] **4.2 实现、GREEN、提交**
 
 ```bash
-flutter test test/playground/firestore_direct_playground_reply_command_repository_test.dart test/playground/firebase_playground_reply_post_payload_contract_test.dart test/playground/firebase_playground_idempotency_test.dart
-git add lib/playground/firestore_direct_playground_reply_command_repository.dart test/playground/firestore_direct_playground_reply_command_repository_test.dart test/playground/firebase_playground_reply_post_payload_contract_test.dart test/playground/firebase_playground_idempotency_test.dart
-git commit -m "feat: add direct Firestore reply commands"
+flutter test test/playground/firestore_direct_playground_reply_command_repository_test.dart \
+  test/playground/firebase_playground_idempotency_test.dart
 ```
 
-## Task 4：点赞、收藏、应验与最终反馈
+edit 追加 revision；tombstone 清空 body/chart/media/techniques。GREEN 后小提交。
+
+## Task 5：点赞、收藏、应验、反馈和举报
 
 **Files:**
 - Create: `firebase/lib/playground/firestore_direct_playground_engagement_repository.dart`
 - Create: `firebase/lib/playground/firestore_direct_playground_verification_repository.dart`
 - Create: `firebase/lib/playground/firestore_direct_playground_outcome_feedback_repository.dart`
-- Create: `firebase/test/playground/firestore_direct_playground_engagement_repository_test.dart`
-- Create: `firebase/test/playground/firestore_direct_playground_verification_repository_test.dart`
-- Create: `firebase/test/playground/firestore_direct_playground_outcome_feedback_repository_test.dart`
+- Create: corresponding three `firebase/test/playground/firestore_direct_*_test.dart`
+- Modify: `firebase/test/playground/firebase_playground_report_repository_test.dart`
 
-- [ ] **4.1 写 RED 测试**
+- [ ] **5.1 写 RED**
 
-断言确定性 ID 与字段矩阵。应验必须用单一 batch 同时写 `verify_{postId}_{rootReplyId}` 和 root reply 的 `verification`；撤回同时写 `revoked_at` 并清空 reply 标记。反馈 batch 同时写 `feedback_{postId}` 和 post 的 `has_outcome_feedback`。所有实现零 outbox、零 notification、零 callable。
+like public fact + private `like_owner` 同批；bookmark 继续使用既有
+`user_provider_uid/user_app_user_id` 命名。verification 只写独立
+`verify_{postId}_{rootReplyId}`，不改 reply；feedback 只写自身和 append-only revision，不改 post。
+覆盖 verify→revoke→reverify、feedback publish→edit→revoke→republish、非 Poster、自验、二级
+回复、跨帖和 tombstone 拒绝。所有路径零 outbox/notification/callable。
 
-```dart
-expect(verificationSnap.exists, isTrue);
-expect(rootReplySnap['verification'], isNotNull);
-expect(outboxSnap.docs, isEmpty);
-expect(postSnap['has_outcome_feedback'], isTrue);
-```
-
-- [ ] **4.2 运行 RED**
+- [ ] **5.2 实现、GREEN、提交**
 
 ```bash
-cd firebase
-flutter test test/playground/firestore_direct_playground_engagement_repository_test.dart test/playground/firestore_direct_playground_verification_repository_test.dart test/playground/firestore_direct_playground_outcome_feedback_repository_test.dart
+flutter test test/playground/firestore_direct_playground_engagement_repository_test.dart \
+  test/playground/firestore_direct_playground_verification_repository_test.dart \
+  test/playground/firestore_direct_playground_outcome_feedback_repository_test.dart \
+  test/playground/firebase_playground_report_repository_test.dart
 ```
 
-Expected: FAIL，三个 direct classes 不存在。
+每个关系 repository 单独小提交，禁止顺手修改 Functions。
 
-- [ ] **4.3 实现并运行 GREEN**
-
-engagement 复用现有 read 方法但写入确定性 like/bookmark docs；verification/outcome 先读取 post/root 验证业务前置条件，再提交 batch。所有 actor 字段来自 Task 1 support。
-
-```bash
-flutter test test/playground/firestore_direct_playground_engagement_repository_test.dart test/playground/firestore_direct_playground_verification_repository_test.dart test/playground/firestore_direct_playground_outcome_feedback_repository_test.dart
-git add lib/playground/firestore_direct_playground_engagement_repository.dart lib/playground/firestore_direct_playground_verification_repository.dart lib/playground/firestore_direct_playground_outcome_feedback_repository.dart test/playground/firestore_direct_playground_engagement_repository_test.dart test/playground/firestore_direct_playground_verification_repository_test.dart test/playground/firestore_direct_playground_outcome_feedback_repository_test.dart
-git commit -m "feat: add direct Firestore interactions"
-```
-
-## Task 5：生产 Firestore Rules
+## Task 6：读取 DTO、真实详情计数与 Feed 占位策略
 
 **Files:**
-- Modify: `firebase/infrastructure/functions/test/firestore.rules.test.ts`
-- Modify: `firebase/infrastructure/firestore.rules`
+- Modify: `firebase/lib/playground/firebase_playground_feed_query_repository.dart`
+- Modify: `firebase/lib/playground/firebase_playground_thread_query_repository.dart`
+- Create: `firebase/test/playground/firestore_direct_read_contract_test.dart`
+- Create: `xuan-shell/test/playground/feed_count_visibility_test.dart`
+- Create: `xuan-shell/test/playground/post_detail_viewer_capability_test.dart`
 
-- [ ] **5.1 写 Rules RED 测试（TS 仅用于 Rules）**
+- [ ] **6.1 写 RED：详情真实数据**
 
-每项必须有 allow/deny 对照：post create/edit/tombstone；root/discussion reply；第三层和跨帖拒绝；like/bookmark 本人成功及冒充拒绝；Poster 应验成功、非 Poster失败、自验失败；重复应验仍只有一个确定性文档；Poster feedback 成功、非 Poster失败；reply verification-only 成功且混入 body 修改失败；identity/outbox/profile/notification/conversation/message 仍拒绝写。
+seed 2 replies、3 post likes、1 active verification 和 feedback。断言：
 
-```typescript
-await assertSucceeds(alice.collection('playground_posts').doc(postId).set(validPost));
-await assertFails(bob.collection('playground_posts').doc(postId).update({text: 'forged'}));
-await assertSucceeds(alice.collection('playground_replies').doc(rootId).update({
-  verification: validVerificationMarker,
-  updated_at: new Date(),
-}));
+```dart
+expect(detail.post.replyCount, 2);
+expect(detail.post.likeCount, 3);
+expect(detail.post.verificationCount, 1);
+expect(detail.counts.replyCount, 2);
+expect(detail.counts.verifiedRootReplyCount, 1);
+expect(detail.aggregateReadCount, 3); // replies/likes/verifications count(), 不是浏览量
+expect(detail.outcomeFeedback, isNotNull);
 ```
 
-- [ ] **5.2 运行 RED**
+viewer state 必须填 `isOwner/canEdit/canDelete/canSetFeedback/canVerify`，并覆盖 owner、非 owner、
+未认证、owner 文档缺失四态；不得比较 appUserId 和 public presentation ID。
+
+- [ ] **6.2 写 RED：Feed 明确不展示假计数**
+
+Feed mapper 强制返回 count=0/hasOutcomeFeedback=false，但 widget 测试必须断言 Feed 不渲染
+“0赞/0回复/0应验/已反馈”。`getPendingDivinationFeed` 不访问 Firestore并返回
+`invalidArgument + filter/not-supported-in-direct-phase`；推荐明确降级为最新。
+
+- [ ] **6.3 实现、GREEN、提交**
+
+详情执行 3 个 `count()`、feedback get、当前 reply page 的 verification 分块查询；Feed 仅单 query。
+recording 测试断言无逐帖/逐回复 owner N+1。分别提交 storage read adapter 和 Shell widget改动，
+不得夹带 Shell 原有 dirty 文件。
+
+## Task 7：Production Rules、索引和访问预算
+
+**Files:**
+- Modify: `firebase/infrastructure/firestore.rules`
+- Modify: `firebase/infrastructure/firestore.indexes.json`
+- Modify: `firebase/infrastructure/functions/test/firestore.rules.test.ts`
+- Create: `firebase/infrastructure/functions/test/direct_write_schema_fixture.test.ts`
+
+- [ ] **7.1 写 Rules RED**
+
+每个 allow 必有 deny：公开/internal 字段、owner get/list、thread mapping、revision create/update/delete、
+两层关系、墓碑清空、like/bookmark、Poster verification/feedback、self verify、outbox/notification。
+fixture 与 Rules exact keys/enums/nullable 字段漂移必须红。
+
+- [ ] **7.2 写访问预算 RED**
+
+合法 post create 的唯一 access 为 identity/owner-after/revision-after，目标 3、门禁 4/10；最重
+one-time discussion reply 为 identity/post/root/reply-to/owner-after/revision-after/thread-after，目标
+7、门禁 8/20。两条生产 payload 在 Emulator 必须成功；注入额外访问的变异 fixture 必须因预算红。
+
+- [ ] **7.3 实现 Rules/indexes 并 GREEN**
+
+索引字段必须与 Design §10.2 完全一致，bookmark 使用 `user_provider_uid`；旧 profile indexes 标记
+后续但不得被当前 query 使用。
 
 ```bash
 cd firebase/infrastructure/functions
-npm test -- --runInBand firestore.rules.test.ts
+npm test -- --runInBand firestore.rules.test.ts direct_write_schema_fixture.test.ts
 ```
 
-Expected: 新增合法直写用例 FAIL；不能把 Emulator 连接失败当 RED。
+Emulator 不可达不能算 RED/GREEN。通过后提交 Rules、indexes、测试。
 
-- [ ] **5.3 实现 Rules 并运行 GREEN**
-
-按 Design §7 编写 helper 与 match。字段必须使用完整 `hasOnly`；不可变字段用 `diff().affectedKeys()`；reply root/reply-to、Poster 权限和 identity map 用 `get/exists`；reply verification-only 必须用 `getAfter` 证明同 batch 的确定性 verification 文档一致；post 的 `has_outcome_feedback` 变更必须用 `getAfter` 证明同 batch feedback 文档一致；客户端永远不能写 outbox。
-
-```bash
-npm test -- --runInBand firestore.rules.test.ts
-git add ../firestore.rules test/firestore.rules.test.ts
-git commit -m "feat: guard direct Firestore playground writes"
-```
-
-## Task 6：Rules 单一来源与 fail-closed Emulator gate
+## Task 8：单一 Rules 源和 fail-closed Emulator gate
 
 **Files:**
 - Modify: `firebase/infrastructure/emulator/firebase.json`
@@ -262,110 +316,74 @@ git commit -m "feat: guard direct Firestore playground writes"
 - Create: `firebase/test/playground/firestore_rules_source_contract_test.dart`
 - Modify: `firebase/test/playground/firebase_playground_emulator_integration_test.dart`
 
-- [ ] **6.1 写 RED 合同测试**
+- [ ] **8.1 RED/GREEN**
 
-断言 emulator config 的 rules 精确等于 `../firestore.rules`，第二份 rules 文件不存在；集成测试缺 host、连接失败或平台不支持时必须 fail，不得 `markTestSkipped` 或 early return。
-
-- [ ] **6.2 运行 RED**
+config 必须引用 `../firestore.rules`，第二份文件不存在；LAN `192.168.0.165` Auth/Firestore 不可达、
+skip、early return、allow-all 任一出现 exit 1。集成测试使用生产 payload、真实 Rules 和真实 adapter。
 
 ```bash
 cd firebase
 flutter test test/playground/firestore_rules_source_contract_test.dart
-```
-
-Expected: FAIL，当前 emulator config 仍加载漂移文件。
-
-- [ ] **6.3 实现 gate**
-
-脚本固定行为：检查 `192.168.0.165:8080` 和 `:9099`；不可达 exit 1；执行 integration test；输出含 skip 标记或非零退出均 exit 1。不得修改远端环境或部署 Rules。
-
-```bash
-flutter test test/playground/firestore_rules_source_contract_test.dart
 bash scripts/run_playground_emulator_gate.sh
 ```
 
-Expected: source contract PASS；LAN 不可达则 gate 明确 FAIL，不得改用 Fake。
+不得自动 fallback Fake/云端。通过后提交。
 
-- [ ] **6.4 提交**
-
-```bash
-git add infrastructure/emulator/firebase.json infrastructure/emulator/firestore.rules scripts/run_playground_emulator_gate.sh test/playground/firestore_rules_source_contract_test.dart test/playground/firebase_playground_emulator_integration_test.dart
-git commit -m "test: fail closed on playground emulator drift"
-```
-
-## Task 7：导出与 Shell 装配
+## Task 9：导出、Shell 装配与 ViewModel capability
 
 **Files:**
 - Modify: `firebase/lib/playground/playground.dart`
-- Modify: `/Users/jingtaiwei/Git/Public/xuan-migration/xuan-shell/.worktrees/playground-shell-repairs/lib/playground/shell_playground_bootstrap.dart`
-- Create: `/Users/jingtaiwei/Git/Public/xuan-migration/xuan-shell/.worktrees/playground-shell-repairs/test/playground/shell_playground_bootstrap_test.dart`
+- Modify: `xuan-shell/lib/playground/shell_playground_bootstrap.dart`
+- Modify: `xuan-shell/lib/playground/viewmodels/post_detail_viewmodel.dart`
+- Create: `xuan-shell/test/playground/shell_playground_bootstrap_test.dart`
+- Modify: `xuan-shell/test/playground/post_detail_viewer_capability_test.dart`
 
-- [ ] **7.1 写 Shell RED 测试**
+- [ ] **9.1 写 RED**
 
-验证 post/reply/engagement/verification/outcome 五个端口为 direct 类型；profile/notification/conversation 仍是原类型；旧 `RemoteDataSource` 直写类型和 callable 类型均未被这五个端口装配。另 grep production composition root 的五个端口不得引用 callable 类型。
+八个端口按 Design §12 装配 direct/read adapter；profile/notification/conversation 保持未完成现状。
+`PostDetailViewModel.isOwner` 只能读取 `detail.viewerState.isOwner`，不得比较
+`publicPresentationUserId`。按钮由 canEdit/canDelete/canSetFeedback/canVerify 控制；Poster 自己
+root 的 verify 写被 Rules 拒绝后 UI 回滚并显示错误。
 
-- [ ] **7.2 运行 RED**
-
-```bash
-cd /Users/jingtaiwei/Git/Public/xuan-migration/xuan-shell/.worktrees/playground-shell-repairs
-flutter test --no-pub test/playground/shell_playground_bootstrap_test.dart
-```
-
-Expected: FAIL，当前装配 callable adapters。
-
-- [ ] **7.3 导出并切换**
-
-Storage barrel 新增五个 direct exports，原 exports 保留。Shell 仅改 import show-list 和五个 constructor；不得触碰当前未提交 ViewModel 文件。
-
-- [ ] **7.4 分仓提交**
-
-```bash
-cd /Users/jingtaiwei/Git/Public/xuan-migration/xuan-storage/.worktrees/playground-firebase-repairs
-git add firebase/lib/playground/playground.dart
-git commit -m "feat: export direct Firestore adapters"
-
-cd /Users/jingtaiwei/Git/Public/xuan-migration/xuan-shell/.worktrees/playground-shell-repairs
-flutter test --no-pub test/playground/shell_playground_bootstrap_test.dart
-git add lib/playground/shell_playground_bootstrap.dart test/playground/shell_playground_bootstrap_test.dart
-git commit -m "feat: wire direct Firestore playground writes"
-```
-
-## Task 8：完整验收
-
-- [ ] **8.1 Storage 回归**
-
-```bash
-cd /Users/jingtaiwei/Git/Public/xuan-migration/xuan-storage/.worktrees/playground-firebase-repairs/firebase
-flutter test test/playground
-dart analyze lib/playground test/playground
-cd ..
-npm --prefix firebase/infrastructure/functions test -- --runInBand firestore.rules.test.ts
-git diff --check
-node .gitnexus/run.cjs detect_changes
-```
-
-Expected: tests/analyze/diff PASS；GitNexus 缺失须如实记录。
-
-- [ ] **8.2 Shell 回归**
+- [ ] **9.2 实现、GREEN、分仓提交**
 
 ```bash
 cd /Users/jingtaiwei/Git/Public/xuan-migration/xuan-shell/.worktrees/playground-shell-repairs
 flutter test --no-pub test/playground test/modules/playground_navigation_contract_test.dart
 dart analyze lib/playground lib/modules/playground_module_entry.dart
-git diff --check
 ```
 
-Expected: PASS；不得提交或修改原有六个 dirty ViewModel/test 文件。
+只 stage 本 Task 精确文件；禁止 `git add -A` 捕获用户 dirty 改动。
 
-- [ ] **8.3 真实主链路**
+## Task 10：完整验收与发布阻断报告
 
-Alice 发帖；列表和详情可读；Bob 根回复和二级回复；Alice 点赞、收藏、应验和反馈；Bob 的越权编辑/应验/反馈全部失败。必须使用生产 Rules，零 skip，零 allow-all。
+- [ ] **10.1 Storage 门禁**
+
+```bash
+cd /Users/jingtaiwei/Git/Public/xuan-migration/xuan-storage/.worktrees/playground-firebase-repairs/firebase
+flutter test test/playground
+dart analyze lib/playground test/playground
+cd infrastructure/functions
+npm test -- --runInBand firestore.rules.test.ts direct_write_schema_fixture.test.ts
+```
+
+- [ ] **10.2 Shell 与依赖门禁**
+
+两仓 `resolved-ref` 相同；production composition 零 `httpsCallable`；Feed 不显示假 0；详情显示
+真实 2/3/1 fixture 计数；所有测试零 skip。运行 Shell focused test/analyze 和两仓
+`git diff --check`。
+
+- [ ] **10.3 真实主链路**
+
+在 production Rules Emulator：Alice 发帖；Bob 根回复/二级回复；Alice 点赞、收藏、应验、反馈；
+Bob 越权编辑/应验/反馈失败；匿名 thread alias 同帖稳定跨帖不同；墓碑 raw Firestore get 不泄漏
+正文；Functions/outbox/notification 均未调用或写入。
 
 ## 完成标准
 
-- 当前三个页面写路径零 `httpsCallable`；Functions 代码仍保留。
-- 同 key/同 payload 不重复，同 key/不同 payload conflict。
-- direct payload 与读取模型、匿名展示字段完全一致。
-- 应验和反馈 batch 不产生半写；客户端不能写 outbox。
-- Rules allow/deny 成对通过，Emulator gate fail closed。
-- 通知、私信、个人主页和 Repository Interface 无变化。
+- RI 合并 commit 在远端 main，storage/shell pin 同一 ref/resolved-ref。
+- 公开 payload 中 provider/canonical author UID keys 命中 0；原始 Firestore 合同测试同样为 0。
+- owner、thread presentation、revision、schema fixture 全部实现并通过 production Rules。
+- 详情计数真实；Feed 占位计数不渲染；`aggregateReadCount=3` 明确是聚合查询次数。
+- Rules 最重路径在 10/20 访问预算内；Emulator gate 零 skip、零 allow-all。
+- callable 源码保留但未装配；通知、私信、Profile、待断/可信推荐未被误报完成。

@@ -62,6 +62,10 @@ Playground 只读取该文档。映射或 `public_presentation_id` 缺失时写�
 `identity-not-ready` fail closed；一期不调用 callable 自动创建，也不自行生成替代映射。
 匿名账号升级必须由 xuan-account 保留这两个值。
 
+隐私 UI 尚未接线；一旦发布器开始传入非空 `privacyContext/privacyConfirmations`，当前 direct
+adapter 会按 §5 阻止发布。这不是可静默降级的字段，隐私存储合同完成前 UI 必须保留草稿并
+明确显示 `privacy/storage-unavailable`。
+
 编码前必须以 account Emulator fixture 证明匿名注册、登录恢复、匿名升级三条路径均会预置
 这些字段；如果当前 xuan-account 尚未提供，先把它列为接线前依赖，禁止在 Playground
 adapter 中临时补建。
@@ -214,7 +218,7 @@ playground_likes/{likeId}
   created_at:timestamp
 
 playground_bookmarks/{bookmarkId}
-  id:string, provider_uid:string, app_user_id:string, post_id:string,
+  id:string, user_provider_uid:string, user_app_user_id:string, post_id:string,
   created_at:timestamp
 
 playground_verifications/verify_{postId}_{rootReplyId}
@@ -368,7 +372,8 @@ adapter 必须把 Firebase 异常稳定映射为以上代码；不得返回 coll
 | 帖子应验总数 | verifications `post_id==id,revoked_at==null` 的 `count()` aggregation | 无 |
 | 最终反馈 | `feedback_{postId}` document get | 无 |
 | viewer state | post owner、当前 viewer 的 like/bookmark deterministic IDs 各 direct get；不读 root owners | 无 |
-| 收藏列表 | bookmarks: `provider_uid==auth.uid`, order `created_at desc,__name__ desc`，再以最多 10 IDs 的 `documentId in` 批量取 posts | `[created_at,docId]` |
+| 收藏列表 | bookmarks: `user_provider_uid==auth.uid`, order `created_at desc,__name__ desc`，再以最多 10 IDs 的 `documentId in` 批量取 posts | `[created_at,docId]` |
+| `getPendingDivinationFeed` | 不访问 Firestore；返回 `invalidArgument` / `filter/not-supported-in-direct-phase` | 无 |
 
 content/time 过滤在 adapter 对扫描页执行，因为 Firestore 组合索引爆炸。
 每次底层扫描 `scanLimit=min(requestedLimit*5,100)`，返回 cursor 指向**最后扫描**而非最后返回的
@@ -388,7 +393,7 @@ posts: status ASC, created_at DESC                         (TECH?)
 replies: post_id ASC, is_tombstoned ASC, created_at ASC
 verifications: post_id ASC, root_reply_id ASC, revoked_at ASC, created_at ASC
 verifications: post_id ASC, revoked_at ASC
-bookmarks: provider_uid ASC, created_at DESC
+bookmarks: user_provider_uid ASC, created_at DESC
 ```
 
 因此 posts 共 2 条（有/无 technique）、replies 1、verifications 2、bookmarks 1，总计 6 条
@@ -400,10 +405,31 @@ current-phase composite indexes。旧
 - 详情固定组合：1 post get、1 owner get、1 replies page、每 10 个当前页 root IDs 1 次
   verification query、1 verification count aggregation、1 feedback get，以及 viewer 的
   like/bookmark direct gets；不读 root owner。
+- 详情另执行 replies `count()` 和 post-target likes `count()`；因此 `PublicPost.replyCount/
+  likeCount/verificationCount` 与 `PlaygroundThreadCounts.replyCount/verifiedRootReplyCount` 均来自
+  真实权威集合，`aggregateReadCount` 固定为 **3**，表示三次 aggregation query，不是浏览量。
+- Feed 只允许单 query，不逐帖聚合：`PlaygroundFeedItem.replyCount/likeCount/
+  verificationCount=0`、`hasOutcomeFeedback=false`，其内 `PublicPost` 三个 count 同样为 0；
+  Feed UI 必须不渲染这些数字和“已反馈”标记。合同测试同时断言占位值恒定和 widget 不显示，
+  禁止把默认 0 当作真实业务结果。
 - Feed 每个扫描 batch 只有 1 query，不逐帖读取 owner/identity_map；Feed 卡片本期不加载关系计数。
 - 合同测试以 recording adapter/emulator instrumentation 断言 query/get 的次数与
   query shape；不把 Emulator 无法可靠模拟的 billed reads 当作通过证据。
 - 本期不维护 profile/reputation 派生计数。
+
+### 10.4 Rules 文档访问预算
+
+Rules 合同测试必须记录每种 atomic write 的唯一 `get/getAfter/existsAfter` 路径。相同路径的
+重复访问依赖 Firestore cache，但预算按唯一访问 + 1 安全余量计算：
+
+| 写操作 | 唯一文档访问 | 预算 |
+|---|---|---|
+| stable/one-time post create（post+owner+revision） | identity_map、post owner after、revision after = 3 | 4/10 |
+| 最重 one-time discussion reply create（reply+owner+revision+首次 thread mapping） | identity_map、post、root、reply-to、reply owner after、revision after、thread mapping after = 7 | 8/20 |
+
+任何 helper 增加访问后必须更新此表；估算超过单写 10 或 atomic multi-write 20 时 RED，不能通过
+删测试或改为 allow-all。Emulator Rules 测试必须至少覆盖上述两条最重路径，并证明合法写成功；
+另用故意增加冗余访问的测试 fixture/变异验证预算门禁确实会红。
 - 游客 5–10 条代表性回复必须等后续可信 read projection/Function/REST 才能成为不可绕过策略；
   本期 UI 截断只能作为展示实验，不能作为安全或转化验收证据。
 
@@ -451,12 +477,25 @@ schema，并在 Emulator 覆盖“direct 创建后 callable 编辑、删除、�
 profile/notification/conversation 字段继续注入现有 adapter 以保持构造兼容，但其页面与 UseCase 不
 属于本期验收，不能调用新 public schema 推导完成状态。
 
-Shell 与 storage 必须解析同一 RI revision：当前冻结基线为
-`repository-interface-playground@756121b233c494093b2e1130163e93a5cdc57839` 或包含完全相同
-ports/error contract 且通过共同合同的后继提交。提交代码不得把 worktree `path` override 写入
-pubspec；CI lock/resolution 证据必须显示两仓使用同一 commit。
+### 12.1 RI 合并与依赖解析 P0 门禁
 
-### 12.1 Viewer capability 投影
+当前本地基线 `756121b233c494093b2e1130163e93a5cdc57839` 尚未进入远端 main；两仓无 `ref:`
+的 git 依赖会解析到旧 `baf7bdd`，缺少本设计需要的 command/query/engagement/report ports。
+因此 Task 1 前必须由人类完成 RI PR 合并，Agent 不得自行 merge main：
+
+1. 在 RI 增加 `PlaygroundPostViewerState.isOwner/canEdit/canDelete/canSetFeedback`，默认 false，
+   保留现有 `isLiked/isBookmarked/canVerify`；补 owner/非 owner/未认证/owner 缺失合同测试。
+2. RI 合并提交必须包含 `756121b` 的全部现有 ports/error contract 和上述 viewer fields。
+3. `git ls-remote --heads origin` 能看到包含该提交的 main；仅存在本地/远端 feature branch不通过。
+4. 执行 `git rev-parse origin/main` 记录 40 字符 `RI_MERGED_COMMIT`；storage/firebase 与 shell
+   `pubspec.yaml` 的 `repository_interface_playground.git ref` 都逐字使用该值，两边重新解析后的
+   `pubspec.lock resolved-ref` 必须与它完全一致。
+5. 记录最终 commit 到本节和执行证据；门禁未通过时所有 direct adapter Task 必须停止。
+
+提交代码不得把 worktree `path` override 写入 pubspec。此前写的 `756121b` 只是待合并祖先，
+不再被误称为可解析的远端冻结版本。
+
+### 12.2 Viewer capability 投影
 
 公开 DTO 继续不含 owner ID。query adapter 对当前已认证 viewer 只做点查：
 

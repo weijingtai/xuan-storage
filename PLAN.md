@@ -1,6 +1,7 @@
 # PLAN
 
 - [x] 修复 Firestore direct-write Design 的 OpenSpec 冲突、安全边界和机械执行缺口。
-- [x] 通过 OpenSpec strict validation 与独立 Design gates。
-- [ ] 等待用户审阅并批准 Design。
-- [ ] 批准后重写 direct-write TDD/ACT；当前不得编码。
+- [x] 通过 OpenSpec strict validation 与第一轮独立 Design gates。
+- [x] 按 Claude R2 重写 direct-write TDD plan，补 RI、DTO、计数、bookmark、pending feed 与 Rules 预算门禁。
+- [ ] 人类将 RI viewer-capability commit 合并到远端 main，并批准两仓 pin 同一 commit。
+- [ ] Task 0 远端/依赖门禁通过后才允许执行 Task 1；当前不得编码 direct adapter。
