@@ -161,14 +161,14 @@ final class FirebasePlaygroundConversationRepository
   }) async {
     try {
       // 读路径保持直连（Rules read 允许）。
-      final user = _auth.currentUser;
-      if (user == null) {
+      if (_auth.currentUser == null) {
         return PlaygroundPage.empty();
       }
+      final actor = await _identityResolver.resolveActor();
 
       var q = _firestore
           .collection(PlaygroundFirestoreSchema.conversations)
-          .where('participant_a_provider_uid', isEqualTo: user.uid)
+          .where('participants', arrayContains: actor.value)
           .orderBy('updated_at', descending: true)
           .limit(limit);
 
@@ -258,13 +258,18 @@ final class FirebasePlaygroundConversationRepository
     final timestamp = d['created_at'] as Timestamp?;
     final updatedTs = d['updated_at'] as Timestamp?;
     final blockedBy = d['blocked_by'] as String?;
+    final participants = (d['participants'] as List<dynamic>? ?? const [])
+        .whereType<String>()
+        .toList(growable: false);
 
     return PlaygroundConversation(
       id: PlaygroundConversationId(docId),
       participantA: PlaygroundUserId(
-          d['participant_a_app_user_id'] as String? ?? ''),
+          d['participant_a_app_user_id'] as String? ??
+              (participants.isNotEmpty ? participants.first : '')),
       participantB: PlaygroundUserId(
-          d['participant_b_app_user_id'] as String? ?? ''),
+          d['participant_b_app_user_id'] as String? ??
+              (participants.length > 1 ? participants[1] : '')),
       status: PlaygroundConversationStatus.values
           .byName(d['status'] as String? ?? 'pendingRequest'),
       blockedBy: blockedBy != null ? PlaygroundUserId(blockedBy) : null,

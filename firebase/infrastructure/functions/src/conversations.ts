@@ -43,19 +43,26 @@ export const sendDmRequest = onCall({ region: 'asia-east1' }, async (request) =>
     await convRef.set({
       id: convRef.id,
       participants: [appUserId, targetAppUserId],
+      participant_a_provider_uid: uid,
+      participant_a_app_user_id: appUserId,
+      participant_b_app_user_id: targetAppUserId,
       status: 'pending',
       initiated_by: appUserId,
       created_at: now,
+      updated_at: now,
     });
 
     const msgRef = db.collection(COLLECTIONS.messages).doc();
     await msgRef.set({
       id: msgRef.id,
       conversation_id: convRef.id,
+      sender_provider_uid: uid,
       sender_app_user_id: appUserId,
+      recipient_app_user_id: targetAppUserId,
       text: initialMessage.trim(),
       type: 'dm_request',
       created_at: now,
+      sent_at: now,
     });
 
     return {
@@ -97,7 +104,7 @@ export const respondDmRequest = onCall({ region: 'asia-east1' }, async (request)
     }
 
     if (accept) {
-      await convSnap.ref.update({ status: 'active' } as any);
+      await convSnap.ref.update({ status: 'active', updated_at: admin.firestore.FieldValue.serverTimestamp() } as any);
 
       const outboxRef = db.collection(COLLECTIONS.outbox).doc();
       await outboxRef.set({
@@ -108,7 +115,7 @@ export const respondDmRequest = onCall({ region: 'asia-east1' }, async (request)
         created_at: admin.firestore.FieldValue.serverTimestamp(),
       });
     } else {
-      await convSnap.ref.update({ status: 'declined' } as any);
+      await convSnap.ref.update({ status: 'declined', updated_at: admin.firestore.FieldValue.serverTimestamp() } as any);
     }
 
     return {
@@ -167,11 +174,16 @@ export const sendMessage = onCall({ region: 'asia-east1' }, async (request) => {
     await msgRef.set({
       id: msgRef.id,
       conversation_id: conversationId,
+      sender_provider_uid: uid,
       sender_app_user_id: appUserId,
+      recipient_app_user_id: otherParticipant,
       text: text.trim(),
       type: 'message',
       created_at: now,
+      sent_at: now,
     });
+
+    await convSnap.ref.update({ updated_at: now } as any);
 
     const outboxRef = db.collection(COLLECTIONS.outbox).doc();
     await outboxRef.set({

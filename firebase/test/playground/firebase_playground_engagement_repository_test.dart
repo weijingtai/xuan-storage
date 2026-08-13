@@ -151,6 +151,7 @@ void main() {
       }
       expect(params['postId'], 'post-1');
       expect(params['action'], 'bookmark');
+      expect(params['idempotency_key'], 'book-key-1');
     });
 
     test('unbookmark → action=unbookmark', () async {

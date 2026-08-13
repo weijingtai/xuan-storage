@@ -72,15 +72,7 @@
       "collectionGroup": "playground_conversations",
       "queryScope": "COLLECTION",
       "fields": [
-        {"fieldPath": "participant_a_uid", "order": "ASCENDING"},
-        {"fieldPath": "updated_at", "order": "DESCENDING"}
-      ]
-    },
-    {
-      "collectionGroup": "playground_conversations",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {"fieldPath": "participant_b_uid", "order": "ASCENDING"},
+        {"fieldPath": "participants", "arrayConfig": "CONTAINS"},
         {"fieldPath": "updated_at", "order": "DESCENDING"}
       ]
     },

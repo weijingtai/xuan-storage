@@ -275,10 +275,9 @@ describe('playground_likes', () => {
 // ==============================
 
 describe('playground_bookmarks', () => {
-  test('allow: 用户创建自己的收藏', async () => {
+  test('deny: 用户不能绕过 setBookmark callable 创建自己的收藏', async () => {
     const db = aliceContext();
-    const fs = db.firestore();
-    await assertSucceeds(
+    await assertFails(
       db.firestore().collection('playground_bookmarks').doc('bm-1').set({
         post_id: 'p-1',
         user_provider_uid: 'alice-uid',

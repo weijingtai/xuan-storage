@@ -43,6 +43,7 @@ jest.mock('firebase-functions/v2/scheduler', () => ({
 
 import { resolveMyIdentity as _resolveMyIdentity } from '../src/identity';
 import { setLike as _setLike } from '../src/likes';
+import { setBookmark as _setBookmark } from '../src/bookmarks';
 import {
   sendDmRequest as _sendDmRequest,
   respondDmRequest as _respondDmRequest,
@@ -57,6 +58,7 @@ const resolveMyIdentity = _resolveMyIdentity as unknown as (
   req: any,
 ) => Promise<any>;
 const setLike = _setLike as unknown as (req: any) => Promise<any>;
+const setBookmark = _setBookmark as unknown as (req: any) => Promise<any>;
 const sendDmRequest = _sendDmRequest as unknown as (req: any) => Promise<any>;
 const respondDmRequest = _respondDmRequest as unknown as (
   req: any,
@@ -190,6 +192,18 @@ describe('conversations 幂等（BLOCK-01）', () => {
       (m) => m.type === 'dm_request',
     );
     expect(dmRequests).toHaveLength(1);
+    expect(store['playground_conversations'][0]).toMatchObject({
+      participant_a_provider_uid: 'user-a',
+      participant_a_app_user_id: r1.participants[0],
+      participant_b_app_user_id: 'app-target',
+      status: 'pending',
+    });
+    expect(dmRequests[0]).toMatchObject({
+      sender_provider_uid: 'user-a',
+      sender_app_user_id: r1.participants[0],
+      recipient_app_user_id: 'app-target',
+      sent_at: expect.anything(),
+    });
   });
 
   it('respondDmRequest 同 key 重试 → outbox 只写一次 dm_accepted', async () => {
@@ -315,5 +329,32 @@ describe('conversations 幂等（BLOCK-01）', () => {
     await expect(
       blockUser(makeReq({ targetAppUserId: 'app-x' })),
     ).rejects.toThrow(HttpsError);
+  });
+});
+
+describe('bookmarks 幂等（BLOCK-01）', () => {
+  it('同 key 重放仅写一个收藏，并返回缓存结果', async () => {
+    await seedPost('post-bookmark-1', 'user-b');
+    const req = makeReq(
+      { postId: 'post-bookmark-1', action: 'bookmark', idempotency_key: 'bookmark-key-1' },
+      'user-a',
+    );
+    const first = await setBookmark(req);
+    const replay = await setBookmark(req);
+
+    expect(replay).toEqual(first);
+    expect(dumpStore()['playground_bookmarks']).toHaveLength(1);
+  });
+
+  it('同 key 不同 payload 拒绝', async () => {
+    await seedPost('post-bookmark-2', 'user-b');
+    await setBookmark(makeReq(
+      { postId: 'post-bookmark-2', action: 'bookmark', idempotency_key: 'bookmark-key-2' },
+      'user-a',
+    ));
+    await expect(setBookmark(makeReq(
+      { postId: 'post-bookmark-2', action: 'unbookmark', idempotency_key: 'bookmark-key-2' },
+      'user-a',
+    ))).rejects.toThrow(HttpsError);
   });
 });

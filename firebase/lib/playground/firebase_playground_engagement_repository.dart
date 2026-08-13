@@ -63,11 +63,12 @@ final class FirebasePlaygroundEngagementRepository
   @override
   Future<void> setBookmark(SetBookmarkCommand command) async {
     try {
-      // Functions `setBookmark` 只接收 postId + action（bookmark/unbookmark），
-      // 无 idempotency 支持；客户端不传可伪造身份字段。
+      // Functions `setBookmark` only receives business fields; actor is auth-derived.
       final params = <String, dynamic>{
         'postId': command.postId.value,
         'action': command.bookmarked ? 'bookmark' : 'unbookmark',
+        if (command.idempotencyKey != null)
+          'idempotency_key': command.idempotencyKey,
       };
       await _functions.httpsCallable('setBookmark').call(params);
     } catch (e) {
