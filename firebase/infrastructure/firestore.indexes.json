@@ -12,17 +12,8 @@
       "collectionGroup": "playground_posts",
       "queryScope": "COLLECTION",
       "fields": [
-        {"fieldPath": "author_app_user_id", "order": "ASCENDING"},
         {"fieldPath": "status", "order": "ASCENDING"},
-        {"fieldPath": "presentation_mode", "order": "ASCENDING"},
-        {"fieldPath": "created_at", "order": "DESCENDING"}
-      ]
-    },
-    {
-      "collectionGroup": "playground_replies",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {"fieldPath": "author_app_user_id", "order": "ASCENDING"},
+        {"fieldPath": "allowed_chart_technique_ids", "arrayConfig": "CONTAINS"},
         {"fieldPath": "created_at", "order": "DESCENDING"}
       ]
     },
@@ -31,25 +22,26 @@
       "queryScope": "COLLECTION",
       "fields": [
         {"fieldPath": "post_id", "order": "ASCENDING"},
-        {"fieldPath": "depth", "order": "ASCENDING"},
+        {"fieldPath": "is_tombstoned", "order": "ASCENDING"},
         {"fieldPath": "created_at", "order": "ASCENDING"}
       ]
     },
     {
-      "collectionGroup": "playground_replies",
+      "collectionGroup": "playground_verifications",
       "queryScope": "COLLECTION",
       "fields": [
         {"fieldPath": "post_id", "order": "ASCENDING"},
         {"fieldPath": "root_reply_id", "order": "ASCENDING"},
+        {"fieldPath": "revoked_at", "order": "ASCENDING"},
         {"fieldPath": "created_at", "order": "ASCENDING"}
       ]
     },
     {
-      "collectionGroup": "playground_likes",
+      "collectionGroup": "playground_verifications",
       "queryScope": "COLLECTION",
       "fields": [
         {"fieldPath": "post_id", "order": "ASCENDING"},
-        {"fieldPath": "user_provider_uid", "order": "ASCENDING"}
+        {"fieldPath": "revoked_at", "order": "ASCENDING"}
       ]
     },
     {
@@ -82,14 +74,6 @@
       "fields": [
         {"fieldPath": "conversation_id", "order": "ASCENDING"},
         {"fieldPath": "sent_at", "order": "DESCENDING"}
-      ]
-    },
-    {
-      "collectionGroup": "playground_verifications",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {"fieldPath": "post_id", "order": "ASCENDING"},
-        {"fieldPath": "root_reply_id", "order": "ASCENDING"}
       ]
     }
   ],

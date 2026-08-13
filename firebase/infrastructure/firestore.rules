@@ -1,96 +1,605 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function myAppUserId() {
-      return get(/databases/$(database)/documents/identity_map/$(request.auth.uid)).data.app_user_id;
-    }
 
+    // ============================================================
     // 默认拒绝所有操作
+    // ============================================================
     match /{document=**} {
       allow read, write: if false;
     }
 
-    // ============================
-    // identity_map（复用现有，只读开放给认证用户）
-    // ============================
-    match /identity_map/{providerUserId} {
-      allow read: if request.auth != null;
-      allow write: if false; // 仅 Admin SDK / Functions 可写
+    // ============================================================
+    // 公共 helper（Design §3/§4/§5/§10.4）
+    // ============================================================
+
+    // 当前用户身份文档（identity_map/{uid}）。只允许本人读取；禁止客户端写。
+    function identityDoc() {
+      return get(/databases/$(database)/documents/identity_map/$(request.auth.uid));
+    }
+    // 当前用户身份是否存在且具备公开展示所需字段。
+    function identityReady() {
+      return identityDoc().exists
+        && identityDoc().data.keys().hasAll(['app_user_id', 'provider_uid',
+            'public_presentation_id', 'public_display_alias'])
+        && identityDoc().data.public_presentation_id is string
+        && identityDoc().data.public_display_alias is string
+        && identityDoc().data.public_presentation_id.size() > 0
+        && identityDoc().data.public_display_alias.size() > 0;
+    }
+    // 目标文档的 owner（getAfter —— atomic write 后状态）。
+    function ownerAfter(collection, docId) {
+      return getAfter(/databases/$(database)/documents/$(collection)/$(docId));
     }
 
-    // ============================
-    // playground_posts — 字段 allowlist
-    // ============================
-    match /playground_posts/{postId} {
-      // 任何认证用户可读 active 帖子
-      allow read: if request.auth != null
-                  && resource.data.status == 'active';
-      // tombstone 帖子仅作者可读，且不返回 body
-      allow read: if request.auth != null
-                  && resource.data.status == 'tombstoned'
-                  && request.auth.uid == resource.data.author_provider_uid;
+    // ---- 附件判别联合校验（Design §5）----
+    function validAttachment(attachment) {
+      return (attachment is map)
+        && (attachment.keys().hasOnly(['type', 'technique_id', 'school_id',
+              'public_chart_snapshot', 'renderer_schema_version', 'chart_source'])
+            && attachment.type == 'xuanChart'
+            && (attachment.technique_id is string) && attachment.technique_id.size() >= 1
+              && attachment.technique_id.size() <= 64
+            && (attachment.public_chart_snapshot is string)
+              && attachment.public_chart_snapshot.size() >= 1
+              && attachment.public_chart_snapshot.size() <= 65536
+            && (attachment.renderer_schema_version is int)
+              && attachment.renderer_schema_version > 0
+            && (attachment.chart_source is string)
+            || (attachment.keys().hasOnly(['type', 'media_object_id', 'mime_type',
+                  'moderation_state', 'width', 'height', 'duration_seconds'])
+                && (attachment.type == 'image' || attachment.type == 'video')
+                && (attachment.media_object_id is string)
+                  && attachment.media_object_id.size() >= 1
+                  && attachment.media_object_id.size() <= 128
+                && (attachment.mime_type is string)
+                  && attachment.mime_type.size() >= 1
+                  && attachment.mime_type.size() <= 128
+                && attachment.moderation_state in ['pending', 'approved',
+                  'quarantined', 'rejected']
+                && (!attachment.keys().hasAny(['width']) || attachment.width is int)
+                && (!attachment.keys().hasAny(['height']) || attachment.height is int)
+                && (!attachment.keys().hasAny(['duration_seconds'])
+                    || (attachment.duration_seconds is int
+                        && attachment.duration_seconds >= 1
+                        && attachment.duration_seconds <= 3600))));
+    }
 
-      // Canonical ownership, privacy and revision fields are minted in callable
-      // Functions.  No client write path may bypass those invariants.
+    // 固定上限 helper：0–8 槽附件逐槽校验（Design §5，无循环）。
+    function validAttachments(list, maxCount) {
+      return (list is list) && list.size() <= maxCount
+        && (!list.hasAny([null]))
+        && ((list.size() == 0) || validAttachment(list[0]))
+        && ((list.size() <= 1) || validAttachment(list[1]))
+        && ((list.size() <= 2) || validAttachment(list[2]))
+        && ((list.size() <= 3) || validAttachment(list[3]))
+        && ((list.size() <= 4) || validAttachment(list[4]))
+        && ((list.size() <= 5) || validAttachment(list[5]))
+        && ((list.size() <= 6) || validAttachment(list[6]))
+        && ((list.size() <= 7) || validAttachment(list[7]))
+        && ((list.size() <= 8) || validAttachment(list[8]));
+    }
+
+    // 0–15 槽字符串列表逐槽校验（technique tags/ids）。
+    function validStringList(list, maxCount, minLen, maxLen) {
+      return (list is list) && list.size() <= maxCount
+        && ((list.size() == 0) || validStringItem(list[0], minLen, maxLen))
+        && ((list.size() <= 1) || validStringItem(list[1], minLen, maxLen))
+        && ((list.size() <= 2) || validStringItem(list[2], minLen, maxLen))
+        && ((list.size() <= 3) || validStringItem(list[3], minLen, maxLen))
+        && ((list.size() <= 4) || validStringItem(list[4], minLen, maxLen))
+        && ((list.size() <= 5) || validStringItem(list[5], minLen, maxLen))
+        && ((list.size() <= 6) || validStringItem(list[6], minLen, maxLen))
+        && ((list.size() <= 7) || validStringItem(list[7], minLen, maxLen))
+        && ((list.size() <= 8) || validStringItem(list[8], minLen, maxLen))
+        && ((list.size() <= 9) || validStringItem(list[9], minLen, maxLen))
+        && ((list.size() <= 10) || validStringItem(list[10], minLen, maxLen))
+        && ((list.size() <= 11) || validStringItem(list[11], minLen, maxLen))
+        && ((list.size() <= 12) || validStringItem(list[12], minLen, maxLen))
+        && ((list.size() <= 13) || validStringItem(list[13], minLen, maxLen))
+        && ((list.size() <= 14) || validStringItem(list[14], minLen, maxLen))
+        && ((list.size() <= 15) || validStringItem(list[15], minLen, maxLen));
+    }
+    function validStringItem(item, minLen, maxLen) {
+      return (item is string) && item.size() >= minLen && item.size() <= maxLen;
+    }
+
+    // 字符串 1–maxLen。
+    function validText(value, minLen, maxLen) {
+      return (value is string) && value.size() >= minLen && value.size() <= maxLen;
+    }
+
+    // 展示模式。
+    function validPresentationMode(mode) {
+      return mode == 'stableAlias' || mode == 'oneTimeAnonymous';
+    }
+
+    // ============================================================
+    // identity_map —— 只读本人；禁止客户端写
+    // ============================================================
+    match /identity_map/{providerUserId} {
+      allow read: if request.auth != null
+                  && request.auth.uid == providerUserId;
       allow write: if false;
     }
 
-    // ============================
-    // playground_replies — 字段 allowlist + 跨文档保护
-    // ============================
+    // ============================================================
+    // playground_post_owners —— 私有所有权（deny-by-default）
+    // ============================================================
+    match /playground_post_owners/{postId} {
+      allow read: if request.auth != null
+                  && resource.data.provider_uid == request.auth.uid;
+      allow write: if false; // 仅由 post create 的 atomic write 创建
+    }
+
+    // ============================================================
+    // playground_reply_owners —— 私有所有权（deny-by-default）
+    // ============================================================
+    match /playground_reply_owners/{replyId} {
+      allow read: if request.auth != null
+                  && resource.data.provider_uid == request.auth.uid;
+      allow write: if false;
+    }
+
+    // ============================================================
+    // playground_like_owners —— 私有所有权（deny-by-default）
+    // ============================================================
+    match /playground_like_owners/{likeId} {
+      allow read: if request.auth != null
+                  && resource.data.provider_uid == request.auth.uid;
+      allow write: if false;
+    }
+
+    // ============================================================
+    // playground_thread_presentations —— 私有 mapping（deny-by-default）
+    // 可寻址路径 {postId}__{providerUid}；只允许本人 get、禁止 list/write-after-create。
+    // ============================================================
+    match /playground_thread_presentations/{mappingId} {
+      allow read: if request.auth != null
+                  && mappingId == resource.data.post_id + '__' + request.auth.uid;
+      allow write: if false;
+    }
+
+    // ============================================================
+    // playground_posts —— 公开文档（Design §3.2/§4/§6.1/§8）
+    // ============================================================
+    match /playground_posts/{postId} {
+      // 公开 active 帖子可读；tombstone 作者可读（无正文）。
+      allow read: if request.auth != null
+                  && (resource.data.status == 'active'
+                      || (resource.data.status == 'tombstoned'
+                          && ownerAfter('playground_post_owners', postId).exists
+                          && ownerAfter('playground_post_owners', postId).data.provider_uid == request.auth.uid));
+
+      // create：公开 post + owner 同一 atomic write（getAfter 验证一一对应）。
+      allow create: if request.auth != null
+        && identityReady()
+        && request.resource.data.keys().hasOnly(['id', 'text',
+             'presentation_mode', 'presentation_identity_id',
+             'presentation_display_alias', 'presentation_avatar_url',
+             'public_profile_ref', 'status', 'allowed_chart_technique_ids',
+             'attachments', 'has_chart', 'revision_no', 'current_revision_id',
+             'idempotency_key', 'payload_hash', 'created_at', 'updated_at'])
+        && request.resource.data.id == postId
+        && request.resource.data.status == 'active'
+        && validText(request.resource.data.text, 1, 4000)
+        && validPresentationMode(request.resource.data.presentation_mode)
+        && (request.resource.data.presentation_mode == 'stableAlias'
+            ? request.resource.data.presentation_identity_id
+                == identityDoc().data.public_presentation_id
+              && request.resource.data.presentation_display_alias
+                == identityDoc().data.public_display_alias
+            : request.resource.data.presentation_identity_id == ('post_' + postId)
+              && request.resource.data.presentation_display_alias == '匿名用户')
+        && (!request.resource.data.keys().hasAny(['presentation_avatar_url'])
+            || request.resource.data.presentation_avatar_url == null
+            || request.resource.data.presentation_mode == 'stableAlias')
+        && (request.resource.data.presentation_mode == 'oneTimeAnonymous'
+            ? (!request.resource.data.keys().hasAny(['presentation_avatar_url'])
+               || request.resource.data.presentation_avatar_url == null)
+              && (!request.resource.data.keys().hasAny(['public_profile_ref'])
+               || request.resource.data.public_profile_ref == null)
+            : true)
+        && validStringList(request.resource.data.allowed_chart_technique_ids, 16, 1, 64)
+        && validAttachments(request.resource.data.attachments, 9)
+        && (request.resource.data.has_chart is bool)
+        && request.resource.data.revision_no == 1
+        && validText(request.resource.data.current_revision_id, 1, 128)
+        && validText(request.resource.data.idempotency_key, 1, 128)
+        && validText(request.resource.data.payload_hash, 1, 128)
+        && (request.resource.data.created_at is timestamp)
+        && (request.resource.data.updated_at is timestamp)
+        && request.resource.data.created_at == request.resource.data.updated_at
+        && ownerAfter('playground_post_owners', postId).exists
+        && ownerAfter('playground_post_owners', postId).data.keys().hasOnly(
+             ['content_id', 'provider_uid', 'app_user_id',
+              'public_presentation_id', 'created_at'])
+        && ownerAfter('playground_post_owners', postId).data.content_id == postId
+        && ownerAfter('playground_post_owners', postId).data.provider_uid == request.auth.uid
+        && ownerAfter('playground_post_owners', postId).data.app_user_id
+             == identityDoc().data.app_user_id
+        && ownerAfter('playground_post_owners', postId).data.public_presentation_id
+             == identityDoc().data.public_presentation_id
+        && getAfter(/databases/$(database)/documents/playground_posts/$(postId)/revisions/r0000000001).exists
+        && getAfter(/databases/$(database)/documents/playground_posts/$(postId)/revisions/r0000000001).data.revision_no == 1;
+
+      // update：仅 owner；仅可变字段；active->tombstoned 必须清空公开正文；
+      // 编辑必须连续追加 revision。
+      allow update: if request.auth != null
+        && ownerAfter('playground_post_owners', postId).exists
+        && ownerAfter('playground_post_owners', postId).data.provider_uid == request.auth.uid
+        && resource.data.status in ['active', 'tombstoned']
+        && (request.resource.data.status == resource.data.status
+            || (resource.data.status == 'active'
+                && request.resource.data.status == 'tombstoned'))
+        && (request.resource.data.status == 'active'
+            ? request.resource.data.keys().hasOnly(['text',
+                 'allowed_chart_technique_ids', 'attachments', 'has_chart',
+                 'revision_no', 'current_revision_id', 'updated_at'])
+              && validText(request.resource.data.text, 1, 4000)
+              && validStringList(request.resource.data.allowed_chart_technique_ids, 16, 1, 64)
+              && validAttachments(request.resource.data.attachments, 9)
+            : request.resource.data.keys().hasOnly(['text', 'attachments',
+                 'allowed_chart_technique_ids', 'status', 'revision_no',
+                 'current_revision_id', 'updated_at'])
+              && request.resource.data.text == ''
+              && request.resource.data.attachments.size() == 0
+              && request.resource.data.allowed_chart_technique_ids.size() == 0)
+        && request.resource.data.revision_no == resource.data.revision_no + 1
+        && (request.resource.data.updated_at is timestamp)
+        && (request.resource.data.created_at == resource.data.created_at)
+        && getAfter(/databases/$(database)/documents/playground_posts/$(postId)/revisions/r0000000001).exists; // revision 连续由 adapter 保证精确 ID
+
+      allow delete: if false;
+    }
+
+    // ============================================================
+    // playground_posts/{postId}/revisions —— append-only 子集合（§4.3）
+    // ============================================================
+    match /playground_posts/{postId}/revisions/{revisionId} {
+      // 仅 content owner 可读自己内容的历史；其他普通用户拒绝。
+      allow read: if request.auth != null
+                  && ownerAfter('playground_post_owners', postId).exists
+                  && ownerAfter('playground_post_owners', postId).data.provider_uid == request.auth.uid;
+      // create-only：revision 创建后永远拒绝 update/delete。
+      allow create: if request.auth != null
+        && identityReady()
+        && ownerAfter('playground_post_owners', postId).exists
+        && ownerAfter('playground_post_owners', postId).data.provider_uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['id', 'parent_id',
+             'revision_no', 'body', 'allowed_chart_technique_ids',
+             'attachments', 'presentation_mode', 'presentation_identity_id',
+             'presentation_display_alias', 'presentation_avatar_url',
+             'public_profile_ref', 'created_at'])
+        && request.resource.data.id == revisionId
+        && request.resource.data.revision_no >= 1
+        && (request.resource.data.parent_id is string)
+        && validText(request.resource.data.body, 0, 4000)
+        && validPresentationMode(request.resource.data.presentation_mode)
+        && (request.resource.data.created_at is timestamp);
+      allow update, delete: if false;
+    }
+
+    // ============================================================
+    // playground_replies —— 公开文档（Design §3.2/§4/§6.2/§8）
+    // ============================================================
     match /playground_replies/{replyId} {
       allow read: if request.auth != null
                   && (resource.data.is_tombstoned != true
-                      || request.auth.uid == resource.data.author_provider_uid);
+                      || ownerAfter('playground_reply_owners', replyId).exists
+                          && ownerAfter('playground_reply_owners', replyId).data.provider_uid == request.auth.uid);
 
-      // Root linkage/depth and tombstones are validated by callable Functions.
-      allow write: if false;
+      // create：公开 reply + reply owner + （one-time 首次）thread mapping
+      // 同一 atomic write。
+      allow create: if request.auth != null
+        && identityReady()
+        && request.resource.data.keys().hasOnly(['id', 'post_id',
+             'presentation_mode', 'presentation_identity_id',
+             'presentation_display_alias', 'presentation_avatar_url',
+             'public_profile_ref', 'depth', 'body', 'is_tombstoned',
+             'root_reply_id', 'reply_to_reply_id', 'technique_tags',
+             'chart_attachment', 'media_attachments', 'revision_no',
+             'current_revision_id', 'idempotency_key', 'payload_hash',
+             'created_at', 'updated_at'])
+        && request.resource.data.id == replyId
+        && request.resource.data.is_tombstoned == false
+        && request.resource.data.depth in [0, 1]
+        && validText(request.resource.data.body, 1, 4000)
+        && validStringList(request.resource.data.technique_tags, 16, 1, 64)
+        && validAttachments(request.resource.data.media_attachments, 9)
+        && (!request.resource.data.keys().hasAny(['chart_attachment'])
+            || request.resource.data.chart_attachment == null
+            || (request.resource.data.depth == 0
+                && validAttachment(request.resource.data.chart_attachment)))
+        && validPresentationMode(request.resource.data.presentation_mode)
+        && request.resource.data.revision_no == 1
+        && validText(request.resource.data.current_revision_id, 1, 128)
+        && validText(request.resource.data.idempotency_key, 1, 128)
+        && validText(request.resource.data.payload_hash, 1, 128)
+        && (request.resource.data.created_at is timestamp)
+        && (request.resource.data.updated_at is timestamp)
+        && request.resource.data.created_at == request.resource.data.updated_at
+        // 目标 post 必须存在且 active。
+        && get(/databases/$(database)/documents/playground_posts/$(request.resource.data.post_id)).exists
+        && get(/databases/$(database)/documents/playground_posts/$(request.resource.data.post_id)).data.status == 'active'
+        // depth 语义。
+        && (request.resource.data.depth == 0
+            ? request.resource.data.root_reply_id == null
+              && request.resource.data.reply_to_reply_id == null
+            : request.resource.data.depth == 1
+              && request.resource.data.root_reply_id != null
+              && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).exists
+              && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).data.post_id
+                   == request.resource.data.post_id
+              && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).data.depth == 0
+              && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).data.is_tombstoned != true
+              && (request.resource.data.reply_to_reply_id == null
+                  || get(/databases/$(database)/documents/playground_replies/$(request.resource.data.reply_to_reply_id)).exists
+                  && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.reply_to_reply_id)).data.post_id
+                       == request.resource.data.post_id
+                  && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.reply_to_reply_id)).data.root_reply_id
+                       == request.resource.data.root_reply_id
+                  && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.reply_to_reply_id)).data.is_tombstoned != true))
+        // 展示身份。
+        && (request.resource.data.presentation_mode == 'stableAlias'
+            ? request.resource.data.presentation_identity_id
+                == identityDoc().data.public_presentation_id
+              && request.resource.data.presentation_display_alias
+                == identityDoc().data.public_display_alias
+            : request.resource.data.presentation_mode == 'oneTimeAnonymous'
+              && request.resource.data.presentation_identity_id
+                   == getAfter(/databases/$(database)/documents/playground_thread_presentations/$(request.resource.data.post_id + '__' + request.auth.uid)).data.presentation_identity_id
+              && request.resource.data.presentation_display_alias == '匿名用户')
+        // owner 文档一一对应。
+        && ownerAfter('playground_reply_owners', replyId).exists
+        && ownerAfter('playground_reply_owners', replyId).data.keys().hasOnly(
+             ['content_id', 'provider_uid', 'app_user_id',
+              'public_presentation_id', 'created_at'])
+        && ownerAfter('playground_reply_owners', replyId).data.content_id == replyId
+        && ownerAfter('playground_reply_owners', replyId).data.provider_uid == request.auth.uid
+        && ownerAfter('playground_reply_owners', replyId).data.app_user_id
+             == identityDoc().data.app_user_id
+        && ownerAfter('playground_reply_owners', replyId).data.public_presentation_id
+             == identityDoc().data.public_presentation_id
+        // one-time anonymous 首次回复必须创建 thread mapping；stableAlias 不需要。
+        && (request.resource.data.presentation_mode == 'oneTimeAnonymous'
+            ? getAfter(/databases/$(database)/documents/playground_thread_presentations/$(request.resource.data.post_id + '__' + request.auth.uid)).exists
+              && getAfter(/databases/$(database)/documents/playground_thread_presentations/$(request.resource.data.post_id + '__' + request.auth.uid)).data.keys().hasOnly(
+                   ['post_id', 'provider_uid', 'presentation_identity_id', 'created_at'])
+              && getAfter(/databases/$(database)/documents/playground_thread_presentations/$(request.resource.data.post_id + '__' + request.auth.uid)).data.post_id
+                   == request.resource.data.post_id
+              && getAfter(/databases/$(database)/documents/playground_thread_presentations/$(request.resource.data.post_id + '__' + request.auth.uid)).data.provider_uid
+                   == request.auth.uid
+              && getAfter(/databases/$(database)/documents/playground_thread_presentations/$(request.resource.data.post_id + '__' + request.auth.uid)).data.presentation_identity_id
+                   == request.resource.data.presentation_identity_id
+            : true)
+        // revision 1 同时创建。
+        && getAfter(/databases/$(database)/documents/playground_replies/$(replyId)/revisions/r0000000001).exists
+        && getAfter(/databases/$(database)/documents/playground_replies/$(replyId)/revisions/r0000000001).data.revision_no == 1;
+
+      // update：仅 owner；编辑追加 revision；tombstone 清空公开正文。
+      allow update: if request.auth != null
+        && ownerAfter('playground_reply_owners', replyId).exists
+        && ownerAfter('playground_reply_owners', replyId).data.provider_uid == request.auth.uid
+        && resource.data.is_tombstoned != true
+        && (request.resource.data.is_tombstoned == true
+            ? request.resource.data.keys().hasOnly(['body', 'technique_tags',
+                 'chart_attachment', 'media_attachments', 'is_tombstoned',
+                 'revision_no', 'current_revision_id', 'updated_at'])
+              && request.resource.data.body == ''
+              && request.resource.data.technique_tags.size() == 0
+              && request.resource.data.chart_attachment == null
+              && request.resource.data.media_attachments.size() == 0
+            : request.resource.data.keys().hasOnly(['body', 'technique_tags',
+                 'chart_attachment', 'media_attachments', 'revision_no',
+                 'current_revision_id', 'updated_at'])
+              && validText(request.resource.data.body, 1, 4000)
+              && validStringList(request.resource.data.technique_tags, 16, 1, 64))
+        && request.resource.data.revision_no == resource.data.revision_no + 1
+        && (request.resource.data.updated_at is timestamp)
+        && (request.resource.data.created_at == resource.data.created_at)
+        && getAfter(/databases/$(database)/documents/playground_replies/$(replyId)/revisions/r0000000001).exists;
+
+      allow delete: if false;
     }
 
-    // ============================
-    // playground_verifications（应验）— Functions only（需跨文档校验 Poster 所有权）
-    // ============================
-    match /playground_verifications/{verificationId} {
-      allow read: if request.auth != null;
-      allow write: if false;
+    // ============================================================
+    // playground_replies/{replyId}/revisions —— append-only 子集合（§4.3）
+    // ============================================================
+    match /playground_replies/{replyId}/revisions/{revisionId} {
+      allow read: if request.auth != null
+                  && ownerAfter('playground_reply_owners', replyId).exists
+                  && ownerAfter('playground_reply_owners', replyId).data.provider_uid == request.auth.uid;
+      allow create: if request.auth != null
+        && identityReady()
+        && ownerAfter('playground_reply_owners', replyId).exists
+        && ownerAfter('playground_reply_owners', replyId).data.provider_uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['id', 'parent_id',
+             'revision_no', 'body', 'technique_tags', 'chart_attachment',
+             'media_attachments', 'presentation_mode', 'presentation_identity_id',
+             'presentation_display_alias', 'presentation_avatar_url',
+             'public_profile_ref', 'created_at'])
+        && request.resource.data.id == revisionId
+        && request.resource.data.revision_no >= 1
+        && (request.resource.data.parent_id is string)
+        && validText(request.resource.data.body, 0, 4000)
+        && validPresentationMode(request.resource.data.presentation_mode)
+        && (request.resource.data.created_at is timestamp);
+      allow update, delete: if false;
     }
 
-    // ============================
-    // playground_outcome_feedback（最终反馈）— Functions only
-    // ============================
-    match /playground_outcome_feedback/{feedbackId} {
-      allow read: if request.auth != null;
-      allow write: if false;
-    }
-
-    // ============================
-    // playground_likes — Functions only（需跨文档 fan-out + 去重）
-    // ============================
+    // ============================================================
+    // playground_likes —— 公开事实 + 私有 like_owner 同批（Design §4.2/§5）
+    // ============================================================
     match /playground_likes/{likeId} {
       allow read: if request.auth != null;
-      allow write: if false;
+      // create/delete：公开 like + like_owner 同批；目标必须存在。
+      allow create: if request.auth != null
+        && identityReady()
+        && request.resource.data.keys().hasOnly(['id', 'target_type', 'target_id', 'created_at'])
+        && request.resource.data.id == likeId
+        && request.resource.data.target_type in ['post', 'reply']
+        && (request.resource.data.created_at is timestamp)
+        && (request.resource.data.target_type == 'post'
+            ? get(/databases/$(database)/documents/playground_posts/$(request.resource.data.target_id)).exists
+            : get(/databases/$(database)/documents/playground_replies/$(request.resource.data.target_id)).exists)
+        && getAfter(/databases/$(database)/documents/playground_like_owners/$(likeId)).exists
+        && getAfter(/databases/$(database)/documents/playground_like_owners/$(likeId)).data.keys().hasOnly(
+             ['like_id', 'provider_uid', 'app_user_id', 'target_type', 'target_id', 'created_at'])
+        && getAfter(/databases/$(database)/documents/playground_like_owners/$(likeId)).data.like_id == likeId
+        && getAfter(/databases/$(database)/documents/playground_like_owners/$(likeId)).data.provider_uid == request.auth.uid
+        && getAfter(/databases/$(database)/documents/playground_like_owners/$(likeId)).data.app_user_id
+             == identityDoc().data.app_user_id
+        && getAfter(/databases/$(database)/documents/playground_like_owners/$(likeId)).data.target_type
+             == request.resource.data.target_type
+        && getAfter(/databases/$(database)/documents/playground_like_owners/$(likeId)).data.target_id
+             == request.resource.data.target_id;
+      // unlike：删除公开 like 必须同批删除私有 like_owner（owner 校验）。
+      allow delete: if request.auth != null
+        && get(/databases/$(database)/documents/playground_like_owners/$(likeId)).exists
+        && get(/databases/$(database)/documents/playground_like_owners/$(likeId)).data.provider_uid == request.auth.uid;
+      allow update: if false;
     }
 
-    // ============================
-    // playground_bookmarks（私有收藏）
-    // ============================
+    // ============================================================
+    // playground_bookmarks —— 私有收藏（Design §3.3/§4.2）
+    // ============================================================
     match /playground_bookmarks/{bookmarkId} {
       allow read: if request.auth != null
                   && resource.data.user_provider_uid == request.auth.uid;
-      allow write: if false;
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['id', 'user_provider_uid',
+             'user_app_user_id', 'post_id', 'created_at'])
+        && request.resource.data.id == bookmarkId
+        && request.resource.data.user_provider_uid == request.auth.uid
+        && (request.resource.data.created_at is timestamp)
+        && get(/databases/$(database)/documents/playground_posts/$(request.resource.data.post_id)).exists;
+      allow delete: if request.auth != null
+                    && resource.data.user_provider_uid == request.auth.uid;
+      allow update: if false;
     }
 
-    // ============================
-    // playground_profiles — 字段 allowlist
-    // ============================
+    // ============================================================
+    // playground_verifications —— 应验状态机（Design §4.2/§7.1）
+    // ID 固定 verify_{postId}_{rootReplyId}
+    // ============================================================
+    match /playground_verifications/{verificationId} {
+      allow read: if request.auth != null;
+      // create：Poster-only；ID/字段一致；目标 root 同帖、depth=0、非 Poster 自己。
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['id', 'post_id', 'root_reply_id',
+             'created_at', 'revoked_at'])
+        && request.resource.data.id == verificationId
+        && request.resource.data.id == ('verify_' + request.resource.data.post_id
+             + '_' + request.resource.data.root_reply_id)
+        && (request.resource.data.created_at is timestamp)
+        && request.resource.data.revoked_at == null
+        // Poster-only。
+        && get(/databases/$(database)/documents/playground_post_owners/$(request.resource.data.post_id)).exists
+        && get(/databases/$(database)/documents/playground_post_owners/$(request.resource.data.post_id)).data.provider_uid == request.auth.uid
+        // 目标 root 同帖 depth=0 未墓碑。
+        && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).exists
+        && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).data.post_id
+             == request.resource.data.post_id
+        && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).data.depth == 0
+        && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).data.is_tombstoned != true
+        // 非 Poster 自己回复。
+        && (!get(/databases/$(database)/documents/playground_reply_owners/$(request.resource.data.root_reply_id)).exists
+            || get(/databases/$(database)/documents/playground_reply_owners/$(request.resource.data.root_reply_id)).data.provider_uid
+                 != request.auth.uid);
+      // update：仅状态转换 revoked_at null<->time，created_at 不变。
+      allow update: if request.auth != null
+        && get(/databases/$(database)/documents/playground_post_owners/$(resource.data.post_id)).exists
+        && get(/databases/$(database)/documents/playground_post_owners/$(resource.data.post_id)).data.provider_uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['revoked_at'])
+        && ((resource.data.revoked_at == null && request.resource.data.revoked_at is timestamp)
+            || (resource.data.revoked_at is timestamp && request.resource.data.revoked_at == null));
+      allow delete: if false;
+    }
+
+    // ============================================================
+    // playground_outcome_feedback —— 最终反馈（Design §4.2/§7.2）
+    // ID 固定 feedback_{postId}
+    // ============================================================
+    match /playground_outcome_feedback/{feedbackId} {
+      allow read: if request.auth != null
+                  && resource.data.deleted_at == null;
+      // create：Poster-only；ID/post_id 一致；反馈+append-only revision 同批。
+      allow create: if request.auth != null
+        && identityReady()
+        && request.resource.data.keys().hasOnly(['id', 'post_id',
+             'outcome_description', 'revision_no', 'current_revision_id',
+             'created_at', 'updated_at', 'deleted_at'])
+        && request.resource.data.id == feedbackId
+        && request.resource.data.id == ('feedback_' + request.resource.data.post_id)
+        && validText(request.resource.data.outcome_description, 1, 2000)
+        && request.resource.data.revision_no == 1
+        && validText(request.resource.data.current_revision_id, 1, 128)
+        && (request.resource.data.created_at is timestamp)
+        && (request.resource.data.updated_at is timestamp)
+        && request.resource.data.created_at == request.resource.data.updated_at
+        && request.resource.data.deleted_at == null
+        // Poster-only。
+        && get(/databases/$(database)/documents/playground_post_owners/$(request.resource.data.post_id)).exists
+        && get(/databases/$(database)/documents/playground_post_owners/$(request.resource.data.post_id)).data.provider_uid == request.auth.uid
+        // append-only revision 同批创建。
+        && getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)/revisions/r0000000001).exists
+        && getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)/revisions/r0000000001).data.revision_no == 1;
+      // update：Poster-only；编辑追加 revision；撤回 deleted_at null->time；
+      // 再发布清空 deleted_at 并追加 revision。
+      allow update: if request.auth != null
+        && get(/databases/$(database)/documents/playground_post_owners/$(resource.data.post_id)).exists
+        && get(/databases/$(database)/documents/playground_post_owners/$(resource.data.post_id)).data.provider_uid == request.auth.uid
+        && (request.resource.data.keys().hasOnly(['outcome_description',
+             'revision_no', 'current_revision_id', 'updated_at', 'deleted_at'])
+            && request.resource.data.outcome_description != ''
+            && validText(request.resource.data.outcome_description, 1, 2000)
+            && request.resource.data.revision_no == resource.data.revision_no + 1
+            && (request.resource.data.updated_at is timestamp)
+            && (request.resource.data.deleted_at == null)
+            || (request.resource.data.keys().hasOnly(['outcome_description',
+                 'revision_no', 'current_revision_id', 'updated_at', 'deleted_at'])
+                && request.resource.data.outcome_description == ''
+                && request.resource.data.revision_no == resource.data.revision_no + 1
+                && (request.resource.data.updated_at is timestamp)
+                && ((resource.data.deleted_at == null
+                     && request.resource.data.deleted_at is timestamp)
+                    || (resource.data.deleted_at is timestamp
+                        && request.resource.data.deleted_at == null))));
+      allow delete: if false;
+    }
+
+    // ============================================================
+    // playground_outcome_feedback/{feedbackId}/revisions —— append-only
+    // ============================================================
+    match /playground_outcome_feedback/{feedbackId}/revisions/{revisionId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+        && identityReady()
+        && request.resource.data.keys().hasOnly(['id', 'parent_id',
+             'revision_no', 'body', 'presentation_mode', 'presentation_identity_id',
+             'presentation_display_alias', 'presentation_avatar_url',
+             'public_profile_ref', 'created_at'])
+        && request.resource.data.id == revisionId
+        && request.resource.data.revision_no >= 1
+        && (request.resource.data.parent_id is string)
+        && validText(request.resource.data.body, 0, 2000)
+        && validPresentationMode(request.resource.data.presentation_mode)
+        && (request.resource.data.created_at is timestamp);
+      allow update, delete: if false;
+    }
+
+    // ============================================================
+    // 非 current-phase / 既有集合（保留既有语义，不纳入一期直写）
+    // ============================================================
+
+    // playground_profiles —— 保留现有只读 + Functions 写。
     match /playground_profiles/{userId} {
       allow read: if request.auth != null;
       allow write: if false;
     }
 
-    // ============================
-    // playground_notifications — Functions/outbox only
-    // ============================
+    // playground_notifications —— 保留既有（recipient 本人读、is_read 更新）。
     match /playground_notifications/{notificationId} {
       allow read: if request.auth != null
                   && resource.data.recipient_provider_uid == request.auth.uid;
@@ -98,33 +607,22 @@ service cloud.firestore {
                     && resource.data.recipient_provider_uid == request.auth.uid
                     && request.resource.data.diff(resource.data).affectedKeys()
                        .hasOnly(['is_read']);
-      allow create: if false;
-      allow delete: if false;
+      allow create, delete: if false;
     }
 
-    // ============================
-    // playground_conversations — Functions only
-    // ============================
+    // playground_conversations / messages —— Functions only。
     match /playground_conversations/{conversationId} {
       allow read: if request.auth != null
-                  && resource.data.participants.hasAny([myAppUserId()]);
+                  && resource.data.participants.hasAny([identityDoc().data.app_user_id]);
       allow write: if false;
     }
-
-    // ============================
-    // playground_messages（私聊消息）— Functions only
-    // 原规则允许认证用户直写并伪造 sender_provider_uid；sendMessage 已走
-    // callable（conversations.ts），故 create/update/delete 全部收紧为 if false。
-    // ============================
     match /playground_messages/{messageId} {
       allow read: if request.auth != null
-                  && get(/databases/$(database)/documents/playground_conversations/$(resource.data.conversation_id)).data.participants.hasAny([myAppUserId()]);
+                  && get(/databases/$(database)/documents/playground_conversations/$(resource.data.conversation_id)).data.participants.hasAny([identityDoc().data.app_user_id]);
       allow write: if false;
     }
 
-    // ============================
-    // playground_media — 字段 allowlist
-    // ============================
+    // playground_media —— 保留既有。
     match /playground_media/{mediaId} {
       allow read: if request.auth != null
                   && (resource.data.owner_provider_uid == request.auth.uid
@@ -138,9 +636,7 @@ service cloud.firestore {
                          'duration_seconds']);
     }
 
-    // ============================
-    // playground_reports（举报）
-    // ============================
+    // playground_reports —— 保留既有。
     match /playground_reports/{reportId} {
       allow read: if request.auth != null
                   && resource.data.reporter_provider_uid == request.auth.uid;
@@ -148,9 +644,7 @@ service cloud.firestore {
                     && request.resource.data.reporter_provider_uid == request.auth.uid;
     }
 
-    // ============================
-    // playground_blocks
-    // ============================
+    // playground_blocks —— 保留既有。
     match /playground_blocks/{blockId} {
       allow read: if request.auth != null
                   && resource.data.blocker_provider_uid == request.auth.uid;
@@ -160,9 +654,7 @@ service cloud.firestore {
                     && resource.data.blocker_provider_uid == request.auth.uid;
     }
 
-    // ============================
-    // playground_idempotency / playground_outbox / fcm_tokens
-    // ============================
+    // playground_idempotency / outbox / fcm_tokens —— Functions only / 禁用。
     match /playground_idempotency/{key} {
       allow read: if request.auth != null;
       allow write: if false;
