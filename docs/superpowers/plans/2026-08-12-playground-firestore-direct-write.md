@@ -22,6 +22,21 @@
 - 禁止用 Fake、skip、allow-all 或默认 0 冒充 production contract。
 - 每个仓库独立提交；禁止 Agent merge main、push main 或部署。
 
+## TDD 增补协议（保留现有计划，逐 vertical slice 执行）
+
+测试 seam 固定为三层，禁止测试 private helper 代替公共行为：
+
+1. **Provider-neutral seam**：Repository Interface 命令/查询及 `PlaygroundError`；验证 provider
+   替换不影响 UseCase。
+2. **Firebase security seam**：真实 adapter + Emulator production Rules + raw Firestore get；
+   验证授权、原子事实、公开隐私和 query shape。
+3. **Product seam**：Shell ViewModel/widget；验证 capability、错误、Feed 不显示假计数和详情真实计数。
+
+每个 Task 内按“一条行为 RED → 最小 GREEN → 下一条行为”执行，禁止先批量写完全部测试或实现。
+每个 RED 证据必须记录：命令、exit code、失败的目标断言；依赖解析、Emulator 不可达或编译环境
+错误不算业务 RED。每个 GREEN 只运行当前 slice + 已完成 slice 回归。Task 7 的索引删除和 Rules
+访问预算必须额外执行变异验证，证明测试会因目标缺陷变红。
+
 ## Task 0：RI 远端合并与依赖冻结（P0，未通过不得执行 Task 1）
 
 **Files:**
@@ -73,13 +88,29 @@ git commit -m "feat: expose playground viewer capabilities"
 
 - [ ] **0.4 验证远端 main 并冻结依赖**
 
+先运行负对照，证明不能把 `ls-remote` 的退出码当作“分支存在”：
+
 ```bash
-git ls-remote --heads origin main
-git merge-base --is-ancestor 756121b233c494093b2e1130163e93a5cdc57839 origin/main
+MISSING_REF_OUTPUT="$(git ls-remote --heads origin refs/heads/__playground_missing_gate__)"
+test -z "$MISSING_REF_OUTPUT"
 ```
 
-两条 exit 0，且最终 RI commit 是 `origin/main` 祖先才通过。执行
-`git rev-parse origin/main`，把输出的 40 字符 commit 逐字记录为 `RI_MERGED_COMMIT`；随后在
+Expected：PASS 且输出为空；这就是旧命令会假绿的 RED 证据。随后运行真正 fail-closed gate：
+
+```bash
+git fetch origin
+RI_VIEWER_COMMIT="$(git rev-parse feat/playground-ri-completion)"
+RI_REMOTE_MAIN="$(git ls-remote --heads origin refs/heads/main | awk 'NR == 1 {print $1}')"
+test -n "$RI_REMOTE_MAIN"
+test "$RI_REMOTE_MAIN" = "$(git rev-parse origin/main)"
+git merge-base --is-ancestor 756121b233c494093b2e1130163e93a5cdc57839 origin/main
+git merge-base --is-ancestor "$RI_VIEWER_COMMIT" origin/main
+RI_MERGED_COMMIT="$(git rev-parse origin/main)"
+```
+
+在 RI 尚未合并时，最后一条 ancestor check 必须 RED；人类合并且再次 `git fetch origin` 后才
+GREEN。空 `ls-remote`、陈旧 remote-tracking ref、只在 feature branch 三种情况全部失败。
+把 `RI_MERGED_COMMIT` 的 40 字符输出逐字记录；随后在
 storage/firebase 和 shell 两个 `pubspec.yaml` 的同一 git dependency 下把 `ref:` 写为该
 40 字符值，执行各自
 `flutter pub get`，再验证：
@@ -282,6 +313,7 @@ recording 测试断言无逐帖/逐回复 owner N+1。分别提交 storage read 
 - Modify: `firebase/infrastructure/firestore.indexes.json`
 - Modify: `firebase/infrastructure/functions/test/firestore.rules.test.ts`
 - Create: `firebase/infrastructure/functions/test/direct_write_schema_fixture.test.ts`
+- Create: `firebase/test/playground/firestore_index_contract_test.dart`
 
 - [ ] **7.1 写 Rules RED**
 
@@ -298,14 +330,25 @@ one-time discussion reply 为 identity/post/root/reply-to/owner-after/revision-a
 - [ ] **7.3 实现 Rules/indexes 并 GREEN**
 
 索引字段必须与 Design §10.2 完全一致，bookmark 使用 `user_provider_uid`；旧 profile indexes 标记
-后续但不得被当前 query 使用。
+后续但不得被当前 query 使用。删除 `playground_likes` 的旧
+`post_id ASC + user_provider_uid ASC` composite；当前 likes 的两个 equality filter 依赖单字段
+index merge，因此 current-phase likes composite 数必须为 0，总 composite 总数仍为 6。
+
+先写静态 RED：读取 `firestore.indexes.json`，断言旧 likes composite 不存在、6 个 current-phase
+签名逐字匹配；在删除旧条目前必须失败。再用 recording adapter 断言 likes count query 恰为
+`target_type==post` + `target_id==postId`，没有旧字段。实现 JSON 后运行 GREEN：
 
 ```bash
-cd firebase/infrastructure/functions
+cd firebase
+flutter test test/playground/firestore_index_contract_test.dart \
+  test/playground/firestore_direct_read_contract_test.dart
+cd infrastructure/functions
 npm test -- --runInBand firestore.rules.test.ts direct_write_schema_fixture.test.ts
 ```
 
-Emulator 不可达不能算 RED/GREEN。通过后提交 Rules、indexes、测试。
+最后做变异验证：临时把旧 likes composite 加回 fixture，index contract 必须红在“unexpected
+playground_likes composite”；撤销该临时变异后复跑 GREEN。Emulator 不可达不能算
+RED/GREEN。通过后提交 Rules、indexes、测试。
 
 ## Task 8：单一 Rules 源和 fail-closed Emulator gate
 

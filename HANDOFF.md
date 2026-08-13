@@ -16,6 +16,9 @@
 - R2 计数裁决：详情用 replies/likes/verifications 三个 count aggregation，
   `aggregateReadCount=3`；Feed count/feedback 为占位且 UI 必须隐藏。bookmark 字段保持
   `user_provider_uid/user_app_user_id`；Rules 最重路径预算 8/20。
+- 开工前补丁：Task 0.4 改为 fetch + 非空 remote main + 双 ancestor 的 fail-closed gate；likes
+  count 明确使用 equality index merge、不增加 composite，Task 7 TDD 必须删除旧 likes composite
+  并做变异验证。现有 TDD 计划只做增补，未再次重写。
 
 > 交接时刻: 2026-08-06 ｜ 触发: runtime iteration budget >=80%（40/50）
 > 分支: agent/pi/storage-build-theme ｜ 基线: 62a1e4c ｜ 最新提交: 0de80b8

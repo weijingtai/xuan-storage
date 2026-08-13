@@ -397,7 +397,10 @@ bookmarks: user_provider_uid ASC, created_at DESC
 ```
 
 因此 posts 共 2 条（有/无 technique）、replies 1、verifications 2、bookmarks 1，总计 6 条
-current-phase composite indexes。旧
+current-phase composite indexes。post-target likes count 使用
+`target_type==post,target_id==postId` 两个 equality filter，依赖 Firestore 自动单字段索引合并，
+**不新增 composite index**；Emulator/recording contract 必须验证 query shape。现存 likes 旧 schema
+composite（`post_id + user_provider_uid`）必须删除，因为 v1 like 文档没有这两个字段。旧
 `author_app_user_id/presentation_mode` profile indexes 标成后续且不得被当前 query 依赖。
 
 ### 10.3 固定读取成本
