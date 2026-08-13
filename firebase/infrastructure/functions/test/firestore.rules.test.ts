@@ -66,19 +66,12 @@ function unauthContext() {
 // ==============================
 
 describe('playground_posts', () => {
-  test('allow: 认证用户创建自己的 active 帖子', async () => {
+  test('deny: 认证客户端即使自报作者也不能创建帖子', async () => {
     const db = aliceContext();
-    const fs = db.firestore();
-    await assertSucceeds(
-      db.firestore().collection('playground_posts').doc('post-1').set({
-        text: '测试帖',
-        author_provider_uid: 'alice-uid',
-        status: 'active',
-        allowed_chart_technique_ids: [],
-        attachments: [],
-        idempotency_key: 'k1',
-      }),
-    );
+    await assertFails(db.firestore().collection('playground_posts').doc('post-1').set({
+      text: '测试帖', author_provider_uid: 'alice-uid', author_app_user_id: 'forged',
+      presentation_mode: 'stableAlias', status: 'active',
+    }));
   });
 
   test('deny: 未认证用户创建帖', async () => {
@@ -144,44 +137,10 @@ describe('playground_posts', () => {
     );
   });
 
-  test('deny: 非作者修改他人帖子', async () => {
-    const aliceDb = aliceContext();
-    await aliceDb.firestore().collection('playground_posts').doc('post-7').set({
-      text: 'Alice 的帖',
-      author_provider_uid: 'alice-uid',
-      status: 'active',
-    });
-
-    const bobDb = bobContext();
-    await assertFails(
-      bobDb.firestore().collection('playground_posts').doc('post-7').update({ text: 'Bob 改的' }),
-    );
-  });
-
-  test('allow: 作者修改自己的帖子', async () => {
+  test('deny: 作者也不能直连编辑或墓碑帖子', async () => {
     const db = aliceContext();
-    const fs = db.firestore();
-    await db.firestore().collection('playground_posts').doc('post-8').set({
-      text: '原始',
-      author_provider_uid: 'alice-uid',
-      status: 'active',
-    });
-    await assertSucceeds(
-      db.firestore().collection('playground_posts').doc('post-8').update({ text: '修改后' }),
-    );
-  });
-
-  test('deny: 认证用户删除帖子', async () => {
-    const db = aliceContext();
-    const fs = db.firestore();
-    await db.firestore().collection('playground_posts').doc('post-9').set({
-      text: '待删',
-      author_provider_uid: 'alice-uid',
-      status: 'active',
-    });
-    await assertFails(
-      db.firestore().collection('playground_posts').doc('post-9').delete(),
-    );
+    await assertFails(db.firestore().collection('playground_posts').doc('post-8').update({ text: '修改后' }));
+    await assertFails(db.firestore().collection('playground_posts').doc('post-8').delete());
   });
 });
 
@@ -190,27 +149,12 @@ describe('playground_posts', () => {
 // ==============================
 
 describe('playground_replies', () => {
-  async function seedPost(db: any, docId: string, authorUid: string) {
-    await db.firestore().collection('playground_posts').doc(docId).set({
-      text: '测试帖',
-      author_provider_uid: authorUid,
-      status: 'active',
-    });
-  }
-
-  test('allow: 认证用户创建 depth=0 根回复', async () => {
+  test('deny: 认证客户端不能创建根回复或伪造冻结结构', async () => {
     const db = aliceContext();
-    const fs = db.firestore();
-    await seedPost(db, 'p-reply-1', 'alice-uid');
-    await assertSucceeds(
-      db.firestore().collection('playground_replies').doc('r-1').set({
-        body: '根回复',
-        post_id: 'p-reply-1',
-        depth: 0,
-        author_provider_uid: 'alice-uid',
-        is_tombstoned: false,
-      }),
-    );
+    await assertFails(db.firestore().collection('playground_replies').doc('r-1').set({
+      body: '根回复', post_id: 'p-reply-1', depth: 0,
+      author_provider_uid: 'alice-uid', author_app_user_id: 'forged', is_tombstoned: false,
+    }));
   });
 
   test('deny: 未认证用户创建回复', async () => {
@@ -254,35 +198,22 @@ describe('playground_replies', () => {
     );
   });
 
-  test('deny: 非作者更新他人回复', async () => {
-    const aliceDb = aliceContext();
-    await aliceDb.firestore().collection('playground_replies').doc('r-5').set({
-      body: 'Alice 的回复',
-      post_id: 'p-reply-2',
-      depth: 0,
-      author_provider_uid: 'alice-uid',
-      is_tombstoned: false,
-    });
-
-    const bobDb = bobContext();
-    await assertFails(
-      bobDb.firestore().collection('playground_replies').doc('r-5').update({ body: 'Bob 改的' }),
-    );
-  });
-
-  test('deny: 删除回复', async () => {
+  test('deny: 作者也不能直连编辑或删除回复', async () => {
     const db = aliceContext();
-    const fs = db.firestore();
-    await db.firestore().collection('playground_replies').doc('r-6').set({
-      body: '待删',
-      post_id: 'p-any',
-      depth: 0,
-      author_provider_uid: 'alice-uid',
-      is_tombstoned: false,
-    });
-    await assertFails(
-      db.firestore().collection('playground_replies').doc('r-6').delete(),
-    );
+    await assertFails(db.firestore().collection('playground_replies').doc('r-6').update({ body: '改写' }));
+    await assertFails(db.firestore().collection('playground_replies').doc('r-6').delete());
+  });
+});
+
+describe('playground_profiles', () => {
+  test('deny: profile create/update cannot bypass updateMyProfile callable', async () => {
+    const db = aliceContext();
+    await assertFails(db.firestore().collection('playground_profiles').doc('forged-app-user').set({
+      user_provider_uid: 'alice-uid', display_name: 'forged',
+    }));
+    await assertFails(db.firestore().collection('playground_profiles').doc('forged-app-user').update({
+      display_name: 'forged-again',
+    }));
   });
 });
 
@@ -523,9 +454,9 @@ describe('BLOCK-02 · replies · production payload（RED-B）', () => {
     };
   }
 
-  test('allow: production root reply payload create（depth=0）', async () => {
+  test('deny: production-shaped root reply payload cannot bypass callable', async () => {
     const db = aliceContext();
-    await assertSucceeds(
+    await assertFails(
       db
         .firestore()
         .collection('playground_replies')
@@ -534,9 +465,9 @@ describe('BLOCK-02 · replies · production payload（RED-B）', () => {
     );
   });
 
-  test('allow: production discussion reply payload create（depth=1 同 post 同 root）', async () => {
+  test('deny: production-shaped discussion reply payload cannot bypass callable', async () => {
     const db = aliceContext();
-    await assertSucceeds(
+    await assertFails(
       db
         .firestore()
         .collection('playground_replies')
@@ -714,9 +645,9 @@ describe('BLOCK-02 · posts · production payload（RED-B）', () => {
     };
   }
 
-  test('allow: production post payload create', async () => {
+  test('deny: production-shaped post payload cannot bypass callable', async () => {
     const db = aliceContext();
-    await assertSucceeds(
+    await assertFails(
       db
         .firestore()
         .collection('playground_posts')
@@ -839,5 +770,3 @@ describe('BLOCK-03 · guest · 游客直连 replies 被 Rules 拒绝', () => {
     );
   });
 });
-
-

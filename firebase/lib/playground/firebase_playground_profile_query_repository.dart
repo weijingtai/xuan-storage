@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
 
 import 'firebase_playground_cursor.dart';
@@ -18,17 +19,18 @@ final class FirebasePlaygroundProfileQueryRepository
     required FirebaseFirestore firestore,
     required FirebaseAuth auth,
     required Future<PlaygroundUserId> Function() resolveCurrentActor,
+    FirebaseFunctions? functions,
   }) : _firestore = firestore,
-       _auth = auth,
        _resolveCurrentActor = resolveCurrentActor,
+       _functions = functions ?? FirebaseFunctions.instance,
        _mapper = FirebasePlaygroundPublicMapper(
          firestore: firestore,
          auth: auth,
        );
 
   final FirebaseFirestore _firestore;
-  final FirebaseAuth _auth;
   final Future<PlaygroundUserId> Function() _resolveCurrentActor;
+  final FirebaseFunctions _functions;
   final FirebasePlaygroundPublicMapper _mapper;
 
   @override
@@ -50,34 +52,18 @@ final class FirebasePlaygroundProfileQueryRepository
   @override
   Future<void> updateMyProfile(UpdateMyProfileCommand command) async {
     try {
-      final actor = await _resolveCurrentActor();
-      final user = _auth.currentUser;
-      if (user == null) {
-        throw const PlaygroundError(
-          code: PlaygroundErrorCode.unauthenticated,
-          message: '未登录，请先注册或匿名登录',
-          machineCode: 'auth/unauthenticated',
-        );
-      }
-
       final updates = <String, dynamic>{};
       if (command.displayName != null) {
-        updates['display_name'] = command.displayName;
+        updates['displayName'] = command.displayName;
       }
-      if (command.avatarUrl != null) updates['avatar_url'] = command.avatarUrl;
+      if (command.avatarUrl != null) updates['avatarUrl'] = command.avatarUrl;
       if (command.bio != null) updates['bio'] = command.bio;
       if (command.commonTechniques != null) {
-        updates['common_techniques'] = command.commonTechniques;
+        updates['commonTechniques'] = command.commonTechniques;
       }
       if (updates.isEmpty) return;
 
-      final ref = _profiles.doc(actor.value);
-      final existing = await ref.get();
-      if (existing.exists) {
-        await ref.update(updates);
-      } else {
-        await ref.set({...updates, 'user_provider_uid': user.uid});
-      }
+      await _functions.httpsCallable('updateMyProfile').call(updates);
     } catch (e) {
       throw FirebasePlaygroundErrorMapper.map(e);
     }

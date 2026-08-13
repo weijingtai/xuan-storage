@@ -12,15 +12,18 @@ import 'package:repository_interface_playground/repository_interface_playground.
 
 import 'package:persistence_firebase/playground/firebase_playground_profile_query_repository.dart';
 import 'package:persistence_firebase/playground/firebase_playground_schema.dart';
+import 'fake_callable_functions.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late FakeFirebaseFirestore firestore;
   late FirebasePlaygroundProfileQueryRepository repository;
+  late FakeFirebaseFunctions functions;
 
   setUp(() {
     firestore = FakeFirebaseFirestore();
+    functions = FakeFirebaseFunctions();
     repository = FirebasePlaygroundProfileQueryRepository(
       firestore: firestore,
       auth: MockFirebaseAuth(
@@ -28,22 +31,20 @@ void main() {
         signedIn: true,
       ),
       resolveCurrentActor: () async => const PlaygroundUserId('session-user'),
+      functions: functions,
     );
   });
 
-  test(
-    'public profile content returns safe posts and excludes one-time anonymous',
-    () async {
-      await firestore
-          .collection(PlaygroundFirestoreSchema.profiles)
-          .doc('profile-owner')
-          .set({'display_name': '公开盘友', 'public_post_count': 2});
+  test('public profile query excludes one-time anonymous canonical producer output', () async {
+      // This fixture is the exact canonical output of createPost: the trusted
+      // producer owns app user ID and presentation mode, not client payload.
+      await firestore.collection(PlaygroundFirestoreSchema.profiles).doc('profile-owner').set({'display_name': '公开盘友', 'public_post_count': 1});
       await firestore
           .collection(PlaygroundFirestoreSchema.posts)
           .doc('visible')
           .set({
             'author_app_user_id': 'profile-owner',
-            'author_provider_uid': 'provider-owner',
+            'author_provider_uid': 'trusted-provider-owner',
             'text': '公开帖子',
             'status': 'active',
             'presentation_mode': 'stableAlias',
@@ -56,7 +57,7 @@ void main() {
           .doc('anonymous')
           .set({
             'author_app_user_id': 'profile-owner',
-            'author_provider_uid': 'provider-owner',
+            'author_provider_uid': 'trusted-provider-owner',
             'text': '不应公开在主页',
             'status': 'active',
             'presentation_mode': 'oneTimeAnonymous',
@@ -85,8 +86,7 @@ void main() {
         isNot(contains('provider-owner')),
         reason: 'public projection must not expose the provider UID',
       );
-    },
-  );
+  });
 
   test(
     'updateMyProfile and private stats resolve the current actor internally',
@@ -98,9 +98,13 @@ void main() {
         ),
       );
 
-      final profile = await repository.getPublicProfile(
-        const PlaygroundUserId('session-user'),
-      );
+      expect(functions.calledNames, ['updateMyProfile']);
+      expect(functions.calledParameters.single, {
+        'displayName': '本人', 'commonTechniques': ['liuyao'],
+      });
+      functions.responses['updateMyProfile'] = {'success': true};
+      await firestore.collection(PlaygroundFirestoreSchema.profiles).doc('session-user').set({'display_name': '本人', 'common_techniques': ['liuyao']});
+      final profile = await repository.getPublicProfile(const PlaygroundUserId('session-user'));
       final stats = await repository.getMyPrivateTechniqueStats();
 
       expect(profile.displayName, '本人');

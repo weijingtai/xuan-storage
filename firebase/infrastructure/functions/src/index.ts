@@ -42,6 +42,7 @@ export { setOutcomeFeedback, revokeOutcomeFeedback } from './outcome_feedback';
 export { setLike } from './likes';
 export { getGuestRepresentativeReplies } from './guest_replies';
 export { resolveMyIdentity } from './identity';
+export { updateMyProfile } from './profiles';
 export { setBookmark } from './bookmarks';
 export { sendDmRequest, respondDmRequest, sendMessage, blockUser, unblockUser } from './conversations';
 export { reportContent } from './moderation';
