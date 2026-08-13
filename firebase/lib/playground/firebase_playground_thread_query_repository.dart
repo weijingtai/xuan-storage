@@ -1,101 +1,99 @@
-import 'dart:convert';
+/// Task 6：线程查询 adapter（FirebasePlaygroundThreadQueryRepository）。
+///
+/// Design: docs/superpowers/specs/2026-08-12-playground-firestore-direct-write-design.md
+/// - §10.1 精确查询计划：注册用户回复分页
+///   `replies: post_id==id, is_tombstoned==false, order created_at asc`；
+/// - §10.3 固定读取成本：详情固定组合（1 post get + 1 post owner get + 1 replies
+///   page + 每 10 个当前页 root IDs 1 次 verification query + 3 个 count()
+///   aggregation + 1 feedback get + viewer like/bookmark direct gets），
+///   `aggregateReadCount=3` 固定表示三次 aggregation，非浏览量；不读 root owner；
+/// - §12.2 viewer capability：owner 文档 `provider_uid==auth.uid` → 填充
+///   `isOwner/canEdit/canDelete/canSetFeedback`；非 owner/未认证/owner 缺失全部
+///   fail closed false；owner 文档只 get、禁止 list；
+/// - §1/§10.1：游客代表性回复（5–10 条）后移，`getGuestRepresentativeReplies`
+///   当前返回明确 `unavailable`，不伪造可信限制；不装配 Functions。
+library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
-import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
 
 import 'firebase_playground_schema.dart';
 import 'firebase_playground_error_mapper.dart';
 import 'firebase_playground_cursor.dart';
+import 'firebase_playground_public_mapper.dart';
+import 'firestore_direct_playground_command_support.dart';
 
-/// BLOCK-03 线程查询 adapter：
-/// - 游客代表性回复走受信 Functions `getGuestRepresentativeReplies`（未认证可用，
-///   服务端确定性选择 + 反绕过；客户端无随机/截断）；
-/// - 注册用户完整详情 / 回复分页走直连 Firestore（Rules 认证可见）。
+/// 线程查询 adapter —— 生产装配的 provider（Task 6 直写读取）。
 final class FirebasePlaygroundThreadQueryRepository
     implements PlaygroundThreadQueryRepository {
   FirebasePlaygroundThreadQueryRepository({
     required FirebaseFirestore firestore,
-    FirebaseAuth? auth,
-    FirebaseFunctions? functions,
+    required FirebaseAuth auth,
   })  : _firestore = firestore,
-        _auth = auth ?? FirebaseAuth.instance,
-        _functions = functions ?? FirebaseFunctions.instance;
+        _auth = auth,
+        _mapper = FirebasePlaygroundPublicMapper(firestore: firestore, auth: auth);
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
-  final FirebaseFunctions _functions;
+  final FirebasePlaygroundPublicMapper _mapper;
 
-  // ---- 游客代表性回复：受信服务端选择（BLOCK-03）----
+  // ---- 游客代表性回复：后移（§1/§10.1）----
 
   @override
   Future<GuestRepresentativeRepliesResult> getGuestRepresentativeReplies(
       GetGuestRepresentativeRepliesQuery query) async {
-    try {
-      // 只传业务参数（postId/limit/selectionPolicyVersion）；
-      // cursor/page/sort 等任何额外参数不参与（反绕过由服务端忽略）。
-      final params = <String, dynamic>{
-        'postId': query.postId.value,
-        'limit': query.limit,
-        'selectionPolicyVersion': query.selectionPolicyVersion,
-      };
-      final result = await _functions
-          .httpsCallable('getGuestRepresentativeReplies')
-          .call<Map<String, dynamic>>(params);
-      final data = result.data;
-
-      return GuestRepresentativeRepliesResult(
-        postId: PlaygroundPostId(data['postId'] as String? ?? query.postId.value),
-        visibleReplies: _publicRepliesFromJson(data['visibleReplies']),
-        totalReplyCount: data['totalReplyCount'] as int? ?? 0,
-        hiddenReplyCount: data['hiddenReplyCount'] as int? ?? 0,
-        selectionPolicyVersion: data['selectionPolicyVersion'] as int? ?? 1,
-        registrationUnlock: _registrationUnlockFromJson(data['registrationUnlock']),
-        outcomeFeedback: _feedbackFromJson(data['outcomeFeedback']),
-      );
-    } catch (e) {
-      throw FirebasePlaygroundErrorMapper.map(e);
-    }
+    // 一期不交付游客 5–10 条代表性回复的可信服务端策略；不伪造可信限制。
+    throw directPlaygroundError(
+      code: PlaygroundErrorCode.unavailable,
+      machineCode: 'guest/representative-replies-not-available',
+      message: '游客代表性回复当前直写 Phase 不提供',
+    );
   }
 
-  // ---- 注册用户回复分页：直连 Firestore（Rules 认证可见）----
+  // ---- 注册用户回复分页：直连 Firestore（§10.1）----
 
   @override
   Future<PlaygroundPage<PlaygroundReplyView>> getThreadReplies(
       GetRepliesQuery query) async {
     try {
-      // 查询形状与 BLOCK-02 收敛的 getReplies 一致：post_id +
-      // is_tombstoned==false + orderBy depth/created_at（Rules list 可证明可见）。
+      // v1 查询形状：post_id == + is_tombstoned == false + order created_at asc。
       var q = _firestore
           .collection(PlaygroundFirestoreSchema.replies)
           .where('post_id', isEqualTo: query.postId.value)
           .where('is_tombstoned', isEqualTo: false)
-          .orderBy('depth', descending: false)
           .orderBy('created_at', descending: false)
           .limit(query.limit);
 
       if (query.cursor != null && query.cursor!.isNotEmpty) {
-        final startDoc = FirebasePlaygroundCursor.toDocumentReference(
-            query.cursor!, _firestore);
-        if (startDoc != null) {
-          final startSnap = await startDoc.get();
-          q = q.startAfterDocument(startSnap);
+        final startValues =
+            FirebasePlaygroundCursor.toStartAfterValues(query.cursor!);
+        if (startValues != null) {
+          q = q.startAfter(startValues);
+        } else {
+          final startDoc = FirebasePlaygroundCursor.toDocumentReference(
+              query.cursor!, _firestore);
+          if (startDoc != null) {
+            final startSnap = await startDoc.get();
+            if (startSnap.exists) {
+              q = q.startAfterDocument(startSnap);
+            }
+          }
         }
       }
 
       final snaps = await q.get();
       final views = <PlaygroundReplyView>[];
       for (final snap in snaps.docs) {
-        final reply = _publicReplyFromDoc(snap.data(), snap.id);
+        final reply = _mapper.publicReplyFromDoc(snap.id, snap.data());
         views.add(reply.depth == 0
             ? PlaygroundRootReplyView(reply: reply)
             : PlaygroundDiscussionReplyView(reply: reply));
       }
 
       final nextCursor = snaps.docs.isNotEmpty && snaps.docs.length == query.limit
-          ? FirebasePlaygroundCursor.fromQueryDocument(snaps.docs.last)
+          ? FirebasePlaygroundCursor.fromQueryDocumentWithOrderBy(
+              snaps.docs.last, ['created_at'])
           : null;
 
       return PlaygroundPage<PlaygroundReplyView>(
@@ -105,445 +103,174 @@ final class FirebasePlaygroundThreadQueryRepository
         totalCount: -1,
       );
     } catch (e) {
+      if (e is PlaygroundError) rethrow;
       throw FirebasePlaygroundErrorMapper.map(e);
     }
   }
 
-  // ---- 注册用户完整详情聚合（bounded-query-cost，禁 N+1）----
+  // ---- 注册用户完整详情聚合（§10.3 固定读取成本）----
 
   @override
   Future<PlaygroundRegisteredThreadDetail> getRegisteredThreadDetail(
       PlaygroundRegisteredThreadDetailQuery query) async {
     try {
       final postId = query.postId.value;
-      var aggregateReadCount = 0;
 
+      // 1 post get。
       final postSnap = await _firestore
           .collection(PlaygroundFirestoreSchema.posts)
           .doc(postId)
           .get();
-      aggregateReadCount++;
       if (!postSnap.exists) {
-        throw FirebasePlaygroundErrorMapper.map(
-          FirebaseException(
-            plugin: 'firestore',
-            code: 'not-found',
-            message: '帖子不存在',
-          ),
+        throw directPlaygroundError(
+          code: PlaygroundErrorCode.notFound,
+          machineCode: 'content/not-found',
+          message: '帖子不存在',
         );
       }
       final postData = postSnap.data() ?? const <String, dynamic>{};
 
-      final rootsSnap = await _firestore
+      // 2 viewer state：1 post owner get + like/bookmark direct gets。
+      final viewerState = await _viewerStateForPost(postId, postData);
+
+      // 3 replies page（v1：post_id + is_tombstoned==false + created_at asc）。
+      final repliesSnap = await _firestore
           .collection(PlaygroundFirestoreSchema.replies)
           .where('post_id', isEqualTo: postId)
           .where('is_tombstoned', isEqualTo: false)
-          .where('depth', isEqualTo: 0)
           .orderBy('created_at', descending: false)
+          .limit(50)
           .get();
-      aggregateReadCount++;
 
-      final discussionSnap = await _firestore
-          .collection(PlaygroundFirestoreSchema.replies)
-          .where('post_id', isEqualTo: postId)
-          .where('is_tombstoned', isEqualTo: false)
-          .where('depth', isEqualTo: 1)
-          .orderBy('created_at', descending: false)
-          .get();
-      aggregateReadCount++;
+      // 4 当前页 root IDs 每 10 个一组查询 verification（revoked_at==null）。
+      final rootIds = <String>[];
+      for (final doc in repliesSnap.docs) {
+        final d = doc.data();
+        if (d['depth'] == 0) rootIds.add(doc.id);
+      }
+      final verifiedRootIds = <String>{};
+      for (var i = 0; i < rootIds.length; i += 10) {
+        final chunk = rootIds.sublist(
+            i, i + 10 > rootIds.length ? rootIds.length : i + 10);
+        final vSnap = await _firestore
+            .collection(PlaygroundFirestoreSchema.verifications)
+            .where('post_id', isEqualTo: postId)
+            .where('root_reply_id', whereIn: chunk)
+            .where('revoked_at', isNull: true)
+            .get();
+        for (final v in vSnap.docs) {
+          final rootId = v.data()['root_reply_id'] as String?;
+          if (rootId != null) verifiedRootIds.add(rootId);
+        }
+      }
 
+      // 5 feedback get：feedback_{postId} 文档（未删除）。
       final feedbackSnap = await _firestore
           .collection(PlaygroundFirestoreSchema.outcomeFeedback)
-          .where('post_id', isEqualTo: postId)
-          .where('deleted_at', isNull: true)
-          .limit(1)
+          .doc('feedback_$postId')
           .get();
-      aggregateReadCount++;
+      PublicFeedbackSummary? feedback;
+      if (feedbackSnap.exists && feedbackSnap.data()?['deleted_at'] == null) {
+        feedback = _mapper.feedbackFromDoc(feedbackSnap.data()!);
+      }
 
-      final likesSnap = await _firestore
+      // 6 三次 count() aggregation：replies / post-target likes / verifications。
+      final repliesCount = await _firestore
+          .collection(PlaygroundFirestoreSchema.replies)
+          .where('post_id', isEqualTo: postId)
+          .where('is_tombstoned', isEqualTo: false)
+          .count()
+          .get();
+      final likesCount = await _firestore
           .collection(PlaygroundFirestoreSchema.likes)
-          .where('post_id', isEqualTo: postId)
+          .where('target_type', isEqualTo: 'post')
+          .where('target_id', isEqualTo: postId)
+          .count()
           .get();
-      aggregateReadCount++;
-
-      final verificationsSnap = await _firestore
+      final verificationsCount = await _firestore
           .collection(PlaygroundFirestoreSchema.verifications)
           .where('post_id', isEqualTo: postId)
           .where('revoked_at', isNull: true)
+          .count()
           .get();
-      aggregateReadCount++;
-
-      final currentUser = _auth.currentUser;
-      final viewerState = await _viewerStateForPost(postId, postData, currentUser);
-      aggregateReadCount += viewerState.$2;
 
       final views = <PlaygroundReplyView>[];
-      for (final snap in rootsSnap.docs) {
-        final reply = _publicReplyFromDoc(snap.data(), snap.id);
-        views.add(PlaygroundRootReplyView(reply: reply));
-      }
-      for (final snap in discussionSnap.docs) {
-        final reply = _publicReplyFromDoc(snap.data(), snap.id);
-        views.add(PlaygroundDiscussionReplyView(reply: reply));
+      for (final snap in repliesSnap.docs) {
+        final reply = _mapper.publicReplyFromDoc(snap.id, snap.data());
+        views.add(reply.depth == 0
+            ? PlaygroundRootReplyView(reply: reply)
+            : PlaygroundDiscussionReplyView(reply: reply));
       }
 
-      final verifiedRootCount = rootsSnap.docs
-          .where((d) => d.data()['verification'] != null)
-          .length;
+      final public = _mapper.publicPostFromDoc(
+        postId,
+        postData,
+        replyCount: repliesCount.count ?? 0,
+        likeCount: likesCount.count ?? 0,
+        verificationCount: verificationsCount.count ?? 0,
+        viewerState: viewerState,
+        outcomeFeedback: feedback,
+        presentationMode:
+            FirebasePlaygroundPublicMapper.presentationModeFromDoc(postData),
+      );
 
       return PlaygroundRegisteredThreadDetail(
-        post: _publicPostFromDoc(postId, postData,
-            replyCount: rootsSnap.docs.length + discussionSnap.docs.length,
-            likeCount: likesSnap.docs.length,
-            verificationCount: verificationsSnap.docs.length,
-            viewerState: viewerState.$1,
-            outcomeFeedback: feedbackSnap.docs.isEmpty
-                ? null
-                : _feedbackFromDoc(feedbackSnap.docs.first.data())),
+        post: public,
         replies: views,
+        outcomeFeedback: feedback,
         counts: PlaygroundThreadCounts(
-          replyCount: rootsSnap.docs.length + discussionSnap.docs.length,
-          verifiedRootReplyCount: verifiedRootCount,
+          replyCount: repliesCount.count ?? 0,
+          verifiedRootReplyCount: verifiedRootIds.length,
         ),
-        viewerState: viewerState.$1,
-        aggregateReadCount: aggregateReadCount,
+        viewerState: viewerState,
+        aggregateReadCount: 3,
       );
     } catch (e) {
+      if (e is PlaygroundError) rethrow;
       throw FirebasePlaygroundErrorMapper.map(e);
     }
   }
 
-  Future<(PlaygroundPostViewerState, int)> _viewerStateForPost(
+  // ---- viewer state（§12.2：owner 文档 fail closed）----
+
+  Future<PlaygroundPostViewerState> _viewerStateForPost(
     String postId,
     Map<String, dynamic> postData,
-    User? currentUser,
   ) async {
-    var reads = 0;
-    if (currentUser == null) {
-      return (const PlaygroundPostViewerState(), reads);
-    }
-    final uid = currentUser.uid;
+    final user = _auth.currentUser;
+    if (user == null) return const PlaygroundPostViewerState();
+
+    final uid = user.uid;
+
+    // owner 文档：只 get，禁止 list。
+    final ownerSnap = await _firestore
+        .collection(PlaygroundFirestoreSchema.postOwners)
+        .doc(postId)
+        .get();
+    final ownerData = ownerSnap.data();
+    final isOwner =
+        ownerData != null && ownerData['provider_uid'] == uid;
+
+    // viewer like/bookmark direct gets。
     final likeSnap = await _firestore
         .collection(PlaygroundFirestoreSchema.likes)
         .doc('like_post_${uid}_$postId')
         .get();
-    reads++;
     final bookmarkSnap = await _firestore
         .collection(PlaygroundFirestoreSchema.bookmarks)
-        .where('post_id', isEqualTo: postId)
         .where('user_provider_uid', isEqualTo: uid)
+        .where('post_id', isEqualTo: postId)
         .limit(1)
         .get();
-    reads++;
-    return (
-      PlaygroundPostViewerState(
-        isLiked: likeSnap.exists,
-        isBookmarked: bookmarkSnap.docs.isNotEmpty,
-        canVerify: postData['author_provider_uid'] != uid,
-      ),
-      reads,
+
+    return PlaygroundPostViewerState(
+      isLiked: likeSnap.exists,
+      isBookmarked: bookmarkSnap.docs.isNotEmpty,
+      isOwner: isOwner,
+      canEdit: isOwner,
+      canDelete: isOwner,
+      canSetFeedback: isOwner,
+      canVerify: isOwner,
     );
-  }
-
-  // ---- JSON（Functions callable）→ DTO ----
-
-  List<PublicReply> _publicRepliesFromJson(dynamic raw) {
-    if (raw is! List) return const [];
-    return raw
-        .map((r) => _publicReplyFromJson(r as Map<String, dynamic>))
-        .toList();
-  }
-
-  PublicReply _publicReplyFromJson(Map<String, dynamic> json) {
-    return PublicReply(
-      publicReplyId:
-          PlaygroundReplyId(json['publicReplyId'] as String? ?? ''),
-      postId: PlaygroundPostId(json['postId'] as String? ?? ''),
-      body: json['body'] as String?,
-      techniqueTags: (json['techniqueTags'] as List<dynamic>?)
-              ?.cast<String>() ??
-          const [],
-      chart: _chartFromJson(json['chart']),
-      mediaAttachments: _mediaListFromJson(json['mediaAttachments']),
-      author: _authorFromJson(json['author']),
-      depth: json['depth'] as int? ?? 0,
-      rootReplyId: json['rootReplyId'] != null
-          ? PlaygroundReplyId(json['rootReplyId'] as String)
-          : null,
-      replyToReplyId: json['replyToReplyId'] != null
-          ? PlaygroundReplyId(json['replyToReplyId'] as String)
-          : null,
-      isVerified: json['isVerified'] == true,
-      isTombstoned: json['isTombstoned'] == true,
-      presentationMode: _modeFromString(json['presentationMode'] as String?),
-      createdAt: DateTime.parse(
-          json['createdAt'] as String? ?? '1970-01-01T00:00:00.000Z'),
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.parse(json['updatedAt'] as String)
-          : null,
-      latestRevision:
-          json['latestRevision'] != null && json['latestRevision'] is Map
-              ? _revisionFromJson(
-                  json['latestRevision'] as Map<String, dynamic>)
-              : null,
-    );
-  }
-
-  PublicXuanChartAttachment? _chartFromJson(dynamic raw) {
-    if (raw is! Map) return null;
-    final m = raw.cast<String, dynamic>();
-    return PublicXuanChartAttachment(
-      techniqueId: m['techniqueId'] as String? ?? 'unknown',
-      schoolId: m['schoolId'] as String?,
-      publicChartSnapshot: m['publicChartSnapshot'] as String? ?? '',
-      rendererSchemaVersion: m['rendererSchemaVersion'] as int? ?? 1,
-      source: PlaygroundChartSource.values.byName(
-          m['source'] as String? ?? 'createdInPlayground'),
-    );
-  }
-
-  List<PublicMediaAttachment> _mediaListFromJson(dynamic raw) {
-    if (raw is! List) return const [];
-    return raw.whereType<Map>().map((m) {
-      final mm = m.cast<String, dynamic>();
-      return PublicMediaAttachment(
-        type: PlaygroundAttachmentType.values.byName(
-            mm['type'] as String? ?? 'image'),
-        mediaObjectId:
-            PlaygroundAttachmentId(mm['mediaObjectId'] as String? ?? ''),
-        mimeType: mm['mimeType'] as String? ?? '',
-        width: mm['width'] as int?,
-        height: mm['height'] as int?,
-        durationSeconds: mm['durationSeconds'] as int?,
-        secureUrl: mm['secureUrl'] as String? ?? '',
-      );
-    }).toList();
-  }
-
-  PublicAuthor _authorFromJson(dynamic raw) {
-    final m = (raw as Map?)?.cast<String, dynamic>() ?? const {};
-    return PublicAuthor(
-      publicPresentationUserId:
-          PlaygroundUserId(m['publicPresentationUserId'] as String? ?? ''),
-      displayAlias: m['displayAlias'] as String? ?? '',
-      avatarUrl: m['avatarUrl'] as String?,
-      publicProfileRef: m['publicProfileRef'] as String?,
-    );
-  }
-
-  PlaygroundRegistrationUnlockMetadata _registrationUnlockFromJson(dynamic raw) {
-    if (raw is! Map) return const PlaygroundRegistrationUnlockMetadata();
-    final m = raw.cast<String, dynamic>();
-    return PlaygroundRegistrationUnlockMetadata(
-      requiresRegistration: m['requiresRegistration'] != false,
-      ctaMessageKey: m['ctaMessageKey'] as String?,
-      unlockRoute: m['unlockRoute'] as String?,
-    );
-  }
-
-  PublicFeedbackSummary? _feedbackFromJson(dynamic raw) {
-    if (raw is! Map) return null;
-    final m = raw.cast<String, dynamic>();
-    return PublicFeedbackSummary(
-      body: m['body'] as String? ?? '',
-      isEdited: m['isEdited'] == true,
-      publishedAt: DateTime.parse(
-          m['publishedAt'] as String? ?? '1970-01-01T00:00:00.000Z'),
-      updatedAt: m['updatedAt'] != null
-          ? DateTime.parse(m['updatedAt'] as String)
-          : null,
-    );
-  }
-
-  PlaygroundRevisionSummary _revisionFromJson(Map<String, dynamic> m) {
-    return PlaygroundRevisionSummary(
-      editedByAlias: m['editedByAlias'] as String? ?? '',
-      editedAt: DateTime.parse(
-          m['editedAt'] as String? ?? '1970-01-01T00:00:00.000Z'),
-      changeDescription: m['changeDescription'] as String?,
-    );
-  }
-
-  // ---- Firestore doc（snake_case）→ DTO（直连查询路径）----
-
-  PublicReply _publicReplyFromDoc(Map<String, dynamic> d, String docId) {
-    return PublicReply(
-      publicReplyId: PlaygroundReplyId(docId),
-      postId: PlaygroundPostId(d['post_id'] as String? ?? ''),
-      body: d['body'] as String?,
-      techniqueTags:
-          (d['technique_tags'] as List<dynamic>?)?.cast<String>() ?? const [],
-      chart: _chartFromDoc(d['chart_attachment']),
-      mediaAttachments: _mediaListFromDoc(d['media_attachments']),
-      author: _authorFromDoc(d),
-      depth: d['depth'] as int? ?? 0,
-      rootReplyId: d['root_reply_id'] != null
-          ? PlaygroundReplyId(d['root_reply_id'] as String)
-          : null,
-      replyToReplyId: d['reply_to_reply_id'] != null
-          ? PlaygroundReplyId(d['reply_to_reply_id'] as String)
-          : null,
-      isVerified: d['verification'] != null,
-      isTombstoned: d['is_tombstoned'] == true,
-      presentationMode: PlaygroundPresentationMode.stableAlias,
-      createdAt: _toDateTime(d['created_at']) ?? DateTime.now(),
-      updatedAt: _toDateTime(d['updated_at']),
-      latestRevision: _revisionFromDoc(d['revisions']),
-    );
-  }
-
-  PublicXuanChartAttachment? _chartFromDoc(dynamic raw) {
-    if (raw is! Map) return null;
-    final m = raw.cast<String, dynamic>();
-    return PublicXuanChartAttachment(
-      techniqueId: m['technique_id'] as String? ?? 'unknown',
-      schoolId: m['school_id'] as String?,
-      publicChartSnapshot: m['public_chart_snapshot'] as String? ?? '',
-      rendererSchemaVersion: m['renderer_schema_version'] as int? ?? 1,
-      source: PlaygroundChartSource.values.byName(
-          m['chart_source'] as String? ?? 'createdInPlayground'),
-    );
-  }
-
-  List<PublicMediaAttachment> _mediaListFromDoc(dynamic raw) {
-    if (raw is! List) return const [];
-    return raw.whereType<Map>().map((m) {
-      final mm = m.cast<String, dynamic>();
-      return PublicMediaAttachment(
-        type: PlaygroundAttachmentType.values.byName(
-            mm['type'] as String? ?? 'image'),
-        mediaObjectId:
-            PlaygroundAttachmentId(mm['media_object_id'] as String? ?? ''),
-        mimeType: mm['mime_type'] as String? ?? '',
-        width: mm['width'] as int?,
-        height: mm['height'] as int?,
-        durationSeconds: mm['duration_seconds'] as int?,
-        secureUrl: '/public/media/${mm['media_object_id'] ?? 'unknown'}',
-      );
-    }).toList();
-  }
-
-  PublicAuthor _authorFromDoc(Map<String, dynamic> d) {
-    final presentationId = d['presentation_identity_id'] as String? ?? '';
-    final resolved = presentationId.isNotEmpty
-        ? presentationId
-        : _derivePresentationId(d['author_provider_uid'] as String? ?? '');
-    return PublicAuthor(
-      publicPresentationUserId: PlaygroundUserId(resolved),
-      displayAlias: '盘友${resolved.length > 6 ? resolved.substring(resolved.length - 6) : resolved}',
-      avatarUrl: null,
-      publicProfileRef: null,
-    );
-  }
-
-  PlaygroundRevisionSummary? _revisionFromDoc(dynamic raw) {
-    if (raw is! List || raw.isEmpty) return null;
-    final last = raw.last;
-    if (last is! Map) return null;
-    final m = last.cast<String, dynamic>();
-    return PlaygroundRevisionSummary(
-      editedByAlias: m['edited_by'] as String? ?? '',
-      editedAt: _toDateTime(m['edited_at']) ?? DateTime.now(),
-      changeDescription: m['change_description'] as String?,
-    );
-  }
-
-  PublicPost _publicPostFromDoc(
-    String postId,
-    Map<String, dynamic> d, {
-    required int replyCount,
-    required int likeCount,
-    required int verificationCount,
-    required PlaygroundPostViewerState viewerState,
-    required PublicFeedbackSummary? outcomeFeedback,
-  }) {
-    final status = d['status'] as String? ?? 'unavailable';
-    return PublicPost(
-      publicPostId: PlaygroundPostId(postId),
-      body: status == 'active' ? d['text'] as String? : null,
-      attachments: _attachmentsFromDoc(d['attachments']),
-      author: _authorFromDoc(d),
-      replyCount: replyCount,
-      likeCount: likeCount,
-      verificationCount: verificationCount,
-      viewerState: viewerState,
-      outcomeFeedback: outcomeFeedback,
-      displayStatus: switch (status) {
-        'active' => PublicPostDisplayStatus.active,
-        'tombstoned' => PublicPostDisplayStatus.tombstoned,
-        _ => PublicPostDisplayStatus.unavailable,
-      },
-      latestRevision: _revisionFromDoc(d['revisions']),
-      createdAt: _toDateTime(d['created_at']) ?? DateTime.now(),
-      updatedAt: _toDateTime(d['updated_at']),
-    );
-  }
-
-  List<PublicAttachment> _attachmentsFromDoc(dynamic raw) {
-    if (raw is! List) return const [];
-    final result = <PublicAttachment>[];
-    for (final item in raw) {
-      if (item is! Map) continue;
-      final m = item.cast<String, dynamic>();
-      final type = m['type'] as String?;
-      if (type == 'xuanChart') {
-        result.add(PublicXuanChartAttachment(
-          techniqueId: m['technique_id'] as String? ?? 'unknown',
-          schoolId: m['school_id'] as String?,
-          publicChartSnapshot: m['public_chart_snapshot'] as String? ?? '',
-          rendererSchemaVersion: m['renderer_schema_version'] as int? ?? 1,
-          source: PlaygroundChartSource.values.byName(
-              m['chart_source'] as String? ?? 'createdInPlayground'),
-        ));
-      } else {
-        result.add(PublicMediaAttachment(
-          type: PlaygroundAttachmentType.values.byName(
-              type ?? 'image'),
-          mediaObjectId:
-              PlaygroundAttachmentId(m['media_object_id'] as String? ?? ''),
-          mimeType: m['mime_type'] as String? ?? '',
-          width: m['width'] as int?,
-          height: m['height'] as int?,
-          durationSeconds: m['duration_seconds'] as int?,
-          secureUrl: '/public/media/${m['media_object_id'] ?? 'unknown'}',
-        ));
-      }
-    }
-    return result;
-  }
-
-  PublicFeedbackSummary _feedbackFromDoc(Map<String, dynamic> d) {
-    final publishedAt = _toDateTime(d['created_at']) ?? DateTime.now();
-    final updatedAt = _toDateTime(d['updated_at']);
-    return PublicFeedbackSummary(
-      body: (d['outcome_description'] as String?) ?? d['body'] as String? ?? '',
-      isEdited: updatedAt != null && updatedAt != publishedAt,
-      publishedAt: publishedAt,
-      updatedAt: updatedAt,
-    );
-  }
-
-  // ---- helpers ----
-
-  static PlaygroundPresentationMode? _modeFromString(String? mode) {
-    if (mode == null) return null;
-    for (final m in PlaygroundPresentationMode.values) {
-      if (m.name == mode) return m;
-    }
-    return null;
-  }
-
-  static DateTime? _toDateTime(dynamic v) {
-    if (v == null) return null;
-    if (v is DateTime) return v;
-    if (v is Timestamp) return v.toDate();
-    if (v is String) return DateTime.tryParse(v);
-    return null;
-  }
-
-  static String _derivePresentationId(String providerUid) {
-    final raw = providerUid.isEmpty ? 'anonymous' : providerUid;
-    final hash = sha256.convert(utf8.encode(raw)).toString();
-    return 'anon_${hash.substring(0, 8)}';
   }
 }

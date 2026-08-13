@@ -1,12 +1,13 @@
-/// Phase 7B：FeedQuery adapter（FirebasePlaygroundFeedQueryRepository）
-/// 契约测试 —— RED → GREEN。
+/// Task 6：FeedQuery adapter（FirebasePlaygroundFeedQueryRepository）契约测试。
 ///
 /// 断言：
-/// 1. 三类 tab 返回安全 [PlaygroundFeedItem] 公开投影（post + counts +
+/// 1. 三类 tab 返回安全 [PlaygroundFeedItem] 公开投影（post + 占位 counts +
 ///    viewerState + authorSummary）；
-/// 2. counts 正确聚合（reply/like/verification、hasOutcomeFeedback）；
-/// 3. tombstone 帖文被过滤；filter（技法/pending）与分页 cursor 生效；
-/// 4. 公开 DTO 零敏感字段。
+/// 2. Feed 占位策略：三 count=0、hasOutcomeFeedback=false（单 query，无逐帖聚合）；
+/// 3. getPendingDivinationFeed 不访问 Firestore → invalidArgument +
+///    filter/not-supported-in-direct-phase；推荐降级为最新；
+/// 4. tombstone 帖文被过滤；技法 arrayContains 与分页 cursor 生效；
+/// 5. 公开 DTO 零敏感字段。
 library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -69,22 +70,25 @@ void main() {
     required DateTime createdAt,
     String status = 'active',
     List<String> techniqueIds = const [],
-    String? replyStatus,
-    bool hasOutcomeFeedback = false,
-    double? recommendationScore,
   }) {
     return firestore.collection(PlaygroundFirestoreSchema.posts).doc(docId).set({
-      'author_provider_uid': postAuthorUid,
+      'id': docId,
       'text': text,
+      'presentation_mode': 'stableAlias',
+      'presentation_identity_id': 'pub_${docId}_128bit',
+      'presentation_display_alias': '玄友0001',
+      'presentation_avatar_url': null,
+      'public_profile_ref': null,
       'status': status,
       'allowed_chart_technique_ids': techniqueIds,
       'attachments': <dynamic>[],
-      'revisions': <dynamic>[],
-      'has_outcome_feedback': hasOutcomeFeedback,
+      'has_chart': false,
+      'revision_no': 1,
+      'current_revision_id': 'r0000000001',
+      'idempotency_key': 'idem-$docId',
+      'payload_hash': 'hash-$docId',
       'created_at': Timestamp.fromDate(createdAt),
       'updated_at': Timestamp.fromDate(createdAt),
-      'reply_status': ?replyStatus,
-      'recommendation_score': ?recommendationScore?.toString(),
     });
   }
 
@@ -93,24 +97,34 @@ void main() {
         .collection(PlaygroundFirestoreSchema.replies)
         .doc(docId)
         .set({
+      'id': docId,
       'post_id': postId,
+      'presentation_mode': 'stableAlias',
+      'presentation_identity_id': 'pub_anon_$docId',
+      'presentation_display_alias': '盘友anon',
+      'presentation_avatar_url': null,
+      'public_profile_ref': null,
       'depth': 0,
       'body': '回复',
       'is_tombstoned': tombstoned,
-      'author_provider_uid': postAuthorUid,
       'root_reply_id': null,
       'reply_to_reply_id': null,
       'technique_tags': <String>[],
+      'chart_attachment': null,
       'media_attachments': <dynamic>[],
-      'revisions': <dynamic>[],
+      'revision_no': 1,
+      'current_revision_id': 'r0000000001',
+      'idempotency_key': 'idem-$docId',
+      'payload_hash': 'hash-$docId',
       'created_at': DateTime.utc(2026, 1, 1),
     });
   }
 
   Future<void> seedLike(String docId, String postId) {
     return firestore.collection(PlaygroundFirestoreSchema.likes).doc(docId).set({
-      'post_id': postId,
-      'user_provider_uid': viewerUid,
+      'id': docId,
+      'target_type': 'post',
+      'target_id': postId,
       'created_at': DateTime.utc(2026, 1, 1),
     });
   }
@@ -120,6 +134,7 @@ void main() {
         .collection(PlaygroundFirestoreSchema.verifications)
         .doc(docId)
         .set({
+      'id': docId,
       'post_id': postId,
       'root_reply_id': 'r1',
       'revoked_at': null,
@@ -127,14 +142,14 @@ void main() {
     });
   }
 
-  group('Feed 公开投影与计数', () {
-    test('getLatestFeed 返回 PlaygroundFeedItem（counts/viewerState/authorSummary）',
+  group('Feed 公开投影与占位计数（§10.3）', () {
+    test('getLatestFeed 返回 PlaygroundFeedItem（占位 0 + viewerState + authorSummary）',
         () async {
       await seedPost('post-1', text: '最新帖', createdAt: DateTime.utc(2026, 6, 1));
       await seedPost('post-2', text: '旧帖', createdAt: DateTime.utc(2026, 1, 1));
       await seedReply('r1', 'post-1');
-      await seedReply('r2', 'post-1', tombstoned: true); // tombstone 不计
-      await seedLike('like_post_${viewerUid}_post-1', 'post-1');
+      await seedReply('r2', 'post-1', tombstoned: true);
+      await seedLike('like-1', 'post-1');
       await seedVerification('verif-1', 'post-1');
 
       final page = await repo.getLatestFeed(
@@ -147,52 +162,42 @@ void main() {
 
       final target =
           page.items.firstWhere((i) => i.post.publicPostId.value == 'post-1');
-      expect(target.replyCount, 1, reason: 'tombstone 回复不计入 replyCount');
-      expect(target.likeCount, 1);
-      expect(target.verificationCount, 1);
+      expect(target.replyCount, 0, reason: 'Feed 占位恒 0，不逐帖聚合');
+      expect(target.likeCount, 0);
+      expect(target.verificationCount, 0);
       expect(target.hasOutcomeFeedback, isFalse);
+      expect(target.post.replyCount, 0);
+      expect(target.post.likeCount, 0);
+      expect(target.post.verificationCount, 0);
       expect(target.authorSummary.publicPresentationUserId.value, isNotEmpty);
-      expect(target.viewerState.isLiked, isTrue);
-      expect(target.viewerState.canVerify, isTrue,
-          reason: 'viewer 非作者 → 可应验');
-    });
-
-    test('hasOutcomeFeedback 来自帖子文档字段', () async {
-      await seedPost('post-fb',
-          text: '有反馈', createdAt: DateTime.utc(2026, 1, 1),
-          hasOutcomeFeedback: true);
-      final page = await repo.getLatestFeed(
-        const GetFeedBatchQuery(tab: PlaygroundFeedTab.latest, limit: 10),
-      );
-      expect(page.items.single.hasOutcomeFeedback, isTrue);
+      expect(target.viewerState.isLiked, isFalse);
     });
   });
 
   group('Feed tab 语义', () {
-    test('getRecommendedFeed 走 recommendation_score 排序', () async {
-      await seedPost('low', text: '低分', createdAt: DateTime.utc(2026, 1, 1),
-          recommendationScore: 1);
-      await seedPost('high', text: '高分', createdAt: DateTime.utc(2026, 1, 2),
-          recommendationScore: 99);
+    test('getRecommendedFeed 与最新同序（降级为最新，不读 recommendation_score）', () async {
+      await seedPost('low', text: '低分', createdAt: DateTime.utc(2026, 1, 1));
+      await seedPost('high', text: '高分', createdAt: DateTime.utc(2026, 1, 2));
       final page = await repo.getRecommendedFeed(
         const GetFeedBatchQuery(tab: PlaygroundFeedTab.recommended, limit: 10),
       );
       expect(page.items.map((i) => i.post.publicPostId.value).toList(),
-          ['high', 'low']);
+          ['high', 'low'], reason: '降级为 created_at desc');
     });
 
-    test('getPendingDivinationFeed 只返回 reply_status=pending', () async {
-      await seedPost('pending', text: '待断', createdAt: DateTime.utc(2026, 1, 1),
-          replyStatus: 'pending');
-      await seedPost('replied', text: '已断', createdAt: DateTime.utc(2026, 1, 2),
-          replyStatus: 'replied');
-      final page = await repo.getPendingDivinationFeed(
-        const GetFeedBatchQuery(
-            tab: PlaygroundFeedTab.pendingDivination, limit: 10),
+    test('getPendingDivinationFeed 不访问 Firestore → invalidArgument + filter/not-supported-in-direct-phase',
+        () async {
+      await seedPost('pending', text: '待断', createdAt: DateTime.utc(2026, 1, 1));
+      expect(
+        () => repo.getPendingDivinationFeed(
+          const GetFeedBatchQuery(
+              tab: PlaygroundFeedTab.pendingDivination, limit: 10),
+        ),
+        throwsA(isA<PlaygroundError>()
+            .having((e) => e.code, 'code', PlaygroundErrorCode.invalidArgument)
+            .having((e) => e.machineCode, 'machineCode',
+                'filter/not-supported-in-direct-phase')),
       );
-      final ids = page.items.map((i) => i.post.publicPostId.value).toList();
-      expect(ids, contains('pending'));
-      expect(ids, isNot(contains('replied')));
     });
 
     test('getFeed 按 tab 分发', () async {
@@ -231,20 +236,21 @@ void main() {
       expect(ids, isNot(contains('plain')));
     });
 
-    test('待断 filter（reply=pending）', () async {
-      await seedPost('p1', text: '待断', createdAt: DateTime.utc(2026, 1, 1),
-          replyStatus: 'pending');
-      await seedPost('p2', text: '已断', createdAt: DateTime.utc(2026, 1, 2),
-          replyStatus: 'replied');
-      final page = await repo.getLatestFeed(GetFeedBatchQuery(
-        tab: PlaygroundFeedTab.latest,
-        filter: const PlaygroundComposableFilter(
-            reply: PlaygroundFeedReplyFilter.pending),
-        limit: 10,
-      ));
-      final ids = page.items.map((i) => i.post.publicPostId.value).toList();
-      expect(ids, contains('p1'));
-      expect(ids, isNot(contains('p2')));
+    test('reply/feedback 状态 filter → invalidArgument + filter/not-supported-in-direct-phase',
+        () async {
+      await seedPost('p1', text: '待断', createdAt: DateTime.utc(2026, 1, 1));
+      expect(
+        () => repo.getLatestFeed(GetFeedBatchQuery(
+          tab: PlaygroundFeedTab.latest,
+          filter: const PlaygroundComposableFilter(
+              reply: PlaygroundFeedReplyFilter.pending),
+          limit: 10,
+        )),
+        throwsA(isA<PlaygroundError>()
+            .having((e) => e.code, 'code', PlaygroundErrorCode.invalidArgument)
+            .having((e) => e.machineCode, 'machineCode',
+                'filter/not-supported-in-direct-phase')),
+      );
     });
   });
 
@@ -261,17 +267,11 @@ void main() {
       expect(page1.nextCursor, isNotNull);
       expect(page1.hasMore, isTrue);
 
-      // cursor 是不透明 token，但内部必须携带 orderBy 值（startAfter(values) 用）。
       final values = FirebasePlaygroundCursor.toStartAfterValues(page1.nextCursor!);
       expect(values, isNotNull);
       expect(values, hasLength(1));
       expect(values!.single, isA<Timestamp>());
 
-      // 第二页查询构造必须接受 cursor 且不抛错。
-      // 注意：fake_cloud_firestore 4.2.0 的 startAfter 对 Timestamp 值比较有
-      // 已知缺陷（探针实证：带 orderBy Timestamp 的 startAfter 恒返回空）；
-      // 真实 Firestore 的 startAfter(values) 是标准 API。翻页"第二页非空且
-      // 不重复"的端到端断言由真 emulator 集成验证（Phase 8 / emulator 环境）。
       final page2 = await repo.getLatestFeed(GetFeedBatchQuery(
         tab: PlaygroundFeedTab.latest,
         limit: 3,
