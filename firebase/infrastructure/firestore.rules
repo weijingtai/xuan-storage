@@ -19,13 +19,14 @@ service cloud.firestore {
     }
     // 当前用户身份是否存在且具备公开展示所需字段。
     function identityReady() {
-      return identityDoc().exists
-        && identityDoc().data.keys().hasAll(['app_user_id', 'provider_uid',
+      let data = identityDoc().data;
+      return data != null
+        && data.keys().hasAll(['app_user_id', 'provider_uid',
             'public_presentation_id', 'public_display_alias'])
-        && identityDoc().data.public_presentation_id is string
-        && identityDoc().data.public_display_alias is string
-        && identityDoc().data.public_presentation_id.size() > 0
-        && identityDoc().data.public_display_alias.size() > 0;
+        && data.public_presentation_id is string
+        && data.public_display_alias is string
+        && data.public_presentation_id.size() > 0
+        && data.public_display_alias.size() > 0;
     }
     // 目标文档的 owner（getAfter —— atomic write 后状态）。
     function ownerAfter(collection, docId) {
@@ -168,7 +169,7 @@ service cloud.firestore {
       allow read: if request.auth != null
                   && (resource.data.status == 'active'
                       || (resource.data.status == 'tombstoned'
-                          && ownerAfter('playground_post_owners', postId).exists
+                          && ownerAfter('playground_post_owners', postId).data != null
                           && ownerAfter('playground_post_owners', postId).data.provider_uid == request.auth.uid));
 
       // create：公开 post + owner 同一 atomic write（getAfter 验证一一对应）。
@@ -210,7 +211,7 @@ service cloud.firestore {
         && (request.resource.data.created_at is timestamp)
         && (request.resource.data.updated_at is timestamp)
         && request.resource.data.created_at == request.resource.data.updated_at
-        && ownerAfter('playground_post_owners', postId).exists
+        && ownerAfter('playground_post_owners', postId).data != null
         && ownerAfter('playground_post_owners', postId).data.keys().hasOnly(
              ['content_id', 'provider_uid', 'app_user_id',
               'public_presentation_id', 'created_at'])
@@ -220,13 +221,13 @@ service cloud.firestore {
              == identityDoc().data.app_user_id
         && ownerAfter('playground_post_owners', postId).data.public_presentation_id
              == identityDoc().data.public_presentation_id
-        && getAfter(/databases/$(database)/documents/playground_posts/$(postId)/revisions/r0000000001).exists
+        && getAfter(/databases/$(database)/documents/playground_posts/$(postId)/revisions/r0000000001).data != null
         && getAfter(/databases/$(database)/documents/playground_posts/$(postId)/revisions/r0000000001).data.revision_no == 1;
 
       // update：仅 owner；仅可变字段；active->tombstoned 必须清空公开正文；
       // 编辑必须连续追加 revision。
       allow update: if request.auth != null
-        && ownerAfter('playground_post_owners', postId).exists
+        && ownerAfter('playground_post_owners', postId).data != null
         && ownerAfter('playground_post_owners', postId).data.provider_uid == request.auth.uid
         && resource.data.status in ['active', 'tombstoned']
         && (request.resource.data.status == resource.data.status
@@ -248,7 +249,7 @@ service cloud.firestore {
         && request.resource.data.revision_no == resource.data.revision_no + 1
         && (request.resource.data.updated_at is timestamp)
         && (request.resource.data.created_at == resource.data.created_at)
-        && getAfter(/databases/$(database)/documents/playground_posts/$(postId)/revisions/r0000000001).exists; // revision 连续由 adapter 保证精确 ID
+        && getAfter(/databases/$(database)/documents/playground_posts/$(postId)/revisions/r0000000001).data != null; // revision 连续由 adapter 保证精确 ID
 
       allow delete: if false;
     }
@@ -259,12 +260,12 @@ service cloud.firestore {
     match /playground_posts/{postId}/revisions/{revisionId} {
       // 仅 content owner 可读自己内容的历史；其他普通用户拒绝。
       allow read: if request.auth != null
-                  && ownerAfter('playground_post_owners', postId).exists
+                  && ownerAfter('playground_post_owners', postId).data != null
                   && ownerAfter('playground_post_owners', postId).data.provider_uid == request.auth.uid;
       // create-only：revision 创建后永远拒绝 update/delete。
       allow create: if request.auth != null
         && identityReady()
-        && ownerAfter('playground_post_owners', postId).exists
+        && ownerAfter('playground_post_owners', postId).data != null
         && ownerAfter('playground_post_owners', postId).data.provider_uid == request.auth.uid
         && request.resource.data.keys().hasOnly(['id', 'parent_id',
              'revision_no', 'body', 'allowed_chart_technique_ids',
@@ -286,7 +287,7 @@ service cloud.firestore {
     match /playground_replies/{replyId} {
       allow read: if request.auth != null
                   && (resource.data.is_tombstoned != true
-                      || ownerAfter('playground_reply_owners', replyId).exists
+                      || ownerAfter('playground_reply_owners', replyId).data != null
                           && ownerAfter('playground_reply_owners', replyId).data.provider_uid == request.auth.uid);
 
       // create：公开 reply + reply owner + （one-time 首次）thread mapping
@@ -320,7 +321,7 @@ service cloud.firestore {
         && (request.resource.data.updated_at is timestamp)
         && request.resource.data.created_at == request.resource.data.updated_at
         // 目标 post 必须存在且 active。
-        && get(/databases/$(database)/documents/playground_posts/$(request.resource.data.post_id)).exists
+        && get(/databases/$(database)/documents/playground_posts/$(request.resource.data.post_id)).data != null
         && get(/databases/$(database)/documents/playground_posts/$(request.resource.data.post_id)).data.status == 'active'
         // depth 语义。
         && (request.resource.data.depth == 0
@@ -328,13 +329,13 @@ service cloud.firestore {
               && request.resource.data.reply_to_reply_id == null
             : request.resource.data.depth == 1
               && request.resource.data.root_reply_id != null
-              && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).exists
+              && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).data != null
               && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).data.post_id
                    == request.resource.data.post_id
               && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).data.depth == 0
               && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).data.is_tombstoned != true
               && (request.resource.data.reply_to_reply_id == null
-                  || get(/databases/$(database)/documents/playground_replies/$(request.resource.data.reply_to_reply_id)).exists
+                  || get(/databases/$(database)/documents/playground_replies/$(request.resource.data.reply_to_reply_id)).data != null
                   && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.reply_to_reply_id)).data.post_id
                        == request.resource.data.post_id
                   && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.reply_to_reply_id)).data.root_reply_id
@@ -351,7 +352,7 @@ service cloud.firestore {
                    == getAfter(/databases/$(database)/documents/playground_thread_presentations/$(request.resource.data.post_id + '__' + request.auth.uid)).data.presentation_identity_id
               && request.resource.data.presentation_display_alias == '匿名用户')
         // owner 文档一一对应。
-        && ownerAfter('playground_reply_owners', replyId).exists
+        && ownerAfter('playground_reply_owners', replyId).data != null
         && ownerAfter('playground_reply_owners', replyId).data.keys().hasOnly(
              ['content_id', 'provider_uid', 'app_user_id',
               'public_presentation_id', 'created_at'])
@@ -363,7 +364,7 @@ service cloud.firestore {
              == identityDoc().data.public_presentation_id
         // one-time anonymous 首次回复必须创建 thread mapping；stableAlias 不需要。
         && (request.resource.data.presentation_mode == 'oneTimeAnonymous'
-            ? getAfter(/databases/$(database)/documents/playground_thread_presentations/$(request.resource.data.post_id + '__' + request.auth.uid)).exists
+            ? getAfter(/databases/$(database)/documents/playground_thread_presentations/$(request.resource.data.post_id + '__' + request.auth.uid)).data != null
               && getAfter(/databases/$(database)/documents/playground_thread_presentations/$(request.resource.data.post_id + '__' + request.auth.uid)).data.keys().hasOnly(
                    ['post_id', 'provider_uid', 'presentation_identity_id', 'created_at'])
               && getAfter(/databases/$(database)/documents/playground_thread_presentations/$(request.resource.data.post_id + '__' + request.auth.uid)).data.post_id
@@ -374,12 +375,12 @@ service cloud.firestore {
                    == request.resource.data.presentation_identity_id
             : true)
         // revision 1 同时创建。
-        && getAfter(/databases/$(database)/documents/playground_replies/$(replyId)/revisions/r0000000001).exists
+        && getAfter(/databases/$(database)/documents/playground_replies/$(replyId)/revisions/r0000000001).data != null
         && getAfter(/databases/$(database)/documents/playground_replies/$(replyId)/revisions/r0000000001).data.revision_no == 1;
 
       // update：仅 owner；编辑追加 revision；tombstone 清空公开正文。
       allow update: if request.auth != null
-        && ownerAfter('playground_reply_owners', replyId).exists
+        && ownerAfter('playground_reply_owners', replyId).data != null
         && ownerAfter('playground_reply_owners', replyId).data.provider_uid == request.auth.uid
         && resource.data.is_tombstoned != true
         && (request.resource.data.is_tombstoned == true
@@ -398,7 +399,7 @@ service cloud.firestore {
         && request.resource.data.revision_no == resource.data.revision_no + 1
         && (request.resource.data.updated_at is timestamp)
         && (request.resource.data.created_at == resource.data.created_at)
-        && getAfter(/databases/$(database)/documents/playground_replies/$(replyId)/revisions/r0000000001).exists;
+        && getAfter(/databases/$(database)/documents/playground_replies/$(replyId)/revisions/r0000000001).data != null;
 
       allow delete: if false;
     }
@@ -408,11 +409,11 @@ service cloud.firestore {
     // ============================================================
     match /playground_replies/{replyId}/revisions/{revisionId} {
       allow read: if request.auth != null
-                  && ownerAfter('playground_reply_owners', replyId).exists
+                  && ownerAfter('playground_reply_owners', replyId).data != null
                   && ownerAfter('playground_reply_owners', replyId).data.provider_uid == request.auth.uid;
       allow create: if request.auth != null
         && identityReady()
-        && ownerAfter('playground_reply_owners', replyId).exists
+        && ownerAfter('playground_reply_owners', replyId).data != null
         && ownerAfter('playground_reply_owners', replyId).data.provider_uid == request.auth.uid
         && request.resource.data.keys().hasOnly(['id', 'parent_id',
              'revision_no', 'body', 'technique_tags', 'chart_attachment',
@@ -441,9 +442,9 @@ service cloud.firestore {
         && request.resource.data.target_type in ['post', 'reply']
         && (request.resource.data.created_at is timestamp)
         && (request.resource.data.target_type == 'post'
-            ? get(/databases/$(database)/documents/playground_posts/$(request.resource.data.target_id)).exists
-            : get(/databases/$(database)/documents/playground_replies/$(request.resource.data.target_id)).exists)
-        && getAfter(/databases/$(database)/documents/playground_like_owners/$(likeId)).exists
+            ? get(/databases/$(database)/documents/playground_posts/$(request.resource.data.target_id)).data != null
+            : get(/databases/$(database)/documents/playground_replies/$(request.resource.data.target_id)).data != null)
+        && getAfter(/databases/$(database)/documents/playground_like_owners/$(likeId)).data != null
         && getAfter(/databases/$(database)/documents/playground_like_owners/$(likeId)).data.keys().hasOnly(
              ['like_id', 'provider_uid', 'app_user_id', 'target_type', 'target_id', 'created_at'])
         && getAfter(/databases/$(database)/documents/playground_like_owners/$(likeId)).data.like_id == likeId
@@ -456,7 +457,7 @@ service cloud.firestore {
              == request.resource.data.target_id;
       // unlike：删除公开 like 必须同批删除私有 like_owner（owner 校验）。
       allow delete: if request.auth != null
-        && get(/databases/$(database)/documents/playground_like_owners/$(likeId)).exists
+        && get(/databases/$(database)/documents/playground_like_owners/$(likeId)).data != null
         && get(/databases/$(database)/documents/playground_like_owners/$(likeId)).data.provider_uid == request.auth.uid;
       allow update: if false;
     }
@@ -473,7 +474,7 @@ service cloud.firestore {
         && request.resource.data.id == bookmarkId
         && request.resource.data.user_provider_uid == request.auth.uid
         && (request.resource.data.created_at is timestamp)
-        && get(/databases/$(database)/documents/playground_posts/$(request.resource.data.post_id)).exists;
+        && get(/databases/$(database)/documents/playground_posts/$(request.resource.data.post_id)).data != null;
       allow delete: if request.auth != null
                     && resource.data.user_provider_uid == request.auth.uid;
       allow update: if false;
@@ -495,21 +496,21 @@ service cloud.firestore {
         && (request.resource.data.created_at is timestamp)
         && request.resource.data.revoked_at == null
         // Poster-only。
-        && get(/databases/$(database)/documents/playground_post_owners/$(request.resource.data.post_id)).exists
+        && get(/databases/$(database)/documents/playground_post_owners/$(request.resource.data.post_id)).data != null
         && get(/databases/$(database)/documents/playground_post_owners/$(request.resource.data.post_id)).data.provider_uid == request.auth.uid
         // 目标 root 同帖 depth=0 未墓碑。
-        && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).exists
+        && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).data != null
         && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).data.post_id
              == request.resource.data.post_id
         && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).data.depth == 0
         && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).data.is_tombstoned != true
         // 非 Poster 自己回复。
-        && (!get(/databases/$(database)/documents/playground_reply_owners/$(request.resource.data.root_reply_id)).exists
+        && (!get(/databases/$(database)/documents/playground_reply_owners/$(request.resource.data.root_reply_id)).data != null
             || get(/databases/$(database)/documents/playground_reply_owners/$(request.resource.data.root_reply_id)).data.provider_uid
                  != request.auth.uid);
       // update：仅状态转换 revoked_at null<->time，created_at 不变。
       allow update: if request.auth != null
-        && get(/databases/$(database)/documents/playground_post_owners/$(resource.data.post_id)).exists
+        && get(/databases/$(database)/documents/playground_post_owners/$(resource.data.post_id)).data != null
         && get(/databases/$(database)/documents/playground_post_owners/$(resource.data.post_id)).data.provider_uid == request.auth.uid
         && request.resource.data.keys().hasOnly(['revoked_at'])
         && ((resource.data.revoked_at == null && request.resource.data.revoked_at is timestamp)
@@ -540,15 +541,15 @@ service cloud.firestore {
         && request.resource.data.created_at == request.resource.data.updated_at
         && request.resource.data.deleted_at == null
         // Poster-only。
-        && get(/databases/$(database)/documents/playground_post_owners/$(request.resource.data.post_id)).exists
+        && get(/databases/$(database)/documents/playground_post_owners/$(request.resource.data.post_id)).data != null
         && get(/databases/$(database)/documents/playground_post_owners/$(request.resource.data.post_id)).data.provider_uid == request.auth.uid
         // append-only revision 同批创建。
-        && getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)/revisions/r0000000001).exists
+        && getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)/revisions/r0000000001).data != null
         && getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)/revisions/r0000000001).data.revision_no == 1;
       // update：Poster-only；编辑追加 revision；撤回 deleted_at null->time；
       // 再发布清空 deleted_at 并追加 revision。
       allow update: if request.auth != null
-        && get(/databases/$(database)/documents/playground_post_owners/$(resource.data.post_id)).exists
+        && get(/databases/$(database)/documents/playground_post_owners/$(resource.data.post_id)).data != null
         && get(/databases/$(database)/documents/playground_post_owners/$(resource.data.post_id)).data.provider_uid == request.auth.uid
         && (request.resource.data.keys().hasOnly(['outcome_description',
              'revision_no', 'current_revision_id', 'updated_at', 'deleted_at'])
