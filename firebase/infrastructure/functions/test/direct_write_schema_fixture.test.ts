@@ -324,3 +324,109 @@ describe('direct-write · playground_replies', () => {
     );
   });
 });
+
+// ==============================
+// Access budget（§10.4）—— 最重路径必须成功（Emulator 10/20 文档访问上限内）
+// ==============================
+
+describe('access budget · heavy paths succeed (§10.4)', () => {
+  test('one-time anonymous discussion reply create succeeds（7 访问）', async () => {
+    // seed post + reply owner + root reply + thread presentation（admin）。
+    const postId = 'post-heavy-1';
+    const rootId = 'root-heavy-1';
+    const now = new Date();
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      const fs = ctx.firestore();
+      await fs.collection('playground_posts').doc(postId).set({
+        id: postId, text: '帖', presentation_mode: 'stableAlias',
+        presentation_identity_id: ALICE_PUB, presentation_display_alias: ALICE_ALIAS,
+        presentation_avatar_url: null, public_profile_ref: null, status: 'active',
+        allowed_chart_technique_ids: [], attachments: [], has_chart: false,
+        revision_no: 1, current_revision_id: 'r0000000001',
+        idempotency_key: 'k', payload_hash: 'h', created_at: now, updated_at: now,
+      });
+      await fs.collection('playground_post_owners').doc(postId).set({
+        content_id: postId, provider_uid: ALICE_UID, app_user_id: ALICE_APP,
+        public_presentation_id: ALICE_PUB, created_at: now,
+      });
+      await fs.collection('playground_replies').doc(rootId).set({
+        id: rootId, post_id: postId, presentation_mode: 'stableAlias',
+        presentation_identity_id: BOB_PUB, presentation_display_alias: '玄友0002',
+        presentation_avatar_url: null, public_profile_ref: null, depth: 0,
+        body: '根', is_tombstoned: false, root_reply_id: null, reply_to_reply_id: null,
+        technique_tags: [], chart_attachment: null, media_attachments: [],
+        revision_no: 1, current_revision_id: 'r0000000001',
+        idempotency_key: 'k2', payload_hash: 'h2', created_at: now, updated_at: now,
+      });
+      await fs.collection('playground_reply_owners').doc(rootId).set({
+        content_id: rootId, provider_uid: BOB_UID, app_user_id: BOB_APP,
+        public_presentation_id: BOB_PUB, created_at: now,
+      });
+      // one-time thread presentation mapping。
+      await fs.collection('playground_thread_presentations')
+          .doc(`${postId}__${BOB_UID}`).set({
+        post_id: postId, provider_uid: BOB_UID,
+        presentation_identity_id: 'anon_thread_128bit', created_at: now,
+      });
+    });
+
+    // Bob 以 oneTimeAnonymous 写二级回复（reply + reply_owner + revision 同批）。
+    const db = bob();
+    const fs = db.firestore();
+    const replyId = 'disc-heavy-1';
+    const batch = fs.batch();
+    batch.set(fs.collection('playground_replies').doc(replyId), {
+      id: replyId, post_id: postId, presentation_mode: 'oneTimeAnonymous',
+      presentation_identity_id: 'anon_thread_128bit', presentation_display_alias: '匿名用户',
+      presentation_avatar_url: null, public_profile_ref: null, depth: 1,
+      body: '二级回复', is_tombstoned: false, root_reply_id: rootId, reply_to_reply_id: rootId,
+      technique_tags: [], chart_attachment: null, media_attachments: [],
+      revision_no: 1, current_revision_id: 'r0000000001',
+      idempotency_key: 'k3', payload_hash: 'h3', created_at: new Date(), updated_at: new Date(),
+    });
+    batch.set(fs.collection('playground_reply_owners').doc(replyId), {
+      content_id: replyId, provider_uid: BOB_UID, app_user_id: BOB_APP,
+      public_presentation_id: BOB_PUB, created_at: new Date(),
+    });
+    batch.set(fs.collection('playground_replies').doc(replyId).collection('revisions').doc('r0000000001'), {
+      id: 'r0000000001', parent_id: '', revision_no: 1, body: '二级回复',
+      presentation_mode: 'oneTimeAnonymous', presentation_identity_id: 'anon_thread_128bit',
+      presentation_display_alias: '匿名用户', presentation_avatar_url: null,
+      public_profile_ref: null, created_at: new Date(),
+    });
+    await assertSucceeds(batch.commit());
+  });
+
+  test('post-target like + like_owner atomic create succeeds（target_type/target_id）', async () => {
+    const postId = 'post-like-1';
+    const now = new Date();
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      const fs = ctx.firestore();
+      await fs.collection('playground_posts').doc(postId).set({
+        id: postId, text: '帖', presentation_mode: 'stableAlias',
+        presentation_identity_id: ALICE_PUB, presentation_display_alias: ALICE_ALIAS,
+        presentation_avatar_url: null, public_profile_ref: null, status: 'active',
+        allowed_chart_technique_ids: [], attachments: [], has_chart: false,
+        revision_no: 1, current_revision_id: 'r0000000001',
+        idempotency_key: 'k', payload_hash: 'h', created_at: now, updated_at: now,
+      });
+      await fs.collection('playground_post_owners').doc(postId).set({
+        content_id: postId, provider_uid: ALICE_UID, app_user_id: ALICE_APP,
+        public_presentation_id: ALICE_PUB, created_at: now,
+      });
+    });
+
+    const db = bob();
+    const fs = db.firestore();
+    const likeId = 'like-post-1';
+    const batch = fs.batch();
+    batch.set(fs.collection('playground_likes').doc(likeId), {
+      id: likeId, target_type: 'post', target_id: postId, created_at: new Date(),
+    });
+    batch.set(fs.collection('playground_like_owners').doc(likeId), {
+      like_id: likeId, provider_uid: BOB_UID, app_user_id: BOB_APP,
+      target_type: 'post', target_id: postId, created_at: new Date(),
+    });
+    await assertSucceeds(batch.commit());
+  });
+});
