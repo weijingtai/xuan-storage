@@ -4,7 +4,7 @@
 
 **Goal:** 为 Flutter 广场列表、发帖、帖子详情接通受 production Rules 保护的 Firestore 直写，同时保留但不装配 callable adapters。
 
-**Architecture:** UI 只调用 ViewModel/UseCase/provider-neutral Repository Interface。公开 post/reply 与私有 owner/identity/thread-presentation 分离，内容版本使用 append-only revisions；应验、反馈、点赞和收藏各自保留单一关系事实。当前 Phase 不交付 Functions、通知、私信、Profile、待断/可信推荐或声望投影。
+**Architecture:** UI 只调用 ViewModel/UseCase/provider-neutral Repository Interface。公开 post/reply 与私有 owner/identity 分离，内容版本使用 append-only revisions；one-time anonymous 匿名 ID 内容派生为 `post_{postId}`；应验、反馈、点赞和收藏各自保留单一关系事实。当前 Phase 不交付 Functions、通知、私信、Profile、待断/可信推荐或声望投影。
 
 **Tech Stack:** Flutter/Dart、Firebase Auth、Cloud Firestore、Firestore Security Rules、Firebase Emulator；TypeScript 只用于 `@firebase/rules-unit-testing`，不新增 Functions 业务逻辑。
 
@@ -175,7 +175,6 @@ enum、长度、附件判别联合和机器错误码。测试必须明确断言�
 ```dart
 expect(postKeys.where((key) => key.startsWith('author_')), isEmpty);
 expect(schema, contains('playground_post_owners'));
-expect(schema, contains('playground_thread_presentations'));
 expect(schema, contains('revision_no'));
 expect(schema, contains('public_presentation_id'));
 ```
@@ -218,7 +217,7 @@ flutter test test/playground/firestore_direct_playground_post_command_repository
 另测同 key/同 payload replay、同 key/不同 payload conflict、隐私字段 fail closed。不得 import
 `cloud_functions`。GREEN 后提交 repository 与测试。
 
-## Task 4：两层回复、owner、thread presentation 与 revision
+## Task 4：两层回复、owner 与 revision
 
 **Files:**
 - Create: `firebase/lib/playground/firestore_direct_playground_reply_command_repository.dart`
@@ -227,9 +226,8 @@ flutter test test/playground/firestore_direct_playground_post_command_repository
 - [ ] **4.1 写 RED**
 
 覆盖 root/discussion、跨帖、跨 root、负 depth、第三层和墓碑目标。stable alias 来自 identity；
-one-time 首次回复 transaction 创建私有
-`playground_thread_presentations/{postId}__{uid}` 的随机 128-bit ID，后续回复复用；伪造、跨 actor
-复用、重复创建 mapping 失败。公开 reply/owner/revision 同批写入，公开字段零内部 UID。
+one-time anonymous 匿名 ID 内容派生为 `post_{postId}`（同帖稳定、跨帖不同，无私有状态）。
+公开 reply/owner/revision 同批写入，公开字段零内部 UID。
 
 - [ ] **4.2 实现、GREEN、提交**
 
@@ -317,15 +315,15 @@ recording 测试断言无逐帖/逐回复 owner N+1。分别提交 storage read 
 
 - [ ] **7.1 写 Rules RED**
 
-每个 allow 必有 deny：公开/internal 字段、owner get/list、thread mapping、revision create/update/delete、
+每个 allow 必有 deny：公开/internal 字段、owner get/list、revision create/update/delete、
 两层关系、墓碑清空、like/bookmark、Poster verification/feedback、self verify、outbox/notification。
 fixture 与 Rules exact keys/enums/nullable 字段漂移必须红。
 
 - [ ] **7.2 写访问预算 RED**
 
 合法 post create 的唯一 access 为 identity/owner-after/revision-after，目标 3、门禁 4/10；最重
-one-time discussion reply 为 identity/post/root/reply-to/owner-after/revision-after/thread-after，目标
-7、门禁 8/20。两条生产 payload 在 Emulator 必须成功；注入额外访问的变异 fixture 必须因预算红。
+one-time discussion reply 为 identity/post/root/reply-to/owner-after/revision-after，目标
+6、门禁 8/20。两条生产 payload 在 Emulator 必须成功；注入额外访问的变异 fixture 必须因预算红。
 
 - [ ] **7.3 实现 Rules/indexes 并 GREEN**
 
@@ -426,7 +424,8 @@ Bob 越权编辑/应验/反馈失败；匿名 thread alias 同帖稳定跨帖不
 
 - RI 合并 commit 在远端 main，storage/shell pin 同一 ref/resolved-ref。
 - 公开 payload 中 provider/canonical author UID keys 命中 0；原始 Firestore 合同测试同样为 0。
-- owner、thread presentation、revision、schema fixture 全部实现并通过 production Rules。
+- owner、revision、schema fixture 全部实现并通过 production Rules；one-time anonymous
+  匿名 ID 内容派生为 `post_{postId}`（无 thread-presentation 私有映射）。
 - 详情计数真实；Feed 占位计数不渲染；`aggregateReadCount=3` 明确是聚合查询次数。
 - Rules 最重路径在 10/20 访问预算内；Emulator gate 零 skip、零 allow-all。
 - callable 源码保留但未装配；通知、私信、Profile、待断/可信推荐未被误报完成。

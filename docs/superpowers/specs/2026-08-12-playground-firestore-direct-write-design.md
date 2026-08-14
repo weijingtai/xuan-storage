@@ -87,9 +87,9 @@ camelCase `appUserId`；因此 **identity schema convergence 是 direct adapter 
 展示 ID 及经过账号层批准的 alias/avatar/profile-ref 快照：
 
 - `stableAlias`：使用账号层的随机 `public_presentation_id`。
-- `oneTimeAnonymous`：帖子使用 Rules 可验证的 `post_{postId}`；同一 actor 在同一帖子下的
-  所有回复使用私有 thread-presentation mapping 首次生成的 128-bit 随机 ID，线程内稳定、
-  跨帖不可关联。adapter 不再定义或接受 SHA-256 格式的 thread presentation ID。
+- `oneTimeAnonymous`：帖子与回复统一使用 Rules 可验证的 `post_{postId}`（内容派生，
+  确定性、零账号状态），同帖内线程稳定、跨帖不可关联。adapter 不再定义或接受 SHA-256
+  格式的 thread presentation ID。
 
 展示模式和展示 ID 创建后不可修改。公开 DTO 不得返回内部身份。
 
@@ -104,7 +104,6 @@ avatar/profile ref 必须为 null。这样客户端不能把真实姓名或任�
 - `playground_post_owners/{postId}`
 - `playground_reply_owners/{replyId}`
 - `playground_like_owners/{likeId}`
-- `playground_thread_presentations/{postId}__{providerUid}`
 
 owner 文档保存 `provider_uid`、`app_user_id`、`public_presentation_id`、目标 ID 和
 `created_at`，仅 owner 可读；禁止
@@ -112,12 +111,10 @@ list。创建公开事实时必须在同一 batch/transaction 创建 owner 文�
 `getAfter()` 验证两者一一对应。公开事实被墓碑化时 owner 文档保留；禁止客户端物理删除
 帖子、回复和 owner 文档。
 
-thread-presentation 文档只允许当前 UID get、禁止 list/write-after-create，字段为
-`post_id,provider_uid,presentation_identity_id,created_at`。首次 one-time anonymous 回复时，
-adapter 在同一 transaction 创建随机 presentation ID 的 mapping、reply 与 reply owner；后续
-回复必须复用 mapping。Rules 通过可寻址路径
-`{postId}__{request.auth.uid}` 的 `getAfter()` 比对 reply 展示 ID。伪造 ID、跨 actor 复用、
-重复创建 mapping 均拒绝。one-time anonymous 帖子自身仍用 Rules 可验证的 `post_{postId}`。
+> one-time anonymous 不引入私有映射文档：匿名展示 ID 一律内容派生为 `post_{postId}`，
+> 由 Rules 直接校验（见 §3.2/§6.2），无需额外 owner 之外的私有状态。
+> 若未来产品明确要求同帖内区分多个匿名作者（per-thread persona），另开独立任务，
+> 不得在本设计静默引入 mapping 复杂度。
 
 收藏是私有事实，`playground_bookmarks/{bookmarkId}` 可直接包含内部 owner 字段，但只允许
 本人 get/query/write，任何其他用户不可读。
@@ -208,10 +205,6 @@ playground_{post|reply}_owners/{contentId}
 playground_like_owners/{likeId}
   like_id:string, provider_uid:string, app_user_id:string,
   target_type:string(post|reply), target_id:string, created_at:timestamp
-
-playground_thread_presentations/{postId}__{providerUid}
-  post_id:string, provider_uid:string, presentation_identity_id:string,
-  created_at:timestamp
 
 playground_likes/{likeId}
   id:string, target_type:string(post|reply), target_id:string,
@@ -428,7 +421,7 @@ Rules 合同测试必须记录每种 atomic write 的唯一 `get/getAfter/exists
 | 写操作 | 唯一文档访问 | 预算 |
 |---|---|---|
 | stable/one-time post create（post+owner+revision） | identity_map、post owner after、revision after = 3 | 4/10 |
-| 最重 one-time discussion reply create（reply+owner+revision+首次 thread mapping） | identity_map、post、root、reply-to、reply owner after、revision after、thread mapping after = 7 | 8/20 |
+| 最重 one-time discussion reply create（reply+owner+revision） | identity_map、post、root、reply-to、reply owner after、revision after = 6 | 8/20 |
 
 任何 helper 增加访问后必须更新此表；估算超过单写 10 或 atomic multi-write 20 时 RED，不能通过
 删测试或改为 allow-all。Emulator Rules 测试必须至少覆盖上述两条最重路径，并证明合法写成功；
