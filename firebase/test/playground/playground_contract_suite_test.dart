@@ -153,14 +153,14 @@ void main() {
         firestore: firestore,
         auth: mockAuth,
         identityResolver: identityResolver,
-        
+
       ),
     ),
     makeLikeRemote: () => FirebasePlaygroundLikeRepository(
       firestore: firestore,
       auth: mockAuth,
       identityResolver: identityResolver,
-      
+
     ),
   );
 
