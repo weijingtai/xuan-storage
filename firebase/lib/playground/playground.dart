@@ -25,3 +25,8 @@ export 'firebase_playground_reply_command_repository.dart';
 export 'firebase_playground_feed_query_repository.dart';
 export 'firebase_playground_engagement_repository.dart';
 export 'firebase_playground_report_repository.dart';
+export 'firestore_direct_playground_post_command_repository.dart';
+export 'firestore_direct_playground_reply_command_repository.dart';
+export 'firestore_direct_playground_engagement_repository.dart';
+export 'firestore_direct_playground_verification_repository.dart';
+export 'firestore_direct_playground_outcome_feedback_repository.dart';
