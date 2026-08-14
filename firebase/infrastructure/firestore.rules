@@ -183,7 +183,11 @@ service cloud.firestore {
         && request.resource.data.app_user_id == identityDoc().data.app_user_id
         && (request.resource.data.created_at is timestamp)
         && getAfter(/databases/$(database)/documents/playground_likes/$(likeId)).data != null;
-      allow update, delete: if false;
+      // delete：仅 owner 本人删除（与公开 like 同一 atomic write 中匹配删除）。
+      // R1：允许 unlike 的 owner delete，但仅限本人私有 owner 文档。
+      allow delete: if request.auth != null
+        && resource.data.provider_uid == request.auth.uid;
+      allow update: if false;
     }
 
     // ============================================================
@@ -249,8 +253,9 @@ service cloud.firestore {
         && getAfter(/databases/$(database)/documents/playground_posts/$(postId)/revisions/r0000000001).data != null
         && getAfter(/databases/$(database)/documents/playground_posts/$(postId)/revisions/r0000000001).data.revision_no == 1;
 
-      // update：仅 owner；仅可变字段；active->tombstoned 必须清空公开正文；
-      // 编辑必须连续追加 revision。
+      // update：仅 owner；仅可变字段（diff affectedKeys，R1 修复：不得用全量 keys()）；
+      // active->tombstoned 必须清空公开正文；编辑必须连续追加 revision——
+      // getAfter 指向新 current_revision_id，核验 parent/编号/内容与当前事实一致。
       allow update: if request.auth != null
         && ownerAfter('playground_post_owners', postId).data != null
         && ownerAfter('playground_post_owners', postId).data.provider_uid == request.auth.uid
@@ -259,22 +264,40 @@ service cloud.firestore {
             || (resource.data.status == 'active'
                 && request.resource.data.status == 'tombstoned'))
         && (request.resource.data.status == 'active'
-            ? request.resource.data.keys().hasOnly(['text',
-                 'allowed_chart_technique_ids', 'attachments', 'has_chart',
+            ? request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                 'text', 'allowed_chart_technique_ids', 'attachments',
                  'revision_no', 'current_revision_id', 'updated_at'])
+              && request.resource.data.diff(resource.data).affectedKeys().hasAll([
+                 'text', 'revision_no', 'current_revision_id', 'updated_at'])
               && validText(request.resource.data.text, 1, 4000)
               && validStringList(request.resource.data.allowed_chart_technique_ids, 16, 1, 64)
               && validAttachments(request.resource.data.attachments, 9)
-            : request.resource.data.keys().hasOnly(['text', 'attachments',
-                 'allowed_chart_technique_ids', 'status', 'revision_no',
-                 'current_revision_id', 'updated_at'])
+            : request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                 'status', 'text', 'attachments', 'allowed_chart_technique_ids',
+                 'revision_no', 'current_revision_id', 'updated_at'])
+              && request.resource.data.diff(resource.data).affectedKeys().hasAll([
+                 'status', 'text', 'revision_no', 'current_revision_id',
+                 'updated_at'])
               && request.resource.data.text == ''
               && request.resource.data.attachments.size() == 0
               && request.resource.data.allowed_chart_technique_ids.size() == 0)
         && request.resource.data.revision_no == resource.data.revision_no + 1
         && (request.resource.data.updated_at is timestamp)
         && (request.resource.data.created_at == resource.data.created_at)
-        && getAfter(/databases/$(database)/documents/playground_posts/$(postId)/revisions/r0000000001).data != null; // revision 连续由 adapter 保证精确 ID
+        // 新 revision 必须同批写入：指向新 current_revision_id 的 revision 存在、
+        // 编号 == 新 revision_no、parent == 旧 current_revision_id、
+        // 内容 == 新公开正文（tombstone 时 == 旧正文快照）。
+        // 注：getAfter 的 revision 文档由调用方在同批创建，缺失则 deny。
+        && getAfter(/databases/$(database)/documents/playground_posts/$(postId)/revisions/$(request.resource.data.current_revision_id)).data != null
+        && getAfter(/databases/$(database)/documents/playground_posts/$(postId)/revisions/$(request.resource.data.current_revision_id)).data.revision_no
+             == request.resource.data.revision_no
+        && getAfter(/databases/$(database)/documents/playground_posts/$(postId)/revisions/$(request.resource.data.current_revision_id)).data.parent_id
+             == resource.data.current_revision_id
+        && (request.resource.data.status == 'tombstoned'
+            ? getAfter(/databases/$(database)/documents/playground_posts/$(postId)/revisions/$(request.resource.data.current_revision_id)).data.body
+                 == resource.data.text
+            : getAfter(/databases/$(database)/documents/playground_posts/$(postId)/revisions/$(request.resource.data.current_revision_id)).data.body
+                 == request.resource.data.text);
 
       allow delete: if false;
     }
@@ -396,27 +419,47 @@ service cloud.firestore {
         && validReplyCreateData(request, replyId);
 
       // update：仅 owner；编辑追加 revision；tombstone 清空公开正文。
+      // R1：diff().affectedKeys()（不得用全量 keys()）；getAfter 指向新
+      // current_revision_id，核验编号/parent/内容与当前事实一致。
       allow update: if request.auth != null
         && ownerAfter('playground_reply_owners', replyId).data != null
         && ownerAfter('playground_reply_owners', replyId).data.provider_uid == request.auth.uid
         && resource.data.is_tombstoned != true
         && (request.resource.data.is_tombstoned == true
-            ? request.resource.data.keys().hasOnly(['body', 'technique_tags',
-                 'chart_attachment', 'media_attachments', 'is_tombstoned',
-                 'revision_no', 'current_revision_id', 'updated_at'])
+            ? request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                 'body', 'technique_tags', 'chart_attachment',
+                 'media_attachments', 'is_tombstoned', 'revision_no',
+                 'current_revision_id', 'updated_at'])
+              && request.resource.data.diff(resource.data).affectedKeys().hasAll([
+                 'is_tombstoned', 'revision_no', 'current_revision_id',
+                 'updated_at'])
               && request.resource.data.body == ''
               && request.resource.data.technique_tags.size() == 0
               && request.resource.data.chart_attachment == null
               && request.resource.data.media_attachments.size() == 0
-            : request.resource.data.keys().hasOnly(['body', 'technique_tags',
-                 'chart_attachment', 'media_attachments', 'revision_no',
-                 'current_revision_id', 'updated_at'])
+            : request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                 'body', 'technique_tags', 'chart_attachment',
+                 'media_attachments', 'revision_no', 'current_revision_id',
+                 'updated_at'])
+              && request.resource.data.diff(resource.data).affectedKeys().hasAll([
+                 'body', 'revision_no', 'current_revision_id', 'updated_at'])
               && validText(request.resource.data.body, 1, 4000)
               && validStringList(request.resource.data.technique_tags, 16, 1, 64))
         && request.resource.data.revision_no == resource.data.revision_no + 1
         && (request.resource.data.updated_at is timestamp)
         && (request.resource.data.created_at == resource.data.created_at)
-        && getAfter(/databases/$(database)/documents/playground_replies/$(replyId)/revisions/r0000000001).data != null;
+        // 新 revision 必须同批写入：编号 == 新 revision_no、parent == 旧
+        // current_revision_id、内容 == 新公开正文（tombstone 时 == 旧正文快照）。
+        && getAfter(/databases/$(database)/documents/playground_replies/$(replyId)/revisions/$(request.resource.data.current_revision_id)).data != null
+        && getAfter(/databases/$(database)/documents/playground_replies/$(replyId)/revisions/$(request.resource.data.current_revision_id)).data.revision_no
+             == request.resource.data.revision_no
+        && getAfter(/databases/$(database)/documents/playground_replies/$(replyId)/revisions/$(request.resource.data.current_revision_id)).data.parent_id
+             == resource.data.current_revision_id
+        && (request.resource.data.is_tombstoned == true
+            ? getAfter(/databases/$(database)/documents/playground_replies/$(replyId)/revisions/$(request.resource.data.current_revision_id)).data.body
+                 == resource.data.body
+            : getAfter(/databases/$(database)/documents/playground_replies/$(replyId)/revisions/$(request.resource.data.current_revision_id)).data.body
+                 == request.resource.data.body);
 
       allow delete: if false;
     }
@@ -472,10 +515,12 @@ service cloud.firestore {
              == request.resource.data.target_type
         && getAfter(/databases/$(database)/documents/playground_like_owners/$(likeId)).data.target_id
              == request.resource.data.target_id;
-      // unlike：删除公开 like 必须同批删除私有 like_owner（owner 校验）。
+      // unlike：删除公开 like 必须同批删除私有 like_owner（owner 校验，原子）。
+      // R1：getAfter 核验 owner 文档在同批中也被删除（匹配 delete）；单删任一侧拒绝。
       allow delete: if request.auth != null
         && get(/databases/$(database)/documents/playground_like_owners/$(likeId)).data != null
-        && get(/databases/$(database)/documents/playground_like_owners/$(likeId)).data.provider_uid == request.auth.uid;
+        && get(/databases/$(database)/documents/playground_like_owners/$(likeId)).data.provider_uid == request.auth.uid
+        && getAfter(/databases/$(database)/documents/playground_like_owners/$(likeId)).data == null;
       allow update: if false;
     }
 
@@ -526,10 +571,11 @@ service cloud.firestore {
             || get(/databases/$(database)/documents/playground_reply_owners/$(request.resource.data.root_reply_id)).data.provider_uid
                  != request.auth.uid);
       // update：仅状态转换 revoked_at null<->time，created_at 不变。
+      // R1：diff().affectedKeys()（update 是完整 future doc，不得用全量 keys()）。
       allow update: if request.auth != null
         && get(/databases/$(database)/documents/playground_post_owners/$(resource.data.post_id)).data != null
         && get(/databases/$(database)/documents/playground_post_owners/$(resource.data.post_id)).data.provider_uid == request.auth.uid
-        && request.resource.data.keys().hasOnly(['revoked_at'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['revoked_at'])
         && ((resource.data.revoked_at == null && request.resource.data.revoked_at is timestamp)
             || (resource.data.revoked_at is timestamp && request.resource.data.revoked_at == null));
       allow delete: if false;
@@ -565,26 +611,47 @@ service cloud.firestore {
         && getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)/revisions/r0000000001).data.revision_no == 1;
       // update：Poster-only；编辑追加 revision；撤回 deleted_at null->time；
       // 再发布清空 deleted_at 并追加 revision。
+      // R1：diff().affectedKeys()（update 是完整 future doc，不得用全量 keys()）；
+      // getAfter 指向新 current_revision_id 并核验编号/parent/内容一致。
       allow update: if request.auth != null
         && get(/databases/$(database)/documents/playground_post_owners/$(resource.data.post_id)).data != null
         && get(/databases/$(database)/documents/playground_post_owners/$(resource.data.post_id)).data.provider_uid == request.auth.uid
-        && (request.resource.data.keys().hasOnly(['outcome_description',
-             'revision_no', 'current_revision_id', 'updated_at', 'deleted_at'])
-            && request.resource.data.outcome_description != ''
-            && validText(request.resource.data.outcome_description, 1, 2000)
+        && (request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+               'outcome_description', 'revision_no', 'current_revision_id',
+               'updated_at', 'deleted_at'])
             && request.resource.data.revision_no == resource.data.revision_no + 1
             && (request.resource.data.updated_at is timestamp)
-            && (request.resource.data.deleted_at == null)
-            || (request.resource.data.keys().hasOnly(['outcome_description',
-                 'revision_no', 'current_revision_id', 'updated_at', 'deleted_at'])
-                && request.resource.data.outcome_description == ''
-                && request.resource.data.revision_no == resource.data.revision_no + 1
-                && (request.resource.data.updated_at is timestamp)
+            && (request.resource.data.outcome_description != ''
+                && request.resource.data.deleted_at == null
+                && validText(request.resource.data.outcome_description, 1, 2000)
+                || request.resource.data.outcome_description == ''
                 && ((resource.data.deleted_at == null
                      && request.resource.data.deleted_at is timestamp)
                     || (resource.data.deleted_at is timestamp
-                        && request.resource.data.deleted_at == null))));
+                        && request.resource.data.deleted_at == null))))
+        // 新 revision 必须同批写入：编号 == 新 revision_no、parent == 旧
+        // current_revision_id、内容 == 新公开正文（撤回时 == 旧正文快照）。
+        && getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)/revisions/$(request.resource.data.current_revision_id)).data != null
+        && getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)/revisions/$(request.resource.data.current_revision_id)).data.revision_no
+             == request.resource.data.revision_no
+        && getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)/revisions/$(request.resource.data.current_revision_id)).data.parent_id
+             == resource.data.current_revision_id
+        && (request.resource.data.outcome_description == ''
+            ? getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)/revisions/$(request.resource.data.current_revision_id)).data.body
+                 == resource.data.outcome_description
+            : getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)/revisions/$(request.resource.data.current_revision_id)).data.body
+                 == request.resource.data.outcome_description);
       allow delete: if false;
+    }
+
+    // feedback revision create 校验：仅 post owner；经 feedback 文档 post_id 反查。
+    function feedbackRevisionOwnerReady(feedbackId) {
+      let fb = getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId));
+      let owner = get(/databases/$(database)/documents/playground_post_owners/$(fb.data.post_id));
+      return fb.data != null
+        && fb.data.id == feedbackId
+        && owner.data != null
+        && owner.data.provider_uid == request.auth.uid;
     }
 
     // ============================================================
@@ -592,8 +659,13 @@ service cloud.firestore {
     // ============================================================
     match /playground_outcome_feedback/{feedbackId}/revisions/{revisionId} {
       allow read: if request.auth != null;
+      // create：仅 post owner（R1 修复：禁止任意用户注入孤儿 revision）。
+      // 校验 feedback 存在且同帖（feedback_{postId} 命名一致）、连续编号、
+      // parent == 当前 revision 指针、正文快照与 feedback 公开事实一致。
       allow create: if request.auth != null
         && identityReady()
+        && feedbackRevisionOwnerReady(feedbackId)
+        && (request.resource.data.id == revisionId)
         && request.resource.data.keys().hasOnly(['id', 'parent_id',
              'revision_no', 'body', 'presentation_mode', 'presentation_identity_id',
              'presentation_display_alias', 'presentation_avatar_url',
@@ -603,7 +675,19 @@ service cloud.firestore {
         && (request.resource.data.parent_id is string)
         && validText(request.resource.data.body, 0, 2000)
         && validPresentationMode(request.resource.data.presentation_mode)
-        && (request.resource.data.created_at is timestamp);
+        && (request.resource.data.created_at is timestamp)
+        // 连续编号：新 revision 编号 == 同批后 feedback 的 revision_no（初始/编辑均为 N）。
+        && request.resource.data.revision_no
+             == getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)).data.revision_no
+        // parent：revision 1 为 ''（根）；后续 == 本批前 feedback 的当前 revision 指针
+        // （get() 读 pre-write 旧指针；初始批 feedback 不存在→仅 revision 1 分支）。
+        && (request.resource.data.revision_no == 1
+            ? request.resource.data.parent_id == ''
+            : request.resource.data.parent_id
+                 == get(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)).data.current_revision_id)
+        // 正文快照 == feedback 公开 outcome_description（撤回后为 ''）。
+        && request.resource.data.body
+             == getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)).data.outcome_description;
       allow update, delete: if false;
     }
 
