@@ -193,7 +193,17 @@ service cloud.firestore {
     match /playground_thread_presentations/{mappingId} {
       allow read: if request.auth != null
                   && mappingId == resource.data.post_id + '__' + request.auth.uid;
-      allow write: if false;
+      // create：仅在与首次 one-time anonymous 回复同一 atomic write 中创建
+      // （reply create 规则已校验 mapping 与 reply 的 presentation_identity_id 一致）。
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(
+             ['post_id', 'provider_uid', 'presentation_identity_id', 'created_at'])
+        && request.resource.data.post_id + '__' + request.auth.uid == mappingId
+        && request.resource.data.provider_uid == request.auth.uid
+        && (request.resource.data.presentation_identity_id is string)
+        && request.resource.data.presentation_identity_id.size() >= 1
+        && (request.resource.data.created_at is timestamp);
+      allow update, delete: if false;
     }
 
     // ============================================================

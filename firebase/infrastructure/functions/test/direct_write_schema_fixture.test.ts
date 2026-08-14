@@ -362,12 +362,6 @@ describe('access budget · heavy paths succeed (§10.4)', () => {
         content_id: rootId, provider_uid: BOB_UID, app_user_id: BOB_APP,
         public_presentation_id: BOB_PUB, created_at: now,
       });
-      // one-time thread presentation mapping。
-      await fs.collection('playground_thread_presentations')
-          .doc(`${postId}__${BOB_UID}`).set({
-        post_id: postId, provider_uid: BOB_UID,
-        presentation_identity_id: 'anon_thread_128bit', created_at: now,
-      });
     });
 
     // Bob 以 oneTimeAnonymous 写二级回复（reply + reply_owner + revision 同批）。
@@ -394,6 +388,14 @@ describe('access budget · heavy paths succeed (§10.4)', () => {
       presentation_display_alias: '匿名用户', presentation_avatar_url: null,
       public_profile_ref: null, created_at: new Date(),
     });
+    // 首次 one-time 回复：thread mapping 同批创建（Design §3.3/§6.2）。
+    batch.set(
+      fs.collection('playground_thread_presentations').doc(`${postId}__${BOB_UID}`),
+      {
+        post_id: postId, provider_uid: BOB_UID,
+        presentation_identity_id: 'anon_thread_128bit', created_at: new Date(),
+      },
+    );
     await assertSucceeds(batch.commit());
   });
 
