@@ -32,10 +32,14 @@
 6. **详情 viewer/count**：`firebase_playground_thread_query_repository.dart:254-264` 用不存在的 like 文档 ID +
    额外 bookmark query；`:221-224` 把当前页 verified root 数当全帖总数 → like/bookmark 用与写端完全一致的
    deterministic direct-get ID；verified count 用已执行 verification aggregation。
+   → **DONE（storage commit 01d23ec）**：like/bookmark 改 deterministicCreateId 与写端一致；verifiedRootReplyCount
+   用全帖 verification count；3 测试（写后即 liked/bookmarked、旧错误 ID 不可匹配、>50 回复准确）。thread 5/5 全绿。
 7. **Shell capability 与门禁**：`post_detail_page.dart` 未提供 canDelete/canEdit 控件，反馈按 isOwner 而非
    canSetFeedback；`playground_navigation_contract_test.dart:107-115` 失败；bootstrap test skip →
    每控件只读对应 capability；Poster 对他人 root 显示应验按钮，对自己的 root 由 Rules 拒绝并显示错误；
    composition factory 抽成可注入无平台通道合同测试 + 另设真实平台/Emulator 门禁。
+   → **DONE（shell commits 7e58edd + c60a5c1）**：capability 读端口 + canSetFeedback 门控 + canEdit 控件 +
+   AppBar delete 用 canDelete；navigation 13/13 全绿，test/playground +116 全绿。
 8. **延后入口必须真正关闭**：Shell 仍生产装配 Profile/通知/私信 → 保留源码和 RI，本期 production
    route/dependencies 不暴露、不触发读写；加"未注册/未装配"测试。
 9. **收口工作树**：Shell 未提交 Playground VM/test 改动，Storage 9 个未跟踪 handoff；`git diff --check
