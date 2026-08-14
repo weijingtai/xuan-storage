@@ -42,8 +42,14 @@
    AppBar delete 用 canDelete；navigation 13/13 全绿，test/playground +116 全绿。
 8. **延后入口必须真正关闭**：Shell 仍生产装配 Profile/通知/私信 → 保留源码和 RI，本期 production
    route/dependencies 不暴露、不触发读写；加"未注册/未装配"测试。
+   → **DONE（shell commit）**：ShellPlaygroundBootstrap 新增 deferredFeaturesAssembled=false 默认不装配，
+   注入 Unavailable* fail-closed 存根（零 Firebase 访问，抛 unavailable + deferred-feature-not-assembled）；
+   phase_gate_test 3/3 全绿不 skip；import boundary 放行 phase_gate 子模块。
 9. **收口工作树**：Shell 未提交 Playground VM/test 改动，Storage 9 个未跟踪 handoff；`git diff --check
    main...HEAD` 报两处 trailing whitespace → 确认归属、只提交精确文件、禁 `git add -A`、修 whitespace。
+   → **DONE（storage commit ca1c062 + handoff 归档；shell commit 20916fb）**：storage/shell `git diff --check
+   main...HEAD` 均 exit 0；storage status 清空；shell 仅剩 pubspec.lock/GeneratedPluginRegistrant.swift
+   （规定不提交）；修 L156/163 trailing whitespace。
 
 ## 顺序
 P0(1→2→3→4) → P1(5→6→7→8→9) → 最终验收命令全绿。
