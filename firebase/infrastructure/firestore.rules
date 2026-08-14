@@ -316,102 +316,95 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+
+    // ============================================================
+    // reply create 校验 helper（Design §6.2/§8）
+    // 用 let 复用 get/getAfter 结果，降低单次请求表达式总数（规避 1000 上限）。
+    // ============================================================
+    function validReplyDepthOne(request, postId) {
+      let root = get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id));
+      let replyTo = get(/databases/$(database)/documents/playground_replies/$(request.resource.data.reply_to_reply_id));
+      return request.resource.data.root_reply_id != null
+        && root.data != null
+        && root.data.post_id == postId
+        && root.data.depth == 0
+        && root.data.is_tombstoned != true
+        && (request.resource.data.reply_to_reply_id == null
+            || (replyTo.data != null
+                && replyTo.data.post_id == postId
+                && replyTo.data.root_reply_id == request.resource.data.root_reply_id
+                && replyTo.data.is_tombstoned != true));
+    }
+    function validReplyCreateData(request, replyId) {
+      let data = request.resource.data;
+      let keys = data.keys();
+      let postId = data.post_id;
+      let identity = identityDoc().data;
+      let post = get(/databases/$(database)/documents/playground_posts/$(postId));
+      let mapping = getAfter(/databases/$(database)/documents/playground_thread_presentations/$(postId + '__' + request.auth.uid));
+      let owner = getAfter(/databases/$(database)/documents/playground_reply_owners/$(replyId));
+      let revision = getAfter(/databases/$(database)/documents/playground_replies/$(replyId)/revisions/r0000000001);
+      return identity != null
+        && keys.hasOnly(['id', 'post_id', 'presentation_mode',
+             'presentation_identity_id', 'presentation_display_alias',
+             'presentation_avatar_url', 'public_profile_ref', 'depth', 'body',
+             'is_tombstoned', 'root_reply_id', 'reply_to_reply_id',
+             'technique_tags', 'chart_attachment', 'media_attachments',
+             'revision_no', 'current_revision_id', 'idempotency_key',
+             'payload_hash', 'created_at', 'updated_at'])
+        && data.id == replyId
+        && data.is_tombstoned == false
+        && data.depth in [0, 1]
+        && validText(data.body, 1, 4000)
+        && validStringList(data.technique_tags, 16, 1, 64)
+        && validAttachments(data.media_attachments, 9)
+        && (!keys.hasAny(['chart_attachment']) || data.chart_attachment == null
+            || (data.depth == 0 && validAttachment(data.chart_attachment)))
+        && validPresentationMode(data.presentation_mode)
+        && data.revision_no == 1
+        && validText(data.current_revision_id, 1, 128)
+        && validText(data.idempotency_key, 1, 128)
+        && validText(data.payload_hash, 1, 128)
+        && (data.created_at is timestamp) && (data.updated_at is timestamp)
+        && data.created_at == data.updated_at
+        && post.data != null && post.data.status == 'active'
+        && (data.depth == 0
+            ? data.root_reply_id == null && data.reply_to_reply_id == null
+            : data.depth == 1 && validReplyDepthOne(request, postId))
+        && (data.presentation_mode == 'stableAlias'
+            ? data.presentation_identity_id == identity.public_presentation_id
+              && data.presentation_display_alias == identity.public_display_alias
+            : data.presentation_mode == 'oneTimeAnonymous'
+              && mapping.data != null
+              && mapping.data.presentation_identity_id == data.presentation_identity_id
+              && data.presentation_display_alias == '匿名用户')
+        && owner.data != null
+        && owner.data.keys().hasOnly(['content_id', 'provider_uid', 'app_user_id',
+             'public_presentation_id', 'created_at'])
+        && owner.data.content_id == replyId
+        && owner.data.provider_uid == request.auth.uid
+        && owner.data.app_user_id == identity.app_user_id
+        && owner.data.public_presentation_id == identity.public_presentation_id
+        && (data.presentation_mode == 'oneTimeAnonymous'
+            ? mapping.data != null
+              && mapping.data.keys().hasOnly(['post_id', 'provider_uid',
+                   'presentation_identity_id', 'created_at'])
+              && mapping.data.post_id == postId
+              && mapping.data.provider_uid == request.auth.uid
+              && mapping.data.presentation_identity_id == data.presentation_identity_id
+            : true)
+        && revision.data != null
+        && revision.data.revision_no == 1;
+    }
+
     // ============================================================
     // playground_replies —— 公开文档（Design §3.2/§4/§6.2/§8）
     // ============================================================
     match /playground_replies/{replyId} {
-      allow read: if request.auth != null
-                  && (resource.data.is_tombstoned != true
-                      || ownerAfter('playground_reply_owners', replyId).data != null
-                          && ownerAfter('playground_reply_owners', replyId).data.provider_uid == request.auth.uid);
-
       // create：公开 reply + reply owner + （one-time 首次）thread mapping
-      // 同一 atomic write。
+      // 同一 atomic write（校验逻辑抽到 validReplyCreateData，let 复用降低表达式数）。
       allow create: if request.auth != null
-        && identityReady()
-        && request.resource.data.keys().hasOnly(['id', 'post_id',
-             'presentation_mode', 'presentation_identity_id',
-             'presentation_display_alias', 'presentation_avatar_url',
-             'public_profile_ref', 'depth', 'body', 'is_tombstoned',
-             'root_reply_id', 'reply_to_reply_id', 'technique_tags',
-             'chart_attachment', 'media_attachments', 'revision_no',
-             'current_revision_id', 'idempotency_key', 'payload_hash',
-             'created_at', 'updated_at'])
-        && request.resource.data.id == replyId
-        && request.resource.data.is_tombstoned == false
-        && request.resource.data.depth in [0, 1]
-        && validText(request.resource.data.body, 1, 4000)
-        && validStringList(request.resource.data.technique_tags, 16, 1, 64)
-        && validAttachments(request.resource.data.media_attachments, 9)
-        && (!request.resource.data.keys().hasAny(['chart_attachment'])
-            || request.resource.data.chart_attachment == null
-            || (request.resource.data.depth == 0
-                && validAttachment(request.resource.data.chart_attachment)))
-        && validPresentationMode(request.resource.data.presentation_mode)
-        && request.resource.data.revision_no == 1
-        && validText(request.resource.data.current_revision_id, 1, 128)
-        && validText(request.resource.data.idempotency_key, 1, 128)
-        && validText(request.resource.data.payload_hash, 1, 128)
-        && (request.resource.data.created_at is timestamp)
-        && (request.resource.data.updated_at is timestamp)
-        && request.resource.data.created_at == request.resource.data.updated_at
-        // 目标 post 必须存在且 active。
-        && get(/databases/$(database)/documents/playground_posts/$(request.resource.data.post_id)).data != null
-        && get(/databases/$(database)/documents/playground_posts/$(request.resource.data.post_id)).data.status == 'active'
-        // depth 语义。
-        && (request.resource.data.depth == 0
-            ? request.resource.data.root_reply_id == null
-              && request.resource.data.reply_to_reply_id == null
-            : request.resource.data.depth == 1
-              && request.resource.data.root_reply_id != null
-              && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).data != null
-              && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).data.post_id
-                   == request.resource.data.post_id
-              && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).data.depth == 0
-              && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).data.is_tombstoned != true
-              && (request.resource.data.reply_to_reply_id == null
-                  || get(/databases/$(database)/documents/playground_replies/$(request.resource.data.reply_to_reply_id)).data != null
-                  && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.reply_to_reply_id)).data.post_id
-                       == request.resource.data.post_id
-                  && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.reply_to_reply_id)).data.root_reply_id
-                       == request.resource.data.root_reply_id
-                  && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.reply_to_reply_id)).data.is_tombstoned != true))
-        // 展示身份。
-        && (request.resource.data.presentation_mode == 'stableAlias'
-            ? request.resource.data.presentation_identity_id
-                == identityDoc().data.public_presentation_id
-              && request.resource.data.presentation_display_alias
-                == identityDoc().data.public_display_alias
-            : request.resource.data.presentation_mode == 'oneTimeAnonymous'
-              && request.resource.data.presentation_identity_id
-                   == getAfter(/databases/$(database)/documents/playground_thread_presentations/$(request.resource.data.post_id + '__' + request.auth.uid)).data.presentation_identity_id
-              && request.resource.data.presentation_display_alias == '匿名用户')
-        // owner 文档一一对应。
-        && ownerAfter('playground_reply_owners', replyId).data != null
-        && ownerAfter('playground_reply_owners', replyId).data.keys().hasOnly(
-             ['content_id', 'provider_uid', 'app_user_id',
-              'public_presentation_id', 'created_at'])
-        && ownerAfter('playground_reply_owners', replyId).data.content_id == replyId
-        && ownerAfter('playground_reply_owners', replyId).data.provider_uid == request.auth.uid
-        && ownerAfter('playground_reply_owners', replyId).data.app_user_id
-             == identityDoc().data.app_user_id
-        && ownerAfter('playground_reply_owners', replyId).data.public_presentation_id
-             == identityDoc().data.public_presentation_id
-        // one-time anonymous 首次回复必须创建 thread mapping；stableAlias 不需要。
-        && (request.resource.data.presentation_mode == 'oneTimeAnonymous'
-            ? getAfter(/databases/$(database)/documents/playground_thread_presentations/$(request.resource.data.post_id + '__' + request.auth.uid)).data != null
-              && getAfter(/databases/$(database)/documents/playground_thread_presentations/$(request.resource.data.post_id + '__' + request.auth.uid)).data.keys().hasOnly(
-                   ['post_id', 'provider_uid', 'presentation_identity_id', 'created_at'])
-              && getAfter(/databases/$(database)/documents/playground_thread_presentations/$(request.resource.data.post_id + '__' + request.auth.uid)).data.post_id
-                   == request.resource.data.post_id
-              && getAfter(/databases/$(database)/documents/playground_thread_presentations/$(request.resource.data.post_id + '__' + request.auth.uid)).data.provider_uid
-                   == request.auth.uid
-              && getAfter(/databases/$(database)/documents/playground_thread_presentations/$(request.resource.data.post_id + '__' + request.auth.uid)).data.presentation_identity_id
-                   == request.resource.data.presentation_identity_id
-            : true)
-        // revision 1 同时创建。
-        && getAfter(/databases/$(database)/documents/playground_replies/$(replyId)/revisions/r0000000001).data != null
-        && getAfter(/databases/$(database)/documents/playground_replies/$(replyId)/revisions/r0000000001).data.revision_no == 1;
+        && validReplyCreateData(request, replyId);
 
       // update：仅 owner；编辑追加 revision；tombstone 清空公开正文。
       allow update: if request.auth != null
