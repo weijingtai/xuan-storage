@@ -70,6 +70,7 @@ void main() {
     required DateTime createdAt,
     String status = 'active',
     List<String> techniqueIds = const [],
+    bool hasChart = false,
   }) {
     return firestore.collection(PlaygroundFirestoreSchema.posts).doc(docId).set({
       'id': docId,
@@ -82,7 +83,7 @@ void main() {
       'status': status,
       'allowed_chart_technique_ids': techniqueIds,
       'attachments': <dynamic>[],
-      'has_chart': false,
+      'has_chart': hasChart,
       'revision_no': 1,
       'current_revision_id': 'r0000000001',
       'idempotency_key': 'idem-$docId',
@@ -278,6 +279,127 @@ void main() {
         cursor: page1.nextCursor,
       ));
       expect(page2, isNotNull);
+    });
+  });
+
+  group('R1 P1-5 · content/time 扫描后过滤与 cursor 绑定（§10.1）', () {
+    test('content: withChart 只返回 has_chart==true', () async {
+      await seedPost('chart', text: '带图', createdAt: DateTime.utc(2026, 1, 1),
+          hasChart: true);
+      await seedPost('text', text: '纯文', createdAt: DateTime.utc(2026, 1, 2),
+          hasChart: false);
+      final page = await repo.getLatestFeed(GetFeedBatchQuery(
+        tab: PlaygroundFeedTab.latest,
+        filter: const PlaygroundComposableFilter(
+            content: PlaygroundFeedContentType.withChart),
+        limit: 10,
+      ));
+      final ids = page.items.map((i) => i.post.publicPostId.value).toList();
+      expect(ids, contains('chart'));
+      expect(ids, isNot(contains('text')));
+    });
+
+    test('content: textOnly 只返回 has_chart!=true', () async {
+      await seedPost('chart', text: '带图', createdAt: DateTime.utc(2026, 1, 1),
+          hasChart: true);
+      await seedPost('text', text: '纯文', createdAt: DateTime.utc(2026, 1, 2),
+          hasChart: false);
+      final page = await repo.getLatestFeed(GetFeedBatchQuery(
+        tab: PlaygroundFeedTab.latest,
+        filter: const PlaygroundComposableFilter(
+            content: PlaygroundFeedContentType.textOnly),
+        limit: 10,
+      ));
+      final ids = page.items.map((i) => i.post.publicPostId.value).toList();
+      expect(ids, contains('text'));
+      expect(ids, isNot(contains('chart')));
+    });
+
+    test('timeRange: today 过滤掉更早的帖子', () async {
+      final now = DateTime.now();
+      await seedPost('recent', text: '今天', createdAt: now.subtract(const Duration(hours: 1)),
+          hasChart: false);
+      await seedPost('old', text: '一年前', createdAt: now.subtract(const Duration(days: 400)),
+          hasChart: false);
+      final page = await repo.getLatestFeed(GetFeedBatchQuery(
+        tab: PlaygroundFeedTab.latest,
+        filter: const PlaygroundComposableFilter(
+            timeRange: PlaygroundFeedTimeRange.today),
+        limit: 10,
+      ));
+      final ids = page.items.map((i) => i.post.publicPostId.value).toList();
+      expect(ids, contains('recent'));
+      expect(ids, isNot(contains('old')));
+    });
+
+    test('技法超过 10 项 → invalidArgument + filter/technique-count-exceeded', () async {
+      final ids = List.generate(11, (i) => 't$i');
+      expect(
+        () => repo.getLatestFeed(GetFeedBatchQuery(
+          tab: PlaygroundFeedTab.latest,
+          filter: PlaygroundComposableFilter(techniqueIds: ids),
+          limit: 10,
+        )),
+        throwsA(isA<PlaygroundError>()
+            .having((e) => e.code, 'code', PlaygroundErrorCode.invalidArgument)
+            .having((e) => e.machineCode, 'machineCode',
+                'filter/technique-count-exceeded')),
+      );
+    });
+
+    test('cursor 绑定相同 filter：换 filter 复用 cursor → invalidArgument + cursor-filter-mismatch',
+        () async {
+      for (var i = 0; i < 5; i++) {
+        await seedPost('p-$i', text: '帖$i',
+            createdAt: DateTime.utc(2026, 1, i + 1));
+      }
+      final page1 = await repo.getLatestFeed(
+        const GetFeedBatchQuery(tab: PlaygroundFeedTab.latest, limit: 3),
+      );
+      expect(page1.nextCursor, isNotNull);
+
+      // 用内容 filter 复用同一 cursor → 拒绝。
+      expect(
+        () => repo.getLatestFeed(GetFeedBatchQuery(
+          tab: PlaygroundFeedTab.latest,
+          filter: const PlaygroundComposableFilter(
+              content: PlaygroundFeedContentType.withChart),
+          cursor: page1.nextCursor,
+          limit: 3,
+        )),
+        throwsA(isA<PlaygroundError>()
+            .having((e) => e.code, 'code', PlaygroundErrorCode.invalidArgument)
+            .having((e) => e.machineCode, 'machineCode',
+                'filter/cursor-filter-mismatch')),
+      );
+    });
+
+    test('相同 filter 复用 cursor 正常翻页（无漏/重）', () async {
+      for (var i = 0; i < 6; i++) {
+        await seedPost('p-$i', text: '帖$i',
+            createdAt: DateTime.utc(2026, 1, i + 1),
+            hasChart: i.isEven);
+      }
+      const filter = PlaygroundComposableFilter(
+          content: PlaygroundFeedContentType.withChart);
+      final page1 = await repo.getLatestFeed(GetFeedBatchQuery(
+        tab: PlaygroundFeedTab.latest,
+        filter: filter,
+        limit: 2,
+      ));
+      expect(page1.items.map((i) => i.post.publicPostId.value).toList(),
+          ['p-4', 'p-2']);
+
+      final page2 = await repo.getLatestFeed(GetFeedBatchQuery(
+        tab: PlaygroundFeedTab.latest,
+        filter: filter,
+        cursor: page1.nextCursor,
+        limit: 2,
+      ));
+      final ids2 = page2.items.map((i) => i.post.publicPostId.value).toList();
+      expect(ids2, contains('p-0'));
+      expect(ids2, isNot(contains('p-4')));
+      expect(ids2, isNot(contains('p-2')));
     });
   });
 

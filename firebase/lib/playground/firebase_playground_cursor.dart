@@ -30,16 +30,35 @@ final class FirebasePlaygroundCursor {
   /// 双端稳定。cursor 对业务层仍是不透明 token。
   static PlaygroundCursor fromQueryDocumentWithOrderBy(
     QueryDocumentSnapshot doc,
-    List<String> orderByFields,
-  ) {
+    List<String> orderByFields, {
+    String? filterHash,
+  }) {
     final values = <dynamic>[];
     for (final f in orderByFields) {
       final v = doc.get(f);
       values.add(v is Timestamp ? v.toDate().toIso8601String() : v);
     }
-    final payload = {'path': doc.reference.path, 'values': values};
+    final payload = {
+      'path': doc.reference.path,
+      'values': values,
+      'filterHash': ?filterHash,
+    };
     final token = base64Encode(utf8.encode(jsonEncode(payload)));
     return PlaygroundCursor(token);
+  }
+
+  /// 读取 cursor 携带的 filter hash（feed 分页绑定同 tab/filter 用）。
+  ///
+  /// 返回 null 若 cursor 为空、格式无效或不含 filterHash（旧 token/非 feed）。
+  static String? filterHashOf(PlaygroundCursor cursor) {
+    if (cursor.isEmpty) return null;
+    try {
+      final jsonStr = utf8.decode(base64Decode(cursor.token));
+      final payload = jsonDecode(jsonStr) as Map<String, dynamic>;
+      return payload['filterHash'] as String?;
+    } catch (_) {
+      return null;
+    }
   }
 
   /// 从 opaque cursor 解码 orderBy 值数组（用于 `startAfter(values)`）。
