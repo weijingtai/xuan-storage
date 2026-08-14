@@ -424,4 +424,50 @@ describe('access budget · heavy paths succeed (§10.4)', () => {
     });
     await assertSucceeds(batch.commit());
   });
+
+  test('deny: Poster 应验自己的 root 回复（非 Poster 自己回复校验）', async () => {
+    // Alice 既是帖子 owner 又是 root 回复作者 → verify 必须被拒绝。
+    const postId = 'post-own-verify-1';
+    const rootId = 'root-own-verify-1';
+    const now = new Date();
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      const fs = ctx.firestore();
+      await fs.collection('playground_posts').doc(postId).set({
+        id: postId, text: '帖', presentation_mode: 'stableAlias',
+        presentation_identity_id: ALICE_PUB, presentation_display_alias: ALICE_ALIAS,
+        presentation_avatar_url: null, public_profile_ref: null, status: 'active',
+        allowed_chart_technique_ids: [], attachments: [], has_chart: false,
+        revision_no: 1, current_revision_id: 'r0000000001',
+        idempotency_key: 'k', payload_hash: 'h', created_at: now, updated_at: now,
+      });
+      await fs.collection('playground_post_owners').doc(postId).set({
+        content_id: postId, provider_uid: ALICE_UID, app_user_id: ALICE_APP,
+        public_presentation_id: ALICE_PUB, created_at: now,
+      });
+      await fs.collection('playground_replies').doc(rootId).set({
+        id: rootId, post_id: postId, presentation_mode: 'stableAlias',
+        presentation_identity_id: ALICE_PUB, presentation_display_alias: ALICE_ALIAS,
+        presentation_avatar_url: null, public_profile_ref: null, depth: 0,
+        body: 'Alice 自己的根回复', is_tombstoned: false,
+        root_reply_id: null, reply_to_reply_id: null,
+        technique_tags: [], chart_attachment: null, media_attachments: [],
+        revision_no: 1, current_revision_id: 'r0000000001',
+        idempotency_key: 'k2', payload_hash: 'h2', created_at: now, updated_at: now,
+      });
+      await fs.collection('playground_reply_owners').doc(rootId).set({
+        content_id: rootId, provider_uid: ALICE_UID, app_user_id: ALICE_APP,
+        public_presentation_id: ALICE_PUB, created_at: now,
+      });
+    });
+
+    const db = alice();
+    const fs = db.firestore();
+    const verificationId = `verify_${postId}_${rootId}`;
+    await assertFails(
+      fs.collection('playground_verifications').doc(verificationId).set({
+        id: verificationId, post_id: postId, root_reply_id: rootId,
+        created_at: new Date(), revoked_at: null,
+      }),
+    );
+  });
 });

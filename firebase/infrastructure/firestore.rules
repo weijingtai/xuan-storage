@@ -383,6 +383,13 @@ service cloud.firestore {
     // playground_replies —— 公开文档（Design §3.2/§4/§6.2/§8）
     // ============================================================
     match /playground_replies/{replyId} {
+      // read：公开 active 回复可读；tombstone 仅作者可读（无正文）。
+      allow read: if request.auth != null
+                  && (resource.data.is_tombstoned != true
+                      || (resource.data.is_tombstoned == true
+                          && ownerAfter('playground_reply_owners', replyId).data != null
+                          && ownerAfter('playground_reply_owners', replyId).data.provider_uid == request.auth.uid));
+
       // create：公开 reply + reply owner + revision 同一 atomic write（校验逻辑抽到
       // validReplyCreateData，let 复用降低表达式数）。
       allow create: if request.auth != null
@@ -514,8 +521,8 @@ service cloud.firestore {
              == request.resource.data.post_id
         && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).data.depth == 0
         && get(/databases/$(database)/documents/playground_replies/$(request.resource.data.root_reply_id)).data.is_tombstoned != true
-        // 非 Poster 自己回复。
-        && (!get(/databases/$(database)/documents/playground_reply_owners/$(request.resource.data.root_reply_id)).data != null
+        // 非 Poster 自己回复（owner 文档缺失或不是当前用户）。
+        && (get(/databases/$(database)/documents/playground_reply_owners/$(request.resource.data.root_reply_id)).data == null
             || get(/databases/$(database)/documents/playground_reply_owners/$(request.resource.data.root_reply_id)).data.provider_uid
                  != request.auth.uid);
       // update：仅状态转换 revoked_at null<->time，created_at 不变。

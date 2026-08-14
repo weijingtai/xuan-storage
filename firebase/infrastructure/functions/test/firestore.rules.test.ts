@@ -595,6 +595,18 @@ describe('BLOCK-02 · replies · production payload（RED-B）', () => {
         .collection('playground_replies')
         .doc('pr-tomb-1')
         .set({ ...productionRootReplyPayload(), is_tombstoned: true });
+      // 生产 reply_owner 与 reply 原子创建；tombstone 读取须 owner 文档存在。
+      await ctx
+        .firestore()
+        .collection('playground_reply_owners')
+        .doc('pr-tomb-1')
+        .set({
+          content_id: 'pr-tomb-1',
+          provider_uid: 'alice-uid',
+          app_user_id: 'app-alice',
+          public_presentation_id: 'pub_alice',
+          created_at: new Date(),
+        });
     });
     const db = aliceContext();
     await assertSucceeds(
@@ -611,6 +623,17 @@ describe('BLOCK-02 · replies · production payload（RED-B）', () => {
         .collection('playground_replies')
         .doc('pr-tomb-2')
         .set({ ...productionRootReplyPayload(), is_tombstoned: true });
+      await ctx
+        .firestore()
+        .collection('playground_reply_owners')
+        .doc('pr-tomb-2')
+        .set({
+          content_id: 'pr-tomb-2',
+          provider_uid: 'alice-uid',
+          app_user_id: 'app-alice',
+          public_presentation_id: 'pub_alice',
+          created_at: new Date(),
+        });
     });
     const bobDb = bobContext();
     await assertFails(
