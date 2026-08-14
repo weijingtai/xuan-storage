@@ -130,7 +130,20 @@ service cloud.firestore {
     match /playground_post_owners/{postId} {
       allow read: if request.auth != null
                   && resource.data.provider_uid == request.auth.uid;
-      allow write: if false; // 仅由 post create 的 atomic write 创建
+      // create：仅在与公开 post 同一 atomic write 中创建（post create 规则已校验）。
+      allow create: if request.auth != null
+        && identityReady()
+        && request.resource.data.keys().hasOnly(
+             ['content_id', 'provider_uid', 'app_user_id',
+              'public_presentation_id', 'created_at'])
+        && request.resource.data.content_id == postId
+        && request.resource.data.provider_uid == request.auth.uid
+        && request.resource.data.app_user_id == identityDoc().data.app_user_id
+        && request.resource.data.public_presentation_id
+             == identityDoc().data.public_presentation_id
+        && (request.resource.data.created_at is timestamp)
+        && getAfter(/databases/$(database)/documents/playground_posts/$(postId)).data != null;
+      allow update, delete: if false;
     }
 
     // ============================================================
@@ -139,7 +152,19 @@ service cloud.firestore {
     match /playground_reply_owners/{replyId} {
       allow read: if request.auth != null
                   && resource.data.provider_uid == request.auth.uid;
-      allow write: if false;
+      allow create: if request.auth != null
+        && identityReady()
+        && request.resource.data.keys().hasOnly(
+             ['content_id', 'provider_uid', 'app_user_id',
+              'public_presentation_id', 'created_at'])
+        && request.resource.data.content_id == replyId
+        && request.resource.data.provider_uid == request.auth.uid
+        && request.resource.data.app_user_id == identityDoc().data.app_user_id
+        && request.resource.data.public_presentation_id
+             == identityDoc().data.public_presentation_id
+        && (request.resource.data.created_at is timestamp)
+        && getAfter(/databases/$(database)/documents/playground_replies/$(replyId)).data != null;
+      allow update, delete: if false;
     }
 
     // ============================================================
@@ -148,7 +173,17 @@ service cloud.firestore {
     match /playground_like_owners/{likeId} {
       allow read: if request.auth != null
                   && resource.data.provider_uid == request.auth.uid;
-      allow write: if false;
+      allow create: if request.auth != null
+        && identityReady()
+        && request.resource.data.keys().hasOnly(
+             ['like_id', 'provider_uid', 'app_user_id',
+              'target_type', 'target_id', 'created_at'])
+        && request.resource.data.like_id == likeId
+        && request.resource.data.provider_uid == request.auth.uid
+        && request.resource.data.app_user_id == identityDoc().data.app_user_id
+        && (request.resource.data.created_at is timestamp)
+        && getAfter(/databases/$(database)/documents/playground_likes/$(likeId)).data != null;
+      allow update, delete: if false;
     }
 
     // ============================================================
