@@ -149,6 +149,7 @@ class LocationPreferenceDaoImpl implements LocationPreferenceDao {
       latitude: (json['latitude'] as num).toDouble(),
       longitude: (json['longitude'] as num).toDouble(),
       name: json['name'] as String?,
+      timezone: json['timezone'] as String?,
     );
   }
 
@@ -159,6 +160,7 @@ class LocationPreferenceDaoImpl implements LocationPreferenceDao {
       'latitude': location.latitude,
       'longitude': location.longitude,
       'name': location.name,
+      if (location.timezone != null) 'timezone': location.timezone,
     };
     await prefs.setString(_keyRecent, jsonEncode(data));
   }
@@ -173,6 +175,7 @@ class LocationPreferenceDaoImpl implements LocationPreferenceDao {
       latitude: (json['latitude'] as num).toDouble(),
       longitude: (json['longitude'] as num).toDouble(),
       name: json['name'] as String?,
+      timezone: json['timezone'] as String?,
     );
   }
 
@@ -183,6 +186,7 @@ class LocationPreferenceDaoImpl implements LocationPreferenceDao {
       'latitude': location.latitude,
       'longitude': location.longitude,
       'name': location.name,
+      if (location.timezone != null) 'timezone': location.timezone,
     };
     await prefs.setString(_keyDefault, jsonEncode(data));
   }

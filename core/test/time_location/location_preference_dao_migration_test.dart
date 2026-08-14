@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:persistence_core/time_location/daos/location_preference_dao.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:xuan_time_location/contracts/xuan_time_location_contracts.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -52,6 +53,45 @@ void main() {
 
       expect(prefs.containsKey('LocationDataModel'), isFalse);
       expect(prefs.containsKey('MyLocationDataModel'), isFalse);
+    });
+
+    test('recent/default location 写入带 timezone → 读回 timezone 相等（缺失即 null，老数据兼容）', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final dao = LocationPreferenceDaoImpl(prefs: prefs);
+
+      await dao.setRecentLocation(const XuanResolvedLocation(
+        latitude: 39.9042,
+        longitude: 116.4074,
+        name: 'Beijing',
+        timezone: 'Asia/Beijing',
+      ));
+      await dao.setDefaultLocation(const XuanResolvedLocation(
+        latitude: 31.2304,
+        longitude: 121.4737,
+        name: 'Shanghai',
+        timezone: 'Asia/Shanghai',
+      ));
+
+      final recent = await dao.getRecentLocation();
+      expect(recent, isNotNull);
+      expect(recent!.timezone, equals('Asia/Beijing'));
+
+      final defaultLoc = await dao.getDefaultLocation();
+      expect(defaultLoc, isNotNull);
+      expect(defaultLoc!.timezone, equals('Asia/Shanghai'));
+
+      // 老数据（无 timezone 字段）读回 timezone 为 null，不破坏兼容
+      await dao.setRecentLocation(const XuanResolvedLocation(
+        latitude: 39.9,
+        longitude: 116.4,
+        name: 'Old',
+      ));
+      final oldRecent = await dao.getRecentLocation();
+      expect(oldRecent, isNotNull);
+      expect(oldRecent!.timezone, isNull);
+      expect(oldRecent.latitude, equals(39.9));
+      expect(oldRecent.name, equals('Old'));
     });
   });
 }
