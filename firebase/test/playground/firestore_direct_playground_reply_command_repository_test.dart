@@ -1,12 +1,10 @@
 /// RED: Firestore 直写回复命令仓库（Task 4）。
 ///
-/// Design §3.3/§4.4/§6.2：
+/// Design §3.2/§4.4/§6.2：
 /// - root/discussion 两层回复；depth 0/1 语义；
 /// - 跨帖、跨 root、负 depth、第三层、墓碑目标全部拒绝；
 /// - 公开 reply + reply owner + revision 同批写入，公开字段零内部 UID；
-/// - one-time anonymous 首次回复 transaction 创建私有 thread presentation
-///   mapping（`{postId}__{providerUid}` 随机 128-bit），后续回复复用；
-///   伪造、跨 actor 复用、重复创建 mapping 失败；
+/// - one-time anonymous 匿名 ID 内容派生为 `post_{postId}`（同帖稳定、跨帖不同）；
 /// - edit 追加 revision；tombstone 清空 body/chart/media/techniques。
 library;
 
@@ -173,7 +171,7 @@ void main() {
       expect(rev['body'], '根回复');
     });
 
-    test('one-time anonymous 首次回复创建 thread presentation mapping 并复用',
+    test('one-time anonymous 匿名 ID 内容派生为 post_{postId}，同帖稳定跨帖不同',
         () async {
       final postId = await seedPost();
 
@@ -185,30 +183,19 @@ void main() {
       ));
       final firstId = first.publicReplyId.value;
 
-      // mapping 文档已创建：`{postId}__{providerUid}`。
-      final mappingDoc = await firestore
-          .collection('playground_thread_presentations')
-          .doc('${postId}__$bobUid')
-          .get();
-      expect(mappingDoc.exists, isTrue);
-      final mapping = mappingDoc.data()!;
-      expect(mapping['post_id'], postId);
-      expect(mapping['provider_uid'], bobUid);
-      expect(mapping['presentation_identity_id'], isNotEmpty);
-      expect(mapping['presentation_identity_id'], hasLength(32),
-          reason: '128-bit 随机 ID 应为 32 位 hex');
-
-      final presentationId = mapping['presentation_identity_id'];
       final firstData = (await firestore
               .collection('playground_replies')
               .doc(firstId)
               .get())
           .data()!;
       expect(firstData['presentation_mode'], 'oneTimeAnonymous');
-      expect(firstData['presentation_identity_id'], presentationId);
+      expect(firstData['presentation_identity_id'], 'post_$postId',
+          reason: '匿名 ID 内容派生为 post_{postId}，确定性、零状态');
       expect(firstData['presentation_display_alias'], '匿名用户');
+      expect(firstData['presentation_avatar_url'], isNull);
+      expect(firstData['public_profile_ref'], isNull);
 
-      // 后续回复复用同一 mapping（不重复创建）。
+      // 同帖后续回复复用同一内容派生 ID（线程内稳定）。
       final second = await repo.createDiscussionReply(CreateDiscussionReplyCommand(
         postId: PlaygroundPostId(postId),
         rootReplyId: PlaygroundReplyId(firstId),
@@ -221,9 +208,9 @@ void main() {
               .doc(second.publicReplyId.value)
               .get())
           .data()!;
-      expect(secondData['presentation_identity_id'], presentationId);
+      expect(secondData['presentation_identity_id'], 'post_$postId');
 
-      // 同帖内稳定，跨帖不同。
+      // 跨帖不同（post2 → post_{post2}），不可关联。
       final post2 = await seedPost(postId: 'post-2');
       final other = await repo.createRootReply(CreateRootReplyCommand(
         postId: PlaygroundPostId(post2),
@@ -231,20 +218,14 @@ void main() {
         presentationMode: PlaygroundPresentationMode.oneTimeAnonymous,
         idempotencyKey: 'idem-anon-post2',
       ));
-      final otherMapping = (await firestore
-              .collection('playground_thread_presentations')
-              .doc('${post2}__$bobUid')
-              .get())
-          .data()!;
-      expect(otherMapping['presentation_identity_id'], isNot(presentationId),
-          reason: '跨帖不可关联，必须使用不同随机 ID');
       final otherData = (await firestore
               .collection('playground_replies')
               .doc(other.publicReplyId.value)
               .get())
           .data()!;
-      expect(otherData['presentation_identity_id'],
-          otherMapping['presentation_identity_id']);
+      expect(otherData['presentation_identity_id'], 'post_post-2',
+          reason: '跨帖必须使用不同 ID');
+      expect(otherData['presentation_identity_id'], isNot('post_$postId'));
     });
   });
 

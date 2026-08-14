@@ -1,13 +1,11 @@
 /// Firestore 直写回复命令仓库（Task 4）。
 ///
 /// Design: docs/superpowers/specs/2026-08-12-playground-firestore-direct-write-design.md
-/// - §3.3：thread presentation mapping 私有文档 + 随机 128-bit ID；
+/// - §3.2：one-time anonymous 匿名 ID 内容派生为 `post_{postId}`（与帖子一致）；
 /// - §4.1/§4.3：append-only revision；tombstone 清空公开正文；
 /// - §6.2：root/discussion 两层；跨帖/跨 root/负 depth/第三层/墓碑目标拒绝；
 /// - §8：确定性文档 ID；公开 reply 零内部 UID。
 library;
-
-import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -33,7 +31,6 @@ final class FirestoreDirectPlaygroundReplyCommandRepository
 
   static const _rootOperation = 'reply-root-create';
   static const _discussionOperation = 'reply-discussion-create';
-  static final Random _random = Random.secure();
 
   // ---- createRootReply ----
 
@@ -79,8 +76,7 @@ final class FirestoreDirectPlaygroundReplyCommandRepository
           );
         }
 
-        final presentation = await _resolvePresentation(
-          tx,
+        final presentation = _resolveReplyPresentation(
           postId: command.postId.value,
           actor: actor,
           mode: command.presentationMode,
@@ -260,8 +256,7 @@ final class FirestoreDirectPlaygroundReplyCommandRepository
           }
         }
 
-        final presentation = await _resolvePresentation(
-          tx,
+        final presentation = _resolveReplyPresentation(
           postId: command.postId.value,
           actor: actor,
           mode: command.presentationMode,
@@ -509,45 +504,17 @@ final class FirestoreDirectPlaygroundReplyCommandRepository
     }
   }
 
-  /// 解析展示身份。one-time anonymous 首次回复在同一 transaction 创建
-  /// thread presentation mapping；后续回复复用。
-  Future<Map<String, dynamic>> _resolvePresentation(
-    Transaction tx, {
+  /// 解析展示身份（§3.2）。one-time anonymous 匿名 ID 内容派生为
+  /// `post_{postId}`（与帖子一致，确定性、零状态）；stableAlias 用账号公开投影。
+  Map<String, dynamic> _resolveReplyPresentation({
     required String postId,
     required DirectWriteActor actor,
     required PlaygroundPresentationMode mode,
-  }) async {
-    if (mode == PlaygroundPresentationMode.stableAlias) {
-      return actor.presentationPayload();
+  }) {
+    if (mode == PlaygroundPresentationMode.oneTimeAnonymous) {
+      return actor.oneTimeAnonymousPresentationPayload(identityId: 'post_$postId');
     }
-
-    final mappingId = '${postId}__${actor.providerUid}';
-    final mappingRef = _firestore
-        .collection(PlaygroundFirestoreSchema.threadPresentations)
-        .doc(mappingId);
-    final mappingSnap = await tx.get(mappingRef);
-    if (mappingSnap.exists) {
-      final identityId =
-          mappingSnap.data()?['presentation_identity_id'] as String?;
-      if (identityId != null && identityId.isNotEmpty) {
-        return actor.oneTimeAnonymousPresentationPayload(identityId: identityId);
-      }
-    }
-
-    // 首次：创建随机 128-bit presentation ID（32 hex chars）。
-    final newId = _randomPresentationId();
-    tx.set(mappingRef, {
-      'post_id': postId,
-      'provider_uid': actor.providerUid,
-      'presentation_identity_id': newId,
-      'created_at': FieldValue.serverTimestamp(),
-    });
-    return actor.oneTimeAnonymousPresentationPayload(identityId: newId);
-  }
-
-  String _randomPresentationId() {
-    final bytes = List<int>.generate(16, (_) => _random.nextInt(256));
-    return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    return actor.presentationPayload();
   }
 
   Map<String, dynamic> _presentationFrom(

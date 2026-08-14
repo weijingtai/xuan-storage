@@ -187,26 +187,6 @@ service cloud.firestore {
     }
 
     // ============================================================
-    // playground_thread_presentations —— 私有 mapping（deny-by-default）
-    // 可寻址路径 {postId}__{providerUid}；只允许本人 get、禁止 list/write-after-create。
-    // ============================================================
-    match /playground_thread_presentations/{mappingId} {
-      allow read: if request.auth != null
-                  && mappingId == resource.data.post_id + '__' + request.auth.uid;
-      // create：仅在与首次 one-time anonymous 回复同一 atomic write 中创建
-      // （reply create 规则已校验 mapping 与 reply 的 presentation_identity_id 一致）。
-      allow create: if request.auth != null
-        && request.resource.data.keys().hasOnly(
-             ['post_id', 'provider_uid', 'presentation_identity_id', 'created_at'])
-        && request.resource.data.post_id + '__' + request.auth.uid == mappingId
-        && request.resource.data.provider_uid == request.auth.uid
-        && (request.resource.data.presentation_identity_id is string)
-        && request.resource.data.presentation_identity_id.size() >= 1
-        && (request.resource.data.created_at is timestamp);
-      allow update, delete: if false;
-    }
-
-    // ============================================================
     // playground_posts —— 公开文档（Design §3.2/§4/§6.1/§8）
     // ============================================================
     match /playground_posts/{postId} {
@@ -340,10 +320,12 @@ service cloud.firestore {
         && root.data.depth == 0
         && root.data.is_tombstoned != true
         && (request.resource.data.reply_to_reply_id == null
-            || (replyTo.data != null
-                && replyTo.data.post_id == postId
-                && replyTo.data.root_reply_id == request.resource.data.root_reply_id
-                && replyTo.data.is_tombstoned != true));
+            || (replyTo.data == null ? false
+                : (replyTo.data.post_id == postId
+                   && replyTo.data.is_tombstoned != true
+                   && (replyTo.data.depth == 0
+                       || (replyTo.data.root_reply_id != null
+                           && replyTo.data.root_reply_id == request.resource.data.root_reply_id)))));
     }
     function validReplyCreateData(request, replyId) {
       let data = request.resource.data;
@@ -351,7 +333,6 @@ service cloud.firestore {
       let postId = data.post_id;
       let identity = identityDoc().data;
       let post = get(/databases/$(database)/documents/playground_posts/$(postId));
-      let mapping = getAfter(/databases/$(database)/documents/playground_thread_presentations/$(postId + '__' + request.auth.uid));
       let owner = getAfter(/databases/$(database)/documents/playground_reply_owners/$(replyId));
       let revision = getAfter(/databases/$(database)/documents/playground_replies/$(replyId)/revisions/r0000000001);
       return identity != null
@@ -385,34 +366,25 @@ service cloud.firestore {
             ? data.presentation_identity_id == identity.public_presentation_id
               && data.presentation_display_alias == identity.public_display_alias
             : data.presentation_mode == 'oneTimeAnonymous'
-              && mapping.data != null
-              && mapping.data.presentation_identity_id == data.presentation_identity_id
+              && data.presentation_identity_id == ('post_' + postId)
               && data.presentation_display_alias == '匿名用户')
-        && owner.data != null
-        && owner.data.keys().hasOnly(['content_id', 'provider_uid', 'app_user_id',
-             'public_presentation_id', 'created_at'])
-        && owner.data.content_id == replyId
-        && owner.data.provider_uid == request.auth.uid
-        && owner.data.app_user_id == identity.app_user_id
-        && owner.data.public_presentation_id == identity.public_presentation_id
-        && (data.presentation_mode == 'oneTimeAnonymous'
-            ? mapping.data != null
-              && mapping.data.keys().hasOnly(['post_id', 'provider_uid',
-                   'presentation_identity_id', 'created_at'])
-              && mapping.data.post_id == postId
-              && mapping.data.provider_uid == request.auth.uid
-              && mapping.data.presentation_identity_id == data.presentation_identity_id
-            : true)
-        && revision.data != null
-        && revision.data.revision_no == 1;
+        && (owner.data == null ? false
+            : (owner.data.keys().hasOnly(['content_id', 'provider_uid', 'app_user_id',
+                 'public_presentation_id', 'created_at'])
+              && owner.data.content_id == replyId
+              && owner.data.provider_uid == request.auth.uid
+              && owner.data.app_user_id == identity.app_user_id
+              && owner.data.public_presentation_id == identity.public_presentation_id))
+        && (revision.data == null ? false
+            : revision.data.revision_no == 1);
     }
 
     // ============================================================
     // playground_replies —— 公开文档（Design §3.2/§4/§6.2/§8）
     // ============================================================
     match /playground_replies/{replyId} {
-      // create：公开 reply + reply owner + （one-time 首次）thread mapping
-      // 同一 atomic write（校验逻辑抽到 validReplyCreateData，let 复用降低表达式数）。
+      // create：公开 reply + reply owner + revision 同一 atomic write（校验逻辑抽到
+      // validReplyCreateData，let 复用降低表达式数）。
       allow create: if request.auth != null
         && validReplyCreateData(request, replyId);
 

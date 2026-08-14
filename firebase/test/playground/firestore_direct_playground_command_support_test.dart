@@ -42,12 +42,11 @@ void main() {
       expect(postKeys, contains('payload_hash'));
     });
 
-    test('schema 包含 owner/thread-presentation/revision 集合', () {
+    test('schema 包含 owner/revision 集合', () {
       final collections = schema['collections'] as Map<String, dynamic>;
       expect(collections, contains('playground_post_owners'));
       expect(collections, contains('playground_reply_owners'));
       expect(collections, contains('playground_like_owners'));
-      expect(collections, contains('playground_thread_presentations'));
       expect(collections, contains('playground_likes'));
       expect(collections, contains('playground_bookmarks'));
       expect(collections, contains('playground_verifications'));

@@ -11,7 +11,6 @@ abstract final class PlaygroundFirestoreSchema {
   static const postRevisions = 'revisions';
   static const replies = 'playground_replies';
   static const replyOwners = 'playground_reply_owners';
-  static const threadPresentations = 'playground_thread_presentations';
   static const verifications = 'playground_verifications';
   static const outcomeFeedback = 'playground_outcome_feedback';
   static const likes = 'playground_likes';

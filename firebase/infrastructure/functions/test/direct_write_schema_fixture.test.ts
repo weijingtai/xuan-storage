@@ -330,8 +330,9 @@ describe('direct-write · playground_replies', () => {
 // ==============================
 
 describe('access budget · heavy paths succeed (§10.4)', () => {
-  test('one-time anonymous discussion reply create succeeds（7 访问）', async () => {
-    // seed post + reply owner + root reply + thread presentation（admin）。
+  test('one-time anonymous discussion reply create succeeds（6 访问）', async () => {
+    // seed post + reply owner + root reply（admin）。
+    // 匿名回复展示 ID 内容派生为 post_{postId}，无需 thread presentation mapping。
     const postId = 'post-heavy-1';
     const rootId = 'root-heavy-1';
     const now = new Date();
@@ -371,7 +372,7 @@ describe('access budget · heavy paths succeed (§10.4)', () => {
     const batch = fs.batch();
     batch.set(fs.collection('playground_replies').doc(replyId), {
       id: replyId, post_id: postId, presentation_mode: 'oneTimeAnonymous',
-      presentation_identity_id: 'anon_thread_128bit', presentation_display_alias: '匿名用户',
+      presentation_identity_id: `post_${postId}`, presentation_display_alias: '匿名用户',
       presentation_avatar_url: null, public_profile_ref: null, depth: 1,
       body: '二级回复', is_tombstoned: false, root_reply_id: rootId, reply_to_reply_id: rootId,
       technique_tags: [], chart_attachment: null, media_attachments: [],
@@ -384,18 +385,10 @@ describe('access budget · heavy paths succeed (§10.4)', () => {
     });
     batch.set(fs.collection('playground_replies').doc(replyId).collection('revisions').doc('r0000000001'), {
       id: 'r0000000001', parent_id: '', revision_no: 1, body: '二级回复',
-      presentation_mode: 'oneTimeAnonymous', presentation_identity_id: 'anon_thread_128bit',
+      presentation_mode: 'oneTimeAnonymous', presentation_identity_id: `post_${postId}`,
       presentation_display_alias: '匿名用户', presentation_avatar_url: null,
       public_profile_ref: null, created_at: new Date(),
     });
-    // 首次 one-time 回复：thread mapping 同批创建（Design §3.3/§6.2）。
-    batch.set(
-      fs.collection('playground_thread_presentations').doc(`${postId}__${BOB_UID}`),
-      {
-        post_id: postId, provider_uid: BOB_UID,
-        presentation_identity_id: 'anon_thread_128bit', created_at: new Date(),
-      },
-    );
     await assertSucceeds(batch.commit());
   });
 

@@ -34,9 +34,6 @@
         "target_type": ["post", "reply"]
       }
     },
-    "playground_thread_presentations": {
-      "required": ["post_id", "provider_uid", "presentation_identity_id", "created_at"]
-    },
     "playground_likes": {
       "required": ["id", "target_type", "target_id", "created_at"],
       "enums": {
