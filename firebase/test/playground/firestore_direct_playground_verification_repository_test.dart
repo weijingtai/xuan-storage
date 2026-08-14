@@ -229,7 +229,7 @@ void main() {
         () async {
       await seedPostAndRootReply();
 
-      final v1 = await repo.verifyRootReply(const VerifyRootReplyCommand(
+      await repo.verifyRootReply(const VerifyRootReplyCommand(
         postId: PlaygroundPostId(postId),
         rootReplyId: PlaygroundReplyId(rootReplyId),
         idempotencyKey: 'verify-sm-1',
