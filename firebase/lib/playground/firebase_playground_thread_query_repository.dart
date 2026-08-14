@@ -142,27 +142,15 @@ final class FirebasePlaygroundThreadQueryRepository
           .limit(50)
           .get();
 
-      // 4 当前页 root IDs 每 10 个一组查询 verification（revoked_at==null）。
-      final rootIds = <String>[];
-      for (final doc in repliesSnap.docs) {
-        final d = doc.data();
-        if (d['depth'] == 0) rootIds.add(doc.id);
-      }
-      final verifiedRootIds = <String>{};
-      for (var i = 0; i < rootIds.length; i += 10) {
-        final chunk = rootIds.sublist(
-            i, i + 10 > rootIds.length ? rootIds.length : i + 10);
-        final vSnap = await _firestore
-            .collection(PlaygroundFirestoreSchema.verifications)
-            .where('post_id', isEqualTo: postId)
-            .where('root_reply_id', whereIn: chunk)
-            .where('revoked_at', isNull: true)
-            .get();
-        for (final v in vSnap.docs) {
-          final rootId = v.data()['root_reply_id'] as String?;
-          if (rootId != null) verifiedRootIds.add(rootId);
-        }
-      }
+      // 4 verified count 使用已执行的 verification aggregation（§10.1 全帖应验总数，
+      //   不再把当前页 root 数当全帖总数；不逐页查 root verification 集合）。
+      final verificationsCount = await _firestore
+          .collection(PlaygroundFirestoreSchema.verifications)
+          .where('post_id', isEqualTo: postId)
+          .where('revoked_at', isNull: true)
+          .count()
+          .get();
+      final verifiedRootCount = verificationsCount.count ?? 0;
 
       // 5 feedback get：feedback_{postId} 文档（未删除）。
       final feedbackSnap = await _firestore
@@ -174,7 +162,7 @@ final class FirebasePlaygroundThreadQueryRepository
         feedback = _mapper.feedbackFromDoc(feedbackSnap.data()!);
       }
 
-      // 6 三次 count() aggregation：replies / post-target likes / verifications。
+      // 6 两次 count() aggregation：replies / post-target likes。
       final repliesCount = await _firestore
           .collection(PlaygroundFirestoreSchema.replies)
           .where('post_id', isEqualTo: postId)
@@ -185,12 +173,6 @@ final class FirebasePlaygroundThreadQueryRepository
           .collection(PlaygroundFirestoreSchema.likes)
           .where('target_type', isEqualTo: 'post')
           .where('target_id', isEqualTo: postId)
-          .count()
-          .get();
-      final verificationsCount = await _firestore
-          .collection(PlaygroundFirestoreSchema.verifications)
-          .where('post_id', isEqualTo: postId)
-          .where('revoked_at', isNull: true)
           .count()
           .get();
 
@@ -220,7 +202,7 @@ final class FirebasePlaygroundThreadQueryRepository
         outcomeFeedback: feedback,
         counts: PlaygroundThreadCounts(
           replyCount: repliesCount.count ?? 0,
-          verifiedRootReplyCount: verifiedRootIds.length,
+          verifiedRootReplyCount: verifiedRootCount,
         ),
         viewerState: viewerState,
         aggregateReadCount: 3,
@@ -251,21 +233,29 @@ final class FirebasePlaygroundThreadQueryRepository
     final isOwner =
         ownerData != null && ownerData['provider_uid'] == uid;
 
-    // viewer like/bookmark direct gets。
+    // viewer like/bookmark direct gets（确定性 ID，与写端一致 §8/§10.1）。
+    final likeId = deterministicCreateId(
+      operation: 'like',
+      authUid: uid,
+      idempotencyKey: postId,
+    );
     final likeSnap = await _firestore
         .collection(PlaygroundFirestoreSchema.likes)
-        .doc('like_post_${uid}_$postId')
+        .doc(likeId)
         .get();
+    final bookmarkId = deterministicCreateId(
+      operation: 'bookmark',
+      authUid: uid,
+      idempotencyKey: postId,
+    );
     final bookmarkSnap = await _firestore
         .collection(PlaygroundFirestoreSchema.bookmarks)
-        .where('user_provider_uid', isEqualTo: uid)
-        .where('post_id', isEqualTo: postId)
-        .limit(1)
+        .doc(bookmarkId)
         .get();
 
     return PlaygroundPostViewerState(
       isLiked: likeSnap.exists,
-      isBookmarked: bookmarkSnap.docs.isNotEmpty,
+      isBookmarked: bookmarkSnap.exists,
       isOwner: isOwner,
       canEdit: isOwner,
       canDelete: isOwner,
