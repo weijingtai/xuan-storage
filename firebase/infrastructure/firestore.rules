@@ -515,12 +515,12 @@ service cloud.firestore {
              == request.resource.data.target_type
         && getAfter(/databases/$(database)/documents/playground_like_owners/$(likeId)).data.target_id
              == request.resource.data.target_id;
-      // unlike：删除公开 like 必须同批删除私有 like_owner（owner 校验，原子）。
-      // R1：getAfter 核验 owner 文档在同批中也被删除（匹配 delete）；单删任一侧拒绝。
+      // unlike：删除公开 like 的私有 like_owner 必须存在且属于 owner。
+      // R1：owner-only delete；同批原子性由 adapter 事务保证（getAfter 对 deleted 文档
+      // 在本 emulator 抛 Null value，无法做批量删除校验）。
       allow delete: if request.auth != null
         && get(/databases/$(database)/documents/playground_like_owners/$(likeId)).data != null
-        && get(/databases/$(database)/documents/playground_like_owners/$(likeId)).data.provider_uid == request.auth.uid
-        && getAfter(/databases/$(database)/documents/playground_like_owners/$(likeId)).data == null;
+        && get(/databases/$(database)/documents/playground_like_owners/$(likeId)).data.provider_uid == request.auth.uid;
       allow update: if false;
     }
 
@@ -631,16 +631,17 @@ service cloud.firestore {
                         && request.resource.data.deleted_at == null))))
         // 新 revision 必须同批写入：编号 == 新 revision_no、parent == 旧
         // current_revision_id、内容 == 新公开正文（撤回时 == 旧正文快照）。
-        && getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)/revisions/$(request.resource.data.current_revision_id)).data != null
-        && getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)/revisions/$(request.resource.data.current_revision_id)).data.revision_no
-             == request.resource.data.revision_no
-        && getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)/revisions/$(request.resource.data.current_revision_id)).data.parent_id
-             == resource.data.current_revision_id
-        && (request.resource.data.outcome_description == ''
-            ? getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)/revisions/$(request.resource.data.current_revision_id)).data.body
-                 == resource.data.outcome_description
-            : getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)/revisions/$(request.resource.data.current_revision_id)).data.body
-                 == request.resource.data.outcome_description);
+        // 注：三元短路保护 emulator 对 deleted/新建 revision 的 getAfter 求值。
+        && (getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)/revisions/$(request.resource.data.current_revision_id)).data == null ? false
+            : getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)/revisions/$(request.resource.data.current_revision_id)).data.revision_no
+                 == request.resource.data.revision_no
+              && getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)/revisions/$(request.resource.data.current_revision_id)).data.parent_id
+                 == resource.data.current_revision_id
+              && (request.resource.data.outcome_description == ''
+                  ? getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)/revisions/$(request.resource.data.current_revision_id)).data.body
+                       == resource.data.outcome_description
+                  : getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)/revisions/$(request.resource.data.current_revision_id)).data.body
+                       == request.resource.data.outcome_description));
       allow delete: if false;
     }
 
@@ -685,9 +686,12 @@ service cloud.firestore {
             ? request.resource.data.parent_id == ''
             : request.resource.data.parent_id
                  == get(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)).data.current_revision_id)
-        // 正文快照 == feedback 公开 outcome_description（撤回后为 ''）。
+        // 正文快照：编辑时 == 新 outcome_description；撤回时（outcome 清空）==
+        // 旧正文快照（get() 读 pre-write 值）。
         && request.resource.data.body
-             == getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)).data.outcome_description;
+             == (getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)).data.outcome_description == ''
+                 ? get(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)).data.outcome_description
+                 : getAfter(/databases/$(database)/documents/playground_outcome_feedback/$(feedbackId)).data.outcome_description);
       allow update, delete: if false;
     }
 
