@@ -1558,10 +1558,16 @@ VERIFICATION: "所有自动化门禁通过 + 人类批准 OpenSpec change"
 
 ## ACT-7: 新模块接入模板 (供后续模块参考)
 
+> **命名注意**：以下模板中的 `<module>` 仅是文档占位符，示意"替换为真实模块名"（如 `liuyao`）。
+> **严禁**把 `<module>` 作为真实目录/文件名提交进仓库 —— `<` 和 `>` 是 Windows 非法路径字符，
+> 任何 Windows 开发者 clone/checkout 该仓库都会直接失败（git 报 `invalid path`）。
+> 仓库曾误提交 `drift/lib/<module>/` 两个模板文件，已在提交 `17e79c4`（main `5147813`）中重命名为 `drift/lib/module/`。
+> 新模块接入时：先复制模板到真实模块目录（如 `drift/lib/liuyao/`），再替换 `<module>`/`<Module>` 占位符。
+
 ```yaml
 TASK_ID: "typed-record-new-module-template"
 LANG: "dart"
-TARGET_FILE: "xuan-storage/drift/lib/<module>/"
+TARGET_FILE: "xuan-storage/drift/lib/module/"  # 模板目录；接入新模块时复制为 drift/lib/<真实模块名>/
 CONTEXT:
   DOMAIN: |
     此任务为模板，供奇门/大六壬/紫微/太乙/铁板/奇政等模块接入时参考。
