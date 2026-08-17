@@ -127,8 +127,6 @@ final class FirebasePlaygroundFeedQueryRepository
       }
 
       final snaps = await q.get();
-
-      // content/time 扫描后过滤（§10.1）；结果不足一页也合法。
       final matching = snaps.docs.where((doc) {
         final data = doc.data();
         if (!_matchesContent(data, query.filter.content)) return false;
@@ -200,7 +198,9 @@ final class FirebasePlaygroundFeedQueryRepository
         hasMore: nextCursor != null,
         totalCount: -1,
       );
-    } catch (e) {
+    } catch (e, stack) {
+      // ignore: avoid_print
+      print('FEED_QUERY_DEBUG_ERROR: $e\n$stack');
       if (e is PlaygroundError) rethrow;
       throw FirebasePlaygroundErrorMapper.map(e);
     }

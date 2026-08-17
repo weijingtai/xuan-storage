@@ -106,8 +106,8 @@ Future<DirectWriteActor> requireDirectActor({
 
   final data = doc.data()!;
   final appUserId = _readString(data, 'app_user_id') ?? _readString(data, 'appUserId');
-  final presentationId = _readString(data, 'public_presentation_id');
-  final displayAlias = _readString(data, 'public_display_alias');
+  final presentationId = _readString(data, 'public_presentation_id') ?? _readString(data, 'presentation_identity_id');
+  final displayAlias = _readString(data, 'public_display_alias') ?? _readString(data, 'display_alias');
 
   if (appUserId == null || presentationId == null || displayAlias == null) {
     throw directPlaygroundError(
@@ -198,3 +198,48 @@ String _stringify(Object key) {
   if (key is String) return key;
   return key.toString();
 }
+
+/// 带超时的有界重试执行器（支持写入响应丢失时的回读确认）。
+Future<T> boundedRetryWithConfirmation<T>({
+  required Future<void> Function() writeAction,
+  required Future<T?> Function() checkConfirmed,
+  Duration timeout = const Duration(seconds: 4),
+  int maxAttempts = 3,
+  Duration retryDelay = const Duration(milliseconds: 300),
+}) async {
+  Object? lastError;
+  for (var attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      await writeAction().timeout(timeout);
+    } catch (e) {
+      lastError = e;
+    }
+    // 每次写入尝试后（无论抛错还是超时），先检查是否已经成功落库（应对 lost-response 竞态）。
+    try {
+      final confirmed = await checkConfirmed().timeout(timeout);
+      if (confirmed != null) {
+        return confirmed;
+      }
+    } catch (_) {
+      // 回读异常时继续重试
+    }
+    if (attempt < maxAttempts - 1) {
+      await Future<void>.delayed(retryDelay * (attempt + 1));
+    }
+  }
+  if (lastError != null) {
+    if (lastError is PlaygroundError) throw lastError;
+    throw directPlaygroundError(
+      code: PlaygroundErrorCode.unavailable,
+      machineCode: 'provider/unavailable',
+      message: 'Firestore 写入暂不可用',
+      cause: lastError,
+    );
+  }
+  throw directPlaygroundError(
+    code: PlaygroundErrorCode.unavailable,
+    machineCode: 'provider/unavailable',
+    message: 'Firestore 写入超时且未确认落库',
+  );
+}
+

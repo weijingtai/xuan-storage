@@ -89,53 +89,43 @@ final class FirestoreDirectPlaygroundPostCommandRepository
         presentation: presentation,
       );
 
-      await _firestore.runTransaction((tx) async {
-        final postRef =
-            _firestore.collection(PlaygroundFirestoreSchema.posts).doc(postId);
-        final existing = await tx.get(postRef);
-        if (existing.exists) {
-          final existingPayload =
-              existing.data()?['payload_hash'] as String?;
-          if (existingPayload == publicPayload['payload_hash']) {
-            return; // 幂等 replay：同一 key 同一 payload。
+      final postRef =
+          _firestore.collection(PlaygroundFirestoreSchema.posts).doc(postId);
+      final ownerRef = _firestore
+          .collection(PlaygroundFirestoreSchema.postOwners)
+          .doc(postId);
+      final revisionRef = postRef
+          .collection(PlaygroundFirestoreSchema.postRevisions)
+          .doc('r0000000001');
+
+      return await boundedRetryWithConfirmation<PublicPost>(
+        writeAction: () async {
+          final batch = _firestore.batch();
+          batch.set(postRef, publicPayload);
+          batch.set(ownerRef, actor.ownerPayload(contentId: postId));
+          batch.set(revisionRef, revision);
+          await batch.commit();
+        },
+        checkConfirmed: () async {
+          final snap = await postRef.get();
+          if (snap.exists) {
+            return _mapper.publicPostFromDoc(
+              postId,
+              snap.data()!,
+              replyCount: 0,
+              likeCount: 0,
+              verificationCount: 0,
+              viewerState: const PlaygroundPostViewerState(
+                isOwner: true,
+                canEdit: true,
+                canDelete: true,
+                canSetFeedback: true,
+              ),
+              presentationMode: command.presentationMode,
+            );
           }
-          throw directPlaygroundError(
-            code: PlaygroundErrorCode.conflict,
-            machineCode: 'idempotency/payload-conflict',
-            message: '同一幂等键已被用于不同内容',
-          );
-        }
-
-        final ownerRef = _firestore
-            .collection(PlaygroundFirestoreSchema.postOwners)
-            .doc(postId);
-        final revisionRef = postRef
-            .collection(PlaygroundFirestoreSchema.postRevisions)
-            .doc('r0000000001');
-
-        tx.set(postRef, publicPayload);
-        tx.set(ownerRef,
-            actor.ownerPayload(contentId: postId));
-        tx.set(revisionRef, revision);
-      });
-
-      final snap = await _firestore
-          .collection(PlaygroundFirestoreSchema.posts)
-          .doc(postId)
-          .get();
-      return _mapper.publicPostFromDoc(
-        postId,
-        snap.data()!,
-        replyCount: 0,
-        likeCount: 0,
-        verificationCount: 0,
-        viewerState: const PlaygroundPostViewerState(
-          isOwner: true,
-          canEdit: true,
-          canDelete: true,
-          canSetFeedback: true,
-        ),
-        presentationMode: command.presentationMode,
+          return null;
+        },
       );
     } catch (e) {
       if (e is PlaygroundError) rethrow;
@@ -161,91 +151,93 @@ final class FirestoreDirectPlaygroundPostCommandRepository
 
       final postRef =
           _firestore.collection(PlaygroundFirestoreSchema.posts).doc(postId);
-      final result = await _firestore.runTransaction((tx) async {
-        final ownerSnap = await tx.get(_firestore
-            .collection(PlaygroundFirestoreSchema.postOwners)
-            .doc(postId));
-        final owner = ownerSnap.data();
-        if (owner == null || owner['provider_uid'] != actor.providerUid) {
-          throw directPlaygroundError(
-            code: PlaygroundErrorCode.forbidden,
-            machineCode: 'authorization/forbidden',
-            message: '仅帖子作者可编辑',
+      final ownerSnap = await _firestore
+          .collection(PlaygroundFirestoreSchema.postOwners)
+          .doc(postId)
+          .get();
+      final owner = ownerSnap.data();
+      if (owner == null || owner['provider_uid'] != actor.providerUid) {
+        throw directPlaygroundError(
+          code: PlaygroundErrorCode.forbidden,
+          machineCode: 'authorization/forbidden',
+          message: '仅帖子作者可编辑',
+        );
+      }
+
+      final postSnap = await postRef.get();
+      if (!postSnap.exists) {
+        throw directPlaygroundError(
+          code: PlaygroundErrorCode.notFound,
+          machineCode: 'content/not-found',
+          message: '帖子不存在',
+        );
+      }
+      final current = postSnap.data()!;
+      if (current['status'] == 'tombstoned') {
+        throw directPlaygroundError(
+          code: PlaygroundErrorCode.tombstoned,
+          machineCode: 'content/tombstoned',
+          message: '帖子已删除，无法编辑',
+        );
+      }
+
+      final revisionNo = (current['revision_no'] as int? ?? 1) + 1;
+      final revisionId = 'r${revisionNo.toString().padLeft(10, '0')}';
+      final presentation = _revisionPresentationFrom(current, actor);
+
+      final attachments = command.attachments != null
+          ? command.attachments!.map(_attachmentToMap).toList()
+          : current['attachments'] as List<dynamic>? ?? <dynamic>[];
+      final techniqueIds = command.allowedChartTechniqueIds ??
+          (current['allowed_chart_technique_ids'] as List<dynamic>?)
+                  ?.cast<String>() ??
+          <String>[];
+
+      return await boundedRetryWithConfirmation<PublicPost>(
+        writeAction: () async {
+          final batch = _firestore.batch();
+          batch.set(
+            postRef.collection(PlaygroundFirestoreSchema.postRevisions).doc(revisionId),
+            _revisionPayload(
+              id: revisionId,
+              parentId: current['current_revision_id'] as String? ?? 'r0000000001',
+              revisionNo: revisionNo,
+              body: command.text,
+              techniqueTags: const [],
+              chartAttachment: null,
+              mediaAttachments: const [],
+              presentation: presentation,
+            ),
           );
-        }
-
-        final postSnap = await tx.get(postRef);
-        if (!postSnap.exists) {
-          throw directPlaygroundError(
-            code: PlaygroundErrorCode.notFound,
-            machineCode: 'content/not-found',
-            message: '帖子不存在',
-          );
-        }
-        final current = postSnap.data()!;
-        if (current['status'] == 'tombstoned') {
-          throw directPlaygroundError(
-            code: PlaygroundErrorCode.tombstoned,
-            machineCode: 'content/tombstoned',
-            message: '帖子已删除，无法编辑',
-          );
-        }
-
-        final revisionNo = (current['revision_no'] as int? ?? 1) + 1;
-        final revisionId =
-            'r${revisionNo.toString().padLeft(10, '0')}';
-        final presentation = _revisionPresentationFrom(current, actor);
-
-        final attachments = command.attachments != null
-            ? command.attachments!.map(_attachmentToMap).toList()
-            : current['attachments'] as List<dynamic>? ?? <dynamic>[];
-        final techniqueIds = command.allowedChartTechniqueIds ??
-            (current['allowed_chart_technique_ids'] as List<dynamic>?)
-                    ?.cast<String>() ??
-            <String>[];
-
-        tx.set(postRef.collection(PlaygroundFirestoreSchema.postRevisions)
-            .doc(revisionId), _revisionPayload(
-          id: revisionId,
-          parentId: current['current_revision_id'] as String? ?? 'r0000000001',
-          revisionNo: revisionNo,
-          body: command.text,
-          techniqueTags: const [],
-          chartAttachment: null,
-          mediaAttachments: const [],
-          presentation: presentation,
-        ));
-        tx.update(postRef, {
-          'text': command.text,
-          'allowed_chart_technique_ids': techniqueIds,
-          'attachments': attachments,
-          'revision_no': revisionNo,
-          'current_revision_id': revisionId,
-          'updated_at': FieldValue.serverTimestamp(),
-        });
-
-        // 本地构造更新后的文档（fake/emulator 不支持事务内读后写）。
-        final updated = <String, dynamic>{...current}
-          ..['text'] = command.text
-          ..['allowed_chart_technique_ids'] = techniqueIds
-          ..['attachments'] = attachments
-          ..['revision_no'] = revisionNo
-          ..['current_revision_id'] = revisionId;
-        return updated;
-      });
-
-      return _mapper.publicPostFromDoc(
-        postId,
-        result,
-        replyCount: 0,
-        likeCount: 0,
-        verificationCount: 0,
-        viewerState: const PlaygroundPostViewerState(
-          isOwner: true,
-          canEdit: true,
-          canDelete: true,
-          canSetFeedback: true,
-        ),
+          batch.update(postRef, {
+            'text': command.text,
+            'allowed_chart_technique_ids': techniqueIds,
+            'attachments': attachments,
+            'revision_no': revisionNo,
+            'current_revision_id': revisionId,
+            'updated_at': FieldValue.serverTimestamp(),
+          });
+          await batch.commit();
+        },
+        checkConfirmed: () async {
+          final snap = await postRef.get();
+          if (snap.exists && snap.data()?['current_revision_id'] == revisionId) {
+            return _mapper.publicPostFromDoc(
+              postId,
+              snap.data()!,
+              replyCount: 0,
+              likeCount: 0,
+              verificationCount: 0,
+              viewerState: const PlaygroundPostViewerState(
+                isOwner: true,
+                canEdit: true,
+                canDelete: true,
+                canSetFeedback: true,
+              ),
+            );
+          }
+          return null;
+        },
       );
     } catch (e) {
       if (e is PlaygroundError) rethrow;
@@ -269,61 +261,71 @@ final class FirestoreDirectPlaygroundPostCommandRepository
 
       final postRef =
           _firestore.collection(PlaygroundFirestoreSchema.posts).doc(postId);
-      await _firestore.runTransaction((tx) async {
-        final ownerSnap = await tx.get(_firestore
-            .collection(PlaygroundFirestoreSchema.postOwners)
-            .doc(postId));
-        final owner = ownerSnap.data();
-        if (owner == null || owner['provider_uid'] != actor.providerUid) {
-          throw directPlaygroundError(
-            code: PlaygroundErrorCode.forbidden,
-            machineCode: 'authorization/forbidden',
-            message: '仅帖子作者可删除',
+      final ownerSnap = await _firestore
+          .collection(PlaygroundFirestoreSchema.postOwners)
+          .doc(postId)
+          .get();
+      final owner = ownerSnap.data();
+      if (owner == null || owner['provider_uid'] != actor.providerUid) {
+        throw directPlaygroundError(
+          code: PlaygroundErrorCode.forbidden,
+          machineCode: 'authorization/forbidden',
+          message: '仅帖子作者可删除',
+        );
+      }
+
+      final postSnap = await postRef.get();
+      if (!postSnap.exists) {
+        throw directPlaygroundError(
+          code: PlaygroundErrorCode.notFound,
+          machineCode: 'content/not-found',
+          message: '帖子不存在',
+        );
+      }
+      final current = postSnap.data()!;
+      if (current['status'] == 'tombstoned') {
+        return; // 幂等：已墓碑。
+      }
+
+      final revisionNo = (current['revision_no'] as int? ?? 1) + 1;
+      final revisionId = 'r${revisionNo.toString().padLeft(10, '0')}';
+      final presentation = _revisionPresentationFrom(current, actor);
+
+      await boundedRetryWithConfirmation<bool>(
+        writeAction: () async {
+          final batch = _firestore.batch();
+          batch.set(
+            postRef.collection(PlaygroundFirestoreSchema.postRevisions).doc(revisionId),
+            _revisionPayload(
+              id: revisionId,
+              parentId: current['current_revision_id'] as String? ?? 'r0000000001',
+              revisionNo: revisionNo,
+              body: current['text'] as String? ?? '',
+              techniqueTags: const [],
+              chartAttachment: null,
+              mediaAttachments: const [],
+              presentation: presentation,
+            ),
           );
-        }
-
-        final postSnap = await tx.get(postRef);
-        if (!postSnap.exists) {
-          throw directPlaygroundError(
-            code: PlaygroundErrorCode.notFound,
-            machineCode: 'content/not-found',
-            message: '帖子不存在',
-          );
-        }
-        final current = postSnap.data()!;
-        if (current['status'] == 'tombstoned') {
-          return; // 幂等：已墓碑。
-        }
-
-        // 先追加最后 revision，保存公开正文快照。
-        final revisionNo = (current['revision_no'] as int? ?? 1) + 1;
-        final revisionId =
-            'r${revisionNo.toString().padLeft(10, '0')}';
-        final presentation = _revisionPresentationFrom(current, actor);
-
-        tx.set(postRef.collection(PlaygroundFirestoreSchema.postRevisions)
-            .doc(revisionId), _revisionPayload(
-          id: revisionId,
-          parentId: current['current_revision_id'] as String? ?? 'r0000000001',
-          revisionNo: revisionNo,
-          body: current['text'] as String? ?? '',
-          techniqueTags: const [],
-          chartAttachment: null,
-          mediaAttachments: const [],
-          presentation: presentation,
-        ));
-
-        // 再清空公开正文/附件/技法。
-        tx.update(postRef, {
-          'status': 'tombstoned',
-          'text': '',
-          'attachments': <dynamic>[],
-          'allowed_chart_technique_ids': <dynamic>[],
-          'revision_no': revisionNo,
-          'current_revision_id': revisionId,
-          'updated_at': FieldValue.serverTimestamp(),
-        });
-      });
+          batch.update(postRef, {
+            'status': 'tombstoned',
+            'text': '',
+            'attachments': <dynamic>[],
+            'allowed_chart_technique_ids': <dynamic>[],
+            'revision_no': revisionNo,
+            'current_revision_id': revisionId,
+            'updated_at': FieldValue.serverTimestamp(),
+          });
+          await batch.commit();
+        },
+        checkConfirmed: () async {
+          final snap = await postRef.get();
+          if (snap.exists && snap.data()?['status'] == 'tombstoned') {
+            return true;
+          }
+          return null;
+        },
+      );
     } catch (e) {
       if (e is PlaygroundError) rethrow;
       throw directPlaygroundError(

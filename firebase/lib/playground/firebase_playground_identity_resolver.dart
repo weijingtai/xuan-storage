@@ -53,8 +53,10 @@ final class FirebasePlaygroundIdentityResolver {
 
       final data = doc.data()!;
       final appUserId = _readAppUserId(data);
-      final presentationId = data['public_presentation_id'] as String?;
-      final displayAlias = data['public_display_alias'] as String?;
+      final presentationId = (data['public_presentation_id'] as String?) ??
+          (data['presentation_identity_id'] as String?);
+      final displayAlias = (data['public_display_alias'] as String?) ??
+          (data['display_alias'] as String?);
 
       if (appUserId == null ||
           presentationId == null || presentationId.isEmpty ||

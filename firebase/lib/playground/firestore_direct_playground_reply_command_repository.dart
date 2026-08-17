@@ -59,86 +59,87 @@ final class FirestoreDirectPlaygroundReplyCommandRepository
           .collection(PlaygroundFirestoreSchema.postRevisions)
           .doc('r0000000001');
 
-      final result = await _firestore.runTransaction((tx) async {
-        // 幂等 replay。
-        final existing = await tx.get(replyRef);
-        if (existing.exists) {
-          return existing.data()!;
-        }
+      return await boundedRetryWithConfirmation<PublicReply>(
+        writeAction: () async {
+          // 目标 post 必须存在且 active。
+          final postSnap = await postRef.get();
+          if (!postSnap.exists || postSnap.data()?['status'] != 'active') {
+            throw directPlaygroundError(
+              code: PlaygroundErrorCode.notFound,
+              machineCode: 'content/not-found',
+              message: '目标帖子不存在或已关闭',
+            );
+          }
 
-        // 目标 post 必须存在且 active。
-        final postSnap = await tx.get(postRef);
-        if (!postSnap.exists || postSnap.data()?['status'] != 'active') {
-          throw directPlaygroundError(
-            code: PlaygroundErrorCode.notFound,
-            machineCode: 'content/not-found',
-            message: '目标帖子不存在或已关闭',
+          final presentation = _resolveReplyPresentation(
+            postId: command.postId.value,
+            actor: actor,
+            mode: command.presentationMode,
           );
-        }
 
-        final presentation = _resolveReplyPresentation(
-          postId: command.postId.value,
-          actor: actor,
-          mode: command.presentationMode,
-        );
+          final attachments =
+              command.mediaAttachments.map(_attachmentToMap).toList(growable: false);
+          final chartMap =
+              command.chartAttachment != null ? _attachmentToMap(command.chartAttachment!) : null;
 
-        final attachments =
-            command.mediaAttachments.map(_attachmentToMap).toList(growable: false);
-        final chartMap =
-            command.chartAttachment != null ? _attachmentToMap(command.chartAttachment!) : null;
-
-        final replyPayload = <String, dynamic>{
-          'id': replyId,
-          'post_id': command.postId.value,
-          'presentation_mode': presentation['presentation_mode'],
-          'presentation_identity_id': presentation['presentation_identity_id'],
-          'presentation_display_alias': presentation['presentation_display_alias'],
-          'presentation_avatar_url': presentation['presentation_avatar_url'],
-          'public_profile_ref': presentation['public_profile_ref'],
-          'depth': 0,
-          'body': command.body,
-          'is_tombstoned': false,
-          'root_reply_id': null,
-          'reply_to_reply_id': null,
-          'technique_tags': command.techniqueTags,
-          'chart_attachment': chartMap,
-          'media_attachments': attachments,
-          'revision_no': 1,
-          'current_revision_id': 'r0000000001',
-          'idempotency_key': key,
-          'payload_hash': canonicalJsonHash({
+          final replyPayload = <String, dynamic>{
+            'id': replyId,
             'post_id': command.postId.value,
-            'body': command.body,
-            'technique_tags': command.techniqueTags,
-            'chart_attachment': chartMap,
-            'media_attachments': attachments,
             'presentation_mode': presentation['presentation_mode'],
             'presentation_identity_id': presentation['presentation_identity_id'],
             'presentation_display_alias': presentation['presentation_display_alias'],
-          }),
-          'created_at': FieldValue.serverTimestamp(),
-          'updated_at': FieldValue.serverTimestamp(),
-        };
+            'presentation_avatar_url': presentation['presentation_avatar_url'],
+            'public_profile_ref': presentation['public_profile_ref'],
+            'depth': 0,
+            'body': command.body,
+            'is_tombstoned': false,
+            'root_reply_id': null,
+            'reply_to_reply_id': null,
+            'technique_tags': command.techniqueTags,
+            'chart_attachment': chartMap,
+            'media_attachments': attachments,
+            'revision_no': 1,
+            'current_revision_id': 'r0000000001',
+            'idempotency_key': key,
+            'payload_hash': canonicalJsonHash({
+              'post_id': command.postId.value,
+              'body': command.body,
+              'technique_tags': command.techniqueTags,
+              'chart_attachment': chartMap,
+              'media_attachments': attachments,
+              'presentation_mode': presentation['presentation_mode'],
+              'presentation_identity_id': presentation['presentation_identity_id'],
+              'presentation_display_alias': presentation['presentation_display_alias'],
+            }),
+            'created_at': FieldValue.serverTimestamp(),
+            'updated_at': FieldValue.serverTimestamp(),
+          };
 
-        final revisionPayload = _revisionPayload(
-          id: 'r0000000001',
-          parentId: '',
-          revisionNo: 1,
-          body: command.body,
-          techniqueTags: command.techniqueTags,
-          chartAttachment: chartMap,
-          mediaAttachments: attachments,
-          presentation: presentation,
-        );
+          final revisionPayload = _revisionPayload(
+            id: 'r0000000001',
+            parentId: '',
+            revisionNo: 1,
+            body: command.body,
+            techniqueTags: command.techniqueTags,
+            chartAttachment: chartMap,
+            mediaAttachments: attachments,
+            presentation: presentation,
+          );
 
-        tx.set(replyRef, replyPayload);
-        tx.set(ownerRef, actor.ownerPayload(contentId: replyId));
-        tx.set(revisionRef, revisionPayload);
-
-        return replyPayload;
-      });
-
-      return _mapper.publicReplyFromDoc(replyId, result);
+          final batch = _firestore.batch();
+          batch.set(replyRef, replyPayload);
+          batch.set(ownerRef, actor.ownerPayload(contentId: replyId));
+          batch.set(revisionRef, revisionPayload);
+          await batch.commit();
+        },
+        checkConfirmed: () async {
+          final snap = await replyRef.get();
+          if (snap.exists) {
+            return _mapper.publicReplyFromDoc(replyId, snap.data()!);
+          }
+          return null;
+        },
+      );
     } catch (e) {
       if (e is PlaygroundError) rethrow;
       throw directPlaygroundError(
@@ -181,142 +182,145 @@ final class FirestoreDirectPlaygroundReplyCommandRepository
           .collection(PlaygroundFirestoreSchema.postRevisions)
           .doc('r0000000001');
 
-      final result = await _firestore.runTransaction((tx) async {
-        final existing = await tx.get(replyRef);
-        if (existing.exists) {
-          return existing.data()!;
-        }
-
-        // 目标 post 存在且 active。
-        final postSnap = await tx.get(postRef);
-        if (!postSnap.exists || postSnap.data()?['status'] != 'active') {
-          throw directPlaygroundError(
-            code: PlaygroundErrorCode.notFound,
-            machineCode: 'content/not-found',
-            message: '目标帖子不存在或已关闭',
-          );
-        }
-
-        // root 必须存在、同帖、depth=0、未墓碑。
-        final rootSnap = await tx.get(rootRef);
-        if (!rootSnap.exists) {
-          throw directPlaygroundError(
-            code: PlaygroundErrorCode.notFound,
-            machineCode: 'content/not-found',
-            message: '根回复不存在',
-          );
-        }
-        final rootData = rootSnap.data()!;
-        if (rootData['post_id'] != command.postId.value ||
-            rootData['depth'] != 0) {
-          throw directPlaygroundError(
-            code: PlaygroundErrorCode.invalidArgument,
-            machineCode: 'validation/invalid-payload',
-            message: '跨帖或非根回复',
-          );
-        }
-        if (rootData['is_tombstoned'] == true) {
-          throw directPlaygroundError(
-            code: PlaygroundErrorCode.tombstoned,
-            machineCode: 'content/tombstoned',
-            message: '根回复已删除',
-          );
-        }
-
-        // reply_to 若提供：必须存在、同帖、同 root、depth=0、未墓碑。
-        if (command.replyToReplyId != null) {
-          final replyToSnap = await tx.get(_firestore
-              .collection(PlaygroundFirestoreSchema.replies)
-              .doc(command.replyToReplyId!.value));
-          if (!replyToSnap.exists) {
+      return await boundedRetryWithConfirmation<PublicReply>(
+        writeAction: () async {
+          // 目标 post 存在且 active。
+          final postSnap = await postRef.get();
+          if (!postSnap.exists || postSnap.data()?['status'] != 'active') {
             throw directPlaygroundError(
               code: PlaygroundErrorCode.notFound,
               machineCode: 'content/not-found',
-              message: '被回复对象不存在',
+              message: '目标帖子不存在或已关闭',
             );
           }
-          final replyTo = replyToSnap.data()!;
-          final sameRoot = replyTo['root_reply_id'] ==
-              rootData['id'];
-          if (replyTo['post_id'] != command.postId.value ||
-              !sameRoot ||
-              replyTo['depth'] != 0) {
+
+          // root 必须存在、同帖、depth=0、未墓碑。
+          final rootSnap = await rootRef.get();
+          if (!rootSnap.exists) {
+            throw directPlaygroundError(
+              code: PlaygroundErrorCode.notFound,
+              machineCode: 'content/not-found',
+              message: '根回复不存在',
+            );
+          }
+          final rootData = rootSnap.data()!;
+          if (rootData['post_id'] != command.postId.value ||
+              rootData['depth'] != 0) {
             throw directPlaygroundError(
               code: PlaygroundErrorCode.invalidArgument,
               machineCode: 'validation/invalid-payload',
-              message: '跨 root 或第三层回复',
+              message: '跨帖或非根回复',
             );
           }
-          if (replyTo['is_tombstoned'] == true) {
+          if (rootData['is_tombstoned'] == true) {
             throw directPlaygroundError(
               code: PlaygroundErrorCode.tombstoned,
               machineCode: 'content/tombstoned',
-              message: '被回复对象已删除',
+              message: '根回复已删除',
             );
           }
-        }
 
-        final presentation = _resolveReplyPresentation(
-          postId: command.postId.value,
-          actor: actor,
-          mode: command.presentationMode,
-        );
+          // reply_to 若提供：必须存在、同帖、同 root、depth=0、未墓碑。
+          if (command.replyToReplyId != null) {
+            final replyToSnap = await _firestore
+                .collection(PlaygroundFirestoreSchema.replies)
+                .doc(command.replyToReplyId!.value)
+                .get();
+            if (!replyToSnap.exists) {
+              throw directPlaygroundError(
+                code: PlaygroundErrorCode.notFound,
+                machineCode: 'content/not-found',
+                message: '被回复对象不存在',
+              );
+            }
+            final replyTo = replyToSnap.data()!;
+            final sameRoot = replyTo['root_reply_id'] ==
+                rootData['id'];
+            if (replyTo['post_id'] != command.postId.value ||
+                !sameRoot ||
+                replyTo['depth'] != 0) {
+              throw directPlaygroundError(
+                code: PlaygroundErrorCode.invalidArgument,
+                machineCode: 'validation/invalid-payload',
+                message: '跨 root 或第三层回复',
+              );
+            }
+            if (replyTo['is_tombstoned'] == true) {
+              throw directPlaygroundError(
+                code: PlaygroundErrorCode.tombstoned,
+                machineCode: 'content/tombstoned',
+                message: '被回复对象已删除',
+              );
+            }
+          }
 
-        final attachments =
-            command.mediaAttachments.map(_attachmentToMap).toList(growable: false);
+          final presentation = _resolveReplyPresentation(
+            postId: command.postId.value,
+            actor: actor,
+            mode: command.presentationMode,
+          );
 
-        final replyPayload = <String, dynamic>{
-          'id': replyId,
-          'post_id': command.postId.value,
-          'presentation_mode': presentation['presentation_mode'],
-          'presentation_identity_id': presentation['presentation_identity_id'],
-          'presentation_display_alias': presentation['presentation_display_alias'],
-          'presentation_avatar_url': presentation['presentation_avatar_url'],
-          'public_profile_ref': presentation['public_profile_ref'],
-          'depth': 1,
-          'body': command.body,
-          'is_tombstoned': false,
-          'root_reply_id': command.rootReplyId.value,
-          'reply_to_reply_id': command.replyToReplyId?.value,
-          'technique_tags': <String>[],
-          'chart_attachment': null,
-          'media_attachments': attachments,
-          'revision_no': 1,
-          'current_revision_id': 'r0000000001',
-          'idempotency_key': key,
-          'payload_hash': canonicalJsonHash({
+          final attachments =
+              command.mediaAttachments.map(_attachmentToMap).toList(growable: false);
+
+          final replyPayload = <String, dynamic>{
+            'id': replyId,
             'post_id': command.postId.value,
-            'root_reply_id': command.rootReplyId.value,
-            'reply_to_reply_id': command.replyToReplyId?.value,
-            'body': command.body,
-            'media_attachments': attachments,
             'presentation_mode': presentation['presentation_mode'],
             'presentation_identity_id': presentation['presentation_identity_id'],
             'presentation_display_alias': presentation['presentation_display_alias'],
-          }),
-          'created_at': FieldValue.serverTimestamp(),
-          'updated_at': FieldValue.serverTimestamp(),
-        };
+            'presentation_avatar_url': presentation['presentation_avatar_url'],
+            'public_profile_ref': presentation['public_profile_ref'],
+            'depth': 1,
+            'body': command.body,
+            'is_tombstoned': false,
+            'root_reply_id': command.rootReplyId.value,
+            'reply_to_reply_id': command.replyToReplyId?.value,
+            'technique_tags': <String>[],
+            'chart_attachment': null,
+            'media_attachments': attachments,
+            'revision_no': 1,
+            'current_revision_id': 'r0000000001',
+            'idempotency_key': key,
+            'payload_hash': canonicalJsonHash({
+              'post_id': command.postId.value,
+              'root_reply_id': command.rootReplyId.value,
+              'reply_to_reply_id': command.replyToReplyId?.value,
+              'body': command.body,
+              'media_attachments': attachments,
+              'presentation_mode': presentation['presentation_mode'],
+              'presentation_identity_id': presentation['presentation_identity_id'],
+              'presentation_display_alias': presentation['presentation_display_alias'],
+            }),
+            'created_at': FieldValue.serverTimestamp(),
+            'updated_at': FieldValue.serverTimestamp(),
+          };
 
-        final revisionPayload = _revisionPayload(
-          id: 'r0000000001',
-          parentId: '',
-          revisionNo: 1,
-          body: command.body,
-          techniqueTags: const [],
-          chartAttachment: null,
-          mediaAttachments: attachments,
-          presentation: presentation,
-        );
+          final revisionPayload = _revisionPayload(
+            id: 'r0000000001',
+            parentId: '',
+            revisionNo: 1,
+            body: command.body,
+            techniqueTags: const [],
+            chartAttachment: null,
+            mediaAttachments: attachments,
+            presentation: presentation,
+          );
 
-        tx.set(replyRef, replyPayload);
-        tx.set(ownerRef, actor.ownerPayload(contentId: replyId));
-        tx.set(revisionRef, revisionPayload);
-
-        return replyPayload;
-      });
-
-      return _mapper.publicReplyFromDoc(replyId, result);
+          final batch = _firestore.batch();
+          batch.set(replyRef, replyPayload);
+          batch.set(ownerRef, actor.ownerPayload(contentId: replyId));
+          batch.set(revisionRef, revisionPayload);
+          await batch.commit();
+        },
+        checkConfirmed: () async {
+          final snap = await replyRef.get();
+          if (snap.exists) {
+            return _mapper.publicReplyFromDoc(replyId, snap.data()!);
+          }
+          return null;
+        },
+      );
     } catch (e) {
       if (e is PlaygroundError) rethrow;
       throw directPlaygroundError(
@@ -340,73 +344,77 @@ final class FirestoreDirectPlaygroundReplyCommandRepository
       final replyRef = _firestore
           .collection(PlaygroundFirestoreSchema.replies)
           .doc(replyId);
-      final updated = await _firestore.runTransaction((tx) async {
-        await _assertReplyOwner(tx, replyId, actor.providerUid);
-        final snap = await tx.get(replyRef);
-        if (!snap.exists) {
-          throw directPlaygroundError(
-            code: PlaygroundErrorCode.notFound,
-            machineCode: 'content/not-found',
-            message: '回复不存在',
+
+      return await boundedRetryWithConfirmation<PublicReply>(
+        writeAction: () async {
+          await _assertReplyOwner(replyId, actor.providerUid);
+          final snap = await replyRef.get();
+          if (!snap.exists) {
+            throw directPlaygroundError(
+              code: PlaygroundErrorCode.notFound,
+              machineCode: 'content/not-found',
+              message: '回复不存在',
+            );
+          }
+          final current = snap.data()!;
+          if (current['is_tombstoned'] == true) {
+            throw directPlaygroundError(
+              code: PlaygroundErrorCode.tombstoned,
+              machineCode: 'content/tombstoned',
+              message: '回复已删除，无法编辑',
+            );
+          }
+
+          final revisionNo = (current['revision_no'] as int? ?? 1) + 1;
+          final revisionId = 'r${revisionNo.toString().padLeft(10, '0')}';
+          final presentation = _presentationFrom(current, actor);
+          final List<Map<String, dynamic>> attachments =
+              command.mediaAttachments != null
+                  ? command.mediaAttachments!.map(_attachmentToMap).toList()
+                  : (current['media_attachments'] as List<dynamic>?)
+                          ?.whereType<Map<String, dynamic>>()
+                          .toList() ??
+                      <Map<String, dynamic>>[];
+          final techniqueTags = command.techniqueTags ??
+              (current['technique_tags'] as List<dynamic>?)?.cast<String>() ??
+              <String>[];
+          final Map<String, dynamic>? chartMap = command.chartAttachment != null
+              ? _attachmentToMap(command.chartAttachment!)
+              : (current['chart_attachment'] as Map<String, dynamic>?);
+
+          final batch = _firestore.batch();
+          batch.set(
+            replyRef.collection(PlaygroundFirestoreSchema.postRevisions).doc(revisionId),
+            _revisionPayload(
+              id: revisionId,
+              parentId: current['current_revision_id'] as String? ?? 'r0000000001',
+              revisionNo: revisionNo,
+              body: command.body,
+              techniqueTags: techniqueTags,
+              chartAttachment: chartMap,
+              mediaAttachments: attachments,
+              presentation: presentation,
+            ),
           );
-        }
-        final current = snap.data()!;
-        if (current['is_tombstoned'] == true) {
-          throw directPlaygroundError(
-            code: PlaygroundErrorCode.tombstoned,
-            machineCode: 'content/tombstoned',
-            message: '回复已删除，无法编辑',
-          );
-        }
-
-        final revisionNo = (current['revision_no'] as int? ?? 1) + 1;
-        final revisionId = 'r${revisionNo.toString().padLeft(10, '0')}';
-        final presentation = _presentationFrom(current, actor);
-        final List<Map<String, dynamic>> attachments =
-            command.mediaAttachments != null
-                ? command.mediaAttachments!.map(_attachmentToMap).toList()
-                : (current['media_attachments'] as List<dynamic>?)
-                        ?.whereType<Map<String, dynamic>>()
-                        .toList() ??
-                    <Map<String, dynamic>>[];
-        final techniqueTags = command.techniqueTags ??
-            (current['technique_tags'] as List<dynamic>?)?.cast<String>() ??
-            <String>[];
-        final Map<String, dynamic>? chartMap = command.chartAttachment != null
-            ? _attachmentToMap(command.chartAttachment!)
-            : (current['chart_attachment'] as Map<String, dynamic>?);
-
-        tx.set(replyRef.collection(PlaygroundFirestoreSchema.postRevisions)
-            .doc(revisionId), _revisionPayload(
-          id: revisionId,
-          parentId: current['current_revision_id'] as String? ?? 'r0000000001',
-          revisionNo: revisionNo,
-          body: command.body,
-          techniqueTags: techniqueTags,
-          chartAttachment: chartMap,
-          mediaAttachments: attachments,
-          presentation: presentation,
-        ));
-        tx.update(replyRef, {
-          'body': command.body,
-          'technique_tags': techniqueTags,
-          'chart_attachment': chartMap,
-          'media_attachments': attachments,
-          'revision_no': revisionNo,
-          'current_revision_id': revisionId,
-          'updated_at': FieldValue.serverTimestamp(),
-        });
-
-        return <String, dynamic>{...current}
-          ..['body'] = command.body
-          ..['technique_tags'] = techniqueTags
-          ..['chart_attachment'] = chartMap
-          ..['media_attachments'] = attachments
-          ..['revision_no'] = revisionNo
-          ..['current_revision_id'] = revisionId;
-      });
-
-      return _mapper.publicReplyFromDoc(replyId, updated);
+          batch.update(replyRef, {
+            'body': command.body,
+            'technique_tags': techniqueTags,
+            'chart_attachment': chartMap,
+            'media_attachments': attachments,
+            'revision_no': revisionNo,
+            'current_revision_id': revisionId,
+            'updated_at': FieldValue.serverTimestamp(),
+          });
+          await batch.commit();
+        },
+        checkConfirmed: () async {
+          final snap = await replyRef.get();
+          if (snap.exists) {
+            return _mapper.publicReplyFromDoc(replyId, snap.data()!);
+          }
+          return null;
+        },
+      );
     } catch (e) {
       if (e is PlaygroundError) rethrow;
       throw directPlaygroundError(
@@ -430,49 +438,61 @@ final class FirestoreDirectPlaygroundReplyCommandRepository
       final replyRef = _firestore
           .collection(PlaygroundFirestoreSchema.replies)
           .doc(replyId);
-      await _firestore.runTransaction((tx) async {
-        await _assertReplyOwner(tx, replyId, actor.providerUid);
-        final snap = await tx.get(replyRef);
-        if (!snap.exists) {
-          throw directPlaygroundError(
-            code: PlaygroundErrorCode.notFound,
-            machineCode: 'content/not-found',
-            message: '回复不存在',
+
+      await boundedRetryWithConfirmation<bool>(
+        writeAction: () async {
+          await _assertReplyOwner(replyId, actor.providerUid);
+          final snap = await replyRef.get();
+          if (!snap.exists) {
+            throw directPlaygroundError(
+              code: PlaygroundErrorCode.notFound,
+              machineCode: 'content/not-found',
+              message: '回复不存在',
+            );
+          }
+          final current = snap.data()!;
+          if (current['is_tombstoned'] == true) {
+            return; // 幂等。
+          }
+
+          final revisionNo = (current['revision_no'] as int? ?? 1) + 1;
+          final revisionId = 'r${revisionNo.toString().padLeft(10, '0')}';
+          final presentation = _presentationFrom(current, actor);
+
+          final batch = _firestore.batch();
+          batch.set(
+            replyRef.collection(PlaygroundFirestoreSchema.postRevisions).doc(revisionId),
+            _revisionPayload(
+              id: revisionId,
+              parentId: current['current_revision_id'] as String? ?? 'r0000000001',
+              revisionNo: revisionNo,
+              body: current['body'] as String? ?? '',
+              techniqueTags: const [],
+              chartAttachment: null,
+              mediaAttachments: const [],
+              presentation: presentation,
+            ),
           );
-        }
-        final current = snap.data()!;
-        if (current['is_tombstoned'] == true) {
-          return; // 幂等。
-        }
-
-        // 先追加最后 revision，再清空公开正文。
-        final revisionNo = (current['revision_no'] as int? ?? 1) + 1;
-        final revisionId = 'r${revisionNo.toString().padLeft(10, '0')}';
-        final presentation = _presentationFrom(current, actor);
-
-        tx.set(replyRef.collection(PlaygroundFirestoreSchema.postRevisions)
-            .doc(revisionId), _revisionPayload(
-          id: revisionId,
-          parentId: current['current_revision_id'] as String? ?? 'r0000000001',
-          revisionNo: revisionNo,
-          body: current['body'] as String? ?? '',
-          techniqueTags: const [],
-          chartAttachment: null,
-          mediaAttachments: const [],
-          presentation: presentation,
-        ));
-
-        tx.update(replyRef, {
-          'is_tombstoned': true,
-          'body': '',
-          'technique_tags': <dynamic>[],
-          'chart_attachment': null,
-          'media_attachments': <dynamic>[],
-          'revision_no': revisionNo,
-          'current_revision_id': revisionId,
-          'updated_at': FieldValue.serverTimestamp(),
-        });
-      });
+          batch.update(replyRef, {
+            'is_tombstoned': true,
+            'body': '',
+            'technique_tags': <dynamic>[],
+            'chart_attachment': null,
+            'media_attachments': <dynamic>[],
+            'revision_no': revisionNo,
+            'current_revision_id': revisionId,
+            'updated_at': FieldValue.serverTimestamp(),
+          });
+          await batch.commit();
+        },
+        checkConfirmed: () async {
+          final snap = await replyRef.get();
+          if (snap.exists && snap.data()?['is_tombstoned'] == true) {
+            return true;
+          }
+          return null;
+        },
+      );
     } catch (e) {
       if (e is PlaygroundError) rethrow;
       throw directPlaygroundError(
@@ -487,13 +507,13 @@ final class FirestoreDirectPlaygroundReplyCommandRepository
   // ---- helpers ----
 
   Future<void> _assertReplyOwner(
-    Transaction tx,
     String replyId,
     String providerUid,
   ) async {
-    final ownerSnap = await tx.get(_firestore
+    final ownerSnap = await _firestore
         .collection(PlaygroundFirestoreSchema.replyOwners)
-        .doc(replyId));
+        .doc(replyId)
+        .get();
     final owner = ownerSnap.data();
     if (owner == null || owner['provider_uid'] != providerUid) {
       throw directPlaygroundError(
