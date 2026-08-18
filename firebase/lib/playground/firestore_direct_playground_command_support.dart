@@ -203,7 +203,7 @@ String _stringify(Object key) {
 Future<T> boundedRetryWithConfirmation<T>({
   required Future<void> Function() writeAction,
   required Future<T?> Function() checkConfirmed,
-  Duration timeout = const Duration(seconds: 4),
+  Duration timeout = const Duration(seconds: 10),
   int maxAttempts = 3,
   Duration retryDelay = const Duration(milliseconds: 300),
 }) async {
@@ -212,6 +212,8 @@ Future<T> boundedRetryWithConfirmation<T>({
     try {
       await writeAction().timeout(timeout);
     } catch (e) {
+      // ignore: avoid_print
+      print('WRITE_ACTION_ERR: $e');
       lastError = e;
     }
     // 每次写入尝试后（无论抛错还是超时），先检查是否已经成功落库（应对 lost-response 竞态）。

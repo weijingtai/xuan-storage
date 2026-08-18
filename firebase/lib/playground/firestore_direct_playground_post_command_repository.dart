@@ -255,7 +255,6 @@ final class FirestoreDirectPlaygroundPostCommandRepository
   @override
   Future<void> tombstonePost(DeletePostCommand command) async {
     try {
-      _requireIdempotencyKey(command.idempotencyKey);
       final actor = await requireDirectActor(firestore: _firestore, auth: _auth);
       final postId = command.postId.value;
 

@@ -107,7 +107,7 @@ final class FirebasePlaygroundFeedQueryRepository
         final startDoc = FirebasePlaygroundCursor.toDocumentReference(
             query.cursor!, _firestore);
         if (startDoc != null) {
-          final startSnap = await startDoc.get();
+          final startSnap = await startDoc.get(const GetOptions(source: Source.serverAndCache));
           if (startSnap.exists) {
             q = q.startAfterDocument(startSnap);
           } else {
@@ -127,6 +127,12 @@ final class FirebasePlaygroundFeedQueryRepository
       }
 
       final snaps = await q.get();
+      // ignore: avoid_print
+      print('QUERY_RAW_RESULT: count=${snaps.docs.length}');
+      for (final d in snaps.docs) {
+        // ignore: avoid_print
+        print('QUERY_RAW_DOC: id=${d.id} status=${d.data()['status']} created_at=${d.data()['created_at']}');
+      }
       final matching = snaps.docs.where((doc) {
         final data = doc.data();
         if (!_matchesContent(data, query.filter.content)) return false;
@@ -254,7 +260,7 @@ final class FirebasePlaygroundFeedQueryRepository
         range == PlaygroundFeedTimeRange.unknown) {
       return true;
     }
-    final created = (data['created_at'] as Timestamp?)?.toDate();
+    final created = FirebasePlaygroundPublicMapper.toDateTime(data['created_at']);
     if (created == null) return false;
     final now = DateTime.now();
     final cutoff = switch (range) {
