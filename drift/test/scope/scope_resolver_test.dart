@@ -212,6 +212,29 @@ void main() {
 
       handover.fail = true;
       await expectLater(resolver.resolve(), throwsStateError);
+
+      // 1. handover 失败后，ledger 里不存在 appUserId → 新 scope 的残留绑定
+      //    （缺陷 1 未修时这里会留下 user-1 → minted-scope 的绑定）
+      expect(
+        await ledger.scopeForIdentity('user-1', ScopeAuthKind.registered),
+        isNull,
+      );
+
+      // 2. device scope 的绑定仍然完好（未被提前腾空）
+      expect(
+        await ledger.scopeForIdentity('anon-1', ScopeAuthKind.anonymous),
+        'device-scope-uuid-123',
+      );
+      expect(
+        await ledger.entriesForScope('device-scope-uuid-123'),
+        hasLength(1),
+      );
+
+      // 3. 再次 resolve() 不会因残留绑定走错分支。
+      //    有残留绑定时会走「有 alias → 直接返回已有 scope」路径，返回一个
+      //    isUpgrade=false 的空数据 scope（用户看到空白）。
+      //    修复后应仍走升级路径（再次铸新 scope）并再次抛异常。
+      await expectLater(resolver.resolve(), throwsStateError);
     });
 
     test('5. session has appUserId, no alias, device scope busy, no link -> mint new scope (conflict)', () async {

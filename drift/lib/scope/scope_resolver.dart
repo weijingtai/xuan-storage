@@ -103,10 +103,19 @@ class ScopeResolver {
       // 改为新 scope，并腾空匿名槽位绑定供下一位设备主人复用。
       // （修复：不再复用 device scope —— 那会让第二位主人 B 注册后数据劈裂）
       final newScope = await _ledger.mintAndBind(appUserId, authKind);
-      await _handoverService.handover(
-        fromScope: deviceScope,
-        toScope: newScope,
-      );
+      try {
+        await _handoverService.handover(
+          fromScope: deviceScope,
+          toScope: newScope,
+        );
+      } catch (_) {
+        // handover 失败（备份磁盘满、blob 复制失败等）：
+        // 回滚刚铸的绑定，避免留下「新 scope 已绑定但数据仍在 device scope」
+        // 的中间态 —— 否则下次 resolve() 走「有 alias → 直接返回已有 scope」
+        // 路径，用户看到空白（比丢数据更难排查）。
+        await _ledger.clearScope(newScope);
+        rethrow;
+      }
       return ResolvedScope(
         scopeUid: newScope,
         isUpgrade: true,
