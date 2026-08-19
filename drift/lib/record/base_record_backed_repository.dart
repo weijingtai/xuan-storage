@@ -10,13 +10,10 @@ import 'record_storage_driver.dart';
 
 /// Type-safe reusable record-storage base.
 ///
-/// M1 起该基类降级为**适配层**：既有九个方法保留原签名，内部改为切片
-/// 组合——读/删路径委托 L0 契约内核（[CrudBaseRepository] +
-/// [RecordStorageDriver] + [recordEntityDescriptor]）；save / watchAll /
-/// 索引查询因 record 独有能力（encode/outbox/搜索标签/drift watch 时序）
-/// 与 L0 能力边界（暂无索引 API）保留 [ScopedRecordStore] 端口直连。
-/// 保证八个模块的 record_backed_* 仓储**零改动**继续可用。
-/// M4 将整体退场，调用方直接使用 L0 切片。
+/// M1 起该基类降级为**适配层**：既有九个方法保留原签名，内部全部委托
+/// L0 契约内核（[CrudBaseRepository] + [RecordStorageDriver] +
+/// [recordEntityDescriptor]）。保证八个模块的 record_backed_* 仓储
+/// **零改动**继续可用。M4 将整体退场，调用方直接使用 L0 切片。
 ///
 /// 依赖仅限 [ScopedRecordStore] 与 [RecordModuleCodec<TContract>] 端口，
 /// 不 import Drift 表类或数据源内部。
@@ -51,9 +48,6 @@ abstract class BaseRecordBackedRepository<TContract> {
       );
 
   // ── save ──
-  // M1 试点保留 store 端口直写：record 的 encode / outbox / 搜索索引
-  // 语义是 ScopedRecordStore 独有能力，L0 put 的行形态无法等价表达；
-  // 且直写路径与既有 watch 流时序保持一致（避免订阅竞争回归）。
   @Deprecated('M4 退场，改用 L0 切片')
   Future<String> save(TContract contract) async {
     final currentUuid = _codec.uuidOf(contract);
@@ -62,17 +56,22 @@ abstract class BaseRecordBackedRepository<TContract> {
         currentUuid.isNotEmpty ? contract : _codec.withUuid(contract, effectiveUuid);
     final encoded = _codec.encode(fixed, scopeUid: _store.scopeUid);
     _validateEncodedMeta(encoded.meta, effectiveUuid);
-    await _store.saveRecord(encoded.meta, moduleData: encoded.moduleData);
+    final row = RecordRowMapper.metaToRow(encoded.meta);
+    final r = await _l0.put(row, _ctx);
+    if (r case Err(error: final e)) {
+      throw e;
+    }
     return effectiveUuid;
   }
 
   // ── read ──
-  // M1 试点保留 store 端口直连：既有语义允许读取已软删记录
-  // （返回带 deletedAt 的实体），而 L0 get 一律排除软删，语义不等价。
   @Deprecated('M4 退场，改用 L0 切片')
   Future<TContract?> getByUuid(String uuid) async {
-    final meta = await _store.getRecord(uuid, module: module);
-    return meta == null ? null : _codec.decode(meta, null);
+    final r = await _l0.getIncludingDeleted(uuid, _ctx);
+    if (r case Ok(value: final row)) {
+      return row == null ? null : _decodeRow(row);
+    }
+    return null;
   }
 
   @Deprecated('M4 退场，改用 L0 切片')
@@ -94,13 +93,12 @@ abstract class BaseRecordBackedRepository<TContract> {
   }
 
   // ── watch ──
-  // M1 试点保留 store 端口直连：drift watch 的 category SQL 过滤与
-  // 订阅即发初始快照的时序语义，经 L0 watch（通用 equals 内存过滤）
-  // 无法等价，直接走 store 与基线行为一致。
   @Deprecated('M4 退场，改用 L0 切片')
-  Stream<List<TContract>> watchAll() => _store
-      .watchRecords(module: module, category: _codec.category)
-      .map((metas) => metas.map((m) => _codec.decode(m, null)).toList());
+  Stream<List<TContract>> watchAll() => _l0
+      .watch({'category': _codec.category}, _ctx)
+      .map((r) => ((r as Ok<List<Map<String, Object?>>>).value)
+          .map(_decodeRow)
+          .toList());
 
   @Deprecated('M4 退场，改用 L0 切片')
   Future<List<TContract>> getLatest({int limit = 10}) async {
@@ -119,28 +117,35 @@ abstract class BaseRecordBackedRepository<TContract> {
   }
 
   // ── index queries ──
-  // L0 契约内核暂无索引 API（RecordSearchTagExtractor 标签体系是 record
-  // 独有能力），这三个方法保持直连 store 的标签索引，M4 随适配层一起退场。
   @Deprecated('M4 退场，改用 L0 切片')
   Future<TContract?> getFirstByIndex(String indexKey, String indexValue) async {
-    final metas = await _store.findByIndex(
-        module: module, indexKey: indexKey, indexValue: indexValue, limit: 1);
-    return metas.isEmpty ? null : _codec.decode(metas.first, null);
+    final r = await _l0.getByIndex(indexKey, indexValue, _ctx, limit: 1);
+    if (r case Ok(value: final rows)) {
+      return rows.isEmpty ? null : _decodeRow(rows.first);
+    }
+    return null;
   }
 
   @Deprecated('M4 退场，改用 L0 切片')
   Future<List<TContract>> getAllByIndex(String indexKey, String indexValue,
       {int limit = 200}) async {
-    final metas = await _store.findByIndex(
-        module: module, indexKey: indexKey, indexValue: indexValue, limit: limit);
-    return metas.map((m) => _codec.decode(m, null)).toList();
+    final r = await _l0.getByIndex(indexKey, indexValue, _ctx, limit: limit);
+    if (r case Ok(value: final rows)) {
+      return rows.map(_decodeRow).toList();
+    }
+    return const [];
   }
 
   @Deprecated('M4 退场，改用 L0 切片')
   Stream<TContract?> watchFirstByIndex(String indexKey, String indexValue) =>
-      _store
-          .watchByIndex(module: module, indexKey: indexKey, indexValue: indexValue)
-          .map((metas) => metas.isEmpty ? null : _codec.decode(metas.first, null));
+      _l0
+          .watchByIndex(indexKey, indexValue, _ctx, limit: 1)
+          .map((r) {
+            if (r case Ok(value: final rows)) {
+              return rows.isEmpty ? null : _decodeRow(rows.first);
+            }
+            return null;
+          });
 
   void _validateEncodedMeta(RecordMeta meta, String expectedUuid) {
     if (meta.uuid != expectedUuid) {

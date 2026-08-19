@@ -52,8 +52,39 @@ class RecordStorageDriver implements StorageDriver {
   Future<List<Map<String, Object?>>> readMany(
       String resource, RawFilter filter, RawPage page) async {
     if (!_scopeOk(filter.scopeUid)) return const [];
-    List<RecordMeta> metas;
     if (filter.equals.isNotEmpty) {
+      if (filter.equals.length == 1 && filter.equals.containsKey('category')) {
+        final category = filter.equals['category'] as String?;
+        final metas = await _store.listRecords(
+          module: resource,
+          category: category,
+          limit: page.limit,
+        );
+        return metas
+            .where((m) => filter.includeSoftDeleted || m.deletedAt == null)
+            .map(RecordRowMapper.metaToRow)
+            .toList();
+      }
+
+      if (filter.equals.length == 1 &&
+          !filter.equals.containsKey('id') &&
+          !filter.equals.containsKey('scope_uid')) {
+        final indexKey = filter.equals.keys.first;
+        final indexValue = '${filter.equals.values.first}';
+        final metas = await _store.findByIndex(
+          module: resource,
+          indexKey: indexKey,
+          indexValue: indexValue,
+          limit: page.limit,
+        );
+        if (metas.isNotEmpty) {
+          return metas
+              .where((m) => filter.includeSoftDeleted || m.deletedAt == null)
+              .map(RecordRowMapper.metaToRow)
+              .toList();
+        }
+      }
+
       // equals 是通用字段等值语义，与 record 的搜索索引（moduleData 标签）
       // 不是同一体系，这里用「全量 + 内存过滤 + id 游标续页」实现。
       final all = await _store.listRecords(module: resource, limit: 10000);
@@ -81,7 +112,7 @@ class RecordStorageDriver implements StorageDriver {
         cursor = RecordCursor(anchor.createdAt, anchor.uuid).encode();
       }
     }
-    metas = await _store.listRecords(
+    final metas = await _store.listRecords(
       module: resource,
       limit: page.limit,
       cursor: cursor,
@@ -144,17 +175,35 @@ class RecordStorageDriver implements StorageDriver {
 
   @override
   Stream<List<Map<String, Object?>>> watchMany(
-      String resource, RawFilter filter, RawPage page) async* {
+      String resource, RawFilter filter, RawPage page) {
     if (!_scopeOk(filter.scopeUid)) {
-      yield const <Map<String, Object?>>[];
-      return;
+      return Stream.value(const <Map<String, Object?>>[]);
     }
-    final Stream<List<RecordMeta>> source =
-        _store.watchRecords(module: resource);
-    yield* source.map((metas) {
+
+    final Stream<List<RecordMeta>> source;
+    if (filter.equals.length == 1 &&
+        !filter.equals.containsKey('category') &&
+        !filter.equals.containsKey('id') &&
+        !filter.equals.containsKey('scope_uid')) {
+      final indexKey = filter.equals.keys.first;
+      final indexValue = '${filter.equals.values.first}';
+      source = _store.watchByIndex(
+        module: resource,
+        indexKey: indexKey,
+        indexValue: indexValue,
+      );
+    } else {
+      final category = filter.equals['category'] as String?;
+      source = _store.watchRecords(
+        module: resource,
+        category: category,
+      );
+    }
+
+    return source.map((metas) {
       var visible = metas
           .where((m) => filter.includeSoftDeleted || m.deletedAt == null);
-      if (filter.equals.isNotEmpty) {
+      if (filter.equals.isNotEmpty && !filter.equals.containsKey('category')) {
         visible = visible.where((m) => _matchesEquals(m, filter.equals));
       }
       return visible.map(RecordRowMapper.metaToRow).toList();
