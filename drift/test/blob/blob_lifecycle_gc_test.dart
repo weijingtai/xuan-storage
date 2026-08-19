@@ -46,12 +46,12 @@ void main() {
     tmpDir.deleteSync(recursive: true);
   });
 
-  Future<void> insertMeta(String manifestId, {int status = 0, int tier = 0, DateTime? stagedAt}) async {
+  Future<void> insertMeta(String manifestId, {int status = 0, int tier = 0, DateTime? stagedAt, String scopeUid = 'scope-a'}) async {
     final stagedAtUtc = stagedAt ?? frozenNow;
     await db.into(db.blobMetas).insert(
       BlobMetasCompanion.insert(
         cipherManifestId: manifestId,
-        scopeUid: 'scope-a',
+        scopeUid: scopeUid,
         plaintextSha256: manifestId * 64,
         cipherId: 'identity',
         keyVersion: 1,
@@ -164,6 +164,28 @@ void main() {
 
       final meta = await metaRepo.getMeta('cache-pinned');
       expect(meta, isNotNull, reason: '有引用的 cache blob 不应被删除');
+    });
+
+    test('GC 不应跨 scope 删除别人的过期 staged blob', () async {
+      // scope-a 和 scope-b 各有一个过期的 staged blob
+      await insertMeta('scope-a-expired', stagedAt: frozenNow.subtract(const Duration(hours: 25)), scopeUid: 'scope-a');
+      await insertMeta('scope-b-expired', stagedAt: frozenNow.subtract(const Duration(hours: 25)), scopeUid: 'scope-b');
+
+      // 对 scope-a 执行 GC
+      final gc = DriftBlobGarbageCollector(
+        db: db,
+        scopeUid: 'scope-a',
+        rootDir: tmpDir.path,
+        now: () => frozenNow,
+      );
+
+      final result = await gc.collect();
+      expect(result.stagedExpired, 1, reason: 'scope-a 的过期 blob 应被删除');
+
+      // 验证 scope-b 的 blob 仍然存在
+      final metaRepoB = BlobMetadataRepository(db: db, scopeUid: 'scope-b');
+      final metaB = await metaRepoB.getMeta('scope-b-expired');
+      expect(metaB, isNotNull, reason: 'scope-b 的 blob 不应被 scope-a 的 GC 删除（越权）');
     });
   });
 }
