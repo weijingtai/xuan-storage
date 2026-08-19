@@ -51,7 +51,7 @@ final class DriftBlobGarbageCollector {
     // 1. Collect expired staged blobs (past 24h TTL)
     final cutoff = _now().subtract(const Duration(hours: 24));
     final stagedRows = await (_db.select(_db.blobMetas)
-          ..where((t) => t.status.equals(0)))
+          ..where((t) => t.status.equals(0) & t.scopeUid.equals(_scopeUid)))
         .get();
 
     for (final row in stagedRows) {
