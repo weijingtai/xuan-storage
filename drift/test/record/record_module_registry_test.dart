@@ -1,5 +1,4 @@
 import 'package:persistence_drift/persistence_drift.dart';
-import 'package:repository_interface_record/repository_interface_record.dart';
 import 'package:test/test.dart';
 
 void main() {

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:drift/native.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';

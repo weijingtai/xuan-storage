@@ -3,7 +3,6 @@ import 'package:persistence_drift/persistence_drift.dart';
 import 'package:persistence_drift/tiebanshenshu/tiebanshenshu_module_registry.dart';
 import 'package:persistence_drift/tiebanshenshu/record_backed_tieban_repository.dart';
 import 'package:repository_interface_tiebanshenshu/repository_interface_tiebanshenshu.dart';
-import 'package:repository_interface_record/repository_interface_record.dart';
 import 'package:test/test.dart';
 
 TiebanDivinationRecordContract _rec({String uuid = '', String birthGanZhi = 'gz1'}) => TiebanDivinationRecordContract(
@@ -58,7 +57,7 @@ void main() {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
-    final firstEmit = repo.watchAllRecords().first;
+    final firstEmit = repo.watchAllRecords().firstWhere((l) => l.isNotEmpty);
     await repo.saveRecord(_rec());
     final list = await firstEmit;
     expect(list, hasLength(1));

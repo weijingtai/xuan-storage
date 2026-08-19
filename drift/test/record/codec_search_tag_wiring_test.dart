@@ -1,6 +1,5 @@
 import 'package:drift/native.dart';
 import 'package:persistence_drift/persistence_drift.dart';
-import 'package:repository_interface_record/repository_interface_record.dart';
 import 'package:repository_interface_qizhengsiyu/repository_interface_qizhengsiyu.dart';
 import 'package:test/test.dart';
 import 'package:persistence_drift/qizhengsiyu/qizheng_record_codec.dart';

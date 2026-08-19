@@ -49,6 +49,7 @@ void main() {
       makeEntity: (id, seed) => makeRow(id, seed),
       idOf: (row) => row['id'] as String,
       makeId: (seed) => seed,
+      supportsPurge: false,
     ),
   );
 }

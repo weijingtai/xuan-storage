@@ -3,7 +3,6 @@ import 'package:persistence_drift/persistence_drift.dart';
 import 'package:persistence_drift/ziweidoushu/ziweidoushu_module_registry.dart';
 import 'package:persistence_drift/ziweidoushu/record_backed_ziwei_repository.dart';
 import 'package:repository_interface_ziweidoushu/repository_interface_ziwei.dart';
-import 'package:repository_interface_record/repository_interface_record.dart';
 import 'package:test/test.dart';
 
 ZiweiDivinationRecordContract _rec({String uuid = '', String birthDatetime = '2026-06-28 23:00:00'}) => ZiweiDivinationRecordContract(
@@ -59,7 +58,7 @@ void main() {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
-    final firstEmit = repo.watchAllRecords().first;
+    final firstEmit = repo.watchAllRecords().firstWhere((l) => l.isNotEmpty);
     await repo.saveRecord(_rec());
     final list = await firstEmit;
     expect(list, hasLength(1));

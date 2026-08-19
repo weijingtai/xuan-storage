@@ -1,7 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:repository_interface_meihuayishu/repository_interface_meihuayishu.dart';
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 
 PersistenceDriftDatabase _db() => PersistenceDriftDatabase(NativeDatabase.memory());
 
@@ -74,8 +74,7 @@ void main() {
     });
 
     test('watchAllRecords emits on save', () async {
-      final emitted = <List<MeiHuaDivinationRecordContract>>[];
-      final sub = repo.watchAllRecords().listen(emitted.add);
+      final future = repo.watchAllRecords().firstWhere((l) => l.isNotEmpty);
 
       await repo.saveRecord(MeiHuaDivinationRecordContract(
         uuid: '', divinationUuid: 'w1', question: 'watch',
@@ -85,11 +84,9 @@ void main() {
         method: 'time', paramsJson: '{}',
         createdAt: DateTime.utc(2026), updatedAt: DateTime.utc(2026),
       ));
-      await Future.delayed(const Duration(milliseconds: 100));
 
-      await sub.cancel();
-      expect(emitted.length, greaterThanOrEqualTo(1));
-      expect(emitted.last.length, 1);
+      final emitted = await future;
+      expect(emitted.length, 1);
     });
   });
 }

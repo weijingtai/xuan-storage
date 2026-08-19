@@ -1,6 +1,5 @@
 import 'package:repository_interface_liuyao/repository_interface_liuyao.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
-import 'package:persistence_drift/persistence_drift.dart';
 import 'package:persistence_drift/liuyao/liuyao_record_codec.dart';
 import 'package:flutter_test/flutter_test.dart';
 
