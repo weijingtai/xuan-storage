@@ -1,28 +1,28 @@
 import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
 
-import 'drift_record_data_source.dart';
 import 'record_cursor.dart';
 import 'record_row_mapper.dart';
 
 /// 把既有 [ScopedRecordStore] 适配成 L0 的 [StorageDriver]。
 ///
-/// - 写路径走 [ScopedRecordStore]（saveRecord / softDeleteRecord），
-///   保留既有 outbox 与搜索索引语义；
-/// - 读路径走 [DriftRecordDataSource]（getRecord / listRecords /
-///   findByIndex / watchRecords / watchByIndex / countRecords）；
+/// 读与写全部落在 [ScopedRecordStore] 端口上（getRecord / listRecords /
+/// watchRecords / findByIndex / saveRecord / softDeleteRecord），
+/// **不依赖任何 Drift 具体实现** —— 这样 L0 Base 仓储可以把它
+/// 直接注入到 port-only 的 [BaseRecordBackedRepository] 适配层。
+///
 /// - **scope 一律取自入参 [RawFilter.scopeUid]（或写路径行的
 ///   `scope_uid`），禁止从 store 隐式取**——store 的 scopeUid 仅作为
-///   一致性校验基准，不匹配时读侧返回空、写侧抛 [StorageRevMismatch]。
+///   一致性校验基准，不匹配时读侧返回空、写侧抛 [StorageRevMismatch]；
+/// - 版本冲突抛 [StorageRevMismatch]（由 Base guard 翻译成
+///   conflict.version）；record 无唯一键冲突，无需抛
+///   [StorageUniqueViolation]；
+/// - 物理删除（deleteOne）超出 record 语义（既有只有软删），
+///   抛 [UnsupportedError] 显式拒绝。
 class RecordStorageDriver implements StorageDriver {
-  RecordStorageDriver({
-    required ScopedRecordStore store,
-    required DriftRecordDataSource dataSource,
-  })  : _store = store,
-        _ds = dataSource;
+  RecordStorageDriver({required ScopedRecordStore store}) : _store = store;
 
   final ScopedRecordStore _store;
-  final DriftRecordDataSource _ds;
 
   bool _scopeOk(String scopeUid) => scopeUid == _store.scopeUid;
 
@@ -40,7 +40,7 @@ class RecordStorageDriver implements StorageDriver {
   Future<Map<String, Object?>?> readOne(
       String resource, Object id, RawFilter filter) async {
     if (!_scopeOk(filter.scopeUid)) return null;
-    final meta = await _ds.getRecord('$id');
+    final meta = await _store.getRecord('$id', module: resource);
     if (meta == null) return null;
     if (!filter.includeSoftDeleted && meta.deletedAt != null) return null;
     return RecordRowMapper.metaToRow(meta);
@@ -54,7 +54,7 @@ class RecordStorageDriver implements StorageDriver {
     if (filter.equals.isNotEmpty) {
       // equals 是通用字段等值语义，与 record 的搜索索引（moduleData 标签）
       // 不是同一体系，这里用「全量 + 内存过滤 + id 游标续页」实现。
-      final all = await _ds.listRecords(module: resource, limit: 10000);
+      final all = await _store.listRecords(module: resource, limit: 10000);
       final filtered = all
           .where((m) =>
               filter.includeSoftDeleted || m.deletedAt == null)
@@ -66,19 +66,20 @@ class RecordStorageDriver implements StorageDriver {
           : filtered.indexWhere((m) => m.uuid == cursorId) + 1;
       final end = start + page.limit;
       return filtered
-          .sublist(start.clamp(0, filtered.length), end.clamp(0, filtered.length))
+          .sublist(start.clamp(0, filtered.length),
+              end.clamp(0, filtered.length))
           .map(RecordRowMapper.metaToRow)
           .toList();
     }
     String? cursor;
     if (page.cursor != null) {
       final cid = _cursorIdOf(page.cursor!);
-      final anchor = cid == null ? null : await _ds.getRecord(cid);
+      final anchor = cid == null ? null : await _store.getRecord(cid, module: resource);
       if (anchor != null) {
         cursor = RecordCursor(anchor.createdAt, anchor.uuid).encode();
       }
     }
-    metas = await _ds.listRecords(
+    metas = await _store.listRecords(
       module: resource,
       limit: page.limit,
       cursor: cursor,
@@ -92,15 +93,11 @@ class RecordStorageDriver implements StorageDriver {
   @override
   Future<int> count(String resource, RawFilter filter) async {
     if (!_scopeOk(filter.scopeUid)) return 0;
-    if (filter.equals.isNotEmpty) {
-      final metas = await _ds.listRecords(module: resource, limit: 10000);
-      return metas
-          .where((m) =>
-              filter.includeSoftDeleted || m.deletedAt == null)
-          .where((m) => _matchesEquals(m, filter.equals))
-          .length;
-    }
-    return _ds.countRecords(module: resource);
+    final metas = await _store.listRecords(module: resource, limit: 10000);
+    return metas
+        .where((m) => filter.includeSoftDeleted || m.deletedAt == null)
+        .where((m) => _matchesEquals(m, filter.equals))
+        .length;
   }
 
   @override
@@ -116,7 +113,8 @@ class RecordStorageDriver implements StorageDriver {
       throw const StorageRevMismatch('scope-mismatch');
     }
 
-    final existing = await _ds.getRecord('$id');
+    final existing =
+        await _store.getRecord('$id', module: resource);
     if (expectedRev != null && '${existing?.rev}' != expectedRev) {
       throw StorageRevMismatch('${existing?.rev}');
     }
@@ -137,9 +135,9 @@ class RecordStorageDriver implements StorageDriver {
   }
 
   @override
-  Future<void> deleteOne(String resource, Object id, RawFilter filter) async {
-    if (!_scopeOk(filter.scopeUid)) return;
-    await _ds.deleteRecord('$id');
+  Future<void> deleteOne(String resource, Object id, RawFilter filter) {
+    throw UnsupportedError(
+        'record 切片 M1 不提供物理删除（既有语义为软删）');
   }
 
   @override
@@ -149,7 +147,8 @@ class RecordStorageDriver implements StorageDriver {
       yield const <Map<String, Object?>>[];
       return;
     }
-    final Stream<List<RecordMeta>> source = _ds.watchRecords(module: resource);
+    final Stream<List<RecordMeta>> source =
+        _store.watchRecords(module: resource);
     yield* source.map((metas) {
       var visible = metas
           .where((m) => filter.includeSoftDeleted || m.deletedAt == null);

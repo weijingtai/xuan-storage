@@ -13,7 +13,7 @@ void main() {
     db = PersistenceDriftDatabase(NativeDatabase.memory());
     ds = DriftRecordDataSource(db, scopeUid: 'scope_A');
     store = LocalRecordRepository(ds, RecordAdapterRegistry(const []));
-    driver = RecordStorageDriver(store: store, dataSource: ds);
+    driver = RecordStorageDriver(store: store);
   });
 
   tearDown(() => db.close());

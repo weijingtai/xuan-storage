@@ -44,7 +44,7 @@ void main() {
       },
       makeRepository: () => CrudBaseRepository<Map<String, Object?>, String>(
         descriptor: recordEntityDescriptor(module: 'meihua'),
-        driver: RecordStorageDriver(store: store, dataSource: ds),
+        driver: RecordStorageDriver(store: store),
       ),
       makeEntity: (id, seed) => makeRow(id, seed),
       idOf: (row) => row['id'] as String,

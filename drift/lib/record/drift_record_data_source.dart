@@ -93,30 +93,6 @@ class DriftRecordDataSource {
     return row == null ? null : _toMeta(row);
   }
 
-  /// 统计当前 scope 下指定模块的未软删记录数。
-  Future<int> countRecords({required String module}) async {
-    final countExp = db.tRecordMeta.uuid.count();
-    final q = db.selectOnly(db.tRecordMeta)
-      ..addColumns([countExp])
-      ..where(db.tRecordMeta.scopeUid.equals(scopeUid) &
-          db.tRecordMeta.module.equals(module) &
-          db.tRecordMeta.deletedAt.isNull());
-    final row = await q.getSingle();
-    return row.read(countExp) ?? 0;
-  }
-
-  /// 物理删除一条（meta + 搜索索引一并清理）。
-  Future<void> deleteRecord(String uuid) async {
-    await db.transaction(() async {
-      await (db.delete(db.tRecordMeta)
-            ..where((t) => t.uuid.equals(uuid) & t.scopeUid.equals(scopeUid)))
-          .go();
-      await (db.delete(db.tRecordSearchIndex)
-            ..where((t) => t.recordUuid.equals(uuid) & t.scopeUid.equals(scopeUid)))
-          .go();
-    });
-  }
-
   RecordSortBy _effectiveSortBy(String? category, RecordSortBy sortBy) {
     if (sortBy != RecordSortBy.auto) return sortBy;
     if (category == 'divination') return RecordSortBy.occurredAtDesc;

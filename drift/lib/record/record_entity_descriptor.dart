@@ -18,7 +18,11 @@ EntityDescriptor<Map<String, Object?>, String> recordEntityDescriptor({
     codec: const _RowCodec(),
     // uuid 主键天然唯一，作为稳定分页的末位排序键。
     indexes: const [IndexSpec('id', unique: true)],
-    defaultSort: const SortSpec([SortKey('created_at'), SortKey('id')]),
+    // 与既有 record 语义一致：created_at 降序（新在前），id 升序兜底。
+    defaultSort: const SortSpec([
+      SortKey('created_at', desc: true),
+      SortKey('id'),
+    ]),
     residency: DataResidency.local,
     softDelete: const SoftDeletePolicy(
       enabled: true,
