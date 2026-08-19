@@ -24,20 +24,20 @@ final class FirebasePlaygroundPostRepository
   @override
   Future<PlaygroundPost> createPost(CreatePostCommand command) async {
     try {
-      final actor = await _identityResolver.resolveActor();
       final user = _auth.currentUser!;
       final docRef =
           _firestore.collection(PlaygroundFirestoreSchema.posts).doc();
 
+      // 写 payload 键集合恰好等于 Rules postCreateFieldsOk allowlist：
+      // 客户端不写 author_app_user_id（decode 回退 author_provider_uid，§3.2）。
       final data = <String, dynamic>{
         'author_provider_uid': user.uid,
-        'author_app_user_id': actor.value,
         'text': command.text,
         'allowed_chart_technique_ids': command.allowedChartTechniqueIds,
         'attachments': command.attachments.map(_attachmentToMap).toList(),
         'status': PlaygroundPostStatus.active.name,
         'created_at': FieldValue.serverTimestamp(),
-        'updated_at': null,
+        'updated_at': FieldValue.serverTimestamp(),
         'revisions': <Map<String, dynamic>>[],
         'has_outcome_feedback': false,
       };

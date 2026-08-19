@@ -5,7 +5,7 @@ import { resolveAppUserId, requireAuthUid } from './identity';
 
 export const reportContent = onCall({ region: 'asia-east1' }, async (request) => {
   const uid = requireAuthUid(request.auth?.uid);
-  const appUserId = await resolveAppUserId(uid);
+  const { appUserId } = await resolveAppUserId(uid);
   const { postId, replyId, reportedUserId, reason, description } = request.data;
 
   if (!postId && !replyId) {

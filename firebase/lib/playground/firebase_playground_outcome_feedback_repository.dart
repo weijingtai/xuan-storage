@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
 
@@ -12,60 +13,41 @@ final class FirebasePlaygroundOutcomeFeedbackRepository
     required FirebaseFirestore firestore,
     required FirebaseAuth auth,
     required FirebasePlaygroundIdentityResolver identityResolver,
+    FirebaseFunctions? functions,
   })  : _firestore = firestore,
-        _auth = auth,
-        _identityResolver = identityResolver;
+        _functions = functions ?? FirebaseFunctions.instance;
 
   final FirebaseFirestore _firestore;
-  final FirebaseAuth _auth;
-  final FirebasePlaygroundIdentityResolver _identityResolver;
+  final FirebaseFunctions _functions;
 
   @override
   Future<PlaygroundOutcomeFeedback> setOutcomeFeedback(
       SetOutcomeFeedbackCommand command) async {
     try {
-      final actor = await _identityResolver.resolveActor();
-      final user = _auth.currentUser!;
-
-      final existingQuery = await _firestore
-          .collection(PlaygroundFirestoreSchema.outcomeFeedback)
-          .where('post_id', isEqualTo: command.postId.value)
-          .where('deleted_at', isNull: true)
-          .limit(1)
-          .get();
-
-      if (existingQuery.docs.isNotEmpty) {
-        final docRef = existingQuery.docs.first.reference;
-        await docRef.update({
-          'body': command.body,
-          'updated_at': FieldValue.serverTimestamp(),
-        });
-        final snap = await docRef.get();
-        final d = snap.data()!;
-        return _docToFeedback(d, snap.id);
-      }
-
-      final docRef = _firestore
-          .collection(PlaygroundFirestoreSchema.outcomeFeedback)
-          .doc();
-
-      final data = <String, dynamic>{
-        'post_id': command.postId.value,
-        'author_provider_uid': user.uid,
-        'author_app_user_id': actor.value,
-        'body': command.body,
-        'created_at': FieldValue.serverTimestamp(),
-        'updated_at': null,
-        'deleted_at': null,
+      // BLOCK-01：敏感写走受信 Functions `setOutcomeFeedback`。
+      // 只传业务参数（postId + body 内容）+ idempotency_key；actor 来自 Auth context。
+      final params = <String, dynamic>{
+        'postId': command.postId.value,
+        'outcome_description': command.body,
+        if (command.idempotencyKey != null)
+          'idempotency_key': command.idempotencyKey,
       };
+      final result = await _functions
+          .httpsCallable('setOutcomeFeedback')
+          .call<Map<String, dynamic>>(params);
+      final data = result.data;
 
-      await docRef.set(data);
       return PlaygroundOutcomeFeedback(
-        id: docRef.id,
+        id: data['id'] as String? ?? '',
         postId: command.postId,
-        authorUserId: actor,
-        body: command.body,
-        createdAt: DateTime.now(),
+        authorUserId: PlaygroundUserId(
+            data['author_app_user_id'] as String? ?? ''),
+        body: data['outcome_description'] as String? ?? command.body,
+        createdAt:
+            DateTime.tryParse(data['created_at'] as String? ?? '') ??
+                DateTime.now(),
+        updatedAt: null,
+        deletedAt: null,
       );
     } catch (e) {
       throw FirebasePlaygroundErrorMapper.map(e);
@@ -76,18 +58,13 @@ final class FirebasePlaygroundOutcomeFeedbackRepository
   Future<void> revokeOutcomeFeedback(
       RevokeOutcomeFeedbackCommand command) async {
     try {
-      final existingQuery = await _firestore
-          .collection(PlaygroundFirestoreSchema.outcomeFeedback)
-          .where('post_id', isEqualTo: command.postId.value)
-          .where('deleted_at', isNull: true)
-          .limit(1)
-          .get();
-
-      if (existingQuery.docs.isNotEmpty) {
-        await existingQuery.docs.first.reference.update({
-          'deleted_at': FieldValue.serverTimestamp(),
-        });
-      }
+      // BLOCK-01：敏感写走受信 Functions `revokeOutcomeFeedback`。
+      final params = <String, dynamic>{
+        'postId': command.postId.value,
+        if (command.idempotencyKey != null)
+          'idempotency_key': command.idempotencyKey,
+      };
+      await _functions.httpsCallable('revokeOutcomeFeedback').call(params);
     } catch (e) {
       throw FirebasePlaygroundErrorMapper.map(e);
     }
@@ -97,6 +74,7 @@ final class FirebasePlaygroundOutcomeFeedbackRepository
   Future<PlaygroundOutcomeFeedback?> getOutcomeFeedback(
       PlaygroundPostId postId) async {
     try {
+      // 读路径保持直连（Rules `allow read: if request.auth != null`）。
       final snaps = await _firestore
           .collection(PlaygroundFirestoreSchema.outcomeFeedback)
           .where('post_id', isEqualTo: postId.value)
@@ -120,8 +98,10 @@ final class FirebasePlaygroundOutcomeFeedbackRepository
       id: docId,
       postId: PlaygroundPostId(d['post_id'] as String? ?? ''),
       authorUserId: PlaygroundUserId(
-          d['author_app_user_id'] as String? ?? d['author_provider_uid'] as String? ?? ''),
-      body: d['body'] as String? ?? '',
+          d['author_app_user_id'] as String? ??
+              d['author_provider_uid'] as String? ??
+              ''),
+      body: (d['outcome_description'] as String?) ?? d['body'] as String? ?? '',
       createdAt: timestamp?.toDate() ?? DateTime.now(),
       updatedAt: updatedTs?.toDate(),
       deletedAt: deletedTs?.toDate(),

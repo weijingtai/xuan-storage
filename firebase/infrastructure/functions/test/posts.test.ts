@@ -104,4 +104,18 @@ describe('createPost', () => {
 
     await expect(createPost(req2)).rejects.toThrow(HttpsError);
   });
+
+  it('可信 actor 写入 profile query 的 canonical producer 字段，一次性匿名不进入公开主页', async () => {
+    await createPost(makeReq({ text: '公开', presentation_mode: 'stableAlias' }, 'user-1'));
+    await createPost(makeReq({ text: '一次性', presentation_mode: 'oneTimeAnonymous' }, 'user-1'));
+    const store = dumpStore();
+    const posts = store['playground_posts'];
+    expect(posts).toHaveLength(2);
+    expect(posts[0].author_app_user_id).toBeTruthy();
+    expect(posts[0].presentation_mode).toBe('stableAlias');
+    expect(posts[1].presentation_mode).toBe('oneTimeAnonymous');
+    expect(posts[1].presentation_identity_id).toMatch(/^post_/);
+    expect(store['playground_profiles']).toHaveLength(1);
+    expect(store['playground_profiles'][0].user_provider_uid).toBe('user-1');
+  });
 });

@@ -7,10 +7,14 @@ abstract final class PlaygroundFirestoreSchema {
   PlaygroundFirestoreSchema._();
 
   static const posts = 'playground_posts';
+  static const postOwners = 'playground_post_owners';
+  static const postRevisions = 'revisions';
   static const replies = 'playground_replies';
+  static const replyOwners = 'playground_reply_owners';
   static const verifications = 'playground_verifications';
   static const outcomeFeedback = 'playground_outcome_feedback';
   static const likes = 'playground_likes';
+  static const likeOwners = 'playground_like_owners';
   static const bookmarks = 'playground_bookmarks';
   static const profiles = 'playground_profiles';
   static const notifications = 'playground_notifications';

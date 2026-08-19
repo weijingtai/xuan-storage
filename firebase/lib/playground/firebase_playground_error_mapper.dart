@@ -8,6 +8,10 @@ final class FirebasePlaygroundErrorMapper {
   FirebasePlaygroundErrorMapper._();
 
   static PlaygroundError map(Object error) {
+    if (error is PlaygroundError) {
+      // 领域错误直接透传（如 unauthenticated），避免被转成 unknown。
+      return error;
+    }
     if (error is FirebaseException) {
       return _fromFirebaseException(error);
     }
@@ -76,6 +80,13 @@ final class FirebasePlaygroundErrorMapper {
           code: PlaygroundErrorCode.conflict,
           message: '操作冲突，请重试',
           machineCode: 'firestore/aborted',
+          cause: e,
+        );
+      case 'failed-precondition':
+        return PlaygroundError(
+          code: PlaygroundErrorCode.conflict,
+          message: '操作前置条件不满足',
+          machineCode: 'functions/failed-precondition',
           cause: e,
         );
       case 'deadline-exceeded':

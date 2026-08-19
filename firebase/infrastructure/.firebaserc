@@ -1,6 +1,6 @@
 {
   "projects": {
-    "default": "demo-playground",
+    "default": "demo-xuan",
     "staging": "xuan-staging",
     "production": "xuan-production"
   }

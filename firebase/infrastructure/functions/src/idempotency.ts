@@ -1,4 +1,83 @@
 import { db, COLLECTIONS } from './index';
+import { hashPayload } from './utils';
+
+export interface IdempotentCommand {
+  operation: string;
+  actorId: string;
+  idempotencyKey: string | undefined;
+  /** Business input only. `idempotency_key` is deliberately excluded. */
+  payload: unknown;
+}
+
+export interface IdempotentCommandContext {
+  commandId: string;
+  /** One timestamp created before entering Firestore's retryable callback. */
+  timestamp: Date;
+  outboxId: string;
+}
+
+function canonicalize(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalize);
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value as Record<string, unknown>)
+      .filter(([key]) => key !== 'idempotency_key')
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, child]) => [key, canonicalize(child)]));
+  }
+  return value;
+}
+
+/**
+ * Atomically commits domain facts, deterministic outbox records, and the
+ * completed receipt.  The callback is transaction-only: no Admin writes,
+ * random IDs, network calls, or wall-clock reads are allowed inside it.
+ */
+export async function runIdempotentCommand<T>(
+  command: IdempotentCommand,
+  execute: (tx: admin.firestore.Transaction, context: IdempotentCommandContext) => Promise<T>,
+): Promise<T> {
+  if (!command.idempotencyKey || typeof command.idempotencyKey !== 'string') {
+    throw new HttpsError('invalid-argument', 'idempotency_key 必填');
+  }
+  if (!command.operation || !command.actorId) {
+    throw new HttpsError('invalid-argument', 'operation 和 actor 必填');
+  }
+
+  const payloadHash = hashPayload(canonicalize(command.payload));
+  const commandId = hashPayload([command.operation, command.actorId, command.idempotencyKey]);
+  const context: IdempotentCommandContext = {
+    commandId,
+    outboxId: `outbox_${commandId}`,
+    timestamp: new Date(),
+  };
+  const receiptRef = db.collection(COLLECTIONS.idempotency).doc(commandId);
+
+  return db.runTransaction(async (tx) => {
+    const existing = await tx.get(receiptRef);
+    if (existing.exists) {
+      const receipt = existing.data()!;
+      if (receipt.operation !== command.operation || receipt.actor_id !== command.actorId || receipt.payload_hash !== payloadHash) {
+        throw new HttpsError('aborted', 'idempotency key conflict');
+      }
+      return receipt.result as T;
+    }
+
+    const result = await execute(tx, context);
+    tx.set(receiptRef, {
+      id: commandId,
+      command_id: commandId,
+      idempotency_key: command.idempotencyKey,
+      operation: command.operation,
+      actor_id: command.actorId,
+      payload_hash: payloadHash,
+      state: 'completed',
+      result,
+      created_at: context.timestamp,
+      completed_at: context.timestamp,
+    });
+    return result;
+  });
+}
 
 /**
  * 幂等执行包装器。
@@ -25,8 +104,7 @@ export async function withIdempotency<T>(
   }
 
   const idemDoc = db.collection(COLLECTIONS.idempotency).doc(idempotencyKey);
-
-  return db.runTransaction(async (tx) => {
+  const decision = await db.runTransaction(async (tx) => {
     const snap = await tx.get(idemDoc);
 
     if (snap.exists) {
@@ -34,14 +112,14 @@ export async function withIdempotency<T>(
       const expiresAt = data.expires_at?.toDate?.() ?? data.expires_at;
 
       if (expiresAt && new Date(expiresAt) < new Date()) {
-        // 幂等记录已过期，允许新建
         tx.delete(idemDoc);
       } else if (data.payload_hash === payloadHash) {
-        // 重复请求，返回缓存结果
         if (data.result) {
-          return data.result as T;
+          return { kind: 'replay' as const, result: data.result as T };
         }
-        throw new Error('idempotency record exists but result is missing');
+        // A competing caller has committed its command claim but has not yet
+        // published the result.  Do not run the command a second time.
+        throw new HttpsError('unavailable', 'idempotency command is in progress');
       } else {
         // 冲突：同一 key 但不同 payload
         throw new HttpsError(
@@ -51,20 +129,38 @@ export async function withIdempotency<T>(
       }
     }
 
-    // 执行
-    const result = await fn();
-
     const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000);
     tx.set(idemDoc, {
       idempotency_key: idempotencyKey,
       payload_hash: payloadHash,
-      result: result,
+      state: 'running',
       created_at: admin.firestore.FieldValue.serverTimestamp(),
       expires_at: expiresAt,
     });
 
-    return result;
+    return { kind: 'execute' as const, expiresAt };
   });
+
+  if (decision.kind === 'replay') return decision.result;
+
+  // Deliberately outside runTransaction: Firestore may retry the callback,
+  // while this command body can perform ordinary Admin SDK writes/outbox work.
+  // The committed claim above prevents a concurrent invocation from entering it.
+  try {
+    const result = await fn();
+    await idemDoc.set({
+      result,
+      state: 'completed',
+      completed_at: admin.firestore.FieldValue.serverTimestamp(),
+      expires_at: decision.expiresAt,
+    }, { merge: true });
+    return result;
+  } catch (error) {
+    // A failed command must be retryable; only the claimant may remove this
+    // record because another invocation observes `running` and never executes.
+    await idemDoc.delete();
+    throw error;
+  }
 }
 
 /**

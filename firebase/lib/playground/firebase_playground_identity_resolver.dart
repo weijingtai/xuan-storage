@@ -1,12 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
-import 'firebase_playground_schema.dart';
+import 'firebase_playground_error_mapper.dart';
 
 /// 从 Firebase Auth session 解析 actor [PlaygroundUserId]。
 ///
-/// 复用现有 identity_map/{providerUserId} → appUserId 模式。
-/// 不信任客户端传入的 authorId/posterId/appUserId。
+/// 直读 Firestore identity_map（不通过 callable），读取：
+/// - `app_user_id`（snake_case，兼容 `appUserId`）
+/// - `public_presentation_id`
+/// - `public_display_alias`
+///
+/// 缺 `public_presentation_id` 或 `public_display_alias` → fail closed
+/// 抛出 PlaygroundErrorCode.unavailable + machineCode identity/not-ready。
+///
+/// Playground 不创建 identity_map。
 final class FirebasePlaygroundIdentityResolver {
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
@@ -19,54 +26,61 @@ final class FirebasePlaygroundIdentityResolver {
 
   /// 从当前认证 session 解析展示用 [PlaygroundUserId]。
   ///
-  /// 流程：
-  /// 1. 从 FirebaseAuth.currentUser 获取 uid（providerUserId）
-  /// 2. 读取 identity_map/{uid} → 获取 appUserId
-  /// 3. 若映射不存在，在事务中原子创建（UUID v4 → appUserId）
-  /// 4. 返回 PlaygroundUserId(appUserId)
-  ///
-  /// 抛出 [PlaygroundError.unauthenticated] 当用户未登录。
+  /// 直读 Firestore `identity_map/{providerUid}`，不通过 callable。
   Future<PlaygroundUserId> resolveActor() async {
-    final user = _auth.currentUser;
-    if (user == null) {
-      throw const PlaygroundError(
-        code: PlaygroundErrorCode.unauthenticated,
-        message: '未登录，请先注册或匿名登录',
-        machineCode: 'auth/unauthenticated',
-      );
-    }
-    final providerUserId = user.uid;
-    final doc =
-        _firestore.collection(PlaygroundFirestoreSchema.identityMap).doc(providerUserId);
-
-    final appUserId = await _firestore.runTransaction<String>((tx) async {
-      final snap = await tx.get(doc);
-      if (snap.exists) {
-        return snap.get('app_user_id') as String;
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw const PlaygroundError(
+          code: PlaygroundErrorCode.unauthenticated,
+          message: '未登录，请先注册或匿名登录',
+          machineCode: 'auth/unauthenticated',
+        );
       }
-      final newAppUserId = _generateAppUserId();
-      tx.set(doc, {
-        'app_user_id': newAppUserId,
-        'provider_uid': providerUserId,
-        'provider_id': 'firebase',
-        'created_at': FieldValue.serverTimestamp(),
-      });
-      return newAppUserId;
-    });
 
-    return PlaygroundUserId(appUserId);
+      final doc = await _firestore
+          .collection('identity_map')
+          .doc(user.uid)
+          .get();
+
+      if (!doc.exists) {
+        throw const PlaygroundError(
+          code: PlaygroundErrorCode.unavailable,
+          message: '身份映射不存在，请完成账号初始化',
+          machineCode: 'identity/not-ready',
+        );
+      }
+
+      final data = doc.data()!;
+      final appUserId = _readAppUserId(data);
+      final presentationId = (data['public_presentation_id'] as String?) ??
+          (data['presentation_identity_id'] as String?);
+      final displayAlias = (data['public_display_alias'] as String?) ??
+          (data['display_alias'] as String?);
+
+      if (appUserId == null ||
+          presentationId == null || presentationId.isEmpty ||
+          displayAlias == null || displayAlias.isEmpty) {
+        throw const PlaygroundError(
+          code: PlaygroundErrorCode.unavailable,
+          message: '身份映射字段不完整，请完成账号初始化',
+          machineCode: 'identity/not-ready',
+        );
+      }
+
+      return PlaygroundUserId(appUserId);
+    } catch (e) {
+      if (e is PlaygroundError) rethrow;
+      throw FirebasePlaygroundErrorMapper.map(e);
+    }
   }
 
-  /// 校验请求中的 actor 是否与当前 session 一致。
-  /// 用于 Functions 侧二次验证；adapter 中用于调试断言。
-  bool isActor(PlaygroundUserId userId) {
-    return _auth.currentUser?.uid == userId.value;
-  }
-
-  /// 生成 UUID v4 风格的 appUserId。
-  String _generateAppUserId() {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    final random = (now * 1103515245 + 12345) & 0x7fffffff;
-    return 'app-${now.toRadixString(36)}-${random.toRadixString(36)}';
+  /// 优先读 snake_case `app_user_id`，兼容旧 `appUserId`。
+  String? _readAppUserId(Map<String, dynamic> data) {
+    final snake = data['app_user_id'];
+    if (snake is String && snake.isNotEmpty) return snake;
+    final camel = data['appUserId'];
+    if (camel is String && camel.isNotEmpty) return camel;
+    return null;
   }
 }

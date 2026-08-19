@@ -2,10 +2,12 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
 import { db, COLLECTIONS } from './index';
 import { resolveAppUserId, requireAuthUid } from './identity';
+import { withIdempotency } from './idempotency';
+import { hashPayload } from './utils';
 
 export const setBookmark = onCall({ region: 'asia-east1' }, async (request) => {
   const uid = requireAuthUid(request.auth?.uid);
-  const appUserId = await resolveAppUserId(uid);
+  const { appUserId } = await resolveAppUserId(uid);
   const { postId, action } = request.data;
 
   if (!postId || typeof postId !== 'string') {
@@ -15,26 +17,27 @@ export const setBookmark = onCall({ region: 'asia-east1' }, async (request) => {
     throw new HttpsError('invalid-argument', 'action 必须是 bookmark 或 unbookmark');
   }
 
-  const postSnap = await db.collection(COLLECTIONS.posts).doc(postId).get();
-  if (!postSnap.exists) {
-    throw new HttpsError('not-found', '帖子不存在');
-  }
+  return withIdempotency(request.data.idempotency_key, hashPayload(request.data), async () => {
+    const postSnap = await db.collection(COLLECTIONS.posts).doc(postId).get();
+    if (!postSnap.exists) {
+      throw new HttpsError('not-found', '帖子不存在');
+    }
 
-  const bookmarkId = `bookmark_${uid}_${postId}`;
-  const bookmarkRef = db.collection(COLLECTIONS.bookmarks).doc(bookmarkId);
+    const bookmarkId = `bookmark_${uid}_${postId}`;
+    const bookmarkRef = db.collection(COLLECTIONS.bookmarks).doc(bookmarkId);
 
-  if (action === 'bookmark') {
-    const now = admin.firestore.FieldValue.serverTimestamp();
-    await bookmarkRef.set({
-      id: bookmarkId,
-      post_id: postId,
-      user_provider_uid: uid,
-      user_app_user_id: appUserId,
-      created_at: now,
-    });
-    return { bookmarked: true, id: bookmarkId };
-  } else {
+    if (action === 'bookmark') {
+      const now = admin.firestore.FieldValue.serverTimestamp();
+      await bookmarkRef.set({
+        id: bookmarkId,
+        post_id: postId,
+        user_provider_uid: uid,
+        user_app_user_id: appUserId,
+        created_at: now,
+      });
+      return { bookmarked: true, id: bookmarkId };
+    }
     await bookmarkRef.delete();
     return { bookmarked: false, id: bookmarkId };
-  }
+  });
 });

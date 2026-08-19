@@ -3,8 +3,23 @@ import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { db, COLLECTIONS } from './index';
 import * as admin from 'firebase-admin';
 
+/** 解析 storage bucket 名：优先 FIREBASE_CONFIG.storageBucket（emulator/生产注入），
+ *  其次 STORAGE_BUCKET，最后回退 demo 项目名（仅用于本地 emulator 加载不崩）。 */
+function resolveStorageBucket(): string {
+  const cfg = process.env.FIREBASE_CONFIG;
+  if (cfg) {
+    try {
+      const parsed = JSON.parse(cfg) as { storageBucket?: string };
+      if (parsed.storageBucket) return parsed.storageBucket;
+    } catch {
+      /* ignore malformed config */
+    }
+  }
+  return process.env.STORAGE_BUCKET || 'demo-xuan.appspot.com';
+}
+
 export const onMediaUploaded = onObjectFinalized(
-  { region: 'asia-east1' },
+  { region: 'asia-east1', bucket: resolveStorageBucket() },
   async (event) => {
     const filePath = event.data.name;
     if (!filePath) return;

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
 
@@ -13,42 +14,42 @@ final class FirebasePlaygroundConversationRepository
     required FirebaseFirestore firestore,
     required FirebaseAuth auth,
     required FirebasePlaygroundIdentityResolver identityResolver,
+    FirebaseFunctions? functions,
   })  : _firestore = firestore,
         _auth = auth,
-        _identityResolver = identityResolver;
+        _identityResolver = identityResolver,
+        _functions = functions ?? FirebaseFunctions.instance;
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
   final FirebasePlaygroundIdentityResolver _identityResolver;
+  final FirebaseFunctions _functions;
 
   @override
   Future<PlaygroundConversation> sendDmRequest(
       SendDmRequestCommand command) async {
     try {
+      // BLOCK-01：敏感写走受信 Functions `sendDmRequest`。
+      // 客户端只传业务参数 + idempotency_key；actor 来自 Auth context。
       final actor = await _identityResolver.resolveActor();
-      final user = _auth.currentUser!;
-
-      final docRef =
-          _firestore.collection(PlaygroundFirestoreSchema.conversations).doc();
-
-      final data = <String, dynamic>{
-        'participant_a_provider_uid': user.uid,
-        'participant_a_app_user_id': actor.value,
-        'participant_b_app_user_id': command.recipientUserId.value,
-        'status': PlaygroundConversationStatus.pendingRequest.name,
-        'created_at': FieldValue.serverTimestamp(),
-        'updated_at': null,
-        'blocked_by': null,
+      final params = <String, dynamic>{
+        'targetAppUserId': command.recipientUserId.value,
+        if (command.initialMessage != null)
+          'initialMessage': command.initialMessage,
+        if (command.idempotencyKey != null)
+          'idempotency_key': command.idempotencyKey,
       };
-
-      await docRef.set(data);
+      final result = await _functions
+          .httpsCallable('sendDmRequest')
+          .call<Map<String, dynamic>>(params);
+      final data = result.data;
 
       return PlaygroundConversation(
-        id: PlaygroundConversationId(docRef.id),
+        id: PlaygroundConversationId(data['conversation_id'] as String? ?? ''),
         participantA: actor,
         participantB: command.recipientUserId,
-        status: PlaygroundConversationStatus.pendingRequest,
-        createdAt: DateTime.now(),
+        status: _statusFromCallable(data['status'] as String?),
+        createdAt: _parseDate(data['created_at']) ?? DateTime.now(),
       );
     } catch (e) {
       throw FirebasePlaygroundErrorMapper.map(e);
@@ -59,21 +60,37 @@ final class FirebasePlaygroundConversationRepository
   Future<PlaygroundConversation> respondDmRequest(
       RespondDmRequestCommand command) async {
     try {
-      final docRef = _firestore
-          .collection(PlaygroundFirestoreSchema.conversations)
-          .doc(command.conversationId.value);
+      // BLOCK-01：敏感写走受信 Functions `respondDmRequest`。
+      // 返回值只用 callable 响应 + resolveMyIdentity，禁止直读 conversations。
+      final actor = await _identityResolver.resolveActor();
+      final params = <String, dynamic>{
+        'conversationId': command.conversationId.value,
+        'accept': command.accept,
+        if (command.idempotencyKey != null)
+          'idempotency_key': command.idempotencyKey,
+      };
+      final result = await _functions
+          .httpsCallable('respondDmRequest')
+          .call<Map<String, dynamic>>(params);
+      final data = result.data;
 
-      final newStatus = command.accept
-          ? PlaygroundConversationStatus.active
-          : PlaygroundConversationStatus.rejected;
+      final participants = (data['participants'] as List<dynamic>? ?? [])
+          .cast<String>();
+      final participantA = participants.isNotEmpty
+          ? PlaygroundUserId(participants[0])
+          : actor;
+      final participantB = participants.length > 1
+          ? PlaygroundUserId(participants[1])
+          : actor;
 
-      await docRef.update({
-        'status': newStatus.name,
-        'updated_at': FieldValue.serverTimestamp(),
-      });
-
-      final snap = await docRef.get();
-      return _docToConversation(snap.data()!, snap.id);
+      return PlaygroundConversation(
+        id: PlaygroundConversationId(
+            data['conversation_id'] as String? ?? command.conversationId.value),
+        participantA: participantA,
+        participantB: participantB,
+        status: _statusFromCallable(data['status'] as String?),
+        createdAt: _parseDate(data['created_at']) ?? DateTime.now(),
+      );
     } catch (e) {
       throw FirebasePlaygroundErrorMapper.map(e);
     }
@@ -83,28 +100,26 @@ final class FirebasePlaygroundConversationRepository
   Future<PlaygroundDirectMessage> sendMessage(
       SendMessageCommand command) async {
     try {
+      // BLOCK-01：敏感写走受信 Functions `sendMessage`。
       final actor = await _identityResolver.resolveActor();
-      final user = _auth.currentUser!;
-
-      final docRef =
-          _firestore.collection(PlaygroundFirestoreSchema.messages).doc();
-
-      final data = <String, dynamic>{
-        'conversation_id': command.conversationId.value,
-        'sender_provider_uid': user.uid,
-        'sender_app_user_id': actor.value,
+      final params = <String, dynamic>{
+        'conversationId': command.conversationId.value,
         'text': command.text,
-        'sent_at': FieldValue.serverTimestamp(),
+        if (command.idempotencyKey != null)
+          'idempotency_key': command.idempotencyKey,
       };
+      final result = await _functions
+          .httpsCallable('sendMessage')
+          .call<Map<String, dynamic>>(params);
+      final data = result.data;
 
-      await docRef.set(data);
-
+      final senderId = data['sender_app_user_id'] as String? ?? '';
       return PlaygroundDirectMessage(
-        id: docRef.id,
+        id: data['message_id'] as String? ?? '',
         conversationId: command.conversationId,
-        senderUserId: actor,
-        text: command.text,
-        sentAt: DateTime.now(),
+        senderUserId: senderId.isEmpty ? actor : PlaygroundUserId(senderId),
+        text: data['text'] as String? ?? command.text,
+        sentAt: _parseDate(data['created_at']) ?? DateTime.now(),
       );
     } catch (e) {
       throw FirebasePlaygroundErrorMapper.map(e);
@@ -114,24 +129,13 @@ final class FirebasePlaygroundConversationRepository
   @override
   Future<void> blockUser(BlockUserCommand command) async {
     try {
-      final user = _auth.currentUser;
-      final uid = user?.uid;
-
-      final snaps = await _firestore
-          .collection(PlaygroundFirestoreSchema.conversations)
-          .where('participant_a_provider_uid', isEqualTo: uid)
-          .get();
-
-      for (final doc in snaps.docs) {
-        final d = doc.data();
-        if (d['participant_b_app_user_id'] == command.blockedUserId.value) {
-          await doc.reference.update({
-            'status': PlaygroundConversationStatus.blocked.name,
-            'blocked_by': uid,
-            'updated_at': FieldValue.serverTimestamp(),
-          });
-        }
-      }
+      // BLOCK-01：敏感写走受信 Functions `blockUser`。
+      final params = <String, dynamic>{
+        'targetAppUserId': command.blockedUserId.value,
+        if (command.idempotencyKey != null)
+          'idempotency_key': command.idempotencyKey,
+      };
+      await _functions.httpsCallable('blockUser').call(params);
     } catch (e) {
       throw FirebasePlaygroundErrorMapper.map(e);
     }
@@ -140,25 +144,11 @@ final class FirebasePlaygroundConversationRepository
   @override
   Future<void> unblockUser(PlaygroundUserId blockedUserId) async {
     try {
-      final user = _auth.currentUser;
-      final uid = user?.uid;
-
-      final snaps = await _firestore
-          .collection(PlaygroundFirestoreSchema.conversations)
-          .where('participant_a_provider_uid', isEqualTo: uid)
-          .get();
-
-      for (final doc in snaps.docs) {
-        final d = doc.data();
-        if (d['participant_b_app_user_id'] == blockedUserId.value &&
-            d['blocked_by'] == uid) {
-          await doc.reference.update({
-            'status': PlaygroundConversationStatus.active.name,
-            'blocked_by': null,
-            'updated_at': FieldValue.serverTimestamp(),
-          });
-        }
-      }
+      // BLOCK-01：敏感写走受信 Functions `unblockUser`。
+      final params = <String, dynamic>{
+        'targetAppUserId': blockedUserId.value,
+      };
+      await _functions.httpsCallable('unblockUser').call(params);
     } catch (e) {
       throw FirebasePlaygroundErrorMapper.map(e);
     }
@@ -170,14 +160,15 @@ final class FirebasePlaygroundConversationRepository
     int limit = 20,
   }) async {
     try {
-      final user = _auth.currentUser;
-      if (user == null) {
+      // 读路径保持直连（Rules read 允许）。
+      if (_auth.currentUser == null) {
         return PlaygroundPage.empty();
       }
+      final actor = await _identityResolver.resolveActor();
 
       var q = _firestore
           .collection(PlaygroundFirestoreSchema.conversations)
-          .where('participant_a_provider_uid', isEqualTo: user.uid)
+          .where('participants', arrayContains: actor.value)
           .orderBy('updated_at', descending: true)
           .limit(limit);
 
@@ -216,6 +207,7 @@ final class FirebasePlaygroundConversationRepository
     int limit = 50,
   }) async {
     try {
+      // 读路径保持直连（Rules read 允许）。
       var q = _firestore
           .collection(PlaygroundFirestoreSchema.messages)
           .where('conversation_id',
@@ -266,18 +258,42 @@ final class FirebasePlaygroundConversationRepository
     final timestamp = d['created_at'] as Timestamp?;
     final updatedTs = d['updated_at'] as Timestamp?;
     final blockedBy = d['blocked_by'] as String?;
+    final participants = (d['participants'] as List<dynamic>? ?? const [])
+        .whereType<String>()
+        .toList(growable: false);
 
     return PlaygroundConversation(
       id: PlaygroundConversationId(docId),
       participantA: PlaygroundUserId(
-          d['participant_a_app_user_id'] as String? ?? ''),
+          d['participant_a_app_user_id'] as String? ??
+              (participants.isNotEmpty ? participants.first : '')),
       participantB: PlaygroundUserId(
-          d['participant_b_app_user_id'] as String? ?? ''),
+          d['participant_b_app_user_id'] as String? ??
+              (participants.length > 1 ? participants[1] : '')),
       status: PlaygroundConversationStatus.values
           .byName(d['status'] as String? ?? 'pendingRequest'),
       blockedBy: blockedBy != null ? PlaygroundUserId(blockedBy) : null,
       createdAt: timestamp?.toDate() ?? DateTime.now(),
       updatedAt: updatedTs?.toDate(),
     );
+  }
+
+  static PlaygroundConversationStatus _statusFromCallable(String? status) {
+    return switch (status) {
+      'active' => PlaygroundConversationStatus.active,
+      'declined' => PlaygroundConversationStatus.rejected,
+      'blocked' => PlaygroundConversationStatus.blocked,
+      _ => PlaygroundConversationStatus.pendingRequest,
+    };
+  }
+
+  static DateTime? _parseDate(dynamic raw) {
+    if (raw is String) {
+      return DateTime.tryParse(raw);
+    }
+    if (raw is DateTime) {
+      return raw;
+    }
+    return null;
   }
 }

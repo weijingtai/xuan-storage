@@ -1,0 +1,96 @@
+{
+  "version": "1",
+  "collections": {
+    "playground_posts": {
+      "required": ["id", "text", "presentation_mode", "presentation_identity_id", "presentation_display_alias", "presentation_avatar_url", "public_profile_ref", "status", "allowed_chart_technique_ids", "attachments", "has_chart", "revision_no", "current_revision_id", "idempotency_key", "payload_hash", "created_at", "updated_at"],
+      "nullable": ["presentation_avatar_url", "public_profile_ref"],
+      "enums": {
+        "presentation_mode": ["stableAlias", "oneTimeAnonymous"],
+        "status": ["active", "tombstoned"]
+      },
+      "text_max_codepoints": 4000,
+      "attachments_max": 9
+    },
+    "playground_replies": {
+      "required": ["id", "post_id", "presentation_mode", "presentation_identity_id", "presentation_display_alias", "presentation_avatar_url", "public_profile_ref", "depth", "body", "is_tombstoned", "root_reply_id", "reply_to_reply_id", "technique_tags", "chart_attachment", "media_attachments", "revision_no", "current_revision_id", "idempotency_key", "payload_hash", "created_at", "updated_at"],
+      "nullable": ["presentation_avatar_url", "public_profile_ref", "root_reply_id", "reply_to_reply_id", "chart_attachment"],
+      "enums": {
+        "presentation_mode": ["stableAlias", "oneTimeAnonymous"],
+        "depth": [0, 1]
+      },
+      "body_max_codepoints": 4000,
+      "technique_tags_max": 16,
+      "media_attachments_max": 9
+    },
+    "playground_post_owners": {
+      "required": ["content_id", "provider_uid", "app_user_id", "public_presentation_id", "created_at"]
+    },
+    "playground_reply_owners": {
+      "required": ["content_id", "provider_uid", "app_user_id", "public_presentation_id", "created_at"]
+    },
+    "playground_like_owners": {
+      "required": ["like_id", "provider_uid", "app_user_id", "target_type", "target_id", "created_at"],
+      "enums": {
+        "target_type": ["post", "reply"]
+      }
+    },
+    "playground_likes": {
+      "required": ["id", "target_type", "target_id", "created_at"],
+      "enums": {
+        "target_type": ["post", "reply"]
+      }
+    },
+    "playground_bookmarks": {
+      "required": ["id", "user_provider_uid", "user_app_user_id", "post_id", "created_at"]
+    },
+    "playground_verifications": {
+      "required": ["id", "post_id", "root_reply_id", "created_at", "revoked_at"],
+      "nullable": ["revoked_at"]
+    },
+    "playground_outcome_feedback": {
+      "required": ["id", "post_id", "outcome_description", "revision_no", "current_revision_id", "created_at", "updated_at", "deleted_at"],
+      "nullable": ["deleted_at"],
+      "outcome_description_max_codepoints": 2000
+    },
+    "revisions": {
+      "required": ["id", "parent_id", "revision_no", "body", "presentation_mode", "presentation_identity_id", "presentation_display_alias", "presentation_avatar_url", "public_profile_ref", "created_at"],
+      "nullable": ["presentation_avatar_url", "public_profile_ref", "allowed_chart_technique_ids", "technique_tags", "attachments", "chart_attachment", "media_attachments"],
+      "enums": {
+        "presentation_mode": ["stableAlias", "oneTimeAnonymous"]
+      }
+    }
+  },
+  "attachment_discriminated_union": {
+    "xuanChart": {
+      "required": ["type", "technique_id", "public_chart_snapshot", "renderer_schema_version", "chart_source"],
+      "optional": ["school_id"],
+      "snapshot_max_chars": 65536
+    },
+    "image": {
+      "required": ["type", "media_object_id", "mime_type", "moderation_state"],
+      "optional": ["width", "height"],
+      "media_id_max_chars": 128,
+      "mime_max_chars": 128,
+      "width_height_positive_int": true,
+      "moderation_state": ["pending", "approved", "quarantined", "rejected"]
+    },
+    "video": {
+      "required": ["type", "media_object_id", "mime_type", "moderation_state"],
+      "optional": ["width", "height", "duration_seconds"],
+      "duration_seconds_range": [1, 3600]
+    }
+  },
+  "machine_error_codes": {
+    "auth/unauthenticated": "PlaygroundErrorCode.unauthenticated",
+    "identity/not-ready": "PlaygroundErrorCode.unavailable",
+    "privacy/storage-unavailable": "PlaygroundErrorCode.invalidArgument",
+    "idempotency/invalid-key": "PlaygroundErrorCode.invalidArgument",
+    "idempotency/payload-conflict": "PlaygroundErrorCode.conflict",
+    "authorization/forbidden": "PlaygroundErrorCode.forbidden",
+    "content/not-found": "PlaygroundErrorCode.notFound",
+    "content/tombstoned": "PlaygroundErrorCode.tombstoned",
+    "validation/invalid-payload": "PlaygroundErrorCode.invalidArgument",
+    "filter/not-supported-in-direct-phase": "PlaygroundErrorCode.invalidArgument",
+    "provider/unavailable": "PlaygroundErrorCode.unavailable"
+  }
+}

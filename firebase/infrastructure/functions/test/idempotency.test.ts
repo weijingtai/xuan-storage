@@ -1,4 +1,4 @@
-import { clearStore, dumpStore } from './helpers';
+import { clearStore, dumpStore, retryNextTransactions } from './helpers';
 
 jest.mock('firebase-admin', () => {
   const { createAdminMock } = require('./helpers');
@@ -30,6 +30,7 @@ jest.mock('firebase-functions/v2/scheduler', () => ({
 
 import { createPost as _createPost } from '../src/posts';
 import { HttpsError } from 'firebase-functions/v2/https';
+import { runIdempotentCommand } from '../src/idempotency';
 const createPost = _createPost as unknown as (req: any) => Promise<any>;
 
 beforeEach(() => {
@@ -41,6 +42,34 @@ function makeReq(data: any, uid?: string) {
 }
 
 describe('idempotency', () => {
+  it('transaction retry commits command effects exactly once', async () => {
+    retryNextTransactions(1);
+    let executions = 0;
+    const result = await runIdempotentCommand({ operation: 'test', actorId: 'actor-a', idempotencyKey: 'retry-safe-1', payload: { a: 1 } }, async (tx) => {
+      executions++;
+      tx.set((require('../src/index').db).collection('test_effects').doc('one'), { committed: true });
+      return { ok: true };
+    });
+
+    expect(result).toEqual({ ok: true });
+    // Firestore can invoke a transaction callback more than once; only its
+    // buffered writes are committed once, so callback code must be pure.
+    expect(executions).toBe(2);
+    expect(dumpStore()['playground_idempotency']).toHaveLength(1);
+    expect(dumpStore()['test_effects']).toHaveLength(1);
+  });
+
+  it('replays only for the same operation, actor, key, and canonical payload', async () => {
+    const command = { operation: 'test', actorId: 'actor-a', idempotencyKey: 'race-safe-1', payload: { b: 2, a: 1 } };
+    await runIdempotentCommand(command, async () => ({ ok: true }));
+    await expect(runIdempotentCommand({ ...command, payload: { a: 1, b: 2 } }, async () => ({ ok: false }))).resolves.toEqual({ ok: true });
+    await expect(runIdempotentCommand({ ...command, payload: { a: 9 } }, async () => ({ ok: false }))).rejects.toThrow('conflict');
+    await expect(runIdempotentCommand({ ...command, actorId: 'actor-b' }, async () => ({ actor: 'b' }))).resolves.toEqual({ actor: 'b' });
+  });
+
+  it('rejects a missing idempotency key before executing', async () => {
+    await expect(runIdempotentCommand({ operation: 'test', actorId: 'actor-a', idempotencyKey: undefined, payload: {} }, async () => ({ ok: true }))).rejects.toThrow('idempotency_key');
+  });
   it('首次执行返回结果并写入幂等记录', async () => {
     const result = await createPost(
       makeReq({ text: '幂等测试-首次', idempotency_key: 'idem-1' }, 'user-a'),

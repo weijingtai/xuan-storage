@@ -66,19 +66,12 @@ function unauthContext() {
 // ==============================
 
 describe('playground_posts', () => {
-  test('allow: 认证用户创建自己的 active 帖子', async () => {
+  test('deny: 认证客户端即使自报作者也不能创建帖子', async () => {
     const db = aliceContext();
-    const fs = db.firestore();
-    await assertSucceeds(
-      db.firestore().collection('playground_posts').doc('post-1').set({
-        text: '测试帖',
-        author_provider_uid: 'alice-uid',
-        status: 'active',
-        allowed_chart_technique_ids: [],
-        attachments: [],
-        idempotency_key: 'k1',
-      }),
-    );
+    await assertFails(db.firestore().collection('playground_posts').doc('post-1').set({
+      text: '测试帖', author_provider_uid: 'alice-uid', author_app_user_id: 'forged',
+      presentation_mode: 'stableAlias', status: 'active',
+    }));
   });
 
   test('deny: 未认证用户创建帖', async () => {
@@ -144,44 +137,10 @@ describe('playground_posts', () => {
     );
   });
 
-  test('deny: 非作者修改他人帖子', async () => {
-    const aliceDb = aliceContext();
-    await aliceDb.firestore().collection('playground_posts').doc('post-7').set({
-      text: 'Alice 的帖',
-      author_provider_uid: 'alice-uid',
-      status: 'active',
-    });
-
-    const bobDb = bobContext();
-    await assertFails(
-      bobDb.firestore().collection('playground_posts').doc('post-7').update({ text: 'Bob 改的' }),
-    );
-  });
-
-  test('allow: 作者修改自己的帖子', async () => {
+  test('deny: 作者也不能直连编辑或墓碑帖子', async () => {
     const db = aliceContext();
-    const fs = db.firestore();
-    await db.firestore().collection('playground_posts').doc('post-8').set({
-      text: '原始',
-      author_provider_uid: 'alice-uid',
-      status: 'active',
-    });
-    await assertSucceeds(
-      db.firestore().collection('playground_posts').doc('post-8').update({ text: '修改后' }),
-    );
-  });
-
-  test('deny: 认证用户删除帖子', async () => {
-    const db = aliceContext();
-    const fs = db.firestore();
-    await db.firestore().collection('playground_posts').doc('post-9').set({
-      text: '待删',
-      author_provider_uid: 'alice-uid',
-      status: 'active',
-    });
-    await assertFails(
-      db.firestore().collection('playground_posts').doc('post-9').delete(),
-    );
+    await assertFails(db.firestore().collection('playground_posts').doc('post-8').update({ text: '修改后' }));
+    await assertFails(db.firestore().collection('playground_posts').doc('post-8').delete());
   });
 });
 
@@ -190,27 +149,12 @@ describe('playground_posts', () => {
 // ==============================
 
 describe('playground_replies', () => {
-  async function seedPost(db: any, docId: string, authorUid: string) {
-    await db.firestore().collection('playground_posts').doc(docId).set({
-      text: '测试帖',
-      author_provider_uid: authorUid,
-      status: 'active',
-    });
-  }
-
-  test('allow: 认证用户创建 depth=0 根回复', async () => {
+  test('deny: 认证客户端不能创建根回复或伪造冻结结构', async () => {
     const db = aliceContext();
-    const fs = db.firestore();
-    await seedPost(db, 'p-reply-1', 'alice-uid');
-    await assertSucceeds(
-      db.firestore().collection('playground_replies').doc('r-1').set({
-        body: '根回复',
-        post_id: 'p-reply-1',
-        depth: 0,
-        author_provider_uid: 'alice-uid',
-        is_tombstoned: false,
-      }),
-    );
+    await assertFails(db.firestore().collection('playground_replies').doc('r-1').set({
+      body: '根回复', post_id: 'p-reply-1', depth: 0,
+      author_provider_uid: 'alice-uid', author_app_user_id: 'forged', is_tombstoned: false,
+    }));
   });
 
   test('deny: 未认证用户创建回复', async () => {
@@ -254,35 +198,22 @@ describe('playground_replies', () => {
     );
   });
 
-  test('deny: 非作者更新他人回复', async () => {
-    const aliceDb = aliceContext();
-    await aliceDb.firestore().collection('playground_replies').doc('r-5').set({
-      body: 'Alice 的回复',
-      post_id: 'p-reply-2',
-      depth: 0,
-      author_provider_uid: 'alice-uid',
-      is_tombstoned: false,
-    });
-
-    const bobDb = bobContext();
-    await assertFails(
-      bobDb.firestore().collection('playground_replies').doc('r-5').update({ body: 'Bob 改的' }),
-    );
-  });
-
-  test('deny: 删除回复', async () => {
+  test('deny: 作者也不能直连编辑或删除回复', async () => {
     const db = aliceContext();
-    const fs = db.firestore();
-    await db.firestore().collection('playground_replies').doc('r-6').set({
-      body: '待删',
-      post_id: 'p-any',
-      depth: 0,
-      author_provider_uid: 'alice-uid',
-      is_tombstoned: false,
-    });
-    await assertFails(
-      db.firestore().collection('playground_replies').doc('r-6').delete(),
-    );
+    await assertFails(db.firestore().collection('playground_replies').doc('r-6').update({ body: '改写' }));
+    await assertFails(db.firestore().collection('playground_replies').doc('r-6').delete());
+  });
+});
+
+describe('playground_profiles', () => {
+  test('deny: profile create/update cannot bypass updateMyProfile callable', async () => {
+    const db = aliceContext();
+    await assertFails(db.firestore().collection('playground_profiles').doc('forged-app-user').set({
+      user_provider_uid: 'alice-uid', display_name: 'forged',
+    }));
+    await assertFails(db.firestore().collection('playground_profiles').doc('forged-app-user').update({
+      display_name: 'forged-again',
+    }));
   });
 });
 
@@ -344,10 +275,9 @@ describe('playground_likes', () => {
 // ==============================
 
 describe('playground_bookmarks', () => {
-  test('allow: 用户创建自己的收藏', async () => {
+  test('deny: 用户不能绕过 setBookmark callable 创建自己的收藏', async () => {
     const db = aliceContext();
-    const fs = db.firestore();
-    await assertSucceeds(
+    await assertFails(
       db.firestore().collection('playground_bookmarks').doc('bm-1').set({
         post_id: 'p-1',
         user_provider_uid: 'alice-uid',
@@ -410,6 +340,455 @@ describe('playground_media', () => {
         owner_provider_uid: 'alice-uid',
         status: 'pending',
       }),
+    );
+  });
+});
+
+// ==============================
+// playground_messages — Functions only（BLOCK-01 收紧）
+// ==============================
+
+describe('playground_messages', () => {
+  test('deny: 客户端直接创建消息（即使 sender 为自己的 uid）', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db.firestore().collection('playground_messages').doc('msg-1').set({
+        conversation_id: 'conv-1',
+        sender_provider_uid: 'alice-uid',
+        text: '你好',
+        sent_at: new Date(),
+      }),
+    );
+  });
+
+  test('deny: 客户端更新消息', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db.firestore().collection('playground_messages').doc('msg-2').update({
+        text: '被篡改',
+      }),
+    );
+  });
+
+  test('deny: 客户端删除消息', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db.firestore().collection('playground_messages').doc('msg-3').delete(),
+    );
+  });
+
+  test('deny: 客户端伪造 sender 创建消息（伪造他人 uid）', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db.firestore().collection('playground_messages').doc('msg-4').set({
+        conversation_id: 'conv-1',
+        sender_provider_uid: 'bob-uid',
+        text: '伪造 sender',
+        sent_at: new Date(),
+      }),
+    );
+  });
+});
+
+// ==============================
+// playground_idempotency — Functions only
+// ==============================
+
+describe('playground_idempotency', () => {
+  test('deny: 客户端直接写幂等记录', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db.firestore().collection('playground_idempotency').doc('idem-1').set({
+        payload_hash: 'fake',
+        result: {},
+      }),
+    );
+  });
+});
+
+// ==============================
+// identity_map — Functions only（BLOCK-01 resolveMyIdentity）
+// ==============================
+
+describe('identity_map', () => {
+  test('deny: 客户端直接写身份映射（伪造 appUserId）', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db.firestore().collection('identity_map').doc('alice-uid').set({
+        app_user_id: 'app-forged',
+        provider_uid: 'alice-uid',
+        provider_id: 'firebase',
+      }),
+    );
+  });
+});
+
+// ==============================
+// BLOCK-02 · playground_replies · production payload 契约（RED-B）
+// 与 RED-A（Dart payload 契约测试）同一字段集，真 emulator 下验证
+// production Rules 的 allow/deny 矩阵。跨帖/深度由 Functions + Rules 双层：
+// rules 静态层 depth≤1；跨帖（reply_to_reply_id 不同 post）由 Functions
+// createDiscussionReply 校验（Dart 直写路径由查询约束 post_id）。
+// ==============================
+
+describe('BLOCK-02 · replies · production payload（RED-B）', () => {
+  function productionRootReplyPayload(overrides: Record<string, any> = {}) {
+    return {
+      body: '根回复正文',
+      post_id: 'p-payload-1',
+      root_reply_id: null,
+      reply_to_reply_id: null,
+      depth: 0,
+      technique_tags: ['六爻'],
+      chart_attachment: null,
+      media_attachments: [],
+      author_provider_uid: 'alice-uid',
+      presentation_identity_id: 'anon-1',
+      is_tombstoned: false,
+      revisions: [],
+      created_at: new Date(),
+      updated_at: new Date(),
+      idempotency_key: 'rk-1',
+      ...overrides,
+    };
+  }
+
+  test('deny: production-shaped root reply payload cannot bypass callable', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db
+        .firestore()
+        .collection('playground_replies')
+        .doc('pr-payload-1')
+        .set(productionRootReplyPayload()),
+    );
+  });
+
+  test('deny: production-shaped discussion reply payload cannot bypass callable', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db
+        .firestore()
+        .collection('playground_replies')
+        .doc('pd-payload-1')
+        .set({
+          ...productionRootReplyPayload(),
+          depth: 1,
+          root_reply_id: 'pr-payload-1',
+          reply_to_reply_id: 'pr-payload-1',
+          technique_tags: [],
+          chart_attachment: null,
+        }),
+    );
+  });
+
+  test('deny: create 携带 status 被 allowlist 拒绝', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db
+        .firestore()
+        .collection('playground_replies')
+        .doc('pr-payload-2')
+        .set(productionRootReplyPayload({ status: 'active' })),
+    );
+  });
+
+  test('deny: create 携带 is_root 被拒绝', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db
+        .firestore()
+        .collection('playground_replies')
+        .doc('pr-payload-3')
+        .set(productionRootReplyPayload({ is_root: true })),
+    );
+  });
+
+  test('deny: create 携带 author_app_user_id 被拒绝', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db
+        .firestore()
+        .collection('playground_replies')
+        .doc('pr-payload-4')
+        .set(productionRootReplyPayload({ author_app_user_id: 'app-1' })),
+    );
+  });
+
+  test('deny: create 携带 text 被拒绝（reply 正文字段唯一为 body）', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db
+        .firestore()
+        .collection('playground_replies')
+        .doc('pr-payload-5')
+        .set(productionRootReplyPayload({ text: '旧字段' })),
+    );
+  });
+
+  test('deny: depth=2 第三层被拒绝', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db
+        .firestore()
+        .collection('playground_replies')
+        .doc('pr-payload-6')
+        .set(productionRootReplyPayload({ depth: 2 })),
+    );
+  });
+
+  test('allow: list where(is_tombstoned == false)（生产 getReplies 同款过滤）', async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      const fs = ctx.firestore();
+      await fs
+        .collection('playground_replies')
+        .doc('pr-list-1')
+        .set({
+          ...productionRootReplyPayload(),
+          post_id: 'p-list',
+          created_at: new Date('2026-01-01T00:00:00Z'),
+        });
+      await fs
+        .collection('playground_replies')
+        .doc('pr-list-2')
+        .set({
+          ...productionRootReplyPayload(),
+          post_id: 'p-list',
+          depth: 1,
+          is_tombstoned: false,
+          root_reply_id: 'pr-list-1',
+          reply_to_reply_id: 'pr-list-1',
+          created_at: new Date('2026-01-02T00:00:00Z'),
+        });
+    });
+    const db = aliceContext();
+    await assertSucceeds(
+      db
+        .firestore()
+        .collection('playground_replies')
+        .where('post_id', '==', 'p-list')
+        .where('is_tombstoned', '==', false)
+        .orderBy('depth')
+        .orderBy('created_at')
+        .get(),
+    );
+  });
+
+  test('allow: get 单条（非 tombstone）', async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await ctx
+        .firestore()
+        .collection('playground_replies')
+        .doc('pr-get-1')
+        .set(productionRootReplyPayload());
+    });
+    const db = aliceContext();
+    await assertSucceeds(
+      db.firestore().collection('playground_replies').doc('pr-get-1').get(),
+    );
+  });
+
+  test('allow: 作者可读自己的 tombstone', async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await ctx
+        .firestore()
+        .collection('playground_replies')
+        .doc('pr-tomb-1')
+        .set({ ...productionRootReplyPayload(), is_tombstoned: true });
+      // 生产 reply_owner 与 reply 原子创建；tombstone 读取须 owner 文档存在。
+      await ctx
+        .firestore()
+        .collection('playground_reply_owners')
+        .doc('pr-tomb-1')
+        .set({
+          content_id: 'pr-tomb-1',
+          provider_uid: 'alice-uid',
+          app_user_id: 'app-alice',
+          public_presentation_id: 'pub_alice',
+          created_at: new Date(),
+        });
+    });
+    const db = aliceContext();
+    await assertSucceeds(
+      db.firestore().collection('playground_replies').doc('pr-tomb-1').get(),
+    );
+  });
+
+  test('deny: 非作者读他人 tombstone', async () => {
+    // productionRootReplyPayload 默认 author_provider_uid=alice-uid；
+    // bob 读 alice 的 tombstone 必须被拒。
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await ctx
+        .firestore()
+        .collection('playground_replies')
+        .doc('pr-tomb-2')
+        .set({ ...productionRootReplyPayload(), is_tombstoned: true });
+      await ctx
+        .firestore()
+        .collection('playground_reply_owners')
+        .doc('pr-tomb-2')
+        .set({
+          content_id: 'pr-tomb-2',
+          provider_uid: 'alice-uid',
+          app_user_id: 'app-alice',
+          public_presentation_id: 'pub_alice',
+          created_at: new Date(),
+        });
+    });
+    const bobDb = bobContext();
+    await assertFails(
+      bobDb
+        .firestore()
+        .collection('playground_replies')
+        .doc('pr-tomb-2')
+        .get(),
+    );
+  });
+});
+
+// ==============================
+// BLOCK-02 · playground_posts · production payload 契约（RED-B）
+// ==============================
+
+describe('BLOCK-02 · posts · production payload（RED-B）', () => {
+  function productionPostPayload(overrides: Record<string, any> = {}) {
+    return {
+      text: '帖子正文',
+      author_provider_uid: 'alice-uid',
+      status: 'active',
+      allowed_chart_technique_ids: ['六爻'],
+      attachments: [],
+      created_at: new Date(),
+      updated_at: new Date(),
+      revisions: [],
+      has_outcome_feedback: false,
+      idempotency_key: 'pk-1',
+      ...overrides,
+    };
+  }
+
+  test('deny: production-shaped post payload cannot bypass callable', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db
+        .firestore()
+        .collection('playground_posts')
+        .doc('p-payload-1')
+        .set(productionPostPayload()),
+    );
+  });
+
+  test('deny: create 携带 author_app_user_id 被拒绝（客户端不写作者 app id）', async () => {
+    const db = aliceContext();
+    await assertFails(
+      db
+        .firestore()
+        .collection('playground_posts')
+        .doc('p-payload-2')
+        .set(productionPostPayload({ author_app_user_id: 'app-1' })),
+    );
+  });
+});
+
+// ==============================
+// BLOCK-03 · 游客代表性回复 · 反绕过第一道闸（Rules 游客直连 deny）
+// 游客完整回复读取只能走受信 Functions `getGuestRepresentativeReplies`；
+// 客户端直连 playground_replies 的 list/get 在未认证下必须全部 DENY。
+// ==============================
+
+describe('BLOCK-03 · guest · 游客直连 replies 被 Rules 拒绝', () => {
+  function guestRootReplyPayload(overrides: Record<string, any> = {}) {
+    return {
+      body: '根回复正文',
+      post_id: 'p-guest-1',
+      root_reply_id: null,
+      reply_to_reply_id: null,
+      depth: 0,
+      technique_tags: ['六爻'],
+      chart_attachment: null,
+      media_attachments: [],
+      author_provider_uid: 'alice-uid',
+      presentation_identity_id: 'anon-1',
+      is_tombstoned: false,
+      revisions: [],
+      created_at: new Date('2026-01-01T00:00:00Z'),
+      updated_at: new Date('2026-01-01T00:00:00Z'),
+      idempotency_key: 'grk-1',
+      ...overrides,
+    };
+  }
+
+  test('deny: 未认证用户 list playground_replies（游客不能分页绕过）', async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await ctx
+        .firestore()
+        .collection('playground_replies')
+        .doc('guest-list-1')
+        .set(guestRootReplyPayload());
+    });
+    const guestDb = unauthContext();
+    await assertFails(
+      guestDb
+        .firestore()
+        .collection('playground_replies')
+        .where('post_id', '==', 'p-guest-1')
+        .where('is_tombstoned', '==', false)
+        .get(),
+    );
+  });
+
+  test('deny: 未认证用户 get 单条非墓碑 reply（游客不能直连读取）', async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await ctx
+        .firestore()
+        .collection('playground_replies')
+        .doc('guest-get-1')
+        .set(guestRootReplyPayload());
+    });
+    const guestDb = unauthContext();
+    await assertFails(
+      guestDb
+        .firestore()
+        .collection('playground_replies')
+        .doc('guest-get-1')
+        .get(),
+    );
+  });
+
+  test('deny: 未认证用户 get 墓碑 reply（游客不可见）', async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await ctx
+        .firestore()
+        .collection('playground_replies')
+        .doc('guest-tomb-1')
+        .set(guestRootReplyPayload({ is_tombstoned: true }));
+    });
+    const guestDb = unauthContext();
+    await assertFails(
+      guestDb
+        .firestore()
+        .collection('playground_replies')
+        .doc('guest-tomb-1')
+        .get(),
+    );
+  });
+
+  test('allow: 认证用户（注册后）list 同款查询（注册用户正常分页）', async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await ctx
+        .firestore()
+        .collection('playground_replies')
+        .doc('guest-reg-1')
+        .set(guestRootReplyPayload());
+    });
+    const db = aliceContext();
+    await assertSucceeds(
+      db
+        .firestore()
+        .collection('playground_replies')
+        .where('post_id', '==', 'p-guest-1')
+        .where('is_tombstoned', '==', false)
+        .get(),
     );
   });
 });

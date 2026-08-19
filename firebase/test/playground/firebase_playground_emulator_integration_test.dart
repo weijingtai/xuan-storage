@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
@@ -10,7 +11,6 @@ import 'package:repository_interface_playground/repository_interface_playground.
 import 'package:persistence_firebase/playground/firebase_playground_post_repository.dart';
 import 'package:persistence_firebase/playground/firebase_playground_reply_repository.dart';
 import 'package:persistence_firebase/playground/firebase_playground_identity_resolver.dart';
-import 'package:persistence_firebase/playground/firebase_playground_verification_repository.dart';
 import 'package:persistence_firebase/playground/firebase_playground_schema.dart';
 
 /// Firebase Emulator 集成测试 — 使用真实 Firestore/Auth 指向 localhost emulator。
@@ -29,7 +29,6 @@ void main() {
     late FirebasePlaygroundIdentityResolver identityResolver;
     late FirebasePlaygroundPostRepository postRepo;
     late FirebasePlaygroundReplyRepository replyRepo;
-    late FirebasePlaygroundVerificationRepository verificationRepo;
     bool _skipped = false;
 
     setUpAll(() async {
@@ -67,10 +66,10 @@ void main() {
       // 3. 连接 Emulator
       firestore = FirebaseFirestore.instance;
       final host = isEmulatorSet
-          ? emulatorHost!.split(':').first
+          ? emulatorHost.split(':').first
           : 'localhost';
       final port = isEmulatorSet
-          ? int.tryParse(emulatorHost!.split(':').last) ?? 8082
+          ? int.tryParse(emulatorHost.split(':').last) ?? 8082
           : 8082;
       firestore.settings = Settings(
         host: '$host:$port',
@@ -91,6 +90,9 @@ void main() {
       // 4. 匿名登录
       await auth.signInAnonymously();
 
+      // 5. Functions callable（resolveMyIdentity 等）指向本地 Functions emulator。
+      FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
+
       identityResolver = FirebasePlaygroundIdentityResolver(
         firestore: firestore,
         auth: auth,
@@ -101,11 +103,6 @@ void main() {
         identityResolver: identityResolver,
       );
       replyRepo = FirebasePlaygroundReplyRepository(
-        firestore: firestore,
-        auth: auth,
-        identityResolver: identityResolver,
-      );
-      verificationRepo = FirebasePlaygroundVerificationRepository(
         firestore: firestore,
         auth: auth,
         identityResolver: identityResolver,

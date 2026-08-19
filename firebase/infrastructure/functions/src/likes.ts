@@ -7,7 +7,7 @@ import { hashPayload } from './utils';
 
 export const setLike = onCall({ region: 'asia-east1' }, async (request) => {
   const uid = requireAuthUid(request.auth?.uid);
-  const appUserId = await resolveAppUserId(uid);
+  const { appUserId } = await resolveAppUserId(uid);
   const { postId, replyId, action } = request.data;
 
   if (!postId && !replyId) {
@@ -41,49 +41,53 @@ export const setLike = onCall({ region: 'asia-east1' }, async (request) => {
     ? `like_post_${uid}_${postId}`
     : `like_reply_${uid}_${replyId}`;
 
-  const likeRef = db.collection(COLLECTIONS.likes).doc(likeId);
+  const payloadHash = hashPayload(request.data);
 
-  if (action === 'like') {
-    const now = admin.firestore.FieldValue.serverTimestamp();
-    const likeData: Record<string, any> = {
-      id: likeId,
-      user_provider_uid: uid,
-      user_app_user_id: appUserId,
-      created_at: now,
-    };
-    if (postId) likeData.post_id = postId;
-    if (replyId) likeData.reply_id = replyId;
+  return withIdempotency(request.data.idempotency_key, payloadHash, async () => {
+    const likeRef = db.collection(COLLECTIONS.likes).doc(likeId);
 
-    await likeRef.set(likeData);
-
-    const outboxRef = db.collection(COLLECTIONS.outbox).doc();
-    await outboxRef.set({
-      id: outboxRef.id,
-      event_type: 'like_added',
-      post_id: postId ?? null,
-      reply_id: replyId ?? null,
-      user_app_user_id: appUserId,
-      created_at: now,
-    });
-
-    return { liked: true, id: likeId, target_type: postId ? 'post' : 'reply' };
-  } else {
-    const snap = await likeRef.get();
-    if (snap.exists) {
-      await likeRef.delete();
-
+    if (action === 'like') {
       const now = admin.firestore.FieldValue.serverTimestamp();
+      const likeData: Record<string, any> = {
+        id: likeId,
+        user_provider_uid: uid,
+        user_app_user_id: appUserId,
+        created_at: now,
+      };
+      if (postId) likeData.post_id = postId;
+      if (replyId) likeData.reply_id = replyId;
+
+      await likeRef.set(likeData);
+
       const outboxRef = db.collection(COLLECTIONS.outbox).doc();
       await outboxRef.set({
         id: outboxRef.id,
-        event_type: 'like_removed',
+        event_type: 'like_added',
         post_id: postId ?? null,
         reply_id: replyId ?? null,
         user_app_user_id: appUserId,
         created_at: now,
       });
-    }
 
-    return { liked: false, id: likeId, target_type: postId ? 'post' : 'reply' };
-  }
+      return { liked: true, id: likeId, target_type: postId ? 'post' : 'reply' };
+    } else {
+      const snap = await likeRef.get();
+      if (snap.exists) {
+        await likeRef.delete();
+
+        const now = admin.firestore.FieldValue.serverTimestamp();
+        const outboxRef = db.collection(COLLECTIONS.outbox).doc();
+        await outboxRef.set({
+          id: outboxRef.id,
+          event_type: 'like_removed',
+          post_id: postId ?? null,
+          reply_id: replyId ?? null,
+          user_app_user_id: appUserId,
+          created_at: now,
+        });
+      }
+
+      return { liked: false, id: likeId, target_type: postId ? 'post' : 'reply' };
+    }
+  });
 });

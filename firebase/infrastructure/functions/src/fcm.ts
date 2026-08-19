@@ -5,7 +5,7 @@ import { resolveAppUserId, requireAuthUid } from './identity';
 
 export const registerFcmToken = onCall({ region: 'asia-east1' }, async (request) => {
   const uid = requireAuthUid(request.auth?.uid);
-  const appUserId = await resolveAppUserId(uid);
+  const { appUserId } = await resolveAppUserId(uid);
   const { token, platform } = request.data;
 
   if (!token || typeof token !== 'string') {

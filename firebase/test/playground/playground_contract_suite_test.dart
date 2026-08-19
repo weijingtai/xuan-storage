@@ -3,8 +3,13 @@
 /// 消费 `core/lib/test_support/playground_contract_suite.dart`，
 /// 注入 firebase 真实现（fake_cloud_firestore + MockFirebaseAuth）与
 /// 内存缓存 store（`playground_in_memory_cache_stores.dart`）。
+///
+/// BLOCK-01 后写命令走 callable：为保持契约语义（C4 远端改值后立刻读），
+/// FakeFirebaseFunctions 通过 handler 模拟服务端落库（setLike 写 FakeFirestore），
+/// 双证据仍由真 emulator 测试覆盖。
 library;
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -26,6 +31,8 @@ import 'package:persistence_firebase/playground/firebase_playground_reply_reposi
 import 'package:persistence_firebase/playground/firebase_playground_schema.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
 
+import 'fake_callable_functions.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -34,6 +41,7 @@ void main() {
 
   late FakeFirebaseFirestore firestore;
   late MockFirebaseAuth mockAuth;
+  late FakeFirebaseFunctions functions;
   late FirebasePlaygroundIdentityResolver identityResolver;
 
   // 契约套件要求 makeRepository 与 makeCacheStore 共享同一缓存实例。
@@ -46,6 +54,44 @@ void main() {
       mockUser: MockUser(uid: testUid, isAnonymous: false),
       signedIn: true,
     );
+    functions = FakeFirebaseFunctions()
+      ..responses['resolveMyIdentity'] = <String, dynamic>{
+        'appUserId': appUserId,
+      };
+
+    // C4 契约：setLike 走 callable 后，isLiked/getLikeCount 必须立刻读到新值。
+    // handler 模拟 Functions 服务端落库语义（写/删 playground_likes）。
+    functions.handlers['setLike'] = (params) async {
+      final uid = mockAuth.currentUser!.uid;
+      final postId = params?['postId'] as String?;
+      final replyId = params?['replyId'] as String?;
+      final action = params?['action'] as String?;
+      final targetId = postId ?? replyId ?? '';
+      final targetType = postId != null ? 'post' : 'reply';
+      final docId = '${uid}_${targetType}_$targetId';
+      final ref = firestore
+          .collection(PlaygroundFirestoreSchema.likes)
+          .doc(docId);
+      if (action == 'like') {
+        await ref.set({
+          'user_provider_uid': uid,
+          'user_app_user_id': appUserId,
+          'target_type': targetType,
+          'target_id': targetId,
+          'post_id': postId,
+          'reply_id': replyId,
+          'created_at': FieldValue.serverTimestamp(),
+        });
+      } else {
+        await ref.delete();
+      }
+      return <String, dynamic>{
+        'liked': action == 'like',
+        'id': docId,
+        'target_type': targetType,
+      };
+    };
+
     identityResolver = FirebasePlaygroundIdentityResolver(
       firestore: firestore,
       auth: mockAuth,
@@ -59,6 +105,9 @@ void main() {
         .set({
       'app_user_id': appUserId,
       'provider_uid': testUid,
+      'provider_id': 'firebase',
+      'public_presentation_id': 'pub_contract_suite',
+      'public_display_alias': '合同测试',
     });
   });
 
@@ -104,12 +153,14 @@ void main() {
         firestore: firestore,
         auth: mockAuth,
         identityResolver: identityResolver,
+
       ),
     ),
     makeLikeRemote: () => FirebasePlaygroundLikeRepository(
       firestore: firestore,
       auth: mockAuth,
       identityResolver: identityResolver,
+
     ),
   );
 
