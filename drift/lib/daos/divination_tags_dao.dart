@@ -29,7 +29,9 @@ class DivinationTagsDao extends DatabaseAccessor<PersistenceDriftDatabase>
     return rows.map((r) => r.divinationUuid).toList();
   }
 
-  Future<void> clearForDivination(String divinationUuid) async {
-    await (delete(db.divinationTags)..where((t) => t.divinationUuid.equals(divinationUuid))).go();
+  Future<void> clearForDivination(String divinationUuid, {required String scopeUid}) async {
+    await (delete(db.divinationTags)
+          ..where((t) => t.divinationUuid.equals(divinationUuid) & t.scopeUid.equals(scopeUid)))
+        .go();
   }
 }
