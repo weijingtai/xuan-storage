@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:persistence_drift/persistence_drift.dart';
-import 'package:repository_interface_meihuayishu/repository_interface_meihuayishu.dart';
 import 'package:test/test.dart';
 
 void main() {

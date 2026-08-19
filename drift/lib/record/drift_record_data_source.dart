@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
-import '../persistence_drift.dart';
+import 'package:persistence_drift/persistence_drift.dart';
 
 class DriftRecordDataSource {
   final PersistenceDriftDatabase db;

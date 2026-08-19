@@ -3,7 +3,6 @@ import 'package:persistence_drift/persistence_drift.dart';
 import 'package:persistence_drift/taiyishenshu/taiyishenshu_module_registry.dart';
 import 'package:persistence_drift/taiyishenshu/record_backed_taiyi_repository.dart';
 import 'package:repository_interface_taiyishenshu/repository_interface_taiyishenshu.dart';
-import 'package:repository_interface_record/repository_interface_record.dart';
 import 'package:test/test.dart';
 
 TaiyiDivinationRecordContract _rec({String uuid = '', String schoolId = 'sch1'}) => TaiyiDivinationRecordContract(
@@ -60,7 +59,7 @@ void main() {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
-    final firstEmit = repo.watchAllRecords().first;
+    final firstEmit = repo.watchAllRecords().firstWhere((l) => l.isNotEmpty);
     await repo.saveRecord(_rec());
     final list = await firstEmit;
     expect(list, hasLength(1));

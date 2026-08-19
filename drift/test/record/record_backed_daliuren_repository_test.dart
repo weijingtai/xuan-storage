@@ -3,7 +3,6 @@ import 'package:persistence_drift/persistence_drift.dart';
 import 'package:persistence_drift/daliuren/daliuren_module_registry.dart';
 import 'package:persistence_drift/daliuren/record_backed_daliuren_repository.dart';
 import 'package:repository_interface_daliuren/repository_interface_daliuren.dart';
-import 'package:repository_interface_record/repository_interface_record.dart';
 import 'package:test/test.dart';
 
 DaliurenDivinationRecordContract _rec({String uuid = '', String schoolId = 's1'}) => DaliurenDivinationRecordContract(
@@ -64,7 +63,7 @@ void main() {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
-    final firstEmit = repo.watchAllRecords().first;
+    final firstEmit = repo.watchAllRecords().firstWhere((l) => l.isNotEmpty);
     await repo.saveRecord(_rec());
     final list = await firstEmit;
     expect(list, hasLength(1));

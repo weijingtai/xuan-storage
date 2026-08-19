@@ -27,7 +27,7 @@ class LocalRecordRepository implements ScopedRecordStore {
         final outboxRecord = RecordOutboxMapper.toOutboxRecord(
           meta: record, moduleData: moduleData, tags: tags, opType: RecordOutboxMapper.opUpsert,
         );
-        await _outboxStore!.enqueue(outboxRecord);
+        await _outboxStore.enqueue(outboxRecord);
       } catch (_) {
       }
     }
@@ -59,7 +59,7 @@ class LocalRecordRepository implements ScopedRecordStore {
           final outboxRecord = RecordOutboxMapper.toOutboxRecord(
             meta: meta, opType: RecordOutboxMapper.opDelete,
           );
-          await _outboxStore!.enqueue(outboxRecord);
+          await _outboxStore.enqueue(outboxRecord);
         }
       } catch (_) {
       }

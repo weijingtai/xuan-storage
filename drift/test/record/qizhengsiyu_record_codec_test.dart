@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:repository_interface_qizhengsiyu/repository_interface_qizhengsiyu.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
-import 'package:persistence_drift/persistence_drift.dart';
 import 'package:persistence_drift/qizhengsiyu/qizheng_record_codec.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;

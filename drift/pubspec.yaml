@@ -50,6 +50,9 @@ dependencies:
   repository_interface_record:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-record.git
+  repository_contract_kernel:
+    git:
+      url: http://192.168.0.165:3000/xuan/repository_contract_kernel.git
   repository_interface_playground:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-playground.git
@@ -101,6 +104,7 @@ dev_dependencies:
   test: ^1.26.3
   crdt: ^5.1.3
   sqlite3: ^2.9.4
+  timezone: ^0.9.4
   persistence_assets:
     path: ../assets
 
