@@ -4,11 +4,6 @@ import 'package:persistence_drift/persistence_drift.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
 
 import '../seeker/seeker_module_registry.dart';
-import 'divination_cases_table.dart';
-import 'divination_work_items_table.dart';
-import 'case_participants_table.dart';
-import 'panel_refs_table.dart';
-import 'work_item_panel_refs_table.dart';
 
 class DriftDivinationCaseRepository
     implements
@@ -74,21 +69,70 @@ class DriftDivinationCaseRepository
   }
 
   // --- DivinationRecordRepository ---
-  // Note: No dedicated Drift table for records yet; stub implementation.
 
   @override
   Future<List<DivinationRecordModel>> listRecordsForCase(String caseUuid) async {
-    return [];
+    final query = db.select(db.tRecordMeta)
+      ..where((t) => t.caseUuid.equals(caseUuid) & t.deletedAt.isNull());
+    final rows = await query.get();
+    return rows.map(_recordFromRow).toList();
   }
 
   @override
   Future<DivinationRecordModel?> getRecord(String uuid) async {
-    return null;
+    final query = db.select(db.tRecordMeta)
+      ..where((t) => t.uuid.equals(uuid));
+    final row = await query.getSingleOrNull();
+    return row == null ? null : _recordFromRow(row);
   }
 
   @override
   Future<void> saveRecord(DivinationRecordModel model) async {
-    // No Drift table for records in this migration phase.
+    final existing = await (db.select(db.tRecordMeta)
+          ..where((t) => t.uuid.equals(model.uuid)))
+        .getSingleOrNull();
+    if (existing != null) {
+      await (db.update(db.tRecordMeta)..where((t) => t.uuid.equals(model.uuid))).write(
+        TRecordMetaCompanion(
+          caseUuid: Value(model.caseUuid),
+          question: Value(model.question),
+          detail: Value(model.detail),
+          directPredict: Value(model.directlyPredict),
+          updatedAt: Value(DateTime.now().toUtc()),
+          deletedAt: Value(model.deletedAt),
+        ),
+      );
+    } else {
+      await db.into(db.tRecordMeta).insertOnConflictUpdate(
+        TRecordMetaCompanion(
+          uuid: Value(model.uuid),
+          scopeUid: const Value('default'),
+          module: const Value('divination_case'),
+          category: const Value('record'),
+          divinationType: const Value('general'),
+          caseUuid: Value(model.caseUuid),
+          question: Value(model.question),
+          detail: Value(model.detail),
+          directPredict: Value(model.directlyPredict),
+          createdAt: Value(model.createdAt.toUtc()),
+          deletedAt: Value(model.deletedAt),
+          rev: const Value(1),
+        ),
+      );
+    }
+  }
+
+  DivinationRecordModel _recordFromRow(TRecordMetaData row) {
+    return DivinationRecordModel(
+      uuid: row.uuid,
+      caseUuid: row.caseUuid ?? '',
+      question: row.question ?? '',
+      detail: row.detail,
+      directlyPredict: row.directPredict,
+      order: 0,
+      createdAt: row.createdAt.toUtc(),
+      deletedAt: row.deletedAt?.toUtc(),
+    );
   }
 
   // --- DivinationWorkItemRepository ---

@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/native.dart';
 import 'package:divination_case/divination_case.dart';
 import 'package:persistence_drift/persistence_drift.dart';
-import 'package:persistence_drift/divination_case/drift_divination_case_repository.dart';
 
 void main() {
   late PersistenceDriftDatabase db;
@@ -98,5 +97,27 @@ void main() {
     await repository.attachPanelRefToWorkItem(workItemPanelRef);
     final list = await repository.listPanelRefsForWorkItem('item-1');
     expect(list, contains(workItemPanelRef));
+  });
+
+  test('Save and reload divination record by case uuid and uuid', () async {
+    final record = DivinationRecordModel(
+      uuid: 'rec-1',
+      caseUuid: 'case-1',
+      question: 'Will the project succeed?',
+      detail: 'Details about the plan',
+      directlyPredict: 'Yes',
+      order: 0,
+      createdAt: DateTime.utc(2026, 6, 6, 12, 0, 0),
+    );
+
+    await repository.saveRecord(record);
+    final fetched = await repository.getRecord('rec-1');
+    expect(fetched?.uuid, equals('rec-1'));
+    expect(fetched?.caseUuid, equals('case-1'));
+    expect(fetched?.question, equals('Will the project succeed?'));
+    expect(fetched?.directlyPredict, equals('Yes'));
+
+    final list = await repository.listRecordsForCase('case-1');
+    expect(list.map((r) => r.uuid), contains('rec-1'));
   });
 }

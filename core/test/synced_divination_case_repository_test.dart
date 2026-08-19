@@ -217,4 +217,26 @@ void main() {
     await repo.attachPanelRefToWorkItem(workItemPanelRef);
     expect(await repo.listPanelRefsForWorkItem('w1'), contains(workItemPanelRef));
   });
+
+  test('delegates divination records to local repository with case_uuid index query', () async {
+    final local = _FakeCaseRepository();
+    final repo = SyncedDivinationCaseRepository(local: local);
+
+    final record = DivinationRecordModel(
+      uuid: 'rec-100',
+      caseUuid: 'case-1',
+      question: 'Test Record Question',
+      detail: 'Record details',
+      directlyPredict: 'Favorable',
+      order: 0,
+      createdAt: DateTime.utc(2026, 6, 1),
+    );
+
+    await repo.saveRecord(record);
+    final fetched = await repo.getRecord('rec-100');
+    expect(fetched, equals(record));
+
+    final recordsForCase = await repo.listRecordsForCase('case-1');
+    expect(recordsForCase, contains(record));
+  });
 }
