@@ -5,8 +5,8 @@ import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 ///
 /// 组合 local 与 remote 仓储。采用 LocalFirst 策略：
 /// - 读：本地先行；
-/// - 写：本地成功后异步推远端，远端可重试错误入 outbox，不影响本地成功返回；
-/// - 错误可判别：不可重试错误（permission_denied 等）直接上抛，严禁无条件吞异常；
+/// - 写：委托内核 [localFirstWrite] 组合器，本地成功后异步推远端，远端可重试错误入 outbox，不影响本地成功返回；
+/// - 错误可判别：非 XuanError 的未知异常按 internal 处理直接上抛，严禁无条件吞异常；
 /// - 消除假实现：全 15 个方法完整代理到下游对应切片/接口。
 class SyncedDivinationCaseRepository
     implements
@@ -18,6 +18,8 @@ class SyncedDivinationCaseRepository
   /// 构造。
   SyncedDivinationCaseRepository({
     required this.local,
+    @Deprecated('方案已废弃：divination_case 为 peer 驻留，该路径实现有误，'
+        '保留供将来重启 peer 同步时参考，勿直接复用')
     this.remote,
     this.retryPolicy = const RetryPolicy(),
     Outbox? outbox,
@@ -27,6 +29,8 @@ class SyncedDivinationCaseRepository
   final DivinationCaseRepository local;
 
   /// 远端仓储（可选）。
+  @Deprecated('方案已废弃：divination_case 为 peer 驻留，该路径实现有误，'
+      '保留供将来重启 peer 同步时参考，勿直接复用')
   final DivinationCaseRepository? remote;
 
   /// 重试策略。
@@ -34,6 +38,21 @@ class SyncedDivinationCaseRepository
 
   /// Outbox 待发队列。
   final Outbox outbox;
+
+  Future<Result<void>> Function()? _wrapRemote(Future<void> Function()? remoteOp) {
+    if (remoteOp == null) return null;
+    return () async {
+      try {
+        await remoteOp();
+        return const Ok(null);
+      } on XuanError catch (e) {
+        return Err(e);
+      } catch (e) {
+        // 未知异常默认按不可重试的 internal 错误处理，直接上抛，不进 outbox
+        return Err(XuanError(code: ErrorCode.internal, message: '$e'));
+      }
+    };
+  }
 
   // --- DivinationCaseRepository ---
 
@@ -55,33 +74,19 @@ class SyncedDivinationCaseRepository
 
   @override
   Future<void> saveCase(DivinationCaseModel model) async {
-    await local.saveCase(model);
     final r = remote;
-    if (r != null) {
-      try {
-        await r.saveCase(model);
-      } on XuanError catch (e) {
-        if (e.retryable) {
-          outbox.enqueue(OutboxEntry(
-            id: 'case:${model.uuid}:${DateTime.now().microsecondsSinceEpoch}',
-            payload: {'uuid': model.uuid, 'title': model.title},
-            lastError: e,
-          ));
-        } else {
-          rethrow;
-        }
-      } catch (e) {
-        final xuanErr = XuanError(code: ErrorCode.unavailable, message: '$e');
-        if (xuanErr.retryable) {
-          outbox.enqueue(OutboxEntry(
-            id: 'case:${model.uuid}:${DateTime.now().microsecondsSinceEpoch}',
-            payload: {'uuid': model.uuid, 'title': model.title},
-            lastError: xuanErr,
-          ));
-        } else {
-          rethrow;
-        }
-      }
+    final res = await localFirstWrite(
+      local: () async {
+        await local.saveCase(model);
+        return const Ok(null);
+      },
+      remote: _wrapRemote(r == null ? null : () => r.saveCase(model)),
+      outbox: outbox,
+      outboxEntryId: 'case:${model.uuid}:${DateTime.now().microsecondsSinceEpoch}',
+      outboxPayload: {'uuid': model.uuid, 'title': model.title},
+    );
+    if (res case Err(error: final e)) {
+      throw e;
     }
   }
 
@@ -108,35 +113,23 @@ class SyncedDivinationCaseRepository
   @override
   Future<void> saveRecord(DivinationRecordModel model) async {
     final l = local;
-    if (l is DivinationRecordRepository) {
-      await (l as DivinationRecordRepository).saveRecord(model);
-    }
     final r = remote;
-    if (r is DivinationRecordRepository) {
-      try {
-        await (r as DivinationRecordRepository).saveRecord(model);
-      } on XuanError catch (e) {
-        if (e.retryable) {
-          outbox.enqueue(OutboxEntry(
-            id: 'record:${model.uuid}:${DateTime.now().microsecondsSinceEpoch}',
-            payload: {'uuid': model.uuid},
-            lastError: e,
-          ));
-        } else {
-          rethrow;
+    final res = await localFirstWrite(
+      local: () async {
+        if (l is DivinationRecordRepository) {
+          await (l as DivinationRecordRepository).saveRecord(model);
         }
-      } catch (e) {
-        final xuanErr = XuanError(code: ErrorCode.unavailable, message: '$e');
-        if (xuanErr.retryable) {
-          outbox.enqueue(OutboxEntry(
-            id: 'record:${model.uuid}:${DateTime.now().microsecondsSinceEpoch}',
-            payload: {'uuid': model.uuid},
-            lastError: xuanErr,
-          ));
-        } else {
-          rethrow;
-        }
-      }
+        return const Ok(null);
+      },
+      remote: _wrapRemote(r is DivinationRecordRepository
+          ? () => (r as DivinationRecordRepository).saveRecord(model)
+          : null),
+      outbox: outbox,
+      outboxEntryId: 'record:${model.uuid}:${DateTime.now().microsecondsSinceEpoch}',
+      outboxPayload: {'uuid': model.uuid},
+    );
+    if (res case Err(error: final e)) {
+      throw e;
     }
   }
 
@@ -163,35 +156,23 @@ class SyncedDivinationCaseRepository
   @override
   Future<void> saveWorkItem(DivinationWorkItemModel model) async {
     final l = local;
-    if (l is DivinationWorkItemRepository) {
-      await (l as DivinationWorkItemRepository).saveWorkItem(model);
-    }
     final r = remote;
-    if (r is DivinationWorkItemRepository) {
-      try {
-        await (r as DivinationWorkItemRepository).saveWorkItem(model);
-      } on XuanError catch (e) {
-        if (e.retryable) {
-          outbox.enqueue(OutboxEntry(
-            id: 'work_item:${model.uuid}:${DateTime.now().microsecondsSinceEpoch}',
-            payload: {'uuid': model.uuid, 'caseUuid': model.caseUuid},
-            lastError: e,
-          ));
-        } else {
-          rethrow;
+    final res = await localFirstWrite(
+      local: () async {
+        if (l is DivinationWorkItemRepository) {
+          await (l as DivinationWorkItemRepository).saveWorkItem(model);
         }
-      } catch (e) {
-        final xuanErr = XuanError(code: ErrorCode.unavailable, message: '$e');
-        if (xuanErr.retryable) {
-          outbox.enqueue(OutboxEntry(
-            id: 'work_item:${model.uuid}:${DateTime.now().microsecondsSinceEpoch}',
-            payload: {'uuid': model.uuid, 'caseUuid': model.caseUuid},
-            lastError: xuanErr,
-          ));
-        } else {
-          rethrow;
-        }
-      }
+        return const Ok(null);
+      },
+      remote: _wrapRemote(r is DivinationWorkItemRepository
+          ? () => (r as DivinationWorkItemRepository).saveWorkItem(model)
+          : null),
+      outbox: outbox,
+      outboxEntryId: 'work_item:${model.uuid}:${DateTime.now().microsecondsSinceEpoch}',
+      outboxPayload: {'uuid': model.uuid, 'caseUuid': model.caseUuid},
+    );
+    if (res case Err(error: final e)) {
+      throw e;
     }
   }
 
@@ -209,35 +190,23 @@ class SyncedDivinationCaseRepository
   @override
   Future<void> saveParticipant(DivinationParticipantModel model) async {
     final l = local;
-    if (l is DivinationParticipantRepository) {
-      await (l as DivinationParticipantRepository).saveParticipant(model);
-    }
     final r = remote;
-    if (r is DivinationParticipantRepository) {
-      try {
-        await (r as DivinationParticipantRepository).saveParticipant(model);
-      } on XuanError catch (e) {
-        if (e.retryable) {
-          outbox.enqueue(OutboxEntry(
-            id: 'participant:${model.uuid}:${DateTime.now().microsecondsSinceEpoch}',
-            payload: {'uuid': model.uuid, 'caseUuid': model.caseUuid},
-            lastError: e,
-          ));
-        } else {
-          rethrow;
+    final res = await localFirstWrite(
+      local: () async {
+        if (l is DivinationParticipantRepository) {
+          await (l as DivinationParticipantRepository).saveParticipant(model);
         }
-      } catch (e) {
-        final xuanErr = XuanError(code: ErrorCode.unavailable, message: '$e');
-        if (xuanErr.retryable) {
-          outbox.enqueue(OutboxEntry(
-            id: 'participant:${model.uuid}:${DateTime.now().microsecondsSinceEpoch}',
-            payload: {'uuid': model.uuid, 'caseUuid': model.caseUuid},
-            lastError: xuanErr,
-          ));
-        } else {
-          rethrow;
-        }
-      }
+        return const Ok(null);
+      },
+      remote: _wrapRemote(r is DivinationParticipantRepository
+          ? () => (r as DivinationParticipantRepository).saveParticipant(model)
+          : null),
+      outbox: outbox,
+      outboxEntryId: 'participant:${model.uuid}:${DateTime.now().microsecondsSinceEpoch}',
+      outboxPayload: {'uuid': model.uuid, 'caseUuid': model.caseUuid},
+    );
+    if (res case Err(error: final e)) {
+      throw e;
     }
   }
 
@@ -255,35 +224,23 @@ class SyncedDivinationCaseRepository
   @override
   Future<void> savePanelRef(PanelRefModel model) async {
     final l = local;
-    if (l is PanelRefRepository) {
-      await (l as PanelRefRepository).savePanelRef(model);
-    }
     final r = remote;
-    if (r is PanelRefRepository) {
-      try {
-        await (r as PanelRefRepository).savePanelRef(model);
-      } on XuanError catch (e) {
-        if (e.retryable) {
-          outbox.enqueue(OutboxEntry(
-            id: 'panel_ref:${model.uuid}:${DateTime.now().microsecondsSinceEpoch}',
-            payload: {'uuid': model.uuid},
-            lastError: e,
-          ));
-        } else {
-          rethrow;
+    final res = await localFirstWrite(
+      local: () async {
+        if (l is PanelRefRepository) {
+          await (l as PanelRefRepository).savePanelRef(model);
         }
-      } catch (e) {
-        final xuanErr = XuanError(code: ErrorCode.unavailable, message: '$e');
-        if (xuanErr.retryable) {
-          outbox.enqueue(OutboxEntry(
-            id: 'panel_ref:${model.uuid}:${DateTime.now().microsecondsSinceEpoch}',
-            payload: {'uuid': model.uuid},
-            lastError: xuanErr,
-          ));
-        } else {
-          rethrow;
-        }
-      }
+        return const Ok(null);
+      },
+      remote: _wrapRemote(r is PanelRefRepository
+          ? () => (r as PanelRefRepository).savePanelRef(model)
+          : null),
+      outbox: outbox,
+      outboxEntryId: 'panel_ref:${model.uuid}:${DateTime.now().microsecondsSinceEpoch}',
+      outboxPayload: {'uuid': model.uuid},
+    );
+    if (res case Err(error: final e)) {
+      throw e;
     }
   }
 
@@ -299,35 +256,23 @@ class SyncedDivinationCaseRepository
   @override
   Future<void> attachPanelRefToWorkItem(WorkItemPanelRefModel model) async {
     final l = local;
-    if (l is PanelRefRepository) {
-      await (l as PanelRefRepository).attachPanelRefToWorkItem(model);
-    }
     final r = remote;
-    if (r is PanelRefRepository) {
-      try {
-        await (r as PanelRefRepository).attachPanelRefToWorkItem(model);
-      } on XuanError catch (e) {
-        if (e.retryable) {
-          outbox.enqueue(OutboxEntry(
-            id: 'attach_panel_ref:${model.uuid}:${DateTime.now().microsecondsSinceEpoch}',
-            payload: {'uuid': model.uuid, 'workItemUuid': model.workItemUuid},
-            lastError: e,
-          ));
-        } else {
-          rethrow;
+    final res = await localFirstWrite(
+      local: () async {
+        if (l is PanelRefRepository) {
+          await (l as PanelRefRepository).attachPanelRefToWorkItem(model);
         }
-      } catch (e) {
-        final xuanErr = XuanError(code: ErrorCode.unavailable, message: '$e');
-        if (xuanErr.retryable) {
-          outbox.enqueue(OutboxEntry(
-            id: 'attach_panel_ref:${model.uuid}:${DateTime.now().microsecondsSinceEpoch}',
-            payload: {'uuid': model.uuid, 'workItemUuid': model.workItemUuid},
-            lastError: xuanErr,
-          ));
-        } else {
-          rethrow;
-        }
-      }
+        return const Ok(null);
+      },
+      remote: _wrapRemote(r is PanelRefRepository
+          ? () => (r as PanelRefRepository).attachPanelRefToWorkItem(model)
+          : null),
+      outbox: outbox,
+      outboxEntryId: 'attach_panel_ref:${model.uuid}:${DateTime.now().microsecondsSinceEpoch}',
+      outboxPayload: {'uuid': model.uuid, 'workItemUuid': model.workItemUuid},
+    );
+    if (res case Err(error: final e)) {
+      throw e;
     }
   }
 }

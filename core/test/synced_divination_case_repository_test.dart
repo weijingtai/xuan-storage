@@ -19,6 +19,7 @@ class _FakeCaseRepository
   final Map<String, DivinationRecordModel> records = {};
 
   bool failOnWrite = false;
+  bool failWithUnknownException = false;
   XuanError? errorToThrow;
 
   // --- DivinationCaseRepository ---
@@ -33,7 +34,13 @@ class _FakeCaseRepository
   @override
   Future<void> saveCase(DivinationCaseModel model) async {
     if (errorToThrow != null) throw errorToThrow!;
-    if (failOnWrite) throw Exception('remote unavailable');
+    if (failWithUnknownException) throw StateError('Unexpected NPE/programming bug');
+    if (failOnWrite) {
+      throw const XuanError(
+        code: ErrorCode.unavailable,
+        message: 'Network transport unavailable',
+      );
+    }
     cases[model.uuid] = model;
   }
 
@@ -238,5 +245,31 @@ void main() {
 
     final recordsForCase = await repo.listRecordsForCase('case-1');
     expect(recordsForCase, contains(record));
+  });
+
+  test('未知异常（如 NPE/TypeError）按 internal 处理直接上抛且不进 outbox', () async {
+    final local = _FakeCaseRepository();
+    final remote = _FakeCaseRepository()..failWithUnknownException = true;
+    final outbox = Outbox();
+    final repo = SyncedDivinationCaseRepository(
+      local: local,
+      remote: remote,
+      outbox: outbox,
+    );
+
+    final model = DivinationCaseModel(
+      uuid: 'case-bug',
+      title: 'BugTest',
+      mainQuestion: 'Bug?',
+      status: DivinationCaseStatus.open,
+      createdAt: DateTime.utc(2026, 6, 1),
+      updatedAt: DateTime.utc(2026, 6, 1),
+    );
+
+    expect(
+      () => repo.saveCase(model),
+      throwsA(isA<XuanError>().having((e) => e.code, 'code', ErrorCode.internal)),
+    );
+    expect(outbox.pendingEntries.isEmpty, isTrue, reason: '未知编程异常绝不入 outbox 重试');
   });
 }
