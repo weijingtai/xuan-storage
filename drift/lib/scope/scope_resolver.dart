@@ -1,4 +1,5 @@
 import 'package:repository_interface_account/repository_interface_account.dart';
+import 'scope_handover.dart';
 import 'scope_ledger.dart';
 import 'scope_alias_entry.dart';
 
@@ -31,13 +32,16 @@ class ScopeResolver {
     required AccountSessionRepository sessionRepository,
     required AccountIdentityLinkRepository identityLinkRepository,
     required ScopeLedger ledger,
+    required ScopeHandoverService handoverService,
   }) : _sessionRepository = sessionRepository,
        _identityLinkRepository = identityLinkRepository,
-       _ledger = ledger;
+       _ledger = ledger,
+       _handoverService = handoverService;
 
   final AccountSessionRepository _sessionRepository;
   final AccountIdentityLinkRepository _identityLinkRepository;
   final ScopeLedger _ledger;
+  final ScopeHandoverService _handoverService;
 
   /// 解析当前 session 对应的 scope_uid。
   ///
@@ -95,10 +99,16 @@ class ScopeResolver {
     // 5. device scope 已被占用 → 检查是否能通过 link 链回
     final canLinkBack = await _canLinkBack(appUserId, entries);
     if (canLinkBack) {
-      // 升级：复用 device scope，只插别名 (解 C1)
-      await _ledger.bind(appUserId, authKind, deviceScope);
+      // 升级：铸新 scope，把匿名槽位（device scope）下全部数据 owner
+      // 改为新 scope，并腾空匿名槽位绑定供下一位设备主人复用。
+      // （修复：不再复用 device scope —— 那会让第二位主人 B 注册后数据劈裂）
+      final newScope = await _ledger.mintAndBind(appUserId, authKind);
+      await _handoverService.handover(
+        fromScope: deviceScope,
+        toScope: newScope,
+      );
       return ResolvedScope(
-        scopeUid: deviceScope,
+        scopeUid: newScope,
         isUpgrade: true,
         isConflict: false,
       );
