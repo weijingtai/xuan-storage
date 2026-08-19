@@ -1,6 +1,8 @@
 import 'package:divination_case/divination_case.dart';
 import 'package:firebase_database/firebase_database.dart';
 
+@Deprecated('方案已废弃：divination_case 为 peer 驻留，该路径实现有误，'
+    '保留供将来重启 peer 同步时参考，勿直接复用')
 class FirebaseDivinationCaseRepository
     implements
         DivinationCaseRepository,
