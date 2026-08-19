@@ -111,6 +111,8 @@ export 'record/drift_record_data_source.dart';
 export 'record/record_adapter_registry.dart';
 export 'record/local_record_repository.dart';
 export 'record/record_module_registry.dart';
+export 'record/record_row_mapper.dart';
+export 'record/record_storage_driver.dart';
 export 'meihuayishu/meihua_database.dart';
 export 'meihuayishu/meihua_gua_infos.dart';
 export 'meihuayishu/meihua_divinations_dao.dart';
