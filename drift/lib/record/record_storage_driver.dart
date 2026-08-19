@@ -13,7 +13,9 @@ import 'record_row_mapper.dart';
 ///
 /// - **scope 一律取自入参 [RawFilter.scopeUid]（或写路径行的
 ///   `scope_uid`），禁止从 store 隐式取**——store 的 scopeUid 仅作为
-///   一致性校验基准，不匹配时读侧返回空、写侧抛 [StorageRevMismatch]；
+///   一致性校验基准，不匹配时读侧返回空、写侧抛
+///   [StorageScopeViolation]（由 Base guard 翻译成
+///   permission_denied，不可重试）；
 /// - 版本冲突抛 [StorageRevMismatch]（由 Base guard 翻译成
 ///   conflict.version）；record 无唯一键冲突，无需抛
 ///   [StorageUniqueViolation]；
@@ -110,7 +112,7 @@ class RecordStorageDriver implements StorageDriver {
     final row = {...data, 'id': id};
     final scopeUid = row['scope_uid'] as String?;
     if (scopeUid == null || !_scopeOk(scopeUid)) {
-      throw const StorageRevMismatch('scope-mismatch');
+      throw const StorageScopeViolation();
     }
 
     final existing =
