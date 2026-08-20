@@ -44,8 +44,8 @@ class _ZiweiManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '612e618a89b9d9b2bca1f797fcf647ab1642300fe1eaf6f6984e245384b3e79d',
-    payloadBytes: 11013,
+        'b17aa8f9d2fb8263e351553660d2136ea2f9675d66c25235bc97422bfddd1315',
+    payloadBytes: 11124,
     declaredRowCount: 1,
     publishedAtUtc: DateTime.utc(2026, 8, 11),
   );
@@ -57,8 +57,8 @@ class _ZiweiManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '8b8a1f60ff9b3dbfd6f9442395ceca9e2791ebf2af9bf2b3d1cbf906121cae3f',
-    payloadBytes: 21947,
+        'a29ca75f851e928944cde80b809d1916ca3609dc0b32a91256169c2b94901958',
+    payloadBytes: 22725,
     declaredRowCount: 2,
     publishedAtUtc: DateTime.utc(2026, 8, 11),
   );
@@ -70,8 +70,8 @@ class _ZiweiManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '099d1031d4ec1b3539054d7ae8769ea864ac8b7b8548fd3c071d249a25864a32',
-    payloadBytes: 4390,
+        '9cffaf01a233f6848f1aea774a3cb8b8691fe30d5954daf6dc92f7b42ca1ada9',
+    payloadBytes: 4448,
     declaredRowCount: 1,
     publishedAtUtc: DateTime.utc(2026, 8, 11),
   );
