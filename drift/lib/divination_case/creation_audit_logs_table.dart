@@ -12,6 +12,9 @@ class CreationAuditLogs extends Table {
   /// 关联案例 UUID
   TextColumn get caseUuid => text().named('case_uuid')();
 
+  /// scope 归属（新增于 schema v11，回填自所属案例）
+  TextColumn get scopeUid => text().named('scope_uid').nullable()();
+
   /// 审计时间
   DateTimeColumn get auditedAt => dateTime().named('audited_at')();
 

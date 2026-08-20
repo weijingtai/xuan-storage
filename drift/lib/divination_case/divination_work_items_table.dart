@@ -5,6 +5,7 @@ class DivinationWorkItems extends Table {
   String get tableName => 't_divination_work_items';
 
   TextColumn get uuid => text().named('uuid')();
+  TextColumn get scopeUid => text().named('scope_uid').nullable()();
   TextColumn get caseUuid => text().named('case_uuid')();
   TextColumn get parentWorkItemUuid => text().nullable().named('parent_work_item_uuid')();
   TextColumn get title => text().named('title')();

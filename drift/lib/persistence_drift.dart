@@ -891,7 +891,7 @@ class EntityStampDao extends DatabaseAccessor<PersistenceDriftDatabase>
 
 /// 数据库 schema 版本。任何 onUpgrade 分支新增时同步 +1；
 /// 测试断言跟随本常量（防止版本号断言失同步）。
-const int kPersistenceDriftSchemaVersion = 10;
+const int kPersistenceDriftSchemaVersion = 11;
 
 @DriftDatabase(
   tables: [
@@ -1065,6 +1065,13 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
           }
         }
       }
+      if (from < 11) {
+        // schema v11：案卷创建流 6 张表加 scope_uid 列并回填（SW1-T1）。
+        // 必须放在独立 `from < 11` 分支，不能塞进已有分支（S1b 占 v8、
+        // S2 占 v9/v10，混用会让旧库走错路径——见上方 from<10 注释）。
+        await _addCaseFlowScopeColumns(m);
+        await _backfillCaseFlowScope();
+      }
     },
   );
 
@@ -1158,6 +1165,134 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_blob_ref_manifest '
       'ON t_blob_ref(cipher_manifest_id)');
+  }
+
+  /// schema v11：为案卷创建流 6 张表补 scope_uid 列。
+  ///
+  /// 兼容两种前置形态：
+  /// - 旧表无 scope_uid → addColumn 补列
+  /// - from<6 等分支用当前表定义 createTable 建出的表已含 scope_uid → 跳过
+  Future<void> _addCaseFlowScopeColumns(Migrator m) async {
+    final tableCols = <(String, String, TableInfo<Table, dynamic>, GeneratedColumn)>[
+      ('t_divination_cases', 'divination_cases', divinationCases, divinationCases.scopeUid),
+      ('t_divination_work_items', 'divination_work_items', divinationWorkItems, divinationWorkItems.scopeUid),
+      ('t_case_participants', 'case_participants', caseParticipants, caseParticipants.scopeUid),
+      ('t_panel_refs', 'panel_refs', panelRefs, panelRefs.scopeUid),
+      ('t_work_item_panel_refs', 'work_item_panel_refs', workItemPanelRefs, workItemPanelRefs.scopeUid),
+      ('t_creation_audit_logs', 'creation_audit_logs', creationAuditLogs, creationAuditLogs.scopeUid),
+    ];
+    for (final (tableName, _, table, column) in tableCols) {
+      if (!await _tableExists(tableName)) {
+        await m.createTable(table);
+        continue;
+      }
+      final cols = await customSelect(
+        'SELECT name FROM pragma_table_info("$tableName")',
+      ).get();
+      final hasScope = cols.any((r) => r.read<String>('name') == 'scope_uid');
+      if (!hasScope) {
+        await m.addColumn(table, column);
+      }
+    }
+  }
+
+  /// 表是否已存在（迁移中用，兼容手搓旧库只建部分表的情形）。
+  Future<bool> _tableExists(String tableName) async {
+    return (await customSelect(
+      'SELECT 1 AS x FROM sqlite_master '
+      'WHERE type = \'table\' AND name = ?',
+      variables: [Variable(tableName)],
+    ).get()).isNotEmpty;
+  }
+
+  /// 表是否存在指定列（兼容手搓旧库只建部分列的情形）。
+  Future<bool> _columnExists(String tableName, String columnName) async {
+    final cols = await customSelect(
+      'SELECT name FROM pragma_table_info("$tableName")',
+    ).get();
+    return cols.any((r) => r.read<String>('name') == columnName);
+  }
+
+  /// schema v11：回填案卷创建流 6 张表的 scope_uid（两级传递）。
+  ///
+  /// 第一级（反查 t_record_meta，它已带 scope_uid）：
+  /// - t_divination_cases.scope_uid ← t_record_meta.case_uuid 对应行的 scope_uid
+  /// - t_divination_work_items.scope_uid ← t_record_meta.work_item_uuid 对应行的 scope_uid
+  ///
+  /// 第二级（从第一级已回填的结果传递）：
+  /// - t_case_participants / t_creation_audit_logs ← 经 case_uuid → 所属 case
+  /// - t_work_item_panel_refs ← 经 work_item_uuid → 所属 work item
+  /// - t_panel_refs ← 经 work_item_panel_refs(panel_ref_uuid=uuid) 反查其所属
+  ///   work item（panel_refs 无 case_uuid 列，见任务书第二级 PanelRefs 条，
+  ///   实际 schema 经 work_item_panel_refs 传递）
+  ///
+  /// JOIN 不到的孤儿行保持 scope_uid 为 NULL，不填默认值。
+  Future<void> _backfillCaseFlowScope() async {
+    // 第一级：反查 t_record_meta。手搓旧库（迁移测试）可能没有 t_record_meta
+    // 或没有 case_uuid/work_item_uuid 列，此时跳过对应 UPDATE。
+    if (await _tableExists('t_record_meta')) {
+      final hasCaseUuid =
+          await _columnExists('t_record_meta', 'case_uuid');
+      final hasWorkItemUuid =
+          await _columnExists('t_record_meta', 'work_item_uuid');
+      if (await _tableExists('t_divination_cases') && hasCaseUuid) {
+        await customStatement(
+          'UPDATE t_divination_cases '
+          'SET scope_uid = ('
+          '  SELECT rm.scope_uid FROM t_record_meta rm '
+          '  WHERE rm.case_uuid = t_divination_cases.uuid LIMIT 1'
+          ') WHERE scope_uid IS NULL',
+        );
+      }
+      if (await _tableExists('t_divination_work_items') && hasWorkItemUuid) {
+        await customStatement(
+          'UPDATE t_divination_work_items '
+          'SET scope_uid = ('
+          '  SELECT rm.scope_uid FROM t_record_meta rm '
+          '  WHERE rm.work_item_uuid = t_divination_work_items.uuid LIMIT 1'
+          ') WHERE scope_uid IS NULL',
+        );
+      }
+    }
+    // 第二级
+    if (await _tableExists('t_case_participants')) {
+      await customStatement(
+        'UPDATE t_case_participants '
+        'SET scope_uid = ('
+        '  SELECT c.scope_uid FROM t_divination_cases c '
+        '  WHERE c.uuid = t_case_participants.case_uuid LIMIT 1'
+        ') WHERE scope_uid IS NULL',
+      );
+    }
+    if (await _tableExists('t_creation_audit_logs')) {
+      await customStatement(
+        'UPDATE t_creation_audit_logs '
+        'SET scope_uid = ('
+        '  SELECT c.scope_uid FROM t_divination_cases c '
+        '  WHERE c.uuid = t_creation_audit_logs.case_uuid LIMIT 1'
+        ') WHERE scope_uid IS NULL',
+      );
+    }
+    if (await _tableExists('t_work_item_panel_refs')) {
+      await customStatement(
+        'UPDATE t_work_item_panel_refs '
+        'SET scope_uid = ('
+        '  SELECT w.scope_uid FROM t_divination_work_items w '
+        '  WHERE w.uuid = t_work_item_panel_refs.work_item_uuid LIMIT 1'
+        ') WHERE scope_uid IS NULL',
+      );
+    }
+    if (await _tableExists('t_panel_refs')) {
+      await customStatement(
+        'UPDATE t_panel_refs '
+        'SET scope_uid = ('
+        '  SELECT w.scope_uid '
+        '  FROM t_work_item_panel_refs wipr '
+        '  JOIN t_divination_work_items w ON w.uuid = wipr.work_item_uuid '
+        '  WHERE wipr.panel_ref_uuid = t_panel_refs.uuid LIMIT 1'
+        ') WHERE scope_uid IS NULL',
+      );
+    }
   }
 }
 

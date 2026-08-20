@@ -10495,6 +10495,17 @@ class $DivinationCasesTable extends DivinationCases
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
@@ -10582,6 +10593,7 @@ class $DivinationCasesTable extends DivinationCases
   @override
   List<GeneratedColumn> get $columns => [
     uuid,
+    scopeUid,
     title,
     mainQuestion,
     status,
@@ -10610,6 +10622,12 @@ class $DivinationCasesTable extends DivinationCases
       );
     } else if (isInserting) {
       context.missing(_uuidMeta);
+    }
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
     }
     if (data.containsKey('title')) {
       context.handle(
@@ -10688,6 +10706,10 @@ class $DivinationCasesTable extends DivinationCases
         DriftSqlType.string,
         data['${effectivePrefix}uuid'],
       )!,
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      ),
       title: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}title'],
@@ -10731,6 +10753,7 @@ class $DivinationCasesTable extends DivinationCases
 
 class DivinationCase extends DataClass implements Insertable<DivinationCase> {
   final String uuid;
+  final String? scopeUid;
   final String title;
   final String mainQuestion;
   final String status;
@@ -10741,6 +10764,7 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
   final String? extrasJson;
   const DivinationCase({
     required this.uuid,
+    this.scopeUid,
     required this.title,
     required this.mainQuestion,
     required this.status,
@@ -10754,6 +10778,9 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['uuid'] = Variable<String>(uuid);
+    if (!nullToAbsent || scopeUid != null) {
+      map['scope_uid'] = Variable<String>(scopeUid);
+    }
     map['title'] = Variable<String>(title);
     map['main_question'] = Variable<String>(mainQuestion);
     map['status'] = Variable<String>(status);
@@ -10774,6 +10801,9 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
   DivinationCasesCompanion toCompanion(bool nullToAbsent) {
     return DivinationCasesCompanion(
       uuid: Value(uuid),
+      scopeUid: scopeUid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(scopeUid),
       title: Value(title),
       mainQuestion: Value(mainQuestion),
       status: Value(status),
@@ -10798,6 +10828,7 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return DivinationCase(
       uuid: serializer.fromJson<String>(json['uuid']),
+      scopeUid: serializer.fromJson<String?>(json['scopeUid']),
       title: serializer.fromJson<String>(json['title']),
       mainQuestion: serializer.fromJson<String>(json['mainQuestion']),
       status: serializer.fromJson<String>(json['status']),
@@ -10813,6 +10844,7 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'uuid': serializer.toJson<String>(uuid),
+      'scopeUid': serializer.toJson<String?>(scopeUid),
       'title': serializer.toJson<String>(title),
       'mainQuestion': serializer.toJson<String>(mainQuestion),
       'status': serializer.toJson<String>(status),
@@ -10826,6 +10858,7 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
 
   DivinationCase copyWith({
     String? uuid,
+    Value<String?> scopeUid = const Value.absent(),
     String? title,
     String? mainQuestion,
     String? status,
@@ -10836,6 +10869,7 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
     Value<String?> extrasJson = const Value.absent(),
   }) => DivinationCase(
     uuid: uuid ?? this.uuid,
+    scopeUid: scopeUid.present ? scopeUid.value : this.scopeUid,
     title: title ?? this.title,
     mainQuestion: mainQuestion ?? this.mainQuestion,
     status: status ?? this.status,
@@ -10848,6 +10882,7 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
   DivinationCase copyWithCompanion(DivinationCasesCompanion data) {
     return DivinationCase(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
       title: data.title.present ? data.title.value : this.title,
       mainQuestion: data.mainQuestion.present
           ? data.mainQuestion.value
@@ -10869,6 +10904,7 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
   String toString() {
     return (StringBuffer('DivinationCase(')
           ..write('uuid: $uuid, ')
+          ..write('scopeUid: $scopeUid, ')
           ..write('title: $title, ')
           ..write('mainQuestion: $mainQuestion, ')
           ..write('status: $status, ')
@@ -10884,6 +10920,7 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
   @override
   int get hashCode => Object.hash(
     uuid,
+    scopeUid,
     title,
     mainQuestion,
     status,
@@ -10898,6 +10935,7 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
       identical(this, other) ||
       (other is DivinationCase &&
           other.uuid == this.uuid &&
+          other.scopeUid == this.scopeUid &&
           other.title == this.title &&
           other.mainQuestion == this.mainQuestion &&
           other.status == this.status &&
@@ -10910,6 +10948,7 @@ class DivinationCase extends DataClass implements Insertable<DivinationCase> {
 
 class DivinationCasesCompanion extends UpdateCompanion<DivinationCase> {
   final Value<String> uuid;
+  final Value<String?> scopeUid;
   final Value<String> title;
   final Value<String> mainQuestion;
   final Value<String> status;
@@ -10921,6 +10960,7 @@ class DivinationCasesCompanion extends UpdateCompanion<DivinationCase> {
   final Value<int> rowid;
   const DivinationCasesCompanion({
     this.uuid = const Value.absent(),
+    this.scopeUid = const Value.absent(),
     this.title = const Value.absent(),
     this.mainQuestion = const Value.absent(),
     this.status = const Value.absent(),
@@ -10933,6 +10973,7 @@ class DivinationCasesCompanion extends UpdateCompanion<DivinationCase> {
   });
   DivinationCasesCompanion.insert({
     required String uuid,
+    this.scopeUid = const Value.absent(),
     required String title,
     required String mainQuestion,
     required String status,
@@ -10950,6 +10991,7 @@ class DivinationCasesCompanion extends UpdateCompanion<DivinationCase> {
        updatedAt = Value(updatedAt);
   static Insertable<DivinationCase> custom({
     Expression<String>? uuid,
+    Expression<String>? scopeUid,
     Expression<String>? title,
     Expression<String>? mainQuestion,
     Expression<String>? status,
@@ -10962,6 +11004,7 @@ class DivinationCasesCompanion extends UpdateCompanion<DivinationCase> {
   }) {
     return RawValuesInsertable({
       if (uuid != null) 'uuid': uuid,
+      if (scopeUid != null) 'scope_uid': scopeUid,
       if (title != null) 'title': title,
       if (mainQuestion != null) 'main_question': mainQuestion,
       if (status != null) 'status': status,
@@ -10976,6 +11019,7 @@ class DivinationCasesCompanion extends UpdateCompanion<DivinationCase> {
 
   DivinationCasesCompanion copyWith({
     Value<String>? uuid,
+    Value<String?>? scopeUid,
     Value<String>? title,
     Value<String>? mainQuestion,
     Value<String>? status,
@@ -10988,6 +11032,7 @@ class DivinationCasesCompanion extends UpdateCompanion<DivinationCase> {
   }) {
     return DivinationCasesCompanion(
       uuid: uuid ?? this.uuid,
+      scopeUid: scopeUid ?? this.scopeUid,
       title: title ?? this.title,
       mainQuestion: mainQuestion ?? this.mainQuestion,
       status: status ?? this.status,
@@ -11005,6 +11050,9 @@ class DivinationCasesCompanion extends UpdateCompanion<DivinationCase> {
     final map = <String, Expression>{};
     if (uuid.present) {
       map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
     }
     if (title.present) {
       map['title'] = Variable<String>(title.value);
@@ -11040,6 +11088,7 @@ class DivinationCasesCompanion extends UpdateCompanion<DivinationCase> {
   String toString() {
     return (StringBuffer('DivinationCasesCompanion(')
           ..write('uuid: $uuid, ')
+          ..write('scopeUid: $scopeUid, ')
           ..write('title: $title, ')
           ..write('mainQuestion: $mainQuestion, ')
           ..write('status: $status, ')
@@ -11068,6 +11117,17 @@ class $DivinationWorkItemsTable extends DivinationWorkItems
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _caseUuidMeta = const VerificationMeta(
     'caseUuid',
@@ -11165,6 +11225,7 @@ class $DivinationWorkItemsTable extends DivinationWorkItems
   @override
   List<GeneratedColumn> get $columns => [
     uuid,
+    scopeUid,
     caseUuid,
     parentWorkItemUuid,
     title,
@@ -11194,6 +11255,12 @@ class $DivinationWorkItemsTable extends DivinationWorkItems
       );
     } else if (isInserting) {
       context.missing(_uuidMeta);
+    }
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
     }
     if (data.containsKey('case_uuid')) {
       context.handle(
@@ -11280,6 +11347,10 @@ class $DivinationWorkItemsTable extends DivinationWorkItems
         DriftSqlType.string,
         data['${effectivePrefix}uuid'],
       )!,
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      ),
       caseUuid: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}case_uuid'],
@@ -11328,6 +11399,7 @@ class $DivinationWorkItemsTable extends DivinationWorkItems
 class DivinationWorkItem extends DataClass
     implements Insertable<DivinationWorkItem> {
   final String uuid;
+  final String? scopeUid;
   final String caseUuid;
   final String? parentWorkItemUuid;
   final String title;
@@ -11339,6 +11411,7 @@ class DivinationWorkItem extends DataClass
   final String? conclusion;
   const DivinationWorkItem({
     required this.uuid,
+    this.scopeUid,
     required this.caseUuid,
     this.parentWorkItemUuid,
     required this.title,
@@ -11353,6 +11426,9 @@ class DivinationWorkItem extends DataClass
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['uuid'] = Variable<String>(uuid);
+    if (!nullToAbsent || scopeUid != null) {
+      map['scope_uid'] = Variable<String>(scopeUid);
+    }
     map['case_uuid'] = Variable<String>(caseUuid);
     if (!nullToAbsent || parentWorkItemUuid != null) {
       map['parent_work_item_uuid'] = Variable<String>(parentWorkItemUuid);
@@ -11374,6 +11450,9 @@ class DivinationWorkItem extends DataClass
   DivinationWorkItemsCompanion toCompanion(bool nullToAbsent) {
     return DivinationWorkItemsCompanion(
       uuid: Value(uuid),
+      scopeUid: scopeUid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(scopeUid),
       caseUuid: Value(caseUuid),
       parentWorkItemUuid: parentWorkItemUuid == null && nullToAbsent
           ? const Value.absent()
@@ -11399,6 +11478,7 @@ class DivinationWorkItem extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return DivinationWorkItem(
       uuid: serializer.fromJson<String>(json['uuid']),
+      scopeUid: serializer.fromJson<String?>(json['scopeUid']),
       caseUuid: serializer.fromJson<String>(json['caseUuid']),
       parentWorkItemUuid: serializer.fromJson<String?>(
         json['parentWorkItemUuid'],
@@ -11417,6 +11497,7 @@ class DivinationWorkItem extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'uuid': serializer.toJson<String>(uuid),
+      'scopeUid': serializer.toJson<String?>(scopeUid),
       'caseUuid': serializer.toJson<String>(caseUuid),
       'parentWorkItemUuid': serializer.toJson<String?>(parentWorkItemUuid),
       'title': serializer.toJson<String>(title),
@@ -11431,6 +11512,7 @@ class DivinationWorkItem extends DataClass
 
   DivinationWorkItem copyWith({
     String? uuid,
+    Value<String?> scopeUid = const Value.absent(),
     String? caseUuid,
     Value<String?> parentWorkItemUuid = const Value.absent(),
     String? title,
@@ -11442,6 +11524,7 @@ class DivinationWorkItem extends DataClass
     Value<String?> conclusion = const Value.absent(),
   }) => DivinationWorkItem(
     uuid: uuid ?? this.uuid,
+    scopeUid: scopeUid.present ? scopeUid.value : this.scopeUid,
     caseUuid: caseUuid ?? this.caseUuid,
     parentWorkItemUuid: parentWorkItemUuid.present
         ? parentWorkItemUuid.value
@@ -11457,6 +11540,7 @@ class DivinationWorkItem extends DataClass
   DivinationWorkItem copyWithCompanion(DivinationWorkItemsCompanion data) {
     return DivinationWorkItem(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
       caseUuid: data.caseUuid.present ? data.caseUuid.value : this.caseUuid,
       parentWorkItemUuid: data.parentWorkItemUuid.present
           ? data.parentWorkItemUuid.value
@@ -11479,6 +11563,7 @@ class DivinationWorkItem extends DataClass
   String toString() {
     return (StringBuffer('DivinationWorkItem(')
           ..write('uuid: $uuid, ')
+          ..write('scopeUid: $scopeUid, ')
           ..write('caseUuid: $caseUuid, ')
           ..write('parentWorkItemUuid: $parentWorkItemUuid, ')
           ..write('title: $title, ')
@@ -11495,6 +11580,7 @@ class DivinationWorkItem extends DataClass
   @override
   int get hashCode => Object.hash(
     uuid,
+    scopeUid,
     caseUuid,
     parentWorkItemUuid,
     title,
@@ -11510,6 +11596,7 @@ class DivinationWorkItem extends DataClass
       identical(this, other) ||
       (other is DivinationWorkItem &&
           other.uuid == this.uuid &&
+          other.scopeUid == this.scopeUid &&
           other.caseUuid == this.caseUuid &&
           other.parentWorkItemUuid == this.parentWorkItemUuid &&
           other.title == this.title &&
@@ -11523,6 +11610,7 @@ class DivinationWorkItem extends DataClass
 
 class DivinationWorkItemsCompanion extends UpdateCompanion<DivinationWorkItem> {
   final Value<String> uuid;
+  final Value<String?> scopeUid;
   final Value<String> caseUuid;
   final Value<String?> parentWorkItemUuid;
   final Value<String> title;
@@ -11535,6 +11623,7 @@ class DivinationWorkItemsCompanion extends UpdateCompanion<DivinationWorkItem> {
   final Value<int> rowid;
   const DivinationWorkItemsCompanion({
     this.uuid = const Value.absent(),
+    this.scopeUid = const Value.absent(),
     this.caseUuid = const Value.absent(),
     this.parentWorkItemUuid = const Value.absent(),
     this.title = const Value.absent(),
@@ -11548,6 +11637,7 @@ class DivinationWorkItemsCompanion extends UpdateCompanion<DivinationWorkItem> {
   });
   DivinationWorkItemsCompanion.insert({
     required String uuid,
+    this.scopeUid = const Value.absent(),
     required String caseUuid,
     this.parentWorkItemUuid = const Value.absent(),
     required String title,
@@ -11567,6 +11657,7 @@ class DivinationWorkItemsCompanion extends UpdateCompanion<DivinationWorkItem> {
        status = Value(status);
   static Insertable<DivinationWorkItem> custom({
     Expression<String>? uuid,
+    Expression<String>? scopeUid,
     Expression<String>? caseUuid,
     Expression<String>? parentWorkItemUuid,
     Expression<String>? title,
@@ -11580,6 +11671,7 @@ class DivinationWorkItemsCompanion extends UpdateCompanion<DivinationWorkItem> {
   }) {
     return RawValuesInsertable({
       if (uuid != null) 'uuid': uuid,
+      if (scopeUid != null) 'scope_uid': scopeUid,
       if (caseUuid != null) 'case_uuid': caseUuid,
       if (parentWorkItemUuid != null)
         'parent_work_item_uuid': parentWorkItemUuid,
@@ -11596,6 +11688,7 @@ class DivinationWorkItemsCompanion extends UpdateCompanion<DivinationWorkItem> {
 
   DivinationWorkItemsCompanion copyWith({
     Value<String>? uuid,
+    Value<String?>? scopeUid,
     Value<String>? caseUuid,
     Value<String?>? parentWorkItemUuid,
     Value<String>? title,
@@ -11609,6 +11702,7 @@ class DivinationWorkItemsCompanion extends UpdateCompanion<DivinationWorkItem> {
   }) {
     return DivinationWorkItemsCompanion(
       uuid: uuid ?? this.uuid,
+      scopeUid: scopeUid ?? this.scopeUid,
       caseUuid: caseUuid ?? this.caseUuid,
       parentWorkItemUuid: parentWorkItemUuid ?? this.parentWorkItemUuid,
       title: title ?? this.title,
@@ -11627,6 +11721,9 @@ class DivinationWorkItemsCompanion extends UpdateCompanion<DivinationWorkItem> {
     final map = <String, Expression>{};
     if (uuid.present) {
       map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
     }
     if (caseUuid.present) {
       map['case_uuid'] = Variable<String>(caseUuid.value);
@@ -11665,6 +11762,7 @@ class DivinationWorkItemsCompanion extends UpdateCompanion<DivinationWorkItem> {
   String toString() {
     return (StringBuffer('DivinationWorkItemsCompanion(')
           ..write('uuid: $uuid, ')
+          ..write('scopeUid: $scopeUid, ')
           ..write('caseUuid: $caseUuid, ')
           ..write('parentWorkItemUuid: $parentWorkItemUuid, ')
           ..write('title: $title, ')
@@ -11694,6 +11792,17 @@ class $CaseParticipantsTable extends CaseParticipants
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _caseUuidMeta = const VerificationMeta(
     'caseUuid',
@@ -11749,6 +11858,7 @@ class $CaseParticipantsTable extends CaseParticipants
   @override
   List<GeneratedColumn> get $columns => [
     uuid,
+    scopeUid,
     caseUuid,
     recordUuid,
     name,
@@ -11774,6 +11884,12 @@ class $CaseParticipantsTable extends CaseParticipants
       );
     } else if (isInserting) {
       context.missing(_uuidMeta);
+    }
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
     }
     if (data.containsKey('case_uuid')) {
       context.handle(
@@ -11824,6 +11940,10 @@ class $CaseParticipantsTable extends CaseParticipants
         DriftSqlType.string,
         data['${effectivePrefix}uuid'],
       )!,
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      ),
       caseUuid: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}case_uuid'],
@@ -11855,6 +11975,7 @@ class $CaseParticipantsTable extends CaseParticipants
 
 class CaseParticipant extends DataClass implements Insertable<CaseParticipant> {
   final String uuid;
+  final String? scopeUid;
   final String caseUuid;
   final String? recordUuid;
   final String name;
@@ -11862,6 +11983,7 @@ class CaseParticipant extends DataClass implements Insertable<CaseParticipant> {
   final String? seekerUuid;
   const CaseParticipant({
     required this.uuid,
+    this.scopeUid,
     required this.caseUuid,
     this.recordUuid,
     required this.name,
@@ -11872,6 +11994,9 @@ class CaseParticipant extends DataClass implements Insertable<CaseParticipant> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['uuid'] = Variable<String>(uuid);
+    if (!nullToAbsent || scopeUid != null) {
+      map['scope_uid'] = Variable<String>(scopeUid);
+    }
     map['case_uuid'] = Variable<String>(caseUuid);
     if (!nullToAbsent || recordUuid != null) {
       map['record_uuid'] = Variable<String>(recordUuid);
@@ -11887,6 +12012,9 @@ class CaseParticipant extends DataClass implements Insertable<CaseParticipant> {
   CaseParticipantsCompanion toCompanion(bool nullToAbsent) {
     return CaseParticipantsCompanion(
       uuid: Value(uuid),
+      scopeUid: scopeUid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(scopeUid),
       caseUuid: Value(caseUuid),
       recordUuid: recordUuid == null && nullToAbsent
           ? const Value.absent()
@@ -11906,6 +12034,7 @@ class CaseParticipant extends DataClass implements Insertable<CaseParticipant> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return CaseParticipant(
       uuid: serializer.fromJson<String>(json['uuid']),
+      scopeUid: serializer.fromJson<String?>(json['scopeUid']),
       caseUuid: serializer.fromJson<String>(json['caseUuid']),
       recordUuid: serializer.fromJson<String?>(json['recordUuid']),
       name: serializer.fromJson<String>(json['name']),
@@ -11918,6 +12047,7 @@ class CaseParticipant extends DataClass implements Insertable<CaseParticipant> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'uuid': serializer.toJson<String>(uuid),
+      'scopeUid': serializer.toJson<String?>(scopeUid),
       'caseUuid': serializer.toJson<String>(caseUuid),
       'recordUuid': serializer.toJson<String?>(recordUuid),
       'name': serializer.toJson<String>(name),
@@ -11928,6 +12058,7 @@ class CaseParticipant extends DataClass implements Insertable<CaseParticipant> {
 
   CaseParticipant copyWith({
     String? uuid,
+    Value<String?> scopeUid = const Value.absent(),
     String? caseUuid,
     Value<String?> recordUuid = const Value.absent(),
     String? name,
@@ -11935,6 +12066,7 @@ class CaseParticipant extends DataClass implements Insertable<CaseParticipant> {
     Value<String?> seekerUuid = const Value.absent(),
   }) => CaseParticipant(
     uuid: uuid ?? this.uuid,
+    scopeUid: scopeUid.present ? scopeUid.value : this.scopeUid,
     caseUuid: caseUuid ?? this.caseUuid,
     recordUuid: recordUuid.present ? recordUuid.value : this.recordUuid,
     name: name ?? this.name,
@@ -11944,6 +12076,7 @@ class CaseParticipant extends DataClass implements Insertable<CaseParticipant> {
   CaseParticipant copyWithCompanion(CaseParticipantsCompanion data) {
     return CaseParticipant(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
       caseUuid: data.caseUuid.present ? data.caseUuid.value : this.caseUuid,
       recordUuid: data.recordUuid.present
           ? data.recordUuid.value
@@ -11960,6 +12093,7 @@ class CaseParticipant extends DataClass implements Insertable<CaseParticipant> {
   String toString() {
     return (StringBuffer('CaseParticipant(')
           ..write('uuid: $uuid, ')
+          ..write('scopeUid: $scopeUid, ')
           ..write('caseUuid: $caseUuid, ')
           ..write('recordUuid: $recordUuid, ')
           ..write('name: $name, ')
@@ -11971,12 +12105,13 @@ class CaseParticipant extends DataClass implements Insertable<CaseParticipant> {
 
   @override
   int get hashCode =>
-      Object.hash(uuid, caseUuid, recordUuid, name, role, seekerUuid);
+      Object.hash(uuid, scopeUid, caseUuid, recordUuid, name, role, seekerUuid);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is CaseParticipant &&
           other.uuid == this.uuid &&
+          other.scopeUid == this.scopeUid &&
           other.caseUuid == this.caseUuid &&
           other.recordUuid == this.recordUuid &&
           other.name == this.name &&
@@ -11986,6 +12121,7 @@ class CaseParticipant extends DataClass implements Insertable<CaseParticipant> {
 
 class CaseParticipantsCompanion extends UpdateCompanion<CaseParticipant> {
   final Value<String> uuid;
+  final Value<String?> scopeUid;
   final Value<String> caseUuid;
   final Value<String?> recordUuid;
   final Value<String> name;
@@ -11994,6 +12130,7 @@ class CaseParticipantsCompanion extends UpdateCompanion<CaseParticipant> {
   final Value<int> rowid;
   const CaseParticipantsCompanion({
     this.uuid = const Value.absent(),
+    this.scopeUid = const Value.absent(),
     this.caseUuid = const Value.absent(),
     this.recordUuid = const Value.absent(),
     this.name = const Value.absent(),
@@ -12003,6 +12140,7 @@ class CaseParticipantsCompanion extends UpdateCompanion<CaseParticipant> {
   });
   CaseParticipantsCompanion.insert({
     required String uuid,
+    this.scopeUid = const Value.absent(),
     required String caseUuid,
     this.recordUuid = const Value.absent(),
     required String name,
@@ -12015,6 +12153,7 @@ class CaseParticipantsCompanion extends UpdateCompanion<CaseParticipant> {
        role = Value(role);
   static Insertable<CaseParticipant> custom({
     Expression<String>? uuid,
+    Expression<String>? scopeUid,
     Expression<String>? caseUuid,
     Expression<String>? recordUuid,
     Expression<String>? name,
@@ -12024,6 +12163,7 @@ class CaseParticipantsCompanion extends UpdateCompanion<CaseParticipant> {
   }) {
     return RawValuesInsertable({
       if (uuid != null) 'uuid': uuid,
+      if (scopeUid != null) 'scope_uid': scopeUid,
       if (caseUuid != null) 'case_uuid': caseUuid,
       if (recordUuid != null) 'record_uuid': recordUuid,
       if (name != null) 'name': name,
@@ -12035,6 +12175,7 @@ class CaseParticipantsCompanion extends UpdateCompanion<CaseParticipant> {
 
   CaseParticipantsCompanion copyWith({
     Value<String>? uuid,
+    Value<String?>? scopeUid,
     Value<String>? caseUuid,
     Value<String?>? recordUuid,
     Value<String>? name,
@@ -12044,6 +12185,7 @@ class CaseParticipantsCompanion extends UpdateCompanion<CaseParticipant> {
   }) {
     return CaseParticipantsCompanion(
       uuid: uuid ?? this.uuid,
+      scopeUid: scopeUid ?? this.scopeUid,
       caseUuid: caseUuid ?? this.caseUuid,
       recordUuid: recordUuid ?? this.recordUuid,
       name: name ?? this.name,
@@ -12058,6 +12200,9 @@ class CaseParticipantsCompanion extends UpdateCompanion<CaseParticipant> {
     final map = <String, Expression>{};
     if (uuid.present) {
       map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
     }
     if (caseUuid.present) {
       map['case_uuid'] = Variable<String>(caseUuid.value);
@@ -12084,6 +12229,7 @@ class CaseParticipantsCompanion extends UpdateCompanion<CaseParticipant> {
   String toString() {
     return (StringBuffer('CaseParticipantsCompanion(')
           ..write('uuid: $uuid, ')
+          ..write('scopeUid: $scopeUid, ')
           ..write('caseUuid: $caseUuid, ')
           ..write('recordUuid: $recordUuid, ')
           ..write('name: $name, ')
@@ -12109,6 +12255,17 @@ class $PanelRefsTable extends PanelRefs
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _moduleMeta = const VerificationMeta('module');
   @override
@@ -12162,6 +12319,7 @@ class $PanelRefsTable extends PanelRefs
   @override
   List<GeneratedColumn> get $columns => [
     uuid,
+    scopeUid,
     module,
     panelUuid,
     panelType,
@@ -12187,6 +12345,12 @@ class $PanelRefsTable extends PanelRefs
       );
     } else if (isInserting) {
       context.missing(_uuidMeta);
+    }
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
     }
     if (data.containsKey('module')) {
       context.handle(
@@ -12239,6 +12403,10 @@ class $PanelRefsTable extends PanelRefs
         DriftSqlType.string,
         data['${effectivePrefix}uuid'],
       )!,
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      ),
       module: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}module'],
@@ -12270,6 +12438,7 @@ class $PanelRefsTable extends PanelRefs
 
 class PanelRef extends DataClass implements Insertable<PanelRef> {
   final String uuid;
+  final String? scopeUid;
   final String module;
   final String panelUuid;
   final String panelType;
@@ -12277,6 +12446,7 @@ class PanelRef extends DataClass implements Insertable<PanelRef> {
   final String? title;
   const PanelRef({
     required this.uuid,
+    this.scopeUid,
     required this.module,
     required this.panelUuid,
     required this.panelType,
@@ -12287,6 +12457,9 @@ class PanelRef extends DataClass implements Insertable<PanelRef> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['uuid'] = Variable<String>(uuid);
+    if (!nullToAbsent || scopeUid != null) {
+      map['scope_uid'] = Variable<String>(scopeUid);
+    }
     map['module'] = Variable<String>(module);
     map['panel_uuid'] = Variable<String>(panelUuid);
     map['panel_type'] = Variable<String>(panelType);
@@ -12300,6 +12473,9 @@ class PanelRef extends DataClass implements Insertable<PanelRef> {
   PanelRefsCompanion toCompanion(bool nullToAbsent) {
     return PanelRefsCompanion(
       uuid: Value(uuid),
+      scopeUid: scopeUid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(scopeUid),
       module: Value(module),
       panelUuid: Value(panelUuid),
       panelType: Value(panelType),
@@ -12317,6 +12493,7 @@ class PanelRef extends DataClass implements Insertable<PanelRef> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return PanelRef(
       uuid: serializer.fromJson<String>(json['uuid']),
+      scopeUid: serializer.fromJson<String?>(json['scopeUid']),
       module: serializer.fromJson<String>(json['module']),
       panelUuid: serializer.fromJson<String>(json['panelUuid']),
       panelType: serializer.fromJson<String>(json['panelType']),
@@ -12329,6 +12506,7 @@ class PanelRef extends DataClass implements Insertable<PanelRef> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'uuid': serializer.toJson<String>(uuid),
+      'scopeUid': serializer.toJson<String?>(scopeUid),
       'module': serializer.toJson<String>(module),
       'panelUuid': serializer.toJson<String>(panelUuid),
       'panelType': serializer.toJson<String>(panelType),
@@ -12339,6 +12517,7 @@ class PanelRef extends DataClass implements Insertable<PanelRef> {
 
   PanelRef copyWith({
     String? uuid,
+    Value<String?> scopeUid = const Value.absent(),
     String? module,
     String? panelUuid,
     String? panelType,
@@ -12346,6 +12525,7 @@ class PanelRef extends DataClass implements Insertable<PanelRef> {
     Value<String?> title = const Value.absent(),
   }) => PanelRef(
     uuid: uuid ?? this.uuid,
+    scopeUid: scopeUid.present ? scopeUid.value : this.scopeUid,
     module: module ?? this.module,
     panelUuid: panelUuid ?? this.panelUuid,
     panelType: panelType ?? this.panelType,
@@ -12355,6 +12535,7 @@ class PanelRef extends DataClass implements Insertable<PanelRef> {
   PanelRef copyWithCompanion(PanelRefsCompanion data) {
     return PanelRef(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
       module: data.module.present ? data.module.value : this.module,
       panelUuid: data.panelUuid.present ? data.panelUuid.value : this.panelUuid,
       panelType: data.panelType.present ? data.panelType.value : this.panelType,
@@ -12367,6 +12548,7 @@ class PanelRef extends DataClass implements Insertable<PanelRef> {
   String toString() {
     return (StringBuffer('PanelRef(')
           ..write('uuid: $uuid, ')
+          ..write('scopeUid: $scopeUid, ')
           ..write('module: $module, ')
           ..write('panelUuid: $panelUuid, ')
           ..write('panelType: $panelType, ')
@@ -12378,12 +12560,13 @@ class PanelRef extends DataClass implements Insertable<PanelRef> {
 
   @override
   int get hashCode =>
-      Object.hash(uuid, module, panelUuid, panelType, role, title);
+      Object.hash(uuid, scopeUid, module, panelUuid, panelType, role, title);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is PanelRef &&
           other.uuid == this.uuid &&
+          other.scopeUid == this.scopeUid &&
           other.module == this.module &&
           other.panelUuid == this.panelUuid &&
           other.panelType == this.panelType &&
@@ -12393,6 +12576,7 @@ class PanelRef extends DataClass implements Insertable<PanelRef> {
 
 class PanelRefsCompanion extends UpdateCompanion<PanelRef> {
   final Value<String> uuid;
+  final Value<String?> scopeUid;
   final Value<String> module;
   final Value<String> panelUuid;
   final Value<String> panelType;
@@ -12401,6 +12585,7 @@ class PanelRefsCompanion extends UpdateCompanion<PanelRef> {
   final Value<int> rowid;
   const PanelRefsCompanion({
     this.uuid = const Value.absent(),
+    this.scopeUid = const Value.absent(),
     this.module = const Value.absent(),
     this.panelUuid = const Value.absent(),
     this.panelType = const Value.absent(),
@@ -12410,6 +12595,7 @@ class PanelRefsCompanion extends UpdateCompanion<PanelRef> {
   });
   PanelRefsCompanion.insert({
     required String uuid,
+    this.scopeUid = const Value.absent(),
     required String module,
     required String panelUuid,
     required String panelType,
@@ -12423,6 +12609,7 @@ class PanelRefsCompanion extends UpdateCompanion<PanelRef> {
        role = Value(role);
   static Insertable<PanelRef> custom({
     Expression<String>? uuid,
+    Expression<String>? scopeUid,
     Expression<String>? module,
     Expression<String>? panelUuid,
     Expression<String>? panelType,
@@ -12432,6 +12619,7 @@ class PanelRefsCompanion extends UpdateCompanion<PanelRef> {
   }) {
     return RawValuesInsertable({
       if (uuid != null) 'uuid': uuid,
+      if (scopeUid != null) 'scope_uid': scopeUid,
       if (module != null) 'module': module,
       if (panelUuid != null) 'panel_uuid': panelUuid,
       if (panelType != null) 'panel_type': panelType,
@@ -12443,6 +12631,7 @@ class PanelRefsCompanion extends UpdateCompanion<PanelRef> {
 
   PanelRefsCompanion copyWith({
     Value<String>? uuid,
+    Value<String?>? scopeUid,
     Value<String>? module,
     Value<String>? panelUuid,
     Value<String>? panelType,
@@ -12452,6 +12641,7 @@ class PanelRefsCompanion extends UpdateCompanion<PanelRef> {
   }) {
     return PanelRefsCompanion(
       uuid: uuid ?? this.uuid,
+      scopeUid: scopeUid ?? this.scopeUid,
       module: module ?? this.module,
       panelUuid: panelUuid ?? this.panelUuid,
       panelType: panelType ?? this.panelType,
@@ -12466,6 +12656,9 @@ class PanelRefsCompanion extends UpdateCompanion<PanelRef> {
     final map = <String, Expression>{};
     if (uuid.present) {
       map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
     }
     if (module.present) {
       map['module'] = Variable<String>(module.value);
@@ -12492,6 +12685,7 @@ class PanelRefsCompanion extends UpdateCompanion<PanelRef> {
   String toString() {
     return (StringBuffer('PanelRefsCompanion(')
           ..write('uuid: $uuid, ')
+          ..write('scopeUid: $scopeUid, ')
           ..write('module: $module, ')
           ..write('panelUuid: $panelUuid, ')
           ..write('panelType: $panelType, ')
@@ -12517,6 +12711,17 @@ class $WorkItemPanelRefsTable extends WorkItemPanelRefs
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _workItemUuidMeta = const VerificationMeta(
     'workItemUuid',
@@ -12561,6 +12766,7 @@ class $WorkItemPanelRefsTable extends WorkItemPanelRefs
   @override
   List<GeneratedColumn> get $columns => [
     uuid,
+    scopeUid,
     workItemUuid,
     panelRefUuid,
     role,
@@ -12585,6 +12791,12 @@ class $WorkItemPanelRefsTable extends WorkItemPanelRefs
       );
     } else if (isInserting) {
       context.missing(_uuidMeta);
+    }
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
     }
     if (data.containsKey('work_item_uuid')) {
       context.handle(
@@ -12637,6 +12849,10 @@ class $WorkItemPanelRefsTable extends WorkItemPanelRefs
         DriftSqlType.string,
         data['${effectivePrefix}uuid'],
       )!,
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      ),
       workItemUuid: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}work_item_uuid'],
@@ -12665,12 +12881,14 @@ class $WorkItemPanelRefsTable extends WorkItemPanelRefs
 class WorkItemPanelRef extends DataClass
     implements Insertable<WorkItemPanelRef> {
   final String uuid;
+  final String? scopeUid;
   final String workItemUuid;
   final String panelRefUuid;
   final String role;
   final int order;
   const WorkItemPanelRef({
     required this.uuid,
+    this.scopeUid,
     required this.workItemUuid,
     required this.panelRefUuid,
     required this.role,
@@ -12680,6 +12898,9 @@ class WorkItemPanelRef extends DataClass
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['uuid'] = Variable<String>(uuid);
+    if (!nullToAbsent || scopeUid != null) {
+      map['scope_uid'] = Variable<String>(scopeUid);
+    }
     map['work_item_uuid'] = Variable<String>(workItemUuid);
     map['panel_ref_uuid'] = Variable<String>(panelRefUuid);
     map['role'] = Variable<String>(role);
@@ -12690,6 +12911,9 @@ class WorkItemPanelRef extends DataClass
   WorkItemPanelRefsCompanion toCompanion(bool nullToAbsent) {
     return WorkItemPanelRefsCompanion(
       uuid: Value(uuid),
+      scopeUid: scopeUid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(scopeUid),
       workItemUuid: Value(workItemUuid),
       panelRefUuid: Value(panelRefUuid),
       role: Value(role),
@@ -12704,6 +12928,7 @@ class WorkItemPanelRef extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return WorkItemPanelRef(
       uuid: serializer.fromJson<String>(json['uuid']),
+      scopeUid: serializer.fromJson<String?>(json['scopeUid']),
       workItemUuid: serializer.fromJson<String>(json['workItemUuid']),
       panelRefUuid: serializer.fromJson<String>(json['panelRefUuid']),
       role: serializer.fromJson<String>(json['role']),
@@ -12715,6 +12940,7 @@ class WorkItemPanelRef extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'uuid': serializer.toJson<String>(uuid),
+      'scopeUid': serializer.toJson<String?>(scopeUid),
       'workItemUuid': serializer.toJson<String>(workItemUuid),
       'panelRefUuid': serializer.toJson<String>(panelRefUuid),
       'role': serializer.toJson<String>(role),
@@ -12724,12 +12950,14 @@ class WorkItemPanelRef extends DataClass
 
   WorkItemPanelRef copyWith({
     String? uuid,
+    Value<String?> scopeUid = const Value.absent(),
     String? workItemUuid,
     String? panelRefUuid,
     String? role,
     int? order,
   }) => WorkItemPanelRef(
     uuid: uuid ?? this.uuid,
+    scopeUid: scopeUid.present ? scopeUid.value : this.scopeUid,
     workItemUuid: workItemUuid ?? this.workItemUuid,
     panelRefUuid: panelRefUuid ?? this.panelRefUuid,
     role: role ?? this.role,
@@ -12738,6 +12966,7 @@ class WorkItemPanelRef extends DataClass
   WorkItemPanelRef copyWithCompanion(WorkItemPanelRefsCompanion data) {
     return WorkItemPanelRef(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
       workItemUuid: data.workItemUuid.present
           ? data.workItemUuid.value
           : this.workItemUuid,
@@ -12753,6 +12982,7 @@ class WorkItemPanelRef extends DataClass
   String toString() {
     return (StringBuffer('WorkItemPanelRef(')
           ..write('uuid: $uuid, ')
+          ..write('scopeUid: $scopeUid, ')
           ..write('workItemUuid: $workItemUuid, ')
           ..write('panelRefUuid: $panelRefUuid, ')
           ..write('role: $role, ')
@@ -12763,12 +12993,13 @@ class WorkItemPanelRef extends DataClass
 
   @override
   int get hashCode =>
-      Object.hash(uuid, workItemUuid, panelRefUuid, role, order);
+      Object.hash(uuid, scopeUid, workItemUuid, panelRefUuid, role, order);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is WorkItemPanelRef &&
           other.uuid == this.uuid &&
+          other.scopeUid == this.scopeUid &&
           other.workItemUuid == this.workItemUuid &&
           other.panelRefUuid == this.panelRefUuid &&
           other.role == this.role &&
@@ -12777,6 +13008,7 @@ class WorkItemPanelRef extends DataClass
 
 class WorkItemPanelRefsCompanion extends UpdateCompanion<WorkItemPanelRef> {
   final Value<String> uuid;
+  final Value<String?> scopeUid;
   final Value<String> workItemUuid;
   final Value<String> panelRefUuid;
   final Value<String> role;
@@ -12784,6 +13016,7 @@ class WorkItemPanelRefsCompanion extends UpdateCompanion<WorkItemPanelRef> {
   final Value<int> rowid;
   const WorkItemPanelRefsCompanion({
     this.uuid = const Value.absent(),
+    this.scopeUid = const Value.absent(),
     this.workItemUuid = const Value.absent(),
     this.panelRefUuid = const Value.absent(),
     this.role = const Value.absent(),
@@ -12792,6 +13025,7 @@ class WorkItemPanelRefsCompanion extends UpdateCompanion<WorkItemPanelRef> {
   });
   WorkItemPanelRefsCompanion.insert({
     required String uuid,
+    this.scopeUid = const Value.absent(),
     required String workItemUuid,
     required String panelRefUuid,
     required String role,
@@ -12804,6 +13038,7 @@ class WorkItemPanelRefsCompanion extends UpdateCompanion<WorkItemPanelRef> {
        order = Value(order);
   static Insertable<WorkItemPanelRef> custom({
     Expression<String>? uuid,
+    Expression<String>? scopeUid,
     Expression<String>? workItemUuid,
     Expression<String>? panelRefUuid,
     Expression<String>? role,
@@ -12812,6 +13047,7 @@ class WorkItemPanelRefsCompanion extends UpdateCompanion<WorkItemPanelRef> {
   }) {
     return RawValuesInsertable({
       if (uuid != null) 'uuid': uuid,
+      if (scopeUid != null) 'scope_uid': scopeUid,
       if (workItemUuid != null) 'work_item_uuid': workItemUuid,
       if (panelRefUuid != null) 'panel_ref_uuid': panelRefUuid,
       if (role != null) 'role': role,
@@ -12822,6 +13058,7 @@ class WorkItemPanelRefsCompanion extends UpdateCompanion<WorkItemPanelRef> {
 
   WorkItemPanelRefsCompanion copyWith({
     Value<String>? uuid,
+    Value<String?>? scopeUid,
     Value<String>? workItemUuid,
     Value<String>? panelRefUuid,
     Value<String>? role,
@@ -12830,6 +13067,7 @@ class WorkItemPanelRefsCompanion extends UpdateCompanion<WorkItemPanelRef> {
   }) {
     return WorkItemPanelRefsCompanion(
       uuid: uuid ?? this.uuid,
+      scopeUid: scopeUid ?? this.scopeUid,
       workItemUuid: workItemUuid ?? this.workItemUuid,
       panelRefUuid: panelRefUuid ?? this.panelRefUuid,
       role: role ?? this.role,
@@ -12843,6 +13081,9 @@ class WorkItemPanelRefsCompanion extends UpdateCompanion<WorkItemPanelRef> {
     final map = <String, Expression>{};
     if (uuid.present) {
       map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
     }
     if (workItemUuid.present) {
       map['work_item_uuid'] = Variable<String>(workItemUuid.value);
@@ -12866,6 +13107,7 @@ class WorkItemPanelRefsCompanion extends UpdateCompanion<WorkItemPanelRef> {
   String toString() {
     return (StringBuffer('WorkItemPanelRefsCompanion(')
           ..write('uuid: $uuid, ')
+          ..write('scopeUid: $scopeUid, ')
           ..write('workItemUuid: $workItemUuid, ')
           ..write('panelRefUuid: $panelRefUuid, ')
           ..write('role: $role, ')
@@ -12905,6 +13147,17 @@ class $CreationAuditLogsTable extends CreationAuditLogs
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _auditedAtMeta = const VerificationMeta(
     'auditedAt',
@@ -12998,6 +13251,7 @@ class $CreationAuditLogsTable extends CreationAuditLogs
   List<GeneratedColumn> get $columns => [
     id,
     caseUuid,
+    scopeUid,
     auditedAt,
     changeType,
     entityType,
@@ -13029,6 +13283,12 @@ class $CreationAuditLogsTable extends CreationAuditLogs
       );
     } else if (isInserting) {
       context.missing(_caseUuidMeta);
+    }
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
     }
     if (data.containsKey('audited_at')) {
       context.handle(
@@ -13101,6 +13361,10 @@ class $CreationAuditLogsTable extends CreationAuditLogs
         DriftSqlType.string,
         data['${effectivePrefix}case_uuid'],
       )!,
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      ),
       auditedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}audited_at'],
@@ -13150,6 +13414,9 @@ class CreationAuditLog extends DataClass
   /// 关联案例 UUID
   final String caseUuid;
 
+  /// scope 归属（新增于 schema v11，回填自所属案例）
+  final String? scopeUid;
+
   /// 审计时间
   final DateTime auditedAt;
 
@@ -13176,6 +13443,7 @@ class CreationAuditLog extends DataClass
   const CreationAuditLog({
     required this.id,
     required this.caseUuid,
+    this.scopeUid,
     required this.auditedAt,
     required this.changeType,
     required this.entityType,
@@ -13190,6 +13458,9 @@ class CreationAuditLog extends DataClass
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['case_uuid'] = Variable<String>(caseUuid);
+    if (!nullToAbsent || scopeUid != null) {
+      map['scope_uid'] = Variable<String>(scopeUid);
+    }
     map['audited_at'] = Variable<DateTime>(auditedAt);
     map['change_type'] = Variable<String>(changeType);
     map['entity_type'] = Variable<String>(entityType);
@@ -13215,6 +13486,9 @@ class CreationAuditLog extends DataClass
     return CreationAuditLogsCompanion(
       id: Value(id),
       caseUuid: Value(caseUuid),
+      scopeUid: scopeUid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(scopeUid),
       auditedAt: Value(auditedAt),
       changeType: Value(changeType),
       entityType: Value(entityType),
@@ -13244,6 +13518,7 @@ class CreationAuditLog extends DataClass
     return CreationAuditLog(
       id: serializer.fromJson<int>(json['id']),
       caseUuid: serializer.fromJson<String>(json['caseUuid']),
+      scopeUid: serializer.fromJson<String?>(json['scopeUid']),
       auditedAt: serializer.fromJson<DateTime>(json['auditedAt']),
       changeType: serializer.fromJson<String>(json['changeType']),
       entityType: serializer.fromJson<String>(json['entityType']),
@@ -13260,6 +13535,7 @@ class CreationAuditLog extends DataClass
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'caseUuid': serializer.toJson<String>(caseUuid),
+      'scopeUid': serializer.toJson<String?>(scopeUid),
       'auditedAt': serializer.toJson<DateTime>(auditedAt),
       'changeType': serializer.toJson<String>(changeType),
       'entityType': serializer.toJson<String>(entityType),
@@ -13274,6 +13550,7 @@ class CreationAuditLog extends DataClass
   CreationAuditLog copyWith({
     int? id,
     String? caseUuid,
+    Value<String?> scopeUid = const Value.absent(),
     DateTime? auditedAt,
     String? changeType,
     String? entityType,
@@ -13285,6 +13562,7 @@ class CreationAuditLog extends DataClass
   }) => CreationAuditLog(
     id: id ?? this.id,
     caseUuid: caseUuid ?? this.caseUuid,
+    scopeUid: scopeUid.present ? scopeUid.value : this.scopeUid,
     auditedAt: auditedAt ?? this.auditedAt,
     changeType: changeType ?? this.changeType,
     entityType: entityType ?? this.entityType,
@@ -13298,6 +13576,7 @@ class CreationAuditLog extends DataClass
     return CreationAuditLog(
       id: data.id.present ? data.id.value : this.id,
       caseUuid: data.caseUuid.present ? data.caseUuid.value : this.caseUuid,
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
       auditedAt: data.auditedAt.present ? data.auditedAt.value : this.auditedAt,
       changeType: data.changeType.present
           ? data.changeType.value
@@ -13322,6 +13601,7 @@ class CreationAuditLog extends DataClass
     return (StringBuffer('CreationAuditLog(')
           ..write('id: $id, ')
           ..write('caseUuid: $caseUuid, ')
+          ..write('scopeUid: $scopeUid, ')
           ..write('auditedAt: $auditedAt, ')
           ..write('changeType: $changeType, ')
           ..write('entityType: $entityType, ')
@@ -13338,6 +13618,7 @@ class CreationAuditLog extends DataClass
   int get hashCode => Object.hash(
     id,
     caseUuid,
+    scopeUid,
     auditedAt,
     changeType,
     entityType,
@@ -13353,6 +13634,7 @@ class CreationAuditLog extends DataClass
       (other is CreationAuditLog &&
           other.id == this.id &&
           other.caseUuid == this.caseUuid &&
+          other.scopeUid == this.scopeUid &&
           other.auditedAt == this.auditedAt &&
           other.changeType == this.changeType &&
           other.entityType == this.entityType &&
@@ -13366,6 +13648,7 @@ class CreationAuditLog extends DataClass
 class CreationAuditLogsCompanion extends UpdateCompanion<CreationAuditLog> {
   final Value<int> id;
   final Value<String> caseUuid;
+  final Value<String?> scopeUid;
   final Value<DateTime> auditedAt;
   final Value<String> changeType;
   final Value<String> entityType;
@@ -13377,6 +13660,7 @@ class CreationAuditLogsCompanion extends UpdateCompanion<CreationAuditLog> {
   const CreationAuditLogsCompanion({
     this.id = const Value.absent(),
     this.caseUuid = const Value.absent(),
+    this.scopeUid = const Value.absent(),
     this.auditedAt = const Value.absent(),
     this.changeType = const Value.absent(),
     this.entityType = const Value.absent(),
@@ -13389,6 +13673,7 @@ class CreationAuditLogsCompanion extends UpdateCompanion<CreationAuditLog> {
   CreationAuditLogsCompanion.insert({
     this.id = const Value.absent(),
     required String caseUuid,
+    this.scopeUid = const Value.absent(),
     required DateTime auditedAt,
     required String changeType,
     required String entityType,
@@ -13404,6 +13689,7 @@ class CreationAuditLogsCompanion extends UpdateCompanion<CreationAuditLog> {
   static Insertable<CreationAuditLog> custom({
     Expression<int>? id,
     Expression<String>? caseUuid,
+    Expression<String>? scopeUid,
     Expression<DateTime>? auditedAt,
     Expression<String>? changeType,
     Expression<String>? entityType,
@@ -13416,6 +13702,7 @@ class CreationAuditLogsCompanion extends UpdateCompanion<CreationAuditLog> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (caseUuid != null) 'case_uuid': caseUuid,
+      if (scopeUid != null) 'scope_uid': scopeUid,
       if (auditedAt != null) 'audited_at': auditedAt,
       if (changeType != null) 'change_type': changeType,
       if (entityType != null) 'entity_type': entityType,
@@ -13430,6 +13717,7 @@ class CreationAuditLogsCompanion extends UpdateCompanion<CreationAuditLog> {
   CreationAuditLogsCompanion copyWith({
     Value<int>? id,
     Value<String>? caseUuid,
+    Value<String?>? scopeUid,
     Value<DateTime>? auditedAt,
     Value<String>? changeType,
     Value<String>? entityType,
@@ -13442,6 +13730,7 @@ class CreationAuditLogsCompanion extends UpdateCompanion<CreationAuditLog> {
     return CreationAuditLogsCompanion(
       id: id ?? this.id,
       caseUuid: caseUuid ?? this.caseUuid,
+      scopeUid: scopeUid ?? this.scopeUid,
       auditedAt: auditedAt ?? this.auditedAt,
       changeType: changeType ?? this.changeType,
       entityType: entityType ?? this.entityType,
@@ -13461,6 +13750,9 @@ class CreationAuditLogsCompanion extends UpdateCompanion<CreationAuditLog> {
     }
     if (caseUuid.present) {
       map['case_uuid'] = Variable<String>(caseUuid.value);
+    }
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
     }
     if (auditedAt.present) {
       map['audited_at'] = Variable<DateTime>(auditedAt.value);
@@ -13494,6 +13786,7 @@ class CreationAuditLogsCompanion extends UpdateCompanion<CreationAuditLog> {
     return (StringBuffer('CreationAuditLogsCompanion(')
           ..write('id: $id, ')
           ..write('caseUuid: $caseUuid, ')
+          ..write('scopeUid: $scopeUid, ')
           ..write('auditedAt: $auditedAt, ')
           ..write('changeType: $changeType, ')
           ..write('entityType: $entityType, ')
@@ -26362,6 +26655,7 @@ typedef $$TaiYuanRecordsTableProcessedTableManager =
 typedef $$DivinationCasesTableCreateCompanionBuilder =
     DivinationCasesCompanion Function({
       required String uuid,
+      Value<String?> scopeUid,
       required String title,
       required String mainQuestion,
       required String status,
@@ -26375,6 +26669,7 @@ typedef $$DivinationCasesTableCreateCompanionBuilder =
 typedef $$DivinationCasesTableUpdateCompanionBuilder =
     DivinationCasesCompanion Function({
       Value<String> uuid,
+      Value<String?> scopeUid,
       Value<String> title,
       Value<String> mainQuestion,
       Value<String> status,
@@ -26397,6 +26692,11 @@ class $$DivinationCasesTableFilterComposer
   });
   ColumnFilters<String> get uuid => $composableBuilder(
     column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -26455,6 +26755,11 @@ class $$DivinationCasesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get title => $composableBuilder(
     column: $table.title,
     builder: (column) => ColumnOrderings(column),
@@ -26507,6 +26812,9 @@ class $$DivinationCasesTableAnnotationComposer
   });
   GeneratedColumn<String> get uuid =>
       $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
 
   GeneratedColumn<String> get title =>
       $composableBuilder(column: $table.title, builder: (column) => column);
@@ -26577,6 +26885,7 @@ class $$DivinationCasesTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> uuid = const Value.absent(),
+                Value<String?> scopeUid = const Value.absent(),
                 Value<String> title = const Value.absent(),
                 Value<String> mainQuestion = const Value.absent(),
                 Value<String> status = const Value.absent(),
@@ -26588,6 +26897,7 @@ class $$DivinationCasesTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => DivinationCasesCompanion(
                 uuid: uuid,
+                scopeUid: scopeUid,
                 title: title,
                 mainQuestion: mainQuestion,
                 status: status,
@@ -26601,6 +26911,7 @@ class $$DivinationCasesTableTableManager
           createCompanionCallback:
               ({
                 required String uuid,
+                Value<String?> scopeUid = const Value.absent(),
                 required String title,
                 required String mainQuestion,
                 required String status,
@@ -26612,6 +26923,7 @@ class $$DivinationCasesTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => DivinationCasesCompanion.insert(
                 uuid: uuid,
+                scopeUid: scopeUid,
                 title: title,
                 mainQuestion: mainQuestion,
                 status: status,
@@ -26654,6 +26966,7 @@ typedef $$DivinationCasesTableProcessedTableManager =
 typedef $$DivinationWorkItemsTableCreateCompanionBuilder =
     DivinationWorkItemsCompanion Function({
       required String uuid,
+      Value<String?> scopeUid,
       required String caseUuid,
       Value<String?> parentWorkItemUuid,
       required String title,
@@ -26668,6 +26981,7 @@ typedef $$DivinationWorkItemsTableCreateCompanionBuilder =
 typedef $$DivinationWorkItemsTableUpdateCompanionBuilder =
     DivinationWorkItemsCompanion Function({
       Value<String> uuid,
+      Value<String?> scopeUid,
       Value<String> caseUuid,
       Value<String?> parentWorkItemUuid,
       Value<String> title,
@@ -26691,6 +27005,11 @@ class $$DivinationWorkItemsTableFilterComposer
   });
   ColumnFilters<String> get uuid => $composableBuilder(
     column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -26754,6 +27073,11 @@ class $$DivinationWorkItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get caseUuid => $composableBuilder(
     column: $table.caseUuid,
     builder: (column) => ColumnOrderings(column),
@@ -26811,6 +27135,9 @@ class $$DivinationWorkItemsTableAnnotationComposer
   });
   GeneratedColumn<String> get uuid =>
       $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
 
   GeneratedColumn<String> get caseUuid =>
       $composableBuilder(column: $table.caseUuid, builder: (column) => column);
@@ -26890,6 +27217,7 @@ class $$DivinationWorkItemsTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> uuid = const Value.absent(),
+                Value<String?> scopeUid = const Value.absent(),
                 Value<String> caseUuid = const Value.absent(),
                 Value<String?> parentWorkItemUuid = const Value.absent(),
                 Value<String> title = const Value.absent(),
@@ -26902,6 +27230,7 @@ class $$DivinationWorkItemsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => DivinationWorkItemsCompanion(
                 uuid: uuid,
+                scopeUid: scopeUid,
                 caseUuid: caseUuid,
                 parentWorkItemUuid: parentWorkItemUuid,
                 title: title,
@@ -26916,6 +27245,7 @@ class $$DivinationWorkItemsTableTableManager
           createCompanionCallback:
               ({
                 required String uuid,
+                Value<String?> scopeUid = const Value.absent(),
                 required String caseUuid,
                 Value<String?> parentWorkItemUuid = const Value.absent(),
                 required String title,
@@ -26928,6 +27258,7 @@ class $$DivinationWorkItemsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => DivinationWorkItemsCompanion.insert(
                 uuid: uuid,
+                scopeUid: scopeUid,
                 caseUuid: caseUuid,
                 parentWorkItemUuid: parentWorkItemUuid,
                 title: title,
@@ -26971,6 +27302,7 @@ typedef $$DivinationWorkItemsTableProcessedTableManager =
 typedef $$CaseParticipantsTableCreateCompanionBuilder =
     CaseParticipantsCompanion Function({
       required String uuid,
+      Value<String?> scopeUid,
       required String caseUuid,
       Value<String?> recordUuid,
       required String name,
@@ -26981,6 +27313,7 @@ typedef $$CaseParticipantsTableCreateCompanionBuilder =
 typedef $$CaseParticipantsTableUpdateCompanionBuilder =
     CaseParticipantsCompanion Function({
       Value<String> uuid,
+      Value<String?> scopeUid,
       Value<String> caseUuid,
       Value<String?> recordUuid,
       Value<String> name,
@@ -27000,6 +27333,11 @@ class $$CaseParticipantsTableFilterComposer
   });
   ColumnFilters<String> get uuid => $composableBuilder(
     column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -27043,6 +27381,11 @@ class $$CaseParticipantsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get caseUuid => $composableBuilder(
     column: $table.caseUuid,
     builder: (column) => ColumnOrderings(column),
@@ -27080,6 +27423,9 @@ class $$CaseParticipantsTableAnnotationComposer
   });
   GeneratedColumn<String> get uuid =>
       $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
 
   GeneratedColumn<String> get caseUuid =>
       $composableBuilder(column: $table.caseUuid, builder: (column) => column);
@@ -27139,6 +27485,7 @@ class $$CaseParticipantsTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> uuid = const Value.absent(),
+                Value<String?> scopeUid = const Value.absent(),
                 Value<String> caseUuid = const Value.absent(),
                 Value<String?> recordUuid = const Value.absent(),
                 Value<String> name = const Value.absent(),
@@ -27147,6 +27494,7 @@ class $$CaseParticipantsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => CaseParticipantsCompanion(
                 uuid: uuid,
+                scopeUid: scopeUid,
                 caseUuid: caseUuid,
                 recordUuid: recordUuid,
                 name: name,
@@ -27157,6 +27505,7 @@ class $$CaseParticipantsTableTableManager
           createCompanionCallback:
               ({
                 required String uuid,
+                Value<String?> scopeUid = const Value.absent(),
                 required String caseUuid,
                 Value<String?> recordUuid = const Value.absent(),
                 required String name,
@@ -27165,6 +27514,7 @@ class $$CaseParticipantsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => CaseParticipantsCompanion.insert(
                 uuid: uuid,
+                scopeUid: scopeUid,
                 caseUuid: caseUuid,
                 recordUuid: recordUuid,
                 name: name,
@@ -27204,6 +27554,7 @@ typedef $$CaseParticipantsTableProcessedTableManager =
 typedef $$PanelRefsTableCreateCompanionBuilder =
     PanelRefsCompanion Function({
       required String uuid,
+      Value<String?> scopeUid,
       required String module,
       required String panelUuid,
       required String panelType,
@@ -27214,6 +27565,7 @@ typedef $$PanelRefsTableCreateCompanionBuilder =
 typedef $$PanelRefsTableUpdateCompanionBuilder =
     PanelRefsCompanion Function({
       Value<String> uuid,
+      Value<String?> scopeUid,
       Value<String> module,
       Value<String> panelUuid,
       Value<String> panelType,
@@ -27233,6 +27585,11 @@ class $$PanelRefsTableFilterComposer
   });
   ColumnFilters<String> get uuid => $composableBuilder(
     column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -27276,6 +27633,11 @@ class $$PanelRefsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get module => $composableBuilder(
     column: $table.module,
     builder: (column) => ColumnOrderings(column),
@@ -27313,6 +27675,9 @@ class $$PanelRefsTableAnnotationComposer
   });
   GeneratedColumn<String> get uuid =>
       $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
 
   GeneratedColumn<String> get module =>
       $composableBuilder(column: $table.module, builder: (column) => column);
@@ -27368,6 +27733,7 @@ class $$PanelRefsTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> uuid = const Value.absent(),
+                Value<String?> scopeUid = const Value.absent(),
                 Value<String> module = const Value.absent(),
                 Value<String> panelUuid = const Value.absent(),
                 Value<String> panelType = const Value.absent(),
@@ -27376,6 +27742,7 @@ class $$PanelRefsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => PanelRefsCompanion(
                 uuid: uuid,
+                scopeUid: scopeUid,
                 module: module,
                 panelUuid: panelUuid,
                 panelType: panelType,
@@ -27386,6 +27753,7 @@ class $$PanelRefsTableTableManager
           createCompanionCallback:
               ({
                 required String uuid,
+                Value<String?> scopeUid = const Value.absent(),
                 required String module,
                 required String panelUuid,
                 required String panelType,
@@ -27394,6 +27762,7 @@ class $$PanelRefsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => PanelRefsCompanion.insert(
                 uuid: uuid,
+                scopeUid: scopeUid,
                 module: module,
                 panelUuid: panelUuid,
                 panelType: panelType,
@@ -27429,6 +27798,7 @@ typedef $$PanelRefsTableProcessedTableManager =
 typedef $$WorkItemPanelRefsTableCreateCompanionBuilder =
     WorkItemPanelRefsCompanion Function({
       required String uuid,
+      Value<String?> scopeUid,
       required String workItemUuid,
       required String panelRefUuid,
       required String role,
@@ -27438,6 +27808,7 @@ typedef $$WorkItemPanelRefsTableCreateCompanionBuilder =
 typedef $$WorkItemPanelRefsTableUpdateCompanionBuilder =
     WorkItemPanelRefsCompanion Function({
       Value<String> uuid,
+      Value<String?> scopeUid,
       Value<String> workItemUuid,
       Value<String> panelRefUuid,
       Value<String> role,
@@ -27456,6 +27827,11 @@ class $$WorkItemPanelRefsTableFilterComposer
   });
   ColumnFilters<String> get uuid => $composableBuilder(
     column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -27494,6 +27870,11 @@ class $$WorkItemPanelRefsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get workItemUuid => $composableBuilder(
     column: $table.workItemUuid,
     builder: (column) => ColumnOrderings(column),
@@ -27526,6 +27907,9 @@ class $$WorkItemPanelRefsTableAnnotationComposer
   });
   GeneratedColumn<String> get uuid =>
       $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
 
   GeneratedColumn<String> get workItemUuid => $composableBuilder(
     column: $table.workItemUuid,
@@ -27585,6 +27969,7 @@ class $$WorkItemPanelRefsTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> uuid = const Value.absent(),
+                Value<String?> scopeUid = const Value.absent(),
                 Value<String> workItemUuid = const Value.absent(),
                 Value<String> panelRefUuid = const Value.absent(),
                 Value<String> role = const Value.absent(),
@@ -27592,6 +27977,7 @@ class $$WorkItemPanelRefsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => WorkItemPanelRefsCompanion(
                 uuid: uuid,
+                scopeUid: scopeUid,
                 workItemUuid: workItemUuid,
                 panelRefUuid: panelRefUuid,
                 role: role,
@@ -27601,6 +27987,7 @@ class $$WorkItemPanelRefsTableTableManager
           createCompanionCallback:
               ({
                 required String uuid,
+                Value<String?> scopeUid = const Value.absent(),
                 required String workItemUuid,
                 required String panelRefUuid,
                 required String role,
@@ -27608,6 +27995,7 @@ class $$WorkItemPanelRefsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => WorkItemPanelRefsCompanion.insert(
                 uuid: uuid,
+                scopeUid: scopeUid,
                 workItemUuid: workItemUuid,
                 panelRefUuid: panelRefUuid,
                 role: role,
@@ -27647,6 +28035,7 @@ typedef $$CreationAuditLogsTableCreateCompanionBuilder =
     CreationAuditLogsCompanion Function({
       Value<int> id,
       required String caseUuid,
+      Value<String?> scopeUid,
       required DateTime auditedAt,
       required String changeType,
       required String entityType,
@@ -27660,6 +28049,7 @@ typedef $$CreationAuditLogsTableUpdateCompanionBuilder =
     CreationAuditLogsCompanion Function({
       Value<int> id,
       Value<String> caseUuid,
+      Value<String?> scopeUid,
       Value<DateTime> auditedAt,
       Value<String> changeType,
       Value<String> entityType,
@@ -27686,6 +28076,11 @@ class $$CreationAuditLogsTableFilterComposer
 
   ColumnFilters<String> get caseUuid => $composableBuilder(
     column: $table.caseUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -27749,6 +28144,11 @@ class $$CreationAuditLogsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get auditedAt => $composableBuilder(
     column: $table.auditedAt,
     builder: (column) => ColumnOrderings(column),
@@ -27804,6 +28204,9 @@ class $$CreationAuditLogsTableAnnotationComposer
 
   GeneratedColumn<String> get caseUuid =>
       $composableBuilder(column: $table.caseUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
 
   GeneratedColumn<DateTime> get auditedAt =>
       $composableBuilder(column: $table.auditedAt, builder: (column) => column);
@@ -27880,6 +28283,7 @@ class $$CreationAuditLogsTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String> caseUuid = const Value.absent(),
+                Value<String?> scopeUid = const Value.absent(),
                 Value<DateTime> auditedAt = const Value.absent(),
                 Value<String> changeType = const Value.absent(),
                 Value<String> entityType = const Value.absent(),
@@ -27891,6 +28295,7 @@ class $$CreationAuditLogsTableTableManager
               }) => CreationAuditLogsCompanion(
                 id: id,
                 caseUuid: caseUuid,
+                scopeUid: scopeUid,
                 auditedAt: auditedAt,
                 changeType: changeType,
                 entityType: entityType,
@@ -27904,6 +28309,7 @@ class $$CreationAuditLogsTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 required String caseUuid,
+                Value<String?> scopeUid = const Value.absent(),
                 required DateTime auditedAt,
                 required String changeType,
                 required String entityType,
@@ -27915,6 +28321,7 @@ class $$CreationAuditLogsTableTableManager
               }) => CreationAuditLogsCompanion.insert(
                 id: id,
                 caseUuid: caseUuid,
+                scopeUid: scopeUid,
                 auditedAt: auditedAt,
                 changeType: changeType,
                 entityType: entityType,

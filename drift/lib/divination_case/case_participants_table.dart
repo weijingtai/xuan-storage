@@ -5,6 +5,7 @@ class CaseParticipants extends Table {
   String get tableName => 't_case_participants';
 
   TextColumn get uuid => text().named('uuid')();
+  TextColumn get scopeUid => text().named('scope_uid').nullable()();
   TextColumn get caseUuid => text().named('case_uuid')();
   TextColumn get recordUuid => text().nullable().named('record_uuid')();
   TextColumn get name => text().named('name')();

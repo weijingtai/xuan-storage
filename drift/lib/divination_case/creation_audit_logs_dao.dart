@@ -12,6 +12,9 @@ class CreationAuditLogsDao extends DatabaseAccessor<PersistenceDriftDatabase>
   CreationAuditLogsDao(super.db);
 
   /// 插入一条审计记录
+  ///
+  /// [scopeUid]：记录所属 scope。schema v11 起审计表带 scope_uid 列，
+  /// 由调用方（宿主装配点）传入当前活跃 scope；不传则写入 NULL（缺省）。
   Future<int> insertAuditLog({
     required String caseUuid,
     required DateTime auditedAt,
@@ -22,6 +25,7 @@ class CreationAuditLogsDao extends DatabaseAccessor<PersistenceDriftDatabase>
     String? newJson,
     String? summary,
     String? operatorId,
+    String? scopeUid,
   }) {
     return into(creationAuditLogs).insert(
       CreationAuditLogsCompanion.insert(
@@ -34,6 +38,7 @@ class CreationAuditLogsDao extends DatabaseAccessor<PersistenceDriftDatabase>
         newJson: Value(newJson),
         summary: Value(summary),
         operatorId: Value(operatorId),
+        scopeUid: Value(scopeUid),
       ),
     );
   }

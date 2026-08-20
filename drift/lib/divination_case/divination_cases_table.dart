@@ -5,6 +5,7 @@ class DivinationCases extends Table {
   String get tableName => 't_divination_cases';
 
   TextColumn get uuid => text().named('uuid')();
+  TextColumn get scopeUid => text().named('scope_uid').nullable()();
   TextColumn get title => text().named('title')();
   TextColumn get mainQuestion => text().named('main_question')();
   TextColumn get status => text().named('status')();
