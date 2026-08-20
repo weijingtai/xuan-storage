@@ -70,4 +70,13 @@ class DriftScopeLedger implements ScopeLedger {
             ))
         .toList();
   }
+
+  @override
+  Future<void> clearScope(String scopeUid) async {
+    await (_db.delete(_db.tScopeAlias)
+          ..where((t) =>
+              t.scopeUid.equals(scopeUid) &
+              t.authKind.equals('device').not()))
+        .go();
+  }
 }

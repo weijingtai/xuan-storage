@@ -22,7 +22,7 @@ void main() {
     final codec = SeekerRecordCodec();
     final registry = RecordAdapterRegistry([codec]);
     store = LocalRecordRepository(ds, registry);
-    caseRepo = DriftDivinationCaseRepository(db);
+    caseRepo = DriftDivinationCaseRepository(db, store: store);
   });
 
   tearDown(() => db.close());

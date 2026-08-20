@@ -12,8 +12,10 @@ class DriftDivinationCaseRepository
         DivinationWorkItemRepository,
         DivinationParticipantRepository,
         PanelRefRepository {
-  DriftDivinationCaseRepository(this.db);
+  DriftDivinationCaseRepository(this.db, {required ScopedRecordStore store})
+      : _store = store;
   final PersistenceDriftDatabase db;
+  final ScopedRecordStore _store;
 
   // --- DivinationCaseRepository ---
 
@@ -106,7 +108,7 @@ class DriftDivinationCaseRepository
       await db.into(db.tRecordMeta).insertOnConflictUpdate(
         TRecordMetaCompanion(
           uuid: Value(model.uuid),
-          scopeUid: const Value('default'),
+          scopeUid: Value(_store.scopeUid),
           module: const Value('divination_case'),
           category: const Value('record'),
           divinationType: const Value('general'),

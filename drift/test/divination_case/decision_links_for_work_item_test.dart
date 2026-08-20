@@ -6,7 +6,9 @@ import 'package:persistence_drift/persistence_drift.dart';
 void main() {
   test('getDecisionLinksForWorkItem returns links for associated records', () async {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
-    final repo = DriftDivinationCaseRepository(db);
+    final ds = DriftRecordDataSource(db, scopeUid: 'scope-x');
+    final repo = DriftDivinationCaseRepository(db,
+        store: LocalRecordRepository(ds, RecordAdapterRegistry([])));
 
     // 插入一条 t_record_meta，关联 work_item_uuid
     await db.into(db.tRecordMeta).insert(TRecordMetaCompanion.insert(

@@ -1,6 +1,7 @@
+import 'dart:io';
+
 import 'package:drift/native.dart';
 import 'package:persistence_drift/persistence_drift.dart';
-import 'package:persistence_drift/scope/drift_scope_ledger.dart';
 import 'package:repository_interface_account/repository_interface_account.dart';
 import 'package:repository_interface_account/repository_interface_account_fakes.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
@@ -14,22 +15,40 @@ void main() {
     late InMemoryAccountSessionRepository sessionRepo;
     late InMemoryAccountIdentityLinkRepository linkRepo;
     late ScopeResolver resolver;
+    late Directory blobBase;
+    late Directory backupDir;
+    late File dbFile;
 
-    setUp(() {
-      db = PersistenceDriftDatabase(NativeDatabase.memory());
+    setUp(() async {
+      blobBase = await Directory.systemTemp.createTemp('scope-e2e-blob');
+      backupDir = await Directory.systemTemp.createTemp('scope-e2e-backup');
+      dbFile = File('${blobBase.path}/persistence.sqlite');
+      db = PersistenceDriftDatabase(NativeDatabase(dbFile));
       bootstrapStore = DriftScopeBootstrapStore(db);
       ledger = DriftScopeLedger(db: db, bootstrapStore: bootstrapStore);
       sessionRepo = InMemoryAccountSessionRepository();
       linkRepo = InMemoryAccountIdentityLinkRepository();
+      final handover = DriftScopeHandoverService(
+        db: db,
+        ledger: ledger,
+        blobDirForScope: (scope) => '${blobBase.path}/$scope',
+        backupService: DriftSqliteFileBackupService(
+          db: db,
+          backupDirectory: backupDir,
+        ),
+      );
       resolver = ScopeResolver(
         sessionRepository: sessionRepo,
         identityLinkRepository: linkRepo,
         ledger: ledger,
+        handoverService: handover,
       );
     });
 
     tearDown(() async {
       await db.close();
+      await blobBase.delete(recursive: true);
+      await backupDir.delete(recursive: true);
     });
 
     test('DriftScopeBootstrapStore persists ghost scope and returns same value on restart', () async {
@@ -117,13 +136,18 @@ void main() {
 
       final regResolved = await resolver.resolve();
       expect(regResolved.isUpgrade, isTrue);
-      expect(regResolved.scopeUid, equals(anonScope));
+      // 升级后不再复用匿名 scope，而是铸新 scope 并搬迁数据
+      expect(regResolved.scopeUid, isNot(equals(anonScope)));
 
-      // 4. Query record under registered scope
+      // 4. Query record under registered scope — 匿名期数据已搬迁到新 scope
       final dsReg = DriftRecordDataSource(db, scopeUid: regResolved.scopeUid);
       final records = await dsReg.listRecords(module: 'meihua', limit: 10);
       expect(records, hasLength(1));
       expect(records.first.uuid, 'r-anon');
+
+      // 5. 匿名槽位已被腾空 — 原 scope 名下不再有任何数据
+      final dsAnon2 = DriftRecordDataSource(db, scopeUid: anonScope);
+      expect(await dsAnon2.listRecords(module: 'meihua', limit: 10), isEmpty);
     });
 
     test('E2E No Session -> scope = persistent device ghost scope, restarts same', () async {
@@ -151,6 +175,15 @@ void main() {
         sessionRepository: sessionRepo,
         identityLinkRepository: linkRepo,
         ledger: newLedger,
+        handoverService: DriftScopeHandoverService(
+          db: db,
+          ledger: newLedger,
+          blobDirForScope: (scope) => '${blobBase.path}/$scope',
+          backupService: DriftSqliteFileBackupService(
+            db: db,
+            backupDirectory: backupDir,
+          ),
+        ),
       );
 
       final resolved2 = await newResolver.resolve();

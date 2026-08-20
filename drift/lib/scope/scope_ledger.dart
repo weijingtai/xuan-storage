@@ -25,4 +25,12 @@ abstract interface class ScopeLedger {
 
   /// 返回某个 scope_uid 下的所有别名条目。
   Future<List<ScopeAliasEntry>> entriesForScope(String scopeUid);
+
+  /// 腾空某个 scope 的槽位绑定（槽位回收）。
+  ///
+  /// 删除该 scope 下【除 device bootstrap 外】的所有别名，使该 scope 可被
+  /// 下一位设备主人复用（见任务纪要技术点 5）。
+  ///
+  /// 注意：device bootstrap 记录（authKind == device）必须保留，不得删除。
+  Future<void> clearScope(String scopeUid);
 }
