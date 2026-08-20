@@ -30,7 +30,7 @@
 |---|---|---|
 | `PersistenceDriftDatabase`（主） | `persistence_drift.dart:896` | 主库，37 张表，含 `t_record_meta` |
 | `AiDatabase` | `ai/ai_database.dart:29` | `ai_database` |
-| `FourZhuDatabase` | `four_zhu_card_templates/app_database.dart:19` | `app_database` |
+| `FourZhuDatabase` | `four_zhu_card_templates/app_database.dart:19` | ⚠ **生产复用主库 executor**，表落在 `persistence.db`（见 §1.7） |
 | `MeiHuaDatabase` | `meihuayishu/meihua_database.dart:12` | — |
 | `DictionaryDatabase` | `meihuayishu/dictionary_database.dart:11` | — |
 | `ThemeDatabase` | `theme/theme_database.dart:34` | — |
@@ -59,6 +59,29 @@
 - §四「独立库表（2 张）」严重低估，实为 ~23 张
 - `DaYunRecords` / `TaiYuanRecords` 被主库与 FourZhuDatabase **两库共用**，
   各生成一份物理表，需单独确认哪一份是活的
+
+### 1.7 ★ 本裁决书自身的勘误（据 SW1-0 调研订正）
+
+调研文档 `2026-08-19-sw1-preflight-survey.md` 推翻了本文两处记载，已在上方就地订正：
+
+1. **§1.3 FourZhuDatabase 物理文件写错**：生产装配为
+   `AppDatabase(lifecycle.persistenceDb.executor)`（xuan-shell `lib/app/xuan_shell_dependencies.dart:166`），
+   即复用主库 executor，四柱卡片表物理上就在 `persistence.db` 里，不是独立的 `app_database.db`。
+   **后果**：它归裁决二（同库可 JOIN，加 scope 列），不归裁决一（分文件）。
+
+2. **§三 `Panels` 判为「仍在用」错误**：全仓搜索 `db.panels` / `PanelsDao` / `PanelsCompanion`
+   在 shell 侧零引用，`Panels` 已退场，不加 scope 列。
+
+**另据调研，裁决一实际适用面远小于原估**：
+- `DictionaryDatabase` 生产是内存库（xuan-shell `lib/app/meihua_dictionary_executor_native.dart:8-10`），纯 G 类，豁免
+- `ThemeDatabase` 无任何生产构造点，本轮无存量，属未来项
+- `MeiHuaDatabase` 生产已由 `RecordBackedMeiHuaRepository` 接管，仅迁移工具在用
+- `TaiYiDatabase` **已随 scope 重建**（在 `rebuildForScope` 内，xuan-shell `lib/storage/shell_scoped_storage_runtime.dart:488`），分文件改造成本最低，但需先解「双构造」竞态
+- `AccountDatabase` 裁决一不适用（§四.3）
+
+→ **裁决一真正需要改造的只有 `AiDatabase` 与 `TaiYiDatabase`**。
+
+**主库明细表（裁决二）范围也已收窄**：16 张里 10 张已退场，仍在用的只有案卷创建流 6 张。
 
 ---
 
@@ -93,11 +116,13 @@
 **做法**：
 - **已标 `@Deprecated` 的**（`Seekers`、`SeekerDivinationMappers`，及经确认的其他）
   → 走退场路线，**不加 scope 列**。数据已在 `t_record_meta`，而后者已带 `scope_uid` 且已纳入 handover
-- **仍在用的**（`Panels`、`DivinationCases`、`DivinationWorkItems` 等）
+- **仍在用的**（`DivinationCases`、`DivinationWorkItems`、`CaseParticipants`、`PanelRefs`、`WorkItemPanelRefs`、`CreationAuditLogs` 共 6 张，见 §1.7）
   → 加 `scope_uid` 列，回填后纳入 `kScopeMigratableTables`
 
 **理由**：不给将死的表做会被丢弃的迁移；同时避免「全部退场」阻塞 SW1
-（`Panels`/`DivinationCases` 能否被 `t_record_meta` 完全承载尚未验证）。
+（`DivinationCases` 等能否被 `t_record_meta` 完全承载尚未验证）。
+
+⚠ **`Panels` 已订正为「已退场」**：SW1-0 调研全仓搜索确认 shell 侧零引用，不加 scope 列。
 
 **前置（SW1 必须先做）**：逐表确认退场进度——
 `@Deprecated` 只是标记，需查实际读写路径是否已切到 record-backed 实现。
