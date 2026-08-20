@@ -37,12 +37,17 @@ abstract interface class ScopeHandoverService {
 ///   （ai/tables/tables.dart，AiDatabase 独立库）
 /// - MeiHuaGuaInfos（meihuayishu/meihua_gua_infos.dart）
 /// - TimingDivinations（tables/timing_divinations_table.dart）
-/// - Seekers（tables/seekers_table.dart）
+/// - Seekers（tables/seekers_table.dart）—— 已退场（数据在 t_record_meta）
 /// - SkillClasses（tables/skill_classes_table.dart）
 /// - UserSchools / UserDeities（taiyishenshu/taiyi_database.dart）
 ///
 /// TODO(scope-migration): 依赖这些表的迁移方案落地后（如 ai 库加 scope_uid、
 /// taiyi 库加 scope_uid），再把对应表加入本清单并接入 handover。
+///
+/// 已解决（SW1-T1，schema v11）：案卷创建流 6 张表（t_divination_cases /
+/// t_divination_work_items / t_case_participants / t_panel_refs /
+/// t_work_item_panel_refs / t_creation_audit_logs）已加 scope_uid 列并回填，
+/// 纳入本清单。
 const List<String> kScopeMigratableTables = [
   't_outbox', // OutboxRecords
   't_sync_state', // SyncStates
@@ -52,6 +57,12 @@ const List<String> kScopeMigratableTables = [
   't_decision_links', // DecisionLinks
   't_divination_tags', // DivinationTags
   't_blob_meta', // BlobMetas
+  't_divination_cases', // DivinationCases（SW1-T1）
+  't_divination_work_items', // DivinationWorkItems（SW1-T1）
+  't_case_participants', // CaseParticipants（SW1-T1）
+  't_panel_refs', // PanelRefs（SW1-T1）
+  't_work_item_panel_refs', // WorkItemPanelRefs（SW1-T1）
+  't_creation_audit_logs', // CreationAuditLogs（SW1-T1）
 ];
 
 /// Drift 实现的 scope 交接服务。

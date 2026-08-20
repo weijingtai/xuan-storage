@@ -5,6 +5,7 @@ class PanelRefs extends Table {
   String get tableName => 't_panel_refs';
 
   TextColumn get uuid => text().named('uuid')();
+  TextColumn get scopeUid => text().named('scope_uid').nullable()();
   TextColumn get module => text().named('module')();
   TextColumn get panelUuid => text().named('panel_uuid')();
   TextColumn get panelType => text().named('panel_type')();

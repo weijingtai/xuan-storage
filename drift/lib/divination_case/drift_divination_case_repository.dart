@@ -59,6 +59,7 @@ class DriftDivinationCaseRepository
   DivinationCasesCompanion _caseToRow(DivinationCaseModel model) {
     return DivinationCasesCompanion.insert(
       uuid: model.uuid,
+      scopeUid: Value(_store.scopeUid),
       title: model.title,
       mainQuestion: model.mainQuestion,
       status: model.status.name,
@@ -178,6 +179,7 @@ class DriftDivinationCaseRepository
   DivinationWorkItemsCompanion _workItemToRow(DivinationWorkItemModel model) {
     return DivinationWorkItemsCompanion.insert(
       uuid: model.uuid,
+      scopeUid: Value(_store.scopeUid),
       caseUuid: model.caseUuid,
       parentWorkItemUuid: Value(model.parentWorkItemUuid),
       title: model.title,
@@ -219,6 +221,7 @@ class DriftDivinationCaseRepository
   CaseParticipantsCompanion _participantToRow(DivinationParticipantModel model) {
     return CaseParticipantsCompanion.insert(
       uuid: model.uuid,
+      scopeUid: Value(_store.scopeUid),
       caseUuid: model.caseUuid,
       recordUuid: Value(model.recordUuid),
       name: model.name,
@@ -277,6 +280,7 @@ class DriftDivinationCaseRepository
   PanelRefsCompanion _panelRefToRow(PanelRefModel model) {
     return PanelRefsCompanion.insert(
       uuid: model.uuid,
+      scopeUid: Value(_store.scopeUid),
       module: model.module,
       panelUuid: model.panelUuid,
       panelType: model.panelType,
@@ -298,6 +302,7 @@ class DriftDivinationCaseRepository
   WorkItemPanelRefsCompanion _workItemPanelRefToRow(WorkItemPanelRefModel model) {
     return WorkItemPanelRefsCompanion.insert(
       uuid: model.uuid,
+      scopeUid: Value(_store.scopeUid),
       workItemUuid: model.workItemUuid,
       panelRefUuid: model.panelRefUuid,
       role: model.role.name,

@@ -5,6 +5,7 @@ class WorkItemPanelRefs extends Table {
   String get tableName => 't_work_item_panel_refs';
 
   TextColumn get uuid => text().named('uuid')();
+  TextColumn get scopeUid => text().named('scope_uid').nullable()();
   TextColumn get workItemUuid => text().named('work_item_uuid')();
   TextColumn get panelRefUuid => text().named('panel_ref_uuid')();
   TextColumn get role => text().named('role')();
