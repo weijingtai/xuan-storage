@@ -85,6 +85,20 @@ class TaiYiDatabase extends _$TaiYiDatabase {
     }
   }
 
+  /// 关闭指定 scope 的数据库连接并从单例缓存中移除。
+  ///
+  /// 用于 handover 搬迁前释放文件句柄并使缓存失效，
+  /// 防止后续读写指向已被改名的文件句柄。
+  static Future<void> closeScope(String scopeUid) async {
+    final future = _scopeFutures.remove(scopeUid);
+    if (future != null) {
+      try {
+        final db = await future;
+        await db.close();
+      } catch (_) {}
+    }
+  }
+
   /// 清空进程级 scope 单例缓存（测试隔离用）。
   static void resetScopeCache() {
     _scopeFutures.clear();

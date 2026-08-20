@@ -35,6 +35,9 @@ class DriftSqliteFileBackupService implements ScopeBackupService {
   final PersistenceDriftDatabase _db;
   final Directory _backupDirectory;
 
+  /// 备份文件存放目录。
+  Directory get backupDirectory => _backupDirectory;
+
   @override
   Future<String> backup({
     required String fromScope,
