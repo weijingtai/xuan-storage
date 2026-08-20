@@ -130,16 +130,30 @@
 
 ---
 
-## 四、遗留未决
+## 四、遗留未决（3/4 已结案）
 
 1. 各独立库的连接构造/注入方式未调研 → 裁决一实现前必须补
 2. 主库 11 张表的逐表退场进度未确认 → 裁决二实现前必须补
-3. `AccountIdentityLinks` 循环依赖存疑：该表在 `AccountDatabase`，
-   本身是 scope 判定依据。按裁决一它随库分文件——但决定 scope 的记录若按 scope 分文件，
-   启动时无从知道该读哪个文件。**此项裁决一不适用，需单独设计**
-4. `AiPersonas` / `LayoutTemplates` / `LlmProviders` / `PromptTemplates` 四张混合表
-   （系统内置 + 用户自定义共表）：按裁决一分文件后，内置数据会在每个 scope 文件里重复一份。
-   可接受，但 `PromptTemplates` 有 `isBuiltin` 列，可考虑内置部分留在共享库
+3. ~~`AccountIdentityLinks` 循环依赖~~ → **已裁决（2026-08-19）：AccountDatabase 全局单库豁免**。
+   `AccountIdentityLinks` 视为「设备级」数据，随设备不随用户，AccountDatabase 保持单一
+   全局文件不分 scope。依据：它已是 App 生命周期单例（xuan-shell
+   `lib/storage/shell_storage_bootstrap.dart:25` 明写 "must not be rebuilt on scope switch"），
+   豁免与现有架构一致、零改动。
+   已知代价并接受：该表内容跨主人可见——但它只存匿名账号与注册账号的绑定关系，
+   不含占测内容。
+   ⚠ `kScopeMigratableTables` 中**不得**加入 `t_account_identity_links`。
+4. ~~四张混合表~~ → **已裁决（2026-08-19）：整表跟所在库走，不做按行分治**。
+   `AiPersonas` / `LayoutTemplates` / `LlmProviders` / `PromptTemplates` 随所在库分文件，
+   内置数据在每个 scope 文件里各存一份。
+   依据：内置数据体量很小（若干人设/供应商/模板），重复存储代价可忽略；
+   按行分治需要「共享库 + scope 库」双源读取合并，复杂度不划算。
+
+   ★ 事实订正（原记载有误）：四张表里**只有 `PromptTemplates` 真有内置标记**
+   （`isBuiltin`，`ai/tables/tables.dart:142`，种子数据于 `ai_database.dart:277` 设 true）。
+   `AiPersonas` 与 `LlmProviders` 只有 `isDefault`/`isEnabled` —— 「默认」不等于「内置」，
+   无法据此分治；`LayoutTemplates` 仅有 `collectionId`，无布尔内置标记。
+   即原方案「内置部分留在共享库」实际只对一张表成立。
+   `PromptTemplates.isBuiltin` 列保留，本轮不用于分治。
 
 ---
 
