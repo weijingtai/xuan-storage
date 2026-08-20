@@ -9,7 +9,9 @@ void main() {
 
   setUp(() {
     db = PersistenceDriftDatabase(NativeDatabase.memory());
-    repository = DriftDivinationCaseRepository(db);
+    final ds = DriftRecordDataSource(db, scopeUid: 'scope-a');
+    repository = DriftDivinationCaseRepository(db,
+        store: LocalRecordRepository(ds, RecordAdapterRegistry([])));
   });
 
   tearDown(() async {
