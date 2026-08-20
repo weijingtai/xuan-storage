@@ -101,6 +101,7 @@ export 'divination_case/creation_audit_logs_table.dart';
 export 'divination_case/creation_audit_logs_dao.dart';
 export 'scope/scope_alias_entry.dart';
 export 'scope/scope_backup.dart';
+export 'scope/prescope_legacy_archiver.dart';
 export 'scope/scope_bootstrap_store.dart';
 export 'scope/scope_handover.dart';
 export 'scope/scope_ledger.dart';

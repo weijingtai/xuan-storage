@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
+import '../scope/prescope_legacy_archiver.dart';
 import 'tables/tables.dart';
 import 'connection.dart' as impl;
 import 'ai_schema.dart';
@@ -70,6 +73,61 @@ part 'ai_database.g.dart';
   ],
 )
 class AiDatabase extends _$AiDatabase {
+  /// 进程级 per-scope 单例缓存：同一 scope 在同一进程内只构造一个实例。
+  ///
+  /// 与 [TaiYiDatabase.forScope] 同模式，从根源杜绝"同一 scope 并发构造
+  /// 两个实例指向不同物理文件"的竞态。
+  static final Map<String, Future<AiDatabase>> _scopeFutures = {};
+
+  /// 已注册 schema 标记：registerAiSchema() 非幂等（重复注册抛异常），
+  /// 故只在进程内首个实例构造时注册一次。
+  static bool _schemaRegistered = false;
+
+  /// 按 scope 打开（懒加载 + 单例）数据库实例。
+  ///
+  /// 首次打开该 scope 前会先执行存量数据一次性归档（备份 → 改名），
+  /// 把无 scope 时代的旧文件 `ai_database.sqlite` 归入当前 scope。
+  /// 并发调用返回同一个 Future，保证只构造一个实例。
+  static Future<AiDatabase> forScope(
+    String scopeUid, {
+    Future<Directory> Function()? databaseDirectory,
+    Directory? backupDirectory,
+  }) {
+    final existing = _scopeFutures[scopeUid];
+    if (existing != null) return existing;
+    final future = _createScoped(scopeUid, databaseDirectory, backupDirectory);
+    _scopeFutures[scopeUid] = future;
+    return future;
+  }
+
+  static Future<AiDatabase> _createScoped(
+    String scopeUid,
+    Future<Directory> Function()? databaseDirectory,
+    Directory? backupDirectory,
+  ) async {
+    try {
+      final dirFn = databaseDirectory ?? getApplicationSupportDirectory;
+      // 存量归档：备份失败抛异常，中止（不进入构造）。
+      await PrescopeLegacyArchiver(
+        databaseDirectory: dirFn,
+        backupDirectory:
+            backupDirectory ?? Directory('${(await dirFn()).path}/backups'),
+      ).archive(dbName: 'ai_database', scopeUid: scopeUid);
+      return AiDatabase._scoped(
+        scopeUid: scopeUid,
+        databaseDirectory: databaseDirectory,
+      );
+    } catch (_) {
+      _scopeFutures.remove(scopeUid);
+      rethrow;
+    }
+  }
+
+  /// 清空进程级 scope 单例缓存（测试隔离用）。
+  static void resetScopeCache() {
+    _scopeFutures.clear();
+  }
+
   AiDatabase([QueryExecutor? e])
     : super(
         e ??
@@ -95,7 +153,43 @@ class AiDatabase extends _$AiDatabase {
             ),
       ) {
     // Register schema with central hub for Federated Repository pattern.
-    registerAiSchema();
+    _registerSchemaOnce();
+  }
+
+  AiDatabase._scoped({
+    required String scopeUid,
+    Future<Directory> Function()? databaseDirectory,
+  }) : super(
+          driftDatabase(
+            name: 'ai_database_$scopeUid',
+            native: DriftNativeOptions(
+              databaseDirectory:
+                  databaseDirectory ?? getApplicationSupportDirectory,
+            ),
+            web: DriftWebOptions(
+              sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+              driftWorker: Uri.parse('drift_worker.js'),
+              onResult: (result) {
+                debugPrint(
+                  '[AiDatabase] Web storage: ${result.chosenImplementation}',
+                );
+                if (result.missingFeatures.isNotEmpty) {
+                  debugPrint(
+                    '[AiDatabase] Missing features: ${result.missingFeatures}',
+                  );
+                }
+              },
+            ),
+          ),
+        ) {
+    _registerSchemaOnce();
+  }
+
+  void _registerSchemaOnce() {
+    if (!_schemaRegistered) {
+      registerAiSchema();
+      _schemaRegistered = true;
+    }
   }
 
   @override

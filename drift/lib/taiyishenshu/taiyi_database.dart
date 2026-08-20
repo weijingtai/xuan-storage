@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../scope/prescope_legacy_archiver.dart';
 import 'taiyi_database_memory_stub.dart'
     if (dart.library.ffi) 'taiyi_database_memory_native.dart';
 
@@ -30,12 +33,74 @@ class UserDeities extends Table {
 
 @DriftDatabase(tables: [UserSchools, UserDeities])
 class TaiYiDatabase extends _$TaiYiDatabase {
-  TaiYiDatabase()
-      : super(
+  /// 进程级 per-scope 单例缓存：同一 scope 在同一进程内只构造一个实例。
+  ///
+  /// 配合 [forScope] 的 in-flight 去重，从根源杜绝"同一 scope 并发触发
+  /// 两次 rebuildForScope 导致两个 TaiYiDatabase 指向不同物理文件"的竞态
+  /// （xuan_shell_dependencies.dart 的 _onAccountChanged 注释所述）。
+  static final Map<String, Future<TaiYiDatabase>> _scopeFutures = {};
+
+  /// 按 scope 打开（懒加载 + 单例）数据库实例。
+  ///
+  /// 首次打开该 scope 前会先执行存量数据一次性归档（备份 → 改名），
+  /// 把无 scope 时代的旧文件 `<name>.sqlite` 归入当前 scope。
+  /// 并发调用返回同一个 Future，保证只构造一个实例。
+  static Future<TaiYiDatabase> forScope(
+    String scopeUid, {
+    Future<Directory> Function()? databaseDirectory,
+    Directory? backupDirectory,
+  }) {
+    final existing = _scopeFutures[scopeUid];
+    if (existing != null) return existing;
+    final future = _createScoped(
+      scopeUid,
+      databaseDirectory,
+      backupDirectory,
+    );
+    _scopeFutures[scopeUid] = future;
+    return future;
+  }
+
+  static Future<TaiYiDatabase> _createScoped(
+    String scopeUid,
+    Future<Directory> Function()? databaseDirectory,
+    Directory? backupDirectory,
+  ) async {
+    try {
+      final dirFn = databaseDirectory ?? getApplicationSupportDirectory;
+      // 存量归档：备份失败抛异常，中止（不进入构造）。
+      await PrescopeLegacyArchiver(
+        databaseDirectory: dirFn,
+        backupDirectory:
+            backupDirectory ?? Directory('${(await dirFn()).path}/backups'),
+      ).archive(dbName: 'taiyi_database', scopeUid: scopeUid);
+      return TaiYiDatabase(
+        scopeUid: scopeUid,
+        databaseDirectory: databaseDirectory,
+      );
+    } catch (_) {
+      // 创建失败时清空，允许下次重建（否则 failed Future 会被永久复用）。
+      _scopeFutures.remove(scopeUid);
+      rethrow;
+    }
+  }
+
+  /// 清空进程级 scope 单例缓存（测试隔离用）。
+  static void resetScopeCache() {
+    _scopeFutures.clear();
+  }
+
+  TaiYiDatabase({
+    String? scopeUid,
+    Future<Directory> Function()? databaseDirectory,
+  }) : super(
           driftDatabase(
-            name: 'taiyi_database',
-            native: const DriftNativeOptions(
-              databaseDirectory: getApplicationSupportDirectory,
+            name: scopeUid == null
+                ? 'taiyi_database'
+                : 'taiyi_database_$scopeUid',
+            native: DriftNativeOptions(
+              databaseDirectory:
+                  databaseDirectory ?? getApplicationSupportDirectory,
             ),
             web: DriftWebOptions(
               sqlite3Wasm: Uri.parse('sqlite3.wasm'),
