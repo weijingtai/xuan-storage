@@ -16,8 +16,17 @@ REGION = "asia-east1"
 #   「先分析源码 → 后加载 .env」，装饰器求值时环境变量还不存在，
 #   只会静默回落到默认值。凡是装饰器参数需要的值都有这个限制。
 #   FIREBASE_CONFIG 则在分析阶段就已注入，所以按项目 id 查表是可行的。
+#
+# ⚠ 新增环境时必须在这里登记，不要依赖回落。回落到 REGION 只在
+#   「桶恰好与函数同区」时才对，猜错的表现是部署报
+#   "cannot listen to a bucket in region X"——错误信息不会告诉你该改哪里。
 _STORAGE_TRIGGER_REGION_BY_PROJECT = {
-    "xuan-staging": "us-east1",  # 默认桶建在 us-east1，与函数主区域不一致
+    # 默认桶建在 us-east1（控制台默认位置在美国，当时一路点过去了），
+    # 与函数主区域 asia-east1 不一致，故该触发器单独部署在 us-east1。
+    "xuan-staging": "us-east1",
+    # 生产要求桶与函数同区。初始化 Storage 时**位置必须选 asia-east1**——
+    # 桶的区域创建后不可更改，选错只能删桶重建。
+    "xuan-production": "asia-east1",
 }
 
 
