@@ -34,6 +34,8 @@ EXPECTED_TRIGGERS = [
 EXPECTED_HTTP = [
     "playground_feed_py",
     "playground_posts_py",
+    "playground_likes_py",
+    "playground_bookmarks_py",
 ]
 
 
@@ -53,9 +55,9 @@ def test_http_rest_端点已注册():
 
 
 def test_与_入口总数对齐():
-    """25 callable + 3 trigger + 2 HTTP REST = 30 个入口，Python 侧必须一致。"""
+    """25 callable + 3 trigger + 4 HTTP REST = 32 个入口，Python 侧必须一致。"""
     entries = {n for n in dir(main) if n.endswith("_py") and not n.startswith("_")}
-    assert len(entries) == 30, f"入口数不符：{len(entries)}，应为 30"
+    assert len(entries) == 32, f"入口数不符：{len(entries)}，应为 32"
 
 
 def test_没有多余的未声明导出():

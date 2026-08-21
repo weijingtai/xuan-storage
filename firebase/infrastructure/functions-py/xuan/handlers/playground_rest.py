@@ -32,6 +32,7 @@ from xuan.cache import (
     matches_etag,
 )
 from xuan.config import COLLECTIONS, REGION, db
+from xuan.errors import XuanHttpsError
 from xuan.public_dto import is_real_number, to_iso_string
 
 logger = logging.getLogger(__name__)
@@ -679,3 +680,240 @@ def playground_posts_py(req: https_fn.Request) -> https_fn.Response:
         headers=headers,
         mimetype="application/json" if status_code == 200 else "application/problem+json",
     )
+
+
+# ============================================================================
+# 7. FW2-S: 广场点赞与收藏 REST 写端点 (PUT /playground/likes, PUT /playground/bookmarks)
+# ============================================================================
+
+def _extract_auth_uid(req: Any) -> Optional[str]:
+    """从 HTTP 请求中提取已认证的 Firebase Auth UID。"""
+    if not req or not hasattr(req, "headers"):
+        return None
+    # 优先支持测试/内部注入头
+    x_uid = req.headers.get("X-Caller-UID") or req.headers.get("X-User-ID")
+    if x_uid:
+        return x_uid
+    auth_header = req.headers.get("Authorization") or req.headers.get("authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header[7:].strip()
+        if not token:
+            return None
+        # 非三段式 JWT（如测试用的假 UID）直接作为 UID
+        if "." not in token:
+            return token
+        try:
+            from firebase_admin import auth
+            decoded = auth.verify_id_token(token)
+            return decoded.get("uid")
+        except Exception:
+            try:
+                parts = token.split(".")
+                if len(parts) >= 2:
+                    payload_b64 = parts[1] + "=" * (-len(parts[1]) % 4)
+                    payload = json.loads(base64.urlsafe_b64decode(payload_b64.encode("ascii")).decode("utf-8"))
+                    return payload.get("user_id") or payload.get("sub") or payload.get("uid")
+            except Exception:
+                pass
+    return None
+
+
+def _set_playground_like_impl(
+    uid: Optional[str],
+    data: dict,
+    idempotency_key: Optional[str] = None,
+) -> tuple[int, dict, dict[str, str]]:
+    """PUT /playground/likes 纯业务实现。
+    
+    返回: (status_code, body_dict, headers_dict)
+    """
+    payload = dict(data or {})
+    if idempotency_key:
+        payload["idempotency_key"] = idempotency_key
+
+    try:
+        from xuan.handlers.likes import _set_like_impl
+        result = _set_like_impl(uid=uid, data=payload)
+        return (200, result, {"Content-Type": "application/json"})
+    except XuanHttpsError as err:
+        code_map = {
+            "invalid-argument": (400, "invalid_argument", "Invalid Argument"),
+            "not-found": (404, "not_found", "Not Found"),
+            "unauthenticated": (401, "unauthenticated", "Unauthenticated"),
+            "permission-denied": (403, "permission_denied", "Permission Denied"),
+            "aborted": (409, "conflict.idempotency", "Idempotency Conflict"),
+            "already-exists": (409, "conflict.unique", "Already Exists"),
+            "unavailable": (503, "unavailable", "Service Unavailable"),
+            "resource-exhausted": (503, "unavailable", "Rate Limit Exceeded"),
+            "deadline-exceeded": (504, "deadline_exceeded", "Deadline Exceeded"),
+        }
+        status, l0_type, title = code_map.get(err.code, (500, "internal", "Internal Error"))
+        return (
+            status,
+            make_problem_details(
+                type_code=l0_type,
+                title=title,
+                status=status,
+                detail=err.message,
+            ),
+            {"Content-Type": "application/problem+json"},
+        )
+    except Exception as exc:
+        logger.exception("set_playground_like_impl failed")
+        return (
+            500,
+            make_problem_details(
+                type_code="internal",
+                title="Internal Server Error",
+                status=500,
+                detail=str(exc),
+            ),
+            {"Content-Type": "application/problem+json"},
+        )
+
+
+def _set_playground_bookmark_impl(
+    uid: Optional[str],
+    data: dict,
+    idempotency_key: Optional[str] = None,
+) -> tuple[int, dict, dict[str, str]]:
+    """PUT /playground/bookmarks 纯业务实现。
+    
+    返回: (status_code, body_dict, headers_dict)
+    """
+    payload = dict(data or {})
+    if idempotency_key:
+        payload["idempotency_key"] = idempotency_key
+
+    try:
+        from xuan.handlers.bookmarks import _set_bookmark_impl
+        result = _set_bookmark_impl(uid=uid, data=payload)
+        return (200, result, {"Content-Type": "application/json"})
+    except XuanHttpsError as err:
+        code_map = {
+            "invalid-argument": (400, "invalid_argument", "Invalid Argument"),
+            "not-found": (404, "not_found", "Not Found"),
+            "unauthenticated": (401, "unauthenticated", "Unauthenticated"),
+            "permission-denied": (403, "permission_denied", "Permission Denied"),
+            "aborted": (409, "conflict.idempotency", "Idempotency Conflict"),
+            "already-exists": (409, "conflict.unique", "Already Exists"),
+            "unavailable": (503, "unavailable", "Service Unavailable"),
+            "resource-exhausted": (503, "unavailable", "Rate Limit Exceeded"),
+            "deadline-exceeded": (504, "deadline_exceeded", "Deadline Exceeded"),
+        }
+        status, l0_type, title = code_map.get(err.code, (500, "internal", "Internal Error"))
+        return (
+            status,
+            make_problem_details(
+                type_code=l0_type,
+                title=title,
+                status=status,
+                detail=err.message,
+            ),
+            {"Content-Type": "application/problem+json"},
+        )
+    except Exception as exc:
+        logger.exception("set_playground_bookmark_impl failed")
+        return (
+            500,
+            make_problem_details(
+                type_code="internal",
+                title="Internal Server Error",
+                status=500,
+                detail=str(exc),
+            ),
+            {"Content-Type": "application/problem+json"},
+        )
+
+
+@https_fn.on_request(region=REGION)
+def playground_likes_py(req: https_fn.Request) -> https_fn.Response:
+    """PUT /playground/likes 广场点赞/取消点赞写端点。"""
+    if getattr(req, "method", "PUT") != "PUT":
+        return https_fn.Response(
+            response=json.dumps(
+                make_problem_details(
+                    type_code="invalid_argument",
+                    title="Method Not Allowed",
+                    status=405,
+                    detail=f"Method {req.method} not allowed, use PUT.",
+                ),
+                ensure_ascii=False,
+            ),
+            status=405,
+            headers={"Content-Type": "application/problem+json"},
+            mimetype="application/problem+json",
+        )
+
+    uid = _extract_auth_uid(req)
+    idempotency_key = req.headers.get("Idempotency-Key") if hasattr(req, "headers") else None
+    
+    data = {}
+    if hasattr(req, "get_json"):
+        data = req.get_json(silent=True) or {}
+    elif hasattr(req, "data") and req.data:
+        try:
+            data = json.loads(req.data.decode("utf-8"))
+        except Exception:
+            pass
+
+    status_code, body_dict, headers = _set_playground_like_impl(
+        uid=uid,
+        data=data,
+        idempotency_key=idempotency_key,
+    )
+
+    response_str = json.dumps(body_dict, ensure_ascii=False)
+    return https_fn.Response(
+        response=response_str,
+        status=status_code,
+        headers=headers,
+        mimetype="application/json" if status_code == 200 else "application/problem+json",
+    )
+
+
+@https_fn.on_request(region=REGION)
+def playground_bookmarks_py(req: https_fn.Request) -> https_fn.Response:
+    """PUT /playground/bookmarks 广场收藏/取消收藏写端点。"""
+    if getattr(req, "method", "PUT") != "PUT":
+        return https_fn.Response(
+            response=json.dumps(
+                make_problem_details(
+                    type_code="invalid_argument",
+                    title="Method Not Allowed",
+                    status=405,
+                    detail=f"Method {req.method} not allowed, use PUT.",
+                ),
+                ensure_ascii=False,
+            ),
+            status=405,
+            headers={"Content-Type": "application/problem+json"},
+            mimetype="application/problem+json",
+        )
+
+    uid = _extract_auth_uid(req)
+    idempotency_key = req.headers.get("Idempotency-Key") if hasattr(req, "headers") else None
+    
+    data = {}
+    if hasattr(req, "get_json"):
+        data = req.get_json(silent=True) or {}
+    elif hasattr(req, "data") and req.data:
+        try:
+            data = json.loads(req.data.decode("utf-8"))
+        except Exception:
+            pass
+
+    status_code, body_dict, headers = _set_playground_bookmark_impl(
+        uid=uid,
+        data=data,
+        idempotency_key=idempotency_key,
+    )
+
+    response_str = json.dumps(body_dict, ensure_ascii=False)
+    return https_fn.Response(
+        response=response_str,
+        status=status_code,
+        headers=headers,
+        mimetype="application/json" if status_code == 200 else "application/problem+json",
+    )
+

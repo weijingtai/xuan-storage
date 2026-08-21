@@ -8,7 +8,10 @@
 from firebase_functions import https_fn
 from google.cloud import firestore as gcf
 
-from xuan.cache import invalidate_guest_replies_cache
+from xuan.cache import (
+    invalidate_guest_replies_cache,
+    invalidate_playground_post_cache,
+)
 from xuan.config import COLLECTIONS, REGION, db
 from xuan.errors import invalid_argument, not_found
 from xuan.hashing import hash_payload
@@ -75,10 +78,13 @@ def _set_like_impl(uid: str, data: dict) -> dict:
             _write_outbox("like_added")
             if post_id:
                 invalidate_guest_replies_cache(post_id)
+                invalidate_playground_post_cache(post_id)
             elif reply_id:
                 r_snap = client.collection(COLLECTIONS["replies"]).document(reply_id).get()
                 if r_snap.exists:
-                    invalidate_guest_replies_cache((r_snap.to_dict() or {}).get("post_id"))
+                    pid = (r_snap.to_dict() or {}).get("post_id")
+                    invalidate_guest_replies_cache(pid)
+                    invalidate_playground_post_cache(pid)
             return {"liked": True, "id": like_id, "target_type": target_type}
 
         # unlike：只有确实存在时才删除并发事件
@@ -87,10 +93,13 @@ def _set_like_impl(uid: str, data: dict) -> dict:
             _write_outbox("like_removed")
             if post_id:
                 invalidate_guest_replies_cache(post_id)
+                invalidate_playground_post_cache(post_id)
             elif reply_id:
                 r_snap = client.collection(COLLECTIONS["replies"]).document(reply_id).get()
                 if r_snap.exists:
-                    invalidate_guest_replies_cache((r_snap.to_dict() or {}).get("post_id"))
+                    pid = (r_snap.to_dict() or {}).get("post_id")
+                    invalidate_guest_replies_cache(pid)
+                    invalidate_playground_post_cache(pid)
         return {"liked": False, "id": like_id, "target_type": target_type}
 
     return with_idempotency(data.get("idempotency_key"), hash_payload(data), _run)

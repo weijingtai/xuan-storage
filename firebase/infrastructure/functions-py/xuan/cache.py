@@ -501,3 +501,19 @@ def invalidate_identity_cache(uid: str) -> None:
     except Exception:
         logger.exception("invalidate_identity_cache failed for uid '%s'", uid)
 
+
+def invalidate_playground_post_cache(post_id: str) -> None:
+    """主动失效广场帖子详情与 Feed 列表缓存。
+
+    铁律：绝不抛异常。
+    """
+    if not post_id:
+        return
+    try:
+        cache = get_global_cache()
+        cache.invalidate_by_prefix(f"playground/posts/{post_id}")
+        cache.invalidate_by_prefix("/playground/feed")
+    except Exception:
+        logger.exception("invalidate_playground_post_cache failed for post_id '%s'", post_id)
+
+
