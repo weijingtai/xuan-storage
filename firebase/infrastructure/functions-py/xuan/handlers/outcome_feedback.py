@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from firebase_functions import https_fn
 from google.cloud import firestore as gcf
 
+from xuan.cache import invalidate_guest_replies_cache
 from xuan.config import COLLECTIONS, REGION, db
 from xuan.errors import XuanHttpsError, already_exists, invalid_argument, not_found
 from xuan.hashing import hash_payload
@@ -64,6 +65,7 @@ def _set_outcome_feedback_impl(uid: str, data: dict) -> dict:
         client.collection(COLLECTIONS["posts"]).document(post_id).update({
             "has_outcome_feedback": True,
         })
+        invalidate_guest_replies_cache(post_id)
 
         return {
             "id": ref.id,
@@ -107,6 +109,7 @@ def _revoke_outcome_feedback_impl(uid: str, data: dict) -> dict:
         client.collection(COLLECTIONS["posts"]).document(post_id).update({
             "has_outcome_feedback": False,
         })
+        invalidate_guest_replies_cache(post_id)
         return {"success": True}
 
     return with_idempotency(data.get("idempotency_key"), hash_payload(data), _run)
