@@ -7,7 +7,17 @@
     {
       "source": "functions-py",
       "codebase": "python",
-      "runtime": "python311"
+      "runtime": "python311",
+      "ignore": [
+        "venv",
+        ".venv",
+        "__pycache__",
+        "*.pyc",
+        ".pytest_cache",
+        "tests",
+        "tools",
+        ".gitignore"
+      ]
     }
   ],
   "storage": {

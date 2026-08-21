@@ -13,7 +13,7 @@ import firebase_admin
 from firebase_functions import scheduler_fn, storage_fn
 from google.cloud import firestore as gcf
 
-from xuan.config import COLLECTIONS, REGION, db
+from xuan.config import COLLECTIONS, REGION, STORAGE_TRIGGER_REGION, db
 
 _log = logging.getLogger(__name__)
 
@@ -108,7 +108,7 @@ def cleanup_orphan_media() -> int:
     return len(pending)
 
 
-@storage_fn.on_object_finalized(bucket=_resolve_storage_bucket(), region=REGION)
+@storage_fn.on_object_finalized(bucket=_resolve_storage_bucket(), region=STORAGE_TRIGGER_REGION)
 def on_media_uploaded_py(event: storage_fn.CloudEvent[storage_fn.StorageObjectData]) -> None:
     """存储对象写入完成时的薄壳。"""
     handle_media_uploaded(event.data.name, event.data.size, event.data.content_type)

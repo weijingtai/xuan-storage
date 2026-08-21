@@ -8,6 +8,12 @@ import google.auth.credentials
 # 部署区域。与 TS 版一致，改动会导致客户端调用不到。
 REGION = "asia-east1"
 
+# Storage 触发器的区域必须与被监听的桶同区，否则部署直接报
+# "A function in region X cannot listen to a bucket in region Y"。
+# 各环境的默认桶未必都在 REGION：xuan-staging 的默认桶建在 us-east1。
+# 故单独可配，用 .env.<projectId> 按环境覆盖，默认跟随 REGION。
+STORAGE_TRIGGER_REGION = os.environ.get("XUAN_STORAGE_TRIGGER_REGION") or REGION
+
 # 集合名。键为 snake_case，值必须与 TS 侧 COLLECTIONS 的值完全相同。
 COLLECTIONS = {
     "posts": "playground_posts",
