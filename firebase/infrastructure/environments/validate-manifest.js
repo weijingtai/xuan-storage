@@ -5,7 +5,7 @@
  * 均通过 validateManifest() 断言非法 manifest 被拒绝。
  *
  * 规则（PRD §5.4 / DISPATCH §6 Phase 6）：
- * - schemaVersion 必须为 1；functionsRegion 必须为 'asia-east1'；
+ * - schemaVersion 必须为 1；functionsRegion 必须为 'us-central1'；
  * - 环境集必须恰为 { development, test, staging, production }；
  * - 每个环境必须含非空 projectId；
  * - development/test：emulator 必须存在且含 host + 四核心端口
@@ -33,9 +33,9 @@ function validateManifest(raw) {
   if (manifest.schemaVersion !== 1) {
     errors.push(`schemaVersion 必须为 1，实际 ${String(manifest.schemaVersion)}`);
   }
-  if (manifest.functionsRegion !== 'asia-east1') {
+  if (manifest.functionsRegion !== 'us-central1') {
     errors.push(
-      `functionsRegion 必须为 asia-east1，实际 ${String(manifest.functionsRegion)}`,
+      `functionsRegion 必须为 us-central1，实际 ${String(manifest.functionsRegion)}`,
     );
   }
 

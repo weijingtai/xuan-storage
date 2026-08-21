@@ -6,7 +6,10 @@ from firebase_admin import credentials, firestore, initialize_app
 import google.auth.credentials
 
 # 部署区域。与 TS 版一致，改动会导致客户端调用不到。
-REGION = "asia-east1"
+# 函数区域必须与数据同侧：Firestore 在 nam5（美国多区域），
+# 函数放亚洲会让每次 Firestore 读写都跨太平洋往返。
+# （2026-08-21 裁决，此前为 asia-east1。）
+REGION = "us-central1"
 
 # Storage 触发器的区域必须与被监听的桶同区，否则部署直接报
 # "A function in region X cannot listen to a bucket in region Y"。
@@ -22,7 +25,7 @@ REGION = "asia-east1"
 #   "cannot listen to a bucket in region X"——错误信息不会告诉你该改哪里。
 _STORAGE_TRIGGER_REGION_BY_PROJECT = {
     # 默认桶建在 us-east1（控制台默认位置在美国，当时一路点过去了），
-    # 与函数主区域 asia-east1 不一致，故该触发器单独部署在 us-east1。
+    # 与函数主区域不一致，故该触发器单独部署在 us-east1。
     "xuan-staging": "us-east1",
     # 生产的桶在 nam5（美国多区域）。nam5 是**位置**不是函数区域，
     # Cloud Functions 不能部署到 nam5，触发器要落在该多区域覆盖的具体区域里，

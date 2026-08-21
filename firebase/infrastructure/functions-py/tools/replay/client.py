@@ -16,7 +16,7 @@ class ReplayClient:
         self,
         host: str = "127.0.0.1",
         project: str = "demo-xuan",
-        region: str = "asia-east1",
+        region: str = "us-central1",
         firestore_port: int = 8080,
         auth_port: int = 9099,
         functions_port: int = 5001,

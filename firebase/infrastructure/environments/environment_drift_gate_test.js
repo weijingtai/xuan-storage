@@ -3,7 +3,9 @@
  *
  * 覆盖（DISPATCH §6 Phase 6.7 / Gate 6）：
  * 1. manifest ↔ .firebaserc（default/staging/production alias）drift；
- * 2. manifest.functionsRegion ↔ functions/src 所有 callable region（region smoke）；
+ * 2. manifest.functionsRegion ↔ Python 侧 REGION 常量 + 调用点不得写死区域（region smoke）；
+ *    ⚠ 2026-08-21：TS 版已归档退场，本项改为扫 functions-py。旧版扫 functions/src/*.ts，
+ *      TS 归档后该断言守的是空壳，看着绿但与线上实现无关。
  * 3. fail-closed：非法 manifest（schemaVersion/未知环境/缺 projectId/端口缺失/
  *    重复端口/staging 带 emulator/生产 allowAll）必须被 validateManifest 拒绝；
  * 4. 四核心端口（auth/firestore/storage/functions）必须齐备且互异。
@@ -23,9 +25,13 @@ const manifestPath = path.join(
   'firebase-environments.json',
 );
 const firebasercPath = path.join(infrastructureDirectory, '.firebaserc');
-const functionsSrcDirectory = path.join(
+const pythonHandlersDirectory = path.join(
   infrastructureDirectory,
-  'functions/src',
+  'functions-py/xuan/handlers',
+);
+const pythonConfigPath = path.join(
+  infrastructureDirectory,
+  'functions-py/xuan/config.py',
 );
 
 function readManifest() {
@@ -59,32 +65,44 @@ test('manifest ↔ .firebaserc：staging/production/default alias 无 drift', ()
   );
 });
 
-test('region smoke：functions/src 所有 callable 均为 asia-east1（manifest.functionsRegion）', () => {
+test('region smoke：Python 侧 REGION 常量 == manifest.functionsRegion', () => {
   const manifest = readManifest();
-  const region = manifest.functionsRegion;
+  const config = fs.readFileSync(pythonConfigPath, 'utf8');
 
+  const m = config.match(/^REGION\s*=\s*"([^"]+)"/m);
+  assert.ok(m, 'config.py 必须定义 REGION 常量');
+  assert.equal(
+    m[1],
+    manifest.functionsRegion,
+    `config.py 的 REGION 必须等于 manifest.functionsRegion（${manifest.functionsRegion}）`,
+  );
+});
+
+test('region smoke：所有 callable 必须走 REGION 常量，不得写死区域字面量', () => {
   const files = fs
-    .readdirSync(functionsSrcDirectory)
-    .filter((f) => f.endsWith('.ts'));
-  assert.ok(files.length > 0, 'functions/src 必须存在 TS 文件');
+    .readdirSync(pythonHandlersDirectory)
+    .filter((f) => f.endsWith('.py'));
+  assert.ok(files.length > 0, 'functions-py/xuan/handlers 必须存在 Python 文件');
 
   let callableCount = 0;
   for (const file of files) {
     const content = fs.readFileSync(
-      path.join(functionsSrcDirectory, file),
+      path.join(pythonHandlersDirectory, file),
       'utf8',
     );
-    const matches = content.matchAll(/onCall\(\s*\{\s*region:\s*'([^']+)'/g);
-    for (const m of matches) {
+    // @https_fn.on_call(...) 的参数部分
+    const matches = content.matchAll(/@https_fn\.on_call\(([^)]*)\)/g);
+    for (const match of matches) {
       callableCount += 1;
-      assert.equal(
-        m[1],
-        region,
-        `${file} 中 callable region 必须为 ${region}，实际 ${m[1]}`,
+      const args = match[1];
+      assert.match(
+        args,
+        /region\s*=\s*REGION\b/,
+        `${file} 中的 on_call 必须写 region=REGION，实际参数：${args.trim()}`,
       );
     }
   }
-  assert.ok(callableCount >= 1, 'functions/src 必须至少含一个 callable');
+  assert.ok(callableCount >= 1, 'handlers 必须至少含一个 callable');
 });
 
 test('fail-closed：非法 manifest 全部被拒绝（不默许）', () => {

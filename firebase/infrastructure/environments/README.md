@@ -3,7 +3,12 @@
 `firebase-environments.json` is the source of truth for selecting Firebase
 projects and emulator endpoints in this repository.
 
-All callable Functions must be deployed to and invoked in `asia-east1`.
+All callable Functions must be deployed to and invoked in `us-central1`.
+
+区域选择的理由：Firestore 在 `nam5`（美国多区域）。函数必须跟数据同侧，
+否则每次读写都跨太平洋往返——单个 callable 里有多次 Firestore 操作，
+累加起来单请求会多出数百毫秒。`us-central1` 是 `nam5` 的对应区域。
+（2026-08-21 裁决，此前为 `asia-east1`。）
 
 | Environment | Firebase project | Runtime target |
 | --- | --- | --- |

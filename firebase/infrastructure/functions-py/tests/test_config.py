@@ -8,7 +8,7 @@ TS_INDEX = Path(__file__).parents[2] / "functions" / "src" / "index.ts"
 
 
 def test_region_与_ts_一致():
-    assert REGION == "asia-east1"
+    assert REGION == "us-central1"
 
 
 def test_集合名与_ts_逐项一致():

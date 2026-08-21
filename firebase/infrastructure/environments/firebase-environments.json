@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "functionsRegion": "asia-east1",
+  "functionsRegion": "us-central1",
   "environments": {
     "development": {
       "projectId": "demo-xuan",
