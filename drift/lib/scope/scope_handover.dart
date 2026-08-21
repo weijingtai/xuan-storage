@@ -93,6 +93,9 @@ const List<String> kScopeMigratableTables = [
   't_panel_refs', // PanelRefs（SW1-T1）
   't_work_item_panel_refs', // WorkItemPanelRefs（SW1-T1）
   't_creation_audit_logs', // CreationAuditLogs（SW1-T1）
+  't_timing_divinations', // TimingDivinations（SW2）
+  't_seekers', // Seekers（SW2）
+  't_skill_classes', // SkillClasses（SW2）
 ];
 
 /// Drift 实现的 scope 交接服务。

@@ -15,6 +15,7 @@ class Seekers extends Table {
 
   /// 标识为求测人
   TextColumn get uuid => text().withLength(min: 1).named('uuid')();
+  TextColumn get scopeUid => text().named('scope_uid').nullable()();
   TextColumn get username => text().named('username').nullable()();
   TextColumn get nickname => text().named('nickname').nullable()();
   TextColumn get gender => textEnum<Gender>()();

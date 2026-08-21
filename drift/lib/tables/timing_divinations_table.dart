@@ -22,6 +22,7 @@ class TimingDivinations extends Table {
 
   // 关联字段
   TextColumn get divinationUuid => text().named('divination_uuid')();
+  TextColumn get scopeUid => text().named('scope_uid').nullable()();
 
   // 历法核心数据
   IntColumn get timingType =>

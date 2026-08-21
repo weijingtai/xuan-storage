@@ -11,9 +11,10 @@ class DriftMeiHuaDivinationRecordRepository
     implements MeiHuaDivinationRecordRepository {
   final MeiHuaDatabase _database;
   final MeiHuaDivinationsDao _dao;
+  final String? scopeUid;
 
-  DriftMeiHuaDivinationRecordRepository(this._database)
-      : _dao = MeiHuaDivinationsDao(_database);
+  DriftMeiHuaDivinationRecordRepository(this._database, {this.scopeUid})
+      : _dao = MeiHuaDivinationsDao(_database, scopeUid: scopeUid);
 
   MeiHuaDivinationRecordContract _toContract(MeiHuaGuaInfo row) {
     return MeiHuaDivinationRecordContract(
@@ -41,6 +42,7 @@ class DriftMeiHuaDivinationRecordRepository
     await _dao.insertRecord(
       MeiHuaGuaInfosCompanion(
         uuid: Value(uuid),
+        scopeUid: Value(scopeUid),
         divinationUuid: Value(
             record.divinationUuid.isNotEmpty ? record.divinationUuid : uuid),
         question: Value(record.question),

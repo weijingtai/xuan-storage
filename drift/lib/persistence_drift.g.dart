@@ -1634,6 +1634,17 @@ class $SeekersTable extends Seekers with TableInfo<$SeekersTable, SeekerModel> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _usernameMeta = const VerificationMeta(
     'username',
   );
@@ -1852,6 +1863,7 @@ class $SeekersTable extends Seekers with TableInfo<$SeekersTable, SeekerModel> {
   @override
   List<GeneratedColumn> get $columns => [
     uuid,
+    scopeUid,
     username,
     nickname,
     gender,
@@ -1892,6 +1904,12 @@ class $SeekersTable extends Seekers with TableInfo<$SeekersTable, SeekerModel> {
       );
     } else if (isInserting) {
       context.missing(_uuidMeta);
+    }
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
     }
     if (data.containsKey('username')) {
       context.handle(
@@ -2127,6 +2145,7 @@ class $SeekersTable extends Seekers with TableInfo<$SeekersTable, SeekerModel> {
 
 class SeekersCompanion extends UpdateCompanion<SeekerModel> {
   final Value<String> uuid;
+  final Value<String?> scopeUid;
   final Value<String?> username;
   final Value<String?> nickname;
   final Value<Gender> gender;
@@ -2150,6 +2169,7 @@ class SeekersCompanion extends UpdateCompanion<SeekerModel> {
   final Value<int> rowid;
   const SeekersCompanion({
     this.uuid = const Value.absent(),
+    this.scopeUid = const Value.absent(),
     this.username = const Value.absent(),
     this.nickname = const Value.absent(),
     this.gender = const Value.absent(),
@@ -2174,6 +2194,7 @@ class SeekersCompanion extends UpdateCompanion<SeekerModel> {
   });
   SeekersCompanion.insert({
     required String uuid,
+    this.scopeUid = const Value.absent(),
     this.username = const Value.absent(),
     this.nickname = const Value.absent(),
     required Gender gender,
@@ -2209,6 +2230,7 @@ class SeekersCompanion extends UpdateCompanion<SeekerModel> {
        divinationUuid = Value(divinationUuid);
   static Insertable<SeekerModel> custom({
     Expression<String>? uuid,
+    Expression<String>? scopeUid,
     Expression<String>? username,
     Expression<String>? nickname,
     Expression<String>? gender,
@@ -2233,6 +2255,7 @@ class SeekersCompanion extends UpdateCompanion<SeekerModel> {
   }) {
     return RawValuesInsertable({
       if (uuid != null) 'uuid': uuid,
+      if (scopeUid != null) 'scope_uid': scopeUid,
       if (username != null) 'username': username,
       if (nickname != null) 'nickname': nickname,
       if (gender != null) 'gender': gender,
@@ -2260,6 +2283,7 @@ class SeekersCompanion extends UpdateCompanion<SeekerModel> {
 
   SeekersCompanion copyWith({
     Value<String>? uuid,
+    Value<String?>? scopeUid,
     Value<String?>? username,
     Value<String?>? nickname,
     Value<Gender>? gender,
@@ -2284,6 +2308,7 @@ class SeekersCompanion extends UpdateCompanion<SeekerModel> {
   }) {
     return SeekersCompanion(
       uuid: uuid ?? this.uuid,
+      scopeUid: scopeUid ?? this.scopeUid,
       username: username ?? this.username,
       nickname: nickname ?? this.nickname,
       gender: gender ?? this.gender,
@@ -2313,6 +2338,9 @@ class SeekersCompanion extends UpdateCompanion<SeekerModel> {
     final map = <String, Expression>{};
     if (uuid.present) {
       map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
     }
     if (username.present) {
       map['username'] = Variable<String>(username.value);
@@ -6678,6 +6706,17 @@ class $TimingDivinationsTable extends TimingDivinations
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   late final GeneratedColumnWithTypeConverter<DateTimeType, int> timingType =
       GeneratedColumn<int>(
@@ -6841,6 +6880,7 @@ class $TimingDivinationsTable extends TimingDivinations
     lastUpdatedAt,
     deletedAt,
     divinationUuid,
+    scopeUid,
     timingType,
     datetime,
     isManual,
@@ -6907,6 +6947,12 @@ class $TimingDivinationsTable extends TimingDivinations
       );
     } else if (isInserting) {
       context.missing(_divinationUuidMeta);
+    }
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
     }
     if (data.containsKey('datetime')) {
       context.handle(
@@ -7098,6 +7144,7 @@ class TimingDivinationsCompanion
   final Value<DateTime?> lastUpdatedAt;
   final Value<DateTime?> deletedAt;
   final Value<String> divinationUuid;
+  final Value<String?> scopeUid;
   final Value<DateTimeType> timingType;
   final Value<DateTime> datetime;
   final Value<bool> isManual;
@@ -7119,6 +7166,7 @@ class TimingDivinationsCompanion
     this.lastUpdatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.divinationUuid = const Value.absent(),
+    this.scopeUid = const Value.absent(),
     this.timingType = const Value.absent(),
     this.datetime = const Value.absent(),
     this.isManual = const Value.absent(),
@@ -7141,6 +7189,7 @@ class TimingDivinationsCompanion
     this.lastUpdatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     required String divinationUuid,
+    this.scopeUid = const Value.absent(),
     required DateTimeType timingType,
     required DateTime datetime,
     this.isManual = const Value.absent(),
@@ -7173,6 +7222,7 @@ class TimingDivinationsCompanion
     Expression<DateTime>? lastUpdatedAt,
     Expression<DateTime>? deletedAt,
     Expression<String>? divinationUuid,
+    Expression<String>? scopeUid,
     Expression<int>? timingType,
     Expression<DateTime>? datetime,
     Expression<bool>? isManual,
@@ -7195,6 +7245,7 @@ class TimingDivinationsCompanion
       if (lastUpdatedAt != null) 'last_updated_at': lastUpdatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (divinationUuid != null) 'divination_uuid': divinationUuid,
+      if (scopeUid != null) 'scope_uid': scopeUid,
       if (timingType != null) 'timing_type': timingType,
       if (datetime != null) 'datetime': datetime,
       if (isManual != null) 'is_manual': isManual,
@@ -7220,6 +7271,7 @@ class TimingDivinationsCompanion
     Value<DateTime?>? lastUpdatedAt,
     Value<DateTime?>? deletedAt,
     Value<String>? divinationUuid,
+    Value<String?>? scopeUid,
     Value<DateTimeType>? timingType,
     Value<DateTime>? datetime,
     Value<bool>? isManual,
@@ -7242,6 +7294,7 @@ class TimingDivinationsCompanion
       lastUpdatedAt: lastUpdatedAt ?? this.lastUpdatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
       divinationUuid: divinationUuid ?? this.divinationUuid,
+      scopeUid: scopeUid ?? this.scopeUid,
       timingType: timingType ?? this.timingType,
       datetime: datetime ?? this.datetime,
       isManual: isManual ?? this.isManual,
@@ -7277,6 +7330,9 @@ class TimingDivinationsCompanion
     }
     if (divinationUuid.present) {
       map['divination_uuid'] = Variable<String>(divinationUuid.value);
+    }
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
     }
     if (timingType.present) {
       map['timing_type'] = Variable<int>(
@@ -9122,6 +9178,17 @@ class $SkillClassesTable extends SkillClasses
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -9138,13 +9205,13 @@ class $SkillClassesTable extends SkillClasses
   );
   @override
   late final GeneratedColumn<DateTime> lastUpdatedAt =
-      GeneratedColumn<DateTime>(
-        'last_updated_at',
-        aliasedName,
-        false,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: true,
-      );
+    GeneratedColumn<DateTime>(
+      'last_updated_at',
+      aliasedName,
+      false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: true,
+    );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
   );
@@ -9215,6 +9282,7 @@ class $SkillClassesTable extends SkillClasses
   @override
   List<GeneratedColumn> get $columns => [
     uuid,
+    scopeUid,
     createdAt,
     lastUpdatedAt,
     deletedAt,
@@ -9243,6 +9311,12 @@ class $SkillClassesTable extends SkillClasses
       );
     } else if (isInserting) {
       context.missing(_uuidMeta);
+    }
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
     }
     if (data.containsKey('created_at')) {
       context.handle(
@@ -9328,6 +9402,10 @@ class $SkillClassesTable extends SkillClasses
         DriftSqlType.string,
         data['${effectivePrefix}uuid'],
       )!,
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -9371,6 +9449,7 @@ class $SkillClassesTable extends SkillClasses
 
 class SkillClass extends DataClass implements Insertable<SkillClass> {
   final String uuid;
+  final String? scopeUid;
   final DateTime createdAt;
   final DateTime lastUpdatedAt;
   final DateTime? deletedAt;
@@ -9381,6 +9460,7 @@ class SkillClass extends DataClass implements Insertable<SkillClass> {
   final bool isCustomized;
   const SkillClass({
     required this.uuid,
+    this.scopeUid,
     required this.createdAt,
     required this.lastUpdatedAt,
     this.deletedAt,
@@ -9394,6 +9474,9 @@ class SkillClass extends DataClass implements Insertable<SkillClass> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['uuid'] = Variable<String>(uuid);
+    if (!nullToAbsent || scopeUid != null) {
+      map['scope_uid'] = Variable<String>(scopeUid);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['last_updated_at'] = Variable<DateTime>(lastUpdatedAt);
     if (!nullToAbsent || deletedAt != null) {
@@ -9410,6 +9493,9 @@ class SkillClass extends DataClass implements Insertable<SkillClass> {
   SkillClassesCompanion toCompanion(bool nullToAbsent) {
     return SkillClassesCompanion(
       uuid: Value(uuid),
+      scopeUid: scopeUid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(scopeUid),
       createdAt: Value(createdAt),
       lastUpdatedAt: Value(lastUpdatedAt),
       deletedAt: deletedAt == null && nullToAbsent
@@ -9430,6 +9516,7 @@ class SkillClass extends DataClass implements Insertable<SkillClass> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return SkillClass(
       uuid: serializer.fromJson<String>(json['uuid']),
+      scopeUid: serializer.fromJson<String?>(json['scopeUid']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       lastUpdatedAt: serializer.fromJson<DateTime>(json['lastUpdatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
@@ -9445,6 +9532,7 @@ class SkillClass extends DataClass implements Insertable<SkillClass> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'uuid': serializer.toJson<String>(uuid),
+      'scopeUid': serializer.toJson<String?>(scopeUid),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'lastUpdatedAt': serializer.toJson<DateTime>(lastUpdatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
@@ -9458,6 +9546,7 @@ class SkillClass extends DataClass implements Insertable<SkillClass> {
 
   SkillClass copyWith({
     String? uuid,
+    Value<String?> scopeUid = const Value.absent(),
     DateTime? createdAt,
     DateTime? lastUpdatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
@@ -9468,6 +9557,7 @@ class SkillClass extends DataClass implements Insertable<SkillClass> {
     bool? isCustomized,
   }) => SkillClass(
     uuid: uuid ?? this.uuid,
+    scopeUid: scopeUid.present ? scopeUid.value : this.scopeUid,
     createdAt: createdAt ?? this.createdAt,
     lastUpdatedAt: lastUpdatedAt ?? this.lastUpdatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
@@ -9480,6 +9570,7 @@ class SkillClass extends DataClass implements Insertable<SkillClass> {
   SkillClass copyWithCompanion(SkillClassesCompanion data) {
     return SkillClass(
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       lastUpdatedAt: data.lastUpdatedAt.present
           ? data.lastUpdatedAt.value
@@ -9501,6 +9592,7 @@ class SkillClass extends DataClass implements Insertable<SkillClass> {
   String toString() {
     return (StringBuffer('SkillClass(')
           ..write('uuid: $uuid, ')
+          ..write('scopeUid: $scopeUid, ')
           ..write('createdAt: $createdAt, ')
           ..write('lastUpdatedAt: $lastUpdatedAt, ')
           ..write('deletedAt: $deletedAt, ')
@@ -9516,6 +9608,7 @@ class SkillClass extends DataClass implements Insertable<SkillClass> {
   @override
   int get hashCode => Object.hash(
     uuid,
+    scopeUid,
     createdAt,
     lastUpdatedAt,
     deletedAt,
@@ -9530,6 +9623,7 @@ class SkillClass extends DataClass implements Insertable<SkillClass> {
       identical(this, other) ||
       (other is SkillClass &&
           other.uuid == this.uuid &&
+          other.scopeUid == this.scopeUid &&
           other.createdAt == this.createdAt &&
           other.lastUpdatedAt == this.lastUpdatedAt &&
           other.deletedAt == this.deletedAt &&
@@ -9542,6 +9636,7 @@ class SkillClass extends DataClass implements Insertable<SkillClass> {
 
 class SkillClassesCompanion extends UpdateCompanion<SkillClass> {
   final Value<String> uuid;
+  final Value<String?> scopeUid;
   final Value<DateTime> createdAt;
   final Value<DateTime> lastUpdatedAt;
   final Value<DateTime?> deletedAt;
@@ -9553,6 +9648,7 @@ class SkillClassesCompanion extends UpdateCompanion<SkillClass> {
   final Value<int> rowid;
   const SkillClassesCompanion({
     this.uuid = const Value.absent(),
+    this.scopeUid = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.lastUpdatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -9565,6 +9661,7 @@ class SkillClassesCompanion extends UpdateCompanion<SkillClass> {
   });
   SkillClassesCompanion.insert({
     required String uuid,
+    this.scopeUid = const Value.absent(),
     required DateTime createdAt,
     required DateTime lastUpdatedAt,
     this.deletedAt = const Value.absent(),
@@ -9584,6 +9681,7 @@ class SkillClassesCompanion extends UpdateCompanion<SkillClass> {
        isCustomized = Value(isCustomized);
   static Insertable<SkillClass> custom({
     Expression<String>? uuid,
+    Expression<String>? scopeUid,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? lastUpdatedAt,
     Expression<DateTime>? deletedAt,
@@ -9596,6 +9694,7 @@ class SkillClassesCompanion extends UpdateCompanion<SkillClass> {
   }) {
     return RawValuesInsertable({
       if (uuid != null) 'uuid': uuid,
+      if (scopeUid != null) 'scope_uid': scopeUid,
       if (createdAt != null) 'created_at': createdAt,
       if (lastUpdatedAt != null) 'last_updated_at': lastUpdatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
@@ -9610,6 +9709,7 @@ class SkillClassesCompanion extends UpdateCompanion<SkillClass> {
 
   SkillClassesCompanion copyWith({
     Value<String>? uuid,
+    Value<String?>? scopeUid,
     Value<DateTime>? createdAt,
     Value<DateTime>? lastUpdatedAt,
     Value<DateTime?>? deletedAt,
@@ -9622,6 +9722,7 @@ class SkillClassesCompanion extends UpdateCompanion<SkillClass> {
   }) {
     return SkillClassesCompanion(
       uuid: uuid ?? this.uuid,
+      scopeUid: scopeUid ?? this.scopeUid,
       createdAt: createdAt ?? this.createdAt,
       lastUpdatedAt: lastUpdatedAt ?? this.lastUpdatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
@@ -9639,6 +9740,9 @@ class SkillClassesCompanion extends UpdateCompanion<SkillClass> {
     final map = <String, Expression>{};
     if (uuid.present) {
       map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -9674,6 +9778,7 @@ class SkillClassesCompanion extends UpdateCompanion<SkillClass> {
   String toString() {
     return (StringBuffer('SkillClassesCompanion(')
           ..write('uuid: $uuid, ')
+          ..write('scopeUid: $scopeUid, ')
           ..write('createdAt: $createdAt, ')
           ..write('lastUpdatedAt: $lastUpdatedAt, ')
           ..write('deletedAt: $deletedAt, ')

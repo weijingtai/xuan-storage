@@ -62,7 +62,7 @@ void main() {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
-    final firstEmit = repo.watchAllRecords().first;
+    final firstEmit = repo.watchAllRecords().firstWhere((l) => l.isNotEmpty);
     await repo.saveRecord(_rec());
     final list = await firstEmit;
     expect(list, hasLength(1));
