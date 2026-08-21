@@ -43,8 +43,8 @@ class _KanyuManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        'c1a5a61f490c15db6df47d5fcc0753f84ce056e0d7b3d4ed22aede51d18ff76c',
-    payloadBytes: 18216,
+        '67c9d5ae693d30f6575b8b200a579fdaa7a49b147bad89c04665f84abc575162',
+    payloadBytes: 18532,
     declaredRowCount: 6,
     publishedAtUtc: DateTime.utc(2026, 8, 11),
   );
@@ -56,8 +56,8 @@ class _KanyuManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '224f47a03f854fb4010eb71521834a495a12bfb9a410280d7d2cdea5dbc385cd',
-    payloadBytes: 49191,
+        'e6a26703660517901d554455c224cc0975c8b8b6fc75347da4620d4be18ac56b',
+    payloadBytes: 50089,
     declaredRowCount: 16,
     publishedAtUtc: DateTime.utc(2026, 8, 11),
   );
@@ -69,8 +69,8 @@ class _KanyuManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '1bb50cf1514c49fa565c89ced342a4884e1e1f56c0406741fd54176a7ca292d9',
-    payloadBytes: 7150,
+        '704e220c7e5bbde681ec5e1c98c9c260618fc72214113fea150d623594fe8842',
+    payloadBytes: 7351,
     declaredRowCount: 2,
     publishedAtUtc: DateTime.utc(2026, 8, 11),
   );

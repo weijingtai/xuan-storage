@@ -44,8 +44,8 @@ class _TaiyiManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        'cfb13ade0c988dbcad650482502cd3007e7369635040995aee974e10476bc343',
-    payloadBytes: 3878,
+        '7fa4c87c0b0ec1425e9438eaf58ce5405730f04e14cf72e485f27f0b0bb0f4c8',
+    payloadBytes: 3969,
     declaredRowCount: 3,
     publishedAtUtc: DateTime.utc(2026, 8, 11),
   );
@@ -57,8 +57,8 @@ class _TaiyiManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '36eeee338abbfcbfab69afc502e5c7ca7cb8fcadee63a00976d7d70558d5ca50',
-    payloadBytes: 31609,
+        'ead604671cec8c8cc313308581f10608cd3f82896f8a8f19a659e9232f78f3d1',
+    payloadBytes: 33147,
     declaredRowCount: 47,
     publishedAtUtc: DateTime.utc(2026, 8, 11),
   );
@@ -70,8 +70,8 @@ class _TaiyiManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '9fb441277e4f686c15ee7cceaadea3164c9deb9071e5e9cb753348b51877a0fb',
-    payloadBytes: 912,
+        '11dcf0e843a7b9423a4e92984a44064a574334ac29e97aa217269832026e55dd',
+    payloadBytes: 932,
     declaredRowCount: 1,
     publishedAtUtc: DateTime.utc(2026, 8, 11),
   );

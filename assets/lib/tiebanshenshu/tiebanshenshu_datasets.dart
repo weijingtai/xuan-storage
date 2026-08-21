@@ -43,8 +43,8 @@ class _TiebanshenshuManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        'd4e1a78d2123d7dcba047d3a96ac32986754d7e45c3b9660995ece68bac614fe',
-    payloadBytes: 1645505,
+        '83cca60cb50a2c14b7f20358b5c2a26cbd6a484344227b26bd6e3ac1e5fc1e83',
+    payloadBytes: 1657509,
     declaredRowCount: 12000,
     publishedAtUtc: DateTime.utc(2026, 8, 9),
   );
@@ -56,8 +56,8 @@ class _TiebanshenshuManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '8adb5d175b030dadf66dc1ffe12ce3198e38c97a7f5f494efe991d8245bef7de',
-    payloadBytes: 80594,
+        'df604ae59132849b5b5e8fcb088de22b65ef8137950170eb23a68c7cefb8fa5c',
+    payloadBytes: 83033,
     declaredRowCount: 21,
     publishedAtUtc: DateTime.utc(2026, 8, 9),
   );
@@ -69,8 +69,8 @@ class _TiebanshenshuManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '79d797fad365015af2303c0fb6b044242672b1e1baa88ca2b4ef1982f49e4ad3',
-    payloadBytes: 573984,
+        '02ead379c08f4ab04fb0df4b0ead0b8eedb01aee86d2a35f87fd3789034aeb68',
+    payloadBytes: 580131,
     declaredRowCount: 12,
     publishedAtUtc: DateTime.utc(2026, 8, 9),
   );
@@ -82,8 +82,8 @@ class _TiebanshenshuManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '5202f57b9e99c310333dd2cba808d30fa2df248a90aa1f0910320da94abb5305',
-    payloadBytes: 29683,
+        'e60cb2e08698eed3f4d769d5e9f2f4bc302fd4ca3686db67a45b7da534533ce3',
+    payloadBytes: 30553,
     declaredRowCount: 3,
     publishedAtUtc: DateTime.utc(2026, 8, 9),
   );

@@ -10,10 +10,12 @@ import '../ziweidoushu/ziweidoushu_module_registry.dart';
 import '../seeker/seeker_module_registry.dart';
 import '../xiang/xiang_module_registry.dart';
 import '../xiang/xiang_record_codec.dart';
+import '../yanqinshu/yanqinshu_module_registry.dart';
+import '../yanqinshu/yanqinshu_record_codec.dart';
 
-/// 中央记录模块注册表 — 聚合全部 9 个占测模块 + 1 个 seeker 模块。
+/// 中央记录模块注册表 — 聚合全部占测模块 + 1 个 seeker 模块。
 class RecordModuleRegistry {
-  /// 返回全部 10 个模块的 SearchTagExtractor 提取器。
+  /// 返回全部模块的 SearchTagExtractor 提取器。
   static List<RecordSearchTagExtractor> allExtractors() {
     return [
       MeiHuaModuleRegistry.codec(scopeUid: ''),
@@ -25,8 +27,8 @@ class RecordModuleRegistry {
       TiebanshenshuModuleRegistry.codec(),
       ZiweidoushuModuleRegistry.codec(),
       SeekerModuleRegistry.codec(),
-      // Append-only: 追加 Xiang codec（TDD-XG-07 统一 History 检索）。
       XiangRecordCodec(),
+      YanqinshuRecordCodec(),
     ];
   }
 
@@ -57,6 +59,8 @@ class RecordModuleRegistry {
         return ZiweidoushuModuleRegistry.repository(store: store);
       case 'seeker':
         return SeekerModuleRegistry.repository(store: store);
+      case 'yanqinshu':
+        return YanqinshuModuleRegistry.repository(store: store);
       default:
         throw ArgumentError('Unknown module: $module');
     }

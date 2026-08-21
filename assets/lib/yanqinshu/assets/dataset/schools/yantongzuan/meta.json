@@ -1,0 +1,35 @@
+{
+  "schoolId": "yantongzuan",
+  "name": "演禽通纂",
+  "version": "1.0.0",
+  "author": "明代演禽典籍（万历年间）",
+  "era": "明代",
+  "status": "available",
+  "description": "演禽术正统全本，集成三世演禽、禽星卜事、翻禽择吉与禽遁兵法四大核心技法。",
+  "sourceReferences": [
+    {
+      "table": "BIRD_ELEMENT_TABLE",
+      "book": "《演禽通纂》卷一 · 禽星五行总括"
+    },
+    {
+      "table": "BIRD_PALACE_TABLE",
+      "book": "《演禽通纂》卷一 · 二十八宿配四象分野"
+    },
+    {
+      "table": "BIRD_DAY_NIGHT_TABLE",
+      "book": "《演禽通纂》卷二 · 昼夜禽翻飞伏藏诀"
+    },
+    {
+      "table": "BIRD_RELATION_TABLE",
+      "book": "《演禽通纂》卷三 · 三十六禽生克相制总图"
+    },
+    {
+      "table": "BIRD_WAR_RESTRAIN_TABLE",
+      "book": "《演禽通纂》卷四 · 禽遁兵家食啖压制图"
+    },
+    {
+      "table": "BIRD_STRENGTH_RULE",
+      "book": "《演禽通纂》卷二 · 得时得地旺衰歌"
+    }
+  ]
+}
