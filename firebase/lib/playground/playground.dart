@@ -30,6 +30,7 @@ export 'firestore_direct_playground_reply_command_repository.dart';
 export 'firestore_direct_playground_engagement_repository.dart';
 export 'firestore_direct_playground_verification_repository.dart';
 export 'firestore_direct_playground_outcome_feedback_repository.dart';
+export 'playground_http_transport.dart';
 export 'playground_transport_config.dart';
 export 'playground_shadow_comparator.dart';
 export 'playground_shadow_feed_remote_data_source.dart';

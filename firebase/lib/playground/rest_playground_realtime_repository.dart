@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:repository_interface_playground/repository_interface_playground.dart';
 
+import 'playground_http_transport.dart';
 import 'playground_transport_config.dart';
 import 'rest_playground_feed_repository.dart';
 
@@ -18,14 +18,14 @@ final class RestPlaygroundRealtimeRepository
     implements PlaygroundRealtimeRepository {
   RestPlaygroundRealtimeRepository({
     required this.baseUrl,
-    http.Client? client,
+    required PlaygroundHttpTransport transport,
     this.activeInterval = const Duration(seconds: 3),
     this.idleInterval = const Duration(seconds: 10),
     this.maxBackoffInterval = const Duration(seconds: 16),
-  }) : _client = client ?? http.Client();
+  }) : _transport = transport;
 
   final Uri baseUrl;
-  final http.Client _client;
+  final PlaygroundHttpTransport _transport;
   final Duration activeInterval;
   final Duration idleInterval;
   final Duration maxBackoffInterval;
@@ -187,7 +187,7 @@ final class _PollingWatchHandle {
         if (_lastEtag != null) 'if-none-match': _lastEtag!,
       };
 
-      final response = await repository._client.get(uri, headers: headers);
+      final response = await repository._transport.get(uri, headers: headers);
 
       if (response.statusCode == 304) {
         // 304 Not Modified: 数据无变动，保持基线

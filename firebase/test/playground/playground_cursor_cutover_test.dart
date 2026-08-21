@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:persistence_core/persistence_core.dart';
 import 'package:persistence_firebase/cached_playground_feed_repository.dart';
+import 'package:persistence_firebase/http_playground_transport.dart';
 import 'package:persistence_firebase/playground/playground.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
 
@@ -72,7 +73,7 @@ void main() {
 
       final restRemote = RestPlaygroundFeedRemoteDataSource(
         baseUrl: Uri.parse('http://127.0.0.1:8080/v1'),
-        client: mockClient,
+        transport: DefaultPlaygroundHttpTransport(mockClient),
       );
 
       final cachedRepo = CachedPlaygroundFeedRepository(

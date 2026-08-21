@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:persistence_firebase/http_playground_transport.dart';
 import 'package:persistence_firebase/playground/playground.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
 
@@ -82,7 +83,7 @@ void main() {
     test('推荐 Tab (recommended) 发起正确参数与解析', () async {
       final remote = RestPlaygroundFeedRemoteDataSource(
         baseUrl: Uri.parse('http://127.0.0.1:8080/v1'),
-        client: mockClient,
+        transport: DefaultPlaygroundHttpTransport(mockClient),
       );
 
       final query = GetFeedQuery(
@@ -123,7 +124,7 @@ void main() {
     test('待断 Tab (pendingDivination) 路由正确', () async {
       final remote = RestPlaygroundFeedRemoteDataSource(
         baseUrl: Uri.parse('http://127.0.0.1:8080/v1'),
-        client: mockClient,
+        transport: DefaultPlaygroundHttpTransport(mockClient),
       );
 
       final query = GetFeedQuery(
@@ -139,7 +140,7 @@ void main() {
     test('最新 Tab (latest) 路由正确', () async {
       final remote = RestPlaygroundFeedRemoteDataSource(
         baseUrl: Uri.parse('http://127.0.0.1:8080/v1'),
-        client: mockClient,
+        transport: DefaultPlaygroundHttpTransport(mockClient),
       );
 
       final query = GetFeedQuery(
@@ -155,7 +156,7 @@ void main() {
     test('ETag 304 条件协商与本地缓存快照返回', () async {
       final remote = RestPlaygroundFeedRemoteDataSource(
         baseUrl: Uri.parse('http://127.0.0.1:8080/v1'),
-        client: mockClient,
+        transport: DefaultPlaygroundHttpTransport(mockClient),
       );
 
       // 第 1 次请求，获取 200 与 ETag
@@ -173,7 +174,7 @@ void main() {
 
       final remoteWith304 = RestPlaygroundFeedRemoteDataSource(
         baseUrl: Uri.parse('http://127.0.0.1:8080/v1'),
-        client: mockClient,
+        transport: DefaultPlaygroundHttpTransport(mockClient),
         initialEtagCache: {'recommended': '"etag-cached"'},
         initialSnapshotCache: {'recommended': page1},
       );

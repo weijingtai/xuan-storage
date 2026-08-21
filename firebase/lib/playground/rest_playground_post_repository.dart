@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:persistence_core/persistence_core.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
 
+import 'playground_http_transport.dart';
 import 'rest_playground_feed_repository.dart';
 
 /// 基于 REST + ETag 条件请求的帖子详情 RemoteDataSource（路线 2 专用端点）。
@@ -13,13 +13,13 @@ final class RestPlaygroundPostRemoteDataSource
     implements PlaygroundPostRemoteDataSource {
   RestPlaygroundPostRemoteDataSource({
     required this.baseUrl,
-    http.Client? client,
+    required PlaygroundHttpTransport transport,
     PlaygroundPostRemoteDataSource? fallbackWriter,
-  })  : _client = client ?? http.Client(),
+  })  : _transport = transport,
         _fallbackWriter = fallbackWriter;
 
   final Uri baseUrl;
-  final http.Client _client;
+  final PlaygroundHttpTransport _transport;
   final PlaygroundPostRemoteDataSource? _fallbackWriter;
   final Map<String, String> _etagCache = {};
   final Map<String, PlaygroundPost> _postCache = {};
@@ -41,7 +41,7 @@ final class RestPlaygroundPostRemoteDataSource
         'if-none-match': _etagCache[postId.value]!,
     };
 
-    final response = await _client.get(uri, headers: headers);
+    final response = await _transport.get(uri, headers: headers);
 
     if (response.statusCode == 304) {
       return _postCache[postId.value];

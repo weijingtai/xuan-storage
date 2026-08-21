@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:http/http.dart' as http;
 import 'package:persistence_core/persistence_core.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
 
@@ -10,6 +9,7 @@ import 'firebase_playground_feed_repository.dart';
 import 'firebase_playground_identity_resolver.dart';
 import 'firebase_playground_post_repository.dart';
 import 'firebase_playground_realtime_repository.dart';
+import 'playground_http_transport.dart';
 import 'playground_shadow_feed_remote_data_source.dart';
 import 'playground_transport_config.dart';
 import 'rest_playground_feed_repository.dart';
@@ -21,7 +21,7 @@ final class PlaygroundRepositoryFactory {
   PlaygroundRepositoryFactory({
     PlaygroundTransportConfig? initialConfig,
     this.restBaseUrl,
-    this.httpClient,
+    this.httpTransport,
     FirebaseFirestore? firestore,
     FirebaseAuth? auth,
     FirebasePlaygroundIdentityResolver? identityResolver,
@@ -32,7 +32,7 @@ final class PlaygroundRepositoryFactory {
 
   PlaygroundTransportConfig _config;
   final Uri? restBaseUrl;
-  final http.Client? httpClient;
+  final PlaygroundHttpTransport? httpTransport;
   final FirebaseFirestore? _firestore;
   final FirebaseAuth? _auth;
   final FirebasePlaygroundIdentityResolver? _identityResolver;
@@ -57,13 +57,13 @@ final class PlaygroundRepositoryFactory {
   PlaygroundFeedRemoteDataSource createFeedRemoteDataSource({
     FirebaseFirestore? firestore,
     Uri? baseUrl,
-    http.Client? client,
+    PlaygroundHttpTransport? transport,
     ShadowComparisonCallback? onShadowComparison,
   }) {
     final effectiveFirestore = firestore ?? _firestore;
     final effectiveBaseUrl =
         baseUrl ?? restBaseUrl ?? Uri.parse('http://127.0.0.1:8080/v1');
-    final effectiveClient = client ?? httpClient;
+    final effectiveTransport = transport ?? httpTransport;
 
     PlaygroundFeedRemoteDataSource buildFirestoreSource() {
       if (effectiveFirestore == null) {
@@ -73,9 +73,12 @@ final class PlaygroundRepositoryFactory {
     }
 
     PlaygroundFeedRemoteDataSource buildRestSource() {
+      if (effectiveTransport == null) {
+        throw StateError('PlaygroundHttpTransport must be provided for REST transport');
+      }
       return RestPlaygroundFeedRemoteDataSource(
         baseUrl: effectiveBaseUrl,
-        client: effectiveClient,
+        transport: effectiveTransport,
       );
     }
 
@@ -96,7 +99,7 @@ final class PlaygroundRepositoryFactory {
     FirebaseAuth? auth,
     FirebasePlaygroundIdentityResolver? identityResolver,
     Uri? baseUrl,
-    http.Client? client,
+    PlaygroundHttpTransport? transport,
   }) {
     final effectiveFirestore = firestore ?? _firestore;
     final effectiveAuth = auth ?? _auth ?? FirebaseAuth.instance;
@@ -109,7 +112,7 @@ final class PlaygroundRepositoryFactory {
 
     final effectiveBaseUrl =
         baseUrl ?? restBaseUrl ?? Uri.parse('http://127.0.0.1:8080/v1');
-    final effectiveClient = client ?? httpClient;
+    final effectiveTransport = transport ?? httpTransport;
 
     PlaygroundPostRemoteDataSource? firestoreSource;
     if (effectiveFirestore != null) {
@@ -121,9 +124,12 @@ final class PlaygroundRepositoryFactory {
     }
 
     if (_config.isRestPostEnabled) {
+      if (effectiveTransport == null) {
+        throw StateError('PlaygroundHttpTransport must be provided for REST post transport');
+      }
       return RestPlaygroundPostRemoteDataSource(
         baseUrl: effectiveBaseUrl,
-        client: effectiveClient,
+        transport: effectiveTransport,
         fallbackWriter: firestoreSource,
       );
     }
@@ -138,17 +144,20 @@ final class PlaygroundRepositoryFactory {
   PlaygroundRealtimeRepository createRealtimeRepository({
     FirebaseFirestore? firestore,
     Uri? baseUrl,
-    http.Client? client,
+    PlaygroundHttpTransport? transport,
   }) {
     final effectiveFirestore = firestore ?? _firestore;
     final effectiveBaseUrl =
         baseUrl ?? restBaseUrl ?? Uri.parse('http://127.0.0.1:8080/v1');
-    final effectiveClient = client ?? httpClient;
+    final effectiveTransport = transport ?? httpTransport;
 
     if (_config.isRestPollingEnabled) {
+      if (effectiveTransport == null) {
+        throw StateError('PlaygroundHttpTransport must be provided for REST realtime transport');
+      }
       return RestPlaygroundRealtimeRepository(
         baseUrl: effectiveBaseUrl,
-        client: effectiveClient,
+        transport: effectiveTransport,
         activeInterval: _config.activePollingInterval,
         idleInterval: _config.idlePollingInterval,
         maxBackoffInterval: _config.maxBackoffInterval,
@@ -166,13 +175,13 @@ final class PlaygroundRepositoryFactory {
     required PlaygroundPostCacheStore cacheStore,
     FirebaseFirestore? firestore,
     Uri? baseUrl,
-    http.Client? client,
+    PlaygroundHttpTransport? transport,
     ShadowComparisonCallback? onShadowComparison,
   }) {
     final remote = createFeedRemoteDataSource(
       firestore: firestore,
       baseUrl: baseUrl,
-      client: client,
+      transport: transport,
       onShadowComparison: onShadowComparison,
     );
     return CachedPlaygroundFeedRepository(remote: remote, cache: cacheStore);
@@ -185,14 +194,14 @@ final class PlaygroundRepositoryFactory {
     FirebaseAuth? auth,
     FirebasePlaygroundIdentityResolver? identityResolver,
     Uri? baseUrl,
-    http.Client? client,
+    PlaygroundHttpTransport? transport,
   }) {
     final remote = createPostRemoteDataSource(
       firestore: firestore,
       auth: auth,
       identityResolver: identityResolver,
       baseUrl: baseUrl,
-      client: client,
+      transport: transport,
     );
     return CachedPlaygroundPostRepository(remote: remote, cache: cacheStore);
   }

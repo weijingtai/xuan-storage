@@ -1,9 +1,9 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:persistence_core/persistence_core.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
 
 import 'firebase_playground_schema.dart';
+import 'playground_http_transport.dart';
 
 /// 游标失效或跨适配器不兼容异常（§6.2 RFC 9457）。
 final class PlaygroundStaleCursorException implements Exception {
@@ -26,10 +26,10 @@ final class RestPlaygroundFeedRemoteDataSource
     implements PlaygroundFeedRemoteDataSource {
   RestPlaygroundFeedRemoteDataSource({
     required this.baseUrl,
-    http.Client? client,
+    required PlaygroundHttpTransport transport,
     Map<String, String>? initialEtagCache,
     Map<String, PlaygroundPage<PlaygroundPost>>? initialSnapshotCache,
-  })  : _client = client ?? http.Client(),
+  })  : _transport = transport,
         _etagCache = initialEtagCache != null
             ? Map.of(initialEtagCache)
             : <String, String>{},
@@ -38,7 +38,7 @@ final class RestPlaygroundFeedRemoteDataSource
             : <String, PlaygroundPage<PlaygroundPost>>{};
 
   final Uri baseUrl;
-  final http.Client _client;
+  final PlaygroundHttpTransport _transport;
   final Map<String, String> _etagCache;
   final Map<String, PlaygroundPage<PlaygroundPost>> _snapshotCache;
 
@@ -121,7 +121,7 @@ final class RestPlaygroundFeedRemoteDataSource
       if (cachedEtag != null) 'if-none-match': cachedEtag,
     };
 
-    final response = await _client.get(uri, headers: headers);
+    final response = await _transport.get(uri, headers: headers);
 
     if (response.statusCode == 304) {
       // 304 Not Modified: 命中 ETag，返回本地快照

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:persistence_firebase/http_playground_transport.dart';
 import 'package:persistence_firebase/playground/playground.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
 
@@ -11,6 +12,7 @@ void main() {
     test('前台活跃态 (active) 默认 3s 轮询', () {
       final repo = RestPlaygroundRealtimeRepository(
         baseUrl: Uri.parse('http://127.0.0.1:8080/v1'),
+        transport: DefaultPlaygroundHttpTransport(),
         activeInterval: const Duration(seconds: 3),
         idleInterval: const Duration(seconds: 10),
       );
@@ -23,6 +25,7 @@ void main() {
     test('空闲态 (idle) 切换为 10s 轮询', () {
       final repo = RestPlaygroundRealtimeRepository(
         baseUrl: Uri.parse('http://127.0.0.1:8080/v1'),
+        transport: DefaultPlaygroundHttpTransport(),
         activeInterval: const Duration(seconds: 3),
         idleInterval: const Duration(seconds: 10),
       );
@@ -54,7 +57,7 @@ void main() {
 
       final repo = RestPlaygroundRealtimeRepository(
         baseUrl: Uri.parse('http://127.0.0.1:8080/v1'),
-        client: mockClient,
+        transport: DefaultPlaygroundHttpTransport(mockClient),
         activeInterval: const Duration(milliseconds: 50),
         idleInterval: const Duration(milliseconds: 100),
       );
@@ -113,7 +116,7 @@ void main() {
 
       final repo = RestPlaygroundRealtimeRepository(
         baseUrl: Uri.parse('http://127.0.0.1:8080/v1'),
-        client: mockClient,
+        transport: DefaultPlaygroundHttpTransport(mockClient),
         activeInterval: const Duration(milliseconds: 50),
       );
 
@@ -131,6 +134,7 @@ void main() {
     test('429 / 503 指数退避至 16s 上限', () {
       final repo = RestPlaygroundRealtimeRepository(
         baseUrl: Uri.parse('http://127.0.0.1:8080/v1'),
+        transport: DefaultPlaygroundHttpTransport(),
         activeInterval: const Duration(seconds: 3),
         maxBackoffInterval: const Duration(seconds: 16),
       );
