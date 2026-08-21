@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
@@ -7,6 +8,8 @@ import 'firebase_playground_schema.dart';
 import 'firebase_playground_identity_resolver.dart';
 import 'firebase_playground_error_mapper.dart';
 import 'firebase_playground_cursor.dart';
+import 'playground_http_transport.dart';
+import 'playground_transport_config.dart';
 
 final class FirebasePlaygroundBookmarkRepository
     implements PlaygroundBookmarkRemoteDataSource {
@@ -14,13 +17,22 @@ final class FirebasePlaygroundBookmarkRepository
     required FirebaseFirestore firestore,
     required FirebaseAuth auth,
     required FirebasePlaygroundIdentityResolver identityResolver,
+    PlaygroundTransportConfig? config,
+    PlaygroundHttpTransport? httpTransport,
+    Uri? baseUri,
   })  : _firestore = firestore,
         _auth = auth,
-        _identityResolver = identityResolver;
+        _identityResolver = identityResolver,
+        _config = config ?? PlaygroundTransportConfig.defaults(),
+        _httpTransport = httpTransport,
+        _baseUri = baseUri;
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
   final FirebasePlaygroundIdentityResolver _identityResolver;
+  final PlaygroundTransportConfig _config;
+  final PlaygroundHttpTransport? _httpTransport;
+  final Uri? _baseUri;
 
   String _bookmarkDocId(PlaygroundPostId postId) {
     final user = _auth.currentUser;
@@ -32,6 +44,39 @@ final class FirebasePlaygroundBookmarkRepository
   @override
   Future<void> setBookmark(SetBookmarkCommand command) async {
     try {
+      if (_config.isRestBookmarkEnabled) {
+        final transport = _httpTransport;
+        if (transport == null) {
+          throw StateError(
+              'PlaygroundHttpTransport must be provided for REST bookmark transport');
+        }
+        final uri = (_baseUri ?? Uri.parse('http://127.0.0.1:8080/v1'))
+            .resolve('/playground/bookmarks');
+        final user = _auth.currentUser;
+        final token = await user?.getIdToken();
+        final headers = <String, String>{
+          'Content-Type': 'application/json',
+          if (command.idempotencyKey != null)
+            'Idempotency-Key': command.idempotencyKey!,
+          if (token != null) 'Authorization': 'Bearer $token',
+          if (user?.uid != null) 'X-Caller-UID': user!.uid,
+        };
+        final bodyMap = <String, dynamic>{
+          'postId': command.postId.value,
+          'action': command.bookmarked ? 'bookmark' : 'unbookmark',
+        };
+        final resp = await transport.put(
+          uri,
+          headers: headers,
+          body: jsonEncode(bodyMap),
+        );
+        if (resp.statusCode >= 400) {
+          throw FirebasePlaygroundErrorMapper.mapHttpStatus(
+              resp.statusCode, resp.body);
+        }
+        return;
+      }
+
       final docId = _bookmarkDocId(command.postId);
       final docRef =
           _firestore.collection(PlaygroundFirestoreSchema.bookmarks).doc(docId);

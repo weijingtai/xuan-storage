@@ -30,11 +30,13 @@ enum PlaygroundLifecycleState {
   background,
 }
 
-/// 广场传输层配置与一键回滚开关规范（§5.2）。
+/// 广场传输层配置与一键回滚开关规范（§5.2、FW2 逐命令开关）。
 final class PlaygroundTransportConfig extends Equatable {
   const PlaygroundTransportConfig({
     this.feedTransport = TransportMode.firestore,
     this.postTransport = TransportMode.firestore,
+    this.likeTransport = TransportMode.firestore,
+    this.bookmarkTransport = TransportMode.firestore,
     this.realtimeMode = RealtimeMode.firestoreSnapshots,
     this.activePollingInterval = const Duration(seconds: 3),
     this.idlePollingInterval = const Duration(seconds: 10),
@@ -43,12 +45,14 @@ final class PlaygroundTransportConfig extends Equatable {
     this.shadowSamplingRate = 1.0,
   });
 
-  /// 默认配置：严格保持默认关闭（默认全走 Firestore / snapshots()，保证生产零风险）。
+  /// 默认配置：严格保持默认关闭（默认全走 Firestore / callable / snapshots()，保证生产零风险）。
   factory PlaygroundTransportConfig.defaults() =>
       const PlaygroundTransportConfig();
 
   final TransportMode feedTransport;
   final TransportMode postTransport;
+  final TransportMode likeTransport;
+  final TransportMode bookmarkTransport;
   final RealtimeMode realtimeMode;
   final Duration activePollingInterval;
   final Duration idlePollingInterval;
@@ -58,11 +62,15 @@ final class PlaygroundTransportConfig extends Equatable {
 
   bool get isRestFeedEnabled => feedTransport == TransportMode.rest;
   bool get isRestPostEnabled => postTransport == TransportMode.rest;
+  bool get isRestLikeEnabled => likeTransport == TransportMode.rest;
+  bool get isRestBookmarkEnabled => bookmarkTransport == TransportMode.rest;
   bool get isRestPollingEnabled => realtimeMode == RealtimeMode.restPolling;
 
   PlaygroundTransportConfig copyWith({
     TransportMode? feedTransport,
     TransportMode? postTransport,
+    TransportMode? likeTransport,
+    TransportMode? bookmarkTransport,
     RealtimeMode? realtimeMode,
     Duration? activePollingInterval,
     Duration? idlePollingInterval,
@@ -73,6 +81,8 @@ final class PlaygroundTransportConfig extends Equatable {
     return PlaygroundTransportConfig(
       feedTransport: feedTransport ?? this.feedTransport,
       postTransport: postTransport ?? this.postTransport,
+      likeTransport: likeTransport ?? this.likeTransport,
+      bookmarkTransport: bookmarkTransport ?? this.bookmarkTransport,
       realtimeMode: realtimeMode ?? this.realtimeMode,
       activePollingInterval:
           activePollingInterval ?? this.activePollingInterval,
@@ -84,11 +94,13 @@ final class PlaygroundTransportConfig extends Equatable {
     );
   }
 
-  /// 一键回滚：将所有读与实时路径切回原生 Firestore。
+  /// 一键回滚：将所有读写与实时路径切回原生 Firestore / Callable。
   PlaygroundTransportConfig rollbackToFirestore() {
     return copyWith(
       feedTransport: TransportMode.firestore,
       postTransport: TransportMode.firestore,
+      likeTransport: TransportMode.firestore,
+      bookmarkTransport: TransportMode.firestore,
       realtimeMode: RealtimeMode.firestoreSnapshots,
     );
   }
@@ -97,6 +109,8 @@ final class PlaygroundTransportConfig extends Equatable {
   List<Object?> get props => [
         feedTransport,
         postTransport,
+        likeTransport,
+        bookmarkTransport,
         realtimeMode,
         activePollingInterval,
         idlePollingInterval,
