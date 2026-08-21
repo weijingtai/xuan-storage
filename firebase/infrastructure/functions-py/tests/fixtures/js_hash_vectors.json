@@ -1,0 +1,85 @@
+[
+  {
+    "name": "empty",
+    "data": {},
+    "hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  {
+    "name": "simple",
+    "data": {
+      "postId": "p1",
+      "action": "bookmark"
+    },
+    "hash": "922d63526b32d92a91c1b6aad9fb19700696e4010084fe5d50546b0c272c4c4a"
+  },
+  {
+    "name": "cjk",
+    "data": {
+      "displayName": "玄友1234",
+      "bio": "测试简介"
+    },
+    "hash": "f2c409e5d0640880a6b9cc2bbfdf4a6cd4ad6fdbc789ac5fd2b4c6480b805151"
+  },
+  {
+    "name": "nested",
+    "data": {
+      "a": {
+        "b": [
+          1,
+          2,
+          {
+            "c": "中"
+          }
+        ]
+      }
+    },
+    "hash": "56eabac99064725aedb5de85f7361d5f07ce366c7508e7be2b8c79d32337299f"
+  },
+  {
+    "name": "nulls",
+    "data": {
+      "postId": "p1",
+      "replyId": null,
+      "action": "like"
+    },
+    "hash": "20b6a4bf732e5bb37d19eb759d14e3450d2c6d588ce4d3d915c0b254cb06bbcb"
+  },
+  {
+    "name": "numbers",
+    "data": {
+      "int": 1,
+      "float": 1.5,
+      "zero": 0,
+      "neg": -3
+    },
+    "hash": "fb2d92b880f82634ac3fe9b99247fab282589a4285b489a03765c46f16aa92dd"
+  },
+  {
+    "name": "bool",
+    "data": {
+      "t": true,
+      "f": false
+    },
+    "hash": "4d06c34b5282e13bae1d93ae5fe7f79ae3943f8d2b0e308c7bc4d3c10c46c92e"
+  },
+  {
+    "name": "array_order",
+    "data": {
+      "tags": [
+        "b",
+        "a",
+        "c"
+      ]
+    },
+    "hash": "411286dcdae44ac515e6c468a32f781a75cdf3da4e654a90bf501d07722f1490"
+  },
+  {
+    "name": "unicode_escape",
+    "data": {
+      "emoji": "🔮",
+      "quote": "\"引号\"",
+      "slash": "a/b"
+    },
+    "hash": "fcab1f68bc688f4f9e4134ca492a77ce1f0cb5504039a8f206f035d93f36dbbd"
+  }
+]

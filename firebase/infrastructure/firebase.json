@@ -3,10 +3,13 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
-  "functions": {
-    "source": "functions",
-    "runtime": "nodejs20"
-  },
+  "functions": [
+    {
+      "source": "functions-py",
+      "codebase": "python",
+      "runtime": "python311"
+    }
+  ],
   "storage": {
     "rules": "storage.rules"
   }
