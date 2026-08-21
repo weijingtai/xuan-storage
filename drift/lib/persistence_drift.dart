@@ -892,7 +892,7 @@ class EntityStampDao extends DatabaseAccessor<PersistenceDriftDatabase>
 
 /// 数据库 schema 版本。任何 onUpgrade 分支新增时同步 +1；
 /// 测试断言跟随本常量（防止版本号断言失同步）。
-const int kPersistenceDriftSchemaVersion = 11;
+const int kPersistenceDriftSchemaVersion = 12;
 
 @DriftDatabase(
   tables: [
@@ -971,6 +971,7 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
       await _createAuditLogIndices();
       await _createOutboxPeerAckIndices();
       await _createBlobIndices();
+      await _createSw2Indices();
     },
     onUpgrade: (m, from, to) async {
       if (from < 2) {
@@ -1072,6 +1073,12 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
         // S2 占 v9/v10，混用会让旧库走错路径——见上方 from<10 注释）。
         await _addCaseFlowScopeColumns(m);
         await _backfillCaseFlowScope();
+      }
+      if (from < 12) {
+        // schema v12：TimingDivinations / Seekers / SkillClasses 3 张表加 scope_uid 列并回填（SW2）。
+        await _addSw2ScopeColumns(m);
+        await _backfillSw2Scope();
+        await _createSw2Indices();
       }
     },
   );
@@ -1294,6 +1301,75 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
         ') WHERE scope_uid IS NULL',
       );
     }
+  }
+
+  /// schema v12：为 TimingDivinations / Seekers / SkillClasses 3 张表补 scope_uid 列（SW2）。
+  Future<void> _addSw2ScopeColumns(Migrator m) async {
+    final tableCols = <(String, TableInfo<Table, dynamic>, GeneratedColumn)>[
+      ('t_timing_divinations', timingDivinations, timingDivinations.scopeUid),
+      ('t_seekers', seekers, seekers.scopeUid),
+      ('t_skill_classes', skillClasses, skillClasses.scopeUid),
+    ];
+    for (final (tableName, table, column) in tableCols) {
+      if (!await _tableExists(tableName)) {
+        await m.createTable(table);
+        continue;
+      }
+      final cols = await customSelect(
+        'SELECT name FROM pragma_table_info("$tableName")',
+      ).get();
+      final hasScope = cols.any((r) => r.read<String>('name') == 'scope_uid');
+      if (!hasScope) {
+        await m.addColumn(table, column);
+      }
+    }
+  }
+
+  /// schema v12：回填 TimingDivinations / Seekers / SkillClasses 的 scope_uid（SW2）。
+  Future<void> _backfillSw2Scope() async {
+    if (await _tableExists('t_record_meta')) {
+      if (await _tableExists('t_timing_divinations')) {
+        await customStatement(
+          'UPDATE t_timing_divinations '
+          'SET scope_uid = ('
+          '  SELECT rm.scope_uid FROM t_record_meta rm '
+          '  WHERE rm.uuid = t_timing_divinations.divination_uuid LIMIT 1'
+          ') WHERE scope_uid IS NULL',
+        );
+      }
+      if (await _tableExists('t_seekers')) {
+        final hasSeekerUuid = await _columnExists('t_record_meta', 'seeker_uuid');
+        if (hasSeekerUuid) {
+          await customStatement(
+            'UPDATE t_seekers '
+            'SET scope_uid = ('
+            '  SELECT rm.scope_uid FROM t_record_meta rm '
+            '  WHERE (rm.seeker_uuid = t_seekers.uuid OR rm.uuid = t_seekers.divination_uuid) LIMIT 1'
+            ') WHERE scope_uid IS NULL',
+          );
+        } else {
+          await customStatement(
+            'UPDATE t_seekers '
+            'SET scope_uid = ('
+            '  SELECT rm.scope_uid FROM t_record_meta rm '
+            '  WHERE rm.uuid = t_seekers.divination_uuid LIMIT 1'
+            ') WHERE scope_uid IS NULL',
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _createSw2Indices() async {
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_timing_divinations_scope '
+      'ON t_timing_divinations(scope_uid)');
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_seekers_scope '
+      'ON t_seekers(scope_uid)');
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_skill_classes_scope '
+      'ON t_skill_classes(scope_uid)');
   }
 }
 

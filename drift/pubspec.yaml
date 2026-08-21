@@ -146,64 +146,109 @@ flutter:
   # https://flutter.dev/to/font-from-package
 
 dependency_overrides:
-  metaphysics_core:
-    git:
-      url: http://192.168.0.165:3000/xuan/metaphysics-core.git
   persistence_core:
     path: ../core
-  theme:
-    git:
-      url: http://192.168.0.165:3000/xuan/theme.git
+  persistence_assets:
+    path: ../assets
   persistence_domain:
-    git:
-      url: http://192.168.0.165:3000/xuan/xuan-domain.git
+    path: ../../xuan-domain
+  metaphysics_core:
+    path: ../../xuan-metaphysics-core
+  theme:
+    path: ../../theme
+  xuan_four_zhu_card:
+    path: ../../xuan-four-zhu-card
+  divination_case:
+    path: ../../xuan-divination-case
+  repository_contract_kernel:
+    path: ../../repository-contract-kernel
   repository_interface_four_zhu_card:
-    git:
-      url: http://192.168.0.165:3000/xuan/repository-interface-four-zhu-card.git
+    path: ../../repository-interface-four-zhu-card
   repository_interface_meihuayishu:
-    git:
-      url: http://192.168.0.165:3000/xuan/repository-interface-meihuayishu.git
+    path: ../../repository-interface-meihuayishu
+  repository_interface_bazi:
+    path: ../../repository-interface-bazi
   repository_interface_liuyao:
-    git:
-      url: http://192.168.0.165:3000/xuan/repository-interface-liuyao.git
+    path: ../../repository-interface-liuyao
   repository_interface_record:
-    git:
-      url: http://192.168.0.165:3000/xuan/repository-interface-record.git
-  repository_interface_xiang:
-    git:
-      url: http://192.168.0.165:3000/xuan/repository-interface-xiang.git
-  repository_interface_divination_tag:
-    git:
-      url: http://192.168.0.165:3000/xuan/repository-interface-divination-tag.git
-  repository_interface_media:
-    git:
-      url: http://192.168.0.165:3000/xuan/repository-interface-media.git
+    path: ../../repository-interface-record
+  repository_interface_playground:
+    path: ../../repository-interface-playground
   repository_interface_account:
-    git:
-      url: http://192.168.0.165:3000/xuan/repository-interface-account.git
+    path: ../../repository-interface-account
   repository_interface_ai:
-    git:
-      url: http://192.168.0.165:3000/xuan/repository-interface-ai.git
+    path: ../../repository-interface-ai
   repository_interface_qizhengsiyu:
-    git:
-      url: http://192.168.0.165:3000/xuan/repository-interface-qizhengsiyu.git
+    path: ../../repository-interface-qizhengsiyu
   repository_interface_daliuren:
-    git:
-      url: http://192.168.0.165:3000/xuan/repository-interface-daliuren.git
+    path: ../../repository-interface-daliuren
   repository_interface_qimendunjia:
-    git:
-      url: http://192.168.0.165:3000/xuan/repository-interface-qimendunjia.git
+    path: ../../repository-interface-qimendunjia
   repository_interface_tiebanshenshu:
-    git:
-      url: http://192.168.0.165:3000/xuan/repository-interface-tiebanshenshu.git
+    path: ../../repository-interface-tiebanshenshu
   repository_interface_ziweidoushu:
-    git:
-      url: http://192.168.0.165:3000/xuan/repository-interface-ziweidoushu.git
+    path: ../../repository-interface-ziweidoushu
   repository_interface_taiyishenshu:
-    git:
-      url: http://192.168.0.165:3000/xuan/repository-interface-taiyishenshu.git
+    path: ../../repository-interface-taiyishenshu
+  repository_interface_xiang:
+    path: ../../repository-interface-xiang
+  repository_interface_divination_tag:
+    path: ../../repository-interface-divination-tag
+  repository_interface_media:
+    path: ../../repository-interface-media
   repository_interface_yanqinshu:
     path: ../../repository-interface-yanqinshu
-  repository_interface_playground:
-    git:
-      url: http://192.168.0.165:3000/xuan/repository-interface-playground.git
+  repository_interface_divination_pipeline:
+    path: ../../repository-interface-divination-pipeline
+  repository_interface_kanyu:
+    path: ../../repository-interface-kanyu
+  taiyishenshu:
+    path: ../../xuan-taiyishenshu
+  enumeration:
+    path: ../../xuan-enumeration
+  xuan_time_location:
+    path: ../../xuan-time-location
+  xuan_gua_core:
+    path: ../../xuan-gua-core
+  xuan_kanyu:
+    path: ../../xuan-kanyu
+  liuyao:
+    path: ../../xuan-liuyao
+  meihuayishu:
+    path: ../../xuan-meihuayishu
+  qimendunjia:
+    path: ../../xuan-qimendunjia
+  qizhengsiyu:
+    path: ../../xuan-qizhengsiyu
+  tiebanshenshu:
+    path: ../../xuan-tiebanshenshu
+  ziwei:
+    path: ../../xuan-ziweidoushu
+  bazi:
+    path: ../../xuan-bazi
+  daliuren:
+    path: ../../xuan-daliuren
+  xuan_logger:
+    path: ../../xuan-logger
+  account:
+    path: ../../xuan-account
+  ai_core:
+    path: ../../xuan-ai
+  xuan_common_ui:
+    path: ../../xuan-common-ui
+  calendar:
+    path: ../../calendar
+  metaphysics_gua_ui:
+    path: ../../metaphysics-gua-ui
+  xuan_config:
+    path: ../../xuan_config
+  bazi_embed_ui_interface:
+    path: ../../bazi-embed-ui-interface
+  xuan_shell:
+    path: ../../xuan-shell
+  yijing:
+    path: ../../xuan-yijing
+  xuan_xiang:
+    path: ../../xuan-xiang
+  storage:
+    path: ../../xuan-storage

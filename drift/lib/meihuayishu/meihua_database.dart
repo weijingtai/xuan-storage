@@ -16,17 +16,35 @@ class MeiHuaDatabase extends _$MeiHuaDatabase {
   MeiHuaDatabase([QueryExecutor? executor]) : super(executor ?? createMeihuaConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
       onCreate: (Migrator m) async {
         await m.createAll();
+        await _createIndices();
       },
       onUpgrade: (Migrator m, int from, int to) async {
-        // 版本迁移逻辑
+        if (from < 2) {
+          final cols = await customSelect(
+            'SELECT name FROM pragma_table_info("t_meihua_gua_info")',
+          ).get();
+          if (!cols.any((r) => r.read<String>('name') == 'scope_uid')) {
+            await m.addColumn(meiHuaGuaInfos, (meiHuaGuaInfos as $MeiHuaGuaInfosTable).scopeUid);
+          }
+          await _createIndices();
+        }
       },
+    );
+  }
+
+  Future<void> _createIndices() async {
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_meihua_gua_info_scope ON t_meihua_gua_info(scope_uid)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_meihua_gua_info_divination ON t_meihua_gua_info(divination_uuid)',
     );
   }
 }

@@ -5,6 +5,7 @@ class SkillClasses extends Table {
   @override
   String get tableName => "t_skill_classes";
   TextColumn get uuid => text().withLength(min: 1).named('uuid')();
+  TextColumn get scopeUid => text().named('scope_uid').nullable()();
   DateTimeColumn get createdAt => dateTime().named('created_at')();
   DateTimeColumn get lastUpdatedAt => dateTime().named('last_updated_at')();
   DateTimeColumn get deletedAt => dateTime().nullable().named('deleted_at')();

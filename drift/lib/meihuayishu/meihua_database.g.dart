@@ -30,6 +30,17 @@ class $MeiHuaGuaInfosTable extends MeiHuaGuaInfos
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _questionMeta = const VerificationMeta(
     'question',
   );
@@ -175,6 +186,7 @@ class $MeiHuaGuaInfosTable extends MeiHuaGuaInfos
   List<GeneratedColumn> get $columns => [
     uuid,
     divinationUuid,
+    scopeUid,
     question,
     originalUpperGua,
     originalLowerGua,
@@ -219,6 +231,12 @@ class $MeiHuaGuaInfosTable extends MeiHuaGuaInfos
       );
     } else if (isInserting) {
       context.missing(_divinationUuidMeta);
+    }
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
     }
     if (data.containsKey('question')) {
       context.handle(
@@ -358,6 +376,10 @@ class $MeiHuaGuaInfosTable extends MeiHuaGuaInfos
         DriftSqlType.string,
         data['${effectivePrefix}divination_uuid'],
       )!,
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      ),
       question: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}question'],
@@ -426,6 +448,8 @@ class MeiHuaGuaInfo extends DataClass implements Insertable<MeiHuaGuaInfo> {
   /// 占卜记录 UUID（关联到 common 的 t_divinations 表）
   final String divinationUuid;
 
+  final String? scopeUid;
+
   /// 卜问内容
   final String? question;
 
@@ -455,6 +479,7 @@ class MeiHuaGuaInfo extends DataClass implements Insertable<MeiHuaGuaInfo> {
   const MeiHuaGuaInfo({
     required this.uuid,
     required this.divinationUuid,
+    this.scopeUid,
     this.question,
     required this.originalUpperGua,
     required this.originalLowerGua,
@@ -474,6 +499,9 @@ class MeiHuaGuaInfo extends DataClass implements Insertable<MeiHuaGuaInfo> {
     final map = <String, Expression>{};
     map['uuid'] = Variable<String>(uuid);
     map['divination_uuid'] = Variable<String>(divinationUuid);
+    if (!nullToAbsent || scopeUid != null) {
+      map['scope_uid'] = Variable<String>(scopeUid);
+    }
     if (!nullToAbsent || question != null) {
       map['question'] = Variable<String>(question);
     }
@@ -498,6 +526,9 @@ class MeiHuaGuaInfo extends DataClass implements Insertable<MeiHuaGuaInfo> {
     return MeiHuaGuaInfosCompanion(
       uuid: Value(uuid),
       divinationUuid: Value(divinationUuid),
+      scopeUid: scopeUid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(scopeUid),
       question: question == null && nullToAbsent
           ? const Value.absent()
           : Value(question),
@@ -526,6 +557,7 @@ class MeiHuaGuaInfo extends DataClass implements Insertable<MeiHuaGuaInfo> {
     return MeiHuaGuaInfo(
       uuid: serializer.fromJson<String>(json['uuid']),
       divinationUuid: serializer.fromJson<String>(json['divinationUuid']),
+      scopeUid: serializer.fromJson<String?>(json['scopeUid']),
       question: serializer.fromJson<String?>(json['question']),
       originalUpperGua: serializer.fromJson<int>(json['originalUpperGua']),
       originalLowerGua: serializer.fromJson<int>(json['originalLowerGua']),
@@ -547,6 +579,7 @@ class MeiHuaGuaInfo extends DataClass implements Insertable<MeiHuaGuaInfo> {
     return <String, dynamic>{
       'uuid': serializer.toJson<String>(uuid),
       'divinationUuid': serializer.toJson<String>(divinationUuid),
+      'scopeUid': serializer.toJson<String?>(scopeUid),
       'question': serializer.toJson<String?>(question),
       'originalUpperGua': serializer.toJson<int>(originalUpperGua),
       'originalLowerGua': serializer.toJson<int>(originalLowerGua),
@@ -566,6 +599,7 @@ class MeiHuaGuaInfo extends DataClass implements Insertable<MeiHuaGuaInfo> {
   MeiHuaGuaInfo copyWith({
     String? uuid,
     String? divinationUuid,
+    Value<String?> scopeUid = const Value.absent(),
     Value<String?> question = const Value.absent(),
     int? originalUpperGua,
     int? originalLowerGua,
@@ -582,6 +616,7 @@ class MeiHuaGuaInfo extends DataClass implements Insertable<MeiHuaGuaInfo> {
   }) => MeiHuaGuaInfo(
     uuid: uuid ?? this.uuid,
     divinationUuid: divinationUuid ?? this.divinationUuid,
+    scopeUid: scopeUid.present ? scopeUid.value : this.scopeUid,
     question: question.present ? question.value : this.question,
     originalUpperGua: originalUpperGua ?? this.originalUpperGua,
     originalLowerGua: originalLowerGua ?? this.originalLowerGua,
@@ -602,6 +637,7 @@ class MeiHuaGuaInfo extends DataClass implements Insertable<MeiHuaGuaInfo> {
       divinationUuid: data.divinationUuid.present
           ? data.divinationUuid.value
           : this.divinationUuid,
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
       question: data.question.present ? data.question.value : this.question,
       originalUpperGua: data.originalUpperGua.present
           ? data.originalUpperGua.value
@@ -639,6 +675,7 @@ class MeiHuaGuaInfo extends DataClass implements Insertable<MeiHuaGuaInfo> {
     return (StringBuffer('MeiHuaGuaInfo(')
           ..write('uuid: $uuid, ')
           ..write('divinationUuid: $divinationUuid, ')
+          ..write('scopeUid: $scopeUid, ')
           ..write('question: $question, ')
           ..write('originalUpperGua: $originalUpperGua, ')
           ..write('originalLowerGua: $originalLowerGua, ')
@@ -660,6 +697,7 @@ class MeiHuaGuaInfo extends DataClass implements Insertable<MeiHuaGuaInfo> {
   int get hashCode => Object.hash(
     uuid,
     divinationUuid,
+    scopeUid,
     question,
     originalUpperGua,
     originalLowerGua,
@@ -680,6 +718,7 @@ class MeiHuaGuaInfo extends DataClass implements Insertable<MeiHuaGuaInfo> {
       (other is MeiHuaGuaInfo &&
           other.uuid == this.uuid &&
           other.divinationUuid == this.divinationUuid &&
+          other.scopeUid == this.scopeUid &&
           other.question == this.question &&
           other.originalUpperGua == this.originalUpperGua &&
           other.originalLowerGua == this.originalLowerGua &&
@@ -698,6 +737,7 @@ class MeiHuaGuaInfo extends DataClass implements Insertable<MeiHuaGuaInfo> {
 class MeiHuaGuaInfosCompanion extends UpdateCompanion<MeiHuaGuaInfo> {
   final Value<String> uuid;
   final Value<String> divinationUuid;
+  final Value<String?> scopeUid;
   final Value<String?> question;
   final Value<int> originalUpperGua;
   final Value<int> originalLowerGua;
@@ -715,6 +755,7 @@ class MeiHuaGuaInfosCompanion extends UpdateCompanion<MeiHuaGuaInfo> {
   const MeiHuaGuaInfosCompanion({
     this.uuid = const Value.absent(),
     this.divinationUuid = const Value.absent(),
+    this.scopeUid = const Value.absent(),
     this.question = const Value.absent(),
     this.originalUpperGua = const Value.absent(),
     this.originalLowerGua = const Value.absent(),
@@ -733,6 +774,7 @@ class MeiHuaGuaInfosCompanion extends UpdateCompanion<MeiHuaGuaInfo> {
   MeiHuaGuaInfosCompanion.insert({
     required String uuid,
     required String divinationUuid,
+    this.scopeUid = const Value.absent(),
     this.question = const Value.absent(),
     required int originalUpperGua,
     required int originalLowerGua,
@@ -763,6 +805,7 @@ class MeiHuaGuaInfosCompanion extends UpdateCompanion<MeiHuaGuaInfo> {
   static Insertable<MeiHuaGuaInfo> custom({
     Expression<String>? uuid,
     Expression<String>? divinationUuid,
+    Expression<String>? scopeUid,
     Expression<String>? question,
     Expression<int>? originalUpperGua,
     Expression<int>? originalLowerGua,
@@ -781,6 +824,7 @@ class MeiHuaGuaInfosCompanion extends UpdateCompanion<MeiHuaGuaInfo> {
     return RawValuesInsertable({
       if (uuid != null) 'uuid': uuid,
       if (divinationUuid != null) 'divination_uuid': divinationUuid,
+      if (scopeUid != null) 'scope_uid': scopeUid,
       if (question != null) 'question': question,
       if (originalUpperGua != null) 'original_upper_gua': originalUpperGua,
       if (originalLowerGua != null) 'original_lower_gua': originalLowerGua,
@@ -801,6 +845,7 @@ class MeiHuaGuaInfosCompanion extends UpdateCompanion<MeiHuaGuaInfo> {
   MeiHuaGuaInfosCompanion copyWith({
     Value<String>? uuid,
     Value<String>? divinationUuid,
+    Value<String?>? scopeUid,
     Value<String?>? question,
     Value<int>? originalUpperGua,
     Value<int>? originalLowerGua,
@@ -819,6 +864,7 @@ class MeiHuaGuaInfosCompanion extends UpdateCompanion<MeiHuaGuaInfo> {
     return MeiHuaGuaInfosCompanion(
       uuid: uuid ?? this.uuid,
       divinationUuid: divinationUuid ?? this.divinationUuid,
+      scopeUid: scopeUid ?? this.scopeUid,
       question: question ?? this.question,
       originalUpperGua: originalUpperGua ?? this.originalUpperGua,
       originalLowerGua: originalLowerGua ?? this.originalLowerGua,
@@ -844,6 +890,9 @@ class MeiHuaGuaInfosCompanion extends UpdateCompanion<MeiHuaGuaInfo> {
     }
     if (divinationUuid.present) {
       map['divination_uuid'] = Variable<String>(divinationUuid.value);
+    }
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
     }
     if (question.present) {
       map['question'] = Variable<String>(question.value);

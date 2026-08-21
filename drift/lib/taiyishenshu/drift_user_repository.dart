@@ -7,37 +7,68 @@ import 'drift_user_mapper.dart';
 
 class DriftUserRepository implements SchoolRepository, UserSchoolRepository, DeityRepository {
   final TaiYiDatabase db;
+  final String? scopeUid;
 
-  DriftUserRepository(this.db);
+  DriftUserRepository(this.db, {this.scopeUid});
 
   @override
   Future<List<TaiYiSchoolContract>> loadAllSchools() async {
-    final rows = await db.select(db.userSchools).get();
+    final query = db.select(db.userSchools);
+    if (scopeUid != null) {
+      query.where((t) => t.scopeUid.equals(scopeUid!) | t.scopeUid.isNull());
+    }
+    final rows = await query.get();
     return rows.map((row) => TaiYiSchool.fromJson(jsonDecode(row.contentJson)).toContract()).toList();
   }
 
   @override
-  Future<List<TaiYiSchoolContract>> loadUserSchools() async => loadAllSchools();
+  Future<List<TaiYiSchoolContract>> loadUserSchools() async {
+    final query = db.select(db.userSchools);
+    if (scopeUid != null) {
+      query.where((t) => t.scopeUid.equals(scopeUid!));
+    }
+    final rows = await query.get();
+    return rows.map((row) => TaiYiSchool.fromJson(jsonDecode(row.contentJson)).toContract()).toList();
+  }
 
   @override
   Future<TaiYiSchoolContract?> loadSchool(String id) async {
-    final row = await (db.select(db.userSchools)..where((t) => t.id.equals(id))).getSingleOrNull();
+    final query = db.select(db.userSchools)..where((t) => t.id.equals(id));
+    if (scopeUid != null) {
+      query.where((t) => t.scopeUid.equals(scopeUid!) | t.scopeUid.isNull());
+    }
+    final row = await query.getSingleOrNull();
     if (row == null) return null;
     return TaiYiSchool.fromJson(jsonDecode(row.contentJson)).toContract();
   }
 
   @override
   Future<List<DeityDefinitionContract>> loadAllDeities() async {
-    final rows = await db.select(db.userDeities).get();
+    final query = db.select(db.userDeities);
+    if (scopeUid != null) {
+      query.where((t) => t.scopeUid.equals(scopeUid!) | t.scopeUid.isNull());
+    }
+    final rows = await query.get();
     return rows.map((row) => DeityDefinition.fromJson(jsonDecode(row.contentJson)).toContract()).toList();
   }
 
   @override
-  Future<List<DeityDefinitionContract>> loadUserDeities() async => loadAllDeities();
+  Future<List<DeityDefinitionContract>> loadUserDeities() async {
+    final query = db.select(db.userDeities);
+    if (scopeUid != null) {
+      query.where((t) => t.scopeUid.equals(scopeUid!));
+    }
+    final rows = await query.get();
+    return rows.map((row) => DeityDefinition.fromJson(jsonDecode(row.contentJson)).toContract()).toList();
+  }
 
   @override
   Future<DeityDefinitionContract?> loadDeity(String id) async {
-    final row = await (db.select(db.userDeities)..where((t) => t.id.equals(id))).getSingleOrNull();
+    final query = db.select(db.userDeities)..where((t) => t.id.equals(id));
+    if (scopeUid != null) {
+      query.where((t) => t.scopeUid.equals(scopeUid!) | t.scopeUid.isNull());
+    }
+    final row = await query.getSingleOrNull();
     if (row == null) return null;
     return DeityDefinition.fromJson(jsonDecode(row.contentJson)).toContract();
   }
@@ -50,6 +81,7 @@ class DriftUserRepository implements SchoolRepository, UserSchoolRepository, Dei
         name: Value(school.name),
         source: Value(school.source),
         contentJson: Value(jsonEncode(school.toModel().toJson())),
+        scopeUid: Value(scopeUid),
       ),
     );
   }
@@ -65,6 +97,7 @@ class DriftUserRepository implements SchoolRepository, UserSchoolRepository, Dei
         name: Value(deity.name),
         source: Value(deity.source),
         contentJson: Value(jsonEncode(deity.toModel().toJson())),
+        scopeUid: Value(scopeUid),
       ),
     );
   }
@@ -74,7 +107,11 @@ class DriftUserRepository implements SchoolRepository, UserSchoolRepository, Dei
 
   @override
   Future<void> deleteSchool(String id) async {
-    await (db.delete(db.userSchools)..where((t) => t.id.equals(id))).go();
+    final query = db.delete(db.userSchools)..where((t) => t.id.equals(id));
+    if (scopeUid != null) {
+      query.where((t) => t.scopeUid.equals(scopeUid!));
+    }
+    await query.go();
   }
 
   @override
@@ -82,7 +119,11 @@ class DriftUserRepository implements SchoolRepository, UserSchoolRepository, Dei
 
   @override
   Future<void> deleteDeity(String id) async {
-    await (db.delete(db.userDeities)..where((t) => t.id.equals(id))).go();
+    final query = db.delete(db.userDeities)..where((t) => t.id.equals(id));
+    if (scopeUid != null) {
+      query.where((t) => t.scopeUid.equals(scopeUid!));
+    }
+    await query.go();
   }
 
   @override

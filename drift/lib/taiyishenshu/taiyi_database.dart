@@ -16,6 +16,7 @@ class UserSchools extends Table {
   TextColumn get name => text()();
   TextColumn get source => text().withDefault(const Constant('user'))();
   TextColumn get contentJson => text()();
+  TextColumn get scopeUid => text().named('scope_uid').nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -26,6 +27,7 @@ class UserDeities extends Table {
   TextColumn get name => text()();
   TextColumn get source => text().withDefault(const Constant('user'))();
   TextColumn get contentJson => text()();
+  TextColumn get scopeUid => text().named('scope_uid').nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -138,6 +140,42 @@ class TaiYiDatabase extends _$TaiYiDatabase {
   /// `test/integration/zt30_*.dart`.
   TaiYiDatabase.memory() : super(createMemoryExecutor());
 
+  TaiYiDatabase.withExecutor(QueryExecutor e) : super(e);
+
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (Migrator m) async {
+          await m.createAll();
+          await _createIndices();
+        },
+        onUpgrade: (Migrator m, int from, int to) async {
+          if (from < 2) {
+            final schoolCols = await customSelect(
+              'SELECT name FROM pragma_table_info("user_schools")',
+            ).get();
+            if (!schoolCols.any((r) => r.read<String>('name') == 'scope_uid')) {
+              await m.addColumn(userSchools, userSchools.scopeUid);
+            }
+            final deityCols = await customSelect(
+              'SELECT name FROM pragma_table_info("user_deities")',
+            ).get();
+            if (!deityCols.any((r) => r.read<String>('name') == 'scope_uid')) {
+              await m.addColumn(userDeities, userDeities.scopeUid);
+            }
+            await _createIndices();
+          }
+        },
+      );
+
+  Future<void> _createIndices() async {
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_user_schools_scope ON user_schools(scope_uid)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_user_deities_scope ON user_deities(scope_uid)',
+    );
+  }
 }

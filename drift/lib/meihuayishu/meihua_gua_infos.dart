@@ -10,6 +10,9 @@ class MeiHuaGuaInfos extends Table {
   /// 主键 UUID
   TextColumn get uuid => text().withLength(min: 1).named('uuid')();
 
+  /// Scope UID 隔离列
+  TextColumn get scopeUid => text().named('scope_uid').nullable()();
+
   /// 占卜记录 UUID（关联到 common 的 t_divinations 表）
   TextColumn get divinationUuid =>
       text().named('divination_uuid')();

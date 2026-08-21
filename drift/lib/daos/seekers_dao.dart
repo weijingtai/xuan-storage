@@ -8,39 +8,60 @@ part 'seekers_dao.g.dart';
 @DriftAccessor(tables: [Seekers])
 class SeekersDao extends DatabaseAccessor<PersistenceDriftDatabase> with _$SeekersDaoMixin {
   final PersistenceDriftDatabase db;
-  SeekersDao(this.db) : super(db);
+  final String? scopeUid;
+  SeekersDao(this.db, {this.scopeUid}) : super(db);
 
-  SimpleSelectStatement<$SeekersTable, SeekerModel> _baseSelect() =>
-      select(db.seekers);
-
-  Future<List<SeekerModel>> getAllSeekers() {
-    return (_baseSelect()..where((tbl) => tbl.deletedAt.isNull())).get();
+  SimpleSelectStatement<$SeekersTable, SeekerModel> _baseSelect({String? scopeUid}) {
+    final effectiveScope = scopeUid ?? this.scopeUid;
+    final s = select(db.seekers);
+    if (effectiveScope != null) {
+      s.where((t) => t.scopeUid.equals(effectiveScope));
+    }
+    return s;
   }
 
-  Future<SeekerModel?> getSeekerByUuid(String uuid) {
-    return (_baseSelect()
+  Future<List<SeekerModel>> getAllSeekers({String? scopeUid}) {
+    return (_baseSelect(scopeUid: scopeUid)..where((tbl) => tbl.deletedAt.isNull())).get();
+  }
+
+  Future<SeekerModel?> getSeekerByUuid(String uuid, {String? scopeUid}) {
+    return (_baseSelect(scopeUid: scopeUid)
           ..where((t) => t.uuid.equals(uuid) & t.deletedAt.isNull()))
         .getSingleOrNull();
   }
 
   @Deprecated('使用 RecordModuleRegistry.repositoryFor(module: \'seeker\') 替代')
-  Future<List<SeekerModel>> getSeekersByDivinationUuid(String divinationUuid) {
-    return (_baseSelect()
+  Future<List<SeekerModel>> getSeekersByDivinationUuid(String divinationUuid, {String? scopeUid}) {
+    return (_baseSelect(scopeUid: scopeUid)
           ..where((t) =>
               t.divinationUuid.equals(divinationUuid) & t.deletedAt.isNull()))
         .get();
   }
 
   Future<int> insertSeeker(SeekersCompanion companion) {
+    if (scopeUid != null && !companion.scopeUid.present) {
+      companion = companion.copyWith(scopeUid: Value(scopeUid));
+    }
     return into(db.seekers).insert(companion);
   }
 
-  Future<bool> updateSeeker(SeekersCompanion companion) {
+  Future<bool> updateSeeker(SeekersCompanion companion, {String? scopeUid}) {
+    final effectiveScope = scopeUid ?? this.scopeUid;
+    if (effectiveScope != null) {
+      return (update(db.seekers)
+            ..where((t) => t.uuid.equals(companion.uuid.value) & t.scopeUid.equals(effectiveScope)))
+          .write(companion)
+          .then((count) => count > 0);
+    }
     return update(db.seekers).replace(companion);
   }
 
-  Future<int> softDeleteSeeker(String uuid) {
-    return (update(db.seekers)..where((t) => t.uuid.equals(uuid)))
-        .write(SeekersCompanion(deletedAt: Value(DateTime.now())));
+  Future<int> softDeleteSeeker(String uuid, {String? scopeUid}) {
+    final effectiveScope = scopeUid ?? this.scopeUid;
+    final query = update(db.seekers)..where((t) => t.uuid.equals(uuid));
+    if (effectiveScope != null) {
+      query.where((t) => t.scopeUid.equals(effectiveScope));
+    }
+    return query.write(SeekersCompanion(deletedAt: Value(DateTime.now())));
   }
 }

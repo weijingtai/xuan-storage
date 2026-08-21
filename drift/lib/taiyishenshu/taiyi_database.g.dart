@@ -18,6 +18,17 @@ class $UserSchoolsTable extends UserSchools
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
@@ -49,7 +60,7 @@ class $UserSchoolsTable extends UserSchools
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, name, source, contentJson];
+  List<GeneratedColumn> get $columns => [id, scopeUid, name, source, contentJson];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -66,6 +77,12 @@ class $UserSchoolsTable extends UserSchools
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
+    }
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
     }
     if (data.containsKey('name')) {
       context.handle(
@@ -105,6 +122,10 @@ class $UserSchoolsTable extends UserSchools
         DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      ),
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
@@ -128,11 +149,13 @@ class $UserSchoolsTable extends UserSchools
 
 class UserSchool extends DataClass implements Insertable<UserSchool> {
   final String id;
+  final String? scopeUid;
   final String name;
   final String source;
   final String contentJson;
   const UserSchool({
     required this.id,
+    this.scopeUid,
     required this.name,
     required this.source,
     required this.contentJson,
@@ -141,6 +164,9 @@ class UserSchool extends DataClass implements Insertable<UserSchool> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    if (!nullToAbsent || scopeUid != null) {
+      map['scope_uid'] = Variable<String>(scopeUid);
+    }
     map['name'] = Variable<String>(name);
     map['source'] = Variable<String>(source);
     map['content_json'] = Variable<String>(contentJson);
@@ -150,6 +176,9 @@ class UserSchool extends DataClass implements Insertable<UserSchool> {
   UserSchoolsCompanion toCompanion(bool nullToAbsent) {
     return UserSchoolsCompanion(
       id: Value(id),
+      scopeUid: scopeUid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(scopeUid),
       name: Value(name),
       source: Value(source),
       contentJson: Value(contentJson),
@@ -163,6 +192,7 @@ class UserSchool extends DataClass implements Insertable<UserSchool> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return UserSchool(
       id: serializer.fromJson<String>(json['id']),
+      scopeUid: serializer.fromJson<String?>(json['scopeUid']),
       name: serializer.fromJson<String>(json['name']),
       source: serializer.fromJson<String>(json['source']),
       contentJson: serializer.fromJson<String>(json['contentJson']),
@@ -173,6 +203,7 @@ class UserSchool extends DataClass implements Insertable<UserSchool> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'scopeUid': serializer.toJson<String?>(scopeUid),
       'name': serializer.toJson<String>(name),
       'source': serializer.toJson<String>(source),
       'contentJson': serializer.toJson<String>(contentJson),
@@ -181,11 +212,13 @@ class UserSchool extends DataClass implements Insertable<UserSchool> {
 
   UserSchool copyWith({
     String? id,
+    Value<String?> scopeUid = const Value.absent(),
     String? name,
     String? source,
     String? contentJson,
   }) => UserSchool(
     id: id ?? this.id,
+    scopeUid: scopeUid.present ? scopeUid.value : this.scopeUid,
     name: name ?? this.name,
     source: source ?? this.source,
     contentJson: contentJson ?? this.contentJson,
@@ -193,6 +226,7 @@ class UserSchool extends DataClass implements Insertable<UserSchool> {
   UserSchool copyWithCompanion(UserSchoolsCompanion data) {
     return UserSchool(
       id: data.id.present ? data.id.value : this.id,
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
       name: data.name.present ? data.name.value : this.name,
       source: data.source.present ? data.source.value : this.source,
       contentJson: data.contentJson.present
@@ -205,6 +239,7 @@ class UserSchool extends DataClass implements Insertable<UserSchool> {
   String toString() {
     return (StringBuffer('UserSchool(')
           ..write('id: $id, ')
+          ..write('scopeUid: $scopeUid, ')
           ..write('name: $name, ')
           ..write('source: $source, ')
           ..write('contentJson: $contentJson')
@@ -213,12 +248,13 @@ class UserSchool extends DataClass implements Insertable<UserSchool> {
   }
 
   @override
-  int get hashCode => Object.hash(id, name, source, contentJson);
+  int get hashCode => Object.hash(id, scopeUid, name, source, contentJson);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is UserSchool &&
           other.id == this.id &&
+          other.scopeUid == this.scopeUid &&
           other.name == this.name &&
           other.source == this.source &&
           other.contentJson == this.contentJson);
@@ -226,12 +262,14 @@ class UserSchool extends DataClass implements Insertable<UserSchool> {
 
 class UserSchoolsCompanion extends UpdateCompanion<UserSchool> {
   final Value<String> id;
+  final Value<String?> scopeUid;
   final Value<String> name;
   final Value<String> source;
   final Value<String> contentJson;
   final Value<int> rowid;
   const UserSchoolsCompanion({
     this.id = const Value.absent(),
+    this.scopeUid = const Value.absent(),
     this.name = const Value.absent(),
     this.source = const Value.absent(),
     this.contentJson = const Value.absent(),
@@ -239,6 +277,7 @@ class UserSchoolsCompanion extends UpdateCompanion<UserSchool> {
   });
   UserSchoolsCompanion.insert({
     required String id,
+    this.scopeUid = const Value.absent(),
     required String name,
     this.source = const Value.absent(),
     required String contentJson,
@@ -248,6 +287,7 @@ class UserSchoolsCompanion extends UpdateCompanion<UserSchool> {
        contentJson = Value(contentJson);
   static Insertable<UserSchool> custom({
     Expression<String>? id,
+    Expression<String>? scopeUid,
     Expression<String>? name,
     Expression<String>? source,
     Expression<String>? contentJson,
@@ -255,6 +295,7 @@ class UserSchoolsCompanion extends UpdateCompanion<UserSchool> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (scopeUid != null) 'scope_uid': scopeUid,
       if (name != null) 'name': name,
       if (source != null) 'source': source,
       if (contentJson != null) 'content_json': contentJson,
@@ -264,6 +305,7 @@ class UserSchoolsCompanion extends UpdateCompanion<UserSchool> {
 
   UserSchoolsCompanion copyWith({
     Value<String>? id,
+    Value<String?>? scopeUid,
     Value<String>? name,
     Value<String>? source,
     Value<String>? contentJson,
@@ -271,6 +313,7 @@ class UserSchoolsCompanion extends UpdateCompanion<UserSchool> {
   }) {
     return UserSchoolsCompanion(
       id: id ?? this.id,
+      scopeUid: scopeUid ?? this.scopeUid,
       name: name ?? this.name,
       source: source ?? this.source,
       contentJson: contentJson ?? this.contentJson,
@@ -283,6 +326,9 @@ class UserSchoolsCompanion extends UpdateCompanion<UserSchool> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<String>(id.value);
+    }
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
@@ -303,6 +349,7 @@ class UserSchoolsCompanion extends UpdateCompanion<UserSchool> {
   String toString() {
     return (StringBuffer('UserSchoolsCompanion(')
           ..write('id: $id, ')
+          ..write('scopeUid: $scopeUid, ')
           ..write('name: $name, ')
           ..write('source: $source, ')
           ..write('contentJson: $contentJson, ')
@@ -326,6 +373,17 @@ class $UserDeitiesTable extends UserDeities
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
@@ -358,7 +416,7 @@ class $UserDeitiesTable extends UserDeities
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, name, source, contentJson];
+  List<GeneratedColumn> get $columns => [id, scopeUid, name, source, contentJson];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -375,6 +433,12 @@ class $UserDeitiesTable extends UserDeities
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
+    }
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
     }
     if (data.containsKey('name')) {
       context.handle(
@@ -414,6 +478,10 @@ class $UserDeitiesTable extends UserDeities
         DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      ),
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
@@ -437,11 +505,13 @@ class $UserDeitiesTable extends UserDeities
 
 class UserDeity extends DataClass implements Insertable<UserDeity> {
   final String id;
+  final String? scopeUid;
   final String name;
   final String source;
   final String contentJson;
   const UserDeity({
     required this.id,
+    this.scopeUid,
     required this.name,
     required this.source,
     required this.contentJson,
@@ -450,6 +520,9 @@ class UserDeity extends DataClass implements Insertable<UserDeity> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    if (!nullToAbsent || scopeUid != null) {
+      map['scope_uid'] = Variable<String>(scopeUid);
+    }
     map['name'] = Variable<String>(name);
     map['source'] = Variable<String>(source);
     map['content_json'] = Variable<String>(contentJson);
@@ -459,6 +532,9 @@ class UserDeity extends DataClass implements Insertable<UserDeity> {
   UserDeitiesCompanion toCompanion(bool nullToAbsent) {
     return UserDeitiesCompanion(
       id: Value(id),
+      scopeUid: scopeUid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(scopeUid),
       name: Value(name),
       source: Value(source),
       contentJson: Value(contentJson),
@@ -472,6 +548,7 @@ class UserDeity extends DataClass implements Insertable<UserDeity> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return UserDeity(
       id: serializer.fromJson<String>(json['id']),
+      scopeUid: serializer.fromJson<String?>(json['scopeUid']),
       name: serializer.fromJson<String>(json['name']),
       source: serializer.fromJson<String>(json['source']),
       contentJson: serializer.fromJson<String>(json['contentJson']),
@@ -482,6 +559,7 @@ class UserDeity extends DataClass implements Insertable<UserDeity> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'scopeUid': serializer.toJson<String?>(scopeUid),
       'name': serializer.toJson<String>(name),
       'source': serializer.toJson<String>(source),
       'contentJson': serializer.toJson<String>(contentJson),
@@ -490,11 +568,13 @@ class UserDeity extends DataClass implements Insertable<UserDeity> {
 
   UserDeity copyWith({
     String? id,
+    Value<String?> scopeUid = const Value.absent(),
     String? name,
     String? source,
     String? contentJson,
   }) => UserDeity(
     id: id ?? this.id,
+    scopeUid: scopeUid.present ? scopeUid.value : this.scopeUid,
     name: name ?? this.name,
     source: source ?? this.source,
     contentJson: contentJson ?? this.contentJson,
@@ -502,6 +582,7 @@ class UserDeity extends DataClass implements Insertable<UserDeity> {
   UserDeity copyWithCompanion(UserDeitiesCompanion data) {
     return UserDeity(
       id: data.id.present ? data.id.value : this.id,
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
       name: data.name.present ? data.name.value : this.name,
       source: data.source.present ? data.source.value : this.source,
       contentJson: data.contentJson.present
@@ -514,6 +595,7 @@ class UserDeity extends DataClass implements Insertable<UserDeity> {
   String toString() {
     return (StringBuffer('UserDeity(')
           ..write('id: $id, ')
+          ..write('scopeUid: $scopeUid, ')
           ..write('name: $name, ')
           ..write('source: $source, ')
           ..write('contentJson: $contentJson')
@@ -522,12 +604,13 @@ class UserDeity extends DataClass implements Insertable<UserDeity> {
   }
 
   @override
-  int get hashCode => Object.hash(id, name, source, contentJson);
+  int get hashCode => Object.hash(id, scopeUid, name, source, contentJson);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is UserDeity &&
           other.id == this.id &&
+          other.scopeUid == this.scopeUid &&
           other.name == this.name &&
           other.source == this.source &&
           other.contentJson == this.contentJson);
@@ -535,12 +618,14 @@ class UserDeity extends DataClass implements Insertable<UserDeity> {
 
 class UserDeitiesCompanion extends UpdateCompanion<UserDeity> {
   final Value<String> id;
+  final Value<String?> scopeUid;
   final Value<String> name;
   final Value<String> source;
   final Value<String> contentJson;
   final Value<int> rowid;
   const UserDeitiesCompanion({
     this.id = const Value.absent(),
+    this.scopeUid = const Value.absent(),
     this.name = const Value.absent(),
     this.source = const Value.absent(),
     this.contentJson = const Value.absent(),
@@ -548,6 +633,7 @@ class UserDeitiesCompanion extends UpdateCompanion<UserDeity> {
   });
   UserDeitiesCompanion.insert({
     required String id,
+    this.scopeUid = const Value.absent(),
     required String name,
     this.source = const Value.absent(),
     required String contentJson,
@@ -557,6 +643,7 @@ class UserDeitiesCompanion extends UpdateCompanion<UserDeity> {
        contentJson = Value(contentJson);
   static Insertable<UserDeity> custom({
     Expression<String>? id,
+    Expression<String>? scopeUid,
     Expression<String>? name,
     Expression<String>? source,
     Expression<String>? contentJson,
@@ -564,6 +651,7 @@ class UserDeitiesCompanion extends UpdateCompanion<UserDeity> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (scopeUid != null) 'scope_uid': scopeUid,
       if (name != null) 'name': name,
       if (source != null) 'source': source,
       if (contentJson != null) 'content_json': contentJson,
@@ -573,6 +661,7 @@ class UserDeitiesCompanion extends UpdateCompanion<UserDeity> {
 
   UserDeitiesCompanion copyWith({
     Value<String>? id,
+    Value<String?>? scopeUid,
     Value<String>? name,
     Value<String>? source,
     Value<String>? contentJson,
@@ -580,6 +669,7 @@ class UserDeitiesCompanion extends UpdateCompanion<UserDeity> {
   }) {
     return UserDeitiesCompanion(
       id: id ?? this.id,
+      scopeUid: scopeUid ?? this.scopeUid,
       name: name ?? this.name,
       source: source ?? this.source,
       contentJson: contentJson ?? this.contentJson,
@@ -592,6 +682,9 @@ class UserDeitiesCompanion extends UpdateCompanion<UserDeity> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<String>(id.value);
+    }
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
@@ -612,6 +705,7 @@ class UserDeitiesCompanion extends UpdateCompanion<UserDeity> {
   String toString() {
     return (StringBuffer('UserDeitiesCompanion(')
           ..write('id: $id, ')
+          ..write('scopeUid: $scopeUid, ')
           ..write('name: $name, ')
           ..write('source: $source, ')
           ..write('contentJson: $contentJson, ')
