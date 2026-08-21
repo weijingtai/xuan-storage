@@ -46,6 +46,10 @@ from xuan.handlers.media import (  # noqa: F401
     on_media_uploaded_py,
 )
 from xuan.handlers.notifications import on_outbox_created_py  # noqa: F401
+from xuan.handlers.playground_rest import (  # noqa: F401
+    playground_feed_py,
+    playground_posts_py,
+)
 
 # 函数名统一加 `_py` 后缀：切换期两个版本同时部署在一个项目里，
 # 同名会互相覆盖。客户端通过配置决定调哪一个。

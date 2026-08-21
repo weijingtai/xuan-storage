@@ -31,6 +31,11 @@ EXPECTED_TRIGGERS = [
     "cleanup_orphan_media_py",
 ]
 
+EXPECTED_HTTP = [
+    "playground_feed_py",
+    "playground_posts_py",
+]
+
 
 def test_全部_callable_已在入口注册():
     missing = [name for name in EXPECTED if not hasattr(main, name)]
@@ -42,17 +47,22 @@ def test_三个_trigger_已注册():
     assert missing == [], f"main.py 未注册 trigger：{missing}"
 
 
-def test_与_ts_侧数量对齐():
-    """TS 侧 25 callable + 3 trigger = 28 个入口，Python 侧必须一致。"""
+def test_http_rest_端点已注册():
+    missing = [n for n in EXPECTED_HTTP if not hasattr(main, n)]
+    assert missing == [], f"main.py 未注册 HTTP REST 端点：{missing}"
+
+
+def test_与_入口总数对齐():
+    """25 callable + 3 trigger + 2 HTTP REST = 30 个入口，Python 侧必须一致。"""
     entries = {n for n in dir(main) if n.endswith("_py") and not n.startswith("_")}
-    assert len(entries) == 28, f"入口数不符：{len(entries)}，应为 28"
+    assert len(entries) == 30, f"入口数不符：{len(entries)}，应为 30"
 
 
 def test_没有多余的未声明导出():
-    """新增 callable 必须同时更新本清单，避免注册了却没人知道。"""
+    """新增 callable / HTTP 端点必须同时更新本清单，避免注册了却没人知道。"""
     exported = {
         n for n in dir(main)
         if n.endswith("_py") and not n.startswith("_")
     }
-    all_expected = set(EXPECTED) | set(EXPECTED_TRIGGERS)
+    all_expected = set(EXPECTED) | set(EXPECTED_TRIGGERS) | set(EXPECTED_HTTP)
     assert exported == all_expected, f"清单与实际不符：多出 {exported - all_expected}，缺少 {all_expected - exported}"
