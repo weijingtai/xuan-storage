@@ -24,9 +24,12 @@ _STORAGE_TRIGGER_REGION_BY_PROJECT = {
     # 默认桶建在 us-east1（控制台默认位置在美国，当时一路点过去了），
     # 与函数主区域 asia-east1 不一致，故该触发器单独部署在 us-east1。
     "xuan-staging": "us-east1",
-    # 生产要求桶与函数同区。初始化 Storage 时**位置必须选 asia-east1**——
-    # 桶的区域创建后不可更改，选错只能删桶重建。
-    "xuan-production": "asia-east1",
+    # 生产的桶在 nam5（美国多区域）。nam5 是**位置**不是函数区域，
+    # Cloud Functions 不能部署到 nam5，触发器要落在该多区域覆盖的具体区域里，
+    # 官方对美国多区域的推荐是 us-central1。
+    # ⚠ 若部署仍报 "cannot listen to a bucket in region X"，
+    #   照抄错误里那个 X 填到这里即可——staging 当初就是这么定下 us-east1 的。
+    "xuan-production": "us-central1",
 }
 
 
