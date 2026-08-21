@@ -11,8 +11,36 @@ REGION = "asia-east1"
 # Storage 触发器的区域必须与被监听的桶同区，否则部署直接报
 # "A function in region X cannot listen to a bucket in region Y"。
 # 各环境的默认桶未必都在 REGION：xuan-staging 的默认桶建在 us-east1。
-# 故单独可配，用 .env.<projectId> 按环境覆盖，默认跟随 REGION。
-STORAGE_TRIGGER_REGION = os.environ.get("XUAN_STORAGE_TRIGGER_REGION") or REGION
+#
+# ⚠ 这个值不能用 .env.<projectId> 配置。firebase-tools 的顺序是
+#   「先分析源码 → 后加载 .env」，装饰器求值时环境变量还不存在，
+#   只会静默回落到默认值。凡是装饰器参数需要的值都有这个限制。
+#   FIREBASE_CONFIG 则在分析阶段就已注入，所以按项目 id 查表是可行的。
+_STORAGE_TRIGGER_REGION_BY_PROJECT = {
+    "xuan-staging": "us-east1",  # 默认桶建在 us-east1，与函数主区域不一致
+}
+
+
+def _current_project_id() -> str:
+    """解析当前部署目标的项目 id。分析阶段与运行期都可用。"""
+    import json
+
+    cfg = os.environ.get("FIREBASE_CONFIG")
+    if cfg:
+        try:
+            parsed = json.loads(cfg)
+            if parsed.get("projectId"):
+                return parsed["projectId"]
+        except (ValueError, TypeError):
+            pass
+    return os.environ.get("GCLOUD_PROJECT") or ""
+
+
+STORAGE_TRIGGER_REGION = (
+    os.environ.get("XUAN_STORAGE_TRIGGER_REGION")
+    or _STORAGE_TRIGGER_REGION_BY_PROJECT.get(_current_project_id())
+    or REGION
+)
 
 # 集合名。键为 snake_case，值必须与 TS 侧 COLLECTIONS 的值完全相同。
 COLLECTIONS = {
