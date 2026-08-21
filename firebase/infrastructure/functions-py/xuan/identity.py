@@ -8,6 +8,8 @@
   - public_display_alias: 玄友 + 4位零补齐随机数
 """
 
+import json
+import logging
 import random
 import secrets
 import time
@@ -15,8 +17,16 @@ from typing import Optional
 
 from google.cloud import firestore as gcf
 
+from xuan.cache import (
+    cached_query,
+    compute_query_fingerprint,
+    get_global_cache,
+    get_global_single_flight,
+)
 from xuan.config import COLLECTIONS, db
 from xuan.errors import unauthenticated
+
+logger = logging.getLogger(__name__)
 
 
 def _to_base36(num: int) -> str:
@@ -51,51 +61,72 @@ def require_auth_uid(uid: Optional[str]) -> str:
 def resolve_app_user_id(uid: Optional[str]) -> dict:
     """把 Firebase Auth uid 解析为应用内身份，不存在则原子创建。
 
+    已接入 CachePort 读缓存网关，支持单飞防击穿与 TTL 抖动。
     返回 {appUserId, publicPresentationId, publicDisplayAlias}。
     键名保持 camelCase，与 TS 版返回结构一致。
     """
     if not uid:
         raise unauthenticated("未登录")
 
-    client = db()
-    id_map_doc = client.collection(COLLECTIONS["identity_map"]).document(uid)
+    cache_key = compute_query_fingerprint(
+        route=f"identity/{uid}",
+        contract_version="1",
+    )
 
-    @gcf.transactional
-    def _resolve(tx):
-        snap = id_map_doc.get(transaction=tx)
-        if snap.exists:
-            data = snap.to_dict() or {}
-            # 双写兼容：线上存在 snake_case 与 camelCase 两种历史格式
+    def _loader() -> dict:
+        client = db()
+        id_map_doc = client.collection(COLLECTIONS["identity_map"]).document(uid)
+
+        @gcf.transactional
+        def _resolve(tx):
+            snap = id_map_doc.get(transaction=tx)
+            if snap.exists:
+                data = snap.to_dict() or {}
+                # 双写兼容：线上存在 snake_case 与 camelCase 两种历史格式
+                return {
+                    "appUserId": data.get("app_user_id") or data.get("appUserId") or "",
+                    "publicPresentationId": (
+                        data.get("public_presentation_id") or data.get("publicPresentationId") or ""
+                    ),
+                    "publicDisplayAlias": (
+                        data.get("public_display_alias") or data.get("publicDisplayAlias") or ""
+                    ),
+                }
+
+            # 与 TS 保持完全一致的 ID 生成规则：
+            # `app-${Date.now().toString(36)}-${Math.floor(Math.random() * 0x7fffffff).toString(36)}`
+            ts_ms = int(time.time() * 1000)
+            rand_val = random.randint(0, 0x7ffffffe)
+            new_app_user_id = f"app-{_to_base36(ts_ms)}-{_to_base36(rand_val)}"
+            presentation_id = _generate_presentation_id()
+            alias = _generate_display_alias()
+
+            tx.set(id_map_doc, {
+                "app_user_id": new_app_user_id,
+                "provider_uid": uid,
+                "provider_id": "firebase",
+                "public_presentation_id": presentation_id,
+                "public_display_alias": alias,
+                "created_at": gcf.SERVER_TIMESTAMP,
+            })
             return {
-                "appUserId": data.get("app_user_id") or data.get("appUserId") or "",
-                "publicPresentationId": (
-                    data.get("public_presentation_id") or data.get("publicPresentationId") or ""
-                ),
-                "publicDisplayAlias": (
-                    data.get("public_display_alias") or data.get("publicDisplayAlias") or ""
-                ),
+                "appUserId": new_app_user_id,
+                "publicPresentationId": presentation_id,
+                "publicDisplayAlias": alias,
             }
 
-        # 与 TS 保持完全一致的 ID 生成规则：
-        # `app-${Date.now().toString(36)}-${Math.floor(Math.random() * 0x7fffffff).toString(36)}`
-        ts_ms = int(time.time() * 1000)
-        rand_val = random.randint(0, 0x7ffffffe)
-        new_app_user_id = f"app-{_to_base36(ts_ms)}-{_to_base36(rand_val)}"
-        presentation_id = _generate_presentation_id()
-        alias = _generate_display_alias()
+        return _resolve(client.transaction())
 
-        tx.set(id_map_doc, {
-            "app_user_id": new_app_user_id,
-            "provider_uid": uid,
-            "provider_id": "firebase",
-            "public_presentation_id": presentation_id,
-            "public_display_alias": alias,
-            "created_at": gcf.SERVER_TIMESTAMP,
-        })
-        return {
-            "appUserId": new_app_user_id,
-            "publicPresentationId": presentation_id,
-            "publicDisplayAlias": alias,
-        }
+    cached_resp = cached_query(
+        cache=get_global_cache(),
+        key=cache_key,
+        loader=_loader,
+        ttl=300.0,
+        single_flight=get_global_single_flight(),
+    )
 
-    return _resolve(client.transaction())
+    if isinstance(cached_resp.body, (bytes, bytearray)):
+        return json.loads(cached_resp.body.decode("utf-8"))
+    if isinstance(cached_resp.body, str):
+        return json.loads(cached_resp.body)
+    return cached_resp.body

@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from firebase_functions import https_fn
 from google.cloud import firestore as gcf
 
+from xuan.cache import invalidate_guest_replies_cache
 from xuan.config import COLLECTIONS, REGION, db
 from xuan.errors import failed_precondition, invalid_argument, not_found
 from xuan.errors import XuanHttpsError  # noqa: F401  （供类型标注与测试导入）
@@ -123,6 +124,7 @@ def _edit_post_impl(uid: str, data: dict) -> dict:
         update["attachments"] = data["attachments"]
 
     ref.update(update)
+    invalidate_guest_replies_cache(post_id)
 
     # ⚠ 与 TS 的已知有意差异（见计划坑 4）：
     # TS 直接把含 serverTimestamp 哨兵的 update 展开进返回体；
@@ -151,6 +153,7 @@ def _tombstone_post_impl(uid: str, data: dict) -> dict:
         raise _permission_denied("只能删除自己的帖子")
 
     ref.update({"status": "tombstoned", "updated_at": gcf.SERVER_TIMESTAMP})
+    invalidate_guest_replies_cache(post_id)
     return {"success": True}
 
 

@@ -439,3 +439,65 @@ def cached_query(
         etag=etag,
         headers=headers,
     )
+
+
+# ============================================================================
+# 5. 全局单例与主动失效钩子（Invalidation Hooks）
+# ============================================================================
+
+_global_cache_lock = threading.Lock()
+_global_cache: CachePort = MemoryCachePort()
+_global_single_flight: SingleFlight = SingleFlight()
+
+
+def get_global_cache() -> CachePort:
+    """获取全局缓存实例。"""
+    with _global_cache_lock:
+        return _global_cache
+
+
+def set_global_cache(cache: CachePort) -> None:
+    """设置全局缓存实例（供单测与配置初始化使用）。"""
+    global _global_cache
+    with _global_cache_lock:
+        _global_cache = cache
+
+
+def get_global_single_flight() -> SingleFlight:
+    """获取全局防击穿 SingleFlight 实例。"""
+    return _global_single_flight
+
+
+def set_global_single_flight(sf: SingleFlight) -> None:
+    """设置全局 SingleFlight 实例。"""
+    global _global_single_flight
+    _global_single_flight = sf
+
+
+def invalidate_guest_replies_cache(post_id: str) -> None:
+    """主动失效指定帖子的游客代表性回复缓存。
+
+    铁律：绝不抛异常。
+    """
+    if not post_id:
+        return
+    try:
+        cache = get_global_cache()
+        cache.invalidate_by_prefix(f"guest_replies/{post_id}")
+    except Exception:
+        logger.exception("invalidate_guest_replies_cache failed for post_id '%s'", post_id)
+
+
+def invalidate_identity_cache(uid: str) -> None:
+    """主动失效指定用户 uid 的身份映射缓存。
+
+    铁律：绝不抛异常。
+    """
+    if not uid:
+        return
+    try:
+        cache = get_global_cache()
+        cache.invalidate_by_prefix(f"identity/{uid}")
+    except Exception:
+        logger.exception("invalidate_identity_cache failed for uid '%s'", uid)
+

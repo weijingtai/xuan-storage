@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from firebase_functions import https_fn
 from google.cloud import firestore as gcf
 
+from xuan.cache import invalidate_guest_replies_cache
 from xuan.config import COLLECTIONS, REGION, db
 from xuan.errors import XuanHttpsError, invalid_argument, not_found
 from xuan.hashing import hash_payload
@@ -108,6 +109,7 @@ def _verify_root_reply_impl(uid: str, data: dict) -> dict:
                 "verified_at": now,
             },
         })
+        invalidate_guest_replies_cache(post_id)
 
         return {
             "id": ref.id,
@@ -157,6 +159,7 @@ def _revoke_verification_impl(uid: str, data: dict) -> dict:
         client.collection(COLLECTIONS["replies"]).document(root_reply_id).update({
             "verification": None,
         })
+        invalidate_guest_replies_cache(post_id)
 
         outbox_ref = client.collection(COLLECTIONS["outbox"]).document()
         outbox_ref.set({

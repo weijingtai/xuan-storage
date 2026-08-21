@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from firebase_functions import https_fn
 from google.cloud import firestore as gcf
 
+from xuan.cache import invalidate_guest_replies_cache
 from xuan.config import COLLECTIONS, MAX_REPLY_DEPTH, REGION, db
 from xuan.errors import XuanHttpsError, failed_precondition, invalid_argument, not_found
 from xuan.handlers._guard import guard_rate_limit
@@ -68,6 +69,7 @@ def _create_root_reply_impl(uid: str, data: dict) -> dict:
             "idempotency_key": data.get("idempotency_key"),
         }
         reply_ref.set(reply_data)
+        invalidate_guest_replies_cache(post_id)
 
         return {
             "id": reply_ref.id,
@@ -221,6 +223,7 @@ def _edit_reply_impl(uid: str, data: dict) -> dict:
         update["media_attachments"] = data["mediaAttachments"]
 
     ref.update(update)
+    invalidate_guest_replies_cache(row.get("post_id"))
 
     # 与 TS 的已知有意差异（计划坑 4）：哨兵不可序列化，回填 ISO 串
     merged = {**row, **update, "id": reply_id}
@@ -245,6 +248,7 @@ def _delete_reply_impl(uid: str, data: dict) -> dict:
         raise _permission_denied("只能删除自己的回复")
 
     ref.update({"is_tombstoned": True, "updated_at": gcf.SERVER_TIMESTAMP})
+    invalidate_guest_replies_cache((snap.to_dict() or {}).get("post_id"))
     return {"success": True}
 
 
