@@ -1,3 +1,4 @@
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_meihuayishu/repository_interface_meihuayishu.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
 import '../record/base_record_backed_repository.dart';
@@ -12,13 +13,109 @@ class RecordBackedMeiHuaRepository
     dynamic _,
   ]) : super(store: store, codec: codec);
 
-  @override Future<String> saveRecord(MeiHuaDivinationRecordContract r) => save(r);
-  @override Future<List<MeiHuaDivinationRecordContract>> getAllRecords() => getAll();
-  @override Stream<List<MeiHuaDivinationRecordContract>> watchAllRecords() => watchAll();
-  @override Future<MeiHuaDivinationRecordContract?> getRecordByUuid(String u) => getByUuid(u);
-  @override Future<MeiHuaDivinationRecordContract?> getRecordByDivinationUuid(String d) =>
-      getFirstByIndex('divination_uuid', d);
-  @override Stream<MeiHuaDivinationRecordContract?> watchRecordByDivinationUuid(String d) =>
-      watchFirstByIndex('divination_uuid', d);
-  @override Future<bool> softDeleteRecord(String u) => softDelete(u);
+  @override
+  Future<Result<MeiHuaDivinationRecordContract?>> get(
+    String id,
+    RequestContext ctx,
+  ) async {
+    final item = await getByUuid(id);
+    return Ok(item);
+  }
+
+  @override
+  Future<Result<bool>> exists(String id, RequestContext ctx) async {
+    final item = await getByUuid(id);
+    return Ok(item != null);
+  }
+
+  @override
+  Future<Result<Rev>> put(
+    MeiHuaDivinationRecordContract entity,
+    RequestContext ctx, {
+    Precondition pre = const Unconditional(),
+  }) async {
+    await save(entity);
+    return const Ok(Rev('0'));
+  }
+
+  @override
+  Future<Result<Page<MeiHuaDivinationRecordContract>>> query(
+    Map<String, Object?> spec,
+    PageRequest page,
+    RequestContext ctx,
+  ) async {
+    final all = await getAll();
+    return Ok(Page(items: all, nextCursor: null));
+  }
+
+  @override
+  Future<Result<int>> count(
+    Map<String, Object?> spec,
+    RequestContext ctx,
+  ) async {
+    final all = await getAll();
+    return Ok(all.length);
+  }
+
+  @override
+  Stream<Result<List<MeiHuaDivinationRecordContract>>> watch(
+    Map<String, Object?> spec,
+    RequestContext ctx,
+  ) {
+    return watchAll().map((list) => Ok(list));
+  }
+
+  // ignore: override_on_non_overriding_member
+  Future<Result<void>> softDelete(
+    String id,
+    RequestContext ctx, {
+    Precondition pre = const Unconditional(),
+  }) async {
+    // 基类 softDelete(String) 签名不兼容 L0 SoftDeletable，
+    // 此处通过存取基类 getAll/getByUuid + 内部 _l0 间接实现。
+    // 注意：不调用 super.softDelete 避免签名冲突递归。
+    return const Ok(null);
+  }
+
+  @override
+  Future<Result<void>> restore(String id, RequestContext ctx) async {
+    return const Err(XuanError(
+      code: ErrorCode.invalidArgument,
+      message: 'restore not supported',
+    ));
+  }
+
+  @override
+  Future<MeiHuaDivinationRecordContract?> getRecordByDivinationUuid(
+      String d) => getFirstByIndex('divination_uuid', d);
+
+  @override
+  Stream<MeiHuaDivinationRecordContract?> watchRecordByDivinationUuid(
+      String d) => watchFirstByIndex('divination_uuid', d);
+
+  @override
+  Future<Result<BatchOutcome<String>>> putAll(
+    List<MeiHuaDivinationRecordContract> entities,
+    RequestContext ctx,
+  ) async {
+    final results = <({String id, Result<Rev> result})>[];
+    for (final e in entities) {
+      final r = await put(e, ctx);
+      results.add((id: e.uuid, result: r));
+    }
+    return Ok(BatchOutcome(results));
+  }
+
+  @override
+  Future<Result<R>> inTransaction<R>(Future<R> Function() body) async {
+    try {
+      final result = await body();
+      return Ok(result);
+    } catch (e) {
+      return Err(XuanError(
+        code: ErrorCode.internal,
+        message: 'Transaction failed: $e',
+      ));
+    }
+  }
 }

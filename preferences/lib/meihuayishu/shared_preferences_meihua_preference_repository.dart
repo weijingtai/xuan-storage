@@ -1,24 +1,51 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_meihuayishu/repository_interface_meihuayishu.dart';
 
-class SharedPreferencesMeiHuaPreferenceRepository implements MeiHuaPreferenceRepository {
+class SharedPreferencesMeiHuaPreferenceRepository
+    implements MeiHuaPreferenceRepository {
   static const String _key = 'meihua_preferences';
   final SharedPreferences prefs;
 
   SharedPreferencesMeiHuaPreferenceRepository(this.prefs);
 
   @override
-  Future<int> loadLongTextThreshold() async {
+  Future<Result<int?>> get(String id, RequestContext ctx) async {
     final Map<String, dynamic> map = await _loadMap();
-    return map['long_text_threshold'] as int? ?? 10;
+    final value = map['long_text_threshold'] as int?;
+    return Ok(value);
   }
 
   @override
-  Future<void> saveLongTextThreshold(int value) async {
+  Future<Result<bool>> exists(String id, RequestContext ctx) async {
     final Map<String, dynamic> map = await _loadMap();
-    map['long_text_threshold'] = value;
+    return Ok(map.containsKey('long_text_threshold'));
+  }
+
+  @override
+  Future<Result<Rev>> put(
+    int entity,
+    RequestContext ctx, {
+    Precondition pre = const Unconditional(),
+  }) async {
+    final Map<String, dynamic> map = await _loadMap();
+    map['long_text_threshold'] = entity;
     await prefs.setString(_key, jsonEncode(map));
+    return const Ok(Rev('0'));
+  }
+
+  @override
+  Future<Result<R>> inTransaction<R>(Future<R> Function() body) async {
+    try {
+      final result = await body();
+      return Ok(result);
+    } catch (e) {
+      return Err(XuanError(
+        code: ErrorCode.internal,
+        message: 'Transaction failed: $e',
+      ));
+    }
   }
 
   Future<Map<String, dynamic>> _loadMap() async {

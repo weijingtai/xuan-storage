@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_bazi/repository_interface_bazi.dart';
 import 'package:persistence_preferences/bazi/bazi_record_repository_migrator.dart';
 
@@ -25,13 +26,8 @@ class _InMemoryBaziRecordRepository implements BaziRecordRepository {
 
   Future<List<BaziRecordContract>> _all() async => _records.values.toList();
 
-  @override
-  Future<List<BaziRecordContract>> listRecords(String caseUuid) async {
-    return _records.values.where((r) => r.caseUuid == caseUuid).toList();
-  }
-
-  @override
-  Future<BaziRecordContract?> getRecord(String uuid) async {
+  // 兼容旧测试直接调用的 all 辅助
+  Future<BaziRecordContract?> _getRecordInternal(String uuid) async {
     if (_failNextGet && uuid == _corruptedUuid) {
       throw Exception('simulated read failure');
     }
@@ -65,19 +61,71 @@ class _InMemoryBaziRecordRepository implements BaziRecordRepository {
   }
 
   @override
-  Future<void> saveRecord(BaziRecordContract record) async {
+  Future<Result<BaziRecordContract?>> get(String id, RequestContext ctx) async {
+    final v = await _getRecordInternal(id);
+    return Ok(v);
+  }
+
+  @override
+  Future<Result<bool>> exists(String id, RequestContext ctx) async {
+    final v = await _getRecordInternal(id);
+    return Ok(v != null);
+  }
+
+  @override
+  Future<Result<BaziRecordContract?>> getIncludingDeleted(String id, RequestContext ctx) => get(id, ctx);
+
+  @override
+  Future<Result<Rev>> put(BaziRecordContract record, RequestContext ctx, {Precondition pre = const Unconditional()}) async {
     _saveCount++;
     if (_failNextSave) throw Exception('simulated save failure');
     if (failOnSaveIndex != null && _saveCount == failOnSaveIndex) {
       throw Exception('simulated partial save failure at index $_saveCount');
     }
     _records[record.uuid] = record;
+    return Ok(Rev(record.uuid));
   }
 
   @override
-  Future<void> deleteRecord(String uuid) async {
-    _records.remove(uuid);
+  Future<Result<void>> softDelete(String id, RequestContext ctx, {Precondition pre = const Unconditional()}) async {
+    _records.remove(id);
+    return const Ok(null);
   }
+
+  @override
+  Future<Result<void>> restore(String id, RequestContext ctx) async => Err(const XuanError(code: ErrorCode.invalidArgument, message: 'not supported'));
+
+  @override
+  Future<Result<Page<BaziRecordContract>>> query(Map<String, Object?> spec, PageRequest page, RequestContext ctx) async {
+    var items = _records.values.toList();
+    final caseUuid = spec['caseUuid'] ?? spec['case_uuid'];
+    if (caseUuid is String && caseUuid.isNotEmpty) items = items.where((r) => r.caseUuid == caseUuid).toList();
+    items.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final start = page.cursor == null ? 0 : (items.indexWhere((e) => e.uuid == page.cursor) + 1).clamp(0, items.length);
+    final end = (start + page.limit).clamp(0, items.length);
+    return Ok(Page(items: items.sublist(start, end), nextCursor: end < items.length ? items.sublist(start, end).last.uuid : null));
+  }
+
+  @override
+  Future<Result<int>> count(Map<String, Object?> spec, RequestContext ctx) async => Ok(_records.length);
+
+  @override
+  Future<Result<BatchOutcome<String>>> putAll(List<BaziRecordContract> entities, RequestContext ctx) async {
+    final results = <({String id, Result<Rev> result})>[];
+    for (final e in entities) { final r = await put(e, ctx); results.add((id: e.uuid, result: r)); }
+    return Ok(BatchOutcome(results));
+  }
+
+  @override
+  Future<Result<R>> inTransaction<R>(Future<R> Function() body) async {
+    try { return Ok(await body()); } on XuanError catch (e) { return Err(e); } catch (e) { return Err(XuanError(code: ErrorCode.internal, message: e.toString())); }
+  }
+
+  // 兼容层：保留旧方法名供未迁移测试调用（转发到 L0）
+  Future<List<BaziRecordContract>> listRecords(String caseUuid) async => _records.values.where((r) => r.caseUuid == caseUuid).toList();
+  Future<BaziRecordContract?> getRecord(String uuid) async => _getRecordInternal(uuid);
+  Future<void> saveRecord(BaziRecordContract record) async { await put(record, RequestContext(scopeUid: 'test-scope')); }
+  Future<void> deleteRecord(String uuid) async { await softDelete(uuid, RequestContext(scopeUid: 'test-scope')); }
 }
 
 BaziRecordContract _makeRecord({
@@ -166,7 +214,7 @@ void main() {
     final result = await m.migrate();
     expect(result, BaziMigrationResult.success);
 
-    final migrated = await target.getRecord('rec-1');
+    final _resM = await target.get('rec-1', RequestContext(scopeUid: 'scope-a')); final migrated = (_resM as Ok<BaziRecordContract?>).value;
     expect(migrated, isNotNull);
     expect(migrated!.uuid, record.uuid);
     expect(migrated.caseUuid, record.caseUuid);
@@ -197,11 +245,11 @@ void main() {
     final resultA = await mA.migrate();
     expect(resultA, BaziMigrationResult.success);
 
-    final inA = await target.getRecord('rec-a');
+    final _rInA = await target.get('rec-a', RequestContext(scopeUid: 'scope-a')); final inA = (_rInA as Ok<BaziRecordContract?>).value;
     expect(inA, isNotNull);
     expect(inA!.uuid, 'rec-a');
 
-    final inB = await target.getRecord('rec-b');
+    final _rInB = await target.get('rec-b', RequestContext(scopeUid: 'scope-a')); final inB = (_rInB as Ok<BaziRecordContract?>).value;
     // scope B not yet migrated, so rec-b should not be in the target
     expect(inB, isNull);
 
@@ -212,7 +260,7 @@ void main() {
     // now migrate scope B
     final resultB = await mB.migrate();
     expect(resultB, BaziMigrationResult.success);
-    final inB2 = await target.getRecord('rec-b');
+    final _rInB2 = await target.get('rec-b', RequestContext(scopeUid: 'scope-b')); final inB2 = (_rInB2 as Ok<BaziRecordContract?>).value;
     expect(inB2, isNotNull);
     expect(inB2!.uuid, 'rec-b');
   });
@@ -257,7 +305,7 @@ void main() {
     final result = await m.migrate();
     expect(result, BaziMigrationResult.success);
 
-    final migrated = await target.getRecord('rec-old');
+    final _rmOld = await target.get('rec-old', RequestContext(scopeUid: 'scope-legacy')); final migrated = (_rmOld as Ok<BaziRecordContract?>).value;
     expect(migrated, isNotNull);
     expect(migrated!.legacyEightCharsJson, '{"old":"format"}');
   });
@@ -486,7 +534,7 @@ void main() {
     final all = await target._all();
     expect(all.length, 5);
     for (final r in records) {
-      final migrated = await target.getRecord(r.uuid);
+      final _rm2 = await target.get(r.uuid, RequestContext(scopeUid: 'scope-multi')); final migrated = (_rm2 as Ok<BaziRecordContract?>).value;
       expect(migrated, isNotNull);
       expect(migrated!.legacyEightCharsJson, r.legacyEightCharsJson);
       expect(migrated.note, r.note);
@@ -512,7 +560,7 @@ void main() {
     final result = await m.migrate();
     expect(result, BaziMigrationResult.success);
 
-    final migrated = await target.getRecord('rec-null');
+    final _rmNull = await target.get('rec-null', RequestContext(scopeUid: 'scope-null')); final migrated = (_rmNull as Ok<BaziRecordContract?>).value;
     expect(migrated, isNotNull);
     expect(migrated!.chartSnapshotJson, isNull);
     expect(migrated.legacyEightCharsJson, isNull);
@@ -568,7 +616,7 @@ void main() {
     final allAfterMigration = await target._all();
     expect(allAfterMigration.length, 2);
 
-    await target.deleteRecord('rec-1');
+    await target.softDelete('rec-1', RequestContext(scopeUid: 'scope-deleted'));
     final afterDelete = await target._all();
     expect(afterDelete.length, 1);
 
@@ -579,7 +627,7 @@ void main() {
     expect(allAfterSecondMigration.length, 1);
     expect(allAfterSecondMigration[0].uuid, 'rec-2');
 
-    final deleted = await target.getRecord('rec-1');
+    final _del = await target.get('rec-1', RequestContext(scopeUid: 'scope-deleted')); final deleted = (_del as Ok<BaziRecordContract?>).value;
     expect(deleted, isNull);
   });
 

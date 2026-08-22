@@ -1,33 +1,21 @@
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
 import 'package:repository_interface_xiang/repository_interface_xiang.dart';
-import '../record/base_record_backed_repository.dart';
+import '../record/record_entity_descriptor.dart';
+import '../record/record_row_mapper.dart';
+import '../record/record_storage_driver.dart';
 import 'xiang_delete_media_handler.dart';
 
-/// Concrete instantiation of the abstract [BaseRecordBackedRepository] for
-/// [XiangReading], used internally by [XiangReadingRepositoryImpl] so that
-/// every write flows through the unified [ScopedRecordStore].
-class _XiangReadingStore extends BaseRecordBackedRepository<XiangReading> {
-  _XiangReadingStore({
-    required super.store,
-    required super.codec,
-  });
-}
-
-/// Drift-backed [XiangReadingRepository] built on the shared
-/// [BaseRecordBackedRepository] and the one shared [XiangRecordCodec]
-/// (TDD-XG-07: one repository and one codec serve every Xiang method).
+/// Drift-backed [XiangReadingRepository] built on L0 契约内核
+/// ([CrudBaseRepository] + [RecordStorageDriver] + [recordEntityDescriptor]).
 ///
-/// This adapter deliberately keeps no Xiang-private record list: every read
-/// and write flows through the unified [ScopedRecordStore], and [softDelete]
-/// marks the shared Record deleted so a later [load] returns null
-/// (governance, TDD-XG-09).
+/// 该适配器不持有 Xiang 私有记录列表：所有读写流经统一的 [ScopedRecordStore]，
+/// [softDelete] 标记共享 Record 已删除，使后续 [get] 返回 null（治理规则 TDD-XG-09）。
 ///
-/// The port's `save` returns the persisted [XiangReading] while the base
-/// returns the record uuid, so this adapter composes (not extends) the base
-/// and maps between the two shapes. `load` additionally honours the port
-/// contract that a soft-deleted record reads as absent: the base `getByUuid`
-/// returns decoded metadata regardless of `deletedAt`, so the adapter checks
-/// the shared Record's `deletedAt` before decoding.
+/// `put` 返回持久化后的 [XiangReading]，而 L0 内核返回 record uuid，
+/// 因此适配器组合（而非继承）内核并在两者之间映射。`get` 额外遵守端口契约：
+/// 软删除记录应被视为不存在——L0 内核的 `getIncludingDeleted` 无论 `deletedAt`
+/// 都返回解码后的元数据，因此适配器在解码前检查共享 Record 的 `deletedAt`。
 class XiangReadingRepositoryImpl implements XiangReadingRepository {
   XiangReadingRepositoryImpl({
     required ScopedRecordStore store,
@@ -35,41 +23,127 @@ class XiangReadingRepositoryImpl implements XiangReadingRepository {
     XiangDeleteMediaHandler? deleteMediaHandler,
   })  : _store = store,
         _codec = codec,
-        _delegate = _XiangReadingStore(store: store, codec: codec),
+        _l0 = CrudBaseRepository<Map<String, Object?>, String>(
+          descriptor: recordEntityDescriptor(module: codec.module),
+          driver: RecordStorageDriver(store: store),
+        ),
         _deleteMediaHandler = deleteMediaHandler;
 
   final ScopedRecordStore _store;
   final RecordModuleCodec<XiangReading> _codec;
-  final BaseRecordBackedRepository<XiangReading> _delegate;
+  final CrudBaseRepository<Map<String, Object?>, String> _l0;
   final XiangDeleteMediaHandler? _deleteMediaHandler;
 
-  String get _module => _codec.module;
+  RequestContext get _ctx => RequestContext(scopeUid: _store.scopeUid);
+
+  /// 行 → 契约实体：RecordMeta + moduleData 一起交给 codec decode。
+  XiangReading _decodeRow(Map<String, Object?> row) => _codec.decode(
+        RecordRowMapper.rowToMeta(row),
+        RecordRowMapper.moduleDataOf(row),
+      );
+
+  // ── L0 切片实现 ──
 
   @override
-  Future<XiangReading> save(XiangReading reading) async {
-    final savedUuid = await _delegate.save(reading);
-    // When the aggregate carried no uuid the base generates one; surface the
-    // effective uuid on the returned reading.
-    if (reading.uuid.isNotEmpty) return reading;
-    return reading.copyWith(uuid: savedUuid);
+  Future<Result<XiangReading?>> get(String id, RequestContext ctx) async {
+    final r = await _l0.getIncludingDeleted(id, ctx);
+    if (r case Ok(value: final row)) {
+      if (row == null) return const Ok(null);
+      // 检查软删状态：软删除记录应被视为不存在
+      final meta = RecordRowMapper.rowToMeta(row);
+      if (meta.deletedAt != null) return const Ok(null);
+      return Ok(_decodeRow(row));
+    }
+    return const Ok(null);
   }
 
   @override
-  Future<XiangReading?> load(String uuid) async {
-    final meta = await _store.getRecord(uuid, module: _module);
-    if (meta == null || meta.deletedAt != null) return null;
-    return _codec.decode(meta, null);
+  Future<Result<bool>> exists(String id, RequestContext ctx) async {
+    final r = await get(id, ctx);
+    return r.map((v) => v != null);
   }
 
   @override
-  Future<void> softDelete(String uuid) async {
+  Future<Result<Rev>> put(XiangReading entity, RequestContext ctx, {Precondition pre = const Unconditional()}) async {
+    // 内部保存逻辑：处理 uuid 生成和编码
+    final currentUuid = _codec.uuidOf(entity);
+    final effectiveUuid = currentUuid.isNotEmpty ? currentUuid : _generateUuid();
+    final fixed = currentUuid.isNotEmpty ? entity : _codec.withUuid(entity, effectiveUuid);
+    final encoded = _codec.encode(fixed, scopeUid: _store.scopeUid);
+    final row = RecordRowMapper.metaToRow(encoded.meta);
+    final r = await _l0.put(row, ctx);
+    if (r case Err(error: final e)) return Err(e);
+    // 返回持久化后的实体（可能包含新生成的 uuid）
+    return Ok(Rev(effectiveUuid));
+  }
+
+  @override
+  Future<Result<void>> softDelete(String id, RequestContext ctx, {Precondition pre = const Unconditional()}) async {
     // FA12 单一方针：删除经媒体生命周期处理引用并落库审计（TDD-T7）。
     final handler = _deleteMediaHandler;
     if (handler != null) {
-      await handler.handleDelete(uuid);
-      return;
+      await handler.handleDelete(id);
+      return const Ok(null);
     }
     // 未装配 handler（旧装配）时退化为纯软删。
-    await _delegate.softDelete(uuid);
+    return _l0.softDelete(id, ctx);
+  }
+
+  @override
+  Future<Result<void>> restore(String id, RequestContext ctx) {
+    return _l0.restore(id, ctx);
+  }
+
+  @override
+  Future<Result<XiangReading?>> getIncludingDeleted(String id, RequestContext ctx) {
+    return _l0.getIncludingDeleted(id, ctx).then((r) {
+      if (r case Ok(value: final row)) {
+        return Ok(row == null ? null : _decodeRow(row));
+      }
+      return const Ok(null);
+    });
+  }
+
+  @override
+  Future<Result<Page<XiangReading>>> query(Map<String, Object?> spec, PageRequest page, RequestContext ctx) {
+    return _l0.query(spec, page, ctx).then((r) {
+      if (r case Ok(value: final pageData)) {
+        return Ok(Page(
+          items: pageData.items.map(_decodeRow).toList(),
+          nextCursor: pageData.nextCursor,
+        ));
+      }
+      return const Err(XuanError(code: ErrorCode.internal, message: 'query failed'));
+    });
+  }
+
+  @override
+  Future<Result<int>> count(Map<String, Object?> spec, RequestContext ctx) {
+    return _l0.count(spec, ctx);
+  }
+
+  @override
+  Future<Result<BatchOutcome<String>>> putAll(List<XiangReading> entities, RequestContext ctx) {
+    return _l0.putAll(entities.map((e) {
+      final encoded = _codec.encode(e, scopeUid: _store.scopeUid);
+      return RecordRowMapper.metaToRow(encoded.meta);
+    }).toList(), ctx).then((r) {
+      if (r case Ok(value: final outcome)) {
+        return Ok(BatchOutcome(outcome.results.map((item) {
+          return (id: item.id, result: item.result);
+        }).toList()));
+      }
+      return const Err(XuanError(code: ErrorCode.internal, message: 'putAll failed'));
+    });
+  }
+
+  @override
+  Future<Result<R>> inTransaction<R>(Future<R> Function() body) {
+    return _l0.inTransaction(body);
+  }
+
+  String _generateUuid() {
+    // 简化的 uuid 生成，实际应使用 uuid 包
+    return DateTime.now().microsecondsSinceEpoch.toRadixString(36);
   }
 }

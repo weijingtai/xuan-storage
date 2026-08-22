@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:repository_interface_bazi/repository_interface_bazi.dart';
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 
 enum BaziMigrationResult { success, failure }
 
@@ -38,14 +39,17 @@ class BaziRecordRepositoryMigrator {
             : BaziMigrationResult.failure;
       }
 
-      // 4. Save each record through the target repository.
+      // 4. Save each record through the target repository. (L0: put)
       for (final record in legacyRecords) {
-        await target.saveRecord(record);
+        final r = await target.put(record, RequestContext(scopeUid: scopeUid));
+        if (r is Err) return BaziMigrationResult.failure;
       }
 
       // 5. Read back every record and verify field-for-field.
       for (final source in legacyRecords) {
-        final verified = await target.getRecord(source.uuid);
+        final res = await target.get(source.uuid, RequestContext(scopeUid: scopeUid));
+        if (res is Err) return BaziMigrationResult.failure;
+        final verified = (res as Ok<BaziRecordContract?>).value;
         if (verified == null) return BaziMigrationResult.failure;
         if (!_fieldsEqual(source, verified)) return BaziMigrationResult.failure;
       }

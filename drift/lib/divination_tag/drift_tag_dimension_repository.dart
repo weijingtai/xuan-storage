@@ -41,4 +41,59 @@ class DriftTagDimensionRepository implements TagDimensionRepository {
     }
     return result;
   }
+
+  @override
+  Future<TagDimension?> get(String id) async {
+    try {
+      return _dimensions.firstWhere((d) => d.dimensionId == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<bool> exists(String id) async {
+    return _dimensions.any((d) => d.dimensionId == id);
+  }
+
+  @override
+  Future<String> put(TagDimension entity) async {
+    // 内置种子数据为只读，put 在此阶段仅返回 ID
+    return entity.dimensionId;
+  }
+
+  @override
+  Future<List<TagDimension>> query([Map<String, Object?>? criteria]) async {
+    if (criteria == null || criteria.isEmpty) {
+      return List.unmodifiable(_dimensions);
+    }
+    return _dimensions.where((d) {
+      for (final entry in criteria.entries) {
+        if (entry.key == 'dimensionId' && d.dimensionId != entry.value) {
+          return false;
+        }
+        if (entry.key == 'displayName' && d.displayName != entry.value) {
+          return false;
+        }
+      }
+      return true;
+    }).toList();
+  }
+
+  @override
+  Future<int> count([Map<String, Object?>? criteria]) async {
+    final list = await query(criteria);
+    return list.length;
+  }
+
+  @override
+  Future<bool> delete(String id) async {
+    // 内置种子数据为只读，delete 在此阶段不生效
+    return false;
+  }
+
+  @override
+  Future<R> inTransaction<R>(Future<R> Function() action) async {
+    return action();
+  }
 }

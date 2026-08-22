@@ -12,7 +12,7 @@ class DriftUserRepository implements SchoolRepository, UserSchoolRepository, Dei
   DriftUserRepository(this.db, {this.scopeUid});
 
   @override
-  Future<List<TaiYiSchoolContract>> loadAllSchools() async {
+  Future<List<TaiYiSchoolContract>> query([Map<String, Object?>? criteria]) async {
     final query = db.select(db.userSchools);
     if (scopeUid != null) {
       query.where((t) => t.scopeUid.equals(scopeUid!) | t.scopeUid.isNull());
@@ -31,8 +31,10 @@ class DriftUserRepository implements SchoolRepository, UserSchoolRepository, Dei
     return rows.map((row) => TaiYiSchool.fromJson(jsonDecode(row.contentJson)).toContract()).toList();
   }
 
+  // loadUserSchools 保留为内部方法，对外统一使用 query
+
   @override
-  Future<TaiYiSchoolContract?> loadSchool(String id) async {
+  Future<TaiYiSchoolContract?> get(String id) async {
     final query = db.select(db.userSchools)..where((t) => t.id.equals(id));
     if (scopeUid != null) {
       query.where((t) => t.scopeUid.equals(scopeUid!) | t.scopeUid.isNull());
@@ -74,39 +76,39 @@ class DriftUserRepository implements SchoolRepository, UserSchoolRepository, Dei
   }
 
   @override
-  Future<void> saveSchool(TaiYiSchoolContract school) async {
+  Future<void> put(TaiYiSchoolContract entity) async {
     await db.into(db.userSchools).insertOnConflictUpdate(
       UserSchoolsCompanion(
-        id: Value(school.id),
-        name: Value(school.name),
-        source: Value(school.source),
-        contentJson: Value(jsonEncode(school.toModel().toJson())),
+        id: Value(entity.id),
+        name: Value(entity.name),
+        source: Value(entity.source),
+        contentJson: Value(jsonEncode(entity.toModel().toJson())),
         scopeUid: Value(scopeUid),
       ),
     );
   }
 
   @override
-  Future<void> saveUserSchool(TaiYiSchoolContract school) async => saveSchool(school);
+  Future<void> saveUserSchool(TaiYiSchoolContract school) async => put(school);
 
   @override
-  Future<void> saveDeity(DeityDefinitionContract deity) async {
+  Future<void> putDeity(DeityDefinitionContract entity) async {
     await db.into(db.userDeities).insertOnConflictUpdate(
       UserDeitiesCompanion(
-        id: Value(deity.id),
-        name: Value(deity.name),
-        source: Value(deity.source),
-        contentJson: Value(jsonEncode(deity.toModel().toJson())),
+        id: Value(entity.id),
+        name: Value(entity.name),
+        source: Value(entity.source),
+        contentJson: Value(jsonEncode(entity.toModel().toJson())),
         scopeUid: Value(scopeUid),
       ),
     );
   }
 
   @override
-  Future<void> saveUserDeity(DeityDefinitionContract deity) async => saveDeity(deity);
+  Future<void> saveUserDeity(DeityDefinitionContract deity) async => putDeity(deity);
 
   @override
-  Future<void> deleteSchool(String id) async {
+  Future<void> delete(String id) async {
     final query = db.delete(db.userSchools)..where((t) => t.id.equals(id));
     if (scopeUid != null) {
       query.where((t) => t.scopeUid.equals(scopeUid!));
@@ -115,7 +117,7 @@ class DriftUserRepository implements SchoolRepository, UserSchoolRepository, Dei
   }
 
   @override
-  Future<void> deleteUserSchool(String id) async => deleteSchool(id);
+  Future<void> deleteUserSchool(String id) async => delete(id);
 
   @override
   Future<void> deleteDeity(String id) async {
@@ -126,6 +128,8 @@ class DriftUserRepository implements SchoolRepository, UserSchoolRepository, Dei
     await query.go();
   }
 
+  // deleteDeity 保留为内部方法，对外统一使用 delete
+
   @override
-  Future<void> deleteUserDeity(String id) async => deleteDeity(id);
+  Future<void> deleteUserDeity(String id) async => delete(id);
 }

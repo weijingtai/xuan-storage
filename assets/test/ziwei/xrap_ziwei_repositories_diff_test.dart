@@ -19,7 +19,16 @@ import 'package:persistence_assets/ziwei/drift_dataset_installer.dart';
 import 'package:persistence_assets/ziwei/ziwei_datasets.dart';
 import 'package:persistence_assets/ziwei/xrap_ziwei_repositories.dart';
 import 'package:persistence_core/persistence_core.dart';
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_ziweidoushu/repository_interface_ziwei.dart';
+
+const _ctx = RequestContext(scopeUid: 'test-scope');
+
+/// 解包 Result：成功返回值，失败抛异常
+T _unwrap<T>(Result<T> result) => switch (result) {
+  Ok(:final value) => value,
+  Err(:final error) => throw error,
+};
 
 /// 与 xrap_ziwei_repositories.dart 内联映射一致的「源文件 → 契约」参照实现。
 /// 测试只读源 JSON，不复用实现代码（否则 A2 差分无意义）。
@@ -108,17 +117,27 @@ void main() {
           hasLength(108), reason: '108 行星表（源 CSV 以换行结尾）');
     });
 
-    test('主星：getAllMainStars = 14，逐字段与源 stars_main 一致', () async {
+    test('主星：query({"type":"main"}) = 14，逐字段与源 stars_main 一致', () async {
       final repo = XrapZiweiStarRepository(db: db, installer: installer);
-      final all = await repo.getAllMainStars();
+      final page = _unwrap(await repo.query(
+        const {'type': 'main'},
+        PageRequest(limit: 100),
+        _ctx,
+      ));
+      final all = page.items;
       final src = await srcStars('lib/ziwei/assets/ziwei_stars_main.json');
       expect(all, hasLength(src.length), reason: '主星数应与源一致（14）');
       expect(all, src, reason: '主星逐字段一致（name/category/element/yinYang/brightness）');
     });
 
-    test('辅星：getAllAuxiliaryStars = minor_auspicious + baleful，与源一致', () async {
+    test('辅星：query({"type":"auxiliary"}) = minor_auspicious + baleful，与源一致', () async {
       final repo = XrapZiweiStarRepository(db: db, installer: installer);
-      final all = await repo.getAllAuxiliaryStars();
+      final page = _unwrap(await repo.query(
+        const {'type': 'auxiliary'},
+        PageRequest(limit: 100),
+        _ctx,
+      ));
+      final all = page.items;
       final src = await srcStars('lib/ziwei/assets/ziwei_stars_minor.json');
       final expected = src
           .where((s) =>
@@ -128,19 +147,24 @@ void main() {
       expect(all, isNotEmpty, reason: '辅星非空');
     });
 
-    test('getStarByName：紫微 命中且 category=mainStar；不存在返回 null', () async {
+    test('get("紫微")：命中且 category=mainStar；不存在返回 null', () async {
       final repo = XrapZiweiStarRepository(db: db, installer: installer);
-      final ziwei = await repo.getStarByName('紫微');
+      final ziwei = _unwrap(await repo.get('紫微', _ctx));
       expect(ziwei, isNotNull);
       expect(ziwei!.category, StarCategory.mainStar);
       expect(ziwei.element, StarElement.earth, reason: '紫微五行属土');
       expect(ziwei.yinYang, StarYinYang.yin, reason: '紫微属阴');
-      expect(await repo.getStarByName('不存在的星'), isNull);
+      expect(_unwrap(await repo.get('不存在的星', _ctx)), isNull);
     });
 
-    test('四化：getFourTransformations(0)（甲）4 条 entries 与源 sanhe 表一致', () async {
+    test('四化：query({"type":"si_hua","tian_gan":0})（甲）4 条 entries 与源 sanhe 表一致', () async {
       final repo = XrapZiweiStarRepository(db: db, installer: installer);
-      final t = await repo.getFourTransformations(0);
+      final page = _unwrap(await repo.query(
+        const {'type': 'si_hua', 'tian_gan': 0},
+        PageRequest(limit: 100),
+        _ctx,
+      ));
+      final t = page.items.firstOrNull;
       expect(t, isNotNull);
       expect(t!.tianGanIndex, 0);
       expect(t.entries, hasLength(4), reason: '甲 4 化');
@@ -155,23 +179,43 @@ void main() {
       expect(ji.starName, '太阳', reason: '甲年化忌太阳');
     });
 
-    test('四化：getFourTransformations(9)（癸）与源一致；越界返回 null', () async {
+    test('四化：query({"type":"si_hua","tian_gan":9})（癸）与源一致；越界返回空', () async {
       final repo = XrapZiweiStarRepository(db: db, installer: installer);
-      final t = await repo.getFourTransformations(9);
+      final page = _unwrap(await repo.query(
+        const {'type': 'si_hua', 'tian_gan': 9},
+        PageRequest(limit: 100),
+        _ctx,
+      ));
+      final t = page.items.firstOrNull;
       expect(t, isNotNull);
       expect(
         t!.entries.singleWhere((e) => e.type == TransformationType.lu).starName,
         '破军',
         reason: '癸年化禄破军',
       );
-      expect(await repo.getFourTransformations(10), isNull);
-      expect(await repo.getFourTransformations(-1), isNull);
+      final越界Page = _unwrap(await repo.query(
+        const {'type': 'si_hua', 'tian_gan': 10},
+        PageRequest(limit: 100),
+        _ctx,
+      ));
+      expect(越界Page.items, isEmpty);
+      final负数Page = _unwrap(await repo.query(
+        const {'type': 'si_hua', 'tian_gan': -1},
+        PageRequest(limit: 100),
+        _ctx,
+      ));
+      expect(负数Page.items, isEmpty);
     });
 
     test('全 10 天干四化均 4 条 entries（数据完整性门禁）', () async {
       final repo = XrapZiweiStarRepository(db: db, installer: installer);
       for (var i = 0; i < 10; i++) {
-        final t = await repo.getFourTransformations(i);
+        final page = _unwrap(await repo.query(
+          {'type': 'si_hua', 'tian_gan': i},
+          PageRequest(limit: 100),
+          _ctx,
+        ));
+        final t = page.items.firstOrNull;
         expect(t, isNotNull, reason: '第 $i 天干（$i 甲…）四化非空');
         expect(t!.entries, hasLength(4), reason: '第 $i 天干 4 化齐全');
         final types = t.entries.map((e) => e.type).toSet();

@@ -10,37 +10,25 @@ void main() {
 
   const repo = AssetsQimendunjiaOfficialRuleRepository();
 
-  // Map each port method to the on-disk asset, relative to the qimendunjia
+  // Map each key to the on-disk asset, relative to the qimendunjia
   // package, so the test can stub rootBundle with real bytes.
   final cases = <String, ({Future<String> Function() load, String path})>{
     'tenGanKeYing': (
-      load: repo.loadTenGanKeYingJson,
+      load: () => repo.get('ten_gan_ke_ying'),
       path: 'packages/qimendunjia/assets/qi_men_dun_jia/ten_gan_ke_ying_v1.json',
     ),
     'tenGanKeYingGeJu': (
-      load: repo.loadTenGanKeYingGeJuJson,
+      load: () => repo.get('ten_gan_ge_ju'),
       path:
           'packages/qimendunjia/assets/qi_men_dun_jia/ten_gan_ke_ying_final.json',
     ),
     'doorGanKeYing': (
-      load: repo.loadDoorGanKeYingJson,
+      load: () => repo.get('door_gan_ke_ying'),
       path: 'packages/qimendunjia/assets/qi_men_dun_jia/door_gan_ke_ying.json',
     ),
-    'qiYiRuGong': (
-      load: repo.loadQiYiRuGongJson,
-      path: 'packages/qimendunjia/assets/qi_men_dun_jia/gong_qi.json',
-    ),
-    'qiYiRuGongDisease': (
-      load: repo.loadQiYiRuGongDiseaseJson,
-      path: 'packages/qimendunjia/assets/qi_men_dun_jia/gong_gan.json',
-    ),
-    'doorStarKeYing': (
-      load: repo.loadDoorStarKeYingJson,
-      path: 'packages/qimendunjia/assets/qi_men_dun_jia/star_door_ke_ying.json',
-    ),
-    'eightDoorKeYing': (
-      load: repo.loadEightDoorKeYingJson,
-      path: 'packages/qimendunjia/assets/qi_men_dun_jia/eight_door_ke_ying.json',
+    'officialJuRules': (
+      load: () => repo.get('official_ju_rules'),
+      path: 'packages/qimendunjia/assets/qi_men_dun_jia/official_ju_rules.json',
     ),
   };
 

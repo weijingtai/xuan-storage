@@ -1,7 +1,9 @@
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_account/repository_interface_account.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-final class PreferencesAccountSessionRepository implements AccountSessionRepository {
+final class PreferencesAccountSessionRepository
+    implements AccountSessionRepository {
   const PreferencesAccountSessionRepository(this._preferences);
   final SharedPreferences _preferences;
 
@@ -15,9 +17,9 @@ final class PreferencesAccountSessionRepository implements AccountSessionReposit
   static const _keyEmail = '${_prefix}email';
 
   @override
-  Future<AccountSession?> getCurrentSession() async {
+  Future<Result<AccountSession?>> get(String id, RequestContext ctx) async {
     final appUserId = _preferences.getString(_keyAppUserId);
-    if (appUserId == null) return null;
+    if (appUserId == null) return const Ok(null);
 
     final kindString = _preferences.getString(_keyKind);
     final AccountKind kind;
@@ -27,44 +29,58 @@ final class PreferencesAccountSessionRepository implements AccountSessionReposit
       case 'registered':
         kind = AccountKind.registered;
       default:
-        // Corrupted or unrecognized kind — treat as no valid session.
-        return null;
+        return const Ok(null);
     }
 
-    return AccountSession(
+    return Ok(AccountSession(
       appUserId: AccountUserId(appUserId),
-      providerUserId: ProviderUserId(_preferences.getString(_keyProviderUserId) ?? ''),
+      providerUserId: ProviderUserId(
+          _preferences.getString(_keyProviderUserId) ?? ''),
       kind: kind,
       providerId: _preferences.getString(_keyProviderId) ?? '',
-      issuedAt: DateTime.tryParse(_preferences.getString(_keyIssuedAt) ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0),
-      lastRefreshedAt: _preferences.getString(_keyLastRefreshedAt) != null
-          ? DateTime.tryParse(_preferences.getString(_keyLastRefreshedAt)!)
-          : null,
+      issuedAt: DateTime.tryParse(
+              _preferences.getString(_keyIssuedAt) ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+      lastRefreshedAt:
+          _preferences.getString(_keyLastRefreshedAt) != null
+              ? DateTime.tryParse(_preferences.getString(_keyLastRefreshedAt)!)
+              : null,
       email: _preferences.getString(_keyEmail),
-    );
+    ));
   }
 
   @override
-  Future<void> saveCurrentSession(AccountSession session) async {
-    await _preferences.setString(_keyAppUserId, session.appUserId.value);
-    await _preferences.setString(_keyProviderUserId, session.providerUserId.value);
-    await _preferences.setString(_keyKind, session.kind == AccountKind.registered ? 'registered' : 'anonymous');
-    await _preferences.setString(_keyProviderId, session.providerId);
-    await _preferences.setString(_keyIssuedAt, session.issuedAt.toIso8601String());
-    if (session.lastRefreshedAt != null) {
-      await _preferences.setString(_keyLastRefreshedAt, session.lastRefreshedAt!.toIso8601String());
+  Future<Result<bool>> exists(String id, RequestContext ctx) async {
+    return Ok(_preferences.getString(_keyAppUserId) != null);
+  }
+
+  @override
+  Future<Result<Rev>> put(AccountSession entity, RequestContext ctx,
+      {Precondition pre = const Unconditional()}) async {
+    await _preferences.setString(_keyAppUserId, entity.appUserId.value);
+    await _preferences.setString(
+        _keyProviderUserId, entity.providerUserId.value);
+    await _preferences.setString(
+        _keyKind, entity.kind == AccountKind.registered ? 'registered' : 'anonymous');
+    await _preferences.setString(_keyProviderId, entity.providerId);
+    await _preferences.setString(
+        _keyIssuedAt, entity.issuedAt.toIso8601String());
+    if (entity.lastRefreshedAt != null) {
+      await _preferences.setString(
+          _keyLastRefreshedAt, entity.lastRefreshedAt!.toIso8601String());
     } else {
       await _preferences.remove(_keyLastRefreshedAt);
     }
-    if (session.email != null) {
-      await _preferences.setString(_keyEmail, session.email!);
+    if (entity.email != null) {
+      await _preferences.setString(_keyEmail, entity.email!);
     } else {
       await _preferences.remove(_keyEmail);
     }
+    return const Ok(Rev('prefs_session_rev'));
   }
 
   @override
-  Future<void> clearCurrentSession() async {
+  Future<Result<void>> purge(String id, RequestContext ctx) async {
     await _preferences.remove(_keyAppUserId);
     await _preferences.remove(_keyProviderUserId);
     await _preferences.remove(_keyKind);
@@ -72,5 +88,12 @@ final class PreferencesAccountSessionRepository implements AccountSessionReposit
     await _preferences.remove(_keyIssuedAt);
     await _preferences.remove(_keyLastRefreshedAt);
     await _preferences.remove(_keyEmail);
+    return const Ok(null);
+  }
+
+  @override
+  Future<Result<R>> inTransaction<R>(Future<R> Function() body) async {
+    final r = await body();
+    return Ok(r);
   }
 }

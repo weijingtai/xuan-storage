@@ -27,22 +27,22 @@ RecordBackedQimenRepository _build(PersistenceDriftDatabase db) {
 }
 
 void main() {
-  test('save then getAll returns it', () async {
+  test('save then query returns it', () async {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
-    final id = await repo.saveRecord(_rec());
-    final all = await repo.getAllRecords();
+    final id = await repo.put(_rec());
+    final all = await repo.query(const {});
     expect(all.single.uuid, id);
     expect(all.single.juType, 't1');
   });
 
-  test('getRecordByUuid retrieves correctly', () async {
+  test('get retrieves correctly', () async {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
-    final id = await repo.saveRecord(_rec());
-    final retrieved = await repo.getRecordByUuid(id);
+    final id = await repo.put(_rec());
+    final retrieved = await repo.get(id);
     expect(retrieved?.uuid, id);
   });
 
@@ -50,29 +50,29 @@ void main() {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
-    final id = await repo.saveRecord(_rec());
-    expect(await repo.softDeleteRecord(id), isTrue);
-    expect(await repo.getAllRecords(), isEmpty);
+    final id = await repo.put(_rec());
+    expect(await repo.delete(id), isTrue);
+    expect(await repo.query(const {}), isEmpty);
   });
 
-  test('watchAllRecords emits on save', () async {
+  test('watchAll emits on save', () async {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
-    final firstEmit = repo.watchAllRecords().firstWhere((l) => l.isNotEmpty);
-    await repo.saveRecord(_rec());
+    final firstEmit = repo.watchAll().firstWhere((l) => l.isNotEmpty);
+    await repo.put(_rec());
     final list = await firstEmit;
     expect(list, hasLength(1));
   });
 
-  test('getAllRecords returns more than 1000 records (no silent cap)', () async {
+  test('query returns more than 1000 records (no silent cap)', () async {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
     for (var i = 0; i < 1001; i++) {
-      await repo.saveRecord(_rec(juType: 'ju-$i'));
+      await repo.put(_rec(juType: 'ju-$i'));
     }
-    final all = await repo.getAllRecords();
+    final all = await repo.query(const {});
     expect(all.length, 1001);
   });
 }

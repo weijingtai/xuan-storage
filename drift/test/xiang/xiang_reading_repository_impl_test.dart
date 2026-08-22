@@ -3,12 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:persistence_drift/xiang/xiang_record_codec.dart';
 import 'package:persistence_drift/xiang/xiang_reading_repository_impl.dart';
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_divination_tag/repository_interface_divination_tag.dart';
 import 'package:repository_interface_media/repository_interface_media.dart';
-import 'package:repository_interface_record/repository_interface_record.dart';
 import 'package:repository_interface_xiang/repository_interface_xiang.dart';
 
 const _scopeUid = 'scope-1';
+
+RequestContext _ctx(String id) => RequestContext(scopeUid: id);
 
 // ── fixtures (mirror xiang_record_codec_test.dart) ──
 
@@ -136,17 +138,88 @@ class _InMemoryXiangReadingRepository implements XiangReadingRepository {
   final Map<String, XiangReading> _store = {};
 
   @override
-  Future<XiangReading> save(XiangReading reading) async {
-    _store[reading.uuid] = reading;
-    return reading;
+  Future<Result<XiangReading?>> get(String id, RequestContext ctx) async =>
+      Ok(_store[id]);
+
+  @override
+  Future<Result<bool>> exists(String id, RequestContext ctx) async =>
+      Ok(_store.containsKey(id));
+
+  @override
+  Future<Result<Rev>> put(XiangReading entity, RequestContext ctx,
+      {Precondition pre = const Unconditional()}) async {
+    _store[entity.uuid] = entity;
+    return Ok(Rev(entity.uuid));
   }
 
   @override
-  Future<XiangReading?> load(String uuid) async => _store[uuid];
+  Future<Result<void>> softDelete(String id, RequestContext ctx,
+      {Precondition pre = const Unconditional()}) async {
+    _store.remove(id);
+    return const Ok(null);
+  }
 
   @override
-  Future<void> softDelete(String uuid) async {
-    _store.remove(uuid);
+  Future<Result<void>> restore(String id, RequestContext ctx) async =>
+      const Ok(null);
+
+  @override
+  Future<Result<XiangReading?>> getIncludingDeleted(
+      String id, RequestContext ctx) async => Ok(_store[id]);
+
+  @override
+  Future<Result<Page<XiangReading>>> query(
+      Map<String, Object?> spec, PageRequest page, RequestContext ctx) async =>
+      Ok(Page(items: _store.values.toList()));
+
+  @override
+  Future<Result<int>> count(
+      Map<String, Object?> spec, RequestContext ctx) async =>
+      Ok(_store.length);
+
+  @override
+  Future<Result<BatchOutcome<String>>> putAll(
+      List<XiangReading> entities, RequestContext ctx) async {
+    for (final e in entities) { _store[e.uuid] = e; }
+    return Ok(BatchOutcome(entities.map((e) => (id: e.uuid, result: const Ok(Rev('')))).toList()));
+  }
+
+  @override
+  Future<Result<R>> inTransaction<R>(Future<R> Function() body) async =>
+      Ok(await body());
+}
+
+/// Helper: put + unwrap
+Future<XiangReading> _save(XiangReadingRepository repo, XiangReading reading) async {
+  final ctx = _ctx(reading.uuid);
+  final r = await repo.put(reading, ctx);
+  switch (r) {
+    case Ok(:final value):
+      return reading;
+    case Err(:final error):
+      throw error;
+  }
+}
+
+/// Helper: get + unwrap
+Future<XiangReading?> _load(XiangReadingRepository repo, String uuid) async {
+  final r = await repo.get(uuid, _ctx(uuid));
+  switch (r) {
+    case Ok(:final value):
+      return value;
+    case Err(:final error):
+      throw error;
+  }
+}
+
+/// Helper: softDelete + unwrap
+Future<void> _softDelete(XiangReadingRepository repo, String uuid) async {
+  final r = await repo.softDelete(uuid, _ctx(uuid));
+  switch (r) {
+    case Ok():
+      return;
+    case Err(:final error):
+      throw error;
   }
 }
 
@@ -165,9 +238,9 @@ void main() {
   test('save reading, load by uuid, verify full round-trip', () async {
     final r = _build();
     final reading = _reading('x-1');
-    final saved = await r.repo.save(reading);
+    final saved = await _save(r.repo, reading);
     expect(saved.uuid, 'x-1');
-    final loaded = await r.repo.load('x-1');
+    final loaded = await _load(r.repo, 'x-1');
     expect(loaded, isNotNull);
     expect(loaded, equals(reading));
     expect(loaded!.methodId, 'face-reading');
@@ -180,12 +253,10 @@ void main() {
       'round-trips all semantics', () async {
     final r = _build();
     final reading = _fullReading('x-2');
-    final saved = await r.repo.save(reading);
+    final saved = await _save(r.repo, reading);
     expect(saved.uuid, 'x-2');
-    final loaded = await r.repo.load('x-2');
+    final loaded = await _load(r.repo, 'x-2');
     expect(loaded, isNotNull);
-    // TagSnapshot/TagSelectionSnapshot are plain value types without value
-    // equality, so assert full-aggregate fidelity via the JSON projection.
     expect(loaded!.toJson(), equals(reading.toJson()));
     expect(loaded.evidence.map((e) => e.role).toList(),
         ['image', 'video', 'text']);
@@ -208,37 +279,35 @@ void main() {
 
   test('softDelete reading, verify load returns null', () async {
     final r = _build();
-    await r.repo.save(_reading('x-3'));
-    expect(await r.repo.load('x-3'), isNotNull);
-    await r.repo.softDelete('x-3');
-    expect(await r.repo.load('x-3'), isNull);
+    await _save(r.repo, _reading('x-3'));
+    expect(await _load(r.repo, 'x-3'), isNotNull);
+    await _softDelete(r.repo, 'x-3');
+    expect(await _load(r.repo, 'x-3'), isNull);
   });
 
   test('softDelete cascades media cleanup and records audit event (FA12)',
       () async {
     final r = _build();
-    // _fullReading 携带 2 个媒体证据（image + video）与 1 个文本证据。
-    await r.repo.save(_fullReading('x-fa12'));
-    expect(await r.repo.load('x-fa12'), isNotNull);
+    await _save(r.repo, _fullReading('x-fa12'));
+    expect(await _load(r.repo, 'x-fa12'), isNotNull);
 
-    await r.repo.softDelete('x-fa12');
+    await _softDelete(r.repo, 'x-fa12');
 
-    // 级联：删除后不可再加载。
-    expect(await r.repo.load('x-fa12'), isNull);
+    expect(await _load(r.repo, 'x-fa12'), isNull);
   });
 
   test('listRecords with module=xiang shows all saved readings', () async {
     final r = _build();
-    await r.repo.save(_reading('x-4a', methodId: 'face-reading'));
-    await r.repo.save(_reading('x-4b', methodId: 'palm-reading'));
-    await r.repo.save(_reading('x-4c', methodId: 'face-reading'));
+    await _save(r.repo, _reading('x-4a', methodId: 'face-reading'));
+    await _save(r.repo, _reading('x-4b', methodId: 'palm-reading'));
+    await _save(r.repo, _reading('x-4c', methodId: 'face-reading'));
 
     final metas = await r.store.listRecords(module: 'xiang', limit: 50);
     expect(metas.map((m) => m.uuid).toSet(), {'x-4a', 'x-4b', 'x-4c'});
     expect(metas.every((m) => m.module == 'xiang'), isTrue);
     expect(metas.every((m) => m.category == 'divination'), isTrue);
     for (final meta in metas) {
-      expect(await r.repo.load(meta.uuid), isNotNull,
+      expect(await _load(r.repo, meta.uuid), isNotNull,
           reason: 'every record in the shared list must reopen through the repo');
     }
   });
@@ -247,12 +316,12 @@ void main() {
     final r = _build();
     final first = _reading('x-5', shortJudgment: _manualJudgment(text: '第一版'));
     final second = _reading('x-5', shortJudgment: _manualJudgment(text: '第二版'));
-    await r.repo.save(first);
-    await r.repo.save(second);
+    await _save(r.repo, first);
+    await _save(r.repo, second);
 
     final metas = await r.store.listRecords(module: 'xiang', limit: 50);
     expect(metas, hasLength(1), reason: 'one uuid must map to one Record');
-    final loaded = await r.repo.load('x-5');
+    final loaded = await _load(r.repo, 'x-5');
     expect(loaded, isNotNull);
     expect(loaded!.shortJudgment?.text, '第二版');
   });
@@ -264,22 +333,19 @@ void main() {
     final inMemory = _InMemoryXiangReadingRepository();
     final reading = _fullReading('x-9');
 
-    // The identical scenario must behave identically through the Drift adapter
-    // and a different implementation of the same port (TDD-XG-09).
     for (final repo in <XiangReadingRepository>[r.repo, inMemory]) {
-      final saved = await repo.save(reading);
+      final saved = await _save(repo, reading);
       expect(saved.uuid, 'x-9');
-      final loaded = await repo.load('x-9');
+      final loaded = await _load(repo, 'x-9');
       expect(loaded, isNotNull);
       expect(loaded!.methodId, 'face-reading');
       expect(loaded.evidence, hasLength(3));
       expect(loaded.tagSelections.single.dimensionId, 'wu-xing');
       expect(loaded.shortJudgment?.isConfirmed, isTrue);
-      await repo.softDelete('x-9');
-      expect(await repo.load('x-9'), isNull);
+      await _softDelete(repo, 'x-9');
+      expect(await _load(repo, 'x-9'), isNull);
     }
 
-    // Compile-time contract proof: the concrete Drift adapter satisfies the port.
     expect(r.repo, isA<XiangReadingRepository>());
     expect(inMemory, isA<XiangReadingRepository>());
   });

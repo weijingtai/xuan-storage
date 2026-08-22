@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_bazi/repository_interface_bazi.dart';
 import '../../lib/bazi/shared_preferences_bazi_record_repository.dart';
 
@@ -23,8 +24,8 @@ void main() {
       createdAt: DateTime.now(),
     );
 
-    await repo.saveRecord(record);
-    final retrieved = await repo.getRecord('rec-1');
+    await repo.put(record, RequestContext(scopeUid: repo.scopeUid));
+    final retrieved = (await repo.get('rec-1', RequestContext(scopeUid: repo.scopeUid)) as Ok<BaziRecordContract?>).value;
     expect(retrieved, equals(record));
   });
 
@@ -48,16 +49,16 @@ void main() {
       caseUuid: 'case-1',
       recordDate: DateTime.now(),
       legacyEightCharsJson: '{}',
-      createdAt: DateTime(2023, 1, 3), // Most recent
+      createdAt: DateTime(2023, 1, 3),
     );
 
-    await repo.saveRecord(record1);
-    await repo.saveRecord(record2);
-    await repo.saveRecord(record3);
+    await repo.put(record1, RequestContext(scopeUid: repo.scopeUid));
+    await repo.put(record2, RequestContext(scopeUid: repo.scopeUid));
+    await repo.put(record3, RequestContext(scopeUid: repo.scopeUid));
 
-    final records = await repo.listRecords('case-1');
+    var qr = await repo.query({'caseUuid': 'case-1'}, PageRequest(limit: 200), RequestContext(scopeUid: repo.scopeUid));
+    var records = (qr as Ok<Page<BaziRecordContract>>).value.items;
     expect(records.length, 2);
-    // Ordered by createdAt desc
     expect(records[0].uuid, 'rec-3');
     expect(records[1].uuid, 'rec-1');
   });
@@ -71,20 +72,22 @@ void main() {
       createdAt: DateTime.now(),
     );
 
-    await repo.saveRecord(record);
-    await repo.deleteRecord('rec-1');
-    final retrieved = await repo.getRecord('rec-1');
+    await repo.put(record, RequestContext(scopeUid: repo.scopeUid));
+    await repo.softDelete('rec-1', RequestContext(scopeUid: repo.scopeUid));
+    final retrieved = (await repo.get('rec-1', RequestContext(scopeUid: repo.scopeUid)) as Ok<BaziRecordContract?>).value;
     expect(retrieved, isNull);
   });
 
   test('legacy "{}" restore', () async {
     await prefs.setString('bazi.test-scope.records', '{}');
-    final records = await repo.listRecords('case-1');
+    var qr = await repo.query({'caseUuid': 'case-1'}, PageRequest(limit: 200), RequestContext(scopeUid: repo.scopeUid));
+    var records = (qr as Ok<Page<BaziRecordContract>>).value.items;
     expect(records.isEmpty, true);
-    
+
     await prefs.setString('bazi.test-scope.records', 'invalid json');
-    final records2 = await repo.listRecords('case-1');
-    expect(records2.isEmpty, true);
+    qr = await repo.query({'caseUuid': 'case-1'}, PageRequest(limit: 200), RequestContext(scopeUid: repo.scopeUid));
+    records = (qr as Ok<Page<BaziRecordContract>>).value.items;
+    expect(records.isEmpty, true);
   });
 
   test('scope isolation', () async {
@@ -98,12 +101,14 @@ void main() {
       createdAt: DateTime.now(),
     );
 
-    await repoA.saveRecord(record1);
+    await repoA.put(record1, RequestContext(scopeUid: repoA.scopeUid));
 
-    final recordsB = await repoB.listRecords('case-1');
+    var qrB = await repoB.query({'caseUuid': 'case-1'}, PageRequest(limit: 200), RequestContext(scopeUid: repoB.scopeUid));
+    var recordsB = (qrB as Ok<Page<BaziRecordContract>>).value.items;
     expect(recordsB.isEmpty, true);
 
-    final recordsA = await repoA.listRecords('case-1');
+    var qrA = await repoA.query({'caseUuid': 'case-1'}, PageRequest(limit: 200), RequestContext(scopeUid: repoA.scopeUid));
+    var recordsA = (qrA as Ok<Page<BaziRecordContract>>).value.items;
     expect(recordsA.length, 1);
     expect(recordsA[0].uuid, 'rec-1');
   });
@@ -116,13 +121,15 @@ void main() {
       recordDate: DateTime.now(),
       createdAt: DateTime.now(),
     );
-    await anonRepo.saveRecord(record1);
+    await anonRepo.put(record1, RequestContext(scopeUid: anonRepo.scopeUid));
 
     final userRepo = SharedPreferencesBaziRecordRepository(prefs, 'user-a');
-    final userRecords = await userRepo.listRecords('case-1');
+    var qrU = await userRepo.query({'caseUuid': 'case-1'}, PageRequest(limit: 200), RequestContext(scopeUid: userRepo.scopeUid));
+    var userRecords = (qrU as Ok<Page<BaziRecordContract>>).value.items;
     expect(userRecords.isEmpty, true);
 
-    final anonRecords = await anonRepo.listRecords('case-1');
+    var qrAn = await anonRepo.query({'caseUuid': 'case-1'}, PageRequest(limit: 200), RequestContext(scopeUid: anonRepo.scopeUid));
+    var anonRecords = (qrAn as Ok<Page<BaziRecordContract>>).value.items;
     expect(anonRecords.length, 1);
     expect(anonRecords[0].uuid, 'rec-1');
   });

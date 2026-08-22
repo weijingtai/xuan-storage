@@ -12,17 +12,17 @@ class RecordBackedYanqinshuRepository
   });
 
   @override
-  Future<String> saveRecord(YanqinshuDivinationRecordContract r) => save(r);
+  Future<String> put(YanqinshuDivinationRecordContract r) => save(r);
 
   @override
-  Future<List<YanqinshuDivinationRecordContract>> getAllRecords() => getAll();
+  Future<List<YanqinshuDivinationRecordContract>> query([Map<String, Object?>? criteria]) => getAll();
 
   @override
-  Stream<List<YanqinshuDivinationRecordContract>> watchAllRecords() => watchAll();
+  Stream<List<YanqinshuDivinationRecordContract>> watchAll() => super.watchAll();
 
   @override
-  Future<YanqinshuDivinationRecordContract?> getRecordByUuid(String u) => getByUuid(u);
+  Future<YanqinshuDivinationRecordContract?> get(String u) => getByUuid(u);
 
   @override
-  Future<bool> softDeleteRecord(String u) => softDelete(u);
+  Future<bool> delete(String u) => softDelete(u);
 }

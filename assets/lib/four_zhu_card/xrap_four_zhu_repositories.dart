@@ -145,26 +145,28 @@ class XrapFourZhuTemplateRepository implements FourZhuCardTemplateRepository {
   }
 
   @override
-  Future<LayoutTemplateContract?> getTemplate(String uuid) async {
+  Future<LayoutTemplateContract?> get(String id) async {
     final all = await _allTemplates();
     for (final t in all) {
-      if (t.uuid == uuid) return t;
+      if (t.uuid == id) return t;
     }
     return null;
   }
 
   @override
-  Future<List<LayoutTemplateContract>> listTemplates() => _allTemplates();
-
-  @override
-  Future<void> saveTemplate(LayoutTemplateContract template) {
+  Future<String> put(LayoutTemplateContract template) {
     // 内置数据集只读（prebuilt SQL），不支持写回。抛 StorageError 防误用。
-    throw StorageError('four_zhu 模板为内置只读数据集，不支持 saveTemplate');
+    throw StorageError('four_zhu 模板为内置只读数据集，不支持 put');
   }
 
   @override
-  Future<void> deleteTemplate(String uuid) {
-    throw StorageError('four_zhu 模板为内置只读数据集，不支持 deleteTemplate');
+  Future<List<LayoutTemplateContract>> query([Map<String, Object?>? criteria]) async {
+    return _allTemplates();
+  }
+
+  @override
+  Future<bool> delete(String id) {
+    throw StorageError('four_zhu 模板为内置只读数据集，不支持 delete');
   }
 }
 

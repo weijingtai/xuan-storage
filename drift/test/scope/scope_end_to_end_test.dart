@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:drift/native.dart';
 import 'package:persistence_drift/persistence_drift.dart';
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_account/repository_interface_account.dart';
 import 'package:repository_interface_account/repository_interface_account_fakes.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
@@ -18,8 +19,10 @@ void main() {
     late Directory blobBase;
     late Directory backupDir;
     late File dbFile;
+    late RequestContext ctx;
 
     setUp(() async {
+      ctx = RequestContext(scopeUid: 'test-scope');
       blobBase = await Directory.systemTemp.createTemp('scope-e2e-blob');
       backupDir = await Directory.systemTemp.createTemp('scope-e2e-backup');
       dbFile = File('${blobBase.path}/persistence.sqlite');
@@ -64,13 +67,13 @@ void main() {
 
     test('E2E Anonymous session -> saves record with correct scope', () async {
       // 1. Setup anonymous session
-      await sessionRepo.saveCurrentSession(AccountSession(
+      await sessionRepo.put(AccountSession(
         appUserId: const AccountUserId('anon-1'),
         providerUserId: const ProviderUserId('p-anon'),
         kind: AccountKind.anonymous,
         providerId: 'guest',
         issuedAt: DateTime.utc(2026),
-      ));
+      ), ctx);
 
       final resolved = await resolver.resolve();
       final ds = DriftRecordDataSource(db, scopeUid: resolved.scopeUid);
@@ -95,13 +98,13 @@ void main() {
 
     test('E2E Anonymous to Registered Upgrade -> Reuses same scope and can see old records', () async {
       // 1. Start with anonymous session
-      await sessionRepo.saveCurrentSession(AccountSession(
+      await sessionRepo.put(AccountSession(
         appUserId: const AccountUserId('anon-1'),
         providerUserId: const ProviderUserId('p-anon'),
         kind: AccountKind.anonymous,
         providerId: 'guest',
         issuedAt: DateTime.utc(2026),
-      ));
+      ), ctx);
 
       final anonResolved = await resolver.resolve();
       final anonScope = anonResolved.scopeUid;
@@ -126,13 +129,13 @@ void main() {
       ));
 
       // 3. Switch session to user-1
-      await sessionRepo.saveCurrentSession(AccountSession(
+      await sessionRepo.put(AccountSession(
         appUserId: const AccountUserId('user-1'),
         providerUserId: const ProviderUserId('p-user'),
         kind: AccountKind.registered,
         providerId: 'email',
         issuedAt: DateTime.utc(2026),
-      ));
+      ), ctx);
 
       final regResolved = await resolver.resolve();
       expect(regResolved.isUpgrade, isTrue);
@@ -152,7 +155,7 @@ void main() {
 
     test('E2E No Session -> scope = persistent device ghost scope, restarts same', () async {
       // 1. Session is null
-      await sessionRepo.clearCurrentSession();
+      await sessionRepo.purge('current', ctx);
       final resolved = await resolver.resolve();
       final deviceScope = resolved.scopeUid;
       expect(deviceScope, isNotEmpty);
@@ -197,13 +200,13 @@ void main() {
 
     test('E2E Isolation -> Two different users cannot see each other records', () async {
       // 1. User 1
-      await sessionRepo.saveCurrentSession(AccountSession(
+      await sessionRepo.put(AccountSession(
         appUserId: const AccountUserId('user-1'),
         providerUserId: const ProviderUserId('p-1'),
         kind: AccountKind.registered,
         providerId: 'email',
         issuedAt: DateTime.utc(2026),
-      ));
+      ), ctx);
       final scope1 = (await resolver.resolve()).scopeUid;
       final ds1 = DriftRecordDataSource(db, scopeUid: scope1);
       await ds1.saveRecord(RecordMeta(
@@ -219,13 +222,13 @@ void main() {
       expect(await ds1.listRecords(module: 'meihua', limit: 10), hasLength(1));
 
       // 2. User 2 (Login on same device/db, will mint new scope due to conflict)
-      await sessionRepo.saveCurrentSession(AccountSession(
+      await sessionRepo.put(AccountSession(
         appUserId: const AccountUserId('user-2'),
         providerUserId: const ProviderUserId('p-2'),
         kind: AccountKind.registered,
         providerId: 'email',
         issuedAt: DateTime.utc(2026),
-      ));
+      ), ctx);
       final scope2 = (await resolver.resolve()).scopeUid;
       expect(scope2, isNot(equals(scope1)));
 
@@ -252,13 +255,13 @@ void main() {
 
     test('E2E Conflict -> mints new scope, old data unreachable under new scope but not deleted', () async {
       // 1. Anonymous user A creates data on device scope
-      await sessionRepo.saveCurrentSession(AccountSession(
+      await sessionRepo.put(AccountSession(
         appUserId: const AccountUserId('guest-A'),
         providerUserId: const ProviderUserId('p-guest'),
         kind: AccountKind.anonymous,
         providerId: 'guest',
         issuedAt: DateTime.utc(2026),
-      ));
+      ), ctx);
 
       final guestResolved = await resolver.resolve();
       final guestScope = guestResolved.scopeUid;
@@ -278,13 +281,13 @@ void main() {
       expect((await dsGuest.getRecord('r-guest'))?.uuid, 'r-guest');
 
       // 2. Different registered user logs in (no identity link for guest-A → user-X)
-      await sessionRepo.saveCurrentSession(AccountSession(
+      await sessionRepo.put(AccountSession(
         appUserId: const AccountUserId('user-X'),
         providerUserId: const ProviderUserId('p-userX'),
         kind: AccountKind.registered,
         providerId: 'email',
         issuedAt: DateTime.utc(2026),
-      ));
+      ), ctx);
 
       // 3. Resolve — should mint new scope (conflict: device scope busy, no link)
       final conflictResolved = await resolver.resolve();

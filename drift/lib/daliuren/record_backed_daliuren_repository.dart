@@ -11,9 +11,9 @@ class RecordBackedDaliurenRepository
     super.uuid,
   });
 
-  @override Future<String> saveRecord(DaliurenDivinationRecordContract r) => save(r);
-  @override Future<List<DaliurenDivinationRecordContract>> getAllRecords() => getAll();
-  @override Stream<List<DaliurenDivinationRecordContract>> watchAllRecords() => watchAll();
-  @override Future<DaliurenDivinationRecordContract?> getRecordByUuid(String u) => getByUuid(u);
-  @override Future<bool> softDeleteRecord(String u) => softDelete(u);
+  @override Future<String> put(DaliurenDivinationRecordContract r) => save(r);
+  @override Future<List<DaliurenDivinationRecordContract>> query([Map<String, Object?>? criteria]) => getAll();
+  @override Stream<List<DaliurenDivinationRecordContract>> watchAll() => watchAll();
+  @override Future<DaliurenDivinationRecordContract?> get(String id) => getByUuid(id);
+  @override Future<bool> delete(String id) => softDelete(id);
 }

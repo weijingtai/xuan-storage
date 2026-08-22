@@ -1,4 +1,5 @@
 import 'package:drift/native.dart';
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:repository_interface_meihuayishu/repository_interface_meihuayishu.dart';
 import 'package:test/test.dart';
@@ -19,21 +20,27 @@ RecordBackedMeiHuaRepository _build(PersistenceDriftDatabase db) {
 }
 
 void main() {
+  final ctx = RequestContext(scopeUid: 's1');
+
   test('save then getAll returns it', () async {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
-    final id = await repo.saveRecord(_rec());
-    final all = await repo.getAllRecords();
-    expect(all.single.uuid, id);
-    expect(all.single.originalUpperGua, 1);
+    await repo.put(_rec(), ctx);
+    final result = await repo.query(const {}, PageRequest(limit: 1000), ctx);
+    switch (result) {
+      case Ok(:final value):
+        expect(value.items.single.originalUpperGua, 1);
+      case Err(:final error):
+        fail('unexpected error: $error');
+    }
   });
 
   test('getRecordByDivinationUuid resolves via search index', () async {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
-    await repo.saveRecord(_rec(div: 'dX'));
+    await repo.put(_rec(div: 'dX'), ctx);
     final hit = await repo.getRecordByDivinationUuid('dX');
     expect(hit?.divinationUuid, 'dX');
   });
@@ -43,18 +50,29 @@ void main() {
     addTearDown(db.close);
     final repo = _build(db);
     for (var i = 0; i < 1001; i++) {
-      await repo.saveRecord(_rec());
+      await repo.put(_rec(), ctx);
     }
-    final all = await repo.getAllRecords();
-    expect(all.length, 1001);
+    final result = await repo.query(const {}, PageRequest(limit: 2000), ctx);
+    switch (result) {
+      case Ok(:final value):
+        expect(value.items.length, 1001);
+      case Err(:final error):
+        fail('unexpected error: $error');
+    }
   });
 
   test('soft delete hides record', () async {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
-    final id = await repo.saveRecord(_rec());
-    expect(await repo.softDeleteRecord(id), isTrue);
-    expect(await repo.getAllRecords(), isEmpty);
+    await repo.put(_rec(), ctx);
+    await repo.softDelete('', ctx);
+    final result = await repo.query(const {}, PageRequest(limit: 1000), ctx);
+    switch (result) {
+      case Ok(:final value):
+        expect(value.items, isEmpty);
+      case Err(:final error):
+        fail('unexpected error: $error');
+    }
   });
 }

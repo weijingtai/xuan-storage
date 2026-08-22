@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_meihuayishu/repository_interface_meihuayishu.dart';
 
 import 'dictionary_database.dart';
@@ -41,26 +42,80 @@ class DriftMeiHuaDictionaryRepository implements MeiHuaDictionaryRepository {
   }
 
   @override
-  Future<int> getStrokeCount(String character) async {
-    if (character.isEmpty) return 0;
-    final row = await _database.queryCharacter(character);
-    if (row == null || row.matchesJson == null) return 7;
-    try {
-      final List<dynamic> matches =
-          jsonDecode(row.matchesJson!) as List<dynamic>;
-      return matches.length;
-    } catch (_) {
-      return 7;
-    }
+  Future<Result<MeiHuaDictionaryCharacterContract?>> get(
+    String id,
+    RequestContext ctx,
+  ) async {
+    if (id.isEmpty) return const Ok(null);
+    final row = await _database.queryCharacter(id);
+    if (row == null) return const Ok(null);
+    return Ok(MeiHuaDictionaryCharacterContract(
+      id: row.id,
+      character: row.character,
+      definition: row.definition,
+      radical: row.radical,
+      decomposition: row.decomposition,
+      matchesJson: row.matchesJson,
+    ));
   }
 
   @override
-  Future<List<int>> getStrokeCounts(String text) async {
-    final counts = <int>[];
+  Future<Result<bool>> exists(String id, RequestContext ctx) async {
+    final row = await _database.queryCharacter(id);
+    return Ok(row != null);
+  }
+
+  @override
+  Future<Result<Page<MeiHuaDictionaryCharacterContract>>> query(
+    Map<String, Object?> spec,
+    PageRequest page,
+    RequestContext ctx,
+  ) async {
+    final text = spec['text'] as String? ?? '';
+    final items = <MeiHuaDictionaryCharacterContract>[];
     for (final char in text.split('')) {
-      counts.add(await getStrokeCount(char));
+      final row = await _database.queryCharacter(char);
+      if (row != null) {
+        items.add(MeiHuaDictionaryCharacterContract(
+          id: row.id,
+          character: row.character,
+          definition: row.definition,
+          radical: row.radical,
+          decomposition: row.decomposition,
+          matchesJson: row.matchesJson,
+        ));
+      }
     }
-    return counts;
+    return Ok(Page(items: items, nextCursor: null));
+  }
+
+  @override
+  Future<Result<int>> count(
+    Map<String, Object?> spec,
+    RequestContext ctx,
+  ) async {
+    final text = spec['text'] as String? ?? '';
+    return Ok(text.length);
+  }
+
+  @override
+  Future<Result<List<MeiHuaDictionaryCharacterContract>>> getByIndex(
+    String field,
+    Object? value,
+    RequestContext ctx, {
+    int limit = 200,
+  }) async {
+    return const Ok([]);
+  }
+
+  @override
+  Stream<Result<List<MeiHuaDictionaryCharacterContract>>> watchByIndex(
+    String field,
+    Object? value,
+    RequestContext ctx, {
+    int limit = 200,
+  }) {
+    return const Stream.empty();
   }
 
   @override

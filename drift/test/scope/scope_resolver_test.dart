@@ -1,5 +1,6 @@
 import 'package:test/test.dart';
 import 'package:repository_interface_account/repository_interface_account_fakes.dart';
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_account/repository_interface_account.dart';
 import 'package:persistence_drift/scope/scope_alias_entry.dart';
 import 'package:persistence_drift/scope/scope_bootstrap_store.dart';
@@ -118,13 +119,13 @@ void main() {
 
     test('2. session has appUserId, has alias -> returns existing scope', () async {
       await ledger.bind('user-1', ScopeAuthKind.registered, 'custom-scope-456');
-      await sessionRepo.saveCurrentSession(AccountSession(
+      await sessionRepo.put(AccountSession(
         appUserId: const AccountUserId('user-1'),
         providerUserId: const ProviderUserId('p-1'),
         kind: AccountKind.registered,
         providerId: 'fake',
         issuedAt: DateTime.now(),
-      ));
+      ), ctx);
 
       final res = await resolver.resolve();
       expect(res.scopeUid, 'custom-scope-456');
@@ -133,13 +134,13 @@ void main() {
     });
 
     test('3. session has appUserId, no alias, device scope free -> binds device scope', () async {
-      await sessionRepo.saveCurrentSession(AccountSession(
+      await sessionRepo.put(AccountSession(
         appUserId: const AccountUserId('user-1'),
         providerUserId: const ProviderUserId('p-1'),
         kind: AccountKind.registered,
         providerId: 'fake',
         issuedAt: DateTime.now(),
-      ));
+      ), ctx);
 
       final res = await resolver.resolve();
       expect(res.scopeUid, 'device-scope-uuid-123');
@@ -162,13 +163,13 @@ void main() {
         linkedAt: DateTime.now(),
       ));
 
-      await sessionRepo.saveCurrentSession(AccountSession(
+      await sessionRepo.put(AccountSession(
         appUserId: const AccountUserId('user-1'),
         providerUserId: const ProviderUserId('p-1'),
         kind: AccountKind.registered,
         providerId: 'fake',
         issuedAt: DateTime.now(),
-      ));
+      ), ctx);
 
       final res = await resolver.resolve();
       // 升级不再复用 device scope，而是铸新 scope
@@ -202,13 +203,13 @@ void main() {
         providerId: 'fake',
         linkedAt: DateTime.now(),
       ));
-      await sessionRepo.saveCurrentSession(AccountSession(
+      await sessionRepo.put(AccountSession(
         appUserId: const AccountUserId('user-1'),
         providerUserId: const ProviderUserId('p-1'),
         kind: AccountKind.registered,
         providerId: 'fake',
         issuedAt: DateTime.now(),
-      ));
+      ), ctx);
 
       handover.fail = true;
       await expectLater(resolver.resolve(), throwsStateError);
@@ -241,13 +242,13 @@ void main() {
       // device scope bound to anonymous user 'anon-1'
       await ledger.bind('anon-1', ScopeAuthKind.anonymous, 'device-scope-uuid-123');
 
-      await sessionRepo.saveCurrentSession(AccountSession(
+      await sessionRepo.put(AccountSession(
         appUserId: const AccountUserId('user-1'),
         providerUserId: const ProviderUserId('p-1'),
         kind: AccountKind.registered,
         providerId: 'fake',
         issuedAt: DateTime.now(),
-      ));
+      ), ctx);
 
       final res = await resolver.resolve();
       expect(res.scopeUid, 'minted-scope-uuid-1');
@@ -256,13 +257,13 @@ void main() {
     });
 
     test('6. empty appUserId -> throws StateError', () async {
-      await sessionRepo.saveCurrentSession(AccountSession(
+      await sessionRepo.put(AccountSession(
         appUserId: const AccountUserId(''),
         providerUserId: const ProviderUserId('p-1'),
         kind: AccountKind.registered,
         providerId: 'fake',
         issuedAt: DateTime.now(),
-      ));
+      ), ctx);
 
       expect(() => resolver.resolve(), throwsStateError);
     });

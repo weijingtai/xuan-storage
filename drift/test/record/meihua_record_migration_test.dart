@@ -1,10 +1,13 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:test/test.dart';
 
 void main() {
   test('migrates records idempotently', () async {
+    final ctx = RequestContext(scopeUid: 'local');
+
     // 旧库
     final oldDb = MeiHuaDatabase(NativeDatabase.memory());
     addTearDown(oldDb.close);
@@ -36,11 +39,23 @@ void main() {
     // 第一次迁移
     final count1 = await migrateMeihuaRecords(oldDao: oldDao, target: meihuaRepo);
     expect(count1, 2);
-    expect((await meihuaRepo.getAllRecords()).length, 2);
+    final r1 = await meihuaRepo.query(const {}, PageRequest(limit: 100), ctx);
+    switch (r1) {
+      case Ok(:final value):
+        expect(value.items.length, 2);
+      case Err(:final error):
+        fail('unexpected error: $error');
+    }
 
     // 第二次迁移（幂等）
     final count2 = await migrateMeihuaRecords(oldDao: oldDao, target: meihuaRepo);
     expect(count2, 0);
-    expect((await meihuaRepo.getAllRecords()).length, 2);
+    final r2 = await meihuaRepo.query(const {}, PageRequest(limit: 100), ctx);
+    switch (r2) {
+      case Ok(:final value):
+        expect(value.items.length, 2);
+      case Err(:final error):
+        fail('unexpected error: $error');
+    }
   });
 }

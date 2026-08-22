@@ -16,29 +16,31 @@ class AssetsDaLiuRenOfficialDataRepository
   static const String _prefix = 'packages/daliuren/assets/da_liu_ren/';
 
   @override
-  Future<List<dynamic>> loadYuDingData() async {
-    final raw = await rootBundle.loadString('${_prefix}御定大六壬.json');
-    return json.decode(raw) as List<dynamic>;
+  Future<dynamic> get(String id) async {
+    switch (id) {
+      case 'yuding':
+        final raw = await rootBundle.loadString('${_prefix}御定大六壬.json');
+        return json.decode(raw) as List<dynamic>;
+      case 'jumapper':
+        final raw = await rootBundle.loadString('${_prefix}ju_mapper.json');
+        return json.decode(raw) as Map<String, dynamic>;
+      case 'yangpan':
+        final raw = await rootBundle.loadString('${_prefix}甲午庚牛羊_阳.json');
+        final list = json.decode(raw) as List<dynamic>;
+        return list.cast<Map<String, dynamic>>();
+      case 'yinpan':
+        final raw = await rootBundle.loadString('${_prefix}甲午庚牛羊_阴.json');
+        final list = json.decode(raw) as List<dynamic>;
+        return list.cast<Map<String, dynamic>>();
+      default:
+        throw ArgumentError('Unknown id: $id');
+    }
   }
 
   @override
-  Future<Map<String, dynamic>> loadJuMapperData() async {
-    final raw = await rootBundle.loadString('${_prefix}ju_mapper.json');
-    return json.decode(raw) as Map<String, dynamic>;
-  }
-
-  @override
-  Future<List<Map<String, dynamic>>> loadYangPanData() async {
-    final raw = await rootBundle.loadString('${_prefix}甲午庚牛羊_阳.json');
-    final list = json.decode(raw) as List<dynamic>;
-    return list.cast<Map<String, dynamic>>();
-  }
-
-  @override
-  Future<List<Map<String, dynamic>>> loadYinPanData() async {
-    final raw = await rootBundle.loadString('${_prefix}甲午庚牛羊_阴.json');
-    final list = json.decode(raw) as List<dynamic>;
-    return list.cast<Map<String, dynamic>>();
+  Future<List<dynamic>> query([Map<String, Object?>? criteria]) async {
+    final type = criteria?['type'] as String? ?? 'yuding';
+    return get(type) as Future<List<dynamic>>;
   }
 }
 
@@ -54,7 +56,7 @@ class AssetsDaLiuRenKetiRepository implements DaLiuRenKetiRepository {
   static const String _prefix = 'packages/daliuren/assets/da_liu_ren/';
 
   @override
-  Future<List<dynamic>> loadKetiData() async {
+  Future<List<dynamic>> query([Map<String, Object?>? criteria]) async {
     final raw = await rootBundle.loadString('${_prefix}keti_data.json');
     return json.decode(raw) as List<dynamic>;
   }
@@ -129,7 +131,7 @@ class AssetsDaLiuRenSchoolDataRepository
   const AssetsDaLiuRenSchoolDataRepository();
 
   @override
-  Future<List<SchoolEntryContract>> loadEntries(String schoolId) async {
+  Future<List<SchoolEntryContract>> query([Map<String, Object?>? criteria]) async {
     try {
       final raw = await rootBundle.loadString(
         'packages/daliuren/assets/dataset/daliuren_dataset.json',

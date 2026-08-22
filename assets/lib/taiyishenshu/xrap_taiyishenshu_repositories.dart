@@ -65,7 +65,7 @@ class XrapTaiyiSchoolRepository implements SchoolRepository {
   // -------------------------------------------------------------------------
 
   @override
-  Future<List<TaiYiSchoolContract>> loadAllSchools() async {
+  Future<List<TaiYiSchoolContract>> query([Map<String, Object?>? criteria]) async {
     await _schoolsEnsure.ensure();
     final rows = await db.select(db.taiyiSchoolDocuments).get();
     return rows
@@ -74,7 +74,7 @@ class XrapTaiyiSchoolRepository implements SchoolRepository {
   }
 
   @override
-  Future<TaiYiSchoolContract?> loadSchool(String id) async {
+  Future<TaiYiSchoolContract?> get(String id) async {
     await _schoolsEnsure.ensure();
     final row = await (db.select(db.taiyiSchoolDocuments)
           ..where((t) => t.fileName.equals('${_toKebab(id)}.json')))
@@ -106,20 +106,22 @@ class XrapTaiyiSchoolRepository implements SchoolRepository {
     return DeityDefinitionContract.fromJson(jsonDecode(row.payloadJson));
   }
 
+  // loadAllDeities 和 loadDeity 保留为内部方法，对外统一使用 query/get
+
   // -------------------------------------------------------------------------
   // 只读：官方资源库不支持写（照旧桩 throw UnsupportedError）
   // -------------------------------------------------------------------------
 
   @override
-  Future<void> saveSchool(TaiYiSchoolContract school) =>
+  Future<void> put(TaiYiSchoolContract entity) =>
       throw UnsupportedError('Official repository is read-only');
 
   @override
-  Future<void> saveDeity(DeityDefinitionContract deity) =>
+  Future<void> putDeity(DeityDefinitionContract entity) =>
       throw UnsupportedError('Official repository is read-only');
 
   @override
-  Future<void> deleteSchool(String id) =>
+  Future<void> delete(String id) =>
       throw UnsupportedError('Official repository is read-only');
 
   @override

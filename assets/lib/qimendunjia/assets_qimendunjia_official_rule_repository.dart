@@ -20,14 +20,8 @@ class AssetsQimendunjiaOfficialRuleRepository
       'packages/qimendunjia/assets/qi_men_dun_jia/ten_gan_ke_ying_final.json';
   static const String _doorGanKeYingPath =
       'packages/qimendunjia/assets/qi_men_dun_jia/door_gan_ke_ying.json';
-  static const String _qiYiRuGongPath =
-      'packages/qimendunjia/assets/qi_men_dun_jia/gong_qi.json';
-  static const String _qiYiRuGongDiseasePath =
-      'packages/qimendunjia/assets/qi_men_dun_jia/gong_gan.json';
-  static const String _starDoorKeYingPath =
-      'packages/qimendunjia/assets/qi_men_dun_jia/star_door_ke_ying.json';
-  static const String _eightDoorKeYingPath =
-      'packages/qimendunjia/assets/qi_men_dun_jia/eight_door_ke_ying.json';
+  static const String _officialJuRulesPath =
+      'packages/qimendunjia/assets/qi_men_dun_jia/official_ju_rules.json';
 
   Future<String> _load(String assetKey) async {
     try {
@@ -38,23 +32,24 @@ class AssetsQimendunjiaOfficialRuleRepository
   }
 
   @override
-  Future<String> loadTenGanKeYingJson() => _load(_tenGanKeYingPath);
+  Future<String> get(String key) async {
+    switch (key) {
+      case 'ten_gan_ke_ying':
+        return _load(_tenGanKeYingPath);
+      case 'ten_gan_ge_ju':
+        return _load(_tenGanKeYingGeJuPath);
+      case 'door_gan_ke_ying':
+        return _load(_doorGanKeYingPath);
+      case 'official_ju_rules':
+        return _load(_officialJuRulesPath);
+      default:
+        throw StorageError('Unknown key: $key');
+    }
+  }
 
   @override
-  Future<String> loadTenGanKeYingGeJuJson() => _load(_tenGanKeYingGeJuPath);
-
-  @override
-  Future<String> loadDoorGanKeYingJson() => _load(_doorGanKeYingPath);
-
-  @override
-  Future<String> loadQiYiRuGongJson() => _load(_qiYiRuGongPath);
-
-  @override
-  Future<String> loadQiYiRuGongDiseaseJson() => _load(_qiYiRuGongDiseasePath);
-
-  @override
-  Future<String> loadDoorStarKeYingJson() => _load(_starDoorKeYingPath);
-
-  @override
-  Future<String> loadEightDoorKeYingJson() => _load(_eightDoorKeYingPath);
+  Future<List<String>> query([Map<String, Object?>? criteria]) async {
+    final key = criteria?['key'] as String? ?? 'ten_gan_ke_ying';
+    return [await get(key)];
+  }
 }

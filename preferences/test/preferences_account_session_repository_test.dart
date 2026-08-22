@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:persistence_preferences/persistence_preferences.dart';
 import 'package:repository_interface_account/repository_interface_account.dart';
@@ -9,15 +10,17 @@ void main() {
 
   late SharedPreferences prefs;
   late PreferencesAccountSessionRepository repo;
+  late RequestContext ctx;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     prefs = await SharedPreferences.getInstance();
     repo = PreferencesAccountSessionRepository(prefs);
+    ctx = RequestContext(scopeUid: 'test-scope');
   });
 
   group('PreferencesAccountSessionRepository', () {
-    test('R1: saving registered AccountSession then getCurrentSession returns equal object', () async {
+    test('R1: saving registered AccountSession then get returns equal object', () async {
       final session = AccountSession(
         appUserId: const AccountUserId('app-1'),
         providerUserId: const ProviderUserId('prov-1'),
@@ -27,11 +30,12 @@ void main() {
         lastRefreshedAt: DateTime.utc(2026, 1, 2),
         email: 'test@example.com',
       );
-      await repo.saveCurrentSession(session);
-      expect(await repo.getCurrentSession(), equals(session));
+      await repo.put(session, ctx);
+      final result = await repo.get('current', ctx);
+      expect((result as Ok).value, equals(session));
     });
 
-    test('R2: clearCurrentSession makes getCurrentSession return null', () async {
+    test('R2: purge makes get return null', () async {
       final session = AccountSession(
         appUserId: const AccountUserId('app-1'),
         providerUserId: const ProviderUserId('prov-1'),
@@ -39,9 +43,10 @@ void main() {
         providerId: 'firebase',
         issuedAt: DateTime.utc(2026, 1, 1),
       );
-      await repo.saveCurrentSession(session);
-      await repo.clearCurrentSession();
-      expect(await repo.getCurrentSession(), isNull);
+      await repo.put(session, ctx);
+      await repo.purge('current', ctx);
+      final result = await repo.get('current', ctx);
+      expect((result as Ok).value, isNull);
     });
 
     test('R3: raw SharedPreferences keys do not contain sensitive fields', () async {
@@ -52,7 +57,7 @@ void main() {
         providerId: 'firebase',
         issuedAt: DateTime.utc(2026, 1, 1),
       );
-      await repo.saveCurrentSession(session);
+      await repo.put(session, ctx);
       final keys = prefs.getKeys();
       for (final key in keys) {
         expect(key, isNot(contains('idToken')));
@@ -73,7 +78,7 @@ void main() {
         lastRefreshedAt: DateTime.utc(2026, 1, 2),
         email: 'test@example.com',
       );
-      await repo.saveCurrentSession(session);
+      await repo.put(session, ctx);
       final keys = prefs.getKeys();
       expect(keys, isNotEmpty);
       for (final key in keys) {
@@ -92,8 +97,8 @@ void main() {
         issuedAt: issuedAt,
         lastRefreshedAt: lastRefreshedAt,
       );
-      await repo.saveCurrentSession(session);
-      final retrieved = await repo.getCurrentSession();
+      await repo.put(session, ctx);
+      final retrieved = (await repo.get('current', ctx) as Ok).value;
       expect(retrieved!.issuedAt, equals(issuedAt));
       expect(retrieved.lastRefreshedAt, equals(lastRefreshedAt));
     });
@@ -114,8 +119,8 @@ void main() {
       repo = PreferencesAccountSessionRepository(prefs);
 
       try {
-        final result = await repo.getCurrentSession();
-        expect(result, isNull);
+        final result = await repo.get('current', ctx);
+        expect((result as Ok).value, isNull);
       } catch (e) {
         if (e is TestFailure) {
           rethrow;

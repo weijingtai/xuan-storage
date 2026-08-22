@@ -15,6 +15,7 @@ library;
 import 'dart:convert';
 
 import 'package:persistence_core/persistence_core.dart' hide StorageError;
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_ziweidoushu/repository_interface_ziwei.dart';
 
 import 'drift/ziwei_database.dart';
@@ -153,44 +154,95 @@ class XrapZiweiStarRepository implements ZiweiStarRepository {
     return result;
   }
 
-  @override
-  Future<List<ZiweiStar>> getAllMainStars() async {
-    final stars = await _allStarJson();
-    return stars
-        .where((s) => s['category'] == 'main')
-        .map(_mapStar)
-        .toList(growable: false);
-  }
+  // ── Readable ──
 
   @override
-  Future<List<ZiweiStar>> getAllAuxiliaryStars() async {
-    final stars = await _allStarJson();
-    return stars
-        .where((s) =>
-            s['category'] == 'minor_auspicious' || s['category'] == 'baleful')
-        .map(_mapStar)
-        .toList(growable: false);
-  }
-
-  @override
-  Future<ZiweiStar?> getStarByName(String name) async {
-    final stars = await _allStarJson();
-    for (final s in stars) {
-      if (s['name'] == name) return _mapStar(s);
+  Future<Result<ZiweiStar?>> get(String name, RequestContext ctx) async {
+    try {
+      final stars = await _allStarJson();
+      for (final s in stars) {
+        if (s['name'] == name) return Ok(_mapStar(s));
+      }
+      return const Ok(null);
+    } catch (e) {
+      return Err(XuanError(code: ErrorCode.internal, message: '$e'));
     }
-    return null;
   }
 
   @override
-  Future<ZiweiFourTransformations?> getFourTransformations(
+  Future<Result<bool>> exists(String name, RequestContext ctx) async {
+    final stars = await _allStarJson();
+    return Ok(stars.any((s) => s['name'] == name));
+  }
+
+  // ── Queryable ──
+
+  @override
+  Future<Result<Page<ZiweiStar>>> query(
+    Map<String, Object?> spec,
+    PageRequest page,
+    RequestContext ctx,
+  ) async {
+    try {
+      final all = await _queryAll(spec);
+      final start = 0;
+      final end = page.limit.clamp(0, all.length);
+      final items = all.sublist(start, end);
+      final hasMore = all.length > page.limit;
+      return Ok(Page(
+        items: items,
+        nextCursor: hasMore ? 'offset:${page.limit}' : null,
+      ));
+    } catch (e) {
+      return Err(XuanError(code: ErrorCode.internal, message: '$e'));
+    }
+  }
+
+  @override
+  Future<Result<int>> count(
+    Map<String, Object?> spec,
+    RequestContext ctx,
+  ) async {
+    try {
+      final all = await _queryAll(spec);
+      return Ok(all.length);
+    } catch (e) {
+      return Err(XuanError(code: ErrorCode.internal, message: '$e'));
+    }
+  }
+
+  /// 按 spec 条件查询全量星曜（内部辅助）。
+  Future<List<ZiweiStar>> _queryAll(Map<String, Object?> spec) async {
+    final stars = await _allStarJson();
+    final type = spec['type'] as String?;
+    if (type == 'main') {
+      return stars
+          .where((s) => s['category'] == 'main')
+          .map(_mapStar)
+          .toList(growable: false);
+    } else if (type == 'auxiliary') {
+      return stars
+          .where((s) =>
+              s['category'] == 'minor_auspicious' || s['category'] == 'baleful')
+          .map(_mapStar)
+          .toList(growable: false);
+    } else if (type == 'si_hua') {
+      final tianGanIndex = spec['tian_gan'] as int?;
+      if (tianGanIndex == null) return [];
+      return _queryFourTransformations(tianGanIndex);
+    }
+    return stars.map(_mapStar).toList(growable: false);
+  }
+
+  Future<List<ZiweiFourTransformations>> _queryFourTransformations(
     int tianGanIndex,
   ) async {
-    if (tianGanIndex < 0 || tianGanIndex >= _kTianGan.length) return null;
+    if (tianGanIndex < 0 || tianGanIndex >= _kTianGan.length) return [];
     await _fourTransEnsure.ensure();
     final row = await (db.select(db.ziweiFourTransformationsDocuments)
           ..where((t) => t.fileName.equals('ziwei_four_transformations.json')))
         .getSingleOrNull();
-    if (row == null) return null;
+    if (row == null) return [];
 
     final json = jsonDecode(row.payloadJson) as Map<String, dynamic>;
     final schools = json['schools'] as Map<String, dynamic>;
@@ -207,9 +259,9 @@ class XrapZiweiStarRepository implements ZiweiStarRepository {
         type: type,
       ));
     }
-    return ZiweiFourTransformations(
+    return [ZiweiFourTransformations(
       tianGanIndex: tianGanIndex,
       entries: List.unmodifiable(entries),
-    );
+    )];
   }
 }

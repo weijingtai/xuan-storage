@@ -48,28 +48,30 @@ class XrapDaLiuRenOfficialDataRepository
   final _DatasetEnsurer _ensure;
 
   @override
-  Future<List<dynamic>> loadYuDingData() async {
-    return jsonDecode(await _loadDocument('御定大六壬.json')) as List<dynamic>;
+  Future<dynamic> get(String id) async {
+    switch (id) {
+      case 'yuding':
+        return jsonDecode(await _loadDocument('御定大六壬.json')) as List<dynamic>;
+      case 'jumapper':
+        return jsonDecode(await _loadDocument('ju_mapper.json'))
+            as Map<String, dynamic>;
+      case 'yangpan':
+        final list =
+            jsonDecode(await _loadDocument('甲午庚牛羊_阳.json')) as List<dynamic>;
+        return list.cast<Map<String, dynamic>>();
+      case 'yinpan':
+        final list =
+            jsonDecode(await _loadDocument('甲午庚牛羊_阴.json')) as List<dynamic>;
+        return list.cast<Map<String, dynamic>>();
+      default:
+        throw ArgumentError('Unknown id: $id');
+    }
   }
 
   @override
-  Future<Map<String, dynamic>> loadJuMapperData() async {
-    return jsonDecode(await _loadDocument('ju_mapper.json'))
-        as Map<String, dynamic>;
-  }
-
-  @override
-  Future<List<Map<String, dynamic>>> loadYangPanData() async {
-    final list =
-        jsonDecode(await _loadDocument('甲午庚牛羊_阳.json')) as List<dynamic>;
-    return list.cast<Map<String, dynamic>>();
-  }
-
-  @override
-  Future<List<Map<String, dynamic>>> loadYinPanData() async {
-    final list =
-        jsonDecode(await _loadDocument('甲午庚牛羊_阴.json')) as List<dynamic>;
-    return list.cast<Map<String, dynamic>>();
+  Future<List<dynamic>> query([Map<String, Object?>? criteria]) async {
+    final type = criteria?['type'] as String? ?? 'yuding';
+    return get(type) as Future<List<dynamic>>;
   }
 
   Future<String> _loadDocument(String fileName) async {
@@ -96,7 +98,7 @@ class XrapDaLiuRenKetiRepository implements DaLiuRenKetiRepository {
   final _DatasetEnsurer _ensure;
 
   @override
-  Future<List<dynamic>> loadKetiData() async {
+  Future<List<dynamic>> query([Map<String, Object?>? criteria]) async {
     await _ensure.ensure();
     final row = await (db.select(db.daliurenKetiDocuments)
           ..where((t) => t.fileName.equals('keti_data.json')))
@@ -170,10 +172,10 @@ class XrapDaLiuRenShenShaDataRepository
 /// XRAP 版学校（流派）数据 Repository。
 ///
 /// 人类裁定 2026-08-09：`daliuren_dataset.json` 源数据为天干 10 / 地支 12
-/// 列表，形状与 [DaLiuRenSchoolDataRepository.loadEntries] 的
+/// 列表，形状与 [DaLiuRenSchoolDataRepository.query] 的
 /// [SchoolEntryContract] 不对齐。按裁定以「天干 / 地支两个 school」实现：
-/// - `loadEntries('天干')` → 10 条（schoolId='天干'，title=干名）
-/// - `loadEntries('地支')` → 12 条（schoolId='地支'，title=支名）
+/// - `query({'schoolId': '天干'})` → 10 条（schoolId='天干'，title=干名）
+/// - `query({'schoolId': '地支'})` → 12 条（schoolId='地支'，title=支名）
 /// - 其余 schoolId → 空列表
 /// 其余字段（dayJiaZi/juName/keTiNames/...）源数据不提供，取默认值。
 class XrapDaLiuRenSchoolDataRepository
@@ -188,7 +190,7 @@ class XrapDaLiuRenSchoolDataRepository
   final _DatasetEnsurer _ensure;
 
   @override
-  Future<List<SchoolEntryContract>> loadEntries(String schoolId) async {
+  Future<List<SchoolEntryContract>> query([Map<String, Object?>? criteria]) async {
     await _ensure.ensure();
     final row = await (db.select(db.daliurenSchoolDatasetDocuments)
           ..where((t) => t.fileName.equals('daliuren_dataset.json')))
@@ -197,6 +199,7 @@ class XrapDaLiuRenSchoolDataRepository
       throw NotFound('daliuren_dataset.json');
     }
     final map = jsonDecode(row.payloadJson) as Map<String, dynamic>;
+    final schoolId = criteria?['schoolId'] as String? ?? '天干';
     final List<String> names;
     if (schoolId == '天干') {
       names = (map['天干'] as List<dynamic>).cast<String>();

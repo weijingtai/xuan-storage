@@ -16,25 +16,16 @@ class LayoutTemplateRepositoryImpl implements LayoutTemplateRepository {
   final AuthScopeProvider _authScopeProvider;
 
   @override
-  Future<List<LayoutTemplate>> getAllTemplates(String collectionId) async {
-    final dtos = await _localDataSource.loadTemplates(collectionId);
-    return dtos.map((dto) => dto.toDomain()).toList(growable: false);
-  }
-
-  @override
-  Future<LayoutTemplate?> getTemplateById(
-    String collectionId,
-    String templateId,
-  ) async {
-    final dtos = await _localDataSource.loadTemplates(collectionId);
-    final target = dtos
+  Future<LayoutTemplate?> get(String id) async {
+    final allDtos = await _localDataSource.loadAllTemplates();
+    final target = allDtos
         .map((dto) => dto.toDomain())
-        .firstWhereOrNull((template) => template.id == templateId);
+        .firstWhereOrNull((template) => template.id == id);
     return target;
   }
 
   @override
-  Future<void> saveTemplate(LayoutTemplate template) async {
+  Future<String> put(LayoutTemplate template) async {
     final collectionId = template.collectionId;
     final existingDtos = await _localDataSource.loadTemplates(collectionId);
     final index = existingDtos.indexWhere(
@@ -55,16 +46,33 @@ class LayoutTemplateRepositoryImpl implements LayoutTemplateRepository {
       enqueueOutbox: true,
       scopeUid: scopeUid,
     );
+    return template.id;
   }
 
   @override
-  Future<void> deleteTemplate(String collectionId, String templateId) async {
+  Future<List<LayoutTemplate>> query([Map<String, Object?>? criteria]) async {
+    final collectionId = criteria?['collectionId'] as String?;
+    if (collectionId != null) {
+      final dtos = await _localDataSource.loadTemplates(collectionId);
+      return dtos.map((dto) => dto.toDomain()).toList(growable: false);
+    }
+    final allDtos = await _localDataSource.loadAllTemplates();
+    return allDtos.map((dto) => dto.toDomain()).toList(growable: false);
+  }
+
+  @override
+  Future<bool> delete(String id) async {
+    final allDtos = await _localDataSource.loadAllTemplates();
+    final target = allDtos.firstWhereOrNull((dto) => dto.template.id == id);
+    if (target == null) return false;
+
     final scopeUid = await _authScopeProvider.getScopeUid();
     await _localDataSource.softDeleteTemplate(
-      collectionId,
-      templateId,
+      target.template.collectionId,
+      id,
       enqueueOutbox: true,
       scopeUid: scopeUid,
     );
+    return true;
   }
 }

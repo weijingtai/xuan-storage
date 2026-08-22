@@ -11,9 +11,9 @@ class RecordBackedTaiyiRepository
     super.uuid,
   });
 
-  @override Future<String> saveRecord(TaiyiDivinationRecordContract r) => save(r);
-  @override Future<List<TaiyiDivinationRecordContract>> getAllRecords() => getAll();
-  @override Stream<List<TaiyiDivinationRecordContract>> watchAllRecords() => watchAll();
-  @override Future<TaiyiDivinationRecordContract?> getRecordByUuid(String u) => getByUuid(u);
-  @override Future<bool> softDeleteRecord(String u) => softDelete(u);
+  @override Future<String> put(TaiyiDivinationRecordContract r) => save(r);
+  @override Future<List<TaiyiDivinationRecordContract>> query([Map<String, Object?>? criteria]) => getAll();
+  @override Stream<List<TaiyiDivinationRecordContract>> watchByIndex([Map<String, Object?>? criteria]) => watchAll();
+  @override Future<TaiyiDivinationRecordContract?> get(String id) => getByUuid(id);
+  @override Future<bool> delete(String id) => softDelete(id);
 }

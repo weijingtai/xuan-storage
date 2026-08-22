@@ -5,6 +5,7 @@
 ///
 /// 实现 `repository-interface-kanyu` 的端口（consuming side）：
 /// - [RuleConfigRepository]（kanyu.rules + kanyu.static_data + kanyu.schema）
+/// - [KanyuOfficialRuleRepository]（三元九星、八宅规则、罗盘图层等官方预设数据）
 ///
 /// 契约模型 freezed + fromJson，但 rules JSON 顶层键是 `ruleId` 而契约字段是
 /// `ruleSetId`（见 repository-interface-kanyu RuleSetManifestContract），
@@ -18,6 +19,9 @@ import 'package:persistence_core/persistence_core.dart' hide StorageError;
 import 'package:repository_interface_kanyu/repository_interface_kanyu.dart';
 
 import 'drift/kanyu_database.dart';
+import 'xrap_kanyu_official_rule_repository.dart';
+
+export 'xrap_kanyu_official_rule_repository.dart';
 
 /// 单个数据集安装的幂等守卫封装。
 ///

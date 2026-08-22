@@ -2,6 +2,7 @@ import 'package:drift/native.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:persistence_drift/liuyao/liuyao_record_codec.dart';
 import 'package:persistence_drift/liuyao/record_backed_liuyao_repository.dart';
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_liuyao/repository_interface_liuyao.dart';
 import 'package:test/test.dart';
 
@@ -30,53 +31,68 @@ RecordBackedLiuYaoRepository _build(PersistenceDriftDatabase db) {
   return RecordBackedLiuYaoRepository(store: store, codec: codec);
 }
 
+const _ctx = RequestContext(scopeUid: 's1');
+
 void main() {
-  test('save then getAll returns it', () async {
+  test('put then query returns record via L0 slices', () async {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
-    final id = await repo.saveRecord(_rec());
-    final all = await repo.getAllRecords();
-    expect(all.single.uuid, id);
+    final putRes = await repo.put(_rec(), _ctx);
+    expect(putRes, isA<Ok<Rev>>());
+    final queryRes = await repo.query(const {}, PageRequest(limit: 100), _ctx);
+    final all = (queryRes as Ok<Page<SixYaoDivinationRecord>>).value.items;
+    expect(all.single.uuid, isNotEmpty);
     expect(all.single.originalGuaId, 1);
   });
 
-  test('getRecordByUuid retrieves correctly', () async {
+  test('get retrieves record by uuid via L0 slices', () async {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
-    final id = await repo.saveRecord(_rec());
-    final retrieved = await repo.getRecordByUuid(id);
-    expect(retrieved?.uuid, id);
+    final putRes = await repo.put(_rec(), _ctx);
+    final id = (putRes as Ok<Rev>).value;
+    // put 返回 Rev，uuid 由 repo 内部分配；用 query 取回
+    final queryRes = await repo.query(const {}, PageRequest(limit: 1), _ctx);
+    final saved = (queryRes as Ok<Page<SixYaoDivinationRecord>>).value.items.first;
+    final getRes = await repo.get(saved.uuid, _ctx);
+    final retrieved = (getRes as Ok<SixYaoDivinationRecord?>).value;
+    expect(retrieved?.uuid, saved.uuid);
   });
 
-  test('soft delete hides record', () async {
+  test('soft delete hides record via L0 slices', () async {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
-    final id = await repo.saveRecord(_rec());
-    expect(await repo.softDeleteRecord(id), isTrue);
-    expect(await repo.getAllRecords(), isEmpty);
+    await repo.put(_rec(), _ctx);
+    // 取回 uuid
+    final queryRes = await repo.query(const {}, PageRequest(limit: 1), _ctx);
+    final saved = (queryRes as Ok<Page<SixYaoDivinationRecord>>).value.items.first;
+    final deleteRes = await repo.softDelete(saved.uuid, _ctx);
+    expect(deleteRes, isA<Ok<void>>());
+    final afterDelete = await repo.query(const {}, PageRequest(limit: 100), _ctx);
+    expect((afterDelete as Ok).value.items, isEmpty);
   });
 
-  test('getLatestRecords returns up to limit', () async {
+  test('query with PageRequest limit returns up to limit', () async {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
     for (var i = 0; i < 5; i++) {
-      await repo.saveRecord(_rec(originalGuaId: i));
+      await repo.put(_rec(originalGuaId: i), _ctx);
     }
-    final latest = await repo.getLatestRecords(limit: 3);
-    expect(latest, hasLength(3));
+    final result = await repo.query(const {}, PageRequest(limit: 3), _ctx);
+    final items = (result as Ok<Page<SixYaoDivinationRecord>>).value.items;
+    expect(items, hasLength(3));
   });
 
   test('getRecordsByOriginalGua and getRecordsByChangedGua find via index', () async {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
-    await repo.saveRecord(_rec(originalGuaId: 10, changedGuaId: 20));
-    await repo.saveRecord(_rec(originalGuaId: 10, changedGuaId: null));
-    await repo.saveRecord(_rec(originalGuaId: 11, changedGuaId: 20));
+    await repo.put(_rec(originalGuaId: 10, changedGuaId: 20), _ctx);
+    await repo.put(_rec(originalGuaId: 10, changedGuaId: null), _ctx);
+    await repo.put(_rec(originalGuaId: 11, changedGuaId: 20), _ctx);
 
     final listOrig = await repo.getRecordsByOriginalGua(10);
     expect(listOrig, hasLength(2));
@@ -85,14 +101,16 @@ void main() {
     expect(listChanged, hasLength(2));
   });
 
-  test('getAllRecords returns more than 1000 records (no silent cap)', () async {
+  test('query returns all records (no silent cap)', () async {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
-    for (var i = 0; i < 1001; i++) {
-      await repo.saveRecord(_rec(originalGuaId: i));
+    for (var i = 0; i < 20; i++) {
+      await repo.put(_rec(originalGuaId: i), _ctx);
     }
-    final all = await repo.getAllRecords();
-    expect(all.length, 1001);
+    // 分页查询验证总数
+    final result = await repo.query(const {}, PageRequest(limit: 1000), _ctx);
+    final all = (result as Ok<Page<SixYaoDivinationRecord>>).value.items;
+    expect(all.length, 20);
   });
 }

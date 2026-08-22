@@ -11,9 +11,9 @@ class RecordBackedQimenRepository
     super.uuid,
   });
 
-  @override Future<String> saveRecord(QimenDivinationRecordContract r) => save(r);
-  @override Future<List<QimenDivinationRecordContract>> getAllRecords() => getAll();
-  @override Stream<List<QimenDivinationRecordContract>> watchAllRecords() => watchAll();
-  @override Future<QimenDivinationRecordContract?> getRecordByUuid(String u) => getByUuid(u);
-  @override Future<bool> softDeleteRecord(String u) => softDelete(u);
+  @override Future<String> put(QimenDivinationRecordContract r) => save(r);
+  @override Future<List<QimenDivinationRecordContract>> query([Map<String, Object?>? criteria]) => getAll();
+  @override Stream<List<QimenDivinationRecordContract>> watchAll() => watchAll();
+  @override Future<QimenDivinationRecordContract?> get(String u) => getByUuid(u);
+  @override Future<bool> delete(String u) => softDelete(u);
 }

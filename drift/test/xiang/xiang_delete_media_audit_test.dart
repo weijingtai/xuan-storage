@@ -10,8 +10,34 @@ import 'package:persistence_drift/record/record_adapter_registry.dart';
 import 'package:persistence_drift/xiang/xiang_delete_media_handler.dart';
 import 'package:persistence_drift/xiang/xiang_module_registry.dart';
 import 'package:persistence_drift/xiang/xiang_reading_repository_impl.dart';
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_media/repository_interface_media.dart';
 import 'package:repository_interface_xiang/repository_interface_xiang.dart';
+
+RequestContext _ctx(String id) => RequestContext(scopeUid: id);
+
+/// Helper: put + unwrap
+Future<void> _save(XiangReadingRepository repo, XiangReading reading) async {
+  final ctx = _ctx(reading.uuid);
+  final r = await repo.put(reading, ctx);
+  switch (r) {
+    case Ok():
+      return;
+    case Err(:final error):
+      throw error;
+  }
+}
+
+/// Helper: softDelete + unwrap
+Future<void> _softDeleteById(XiangReadingRepository repo, String uuid) async {
+  final r = await repo.softDelete(uuid, _ctx(uuid));
+  switch (r) {
+    case Ok():
+      return;
+    case Err(:final error):
+      throw error;
+  }
+}
 
 /// TDD-T7 — 删除与审计：
 /// 1) 删除相法记录时通过 xuan-storage 媒体生命周期处理引用；
@@ -61,7 +87,6 @@ void main() {
       deleteMediaHandler: handler,
     );
 
-    // 采集一张图片（blob 落库）。
     final media = DriftMediaAcquisitionAdapter(
       blobStore: blobStore,
       picker: (role, {maxWidth, maxHeight, maxDurationMs}) async =>
@@ -79,12 +104,10 @@ void main() {
         XiangEvidence(order: 0, role: 'image', mediaRef: acquired.reference),
       ],
     );
-    await repo.save(reading);
+    await _save(repo, reading);
 
-    // 删除。
-    await repo.softDelete('t7-r-1');
+    await _softDeleteById(repo, 't7-r-1');
 
-    // 审计事件持久化落库（跨 repository 实例仍可查）。
     final audit = await handler.queryAuditLogs();
     expect(audit, isNotEmpty);
     final evt = audit.firstWhere((e) => e.operation == 'reading.delete');
@@ -124,7 +147,8 @@ void main() {
       ),
     );
     final acquired = await media.acquireImage(role: MediaRole.evidenceImage);
-    await repo.save(
+    await _save(
+      repo,
       buildReading(
         uuid: 't7-r-2',
         evidence: [
@@ -133,16 +157,14 @@ void main() {
       ),
     );
 
-    // 删除前媒体存在。
     var blobs = await blobStore.list(tier: BlobTier.sourceOfTruth).toList();
     expect(
       blobs.any((e) => e.handle.cipherManifestId == acquired.reference.refId),
       isTrue,
     );
 
-    await repo.softDelete('t7-r-2');
+    await _softDeleteById(repo, 't7-r-2');
 
-    // 无其他记录引用 → 实际资源被回收。
     blobs = await blobStore.list(tier: BlobTier.sourceOfTruth).toList();
     expect(
       blobs.any((e) => e.handle.cipherManifestId == acquired.reference.refId),
@@ -182,8 +204,8 @@ void main() {
       ),
     );
     final acquired = await media.acquireImage(role: MediaRole.evidenceImage);
-    // 两条记录共享同一媒体。
-    await repo.save(
+    await _save(
+      repo,
       buildReading(
         uuid: 't7-r-3a',
         evidence: [
@@ -191,7 +213,8 @@ void main() {
         ],
       ),
     );
-    await repo.save(
+    await _save(
+      repo,
       buildReading(
         uuid: 't7-r-3b',
         evidence: [
@@ -200,8 +223,7 @@ void main() {
       ),
     );
 
-    // 删除其中一条 → 另一条仍引用 → 不删除实际资源。
-    await repo.softDelete('t7-r-3a');
+    await _softDeleteById(repo, 't7-r-3a');
 
     final blobs = await blobStore.list(tier: BlobTier.sourceOfTruth).toList();
     expect(
