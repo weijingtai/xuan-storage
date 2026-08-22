@@ -64,7 +64,6 @@ final class FirebasePlaygroundLikeRepository
           if (command.idempotencyKey != null)
             'Idempotency-Key': command.idempotencyKey!,
           if (token != null) 'Authorization': 'Bearer $token',
-          if (user?.uid != null) 'X-Caller-UID': user!.uid,
         };
         final bodyMap = <String, dynamic>{
           'action': command.liked ? 'like' : 'unlike',

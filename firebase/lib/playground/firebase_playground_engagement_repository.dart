@@ -81,7 +81,6 @@ final class FirebasePlaygroundEngagementRepository
           if (command.idempotencyKey != null)
             'Idempotency-Key': command.idempotencyKey!,
           if (token != null) 'Authorization': 'Bearer $token',
-          if (user?.uid != null) 'X-Caller-UID': user!.uid,
         };
         final resp = await transport.put(
           uri,
@@ -123,7 +122,6 @@ final class FirebasePlaygroundEngagementRepository
           if (command.idempotencyKey != null)
             'Idempotency-Key': command.idempotencyKey!,
           if (token != null) 'Authorization': 'Bearer $token',
-          if (user?.uid != null) 'X-Caller-UID': user!.uid,
         };
         final bodyMap = <String, dynamic>{
           'postId': command.postId.value,
