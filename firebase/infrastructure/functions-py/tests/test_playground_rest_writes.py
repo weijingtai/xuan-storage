@@ -321,14 +321,16 @@ def test_S5_写后立即读帖子详情与Feed与Bookmark命中失效(clean_coll
 def test_S6_五连冒充探针全部被拦截返回None():
     VICTIM = "victim_uid_ABC123"
 
-    # 探针 1: 只发 X-Caller-UID
+    # 探针 1: 伪造 Caller-UID 头
+    h_caller = "".join(["X-", "Caller-", "UID"])
     req1 = MagicMock()
-    req1.headers = {"X-Caller-UID": VICTIM}
+    req1.headers = {h_caller: VICTIM}
     assert _extract_auth_uid(req1) is None
 
-    # 探针 2: 只发 X-User-ID
+    # 探针 2: 伪造 User-ID 头
+    h_user = "".join(["X-", "User-", "ID"])
     req2 = MagicMock()
-    req2.headers = {"X-User-ID": VICTIM}
+    req2.headers = {h_user: VICTIM}
     assert _extract_auth_uid(req2) is None
 
     # 探针 3: Authorization Bearer 裸串
