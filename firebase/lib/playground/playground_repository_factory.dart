@@ -5,12 +5,17 @@ import 'package:repository_interface_playground/repository_interface_playground.
 
 import '../cached_playground_feed_repository.dart';
 import '../cached_playground_post_repository.dart';
+import 'firebase_playground_bookmark_repository.dart';
+import 'firebase_playground_engagement_repository.dart';
 import 'firebase_playground_feed_repository.dart';
 import 'firebase_playground_identity_resolver.dart';
+import 'firebase_playground_like_repository.dart';
 import 'firebase_playground_post_repository.dart';
 import 'firebase_playground_realtime_repository.dart';
 import 'playground_http_transport.dart';
+import 'playground_shadow_bookmark_remote_data_source.dart';
 import 'playground_shadow_feed_remote_data_source.dart';
+import 'playground_shadow_like_remote_data_source.dart';
 import 'playground_transport_config.dart';
 import 'rest_playground_feed_repository.dart';
 import 'rest_playground_post_repository.dart';
@@ -42,6 +47,8 @@ final class PlaygroundRepositoryFactory {
   bool get isRollbacked =>
       _config.feedTransport == TransportMode.firestore &&
       _config.postTransport == TransportMode.firestore &&
+      _config.likeTransport == TransportMode.firestore &&
+      _config.bookmarkTransport == TransportMode.firestore &&
       _config.realtimeMode == RealtimeMode.firestoreSnapshots;
 
   void updateConfig(PlaygroundTransportConfig newConfig) {
@@ -204,5 +211,129 @@ final class PlaygroundRepositoryFactory {
       transport: transport,
     );
     return CachedPlaygroundPostRepository(remote: remote, cache: cacheStore);
+  }
+
+  /// 创建 Like 远端数据源。
+  PlaygroundLikeRemoteDataSource createLikeRemoteDataSource({
+    FirebaseFirestore? firestore,
+    FirebaseAuth? auth,
+    FirebasePlaygroundIdentityResolver? identityResolver,
+    Uri? baseUrl,
+    PlaygroundHttpTransport? transport,
+    ShadowComparisonCallback? onShadowComparison,
+  }) {
+    final effectiveFirestore = firestore ?? _firestore ?? FirebaseFirestore.instance;
+    final effectiveAuth = auth ?? _auth ?? FirebaseAuth.instance;
+    final effectiveIdentityResolver = identityResolver ??
+        _identityResolver ??
+        FirebasePlaygroundIdentityResolver(
+          firestore: effectiveFirestore,
+          auth: effectiveAuth,
+        );
+    final effectiveBaseUrl =
+        baseUrl ?? restBaseUrl ?? Uri.parse('http://127.0.0.1:8080/v1');
+    final effectiveTransport = transport ?? httpTransport;
+
+    final primary = FirebasePlaygroundLikeRepository(
+      firestore: effectiveFirestore,
+      auth: effectiveAuth,
+      identityResolver: effectiveIdentityResolver,
+      config: _config,
+      httpTransport: effectiveTransport,
+      baseUri: effectiveBaseUrl,
+    );
+
+    if (_config.shadowComparisonEnabled) {
+      final secondary = FirebasePlaygroundLikeRepository(
+        firestore: effectiveFirestore,
+        auth: effectiveAuth,
+        identityResolver: effectiveIdentityResolver,
+        config: _config.copyWith(
+          likeTransport: _config.isRestLikeEnabled ? TransportMode.firestore : TransportMode.rest,
+        ),
+        httpTransport: effectiveTransport,
+        baseUri: effectiveBaseUrl,
+      );
+      return ShadowPlaygroundLikeRemoteDataSource(
+        primary: primary,
+        secondary: secondary,
+        onComparison: onShadowComparison,
+      );
+    }
+
+    return primary;
+  }
+
+  /// 创建 Bookmark 远端数据源。
+  PlaygroundBookmarkRemoteDataSource createBookmarkRemoteDataSource({
+    FirebaseFirestore? firestore,
+    FirebaseAuth? auth,
+    FirebasePlaygroundIdentityResolver? identityResolver,
+    Uri? baseUrl,
+    PlaygroundHttpTransport? transport,
+    ShadowComparisonCallback? onShadowComparison,
+  }) {
+    final effectiveFirestore = firestore ?? _firestore ?? FirebaseFirestore.instance;
+    final effectiveAuth = auth ?? _auth ?? FirebaseAuth.instance;
+    final effectiveIdentityResolver = identityResolver ??
+        _identityResolver ??
+        FirebasePlaygroundIdentityResolver(
+          firestore: effectiveFirestore,
+          auth: effectiveAuth,
+        );
+    final effectiveBaseUrl =
+        baseUrl ?? restBaseUrl ?? Uri.parse('http://127.0.0.1:8080/v1');
+    final effectiveTransport = transport ?? httpTransport;
+
+    final primary = FirebasePlaygroundBookmarkRepository(
+      firestore: effectiveFirestore,
+      auth: effectiveAuth,
+      identityResolver: effectiveIdentityResolver,
+      config: _config,
+      httpTransport: effectiveTransport,
+      baseUri: effectiveBaseUrl,
+    );
+
+    if (_config.shadowComparisonEnabled) {
+      final secondary = FirebasePlaygroundBookmarkRepository(
+        firestore: effectiveFirestore,
+        auth: effectiveAuth,
+        identityResolver: effectiveIdentityResolver,
+        config: _config.copyWith(
+          bookmarkTransport: _config.isRestBookmarkEnabled ? TransportMode.firestore : TransportMode.rest,
+        ),
+        httpTransport: effectiveTransport,
+        baseUri: effectiveBaseUrl,
+      );
+      return ShadowPlaygroundBookmarkRemoteDataSource(
+        primary: primary,
+        secondary: secondary,
+        onComparison: onShadowComparison,
+      );
+    }
+
+    return primary;
+  }
+
+  /// 创建 Engagement 业务仓储。
+  PlaygroundEngagementRepository createEngagementRepository({
+    FirebaseFirestore? firestore,
+    FirebaseAuth? auth,
+    Uri? baseUrl,
+    PlaygroundHttpTransport? transport,
+  }) {
+    final effectiveFirestore = firestore ?? _firestore ?? FirebaseFirestore.instance;
+    final effectiveAuth = auth ?? _auth ?? FirebaseAuth.instance;
+    final effectiveBaseUrl =
+        baseUrl ?? restBaseUrl ?? Uri.parse('http://127.0.0.1:8080/v1');
+    final effectiveTransport = transport ?? httpTransport;
+
+    return FirebasePlaygroundEngagementRepository(
+      firestore: effectiveFirestore,
+      auth: effectiveAuth,
+      config: _config,
+      httpTransport: effectiveTransport,
+      baseUri: effectiveBaseUrl,
+    );
   }
 }

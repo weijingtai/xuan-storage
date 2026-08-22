@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
 
@@ -20,6 +21,54 @@ final class FirebasePlaygroundErrorMapper {
       message: error.toString(),
       machineCode: 'unknown/internal',
       cause: error,
+    );
+  }
+
+  static PlaygroundError mapHttpStatus(int statusCode, String body) {
+    String message = 'HTTP $statusCode';
+    String machineCode = 'http/$statusCode';
+    try {
+      final decoded = jsonDecode(body);
+      if (decoded is Map<String, dynamic>) {
+        message = decoded['detail'] as String? ?? decoded['title'] as String? ?? message;
+        final type = decoded['type'] as String?;
+        if (type != null) {
+          machineCode = 'problem/$type';
+        }
+      }
+    } catch (_) {}
+
+    PlaygroundErrorCode code;
+    switch (statusCode) {
+      case 400:
+        code = PlaygroundErrorCode.invalidArgument;
+        break;
+      case 401:
+        code = PlaygroundErrorCode.unauthenticated;
+        break;
+      case 403:
+        code = PlaygroundErrorCode.forbidden;
+        break;
+      case 404:
+        code = PlaygroundErrorCode.notFound;
+        break;
+      case 409:
+        code = PlaygroundErrorCode.conflict;
+        break;
+      case 429:
+        code = PlaygroundErrorCode.rateLimited;
+        break;
+      case 503:
+      case 504:
+        code = PlaygroundErrorCode.unavailable;
+        break;
+      default:
+        code = PlaygroundErrorCode.unknown;
+    }
+    return PlaygroundError(
+      code: code,
+      message: message,
+      machineCode: machineCode,
     );
   }
 

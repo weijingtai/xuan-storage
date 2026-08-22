@@ -21,6 +21,24 @@ final class DefaultPlaygroundHttpTransport implements PlaygroundHttpTransport {
     );
   }
 
+  @override
+  Future<PlaygroundHttpResponse> put(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) async {
+    final response = await _client.put(
+      uri,
+      headers: headers,
+      body: body,
+    );
+    return PlaygroundHttpResponse(
+      statusCode: response.statusCode,
+      bodyBytes: response.bodyBytes,
+      headers: response.headers,
+    );
+  }
+
   void close() {
     _client.close();
   }

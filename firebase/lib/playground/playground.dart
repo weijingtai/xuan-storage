@@ -34,6 +34,8 @@ export 'playground_http_transport.dart';
 export 'playground_transport_config.dart';
 export 'playground_shadow_comparator.dart';
 export 'playground_shadow_feed_remote_data_source.dart';
+export 'playground_shadow_like_remote_data_source.dart';
+export 'playground_shadow_bookmark_remote_data_source.dart';
 export 'rest_playground_feed_repository.dart';
 export 'rest_playground_post_repository.dart';
 export 'rest_playground_realtime_repository.dart';

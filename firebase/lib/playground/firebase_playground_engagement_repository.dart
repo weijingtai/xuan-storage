@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -7,10 +8,12 @@ import 'firebase_playground_schema.dart';
 import 'firebase_playground_error_mapper.dart';
 import 'firebase_playground_cursor.dart';
 import 'firebase_playground_public_mapper.dart';
+import 'playground_http_transport.dart';
+import 'playground_transport_config.dart';
 
-/// Phase 7B：互动端口 adapter（PlaygroundEngagementRepository）。
+/// Phase 7B / FW2：互动端口 adapter（PlaygroundEngagementRepository）。
 ///
-/// - setContentLike/setBookmark 走既有受信 callable（setLike / setBookmark），
+/// - setContentLike/setBookmark 支持逐命令开关（走 REST 或既有受信 callable），
 ///   客户端只传业务参数 + idempotency_key（like），**零可伪造身份字段**；
 /// - getViewerState / getMyBookmarkedPosts 直连读（likes/bookmarks 集合
 ///   Rules 认证可见），映射安全公开投影。
@@ -20,15 +23,27 @@ final class FirebasePlaygroundEngagementRepository
     required FirebaseFirestore firestore,
     required FirebaseAuth auth,
     FirebaseFunctions? functions,
+    PlaygroundTransportConfig? config,
+    PlaygroundHttpTransport? httpTransport,
+    Uri? baseUri,
   })  : _firestore = firestore,
         _auth = auth,
-        _functions = functions ?? FirebaseFunctions.instance,
-        _mapper = FirebasePlaygroundPublicMapper(firestore: firestore, auth: auth);
+        _functions = functions,
+        _mapper = FirebasePlaygroundPublicMapper(firestore: firestore, auth: auth),
+        _config = config ?? PlaygroundTransportConfig.defaults(),
+        _httpTransport = httpTransport,
+        _baseUri = baseUri;
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
-  final FirebaseFunctions _functions;
+  final FirebaseFunctions? _functions;
   final FirebasePlaygroundPublicMapper _mapper;
+  final PlaygroundTransportConfig _config;
+  final PlaygroundHttpTransport? _httpTransport;
+  final Uri? _baseUri;
+
+  FirebaseFunctions get _effectiveFunctions =>
+      _functions ?? FirebaseFunctions.instance;
 
   @override
   Future<void> setContentLike(SetContentLikeCommand command) async {
@@ -50,11 +65,40 @@ final class FirebasePlaygroundEngagementRepository
           );
       }
       params['action'] = command.liked ? 'like' : 'unlike';
+
+      if (_config.isRestLikeEnabled) {
+        final transport = _httpTransport;
+        if (transport == null) {
+          throw StateError(
+              'PlaygroundHttpTransport must be provided for REST like transport');
+        }
+        final uri = (_baseUri ?? Uri.parse('http://127.0.0.1:8080/v1'))
+            .resolve('/playground/likes');
+        final user = _auth.currentUser;
+        final token = await user?.getIdToken();
+        final headers = <String, String>{
+          'Content-Type': 'application/json',
+          if (command.idempotencyKey != null)
+            'Idempotency-Key': command.idempotencyKey!,
+          if (token != null) 'Authorization': 'Bearer $token',
+        };
+        final resp = await transport.put(
+          uri,
+          headers: headers,
+          body: jsonEncode(params),
+        );
+        if (resp.statusCode >= 400) {
+          throw FirebasePlaygroundErrorMapper.mapHttpStatus(
+              resp.statusCode, resp.body);
+        }
+        return;
+      }
+
       if (command.idempotencyKey != null) {
         params['idempotency_key'] = command.idempotencyKey;
       }
 
-      await _functions.httpsCallable('setLike').call(params);
+      await _effectiveFunctions.httpsCallable('setLike').call(params);
     } catch (e) {
       throw FirebasePlaygroundErrorMapper.map(e);
     }
@@ -63,6 +107,38 @@ final class FirebasePlaygroundEngagementRepository
   @override
   Future<void> setBookmark(SetBookmarkCommand command) async {
     try {
+      if (_config.isRestBookmarkEnabled) {
+        final transport = _httpTransport;
+        if (transport == null) {
+          throw StateError(
+              'PlaygroundHttpTransport must be provided for REST bookmark transport');
+        }
+        final uri = (_baseUri ?? Uri.parse('http://127.0.0.1:8080/v1'))
+            .resolve('/playground/bookmarks');
+        final user = _auth.currentUser;
+        final token = await user?.getIdToken();
+        final headers = <String, String>{
+          'Content-Type': 'application/json',
+          if (command.idempotencyKey != null)
+            'Idempotency-Key': command.idempotencyKey!,
+          if (token != null) 'Authorization': 'Bearer $token',
+        };
+        final bodyMap = <String, dynamic>{
+          'postId': command.postId.value,
+          'action': command.bookmarked ? 'bookmark' : 'unbookmark',
+        };
+        final resp = await transport.put(
+          uri,
+          headers: headers,
+          body: jsonEncode(bodyMap),
+        );
+        if (resp.statusCode >= 400) {
+          throw FirebasePlaygroundErrorMapper.mapHttpStatus(
+              resp.statusCode, resp.body);
+        }
+        return;
+      }
+
       // Functions `setBookmark` only receives business fields; actor is auth-derived.
       final params = <String, dynamic>{
         'postId': command.postId.value,
@@ -70,7 +146,7 @@ final class FirebasePlaygroundEngagementRepository
         if (command.idempotencyKey != null)
           'idempotency_key': command.idempotencyKey,
       };
-      await _functions.httpsCallable('setBookmark').call(params);
+      await _effectiveFunctions.httpsCallable('setBookmark').call(params);
     } catch (e) {
       throw FirebasePlaygroundErrorMapper.map(e);
     }

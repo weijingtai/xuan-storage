@@ -172,6 +172,53 @@ final class PlaygroundShadowComparator {
     return ShadowComparisonResult.mismatch(discrepancies);
   }
 
+  /// 比对点赞写操作返回结果。
+  static ShadowComparisonResult compareLikeResult(
+    Map<String, dynamic> a,
+    Map<String, dynamic> b,
+  ) {
+    final discrepancies = <String>[];
+    final targetId = a['id']?.toString() ?? '';
+
+    if (a['liked'] != b['liked']) {
+      discrepancies.add('liked mismatch: a=${a['liked']} vs b=${b['liked']}');
+    }
+    if (a['id'] != b['id']) {
+      discrepancies.add('id mismatch: a="${a['id']}" vs b="${b['id']}"');
+    }
+    if (a['target_type'] != b['target_type']) {
+      discrepancies.add(
+          'target_type mismatch: a="${a['target_type']}" vs b="${b['target_type']}"');
+    }
+
+    if (discrepancies.isEmpty) {
+      return ShadowComparisonResult.match(targetId);
+    }
+    return ShadowComparisonResult.mismatch(discrepancies, targetId);
+  }
+
+  /// 比对收藏写操作返回结果。
+  static ShadowComparisonResult compareBookmarkResult(
+    Map<String, dynamic> a,
+    Map<String, dynamic> b,
+  ) {
+    final discrepancies = <String>[];
+    final targetId = a['id']?.toString() ?? '';
+
+    if (a['bookmarked'] != b['bookmarked']) {
+      discrepancies.add(
+          'bookmarked mismatch: a=${a['bookmarked']} vs b=${b['bookmarked']}');
+    }
+    if (a['id'] != b['id']) {
+      discrepancies.add('id mismatch: a="${a['id']}" vs b="${b['id']}"');
+    }
+
+    if (discrepancies.isEmpty) {
+      return ShadowComparisonResult.match(targetId);
+    }
+    return ShadowComparisonResult.mismatch(discrepancies, targetId);
+  }
+
   static bool _areListsEqual<T>(List<T> a, List<T> b) {
     if (identical(a, b)) return true;
     if (a.length != b.length) return false;

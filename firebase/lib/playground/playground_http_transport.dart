@@ -21,4 +21,10 @@ abstract interface class PlaygroundHttpTransport {
     Uri uri, {
     Map<String, String>? headers,
   });
+
+  Future<PlaygroundHttpResponse> put(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  });
 }
