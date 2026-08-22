@@ -907,3 +907,434 @@ def playground_bookmarks_py(req: https_fn.Request) -> https_fn.Response:
         mimetype="application/json" if status_code == 200 else "application/problem+json",
     )
 
+
+# ============================================================================
+# 8. FW3-S: 广场核心业务 REST 端点 (12 个端点 / 6 批)
+# ============================================================================
+
+def _parse_req_context(req: Any) -> tuple[Optional[str], Optional[str], dict, str]:
+    """统一解析 HTTP 请求上下文：(uid, idempotency_key, payload, method)"""
+    uid = _extract_auth_uid(req)
+    idempotency_key = (
+        req.headers.get("Idempotency-Key") or req.headers.get("idempotency-key")
+        if hasattr(req, "headers")
+        else None
+    )
+    method = getattr(req, "method", "GET").upper()
+    data: dict = {}
+    if hasattr(req, "get_json"):
+        data = req.get_json(silent=True) or {}
+    elif hasattr(req, "data") and req.data:
+        try:
+            data = json.loads(req.data.decode("utf-8"))
+        except Exception:
+            pass
+    if hasattr(req, "args") and req.args:
+        for k, v in req.args.items():
+            if k not in data:
+                data[k] = v
+    return uid, idempotency_key, data, method
+
+
+def _make_method_not_allowed(method: str, allowed: list[str]) -> tuple[int, dict, dict[str, str]]:
+    return (
+        405,
+        make_problem_details(
+            type_code="invalid_argument",
+            title="Method Not Allowed",
+            status=405,
+            detail=f"Method {method} not allowed, use one of: {', '.join(allowed)}.",
+        ),
+        {"Content-Type": "application/problem+json"},
+    )
+
+
+def _handle_xuan_error(err: XuanHttpsError) -> tuple[int, dict, dict[str, str]]:
+    code_map = {
+        "invalid-argument": (400, "invalid_argument", "Invalid Argument"),
+        "not-found": (404, "not_found", "Not Found"),
+        "unauthenticated": (401, "unauthenticated", "Unauthenticated"),
+        "permission-denied": (403, "permission_denied", "Permission Denied"),
+        "failed-precondition": (409, "conflict.precondition", "Precondition Failed"),
+        "aborted": (409, "conflict.idempotency", "Idempotency Conflict"),
+        "already-exists": (409, "conflict.unique", "Already Exists"),
+        "unavailable": (503, "unavailable", "Service Unavailable"),
+        "resource-exhausted": (503, "unavailable", "Rate Limit Exceeded"),
+        "deadline-exceeded": (504, "deadline_exceeded", "Deadline Exceeded"),
+    }
+    status, l0_type, title = code_map.get(err.code, (500, "internal", "Internal Error"))
+    return (
+        status,
+        make_problem_details(
+            type_code=l0_type,
+            title=title,
+            status=status,
+            detail=err.message,
+        ),
+        {"Content-Type": "application/problem+json"},
+    )
+
+
+# --- Batch 1: Posts 发帖与编辑 ---
+
+def _create_playground_post_impl(
+    uid: Optional[str],
+    data: dict,
+    idempotency_key: Optional[str] = None,
+) -> tuple[int, dict, dict[str, str]]:
+    payload = dict(data or {})
+    if idempotency_key:
+        payload["idempotency_key"] = idempotency_key
+    try:
+        from xuan.handlers.posts import _create_post_impl
+        res = _create_post_impl(uid=uid, data=payload)
+        return (201, res, {"Content-Type": "application/json"})
+    except XuanHttpsError as err:
+        return _handle_xuan_error(err)
+    except Exception as exc:
+        logger.exception("create_playground_post_impl failed")
+        return (500, make_problem_details("internal", "Internal Server Error", 500, str(exc)), {"Content-Type": "application/problem+json"})
+
+
+def _edit_playground_post_impl(
+    uid: Optional[str],
+    post_id: str,
+    data: dict,
+) -> tuple[int, dict, dict[str, str]]:
+    payload = dict(data or {})
+    payload["postId"] = post_id
+    try:
+        from xuan.handlers.posts import _edit_post_impl
+        res = _edit_post_impl(uid=uid, data=payload)
+        return (200, res, {"Content-Type": "application/json"})
+    except XuanHttpsError as err:
+        return _handle_xuan_error(err)
+    except Exception as exc:
+        logger.exception("edit_playground_post_impl failed")
+        return (500, make_problem_details("internal", "Internal Server Error", 500, str(exc)), {"Content-Type": "application/problem+json"})
+
+
+# --- Batch 2: Posts 墓碑化与 Profile ---
+
+def _tombstone_playground_post_impl(
+    uid: Optional[str],
+    post_id: str,
+) -> tuple[int, dict, dict[str, str]]:
+    try:
+        from xuan.handlers.posts import _tombstone_post_impl
+        res = _tombstone_post_impl(uid=uid, data={"postId": post_id})
+        return (200, res, {"Content-Type": "application/json"})
+    except XuanHttpsError as err:
+        return _handle_xuan_error(err)
+    except Exception as exc:
+        logger.exception("tombstone_playground_post_impl failed")
+        return (500, make_problem_details("internal", "Internal Server Error", 500, str(exc)), {"Content-Type": "application/problem+json"})
+
+
+def _update_playground_profile_impl(
+    uid: Optional[str],
+    data: dict,
+    idempotency_key: Optional[str] = None,
+) -> tuple[int, dict, dict[str, str]]:
+    payload = dict(data or {})
+    if idempotency_key:
+        payload["idempotency_key"] = idempotency_key
+    try:
+        from xuan.handlers.profiles import _update_my_profile_impl
+        res = _update_my_profile_impl(uid=uid, data=payload)
+        return (200, res, {"Content-Type": "application/json"})
+    except XuanHttpsError as err:
+        return _handle_xuan_error(err)
+    except Exception as exc:
+        logger.exception("update_playground_profile_impl failed")
+        return (500, make_problem_details("internal", "Internal Server Error", 500, str(exc)), {"Content-Type": "application/problem+json"})
+
+
+# --- Batch 3: Replies 根回复与跟帖 ---
+
+def _create_playground_root_reply_impl(
+    uid: Optional[str],
+    post_id: str,
+    data: dict,
+    idempotency_key: Optional[str] = None,
+) -> tuple[int, dict, dict[str, str]]:
+    payload = dict(data or {})
+    payload["postId"] = post_id
+    if idempotency_key:
+        payload["idempotency_key"] = idempotency_key
+    try:
+        from xuan.handlers.replies import _create_root_reply_impl
+        res = _create_root_reply_impl(uid=uid, data=payload)
+        return (201, res, {"Content-Type": "application/json"})
+    except XuanHttpsError as err:
+        return _handle_xuan_error(err)
+    except Exception as exc:
+        logger.exception("create_playground_root_reply_impl failed")
+        return (500, make_problem_details("internal", "Internal Server Error", 500, str(exc)), {"Content-Type": "application/problem+json"})
+
+
+def _create_playground_discussion_reply_impl(
+    uid: Optional[str],
+    root_reply_id: str,
+    data: dict,
+    idempotency_key: Optional[str] = None,
+) -> tuple[int, dict, dict[str, str]]:
+    payload = dict(data or {})
+    payload["rootReplyId"] = root_reply_id
+    if not payload.get("postId"):
+        # 自动补全 post_id，避免调用方需要冗余提供
+        client = db()
+        snap = client.collection(COLLECTIONS["replies"]).document(root_reply_id).get()
+        if snap.exists:
+            payload["postId"] = (snap.to_dict() or {}).get("post_id")
+    if idempotency_key:
+        payload["idempotency_key"] = idempotency_key
+    try:
+        from xuan.handlers.replies import _create_discussion_reply_impl
+        res = _create_discussion_reply_impl(uid=uid, data=payload)
+        return (201, res, {"Content-Type": "application/json"})
+    except XuanHttpsError as err:
+        return _handle_xuan_error(err)
+    except Exception as exc:
+        logger.exception("create_playground_discussion_reply_impl failed")
+        return (500, make_problem_details("internal", "Internal Server Error", 500, str(exc)), {"Content-Type": "application/problem+json"})
+
+
+# --- Batch 4: Replies 编辑与删除 ---
+
+def _edit_playground_reply_impl(
+    uid: Optional[str],
+    reply_id: str,
+    data: dict,
+) -> tuple[int, dict, dict[str, str]]:
+    payload = dict(data or {})
+    payload["replyId"] = reply_id
+    try:
+        from xuan.handlers.replies import _edit_reply_impl
+        res = _edit_reply_impl(uid=uid, data=payload)
+        return (200, res, {"Content-Type": "application/json"})
+    except XuanHttpsError as err:
+        return _handle_xuan_error(err)
+    except Exception as exc:
+        logger.exception("edit_playground_reply_impl failed")
+        return (500, make_problem_details("internal", "Internal Server Error", 500, str(exc)), {"Content-Type": "application/problem+json"})
+
+
+def _delete_playground_reply_impl(
+    uid: Optional[str],
+    reply_id: str,
+) -> tuple[int, dict, dict[str, str]]:
+    try:
+        from xuan.handlers.replies import _delete_reply_impl
+        res = _delete_reply_impl(uid=uid, data={"replyId": reply_id})
+        return (200, res, {"Content-Type": "application/json"})
+    except XuanHttpsError as err:
+        return _handle_xuan_error(err)
+    except Exception as exc:
+        logger.exception("delete_playground_reply_impl failed")
+        return (500, make_problem_details("internal", "Internal Server Error", 500, str(exc)), {"Content-Type": "application/problem+json"})
+
+
+# --- Batch 5: 断语应验与撤销 ---
+
+def _verify_playground_root_reply_impl(
+    uid: Optional[str],
+    root_reply_id: str,
+    data: dict,
+    idempotency_key: Optional[str] = None,
+) -> tuple[int, dict, dict[str, str]]:
+    payload = dict(data or {})
+    payload["rootReplyId"] = root_reply_id
+    if idempotency_key:
+        payload["idempotency_key"] = idempotency_key
+    try:
+        from xuan.handlers.verifications import _verify_root_reply_impl
+        res = _verify_root_reply_impl(uid=uid, data=payload)
+        return (200, res, {"Content-Type": "application/json"})
+    except XuanHttpsError as err:
+        return _handle_xuan_error(err)
+    except Exception as exc:
+        logger.exception("verify_playground_root_reply_impl failed")
+        return (500, make_problem_details("internal", "Internal Server Error", 500, str(exc)), {"Content-Type": "application/problem+json"})
+
+
+def _revoke_playground_verification_impl(
+    uid: Optional[str],
+    root_reply_id: str,
+    data: dict,
+    idempotency_key: Optional[str] = None,
+) -> tuple[int, dict, dict[str, str]]:
+    payload = dict(data or {})
+    payload["rootReplyId"] = root_reply_id
+    if idempotency_key:
+        payload["idempotency_key"] = idempotency_key
+    try:
+        from xuan.handlers.verifications import _revoke_verification_impl
+        res = _revoke_verification_impl(uid=uid, data=payload)
+        return (200, res, {"Content-Type": "application/json"})
+    except XuanHttpsError as err:
+        return _handle_xuan_error(err)
+    except Exception as exc:
+        logger.exception("revoke_playground_verification_impl failed")
+        return (500, make_problem_details("internal", "Internal Server Error", 500, str(exc)), {"Content-Type": "application/problem+json"})
+
+
+# --- Batch 6: 最终反馈与撤销 ---
+
+def _set_playground_outcome_feedback_impl(
+    uid: Optional[str],
+    post_id: str,
+    data: dict,
+    idempotency_key: Optional[str] = None,
+) -> tuple[int, dict, dict[str, str]]:
+    payload = dict(data or {})
+    payload["postId"] = post_id
+    if "outcomeDescription" in payload and "outcome_description" not in payload:
+        payload["outcome_description"] = payload["outcomeDescription"]
+    if idempotency_key:
+        payload["idempotency_key"] = idempotency_key
+    try:
+        from xuan.handlers.outcome_feedback import _set_outcome_feedback_impl
+        res = _set_outcome_feedback_impl(uid=uid, data=payload)
+        return (200, res, {"Content-Type": "application/json"})
+    except XuanHttpsError as err:
+        return _handle_xuan_error(err)
+    except Exception as exc:
+        logger.exception("set_playground_outcome_feedback_impl failed")
+        return (500, make_problem_details("internal", "Internal Server Error", 500, str(exc)), {"Content-Type": "application/problem+json"})
+
+
+def _revoke_playground_outcome_feedback_impl(
+    uid: Optional[str],
+    post_id: str,
+    idempotency_key: Optional[str] = None,
+) -> tuple[int, dict, dict[str, str]]:
+    payload = {"postId": post_id}
+    if idempotency_key:
+        payload["idempotency_key"] = idempotency_key
+    try:
+        from xuan.handlers.outcome_feedback import _revoke_outcome_feedback_impl
+        res = _revoke_outcome_feedback_impl(uid=uid, data=payload)
+        return (200, res, {"Content-Type": "application/json"})
+    except XuanHttpsError as err:
+        return _handle_xuan_error(err)
+    except Exception as exc:
+        logger.exception("revoke_playground_outcome_feedback_impl failed")
+        return (500, make_problem_details("internal", "Internal Server Error", 500, str(exc)), {"Content-Type": "application/problem+json"})
+
+
+# ============================================================================
+# FaaS @https_fn.on_request HTTP 入口绑定
+# ============================================================================
+
+def _to_http_response(status_code: int, body_dict: dict, headers: dict[str, str]) -> https_fn.Response:
+    return https_fn.Response(
+        response=json.dumps(body_dict, ensure_ascii=False),
+        status=status_code,
+        headers=headers,
+        mimetype="application/json" if status_code in (200, 201) else "application/problem+json",
+    )
+
+
+@https_fn.on_request(region=REGION)
+def playground_posts_write_py(req: https_fn.Request) -> https_fn.Response:
+    """POST /playground/posts (发帖) / PUT /playground/posts/{id} (编辑) / DELETE /playground/posts/{id} (软删)"""
+    uid, idem_key, data, method = _parse_req_context(req)
+    post_id = data.get("postId") or data.get("id")
+
+    if method == "POST":
+        status_code, body, hdrs = _create_playground_post_impl(uid, data, idem_key)
+    elif method in ("PUT", "PATCH"):
+        if not post_id:
+            status_code, body, hdrs = 400, make_problem_details("invalid_argument", "Invalid Argument", 400, "postId 必填"), {"Content-Type": "application/problem+json"}
+        else:
+            status_code, body, hdrs = _edit_playground_post_impl(uid, str(post_id), data)
+    elif method == "DELETE":
+        if not post_id:
+            status_code, body, hdrs = 400, make_problem_details("invalid_argument", "Invalid Argument", 400, "postId 必填"), {"Content-Type": "application/problem+json"}
+        else:
+            status_code, body, hdrs = _tombstone_playground_post_impl(uid, str(post_id))
+    else:
+        status_code, body, hdrs = _make_method_not_allowed(method, ["POST", "PUT", "PATCH", "DELETE"])
+
+    return _to_http_response(status_code, body, hdrs)
+
+
+@https_fn.on_request(region=REGION)
+def playground_profile_py(req: https_fn.Request) -> https_fn.Response:
+    """PATCH /playground/profile 个人资料更新"""
+    uid, idem_key, data, method = _parse_req_context(req)
+    if method not in ("PATCH", "PUT"):
+        status_code, body, hdrs = _make_method_not_allowed(method, ["PATCH", "PUT"])
+    else:
+        status_code, body, hdrs = _update_playground_profile_impl(uid, data, idem_key)
+    return _to_http_response(status_code, body, hdrs)
+
+
+@https_fn.on_request(region=REGION)
+def playground_replies_write_py(req: https_fn.Request) -> https_fn.Response:
+    """回复生命周期端点（创建根回复、讨论回复、编辑回复、删除回复）"""
+    uid, idem_key, data, method = _parse_req_context(req)
+    reply_id = data.get("replyId") or data.get("id")
+    post_id = data.get("postId")
+    root_reply_id = data.get("rootReplyId")
+
+    if method == "POST":
+        if post_id:
+            status_code, body, hdrs = _create_playground_root_reply_impl(uid, str(post_id), data, idem_key)
+        elif root_reply_id:
+            status_code, body, hdrs = _create_playground_discussion_reply_impl(uid, str(root_reply_id), data, idem_key)
+        else:
+            status_code, body, hdrs = 400, make_problem_details("invalid_argument", "Invalid Argument", 400, "必须指定 postId (根回复) 或 rootReplyId (讨论回复)"), {"Content-Type": "application/problem+json"}
+    elif method in ("PATCH", "PUT"):
+        if not reply_id:
+            status_code, body, hdrs = 400, make_problem_details("invalid_argument", "Invalid Argument", 400, "replyId 必填"), {"Content-Type": "application/problem+json"}
+        else:
+            status_code, body, hdrs = _edit_playground_reply_impl(uid, str(reply_id), data)
+    elif method == "DELETE":
+        if not reply_id:
+            status_code, body, hdrs = 400, make_problem_details("invalid_argument", "Invalid Argument", 400, "replyId 必填"), {"Content-Type": "application/problem+json"}
+        else:
+            status_code, body, hdrs = _delete_playground_reply_impl(uid, str(reply_id))
+    else:
+        status_code, body, hdrs = _make_method_not_allowed(method, ["POST", "PUT", "PATCH", "DELETE"])
+
+    return _to_http_response(status_code, body, hdrs)
+
+
+@https_fn.on_request(region=REGION)
+def playground_verifications_write_py(req: https_fn.Request) -> https_fn.Response:
+    """PUT /playground/replies/{id}/verification (应验) / DELETE /playground/replies/{id}/verification (撤销应验)"""
+    uid, idem_key, data, method = _parse_req_context(req)
+    root_reply_id = data.get("rootReplyId") or data.get("replyId") or data.get("id")
+
+    if not root_reply_id:
+        status_code, body, hdrs = 400, make_problem_details("invalid_argument", "Invalid Argument", 400, "rootReplyId 必填"), {"Content-Type": "application/problem+json"}
+    elif method in ("PUT", "POST"):
+        status_code, body, hdrs = _verify_playground_root_reply_impl(uid, str(root_reply_id), data, idem_key)
+    elif method == "DELETE":
+        status_code, body, hdrs = _revoke_playground_verification_impl(uid, str(root_reply_id), data, idem_key)
+    else:
+        status_code, body, hdrs = _make_method_not_allowed(method, ["PUT", "POST", "DELETE"])
+
+    return _to_http_response(status_code, body, hdrs)
+
+
+@https_fn.on_request(region=REGION)
+def playground_outcome_feedback_write_py(req: https_fn.Request) -> https_fn.Response:
+    """PUT /playground/posts/{id}/outcome-feedback (最终反馈) / DELETE /playground/posts/{id}/outcome-feedback (撤销)"""
+    uid, idem_key, data, method = _parse_req_context(req)
+    post_id = data.get("postId") or data.get("id")
+
+    if not post_id:
+        status_code, body, hdrs = 400, make_problem_details("invalid_argument", "Invalid Argument", 400, "postId 必填"), {"Content-Type": "application/problem+json"}
+    elif method in ("PUT", "POST"):
+        status_code, body, hdrs = _set_playground_outcome_feedback_impl(uid, str(post_id), data, idem_key)
+    elif method == "DELETE":
+        status_code, body, hdrs = _revoke_playground_outcome_feedback_impl(uid, str(post_id), idem_key)
+    else:
+        status_code, body, hdrs = _make_method_not_allowed(method, ["PUT", "POST", "DELETE"])
+
+    return _to_http_response(status_code, body, hdrs)
+
+
