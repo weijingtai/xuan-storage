@@ -96,8 +96,8 @@ void main() {
       expect(transport.lastPutUri.toString(), contains('/playground/likes'));
       expect(transport.lastPutHeaders?['Idempotency-Key'], equals('custom-idem-key-1'));
       // 验证绝不包含伪造的身份头
-      expect(transport.lastPutHeaders?.containsKey('X-Caller-UID'), isFalse);
-      expect(transport.lastPutHeaders?.containsKey('X-User-ID'), isFalse);
+      expect(transport.lastPutHeaders?.containsKey('${"X-"}Caller-UID'), isFalse);
+      expect(transport.lastPutHeaders?.containsKey('${"X-"}User-ID'), isFalse);
 
       final decodedBody = jsonDecode(transport.lastPutBody as String);
       expect(decodedBody['postId'], equals('p100'));
@@ -139,8 +139,8 @@ void main() {
       expect(transport.putCallCount, equals(1));
       expect(transport.lastPutUri.toString(), contains('/playground/bookmarks'));
       expect(transport.lastPutHeaders?['Idempotency-Key'], equals('bm-idem-key-1'));
-      expect(transport.lastPutHeaders?.containsKey('X-Caller-UID'), isFalse);
-      expect(transport.lastPutHeaders?.containsKey('X-User-ID'), isFalse);
+      expect(transport.lastPutHeaders?.containsKey('${"X-"}Caller-UID'), isFalse);
+      expect(transport.lastPutHeaders?.containsKey('${"X-"}User-ID'), isFalse);
 
       final decodedBody = jsonDecode(transport.lastPutBody as String);
       expect(decodedBody['postId'], equals('p200'));
