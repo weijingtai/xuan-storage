@@ -687,35 +687,25 @@ def playground_posts_py(req: https_fn.Request) -> https_fn.Response:
 # ============================================================================
 
 def _extract_auth_uid(req: Any) -> Optional[str]:
-    """从 HTTP 请求中提取已认证的 Firebase Auth UID。"""
+    """从 HTTP 请求中提取已认证的 Firebase Auth UID。
+
+    仅支持标准 Authorization: Bearer <id_token> 请求头并通过 firebase_admin.auth 验签。
+    若无认证头、格式不合法或验签失败，严格返回 None（触发 401 unauthenticated）。
+    """
     if not req or not hasattr(req, "headers"):
         return None
-    # 优先支持测试/内部注入头
-    x_uid = req.headers.get("X-Caller-UID") or req.headers.get("X-User-ID")
-    if x_uid:
-        return x_uid
     auth_header = req.headers.get("Authorization") or req.headers.get("authorization")
-    if auth_header and auth_header.startswith("Bearer "):
-        token = auth_header[7:].strip()
-        if not token:
-            return None
-        # 非三段式 JWT（如测试用的假 UID）直接作为 UID
-        if "." not in token:
-            return token
-        try:
-            from firebase_admin import auth
-            decoded = auth.verify_id_token(token)
-            return decoded.get("uid")
-        except Exception:
-            try:
-                parts = token.split(".")
-                if len(parts) >= 2:
-                    payload_b64 = parts[1] + "=" * (-len(parts[1]) % 4)
-                    payload = json.loads(base64.urlsafe_b64decode(payload_b64.encode("ascii")).decode("utf-8"))
-                    return payload.get("user_id") or payload.get("sub") or payload.get("uid")
-            except Exception:
-                pass
-    return None
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return None
+    token = auth_header[7:].strip()
+    if not token:
+        return None
+    try:
+        from firebase_admin import auth
+        decoded = auth.verify_id_token(token)
+        return decoded.get("uid") or decoded.get("user_id") or decoded.get("sub")
+    except Exception:
+        return None
 
 
 def _set_playground_like_impl(
@@ -829,14 +819,14 @@ def _set_playground_bookmark_impl(
 @https_fn.on_request(region=REGION)
 def playground_likes_py(req: https_fn.Request) -> https_fn.Response:
     """PUT /playground/likes 广场点赞/取消点赞写端点。"""
-    if getattr(req, "method", "PUT") != "PUT":
+    if not hasattr(req, "method") or req.method != "PUT":
         return https_fn.Response(
             response=json.dumps(
                 make_problem_details(
                     type_code="invalid_argument",
                     title="Method Not Allowed",
                     status=405,
-                    detail=f"Method {req.method} not allowed, use PUT.",
+                    detail=f"Method {getattr(req, 'method', 'UNKNOWN')} not allowed, use PUT.",
                 ),
                 ensure_ascii=False,
             ),
@@ -875,14 +865,14 @@ def playground_likes_py(req: https_fn.Request) -> https_fn.Response:
 @https_fn.on_request(region=REGION)
 def playground_bookmarks_py(req: https_fn.Request) -> https_fn.Response:
     """PUT /playground/bookmarks 广场收藏/取消收藏写端点。"""
-    if getattr(req, "method", "PUT") != "PUT":
+    if not hasattr(req, "method") or req.method != "PUT":
         return https_fn.Response(
             response=json.dumps(
                 make_problem_details(
                     type_code="invalid_argument",
                     title="Method Not Allowed",
                     status=405,
-                    detail=f"Method {req.method} not allowed, use PUT.",
+                    detail=f"Method {getattr(req, 'method', 'UNKNOWN')} not allowed, use PUT.",
                 ),
                 ensure_ascii=False,
             ),
