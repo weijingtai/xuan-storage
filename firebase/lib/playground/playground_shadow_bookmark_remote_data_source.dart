@@ -22,15 +22,9 @@ final class ShadowPlaygroundBookmarkRemoteDataSource
 
   @override
   Future<void> setBookmark(SetBookmarkCommand command) async {
-    // 防双写安全机制：敏感写仅由 primary 发起实际写操作
+    // 防双写安全机制：敏感写仅由 primary 发起实际写操作，避免线上双写副作用；
+    // 写路径返回 Future<void> 且不可双写，影子比对由读路径（isBookmarked）双跑承载。
     await primary.setBookmark(command);
-
-    if (onComparison != null) {
-      onComparison!(
-        ShadowComparisonResult.match(command.postId.value),
-        'setBookmark',
-      );
-    }
   }
 
   @override

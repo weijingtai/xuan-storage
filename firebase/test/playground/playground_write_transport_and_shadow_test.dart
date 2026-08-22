@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:persistence_core/persistence_core.dart';
 import 'package:persistence_firebase/playground/playground.dart';
@@ -74,7 +75,7 @@ void main() {
 
       final uri = Uri.parse('http://127.0.0.1:8080/v1');
       final fakeFirestore = FakeFirebaseFirestore();
-      final fakeAuth = FakeFirebaseAuth();
+      final fakeAuth = MockFirebaseAuth();
       final identityResolver = FirebasePlaygroundIdentityResolver(firestore: fakeFirestore, auth: fakeAuth);
 
       final repo = FirebasePlaygroundLikeRepository(
@@ -118,7 +119,7 @@ void main() {
 
       final uri = Uri.parse('http://127.0.0.1:8080/v1');
       final fakeFirestore = FakeFirebaseFirestore();
-      final fakeAuth = FakeFirebaseAuth();
+      final fakeAuth = MockFirebaseAuth();
       final identityResolver = FirebasePlaygroundIdentityResolver(firestore: fakeFirestore, auth: fakeAuth);
 
       final repo = FirebasePlaygroundBookmarkRepository(
@@ -147,8 +148,11 @@ void main() {
       expect(decodedBody['action'], equals('bookmark'));
     });
 
-    test('C3: 防双写安全机制与工厂影子包装真调用验证 (只有 primary 发起实际写操作)', () async {
+    test('C3: 防双写安全机制与读路径真影子比对验证 (敏感写仅 primary 执行，读路径真双跑)', () async {
       final transport = _MockHttpTransport();
+      final fakeFirestore = FakeFirebaseFirestore();
+      final fakeAuth = MockFirebaseAuth();
+
       final factory = PlaygroundRepositoryFactory(
         initialConfig: PlaygroundTransportConfig.defaults().copyWith(
           likeTransport: TransportMode.rest,
@@ -156,8 +160,8 @@ void main() {
         ),
         restBaseUrl: Uri.parse('http://127.0.0.1:8080/v1'),
         httpTransport: transport,
-        firestore: FakeFirebaseFirestore(),
-        auth: FakeFirebaseAuth(),
+        firestore: fakeFirestore,
+        auth: fakeAuth,
       );
 
       ShadowComparisonResult? capturedResult;
@@ -172,19 +176,24 @@ void main() {
 
       expect(likeDataSource, isA<ShadowPlaygroundLikeRemoteDataSource>());
 
-      // 真调用被测写路径
+      // 1. 真调用被测写路径：敏感写仅由 primary 执行，绝无假信号上报
       await likeDataSource.setLike(const SetLikeCommand(
         liked: true,
         postId: PlaygroundPostId('p300'),
         idempotencyKey: 'idem-shadow-test',
       ));
 
-      // 验证防双写：网络写请求严格只有 1 次
+      // 验证防双写：网络写请求严格只有 1 次（不发起 secondary 写）
       expect(transport.putCallCount, equals(1));
-      // 验证触发了影子比对回调
+      // 验证写路径不发恒真假比对信号
+      expect(capturedResult, isNull);
+
+      // 2. 读路径真双跑比对：isLiked 触发真实比对回调
+      final isLiked = await likeDataSource.isLiked(postId: const PlaygroundPostId('p300'));
+      expect(isLiked, isFalse);
       expect(capturedResult, isNotNull);
       expect(capturedResult!.isMatch, isTrue);
-      expect(capturedOp, equals('setLike'));
+      expect(capturedOp, equals('isLiked'));
     });
 
     test('C4: 影子比对具备强鉴别力（反例注入与 ID 篡改必须断言出差异）', () {
@@ -248,8 +257,8 @@ void main() {
 
       final repo = FirebasePlaygroundLikeRepository(
         firestore: FakeFirebaseFirestore(),
-        auth: FakeFirebaseAuth(),
-        identityResolver: FirebasePlaygroundIdentityResolver(firestore: FakeFirebaseFirestore(), auth: FakeFirebaseAuth()),
+        auth: MockFirebaseAuth(),
+        identityResolver: FirebasePlaygroundIdentityResolver(firestore: FakeFirebaseFirestore(), auth: MockFirebaseAuth()),
         config: PlaygroundTransportConfig.defaults().copyWith(likeTransport: TransportMode.rest),
         httpTransport: transport,
         baseUri: Uri.parse('http://127.0.0.1:8080/v1'),
@@ -297,8 +306,8 @@ void main() {
 
       final repo = FirebasePlaygroundLikeRepository(
         firestore: FakeFirebaseFirestore(),
-        auth: FakeFirebaseAuth(),
-        identityResolver: FirebasePlaygroundIdentityResolver(firestore: FakeFirebaseFirestore(), auth: FakeFirebaseAuth()),
+        auth: MockFirebaseAuth(),
+        identityResolver: FirebasePlaygroundIdentityResolver(firestore: FakeFirebaseFirestore(), auth: MockFirebaseAuth()),
         config: PlaygroundTransportConfig.defaults().copyWith(likeTransport: TransportMode.rest),
         httpTransport: transport,
         baseUri: Uri.parse('http://127.0.0.1:8080/v1'),
@@ -314,7 +323,7 @@ void main() {
       final transport = _MockHttpTransport();
       final engagementRepo = FirebasePlaygroundEngagementRepository(
         firestore: FakeFirebaseFirestore(),
-        auth: FakeFirebaseAuth(),
+        auth: MockFirebaseAuth(),
         config: PlaygroundTransportConfig.defaults().copyWith(
           likeTransport: TransportMode.rest,
           bookmarkTransport: TransportMode.rest,
@@ -354,10 +363,4 @@ void main() {
       expect(transport.lastPutHeaders?['Idempotency-Key'], equals('idem-eng-bm-1'));
     });
   });
-}
-
-class FakeFirebaseFirestore extends Fake implements FirebaseFirestore {}
-class FakeFirebaseAuth extends Fake implements FirebaseAuth {
-  @override
-  User? get currentUser => null;
 }

@@ -22,13 +22,9 @@ final class ShadowPlaygroundLikeRemoteDataSource
 
   @override
   Future<void> setLike(SetLikeCommand command) async {
-    // 防双写安全机制：敏感写仅由 primary 发起实际写操作
+    // 防双写安全机制：敏感写仅由 primary 发起实际写操作，避免线上双写副作用；
+    // 写路径返回 Future<void> 且不可双写，影子比对由读路径（isLiked / getLikeCount）双跑承载。
     await primary.setLike(command);
-
-    if (onComparison != null) {
-      final targetId = command.postId?.value ?? command.replyId?.value ?? '';
-      onComparison!(ShadowComparisonResult.match(targetId), 'setLike');
-    }
   }
 
   @override
