@@ -3,13 +3,15 @@ import os
 
 import pytest
 
-EMULATOR_HOST = os.environ.get("XUAN_EMULATOR_HOST", "192.168.0.165:8080")
+EMULATOR_HOST = os.environ.get("XUAN_EMULATOR_HOST", "127.0.0.1:8080")
+AUTH_EMULATOR_HOST = os.environ.get("FIREBASE_AUTH_EMULATOR_HOST", "127.0.0.1:9099")
 
 
 @pytest.fixture(scope="session", autouse=True)
 def _emulator_env():
     """强制指向 Emulator。缺这一步测试会打到生产库。"""
     os.environ["FIRESTORE_EMULATOR_HOST"] = EMULATOR_HOST
+    os.environ["FIREBASE_AUTH_EMULATOR_HOST"] = AUTH_EMULATOR_HOST
     os.environ.setdefault("GCLOUD_PROJECT", "demo-xuan")
     yield
 

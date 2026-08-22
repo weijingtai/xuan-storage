@@ -47,7 +47,9 @@ from xuan.handlers.media import (  # noqa: F401
 )
 from xuan.handlers.notifications import on_outbox_created_py  # noqa: F401
 from xuan.handlers.playground_rest import (  # noqa: F401
+    playground_bookmarks_py,
     playground_feed_py,
+    playground_likes_py,
     playground_posts_py,
 )
 

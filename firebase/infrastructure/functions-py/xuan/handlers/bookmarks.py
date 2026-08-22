@@ -3,6 +3,10 @@
 from firebase_functions import https_fn
 from google.cloud import firestore as gcf
 
+from xuan.cache import (
+    invalidate_guest_replies_cache,
+    invalidate_playground_post_cache,
+)
 from xuan.config import COLLECTIONS, REGION, db
 from xuan.errors import invalid_argument, not_found
 from xuan.hashing import hash_payload
@@ -41,9 +45,13 @@ def _set_bookmark_impl(uid: str, data: dict) -> dict:
                 "user_app_user_id": app_user_id,
                 "created_at": gcf.SERVER_TIMESTAMP,
             })
+            invalidate_guest_replies_cache(post_id)
+            invalidate_playground_post_cache(post_id)
             return {"bookmarked": True, "id": bookmark_id}
 
         ref.delete()
+        invalidate_guest_replies_cache(post_id)
+        invalidate_playground_post_cache(post_id)
         return {"bookmarked": False, "id": bookmark_id}
 
     return with_idempotency(data.get("idempotency_key"), hash_payload(data), _run)
