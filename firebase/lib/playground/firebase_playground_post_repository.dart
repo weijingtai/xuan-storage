@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
@@ -6,6 +7,8 @@ import 'package:persistence_core/persistence_core.dart';
 import 'firebase_playground_schema.dart';
 import 'firebase_playground_identity_resolver.dart';
 import 'firebase_playground_error_mapper.dart';
+import 'playground_http_transport.dart';
+import 'playground_transport_config.dart';
 
 final class FirebasePlaygroundPostRepository
     implements PlaygroundPostRemoteDataSource {
@@ -13,17 +16,63 @@ final class FirebasePlaygroundPostRepository
     required FirebaseFirestore firestore,
     required FirebaseAuth auth,
     required FirebasePlaygroundIdentityResolver identityResolver,
+    PlaygroundTransportConfig? config,
+    PlaygroundHttpTransport? httpTransport,
+    Uri? baseUri,
   })  : _firestore = firestore,
         _auth = auth,
-        _identityResolver = identityResolver;
+        _identityResolver = identityResolver,
+        _config = config ?? PlaygroundTransportConfig.defaults(),
+        _httpTransport = httpTransport,
+        _baseUri = baseUri;
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
   final FirebasePlaygroundIdentityResolver _identityResolver;
+  final PlaygroundTransportConfig _config;
+  final PlaygroundHttpTransport? _httpTransport;
+  final Uri? _baseUri;
+
+  Uri get _effectiveBaseUri =>
+      _baseUri ?? Uri.parse('http://127.0.0.1:8080/v1');
 
   @override
   Future<PlaygroundPost> createPost(CreatePostCommand command) async {
     try {
+      if (_config.isRestCreatePostEnabled) {
+        final transport = _httpTransport;
+        if (transport == null) {
+          throw StateError(
+              'PlaygroundHttpTransport must be provided for REST createPost');
+        }
+        final uri = _effectiveBaseUri.resolve('/playground/posts');
+        final user = _auth.currentUser;
+        final token = await user?.getIdToken();
+        final headers = <String, String>{
+          'Content-Type': 'application/json',
+          if (command.idempotencyKey != null)
+            'Idempotency-Key': command.idempotencyKey!,
+          if (token != null) 'Authorization': 'Bearer $token',
+        };
+        final bodyMap = <String, dynamic>{
+          'text': command.text,
+          'presentation_mode': command.presentationMode.name,
+          'allowed_chart_technique_ids': command.allowedChartTechniqueIds,
+          'attachments': command.attachments.map(_attachmentToMap).toList(),
+        };
+        final resp = await transport.post(
+          uri,
+          headers: headers,
+          body: jsonEncode(bodyMap),
+        );
+        if (resp.statusCode >= 400) {
+          throw FirebasePlaygroundErrorMapper.mapHttpStatus(
+              resp.statusCode, resp.body);
+        }
+        final data = jsonDecode(resp.body) as Map<String, dynamic>;
+        return _docToPost(data, data['id'] as String? ?? '');
+      }
+
       final user = _auth.currentUser!;
       final docRef =
           _firestore.collection(PlaygroundFirestoreSchema.posts).doc();
@@ -57,6 +106,43 @@ final class FirebasePlaygroundPostRepository
   @override
   Future<PlaygroundPost> editPost(EditPostCommand command) async {
     try {
+      if (_config.isRestEditPostEnabled) {
+        final transport = _httpTransport;
+        if (transport == null) {
+          throw StateError(
+              'PlaygroundHttpTransport must be provided for REST editPost');
+        }
+        final uri = _effectiveBaseUri
+            .resolve('/playground/posts/${command.postId.value}');
+        final user = _auth.currentUser;
+        final token = await user?.getIdToken();
+        final headers = <String, String>{
+          'Content-Type': 'application/json',
+          if (command.idempotencyKey != null)
+            'Idempotency-Key': command.idempotencyKey!,
+          if (token != null) 'Authorization': 'Bearer $token',
+        };
+        final bodyMap = <String, dynamic>{
+          'text': command.text,
+          if (command.allowedChartTechniqueIds != null)
+            'allowed_chart_technique_ids': command.allowedChartTechniqueIds,
+          if (command.attachments != null)
+            'attachments':
+                command.attachments!.map(_attachmentToMap).toList(),
+        };
+        final resp = await transport.patch(
+          uri,
+          headers: headers,
+          body: jsonEncode(bodyMap),
+        );
+        if (resp.statusCode >= 400) {
+          throw FirebasePlaygroundErrorMapper.mapHttpStatus(
+              resp.statusCode, resp.body);
+        }
+        final data = jsonDecode(resp.body) as Map<String, dynamic>;
+        return _docToPost(data, data['id'] as String? ?? command.postId.value);
+      }
+
       final actor = await _identityResolver.resolveActor();
       final docRef = _firestore
           .collection(PlaygroundFirestoreSchema.posts)
@@ -96,6 +182,38 @@ final class FirebasePlaygroundPostRepository
   @override
   Future<PlaygroundPost> deletePost(DeletePostCommand command) async {
     try {
+      if (_config.isRestTombstonePostEnabled) {
+        final transport = _httpTransport;
+        if (transport == null) {
+          throw StateError(
+              'PlaygroundHttpTransport must be provided for REST tombstonePost');
+        }
+        final uri = _effectiveBaseUri
+            .resolve('/playground/posts/${command.postId.value}');
+        final user = _auth.currentUser;
+        final token = await user?.getIdToken();
+        final headers = <String, String>{
+          if (command.idempotencyKey != null)
+            'Idempotency-Key': command.idempotencyKey!,
+          if (token != null) 'Authorization': 'Bearer $token',
+        };
+        final resp = await transport.delete(
+          uri,
+          headers: headers,
+        );
+        if (resp.statusCode >= 400) {
+          throw FirebasePlaygroundErrorMapper.mapHttpStatus(
+              resp.statusCode, resp.body);
+        }
+        return PlaygroundPost(
+          id: command.postId,
+          text: '',
+          authorUserId: const PlaygroundUserId(''),
+          status: PlaygroundPostStatus.tombstoned,
+          createdAt: DateTime.now(),
+        );
+      }
+
       final docRef = _firestore
           .collection(PlaygroundFirestoreSchema.posts)
           .doc(command.postId.value);
@@ -127,8 +245,8 @@ final class FirebasePlaygroundPostRepository
 
   PlaygroundPost _docToPost(Map<String, dynamic> d, String docId) {
     final statusStr = d['status'] as String? ?? PlaygroundPostStatus.active.name;
-    final timestamp = d['created_at'] as Timestamp?;
-    final updatedTs = d['updated_at'] as Timestamp?;
+    final createdAt = _parseDate(d['created_at']) ?? DateTime.now();
+    final updatedAt = _parseDate(d['updated_at']);
 
     final appUserId =
         d['author_app_user_id'] as String? ?? d['author_provider_uid'] as String? ?? '';
@@ -144,10 +262,18 @@ final class FirebasePlaygroundPostRepository
               const <String>[],
       attachments: _parseAttachments(d['attachments']),
       revisions: _parseRevisions(d['revisions']),
-      createdAt: timestamp?.toDate() ?? DateTime.now(),
-      updatedAt: updatedTs?.toDate(),
+      createdAt: createdAt,
+      updatedAt: updatedAt,
       hasOutcomeFeedback: d['has_outcome_feedback'] as bool? ?? false,
     );
+  }
+
+  static DateTime? _parseDate(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is Timestamp) return raw.toDate();
+    if (raw is DateTime) return raw;
+    if (raw is String) return DateTime.tryParse(raw);
+    return null;
   }
 
   static List<PlaygroundAttachment> _parseAttachments(dynamic raw) {

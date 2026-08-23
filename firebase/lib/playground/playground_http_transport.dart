@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 /// 纯 Dart 抽象的 HTTP 响应体封装（零 package:http 依赖）。
@@ -12,7 +13,7 @@ final class PlaygroundHttpResponse {
   final Uint8List bodyBytes;
   final Map<String, String> headers;
 
-  String get body => String.fromCharCodes(bodyBytes);
+  String get body => utf8.decode(bodyBytes);
 }
 
 /// 纯 Dart 抽象的 HTTP 传输接口（用于依赖注入，使 lib/playground/ 零第三方 HTTP 依赖）。
@@ -22,7 +23,25 @@ abstract interface class PlaygroundHttpTransport {
     Map<String, String>? headers,
   });
 
+  Future<PlaygroundHttpResponse> post(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  });
+
   Future<PlaygroundHttpResponse> put(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  });
+
+  Future<PlaygroundHttpResponse> patch(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  });
+
+  Future<PlaygroundHttpResponse> delete(
     Uri uri, {
     Map<String, String>? headers,
     Object? body,

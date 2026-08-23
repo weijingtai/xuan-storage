@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,6 +7,8 @@ import 'package:repository_interface_playground/repository_interface_playground.
 import 'firebase_playground_schema.dart';
 import 'firebase_playground_identity_resolver.dart';
 import 'firebase_playground_error_mapper.dart';
+import 'playground_http_transport.dart';
+import 'playground_transport_config.dart';
 
 final class FirebasePlaygroundOutcomeFeedbackRepository
     implements PlaygroundOutcomeFeedbackRepository {
@@ -14,16 +17,76 @@ final class FirebasePlaygroundOutcomeFeedbackRepository
     required FirebaseAuth auth,
     required FirebasePlaygroundIdentityResolver identityResolver,
     FirebaseFunctions? functions,
+    PlaygroundTransportConfig? config,
+    PlaygroundHttpTransport? httpTransport,
+    Uri? baseUri,
   })  : _firestore = firestore,
-        _functions = functions ?? FirebaseFunctions.instance;
+        _auth = auth,
+        _functions = functions,
+        _config = config ?? PlaygroundTransportConfig.defaults(),
+        _httpTransport = httpTransport,
+        _baseUri = baseUri;
 
   final FirebaseFirestore _firestore;
-  final FirebaseFunctions _functions;
+  final FirebaseAuth _auth;
+  final FirebaseFunctions? _functions;
+  final PlaygroundTransportConfig _config;
+  final PlaygroundHttpTransport? _httpTransport;
+  final Uri? _baseUri;
+
+  FirebaseFunctions get _effectiveFunctions =>
+      _functions ?? FirebaseFunctions.instance;
+
+  Uri get _effectiveBaseUri =>
+      _baseUri ?? Uri.parse('http://127.0.0.1:8080/v1');
 
   @override
   Future<PlaygroundOutcomeFeedback> setOutcomeFeedback(
       SetOutcomeFeedbackCommand command) async {
     try {
+      if (_config.isRestSetOutcomeFeedbackEnabled) {
+        final transport = _httpTransport;
+        if (transport == null) {
+          throw StateError(
+              'PlaygroundHttpTransport must be provided for REST setOutcomeFeedback');
+        }
+        final uri = _effectiveBaseUri
+            .resolve('/playground/posts/${command.postId.value}/outcome-feedback');
+        final user = _auth.currentUser;
+        final token = await user?.getIdToken();
+        final headers = <String, String>{
+          'Content-Type': 'application/json',
+          if (command.idempotencyKey != null)
+            'Idempotency-Key': command.idempotencyKey!,
+          if (token != null) 'Authorization': 'Bearer $token',
+        };
+        final bodyMap = <String, dynamic>{
+          'outcomeDescription': command.body,
+        };
+        final resp = await transport.put(
+          uri,
+          headers: headers,
+          body: jsonEncode(bodyMap),
+        );
+        if (resp.statusCode >= 400) {
+          throw FirebasePlaygroundErrorMapper.mapHttpStatus(
+              resp.statusCode, resp.body);
+        }
+        final data = jsonDecode(resp.body) as Map<String, dynamic>;
+        return PlaygroundOutcomeFeedback(
+          id: data['id'] as String? ?? '',
+          postId: command.postId,
+          authorUserId: PlaygroundUserId(
+              data['author_app_user_id'] as String? ?? ''),
+          body: data['outcome_description'] as String? ?? command.body,
+          createdAt:
+              DateTime.tryParse(data['created_at'] as String? ?? '') ??
+                  DateTime.now(),
+          updatedAt: null,
+          deletedAt: null,
+        );
+      }
+
       // BLOCK-01：敏感写走受信 Functions `setOutcomeFeedback`。
       // 只传业务参数（postId + body 内容）+ idempotency_key；actor 来自 Auth context。
       final params = <String, dynamic>{
@@ -32,7 +95,7 @@ final class FirebasePlaygroundOutcomeFeedbackRepository
         if (command.idempotencyKey != null)
           'idempotency_key': command.idempotencyKey,
       };
-      final result = await _functions
+      final result = await _effectiveFunctions
           .httpsCallable('setOutcomeFeedback')
           .call<Map<String, dynamic>>(params);
       final data = result.data;
@@ -58,13 +121,39 @@ final class FirebasePlaygroundOutcomeFeedbackRepository
   Future<void> revokeOutcomeFeedback(
       RevokeOutcomeFeedbackCommand command) async {
     try {
+      if (_config.isRestRevokeOutcomeFeedbackEnabled) {
+        final transport = _httpTransport;
+        if (transport == null) {
+          throw StateError(
+              'PlaygroundHttpTransport must be provided for REST revokeOutcomeFeedback');
+        }
+        final uri = _effectiveBaseUri
+            .resolve('/playground/posts/${command.postId.value}/outcome-feedback');
+        final user = _auth.currentUser;
+        final token = await user?.getIdToken();
+        final headers = <String, String>{
+          if (command.idempotencyKey != null)
+            'Idempotency-Key': command.idempotencyKey!,
+          if (token != null) 'Authorization': 'Bearer $token',
+        };
+        final resp = await transport.delete(
+          uri,
+          headers: headers,
+        );
+        if (resp.statusCode >= 400) {
+          throw FirebasePlaygroundErrorMapper.mapHttpStatus(
+              resp.statusCode, resp.body);
+        }
+        return;
+      }
+
       // BLOCK-01：敏感写走受信 Functions `revokeOutcomeFeedback`。
       final params = <String, dynamic>{
         'postId': command.postId.value,
         if (command.idempotencyKey != null)
           'idempotency_key': command.idempotencyKey,
       };
-      await _functions.httpsCallable('revokeOutcomeFeedback').call(params);
+      await _effectiveFunctions.httpsCallable('revokeOutcomeFeedback').call(params);
     } catch (e) {
       throw FirebasePlaygroundErrorMapper.map(e);
     }
