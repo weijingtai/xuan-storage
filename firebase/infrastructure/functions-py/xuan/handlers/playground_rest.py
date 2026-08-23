@@ -1000,12 +1000,24 @@ def _edit_playground_post_impl(
     uid: Optional[str],
     post_id: str,
     data: dict,
+    idempotency_key: Optional[str] = None,
 ) -> tuple[int, dict, dict[str, str]]:
     payload = dict(data or {})
     payload["postId"] = post_id
-    try:
+    if idempotency_key:
+        payload["idempotency_key"] = idempotency_key
+
+    def _call() -> dict:
         from xuan.handlers.posts import _edit_post_impl
-        res = _edit_post_impl(uid=uid, data=payload)
+        return _edit_post_impl(uid=uid, data=payload)
+
+    try:
+        from xuan.idempotency import with_idempotency
+        from xuan.hashing import hash_payload
+        if idempotency_key:
+            res = with_idempotency(idempotency_key, hash_payload(payload), _call)
+        else:
+            res = _call()
         return (200, res, {"Content-Type": "application/json"})
     except XuanHttpsError as err:
         return _handle_xuan_error(err)
@@ -1019,10 +1031,23 @@ def _edit_playground_post_impl(
 def _tombstone_playground_post_impl(
     uid: Optional[str],
     post_id: str,
+    idempotency_key: Optional[str] = None,
 ) -> tuple[int, dict, dict[str, str]]:
-    try:
+    payload = {"postId": post_id}
+    if idempotency_key:
+        payload["idempotency_key"] = idempotency_key
+
+    def _call() -> dict:
         from xuan.handlers.posts import _tombstone_post_impl
-        res = _tombstone_post_impl(uid=uid, data={"postId": post_id})
+        return _tombstone_post_impl(uid=uid, data=payload)
+
+    try:
+        from xuan.idempotency import with_idempotency
+        from xuan.hashing import hash_payload
+        if idempotency_key:
+            res = with_idempotency(idempotency_key, hash_payload(payload), _call)
+        else:
+            res = _call()
         return (200, res, {"Content-Type": "application/json"})
     except XuanHttpsError as err:
         return _handle_xuan_error(err)
@@ -1106,12 +1131,24 @@ def _edit_playground_reply_impl(
     uid: Optional[str],
     reply_id: str,
     data: dict,
+    idempotency_key: Optional[str] = None,
 ) -> tuple[int, dict, dict[str, str]]:
     payload = dict(data or {})
     payload["replyId"] = reply_id
-    try:
+    if idempotency_key:
+        payload["idempotency_key"] = idempotency_key
+
+    def _call() -> dict:
         from xuan.handlers.replies import _edit_reply_impl
-        res = _edit_reply_impl(uid=uid, data=payload)
+        return _edit_reply_impl(uid=uid, data=payload)
+
+    try:
+        from xuan.idempotency import with_idempotency
+        from xuan.hashing import hash_payload
+        if idempotency_key:
+            res = with_idempotency(idempotency_key, hash_payload(payload), _call)
+        else:
+            res = _call()
         return (200, res, {"Content-Type": "application/json"})
     except XuanHttpsError as err:
         return _handle_xuan_error(err)
@@ -1123,10 +1160,23 @@ def _edit_playground_reply_impl(
 def _delete_playground_reply_impl(
     uid: Optional[str],
     reply_id: str,
+    idempotency_key: Optional[str] = None,
 ) -> tuple[int, dict, dict[str, str]]:
-    try:
+    payload = {"replyId": reply_id}
+    if idempotency_key:
+        payload["idempotency_key"] = idempotency_key
+
+    def _call() -> dict:
         from xuan.handlers.replies import _delete_reply_impl
-        res = _delete_reply_impl(uid=uid, data={"replyId": reply_id})
+        return _delete_reply_impl(uid=uid, data=payload)
+
+    try:
+        from xuan.idempotency import with_idempotency
+        from xuan.hashing import hash_payload
+        if idempotency_key:
+            res = with_idempotency(idempotency_key, hash_payload(payload), _call)
+        else:
+            res = _call()
         return (200, res, {"Content-Type": "application/json"})
     except XuanHttpsError as err:
         return _handle_xuan_error(err)
@@ -1248,12 +1298,12 @@ def playground_posts_write_py(req: https_fn.Request) -> https_fn.Response:
         if not post_id:
             status_code, body, hdrs = 400, make_problem_details("invalid_argument", "Invalid Argument", 400, "postId 必填"), {"Content-Type": "application/problem+json"}
         else:
-            status_code, body, hdrs = _edit_playground_post_impl(uid, str(post_id), data)
+            status_code, body, hdrs = _edit_playground_post_impl(uid, str(post_id), data, idem_key)
     elif method == "DELETE":
         if not post_id:
             status_code, body, hdrs = 400, make_problem_details("invalid_argument", "Invalid Argument", 400, "postId 必填"), {"Content-Type": "application/problem+json"}
         else:
-            status_code, body, hdrs = _tombstone_playground_post_impl(uid, str(post_id))
+            status_code, body, hdrs = _tombstone_playground_post_impl(uid, str(post_id), idem_key)
     else:
         status_code, body, hdrs = _make_method_not_allowed(method, ["POST", "PUT", "PATCH", "DELETE"])
 
@@ -1290,12 +1340,12 @@ def playground_replies_write_py(req: https_fn.Request) -> https_fn.Response:
         if not reply_id:
             status_code, body, hdrs = 400, make_problem_details("invalid_argument", "Invalid Argument", 400, "replyId 必填"), {"Content-Type": "application/problem+json"}
         else:
-            status_code, body, hdrs = _edit_playground_reply_impl(uid, str(reply_id), data)
+            status_code, body, hdrs = _edit_playground_reply_impl(uid, str(reply_id), data, idem_key)
     elif method == "DELETE":
         if not reply_id:
             status_code, body, hdrs = 400, make_problem_details("invalid_argument", "Invalid Argument", 400, "replyId 必填"), {"Content-Type": "application/problem+json"}
         else:
-            status_code, body, hdrs = _delete_playground_reply_impl(uid, str(reply_id))
+            status_code, body, hdrs = _delete_playground_reply_impl(uid, str(reply_id), idem_key)
     else:
         status_code, body, hdrs = _make_method_not_allowed(method, ["POST", "PUT", "PATCH", "DELETE"])
 

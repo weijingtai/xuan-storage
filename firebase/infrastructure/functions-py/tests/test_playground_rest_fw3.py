@@ -122,9 +122,30 @@ def test_batch1_create_and_edit_post(clean_collections):
         uid="user-author-1",
         post_id=post_id,
         data={"text": "求测下半年运势（补充背景）"},
+        idempotency_key="edit-post-001",
     )
     assert status_edit == 200
     assert body_edit["text"] == "求测下半年运势（补充背景）"
+
+    # 编辑幂等重放
+    status_edit_replay, body_edit_replay, _ = _edit_playground_post_impl(
+        uid="user-author-1",
+        post_id=post_id,
+        data={"text": "求测下半年运势（补充背景）"},
+        idempotency_key="edit-post-001",
+    )
+    assert status_edit_replay == 200
+    assert body_edit_replay["text"] == "求测下半年运势（补充背景）"
+
+    # 编辑异载荷冲突 409
+    status_edit_conf, body_edit_conf, _ = _edit_playground_post_impl(
+        uid="user-author-1",
+        post_id=post_id,
+        data={"text": "另一个不同的更新内容"},
+        idempotency_key="edit-post-001",
+    )
+    assert status_edit_conf == 409
+    assert body_edit_conf["type"] == "conflict.idempotency"
 
     # 非作者编辑报 403
     status_403, body_403, _ = _edit_playground_post_impl(
@@ -155,9 +176,19 @@ def test_batch2_tombstone_post_and_profile(clean_collections):
     status_del, body_del, _ = _tombstone_playground_post_impl(
         uid="user-author-1",
         post_id=post_id,
+        idempotency_key="del-post-001",
     )
     assert status_del == 200
     assert body_del["success"] is True
+
+    # 软删幂等重放（同一 key 返回 200 且不报错）
+    status_del_replay, body_del_replay, _ = _tombstone_playground_post_impl(
+        uid="user-author-1",
+        post_id=post_id,
+        idempotency_key="del-post-001",
+    )
+    assert status_del_replay == 200
+    assert body_del_replay["success"] is True
 
     # 验证数据库状态已墓碑化
     doc = client.collection(COLLECTIONS["posts"]).document(post_id).get()
@@ -247,17 +278,48 @@ def test_batch4_edit_and_delete_reply(clean_collections):
         uid="user-replyer-2",
         reply_id=reply_id,
         data={"body": "修订后的断语"},
+        idempotency_key="edit-reply-001",
     )
     assert status_edit == 200
     assert body_edit["body"] == "修订后的断语"
+
+    # 编辑回复幂等重放
+    status_edit_replay, body_edit_replay, _ = _edit_playground_reply_impl(
+        uid="user-replyer-2",
+        reply_id=reply_id,
+        data={"body": "修订后的断语"},
+        idempotency_key="edit-reply-001",
+    )
+    assert status_edit_replay == 200
+    assert body_edit_replay["body"] == "修订后的断语"
+
+    # 编辑回复异载荷冲突 409
+    status_edit_conf, body_edit_conf, _ = _edit_playground_reply_impl(
+        uid="user-replyer-2",
+        reply_id=reply_id,
+        data={"body": "不一致的修改内容"},
+        idempotency_key="edit-reply-001",
+    )
+    assert status_edit_conf == 409
+    assert body_edit_conf["type"] == "conflict.idempotency"
 
     # 2. 软删回复 (DELETE /playground/replies/{id})
     status_del, body_del, _ = _delete_playground_reply_impl(
         uid="user-replyer-2",
         reply_id=reply_id,
+        idempotency_key="del-reply-001",
     )
     assert status_del == 200
     assert body_del["success"] is True
+
+    # 软删回复幂等重放
+    status_del_replay, body_del_replay, _ = _delete_playground_reply_impl(
+        uid="user-replyer-2",
+        reply_id=reply_id,
+        idempotency_key="del-reply-001",
+    )
+    assert status_del_replay == 200
+    assert body_del_replay["success"] is True
 
     # 验证回复标记已软删
     rdoc = client.collection(COLLECTIONS["replies"]).document(reply_id).get()
@@ -404,11 +466,67 @@ def test_security_and_http_methods(clean_collections):
     resp_spoof = playground_posts_write_py(req_spoof)
     assert resp_spoof.status_code == 401
 
-    # 3. HTTP 错误方法 (GET 调写端点) 必须返回 405 Method Not Allowed
+    # 3. 坏签名/伪造 JWT Token 必须返回 401
+    req_bad_jwt = _make_http_req(
+        method="POST",
+        headers={"Authorization": "Bearer eyJhbGciOiJub25lIn0.eyJ1aWQiOiJhdXRob3ItMSJ9.", "Idempotency-Key": "bad-jwt-001"},
+        body={"text": "伪造JWT发帖"},
+    )
+    resp_bad_jwt = playground_posts_write_py(req_bad_jwt)
+    assert resp_bad_jwt.status_code == 401
+
+    # 4. HTTP 错误方法 (GET 调写端点) 必须返回 405 Method Not Allowed
     req_bad_method = _make_http_req(
         method="GET",
         headers={"Authorization": f"Bearer {token}"},
     )
     resp_bad_method = playground_posts_write_py(req_bad_method)
     assert resp_bad_method.status_code == 405
+
+    # 5. 其余 4 个 FaaS 入口的 401 与 405 拦截校验
+    handlers_and_methods = [
+        (playground_profile_py, "GET", "PATCH", {"displayName": "测试"}),
+        (playground_replies_write_py, "GET", "POST", {"postId": "post-dummy-1", "body": "回复"}),
+        (playground_verifications_write_py, "GET", "PUT", {"rootReplyId": "reply-dummy-1"}),
+        (playground_outcome_feedback_write_py, "GET", "PUT", {"postId": "post-dummy-1", "outcomeDescription": "反馈"}),
+    ]
+    for handler, bad_method, valid_method, dummy_body in handlers_and_methods:
+        # 无 Token -> 401
+        r401 = handler(_make_http_req(method=valid_method, body=dummy_body))
+        assert r401.status_code == 401, f"{handler.__name__} 无 Token 应返回 401"
+
+        # 非法 Method -> 405
+        r405 = handler(_make_http_req(method=bad_method, headers={"Authorization": f"Bearer {token}"}, body=dummy_body))
+        assert r405.status_code == 405, f"{handler.__name__} 错误方法 {bad_method} 应返回 405"
+
+
+def test_cross_scope_permissions(clean_collections):
+    client = clean_collections
+    _seed_identity(client, uid="user-author-1", app_user_id="app-user-1")
+    _seed_identity(client, uid="user-attacker-2", app_user_id="app-user-2")
+
+    # 创建帖子
+    _, post_body, _ = _create_playground_post_impl(
+        uid="user-author-1",
+        data={"text": "受保护帖子"},
+    )
+    post_id = post_body["id"]
+
+    # 1. 攻击者试图软删他人帖子 -> 403 permission_denied
+    status_del, body_del, _ = _tombstone_playground_post_impl(
+        uid="user-attacker-2",
+        post_id=post_id,
+    )
+    assert status_del == 403
+    assert body_del["type"] == "permission_denied"
+
+    # 2. 攻击者试图填写他人帖子的最终反馈 -> 403 permission_denied
+    status_fb, body_fb, _ = _set_playground_outcome_feedback_impl(
+        uid="user-attacker-2",
+        post_id=post_id,
+        data={"outcomeDescription": "越权设置反馈"},
+    )
+    assert status_fb == 403
+    assert body_fb["type"] == "permission_denied"
+
 
