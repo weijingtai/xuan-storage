@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:metaphysics_core/models/lunar_date_info_v2_logic_model.dart';
+import 'datetime_details_bundle_data_model.dart';
 
 part 'lunar_date_info_v2_data_model.g.dart';
 
@@ -31,7 +32,7 @@ class LunarDateInfoV2DataModel {
     LunarDateInfoV2LogicModel logic,
   ) {
     return LunarDateInfoV2DataModel(
-      bundleJson: logic.bundle.toJson(),
+      bundleJson: DateTimeDetailsBundleDataModel.fromLogicModel(logic.bundle).toJson(),
       inUsed: logic.inUsed.name,
     );
   }

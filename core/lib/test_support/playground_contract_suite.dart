@@ -34,7 +34,7 @@ import 'package:repository_interface_playground/repository_interface_playground.
 ///   实例**（否则 C3 的「预置缓存」断言无从谈起）。
 FutureOr<void> runPlaygroundPostContractSuite({
   required String topologyName,
-  required FutureOr<PlaygroundPostRepository> Function() makeRepository,
+  required FutureOr<PlaygroundPostRemoteDataSource> Function() makeRepository,
   required FutureOr<PlaygroundPostRemoteDataSource> Function() makeRemote,
   required FutureOr<PlaygroundPostCacheStore> Function() makeCacheStore,
 }) {
@@ -376,7 +376,7 @@ FutureOr<void> runPlaygroundMediaContractSuite({
 /// 运行评论契约（C9 评论 CRUD 全流程）。
 FutureOr<void> runPlaygroundReplyContractSuite({
   required String topologyName,
-  required FutureOr<PlaygroundReplyRepository> Function() makeReplyRepository,
+  required FutureOr<PlaygroundReplyRemoteDataSource> Function() makeReplyRepository,
   required FutureOr<PlaygroundReplyRemoteDataSource> Function() makeReplyRemote,
 }) {
   group('契约 · 评论 · $topologyName', () {

@@ -195,7 +195,7 @@ final class PlaygroundRepositoryFactory {
   }
 
   /// 创建组合 Post 业务仓储（外接缓存）。
-  PlaygroundPostRepository createPostRepository({
+  PlaygroundPostRemoteDataSource createPostRepository({
     required PlaygroundPostCacheStore cacheStore,
     FirebaseFirestore? firestore,
     FirebaseAuth? auth,
