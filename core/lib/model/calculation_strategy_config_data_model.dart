@@ -19,10 +19,18 @@ class CalculationStrategyConfigDataModel {
   /// 节气策略（存储为字符串）
   final String jieQiStrategy;
 
+  /// 物候计算策略（存储为字符串）
+  final String phenologyStrategy;
+
+  /// 交节精度（存储为字符串）
+  final String jieQiEntryPrecision;
+
   const CalculationStrategyConfigDataModel({
     required this.ziStrategy,
     required this.jieQiType,
     required this.jieQiStrategy,
+    this.phenologyStrategy = 'stabilizingBased',
+    this.jieQiEntryPrecision = 'hour',
   });
 
   factory CalculationStrategyConfigDataModel.fromJson(
@@ -40,6 +48,8 @@ class CalculationStrategyConfigDataModel {
       ziStrategy: logic.ziStrategy.name,
       jieQiType: logic.jieQiType.name,
       jieQiStrategy: logic.jieQiStrategy.name,
+      phenologyStrategy: logic.phenologyStrategy.name,
+      jieQiEntryPrecision: logic.jieQiEntryPrecision.name,
     );
   }
 
@@ -49,6 +59,8 @@ class CalculationStrategyConfigDataModel {
       ziStrategy: ZiShiStrategy.values.byName(ziStrategy),
       jieQiType: JieQiType.values.byName(jieQiType),
       jieQiStrategy: JieQiStrategy.values.byName(jieQiStrategy),
+      phenologyStrategy: PhenologyStrategy.values.byName(phenologyStrategy),
+      jieQiEntryPrecision: JieQiEntryPrecision.values.byName(jieQiEntryPrecision),
     );
   }
 }

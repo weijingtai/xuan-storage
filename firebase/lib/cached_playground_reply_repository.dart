@@ -11,7 +11,7 @@ import 'package:persistence_core/persistence_core.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
 
 final class CachedPlaygroundReplyRepository
-    implements PlaygroundReplyRepository {
+    implements PlaygroundReplyRemoteDataSource {
   CachedPlaygroundReplyRepository({
     required PlaygroundReplyRemoteDataSource remote,
     required PlaygroundReplyCacheStore cache,

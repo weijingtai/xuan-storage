@@ -1,6 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:metaphysics_core/models/datetime_details_bundle_logic_model.dart';
-import 'package:metaphysics_core/models/calculation_strategy_config_logic_model.dart';
 
 part 'datetime_details_bundle_data_model.g.dart';
 
