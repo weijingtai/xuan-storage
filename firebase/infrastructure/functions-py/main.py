@@ -51,6 +51,11 @@ from xuan.handlers.playground_rest import (  # noqa: F401
     playground_feed_py,
     playground_likes_py,
     playground_posts_py,
+    playground_posts_write_py,
+    playground_profile_py,
+    playground_replies_write_py,
+    playground_verifications_write_py,
+    playground_outcome_feedback_write_py,
 )
 
 # 函数名统一加 `_py` 后缀：切换期两个版本同时部署在一个项目里，
