@@ -9,16 +9,39 @@ import 'package:persistence_firebase/playground/playground.dart';
 import 'package:repository_interface_playground/repository_interface_playground.dart';
 
 final class _MockHttpTransport implements PlaygroundHttpTransport {
-  _MockHttpTransport({this.onPut, this.onGet});
+  _MockHttpTransport({
+    this.onPut,
+    this.onGet,
+    this.onPost,
+    this.onPatch,
+    this.onDelete,
+  });
 
   Future<PlaygroundHttpResponse> Function(Uri uri, Map<String, String>? headers, Object? body)? onPut;
   Future<PlaygroundHttpResponse> Function(Uri uri, Map<String, String>? headers)? onGet;
+  Future<PlaygroundHttpResponse> Function(Uri uri, Map<String, String>? headers, Object? body)? onPost;
+  Future<PlaygroundHttpResponse> Function(Uri uri, Map<String, String>? headers, Object? body)? onPatch;
+  Future<PlaygroundHttpResponse> Function(Uri uri, Map<String, String>? headers)? onDelete;
 
   int putCallCount = 0;
   List<Map<String, String>?> putHeadersHistory = [];
   Uri? lastPutUri;
   Map<String, String>? lastPutHeaders;
   Object? lastPutBody;
+
+  int postCallCount = 0;
+  Uri? lastPostUri;
+  Map<String, String>? lastPostHeaders;
+  Object? lastPostBody;
+
+  int patchCallCount = 0;
+  Uri? lastPatchUri;
+  Map<String, String>? lastPatchHeaders;
+  Object? lastPatchBody;
+
+  int deleteCallCount = 0;
+  Uri? lastDeleteUri;
+  Map<String, String>? lastDeleteHeaders;
 
   @override
   Future<PlaygroundHttpResponse> get(Uri uri, {Map<String, String>? headers}) async {
@@ -37,6 +60,47 @@ final class _MockHttpTransport implements PlaygroundHttpTransport {
     return PlaygroundHttpResponse(
       statusCode: 200,
       bodyBytes: Uint8List.fromList(utf8.encode('{"liked": true, "id": "like_post_u1_p1", "target_type": "post"}')),
+      headers: {'content-type': 'application/json'},
+    );
+  }
+
+  @override
+  Future<PlaygroundHttpResponse> post(Uri uri, {Map<String, String>? headers, Object? body}) async {
+    postCallCount++;
+    lastPostUri = uri;
+    lastPostHeaders = headers;
+    lastPostBody = body;
+    if (onPost != null) return onPost!(uri, headers, body);
+    return PlaygroundHttpResponse(
+      statusCode: 201,
+      bodyBytes: Uint8List.fromList(utf8.encode('{"id": "gen_post_1", "text": "测试", "status": "active", "author_app_user_id": "app_user_1"}')),
+      headers: {'content-type': 'application/json'},
+    );
+  }
+
+  @override
+  Future<PlaygroundHttpResponse> patch(Uri uri, {Map<String, String>? headers, Object? body}) async {
+    patchCallCount++;
+    lastPatchUri = uri;
+    lastPatchHeaders = headers;
+    lastPatchBody = body;
+    if (onPatch != null) return onPatch!(uri, headers, body);
+    return PlaygroundHttpResponse(
+      statusCode: 200,
+      bodyBytes: Uint8List.fromList(utf8.encode('{"id": "gen_post_1", "text": "已修改", "status": "active"}')),
+      headers: {'content-type': 'application/json'},
+    );
+  }
+
+  @override
+  Future<PlaygroundHttpResponse> delete(Uri uri, {Map<String, String>? headers, Object? body}) async {
+    deleteCallCount++;
+    lastDeleteUri = uri;
+    lastDeleteHeaders = headers;
+    if (onDelete != null) return onDelete!(uri, headers);
+    return PlaygroundHttpResponse(
+      statusCode: 200,
+      bodyBytes: Uint8List.fromList(utf8.encode('{"success": true, "id": "del_1"}')),
       headers: {'content-type': 'application/json'},
     );
   }
@@ -361,6 +425,306 @@ void main() {
       expect(transport.putCallCount, equals(3));
       expect(transport.lastPutUri.toString(), contains('/playground/bookmarks'));
       expect(transport.lastPutHeaders?['Idempotency-Key'], equals('idem-eng-bm-1'));
+    });
+  });
+
+  group('FW3-C · 客户端 12 端点切流与影子比对 (6 批全面验证)', () {
+    test('FW3 开关默认关闭且支持细粒度覆盖与一键回滚', () {
+      final config = PlaygroundTransportConfig.defaults();
+      expect(config.isRestCreatePostEnabled, isFalse);
+      expect(config.isRestEditPostEnabled, isFalse);
+      expect(config.isRestTombstonePostEnabled, isFalse);
+      expect(config.isRestProfileEnabled, isFalse);
+      expect(config.isRestCreateRootReplyEnabled, isFalse);
+      expect(config.isRestCreateDiscussionReplyEnabled, isFalse);
+      expect(config.isRestEditReplyEnabled, isFalse);
+      expect(config.isRestDeleteReplyEnabled, isFalse);
+      expect(config.isRestVerifyRootReplyEnabled, isFalse);
+      expect(config.isRestRevokeVerificationEnabled, isFalse);
+      expect(config.isRestSetOutcomeFeedbackEnabled, isFalse);
+      expect(config.isRestRevokeOutcomeFeedbackEnabled, isFalse);
+
+      final allRest = config.copyWith(
+        createPostTransport: TransportMode.rest,
+        editPostTransport: TransportMode.rest,
+        tombstonePostTransport: TransportMode.rest,
+        profileTransport: TransportMode.rest,
+        createRootReplyTransport: TransportMode.rest,
+        createDiscussionReplyTransport: TransportMode.rest,
+        editReplyTransport: TransportMode.rest,
+        deleteReplyTransport: TransportMode.rest,
+        verifyRootReplyTransport: TransportMode.rest,
+        revokeVerificationTransport: TransportMode.rest,
+        setOutcomeFeedbackTransport: TransportMode.rest,
+        revokeOutcomeFeedbackTransport: TransportMode.rest,
+      );
+
+      expect(allRest.isRestCreatePostEnabled, isTrue);
+      expect(allRest.isRestEditPostEnabled, isTrue);
+      expect(allRest.isRestTombstonePostEnabled, isTrue);
+      expect(allRest.isRestProfileEnabled, isTrue);
+      expect(allRest.isRestCreateRootReplyEnabled, isTrue);
+      expect(allRest.isRestCreateDiscussionReplyEnabled, isTrue);
+      expect(allRest.isRestEditReplyEnabled, isTrue);
+      expect(allRest.isRestDeleteReplyEnabled, isTrue);
+      expect(allRest.isRestVerifyRootReplyEnabled, isTrue);
+      expect(allRest.isRestRevokeVerificationEnabled, isTrue);
+      expect(allRest.isRestSetOutcomeFeedbackEnabled, isTrue);
+      expect(allRest.isRestRevokeOutcomeFeedbackEnabled, isTrue);
+
+      final rolledBack = allRest.rollbackToFirestore();
+      expect(rolledBack.isRestCreatePostEnabled, isFalse);
+      expect(rolledBack.isRestProfileEnabled, isFalse);
+      expect(rolledBack.isRestCreateRootReplyEnabled, isFalse);
+      expect(rolledBack.isRestVerifyRootReplyEnabled, isFalse);
+      expect(rolledBack.isRestSetOutcomeFeedbackEnabled, isFalse);
+    });
+
+    test('Batch 1: createPost 与 editPost (POST /posts, PATCH /posts/{id}) 契约与透传', () async {
+      final transport = _MockHttpTransport(
+        onPost: (uri, headers, body) async => PlaygroundHttpResponse(
+          statusCode: 201,
+          bodyBytes: Uint8List.fromList(utf8.encode('{"id":"p_new_1","text":"新帖正文","status":"active","author_app_user_id":"u_1","created_at":"2026-08-22T12:00:00.000Z"}')),
+          headers: {'content-type': 'application/json'},
+        ),
+        onPatch: (uri, headers, body) async => PlaygroundHttpResponse(
+          statusCode: 200,
+          bodyBytes: Uint8List.fromList(utf8.encode('{"id":"p_new_1","text":"已编辑正文","status":"active","author_app_user_id":"u_1","updated_at":"2026-08-22T12:05:00.000Z"}')),
+          headers: {'content-type': 'application/json'},
+        ),
+      );
+
+      final config = PlaygroundTransportConfig.defaults().copyWith(
+        createPostTransport: TransportMode.rest,
+        editPostTransport: TransportMode.rest,
+      );
+
+      final postRepo = FirebasePlaygroundPostRepository(
+        firestore: FakeFirebaseFirestore(),
+        auth: MockFirebaseAuth(),
+        identityResolver: FirebasePlaygroundIdentityResolver(firestore: FakeFirebaseFirestore(), auth: MockFirebaseAuth()),
+        config: config,
+        httpTransport: transport,
+        baseUri: Uri.parse('http://127.0.0.1:8080/v1'),
+      );
+
+      final created = await postRepo.createPost(const CreatePostCommand(
+        text: '新帖正文',
+        idempotencyKey: 'idem-post-001',
+      ));
+      expect(created.id.value, equals('p_new_1'));
+      expect(created.text, equals('新帖正文'));
+      expect(transport.postCallCount, equals(1));
+      expect(transport.lastPostUri.toString(), contains('/playground/posts'));
+      expect(transport.lastPostHeaders?['Idempotency-Key'], equals('idem-post-001'));
+      expect(transport.lastPostHeaders?.containsKey('X-Caller-UID'), isFalse);
+
+      final edited = await postRepo.editPost(const EditPostCommand(
+        postId: PlaygroundPostId('p_new_1'),
+        text: '已编辑正文',
+        idempotencyKey: 'idem-post-002',
+      ));
+      expect(edited.text, equals('已编辑正文'));
+      expect(transport.patchCallCount, equals(1));
+      expect(transport.lastPatchUri.toString(), contains('/playground/posts/p_new_1'));
+      expect(transport.lastPatchHeaders?['Idempotency-Key'], equals('idem-post-002'));
+    });
+
+    test('Batch 2: tombstonePost 与 updateProfile (DELETE /posts/{id}, PATCH /profile) 契约', () async {
+      final transport = _MockHttpTransport();
+      final config = PlaygroundTransportConfig.defaults().copyWith(
+        tombstonePostTransport: TransportMode.rest,
+        profileTransport: TransportMode.rest,
+      );
+
+      final postRepo = FirebasePlaygroundPostRepository(
+        firestore: FakeFirebaseFirestore(),
+        auth: MockFirebaseAuth(),
+        identityResolver: FirebasePlaygroundIdentityResolver(firestore: FakeFirebaseFirestore(), auth: MockFirebaseAuth()),
+        config: config,
+        httpTransport: transport,
+        baseUri: Uri.parse('http://127.0.0.1:8080/v1'),
+      );
+
+      final profileRepo = FirebasePlaygroundProfileRepository(
+        firestore: FakeFirebaseFirestore(),
+        auth: MockFirebaseAuth(),
+        config: config,
+        httpTransport: transport,
+        baseUri: Uri.parse('http://127.0.0.1:8080/v1'),
+      );
+
+      // tombstonePost
+      final deleted = await postRepo.deletePost(const DeletePostCommand(
+        postId: PlaygroundPostId('p_del_1'),
+        idempotencyKey: 'idem-del-001',
+      ));
+      expect(deleted.isTombstoned, isTrue);
+      expect(transport.deleteCallCount, equals(1));
+      expect(transport.lastDeleteUri.toString(), contains('/playground/posts/p_del_1'));
+      expect(transport.lastDeleteHeaders?['Idempotency-Key'], equals('idem-del-001'));
+
+      // updateProfile
+      await profileRepo.updateProfile(
+        userId: const PlaygroundUserId('u100'),
+        displayName: '易学大师',
+        bio: '精通紫微斗数',
+        idempotencyKey: 'idem-prof-001',
+      );
+      expect(transport.patchCallCount, equals(1));
+      expect(transport.lastPatchUri.toString(), contains('/playground/profile'));
+      expect(transport.lastPatchHeaders?['Idempotency-Key'], equals('idem-prof-001'));
+      expect(jsonDecode(transport.lastPatchBody as String)['displayName'], equals('易学大师'));
+    });
+
+    test('Batch 3 & 4: Replies 4 端点 (createRoot, createDiscussion, edit, delete) 契约与透传', () async {
+      final transport = _MockHttpTransport(
+        onPost: (uri, headers, body) async => PlaygroundHttpResponse(
+          statusCode: 201,
+          bodyBytes: Uint8List.fromList(utf8.encode('{"id":"r_gen_1","post_id":"p1","body":"回复正文","author_app_user_id":"u_2","created_at":"2026-08-22T12:00:00.000Z"}')),
+          headers: {'content-type': 'application/json'},
+        ),
+        onPatch: (uri, headers, body) async => PlaygroundHttpResponse(
+          statusCode: 200,
+          bodyBytes: Uint8List.fromList(utf8.encode('{"id":"r_gen_1","post_id":"p1","body":"已编辑回复","author_app_user_id":"u_2","updated_at":"2026-08-22T12:10:00.000Z"}')),
+          headers: {'content-type': 'application/json'},
+        ),
+      );
+
+      final config = PlaygroundTransportConfig.defaults().copyWith(
+        createRootReplyTransport: TransportMode.rest,
+        createDiscussionReplyTransport: TransportMode.rest,
+        editReplyTransport: TransportMode.rest,
+        deleteReplyTransport: TransportMode.rest,
+      );
+
+      final replyRepo = FirebasePlaygroundReplyCommandRepository(
+        firestore: FakeFirebaseFirestore(),
+        auth: MockFirebaseAuth(),
+        config: config,
+        httpTransport: transport,
+        baseUri: Uri.parse('http://127.0.0.1:8080/v1'),
+      );
+
+      // 1. createRootReply
+      final root = await replyRepo.createRootReply(const CreateRootReplyCommand(
+        postId: PlaygroundPostId('p1'),
+        body: '回复正文',
+        idempotencyKey: 'idem-reply-001',
+      ));
+      expect(root.publicReplyId.value, equals('r_gen_1'));
+      expect(transport.postCallCount, equals(1));
+      expect(transport.lastPostUri.toString(), contains('/playground/posts/p1/replies'));
+      expect(transport.lastPostHeaders?['Idempotency-Key'], equals('idem-reply-001'));
+
+      // 2. createDiscussionReply
+      final disc = await replyRepo.createDiscussionReply(const CreateDiscussionReplyCommand(
+        postId: PlaygroundPostId('p1'),
+        rootReplyId: PlaygroundReplyId('r_gen_1'),
+        body: '跟帖正文',
+        idempotencyKey: 'idem-reply-002',
+      ));
+      expect(disc.publicReplyId.value, equals('r_gen_1'));
+      expect(transport.postCallCount, equals(2));
+      expect(transport.lastPostUri.toString(), contains('/playground/replies/r_gen_1/discussion'));
+      expect(transport.lastPostHeaders?['Idempotency-Key'], equals('idem-reply-002'));
+
+      // 3. editReply
+      final edited = await replyRepo.editReply(const EditReplyCommand(
+        replyId: PlaygroundReplyId('r_gen_1'),
+        body: '已编辑回复',
+        idempotencyKey: 'idem-reply-003',
+      ));
+      expect(edited.body, equals('已编辑回复'));
+      expect(transport.patchCallCount, equals(1));
+      expect(transport.lastPatchUri.toString(), contains('/playground/replies/r_gen_1'));
+      expect(transport.lastPatchHeaders?['Idempotency-Key'], equals('idem-reply-003'));
+
+      // 4. tombstoneReply
+      await replyRepo.tombstoneReply(const DeleteReplyCommand(
+        replyId: PlaygroundReplyId('r_gen_1'),
+        idempotencyKey: 'idem-reply-004',
+      ));
+      expect(transport.deleteCallCount, equals(1));
+      expect(transport.lastDeleteUri.toString(), contains('/playground/replies/r_gen_1'));
+      expect(transport.lastDeleteHeaders?['Idempotency-Key'], equals('idem-reply-004'));
+    });
+
+    test('Batch 5 & 6: 应验 (PUT/DELETE) 与 最终反馈 (PUT/DELETE) 4 端点契约', () async {
+      final transport = _MockHttpTransport(
+        onPut: (uri, headers, body) async => PlaygroundHttpResponse(
+          statusCode: 200,
+          bodyBytes: Uint8List.fromList(utf8.encode('{"id":"fb_1","post_id":"p1","root_reply_id":"r1","verifier_app_user_id":"u_poster","author_app_user_id":"u_poster","outcome_description":"成功应验","created_at":"2026-08-22T12:00:00.000Z"}')),
+          headers: {'content-type': 'application/json'},
+        ),
+      );
+
+      final config = PlaygroundTransportConfig.defaults().copyWith(
+        verifyRootReplyTransport: TransportMode.rest,
+        revokeVerificationTransport: TransportMode.rest,
+        setOutcomeFeedbackTransport: TransportMode.rest,
+        revokeOutcomeFeedbackTransport: TransportMode.rest,
+      );
+
+      final veriRepo = FirebasePlaygroundVerificationRepository(
+        firestore: FakeFirebaseFirestore(),
+        auth: MockFirebaseAuth(),
+        identityResolver: FirebasePlaygroundIdentityResolver(firestore: FakeFirebaseFirestore(), auth: MockFirebaseAuth()),
+        config: config,
+        httpTransport: transport,
+        baseUri: Uri.parse('http://127.0.0.1:8080/v1'),
+      );
+
+      final outcomeRepo = FirebasePlaygroundOutcomeFeedbackRepository(
+        firestore: FakeFirebaseFirestore(),
+        auth: MockFirebaseAuth(),
+        identityResolver: FirebasePlaygroundIdentityResolver(firestore: FakeFirebaseFirestore(), auth: MockFirebaseAuth()),
+        config: config,
+        httpTransport: transport,
+        baseUri: Uri.parse('http://127.0.0.1:8080/v1'),
+      );
+
+      // 1. verifyRootReply
+      final veri = await veriRepo.verifyRootReply(const VerifyRootReplyCommand(
+        postId: PlaygroundPostId('p1'),
+        rootReplyId: PlaygroundReplyId('r1'),
+        idempotencyKey: 'idem-veri-001',
+      ));
+      expect(veri.isRevoked, isFalse);
+      expect(transport.putCallCount, equals(1));
+      expect(transport.lastPutUri.toString(), contains('/playground/replies/r1/verification'));
+      expect(transport.lastPutHeaders?['Idempotency-Key'], equals('idem-veri-001'));
+
+      // 2. revokeVerification
+      final unveri = await veriRepo.revokeVerification(const RevokeVerificationCommand(
+        postId: PlaygroundPostId('p1'),
+        rootReplyId: PlaygroundReplyId('r1'),
+        idempotencyKey: 'idem-veri-002',
+      ));
+      expect(unveri.isRevoked, isTrue);
+      expect(transport.deleteCallCount, equals(1));
+      expect(transport.lastDeleteUri.toString(), contains('/playground/replies/r1/verification'));
+      expect(transport.lastDeleteHeaders?['Idempotency-Key'], equals('idem-veri-002'));
+
+      // 3. setOutcomeFeedback
+      final fb = await outcomeRepo.setOutcomeFeedback(const SetOutcomeFeedbackCommand(
+        postId: PlaygroundPostId('p1'),
+        body: '成功应验反馈',
+        idempotencyKey: 'idem-fb-001',
+      ));
+      expect(fb.body, equals('成功应验'));
+      expect(transport.putCallCount, equals(2));
+      expect(transport.lastPutUri.toString(), contains('/playground/posts/p1/outcome-feedback'));
+      expect(transport.lastPutHeaders?['Idempotency-Key'], equals('idem-fb-001'));
+
+      // 4. revokeOutcomeFeedback
+      await outcomeRepo.revokeOutcomeFeedback(const RevokeOutcomeFeedbackCommand(
+        postId: PlaygroundPostId('p1'),
+        idempotencyKey: 'idem-fb-002',
+      ));
+      expect(transport.deleteCallCount, equals(2));
+      expect(transport.lastDeleteUri.toString(), contains('/playground/posts/p1/outcome-feedback'));
+      expect(transport.lastDeleteHeaders?['Idempotency-Key'], equals('idem-fb-002'));
     });
   });
 }
