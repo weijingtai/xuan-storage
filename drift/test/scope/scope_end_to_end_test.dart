@@ -121,12 +121,12 @@ void main() {
       ), const []);
 
       // 2. Create Identity Link linking anon-1 to registered user user-1
-      await linkRepo.saveLink(AccountIdentityLink(
+      await linkRepo.put(AccountIdentityLink(
         anonymousAppUserId: const AccountUserId('anon-1'),
         registeredAppUserId: const AccountUserId('user-1'),
         providerId: 'email',
         linkedAt: DateTime.utc(2026),
-      ));
+      ), RequestContext(scopeUid: 'test'));
 
       // 3. Switch session to user-1
       await sessionRepo.put(AccountSession(

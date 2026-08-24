@@ -118,4 +118,16 @@ class RecordBackedMeiHuaRepository
       ));
     }
   }
+
+
+  // ── 遗留别名（旧调用方与既有测试的过渡层，M4 随适配层一并退场） ──
+
+  @Deprecated('M4 退场：改用 L0 切片')
+  Future<String> saveRecord(MeiHuaDivinationRecordContract r) => save(r);
+
+  @Deprecated('M4 退场：改用 L0 切片')
+  Future<List<MeiHuaDivinationRecordContract>> getAllRecords() => getAll();
+
+  @Deprecated('M4 退场：改用 L0 切片')
+  Future<MeiHuaDivinationRecordContract?> getRecordByUuid(String uuid) => getByUuid(uuid);
 }

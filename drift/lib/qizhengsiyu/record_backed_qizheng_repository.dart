@@ -116,4 +116,21 @@ class RecordBackedQiZhengRepository
       ));
     }
   }
+
+  // ── 遗留别名（旧调用方与既有测试的过渡层，M4 随适配层一并退场） ──
+
+  @Deprecated('M4 退场：改用 L0 切片')
+  Future<String> saveRecord(QiZhengSiYuPanContract r) => save(r);
+
+  @Deprecated('M4 退场：改用 L0 切片')
+  Future<List<QiZhengSiYuPanContract>> getAllRecords() => getAll();
+
+  @Deprecated('M4 退场：改用 L0 切片')
+  Future<QiZhengSiYuPanContract?> getRecordByUuid(String uuid) => getByUuid(uuid);
+
+  @Deprecated('M4 退场：改用 L0 切片')
+  Future<bool> softDeleteRecord(String uuid) => softDeleteLegacy(uuid);
+
+  @Deprecated('M4 退场：改用 L0 切片')
+  Stream<List<QiZhengSiYuPanContract>> watchAllRecords() => watchAll();
 }

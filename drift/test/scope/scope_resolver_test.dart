@@ -87,6 +87,8 @@ class InMemoryScopeLedger implements ScopeLedger {
   }
 }
 
+final ctx = RequestContext(scopeUid: 'test');
+
 void main() {
   group('ScopeResolver', () {
     late InMemoryAccountSessionRepository sessionRepo;
@@ -156,12 +158,12 @@ void main() {
       await ledger.bind('anon-1', ScopeAuthKind.anonymous, 'device-scope-uuid-123');
 
       // link exists: anon-1 belongs to registered user 'user-1'
-      await linkRepo.saveLink(AccountIdentityLink(
+      await linkRepo.put(AccountIdentityLink(
         anonymousAppUserId: const AccountUserId('anon-1'),
         registeredAppUserId: const AccountUserId('user-1'),
         providerId: 'fake',
         linkedAt: DateTime.now(),
-      ));
+      ), RequestContext(scopeUid: 'test'));
 
       await sessionRepo.put(AccountSession(
         appUserId: const AccountUserId('user-1'),
@@ -197,12 +199,12 @@ void main() {
 
     test('4b. upgrade when handover fails -> resolve throws, no binding reused', () async {
       await ledger.bind('anon-1', ScopeAuthKind.anonymous, 'device-scope-uuid-123');
-      await linkRepo.saveLink(AccountIdentityLink(
+      await linkRepo.put(AccountIdentityLink(
         anonymousAppUserId: const AccountUserId('anon-1'),
         registeredAppUserId: const AccountUserId('user-1'),
         providerId: 'fake',
         linkedAt: DateTime.now(),
-      ));
+      ), RequestContext(scopeUid: 'test'));
       await sessionRepo.put(AccountSession(
         appUserId: const AccountUserId('user-1'),
         providerUserId: const ProviderUserId('p-1'),

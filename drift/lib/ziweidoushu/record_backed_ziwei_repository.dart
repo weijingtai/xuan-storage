@@ -66,7 +66,7 @@ class RecordBackedZiweiRepository
     String id,
     RequestContext ctx,
   ) async {
-    final r = await _l0.getIncludingDeleted(id, _ctx);
+    final r = await _l0.get(id, _ctx);
     return switch (r) {
       Ok(:final value) => Ok(value == null ? null : _decodeRow(value)),
       Err(:final error) => Err(error),
@@ -86,15 +86,20 @@ class RecordBackedZiweiRepository
     RequestContext ctx, {
     Precondition pre = const Unconditional(),
   }) async {
+    // 模块契约：put 返回的 Rev 即记录 uuid（便于调用方回读）。
     final currentUuid = _codec.uuidOf(entity);
-    final effectiveUuid = currentUuid.isNotEmpty ? currentUuid : _uuid.v7();
-    final fixed = currentUuid.isNotEmpty
-        ? entity
-        : _codec.withUuid(entity, effectiveUuid);
-    final encoded = _codec.encode(fixed, scopeUid: _store.scopeUid);
+    final effectiveUuid =
+        currentUuid.isNotEmpty ? currentUuid : _uuid.v7();
+    final fixed =
+        currentUuid.isNotEmpty ? entity : _codec.withUuid(entity, effectiveUuid);
+    final encoded = _codec.encode(fixed, scopeUid: ctx.scopeUid);
     _validateEncodedMeta(encoded.meta, effectiveUuid);
     final row = RecordRowMapper.metaToRow(encoded.meta);
-    return _l0.put(row, _ctx, pre: pre);
+    final r = await _l0.put(row, ctx, pre: pre);
+    return switch (r) {
+      Ok() => Ok(Rev(effectiveUuid)),
+      Err(:final error) => Err(error),
+    };
   }
 
   // ── Queryable ──

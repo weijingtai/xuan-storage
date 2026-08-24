@@ -6,7 +6,6 @@ import '../record/base_record_backed_repository.dart';
 import '../record/record_entity_descriptor.dart';
 import '../record/record_row_mapper.dart';
 import '../record/record_storage_driver.dart';
-import 'liuyao_record_codec.dart';
 
 /// Drift-backed implementation of [SixYaoDivinationRecordRepository].
 ///

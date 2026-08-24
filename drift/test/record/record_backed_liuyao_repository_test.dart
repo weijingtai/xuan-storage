@@ -31,7 +31,7 @@ RecordBackedLiuYaoRepository _build(PersistenceDriftDatabase db) {
   return RecordBackedLiuYaoRepository(store: store, codec: codec);
 }
 
-const _ctx = RequestContext(scopeUid: 's1');
+final _ctx = RequestContext(scopeUid: 's1');
 
 void main() {
   test('put then query returns record via L0 slices', () async {

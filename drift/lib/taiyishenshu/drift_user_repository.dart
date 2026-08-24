@@ -13,7 +13,34 @@ class DriftUserRepository implements SchoolRepository, UserSchoolRepository {
   final TaiYiDatabase db;
   final String? scopeUid;
 
+  /// 神明仓储（按接口拆分后的独立实现；组合复用同库）。
+  late final DriftDeityRepository deities =
+      DriftDeityRepository(db, scopeUid: scopeUid);
+
   RequestContext get _ctx => RequestContext(scopeUid: scopeUid ?? '');
+
+  // ── 遗留别名（旧调用方与既有测试的过渡层，随 M4 一并退场） ──
+
+  Future<void> saveSchool(TaiYiSchoolContract school) => put(school, _ctx);
+
+  Future<TaiYiSchoolContract?> loadSchool(String id) async {
+    final r = await get(id, _ctx);
+    return switch (r) {
+      Ok(:final value) => value,
+      Err() => null,
+    };
+  }
+
+  Future<void> deleteSchool(String id) => _hardDeleteSchool(id);
+
+  Future<void> saveDeity(DeityDefinitionContract d) => deities.put(d, _ctx);
+
+  Future<DeityDefinitionContract?> loadDeity(String id) => deities.loadDeity(id);
+
+  Future<List<DeityDefinitionContract>> loadUserDeities() =>
+      deities.loadUserDeities();
+
+  Future<void> deleteDeity(String id) => deities.deleteUserDeity(id);
 
   // ── 领域便捷方法（非切片成员，保留给既有调用方） ──
 
@@ -140,7 +167,12 @@ class DriftDeityRepository implements DeityRepository {
   final TaiYiDatabase db;
   final String? scopeUid;
 
+  /// 神明仓储（按接口拆分后的独立实现；组合复用同库）。
+  late final DriftDeityRepository deities =
+      DriftDeityRepository(db, scopeUid: scopeUid);
+
   RequestContext get _ctx => RequestContext(scopeUid: scopeUid ?? '');
+
 
   // ── 领域便捷方法（保留给既有调用方） ──
 
@@ -255,7 +287,7 @@ class DriftDeityRepository implements DeityRepository {
 
   // ── 内部工具 ──
 
-  Future<UserDeities?> _deityRowById(String id) async {
+  Future<UserDeity?> _deityRowById(String id) async {
     final query = db.select(db.userDeities)..where((t) => t.id.equals(id));
     if (scopeUid != null) {
       query.where((t) => t.scopeUid.equals(scopeUid!) | t.scopeUid.isNull());
