@@ -17,7 +17,20 @@ class DriftUserRepository implements SchoolRepository, UserSchoolRepository {
   late final DriftDeityRepository deities =
       DriftDeityRepository(db, scopeUid: scopeUid);
 
-  RequestContext get _ctx => RequestContext(scopeUid: scopeUid ?? '');
+  /// 遗留别名方法使用的请求上下文。
+  ///
+  /// 禁止以空串伪造 scope：契约内核把空串视为「不过滤」，等同越权。
+  /// 因此 [scopeUid] 缺失时直接抛出 [StateError]，强制调用方在构造仓储时提供。
+  RequestContext get _ctx {
+    final s = scopeUid;
+    if (s == null || s.isEmpty) {
+      throw StateError(
+        '遗留别名方法需要 scopeUid：请用 DriftUserRepository(db, scopeUid: ...) 构造。'
+        '不得以空串代替——内核视空串为「不过滤」，等同越权。',
+      );
+    }
+    return RequestContext(scopeUid: s);
+  }
 
   // ── 遗留别名（旧调用方与既有测试的过渡层，随 M4 一并退场） ──
 
@@ -167,12 +180,20 @@ class DriftDeityRepository implements DeityRepository {
   final TaiYiDatabase db;
   final String? scopeUid;
 
-  /// 神明仓储（按接口拆分后的独立实现；组合复用同库）。
-  late final DriftDeityRepository deities =
-      DriftDeityRepository(db, scopeUid: scopeUid);
-
-  RequestContext get _ctx => RequestContext(scopeUid: scopeUid ?? '');
-
+  /// 遗留别名方法使用的请求上下文。
+  ///
+  /// 禁止以空串伪造 scope：契约内核把空串视为「不过滤」，等同越权。
+  /// 因此 [scopeUid] 缺失时直接抛出 [StateError]，强制调用方在构造仓储时提供。
+  RequestContext get _ctx {
+    final s = scopeUid;
+    if (s == null || s.isEmpty) {
+      throw StateError(
+        '遗留别名方法需要 scopeUid：请用 DriftDeityRepository(db, scopeUid: ...) 构造。'
+        '不得以空串代替——内核视空串为「不过滤」，等同越权。',
+      );
+    }
+    return RequestContext(scopeUid: s);
+  }
 
   // ── 领域便捷方法（保留给既有调用方） ──
 
