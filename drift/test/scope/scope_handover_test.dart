@@ -102,12 +102,12 @@ void main() {
     }
 
     Future<void> linkAnonToRegistered(String anonId, String regId) async {
-      await linkRepo.saveLink(AccountIdentityLink(
+      await linkRepo.put(AccountIdentityLink(
         anonymousAppUserId: AccountUserId(anonId),
         registeredAppUserId: AccountUserId(regId),
         providerId: 'email',
         linkedAt: DateTime.utc(2026),
-      ));
+      ), RequestContext(scopeUid: 'test'));
     }
 
     test('T1+T2+T3+T4+T5+T6 完整剧本', () async {

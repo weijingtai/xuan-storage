@@ -50,7 +50,10 @@ class ScopeResolver {
   Future<ResolvedScope> resolve() async {
     final ctx = RequestContext(scopeUid: 'local-anonymous');
     final sessionResult = await _sessionRepository.get("current", ctx);
-    final session = sessionResult is Ok ? sessionResult.value : null;
+    final session = switch (sessionResult) {
+      Ok(:final value) => value,
+      Err() => null,
+    };
 
     // 1. 无 session (登出 / 尚未登录) → 返回 device scope
     if (session == null) {
@@ -146,7 +149,10 @@ class ScopeResolver {
       if (entry.authKind == ScopeAuthKind.anonymous) {
         final linkResult = await _identityLinkRepository
             .get(entry.authId, ctx);
-        final link = linkResult is Ok ? linkResult.value : null;
+        final link = switch (linkResult) {
+          Ok(:final value) => value,
+          Err() => null,
+        };
         if (link != null &&
             link.registeredAppUserId.value == appUserId) {
           return true;
@@ -155,7 +161,10 @@ class ScopeResolver {
       if (entry.authKind == ScopeAuthKind.registered) {
         final linkResult = await _identityLinkRepository
             .get(entry.authId, ctx);
-        final link = linkResult is Ok ? linkResult.value : null;
+        final link = switch (linkResult) {
+          Ok(:final value) => value,
+          Err() => null,
+        };
         if (link != null &&
             link.anonymousAppUserId.value == appUserId) {
           return true;

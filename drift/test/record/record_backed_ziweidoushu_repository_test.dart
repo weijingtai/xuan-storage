@@ -6,7 +6,7 @@ import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_ziweidoushu/repository_interface_ziwei.dart';
 import 'package:test/test.dart';
 
-const _ctx = RequestContext(scopeUid: 's1');
+final _ctx = RequestContext(scopeUid: 's1');
 
 ZiweiDivinationRecordContract _rec({String uuid = '', String birthDatetime = '2026-06-28 23:00:00'}) => ZiweiDivinationRecordContract(
       uuid: uuid,

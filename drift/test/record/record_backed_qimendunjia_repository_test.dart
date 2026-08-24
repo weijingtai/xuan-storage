@@ -31,8 +31,8 @@ void main() {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
-    final id = await repo.put(_rec());
-    final all = await repo.query(const {});
+    final id = await repo.saveRecord(_rec());
+    final all = await repo.getAllRecords();
     expect(all.single.uuid, id);
     expect(all.single.juType, 't1');
   });
@@ -41,8 +41,8 @@ void main() {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
-    final id = await repo.put(_rec());
-    final retrieved = await repo.get(id);
+    final id = await repo.saveRecord(_rec());
+    final retrieved = await repo.getRecordByUuid(id);
     expect(retrieved?.uuid, id);
   });
 
@@ -50,17 +50,17 @@ void main() {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
-    final id = await repo.put(_rec());
-    expect(await repo.delete(id), isTrue);
-    expect(await repo.query(const {}), isEmpty);
+    final id = await repo.saveRecord(_rec());
+    expect(await repo.softDeleteRecord(id), isTrue);
+    expect(await repo.getAllRecords(), isEmpty);
   });
 
   test('watchAll emits on save', () async {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
-    final firstEmit = repo.watchAll().firstWhere((l) => l.isNotEmpty);
-    await repo.put(_rec());
+    final firstEmit = repo.watchAllRecords().firstWhere((l) => l.isNotEmpty);
+    await repo.saveRecord(_rec());
     final list = await firstEmit;
     expect(list, hasLength(1));
   });
@@ -70,9 +70,9 @@ void main() {
     addTearDown(db.close);
     final repo = _build(db);
     for (var i = 0; i < 1001; i++) {
-      await repo.put(_rec(juType: 'ju-$i'));
+      await repo.saveRecord(_rec(juType: 'ju-$i'));
     }
-    final all = await repo.query(const {});
+    final all = await repo.getAllRecords();
     expect(all.length, 1001);
   });
 }

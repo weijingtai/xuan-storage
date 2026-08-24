@@ -13,7 +13,7 @@ class RecordBackedSeekerRepository
   Future<String> saveSeeker(SeekerModel seeker) => save(seeker);
   Future<SeekerModel?> getSeekerByUuid(String uuid) => getByUuid(uuid);
   Future<List<SeekerModel>> getAllSeekers() => getAll();
-  Future<bool> softDeleteSeeker(String uuid) => softDelete(uuid);
+  Future<bool> softDeleteSeeker(String uuid) => softDeleteLegacy(uuid);
   Future<SeekerModel?> findByName(String name) =>
       getFirstByIndex('seeker_name', name);
 

@@ -43,6 +43,22 @@ class LayoutTemplateLocalDataSource implements LocalApplier {
         .getSingleOrNull();
   }
 
+  /// 跨集合加载全部模板（[includeDeleted] 控制是否含已软删行）。
+  Future<List<LayoutTemplateDto>> loadAllTemplates({
+    bool includeDeleted = false,
+  }) async {
+    final query = _db.select(_db.layoutTemplates);
+    if (!includeDeleted) {
+      query.where((t) => t.deletedAt.isNull());
+    }
+    final rows = await query.get();
+    return rows
+        .map((row) => jsonDecode(row.templateJson))
+        .whereType<Map<String, dynamic>>()
+        .map(LayoutTemplateDto.fromJson)
+        .toList(growable: false);
+  }
+
   Future<List<LayoutTemplateDto>> loadTemplates(String collectionId) async {
     final rows = await _dao.getAllByCollection(collectionId);
     return rows

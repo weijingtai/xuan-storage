@@ -1,7 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:persistence_drift/divination_tag/drift_tag_dimension_repository.dart';
 import 'package:persistence_drift/divination_tag/drift_tag_tables.dart';
 import 'package:repository_interface_divination_tag/repository_interface_divination_tag.dart';
+
+final ctx = RequestContext(scopeUid: 'test');
+
+Future<T> _ok<T>(Future<Result<T>> r) async => ((await r) as Ok<T>).value;
 
 void main() {
   final repository = DriftTagDimensionRepository();
@@ -14,22 +19,22 @@ void main() {
     expect(dims.every((d) => d.version >= 1), isTrue);
   });
 
-  test('listTagsByDimension returns tags sorted by sortOrder', () {
-    final wuxing = repository.listTagsByDimension('wu-xing');
+  test('listTagsByDimension returns tags sorted by sortOrder', () async {
+    final wuxing = await _ok(repository.listTagsByDimension('wu-xing', ctx));
     expect(wuxing.map((t) => t.text).toList(), ['金', '木', '水', '火', '土']);
     expect(wuxing.every((t) => t.dimensionId == 'wu-xing'), isTrue);
 
-    final jixiong = repository.listTagsByDimension('ji-xiong');
+    final jixiong = await _ok(repository.listTagsByDimension('ji-xiong', ctx));
     expect(jixiong.map((t) => t.text).toList(), ['吉', '凶', '平']);
 
-    expect(repository.listTagsByDimension('unknown-dimension'), isEmpty);
+    expect(await _ok(repository.listTagsByDimension('unknown-dimension', ctx)), isEmpty);
   });
 
-  test('validateTags returns correct boolean map', () {
-    final result = repository.validateTags({
+  test('validateTags returns correct boolean map', () async {
+    final result = await _ok(repository.validateTags({
       'wu-xing': ['tag.wu-xing.jin', 'tag.wu-xing.mu', 'tag.wu-xing.nonexistent'],
       'ji-xiong': ['tag.ji-xiong.ji'],
-    });
+    }, ctx));
     expect(result['wu-xing:tag.wu-xing.jin'], isTrue);
     expect(result['wu-xing:tag.wu-xing.mu'], isTrue);
     expect(result['wu-xing:tag.wu-xing.nonexistent'], isFalse);

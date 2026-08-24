@@ -10,7 +10,7 @@ void main() {
 
   setUp(() {
     db = TaiYiDatabase.memory();
-    repository = DriftUserRepository(db);
+    repository = DriftUserRepository(db, scopeUid: 's1');
   });
 
   tearDown(() async {

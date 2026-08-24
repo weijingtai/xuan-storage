@@ -1,11 +1,11 @@
 import 'package:repository_contract_kernel/repository_contract_kernel.dart';
+import 'package:repository_interface_record/repository_interface_record.dart';
 import 'package:repository_interface_liuyao/repository_interface_liuyao.dart';
 import 'package:uuid/uuid.dart';
 import '../record/base_record_backed_repository.dart';
 import '../record/record_entity_descriptor.dart';
 import '../record/record_row_mapper.dart';
 import '../record/record_storage_driver.dart';
-import 'liuyao_record_codec.dart';
 
 /// Drift-backed implementation of [SixYaoDivinationRecordRepository].
 ///
@@ -17,7 +17,7 @@ class RecordBackedLiuYaoRepository
 
   RecordBackedLiuYaoRepository({
     required ScopedRecordStore store,
-    required LiuYaoRecordCodec codec,
+    required RecordModuleCodec<SixYaoDivinationRecord> codec,
     Uuid? uuid,
   })  : _store = store,
         _codec = codec,
@@ -25,7 +25,7 @@ class RecordBackedLiuYaoRepository
         super(store: store, codec: codec, uuid: uuid);
 
   final ScopedRecordStore _store;
-  final LiuYaoRecordCodec _codec;
+  final RecordModuleCodec<SixYaoDivinationRecord> _codec;
   final Uuid _uuidGen;
 
   /// L0 契约内核仓储（与父类 _l0 同源；子类无法访问父类私有字段，故自建）。
