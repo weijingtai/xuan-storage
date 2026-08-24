@@ -110,8 +110,11 @@ abstract class BaseRecordBackedRepository<TContract> {
   }
 
   // ── delete ──
-  @Deprecated('M4 退场，改用 L0 切片')
-  Future<bool> softDelete(String uuid) async {
+  /// 遗留软删（返回 bool）。与 L0 [SoftDeletable] 切片的
+  /// `Future<Result<void>> softDelete(id, ctx)` 签名冲突，故更名让位；
+  /// M4 随整体适配层一并退场。
+  @Deprecated('M4 退场，改用 L0 SoftDeletable 切片')
+  Future<bool> softDeleteLegacy(String uuid) async {
     final r = await _l0.softDelete(uuid, _ctx);
     return r is Ok;
   }

@@ -68,7 +68,7 @@ class RecordBackedTiebanRepository
     Precondition pre = const Unconditional(),
   }) async {
     try {
-      await super.softDelete(id);
+      await super.softDeleteLegacy(id);
       return const Ok(null);
     } catch (e) {
       return Err(XuanError(

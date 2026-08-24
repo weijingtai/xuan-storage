@@ -1,5 +1,6 @@
 import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_qizhengsiyu/repository_interface_qizhengsiyu.dart';
+import 'package:repository_interface_record/repository_interface_record.dart';
 import '../record/base_record_backed_repository.dart';
 
 class RecordBackedQiZhengRepository
@@ -10,7 +11,9 @@ class RecordBackedQiZhengRepository
     required super.store,
     required super.codec,
     super.uuid,
-  });
+  }) : _codec = codec;
+
+  final RecordModuleCodec<QiZhengSiYuPanContract> _codec;
 
   @override
   Future<Result<QiZhengSiYuPanContract?>> get(String id, RequestContext ctx) async {
@@ -31,7 +34,7 @@ class RecordBackedQiZhengRepository
     Precondition pre = const Unconditional(),
   }) async {
     await save(entity);
-    return Ok(Rev(0));
+    return const Ok(Rev('1'));
   }
 
   @override
@@ -40,14 +43,14 @@ class RecordBackedQiZhengRepository
     RequestContext ctx, {
     Precondition pre = const Unconditional(),
   }) async {
-    await super.softDelete(id);
+    await super.softDeleteLegacy(id);
     return const Ok(null);
   }
 
   @override
   Future<Result<void>> restore(String id, RequestContext ctx) async {
     return const Err(XuanError(
-      code: ErrorCode.unimplemented,
+      code: ErrorCode.invalidArgument,
       message: 'restore not supported',
     ));
   }

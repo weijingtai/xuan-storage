@@ -24,5 +24,5 @@ class RecordBackedYanqinshuRepository
   Future<YanqinshuDivinationRecordContract?> get(String u) => getByUuid(u);
 
   @override
-  Future<bool> delete(String u) => softDelete(u);
+  Future<bool> delete(String u) => softDeleteLegacy(u);
 }

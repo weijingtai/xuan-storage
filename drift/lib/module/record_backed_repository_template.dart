@@ -13,5 +13,5 @@ class RecordBackedTemplateRepository
   Future<String> saveRecord(DummyRecord r) => save(r);
   Future<DummyRecord?> getRecordByUuid(String u) => getByUuid(u);
   Future<List<DummyRecord>> getAllRecords() => getAll();
-  Future<bool> softDeleteRecord(String u) => softDelete(u);
+  Future<bool> softDeleteRecord(String u) => softDeleteLegacy(u);
 }
