@@ -8,6 +8,7 @@ import 'firebase_playground_identity_resolver.dart';
 import 'firebase_playground_error_mapper.dart';
 import 'firebase_playground_cursor.dart';
 
+@Deprecated('Firestore Realtime 方案成本过高，用户 2026-08-23 裁决弃用：改用自研后端（xuan-server/notifier，Go + Centrifugo SSE）')
 final class FirebasePlaygroundConversationRepository
     implements PlaygroundConversationRepository {
   FirebasePlaygroundConversationRepository({

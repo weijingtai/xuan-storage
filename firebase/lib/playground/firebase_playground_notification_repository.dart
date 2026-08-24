@@ -7,6 +7,7 @@ import 'firebase_playground_identity_resolver.dart';
 import 'firebase_playground_error_mapper.dart';
 import 'firebase_playground_cursor.dart';
 
+@Deprecated('Firestore Realtime 方案成本过高，用户 2026-08-23 裁决弃用：改用自研方案（RxDart + eventflux SSE，落点 xuan-migration/notification）')
 final class FirebasePlaygroundNotificationRepository
     implements PlaygroundNotificationRepository {
   FirebasePlaygroundNotificationRepository({
