@@ -6,6 +6,7 @@ import 'package:repository_interface_playground/repository_interface_playground.
 import 'firebase_playground_schema.dart';
 import 'firebase_playground_event_mapper.dart';
 
+@Deprecated('Firestore Realtime 方案成本过高，用户 2026-08-23 裁决弃用：改用自研方案（RxDart + eventflux SSE，落点 xuan-migration/notification）')
 final class FirebasePlaygroundRealtimeRepository
     implements PlaygroundRealtimeRepository {
   FirebasePlaygroundRealtimeRepository({required FirebaseFirestore firestore})
