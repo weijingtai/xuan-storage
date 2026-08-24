@@ -49,6 +49,10 @@ class FirestoreStorageDriver implements StorageDriver {
   @override
   bool get supportsTransaction => false;
 
+  /// Firestore 是云端后端，属于云端 adapter。
+  @override
+  bool get isCloudBacked => true;
+
   @override
   Future<R> inTransaction<R>(Future<R> Function() body) => body();
 

@@ -213,6 +213,10 @@ class RecordStorageDriver implements StorageDriver {
   @override
   bool get supportsTransaction => false;
 
+  /// drift 落地在本机 SQLite，不是云端后端。
+  @override
+  bool get isCloudBacked => false;
+
   @override
   Future<R> inTransaction<R>(Future<R> Function() body) => body();
 }
