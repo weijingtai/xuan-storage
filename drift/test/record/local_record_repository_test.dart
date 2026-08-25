@@ -29,4 +29,28 @@ void main() {
         "SELECT index_key FROM t_record_search_index WHERE record_uuid='a'").get();
     expect(tags.single.read<String>('index_key'), 'upper_gua');
   });
+
+  test('getRecord returns record only when module matches', () async {
+    final db = PersistenceDriftDatabase(NativeDatabase.memory());
+    addTearDown(db.close);
+    final ds = DriftRecordDataSource(db, scopeUid: 's1');
+    final repo = LocalRecordRepository(ds, RecordAdapterRegistry([_TagAdapter()]));
+    final record = RecordMeta(
+      uuid: 'rec-1',
+      scopeUid: 's1',
+      module: 'meihua',
+      category: 'divination',
+      divinationType: 'mei_hua',
+      createdAt: DateTime.utc(2026),
+    );
+    await repo.saveRecord(record);
+
+    final wrongModuleResult = await repo.getRecord('rec-1', module: 'liuyao');
+    expect(wrongModuleResult, isNull);
+
+    final correctModuleResult = await repo.getRecord('rec-1', module: 'meihua');
+    expect(correctModuleResult, isNotNull);
+    expect(correctModuleResult!.uuid, 'rec-1');
+    expect(correctModuleResult.module, 'meihua');
+  });
 }
