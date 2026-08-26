@@ -157,6 +157,60 @@ void main() {
       expect(present, {0, 1});
     });
   });
+
+  group('refCount queries', () {
+    test('getRefCount returns 0, 1, 2 accurately', () async {
+      final handle = _sampleHandle('ref-m1');
+      await repo.stageIncomingManifest(
+        entityType: 'xiang_reading',
+        peerManifest: handle,
+        peerTier: BlobTier.sourceOfTruth,
+        peerVisibility: BlobVisibility.private,
+      );
+
+      // 0 refs
+      expect(await repo.getRefCount('ref-m1'), 0);
+
+      // 1 ref
+      await db.into(db.blobRefs).insert(
+            BlobRefsCompanion.insert(
+              ownerRecordUuid: 'owner-1',
+              cipherManifestId: 'ref-m1',
+            ),
+          );
+      expect(await repo.getRefCount('ref-m1'), 1);
+
+      // 2 refs
+      await db.into(db.blobRefs).insert(
+            BlobRefsCompanion.insert(
+              ownerRecordUuid: 'owner-2',
+              cipherManifestId: 'ref-m1',
+            ),
+          );
+      expect(await repo.getRefCount('ref-m1'), 2);
+    });
+  });
+
+  group('handle lookup', () {
+    test('getHandle returns BlobHandle for matching scope and null for other scope', () async {
+      final handle = _sampleHandle('handle-m1');
+      await repo.stageIncomingManifest(
+        entityType: 'xiang_reading',
+        peerManifest: handle,
+        peerTier: BlobTier.sourceOfTruth,
+        peerVisibility: BlobVisibility.private,
+      );
+
+      final retrieved = await repo.getHandle('handle-m1');
+      expect(retrieved, isNotNull);
+      expect(retrieved!.cipherManifestId, 'handle-m1');
+      expect(retrieved.plaintextSha256, handle.plaintextSha256);
+      expect(retrieved.chunkCount, handle.chunkCount);
+
+      final repoB = BlobMetadataRepository(db: db, scopeUid: 'scope-b');
+      expect(await repoB.getHandle('handle-m1'), isNull);
+    });
+  });
 }
 
 BlobHandle _sampleHandle(String manifestId) {

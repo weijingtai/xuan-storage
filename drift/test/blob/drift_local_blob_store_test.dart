@@ -178,4 +178,50 @@ void main() {
       expect(await store.statusOf(handle), BlobStatus.absent);
     });
   });
+
+  group('list refCount', () {
+    test('list returns accurate refCount at 0, 1, 2 refs', () async {
+      final handle = await store.put(
+        Stream.value([1, 2, 3, 4, 5]),
+        mimeType: 'x/test',
+        tier: BlobTier.sourceOfTruth,
+        expectedBytes: 5,
+      );
+
+      // Initially staged (status 0) -> not in list
+      var entries = await store.list(tier: BlobTier.sourceOfTruth).toList();
+      expect(entries.any((e) => e.handle.cipherManifestId == handle.cipherManifestId), isFalse);
+
+      // Reconcile 1 ref
+      await store.reconcileRefs(
+        ownerRecordUuid: 'rec-1',
+        handles: {handle},
+      );
+      entries = await store.list(tier: BlobTier.sourceOfTruth).toList();
+      var entry = entries.firstWhere((e) => e.handle.cipherManifestId == handle.cipherManifestId);
+      expect(entry.refCount, 1);
+
+      // Add second ref (rec-2)
+      await store.reconcileRefs(
+        ownerRecordUuid: 'rec-2',
+        handles: {handle},
+      );
+      entries = await store.list(tier: BlobTier.sourceOfTruth).toList();
+      entry = entries.firstWhere((e) => e.handle.cipherManifestId == handle.cipherManifestId);
+      expect(entry.refCount, 2);
+
+      // Remove ref from rec-1 and rec-2 -> 0 refs
+      await store.reconcileRefs(
+        ownerRecordUuid: 'rec-1',
+        handles: {},
+      );
+      await store.reconcileRefs(
+        ownerRecordUuid: 'rec-2',
+        handles: {},
+      );
+      entries = await store.list(tier: BlobTier.sourceOfTruth).toList();
+      entry = entries.firstWhere((e) => e.handle.cipherManifestId == handle.cipherManifestId);
+      expect(entry.refCount, 0);
+    });
+  });
 }
