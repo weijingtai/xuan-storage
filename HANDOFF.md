@@ -1,3 +1,19 @@
+# HANDOFF: storage-record-module-check（Task Kanyu R2）
+
+## Task Kanyu R2: Record 读取补 module 校验（2026-08-25）
+
+- 当前分支/worktree: `feature/kanyu-r2-record-module-check` (`wave1-kanyu-r2`)
+- Commit SHA: `a750a059fcdeb198e11a299e418ec3586cffe674`
+- 变更范围:
+  - `drift/lib/record/local_record_repository.dart`: `getRecord` 增加 `record.module == module` 校验，mismatch 返回 `null`。
+  - `drift/test/record/local_record_repository_test.dart`: 增加 TDD RED/GREEN 测试 `getRecord returns record only when module matches`。
+- 执行命令与退出码:
+  - RED test: `flutter test --no-pub test/record/local_record_repository_test.dart` -> Exit code 1 (Failed as expected)
+  - GREEN test: `flutter test --no-pub test/record/local_record_repository_test.dart` -> Exit code 0 (Passed, 2/2 tests)
+  - Static analysis: `flutter analyze --no-pub lib/record/local_record_repository.dart test/record/local_record_repository_test.dart` -> Exit code 0 (0 issues)
+
+---
+
 # HANDOFF: storage-build-theme（交接信封 · 第 2 轮）
 
 ## Playground Firestore direct-write Design（2026-08-12）
