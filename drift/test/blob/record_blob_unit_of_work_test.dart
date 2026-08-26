@@ -18,6 +18,7 @@ import 'package:persistence_drift/blob/identity_blob_cipher.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:persistence_drift/blob/in_memory_record_blob_unit_of_work.dart'
     as support;
+import 'package:persistence_drift/meihuayishu/meihua_record_codec.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
 
 RecordMeta _makeRecord(String uuid) {
@@ -74,6 +75,9 @@ void main() {
         db: db,
         scopeUid: 'scope-a',
         blobStore: blobStore,
+        adapterRegistry: RecordAdapterRegistry([
+          MeiHuaRecordCodec(),
+        ]),
       );
       recordDs = DriftRecordDataSource(db, scopeUid: 'scope-a');
     });
@@ -121,6 +125,26 @@ void main() {
           .get();
       expect(refRows, isEmpty, reason: '软删后 blob ref 应释放');
     });
+
+  test('saveWithBlobs populates search index from codec', () async {
+    // RED：当前 saveWithBlobs 不提取搜索标签到 t_record_search_index。
+    // findByIndex 应返回空列表（RED 失败）。
+    final handle = _makeHandle('manifest-idx');
+    await uow.saveWithBlobs(
+      record: _makeRecord('rec-idx'),
+      referencedBlobs: {handle},
+    );
+
+    final results = await recordDs.findByIndex(
+      module: 'meihua',
+      indexKey: 'divination_uuid',
+      indexValue: 'null',
+      limit: 10,
+    );
+    // RED：当前未填充搜索索引，期望 0 条结果。
+    expect(results, isNotEmpty,
+        reason: 'RED：saveWithBlobs 未提取搜索标签到 t_record_search_index；修复后 findByIndex 应返回 rec-idx');
+  });
   });
 
   group('InMemoryRecordBlobUnitOfWork', () {
