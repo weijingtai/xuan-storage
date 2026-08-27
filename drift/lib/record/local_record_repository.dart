@@ -12,6 +12,8 @@ class LocalRecordRepository implements ScopedRecordStore {
   LocalRecordRepository(this._ds, this._registry, {OutboxStore? outboxStore})
       : _outboxStore = outboxStore;
 
+  OutboxStore? get _outbox => _outboxStore;
+
   @override
   String get scopeUid => _ds.scopeUid;
 
@@ -22,14 +24,12 @@ class LocalRecordRepository implements ScopedRecordStore {
             const <SearchTag>[];
     await _ds.saveRecord(record, tags);
 
-    if (_outboxStore != null) {
-      try {
-        final outboxRecord = RecordOutboxMapper.toOutboxRecord(
-          meta: record, moduleData: moduleData, tags: tags, opType: RecordOutboxMapper.opUpsert,
-        );
-        await _outboxStore.enqueue(outboxRecord);
-      } catch (_) {
-      }
+    final outbox = _outbox;
+    if (outbox != null) {
+      final outboxRecord = RecordOutboxMapper.toOutboxRecord(
+        meta: record, moduleData: moduleData, tags: tags, opType: RecordOutboxMapper.opUpsert,
+      );
+      await outbox.enqueue(outboxRecord);
     }
   }
 
@@ -52,20 +52,56 @@ class LocalRecordRepository implements ScopedRecordStore {
   @override
   Future<bool> softDeleteRecord(String uuid, {required String module}) async {
     final deleted = await _ds.softDeleteRecord(uuid);
-    if (deleted && _outboxStore != null) {
-      try {
-        final meta = await _ds.getRecord(uuid);
-        if (meta != null) {
+    if (deleted) {
+      final meta = await _ds.getRecord(uuid);
+      if (meta != null) {
+        final outbox = _outbox;
+        if (outbox != null) {
           final outboxRecord = RecordOutboxMapper.toOutboxRecord(
             meta: meta, opType: RecordOutboxMapper.opDelete,
           );
-          await _outboxStore.enqueue(outboxRecord);
+          await outbox.enqueue(outboxRecord);
         }
-      } catch (_) {
       }
     }
     return deleted;
   }
+
+  /// Restore (un-soft-delete) a previously soft-deleted record.
+  ///
+  /// Clears the [RecordMeta.deletedAt] field, re-persists the record and
+  /// its search index, and enqueues an UPSERT outbox entry so peers learn
+  /// about the restoration.  Errors from the outbox enqueue propagate to
+  /// the caller — the local record is already saved, but the caller must
+  /// be aware that sync may not have been triggered.
+  ///
+  /// Returns `true` if the record was restored, `false` if the uuid was
+  /// not found or was already active (not soft-deleted).
+  Future<bool> restoreRecord(RecordMeta record, {Map<String, dynamic>? moduleData}) async {
+    final tags =
+        _registry.forModule(record.module)?.extractSearchTags(record, moduleData) ??
+            const <SearchTag>[];
+    final restored = await _ds.restoreRecord(record, tags);
+    if (restored) {
+      final outbox = _outbox;
+      if (outbox != null) {
+        final outboxRecord = RecordOutboxMapper.toOutboxRecord(
+          meta: record, moduleData: moduleData, tags: tags, opType: RecordOutboxMapper.opUpsert,
+        );
+        await outbox.enqueue(outboxRecord);
+      }
+    }
+    return restored;
+  }
+
+  /// Apply a remote record directly to local storage without touching the
+  /// outbox (anti-loop prevention — remote-originated writes must never
+  /// re-enter the outbox).
+  ///
+  /// Delegates to [DriftRecordDataSource.applyRemoteRecord] which runs in
+  /// a single drift transaction (record + search index atomic).
+  Future<void> applyRemoteRecord(RecordMeta record, List<SearchTag> tags) =>
+      _ds.applyRemoteRecord(record, tags);
 
   @override
   Stream<List<RecordMeta>> watchRecords({
@@ -93,4 +129,3 @@ class LocalRecordRepository implements ScopedRecordStore {
   }) =>
       _ds.watchByIndex(module: module, indexKey: indexKey, indexValue: indexValue);
 }
-
