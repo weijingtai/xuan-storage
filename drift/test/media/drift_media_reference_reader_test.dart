@@ -221,6 +221,34 @@ void main() {
         throwsA(isA<BlobCorruptError>()),
       );
     });
+
+    test('maps stream-level unexpected errors to BlobCorruptError upon consumption', () async {
+      final sampleBytes = Uint8List.fromList([1, 2, 3, 4]);
+      final handle = await blobStoreA.put(
+        Stream.value(sampleBytes),
+        mimeType: 'image/png',
+        tier: BlobTier.sourceOfTruth,
+        expectedBytes: sampleBytes.length,
+      );
+
+      await blobStoreA.reconcileRefs(
+        ownerRecordUuid: 'rec-stream-err',
+        handles: {handle},
+      );
+
+      // Truncate chunk file to 0 bytes so backend read fails/corrupts
+      final chunkFile = File('${tmpDir.path}/$scopeA/${handle.cipherManifestId}/0.bin');
+      await chunkFile.writeAsBytes([]);
+
+      final reader = createReaderForScope(scopeA);
+      final result = await reader.openRead(handle.cipherManifestId);
+      expect(result, isA<MediaReadComplete>());
+      final complete = result as MediaReadComplete;
+      expect(
+        () => complete.byteStream.toList(),
+        throwsA(isA<BlobCorruptError>()),
+      );
+    });
   });
 
   group('DriftMediaReferenceReader - undecryptable state', () {
@@ -244,6 +272,7 @@ void main() {
 
       final result = await reader.openRead(handle.cipherManifestId);
       expect(result, isA<MediaReadUndecryptable>());
+      expect(result.status, MediaReadStatus.undecryptable);
     });
   });
 
