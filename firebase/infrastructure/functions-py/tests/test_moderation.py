@@ -1,9 +1,13 @@
-"""内容举报。基准实现：functions/src/moderation.ts"""
+"""内容举报测试。基准实现：functions/src/moderation.ts"""
 import pytest
 
 from xuan.config import COLLECTIONS
 from xuan.errors import XuanHttpsError
-from xuan.handlers.moderation import _report_content_impl as report
+from xuan.handlers.moderation import (
+    _report_content_impl as report,
+    _report_post_impl as report_post,
+    _report_reply_impl as report_reply,
+)
 
 UID = "uid_reporter"
 
@@ -93,3 +97,53 @@ def test_带幂等键也照样产生新记录(clean_collections):
     assert a["id"] != b["id"]
     assert list(clean_collections.collection(COLLECTIONS["idempotency"]).stream()) == [], \
         "不得写幂等记录"
+
+
+# ===== 新增针对 report_post 和 report_reply 的独立测试 =====
+
+def test_report_post_参数校验(clean_collections):
+    for bad in [{}, {"postId": ""}, {"postId": 123}, {"postId": "p1", "reason": ""}, {"postId": "p1"}]:
+        with pytest.raises(XuanHttpsError) as e:
+            report_post(UID, bad)
+        assert e.value.code == "invalid-argument"
+
+
+def test_report_post_成功写入(clean_collections):
+    got = report_post(UID, {
+        "postId": "post_100",
+        "reason": "利用占卜恐吓或控制",
+        "description": "内容包含虚假恐吓信息",
+    })
+    assert got["status"] == "pending"
+    assert "id" in got
+
+    row = clean_collections.collection(COLLECTIONS["reports"]).document(got["id"]).get().to_dict()
+    assert row["post_id"] == "post_100"
+    assert row["reply_id"] is None
+    assert row["reason"] == "利用占卜恐吓或控制"
+    assert row["description"] == "内容包含虚假恐吓信息"
+    assert row["status"] == "pending"
+
+
+def test_report_reply_参数校验(clean_collections):
+    for bad in [{}, {"replyId": ""}, {"replyId": 123}, {"replyId": "r1", "reason": ""}, {"replyId": "r1"}]:
+        with pytest.raises(XuanHttpsError) as e:
+            report_reply(UID, bad)
+        assert e.value.code == "invalid-argument"
+
+
+def test_report_reply_成功写入(clean_collections):
+    got = report_reply(UID, {
+        "replyId": "reply_200",
+        "reason": "骚扰辱骂",
+        "description": "恶意评论人身攻击",
+    })
+    assert got["status"] == "pending"
+    assert "id" in got
+
+    row = clean_collections.collection(COLLECTIONS["reports"]).document(got["id"]).get().to_dict()
+    assert row["reply_id"] == "reply_200"
+    assert row["post_id"] is None
+    assert row["reason"] == "骚扰辱骂"
+    assert row["description"] == "恶意评论人身攻击"
+    assert row["status"] == "pending"

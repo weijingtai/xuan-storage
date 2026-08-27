@@ -254,29 +254,42 @@ def _block_user_impl(uid: str, data: dict) -> dict:
     uid = require_auth_uid(uid)
     app_user_id = resolve_app_user_id(uid)["appUserId"]
 
-    target = data.get("targetAppUserId")
-    if not target or not isinstance(target, str):
+    target = data.get("targetAppUserId") or data.get("target_app_user_id")
+    if not target or not isinstance(target, str) or not target.strip():
         raise invalid_argument("targetAppUserId 不能为空")
+    target = target.strip()
     if target == app_user_id:
         raise invalid_argument("不能拉黑自己")
 
     def _run() -> dict:
         client = db()
-        existing = client.collection(COLLECTIONS["blocks"]) \
-            .where("blocker_app_user_id", "==", app_user_id) \
-            .where("blocked_app_user_id", "==", target).get()
-        if list(existing):
-            # ★ 坑 6：已拉黑直接返回，**不落第二条记录**，返回体多一个字段
-            return {"blocked": True, "already_blocked": True}
+        doc_id = f"block_{app_user_id}_{target}"
+        doc_ref = client.collection(COLLECTIONS["blocks"]).document(doc_id)
 
-        ref = client.collection(COLLECTIONS["blocks"]).document()
-        ref.set({
-            "id": ref.id,
-            "blocker_app_user_id": app_user_id,
-            "blocked_app_user_id": target,
-            "created_at": gcf.SERVER_TIMESTAMP,
-        })
-        return {"blocked": True}
+        @gcf.transactional
+        def _tx_block(tx):
+            snap = doc_ref.get(transaction=tx)
+            if snap.exists:
+                # ★ 坑 6：已拉黑直接返回，**不落第二条记录**，返回体多一个字段
+                return {"blocked": True, "already_blocked": True}
+
+            # 存量旧 ID 记录兜底检查
+            existing = client.collection(COLLECTIONS["blocks"]) \
+                .where("blocker_app_user_id", "==", app_user_id) \
+                .where("blocked_app_user_id", "==", target).get()
+            if list(existing):
+                return {"blocked": True, "already_blocked": True}
+
+            tx.set(doc_ref, {
+                "id": doc_id,
+                "blocker_provider_uid": uid,
+                "blocker_app_user_id": app_user_id,
+                "blocked_app_user_id": target,
+                "created_at": gcf.SERVER_TIMESTAMP,
+            })
+            return {"blocked": True}
+
+        return _tx_block(client.transaction())
 
     return with_idempotency(data.get("idempotency_key"), hash_payload(data), _run)
 
@@ -286,20 +299,39 @@ def _unblock_user_impl(uid: str, data: dict) -> dict:
     uid = require_auth_uid(uid)
     app_user_id = resolve_app_user_id(uid)["appUserId"]
 
-    target = data.get("targetAppUserId")
-    if not target or not isinstance(target, str):
+    target = data.get("targetAppUserId") or data.get("target_app_user_id")
+    if not target or not isinstance(target, str) or not target.strip():
         raise invalid_argument("targetAppUserId 不能为空")
+    target = target.strip()
     if target == app_user_id:
         raise invalid_argument("不能对自身执行解除拉黑")
 
     def _run() -> dict:
         client = db()
+        doc_id = f"block_{app_user_id}_{target}"
+        doc_ref = client.collection(COLLECTIONS["blocks"]).document(doc_id)
+
+        removed = 0
+
+        @gcf.transactional
+        def _tx_unblock(tx):
+            snap = doc_ref.get(transaction=tx)
+            if snap.exists:
+                tx.delete(doc_ref)
+                return 1
+            return 0
+
+        removed += _tx_unblock(client.transaction())
+
+        # 存量历史未对齐固定 ID 的旧记录一并清理
         rows = list(client.collection(COLLECTIONS["blocks"])
                     .where("blocker_app_user_id", "==", app_user_id)
                     .where("blocked_app_user_id", "==", target).get())
         for doc in rows:
-            doc.reference.delete()
-        return {"unblocked": True, "removed": len(rows)}
+            if doc.id != doc_id:
+                doc.reference.delete()
+                removed += 1
+        return {"unblocked": True, "removed": removed}
 
     return with_idempotency(data.get("idempotency_key"), hash_payload(data), _run)
 

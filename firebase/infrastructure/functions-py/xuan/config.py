@@ -76,6 +76,8 @@ COLLECTIONS = {
     "identity_map": "identity_map",
     "fcm_tokens": "fcm_tokens",
     "blocks": "playground_blocks",
+    "follows": "playground_follows",
+    "subscriptions": "playground_subscriptions",
 }
 
 MAX_REPLY_DEPTH = 1

@@ -36,7 +36,8 @@ def clean_collections(firestore_db):
         COLLECTIONS["blocks"], COLLECTIONS["outcome_feedback"],
         COLLECTIONS["verifications"], COLLECTIONS["fcm_tokens"],
         COLLECTIONS["reports"], COLLECTIONS["notifications"],
-        COLLECTIONS["media"],
+        COLLECTIONS["media"], COLLECTIONS["follows"],
+        COLLECTIONS["subscriptions"],
     ]
     for name in names:
         for doc in firestore_db.collection(name).stream():

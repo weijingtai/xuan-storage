@@ -5,6 +5,9 @@ from pathlib import Path
 from xuan.config import COLLECTIONS, REGION
 
 TS_INDEX = Path(__file__).parents[2] / "functions" / "src" / "index.ts"
+if not TS_INDEX.exists():
+    TS_INDEX = Path(__file__).resolve().parents[2] / "functions" / "src" / "index.ts"
+
 
 
 def test_region_与_ts_一致():

@@ -36,16 +36,26 @@ from xuan.handlers.verifications import (  # noqa: F401
     revoke_verification_py,
     verify_root_reply_py,
 )
-from xuan.handlers.fcm import (  # noqa: F401
-    register_fcm_token_py,
-    unregister_fcm_token_py,
+from xuan.handlers.follow import (  # noqa: F401
+    follow_user_py,
+    unfollow_user_py,
 )
-from xuan.handlers.moderation import report_content_py  # noqa: F401
+from xuan.handlers.user_search import (  # noqa: F401
+    get_mention_candidates_py,
+    search_users_py,
+)
+from xuan.handlers.moderation import (  # noqa: F401
+    report_content_py,
+    report_post_py,
+    report_reply_py,
+)
+from xuan.handlers.subscriptions import (  # noqa: F401
+    set_notification_preference_py,
+)
 from xuan.handlers.media import (  # noqa: F401
     cleanup_orphan_media_py,
     on_media_uploaded_py,
 )
-from xuan.handlers.notifications import on_outbox_created_py  # noqa: F401
 from xuan.handlers.playground_rest import (  # noqa: F401
     playground_bookmarks_py,
     playground_feed_py,
@@ -60,5 +70,3 @@ from xuan.handlers.playground_rest import (  # noqa: F401
 
 # 函数名统一加 `_py` 后缀：切换期两个版本同时部署在一个项目里，
 # 同名会互相覆盖。客户端通过配置决定调哪一个。
-
-
