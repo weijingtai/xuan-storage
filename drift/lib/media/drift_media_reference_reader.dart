@@ -4,6 +4,27 @@ import 'package:persistence_core/persistence_core.dart';
 import 'package:persistence_drift/blob/blob_metadata_repository.dart';
 import 'package:repository_interface_media/repository_interface_media.dart';
 
+/// Maps raw stream errors from blob consumption to the correct
+/// [BlobCorruptError] / [BlobUndecryptableError] types, so callers never see
+/// unmapped IO or decryption exceptions bubble out of [MediaReadComplete.byteStream].
+Stream<List<int>> _mapStreamErrors(Stream<List<int>> source) {
+  return source.transform(
+    StreamTransformer<List<int>, List<int>>.fromHandlers(
+      handleData: (data, sink) => sink.add(data),
+      handleError: (error, stackTrace, sink) {
+        if (error is BlobCorruptError || error is BlobUndecryptableError) {
+          sink.addError(error, stackTrace);
+        } else {
+          // Unexpected errors during stream consumption are data-corruption
+          // in disguise — map to BlobCorruptError so callers see a coherent
+          // error domain instead of raw IO / cipher exceptions.
+          sink.addError(BlobCorruptError(), stackTrace);
+        }
+      },
+    ),
+  );
+}
+
 /// Drift-backed implementation of [MediaReferenceReader].
 ///
 /// Resolves media references to underlying blob storage by looking up
@@ -66,7 +87,7 @@ final class DriftMediaReferenceReader implements MediaReferenceReader {
       final blobResult = await blobStore.openRead(handle);
       return switch (blobResult) {
         BlobOk(:final plaintext) => MediaReadResult.complete(
-            byteStream: plaintext,
+            byteStream: _mapStreamErrors(plaintext),
             mimeType: handle.mimeType,
             contentLength: handle.totalBytes,
           ),
