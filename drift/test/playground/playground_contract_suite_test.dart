@@ -57,7 +57,7 @@ final class _MemoryPostRemote implements PlaygroundPostRemoteDataSource {
 }
 
 /// 内联组合仓库（与 firebase `CachedPlaygroundPostRepository` 同构）。
-final class _CachedPostRepository implements PlaygroundPostRepository {
+final class _CachedPostRepository implements PlaygroundPostRemoteDataSource {
   _CachedPostRepository(this._remote, this._cache);
 
   final _MemoryPostRemote _remote;

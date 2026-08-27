@@ -10,7 +10,7 @@ import 'package:repository_interface_xiang/repository_interface_xiang.dart';
 
 const _scopeUid = 'scope-1';
 
-RequestContext _ctx(String id) => RequestContext(scopeUid: id);
+RequestContext _ctx([String scope = _scopeUid]) => RequestContext(scopeUid: scope);
 
 // ── fixtures (mirror xiang_record_codec_test.dart) ──
 
@@ -191,7 +191,7 @@ class _InMemoryXiangReadingRepository implements XiangReadingRepository {
 
 /// Helper: put + unwrap
 Future<XiangReading> _save(XiangReadingRepository repo, XiangReading reading) async {
-  final ctx = _ctx(reading.uuid);
+  final ctx = _ctx();
   final r = await repo.put(reading, ctx);
   switch (r) {
     case Ok(:final value):
@@ -203,7 +203,7 @@ Future<XiangReading> _save(XiangReadingRepository repo, XiangReading reading) as
 
 /// Helper: get + unwrap
 Future<XiangReading?> _load(XiangReadingRepository repo, String uuid) async {
-  final r = await repo.get(uuid, _ctx(uuid));
+  final r = await repo.get(uuid, _ctx());
   switch (r) {
     case Ok(:final value):
       return value;
@@ -214,7 +214,7 @@ Future<XiangReading?> _load(XiangReadingRepository repo, String uuid) async {
 
 /// Helper: softDelete + unwrap
 Future<void> _softDelete(XiangReadingRepository repo, String uuid) async {
-  final r = await repo.softDelete(uuid, _ctx(uuid));
+  final r = await repo.softDelete(uuid, _ctx());
   switch (r) {
     case Ok():
       return;

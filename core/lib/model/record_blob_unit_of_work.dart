@@ -41,4 +41,18 @@ abstract interface class RecordBlobUnitOfWork {
   /// 约定：
   /// - 删除记录与其 blob 引用计数释放必须在同一事务内完成。
   Future<void> deleteWithBlobs(String recordUuid);
+
+  /// 恢复（反软删）记录并恢复其 blob 引用与搜索索引，同事务。
+  ///
+  /// 参数说明：
+  /// - [record]: 要恢复的记录（已清除 deletedAt）。
+  /// - [referencedBlobs]: 该记录恢复后引用的 blob 句柄集合。
+  ///
+  /// 约定：
+  /// - 恢复记录、搜索索引、blob 引用与 outbox 必须在同一事务内完成。
+  /// - sourceOfTruth 字节不删除。
+  Future<bool> restoreWithBlobs({
+    required RecordMeta record,
+    required Set<BlobHandle> referencedBlobs,
+  });
 }

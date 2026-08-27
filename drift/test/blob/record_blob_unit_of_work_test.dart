@@ -18,7 +18,6 @@ import 'package:persistence_drift/blob/identity_blob_cipher.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:persistence_drift/blob/in_memory_record_blob_unit_of_work.dart'
     as support;
-import 'package:persistence_drift/meihuayishu/meihua_record_codec.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
 
 RecordMeta _makeRecord(String uuid) {
@@ -148,7 +147,7 @@ void main() {
   });
 
   group('InMemoryRecordBlobUnitOfWork', () {
-    test('save and delete follow same contract', () async {
+    test('save, delete, and restore follow same contract', () async {
       final uow = support.InMemoryRecordBlobUnitOfWork();
       final handle = _makeHandle('manifest-1');
 
@@ -158,12 +157,21 @@ void main() {
       );
 
       expect(uow.records, hasLength(1));
+      expect(uow.records['rec-1']!.deletedAt, isNull);
       expect(uow.refs, hasLength(1));
       expect(uow.refs['rec-1'], contains(handle));
 
       await uow.deleteWithBlobs('rec-1');
-      expect(uow.records, isEmpty);
-      expect(uow.refs, isEmpty);
+      expect(uow.records['rec-1']!.deletedAt, isNotNull);
+      expect(uow.refs['rec-1'], isNull);
+
+      final restored = await uow.restoreWithBlobs(
+        record: _makeRecord('rec-1').copyWith(deletedAt: null),
+        referencedBlobs: {handle},
+      );
+      expect(restored, isTrue);
+      expect(uow.records['rec-1']!.deletedAt, isNull);
+      expect(uow.refs['rec-1'], contains(handle));
     });
   });
 

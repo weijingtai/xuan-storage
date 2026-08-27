@@ -65,17 +65,13 @@ class RecordBackedMeiHuaRepository
     return watchAll().map((list) => Ok(list));
   }
 
-  // ignore: override_on_non_overriding_member
+  @override
   Future<Result<void>> softDelete(
     String id,
     RequestContext ctx, {
     Precondition pre = const Unconditional(),
-  }) async {
-    // 基类 softDelete(String) 签名不兼容 L0 SoftDeletable，
-    // 此处通过存取基类 getAll/getByUuid + 内部 _l0 间接实现。
-    // 注意：不调用 super.softDelete 避免签名冲突递归。
-    return const Ok(null);
-  }
+  }) =>
+      softDeleteSlice(id, ctx, pre: pre);
 
   @override
   Future<Result<void>> restore(String id, RequestContext ctx) async {
@@ -130,4 +126,10 @@ class RecordBackedMeiHuaRepository
 
   @Deprecated('M4 退场：改用 L0 切片')
   Future<MeiHuaDivinationRecordContract?> getRecordByUuid(String uuid) => getByUuid(uuid);
+
+  @Deprecated('M4 退场：改用 L0 切片')
+  Future<bool> softDeleteRecord(String uuid) => softDeleteLegacy(uuid);
+
+  @Deprecated('M4 退场：改用 L0 切片')
+  Stream<List<MeiHuaDivinationRecordContract>> watchAllRecords() => watchAll();
 }

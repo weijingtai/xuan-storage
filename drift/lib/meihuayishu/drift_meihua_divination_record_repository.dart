@@ -174,4 +174,42 @@ class DriftMeiHuaDivinationRecordRepository
       ));
     }
   }
+
+  @Deprecated('M4 退场')
+  Future<String> saveRecord(MeiHuaDivinationRecordContract r) async {
+    final uuid = r.uuid.isNotEmpty ? r.uuid : const Uuid().v4();
+    final toSave = r.uuid.isNotEmpty
+        ? r
+        : MeiHuaDivinationRecordContract(
+            uuid: uuid,
+            divinationUuid: r.divinationUuid,
+            question: r.question,
+            originalUpperGua: r.originalUpperGua,
+            originalLowerGua: r.originalLowerGua,
+            changingYao: r.changingYao,
+            changedUpperGua: r.changedUpperGua,
+            changedLowerGua: r.changedLowerGua,
+            huUpperGua: r.huUpperGua,
+            huLowerGua: r.huLowerGua,
+            method: r.method,
+            paramsJson: r.paramsJson,
+            createdAt: r.createdAt,
+            updatedAt: r.updatedAt,
+            deletedAt: r.deletedAt,
+          );
+    await put(toSave, RequestContext(scopeUid: scopeUid ?? ''));
+    return uuid;
+  }
+
+  @Deprecated('M4 退场')
+  Future<List<MeiHuaDivinationRecordContract>> getAllRecords() async {
+    final res = await query(const {}, PageRequest(limit: 1000), RequestContext(scopeUid: scopeUid ?? ''));
+    return (res as Ok<Page<MeiHuaDivinationRecordContract>>).value.items;
+  }
+
+  @Deprecated('M4 退场')
+  Future<MeiHuaDivinationRecordContract?> getRecordByUuid(String uuid) async {
+    final res = await get(uuid, RequestContext(scopeUid: scopeUid ?? ''));
+    return (res as Ok<MeiHuaDivinationRecordContract?>).value;
+  }
 }
