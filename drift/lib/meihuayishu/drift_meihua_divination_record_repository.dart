@@ -175,7 +175,7 @@ class DriftMeiHuaDivinationRecordRepository
     }
   }
 
-  @Deprecated('M4 退场')
+  @override
   Future<String> saveRecord(MeiHuaDivinationRecordContract r) async {
     final uuid = r.uuid.isNotEmpty ? r.uuid : const Uuid().v4();
     final toSave = r.uuid.isNotEmpty
@@ -200,14 +200,24 @@ class DriftMeiHuaDivinationRecordRepository
     await put(toSave, RequestContext(scopeUid: scopeUid ?? ''));
     return uuid;
   }
+  @override
+  Future<bool> softDeleteRecord(String uuid) async {
+    final res = await softDelete(uuid, RequestContext(scopeUid: scopeUid ?? ''));
+    return res is Ok;
+  }
 
-  @Deprecated('M4 退场')
+  @override
+  Stream<List<MeiHuaDivinationRecordContract>> watchAllRecords() {
+    return _dao.watchAllRecords().map((rows) => rows.map(_toContract).toList());
+  }
+
+  @override
   Future<List<MeiHuaDivinationRecordContract>> getAllRecords() async {
     final res = await query(const {}, PageRequest(limit: 1000), RequestContext(scopeUid: scopeUid ?? ''));
     return (res as Ok<Page<MeiHuaDivinationRecordContract>>).value.items;
   }
 
-  @Deprecated('M4 退场')
+  @override
   Future<MeiHuaDivinationRecordContract?> getRecordByUuid(String uuid) async {
     final res = await get(uuid, RequestContext(scopeUid: scopeUid ?? ''));
     return (res as Ok<MeiHuaDivinationRecordContract?>).value;

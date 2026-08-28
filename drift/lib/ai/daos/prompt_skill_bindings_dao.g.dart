@@ -4,9 +4,9 @@ part of 'prompt_skill_bindings_dao.dart';
 
 // ignore_for_file: type=lint
 mixin _$PromptSkillBindingsDaoMixin on DatabaseAccessor<AiDatabase> {
-  $PromptTemplatesTable get promptTemplates => attachedDatabase.promptTemplates;
   $PromptSkillBindingsTable get promptSkillBindings =>
       attachedDatabase.promptSkillBindings;
+  $PromptTemplatesTable get promptTemplates => attachedDatabase.promptTemplates;
   PromptSkillBindingsDaoManager get managers =>
       PromptSkillBindingsDaoManager(this);
 }
@@ -14,14 +14,14 @@ mixin _$PromptSkillBindingsDaoMixin on DatabaseAccessor<AiDatabase> {
 class PromptSkillBindingsDaoManager {
   final _$PromptSkillBindingsDaoMixin _db;
   PromptSkillBindingsDaoManager(this._db);
-  $$PromptTemplatesTableTableManager get promptTemplates =>
-      $$PromptTemplatesTableTableManager(
-        _db.attachedDatabase,
-        _db.promptTemplates,
-      );
   $$PromptSkillBindingsTableTableManager get promptSkillBindings =>
       $$PromptSkillBindingsTableTableManager(
         _db.attachedDatabase,
         _db.promptSkillBindings,
+      );
+  $$PromptTemplatesTableTableManager get promptTemplates =>
+      $$PromptTemplatesTableTableManager(
+        _db.attachedDatabase,
+        _db.promptTemplates,
       );
 }

@@ -2432,6 +2432,7 @@ class SeekersCompanion extends UpdateCompanion<SeekerModel> {
   String toString() {
     return (StringBuffer('SeekersCompanion(')
           ..write('uuid: $uuid, ')
+          ..write('scopeUid: $scopeUid, ')
           ..write('username: $username, ')
           ..write('nickname: $nickname, ')
           ..write('gender: $gender, ')
@@ -7408,6 +7409,7 @@ class TimingDivinationsCompanion
           ..write('lastUpdatedAt: $lastUpdatedAt, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('divinationUuid: $divinationUuid, ')
+          ..write('scopeUid: $scopeUid, ')
           ..write('timingType: $timingType, ')
           ..write('datetime: $datetime, ')
           ..write('isManual: $isManual, ')
@@ -9205,13 +9207,13 @@ class $SkillClassesTable extends SkillClasses
   );
   @override
   late final GeneratedColumn<DateTime> lastUpdatedAt =
-    GeneratedColumn<DateTime>(
-      'last_updated_at',
-      aliasedName,
-      false,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: true,
-    );
+      GeneratedColumn<DateTime>(
+        'last_updated_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: true,
+      );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
   );
@@ -20656,6 +20658,4504 @@ class PlaygroundReplyCachesCompanion
   }
 }
 
+class $TIMMessagesTable extends TIMMessages
+    with TableInfo<$TIMMessagesTable, TIMMessageRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TIMMessagesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _messageIdMeta = const VerificationMeta(
+    'messageId',
+  );
+  @override
+  late final GeneratedColumn<String> messageId = GeneratedColumn<String>(
+    'message_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _conversationIdMeta = const VerificationMeta(
+    'conversationId',
+  );
+  @override
+  late final GeneratedColumn<String> conversationId = GeneratedColumn<String>(
+    'conversation_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _senderAppUserIdMeta = const VerificationMeta(
+    'senderAppUserId',
+  );
+  @override
+  late final GeneratedColumn<String> senderAppUserId = GeneratedColumn<String>(
+    'sender_app_user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _recipientAppUserIdMeta =
+      const VerificationMeta('recipientAppUserId');
+  @override
+  late final GeneratedColumn<String> recipientAppUserId =
+      GeneratedColumn<String>(
+        'recipient_app_user_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _originDeviceIdMeta = const VerificationMeta(
+    'originDeviceId',
+  );
+  @override
+  late final GeneratedColumn<String> originDeviceId = GeneratedColumn<String>(
+    'origin_device_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _messageTypeMeta = const VerificationMeta(
+    'messageType',
+  );
+  @override
+  late final GeneratedColumn<String> messageType = GeneratedColumn<String>(
+    'message_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _contentJsonMeta = const VerificationMeta(
+    'contentJson',
+  );
+  @override
+  late final GeneratedColumn<String> contentJson = GeneratedColumn<String>(
+    'content_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _contentHashMeta = const VerificationMeta(
+    'contentHash',
+  );
+  @override
+  late final GeneratedColumn<String> contentHash = GeneratedColumn<String>(
+    'content_hash',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _mediaBlobHashMeta = const VerificationMeta(
+    'mediaBlobHash',
+  );
+  @override
+  late final GeneratedColumn<String> mediaBlobHash = GeneratedColumn<String>(
+    'media_blob_hash',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdHlcPackedMeta = const VerificationMeta(
+    'createdHlcPacked',
+  );
+  @override
+  late final GeneratedColumn<int> createdHlcPacked = GeneratedColumn<int>(
+    'created_hlc_packed',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdHlcDeviceIdMeta =
+      const VerificationMeta('createdHlcDeviceId');
+  @override
+  late final GeneratedColumn<String> createdHlcDeviceId =
+      GeneratedColumn<String>(
+        'created_hlc_device_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _createdAtUtcMsMeta = const VerificationMeta(
+    'createdAtUtcMs',
+  );
+  @override
+  late final GeneratedColumn<int> createdAtUtcMs = GeneratedColumn<int>(
+    'created_at_utc_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    scopeUid,
+    messageId,
+    conversationId,
+    senderAppUserId,
+    recipientAppUserId,
+    originDeviceId,
+    messageType,
+    contentJson,
+    contentHash,
+    mediaBlobHash,
+    createdHlcPacked,
+    createdHlcDeviceId,
+    createdAtUtcMs,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_im_message';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TIMMessageRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scopeUidMeta);
+    }
+    if (data.containsKey('message_id')) {
+      context.handle(
+        _messageIdMeta,
+        messageId.isAcceptableOrUnknown(data['message_id']!, _messageIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_messageIdMeta);
+    }
+    if (data.containsKey('conversation_id')) {
+      context.handle(
+        _conversationIdMeta,
+        conversationId.isAcceptableOrUnknown(
+          data['conversation_id']!,
+          _conversationIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_conversationIdMeta);
+    }
+    if (data.containsKey('sender_app_user_id')) {
+      context.handle(
+        _senderAppUserIdMeta,
+        senderAppUserId.isAcceptableOrUnknown(
+          data['sender_app_user_id']!,
+          _senderAppUserIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_senderAppUserIdMeta);
+    }
+    if (data.containsKey('recipient_app_user_id')) {
+      context.handle(
+        _recipientAppUserIdMeta,
+        recipientAppUserId.isAcceptableOrUnknown(
+          data['recipient_app_user_id']!,
+          _recipientAppUserIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_recipientAppUserIdMeta);
+    }
+    if (data.containsKey('origin_device_id')) {
+      context.handle(
+        _originDeviceIdMeta,
+        originDeviceId.isAcceptableOrUnknown(
+          data['origin_device_id']!,
+          _originDeviceIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_originDeviceIdMeta);
+    }
+    if (data.containsKey('message_type')) {
+      context.handle(
+        _messageTypeMeta,
+        messageType.isAcceptableOrUnknown(
+          data['message_type']!,
+          _messageTypeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_messageTypeMeta);
+    }
+    if (data.containsKey('content_json')) {
+      context.handle(
+        _contentJsonMeta,
+        contentJson.isAcceptableOrUnknown(
+          data['content_json']!,
+          _contentJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_contentJsonMeta);
+    }
+    if (data.containsKey('content_hash')) {
+      context.handle(
+        _contentHashMeta,
+        contentHash.isAcceptableOrUnknown(
+          data['content_hash']!,
+          _contentHashMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_contentHashMeta);
+    }
+    if (data.containsKey('media_blob_hash')) {
+      context.handle(
+        _mediaBlobHashMeta,
+        mediaBlobHash.isAcceptableOrUnknown(
+          data['media_blob_hash']!,
+          _mediaBlobHashMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_hlc_packed')) {
+      context.handle(
+        _createdHlcPackedMeta,
+        createdHlcPacked.isAcceptableOrUnknown(
+          data['created_hlc_packed']!,
+          _createdHlcPackedMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_createdHlcPackedMeta);
+    }
+    if (data.containsKey('created_hlc_device_id')) {
+      context.handle(
+        _createdHlcDeviceIdMeta,
+        createdHlcDeviceId.isAcceptableOrUnknown(
+          data['created_hlc_device_id']!,
+          _createdHlcDeviceIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_createdHlcDeviceIdMeta);
+    }
+    if (data.containsKey('created_at_utc_ms')) {
+      context.handle(
+        _createdAtUtcMsMeta,
+        createdAtUtcMs.isAcceptableOrUnknown(
+          data['created_at_utc_ms']!,
+          _createdAtUtcMsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtUtcMsMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {scopeUid, messageId};
+  @override
+  TIMMessageRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TIMMessageRow(
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      )!,
+      messageId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}message_id'],
+      )!,
+      conversationId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}conversation_id'],
+      )!,
+      senderAppUserId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sender_app_user_id'],
+      )!,
+      recipientAppUserId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}recipient_app_user_id'],
+      )!,
+      originDeviceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}origin_device_id'],
+      )!,
+      messageType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}message_type'],
+      )!,
+      contentJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content_json'],
+      )!,
+      contentHash: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content_hash'],
+      )!,
+      mediaBlobHash: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}media_blob_hash'],
+      ),
+      createdHlcPacked: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_hlc_packed'],
+      )!,
+      createdHlcDeviceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_hlc_device_id'],
+      )!,
+      createdAtUtcMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at_utc_ms'],
+      )!,
+    );
+  }
+
+  @override
+  $TIMMessagesTable createAlias(String alias) {
+    return $TIMMessagesTable(attachedDatabase, alias);
+  }
+}
+
+class TIMMessageRow extends DataClass implements Insertable<TIMMessageRow> {
+  final String scopeUid;
+  final String messageId;
+  final String conversationId;
+  final String senderAppUserId;
+  final String recipientAppUserId;
+  final String originDeviceId;
+  final String messageType;
+  final String contentJson;
+  final String contentHash;
+  final String? mediaBlobHash;
+  final int createdHlcPacked;
+  final String createdHlcDeviceId;
+  final int createdAtUtcMs;
+  const TIMMessageRow({
+    required this.scopeUid,
+    required this.messageId,
+    required this.conversationId,
+    required this.senderAppUserId,
+    required this.recipientAppUserId,
+    required this.originDeviceId,
+    required this.messageType,
+    required this.contentJson,
+    required this.contentHash,
+    this.mediaBlobHash,
+    required this.createdHlcPacked,
+    required this.createdHlcDeviceId,
+    required this.createdAtUtcMs,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['scope_uid'] = Variable<String>(scopeUid);
+    map['message_id'] = Variable<String>(messageId);
+    map['conversation_id'] = Variable<String>(conversationId);
+    map['sender_app_user_id'] = Variable<String>(senderAppUserId);
+    map['recipient_app_user_id'] = Variable<String>(recipientAppUserId);
+    map['origin_device_id'] = Variable<String>(originDeviceId);
+    map['message_type'] = Variable<String>(messageType);
+    map['content_json'] = Variable<String>(contentJson);
+    map['content_hash'] = Variable<String>(contentHash);
+    if (!nullToAbsent || mediaBlobHash != null) {
+      map['media_blob_hash'] = Variable<String>(mediaBlobHash);
+    }
+    map['created_hlc_packed'] = Variable<int>(createdHlcPacked);
+    map['created_hlc_device_id'] = Variable<String>(createdHlcDeviceId);
+    map['created_at_utc_ms'] = Variable<int>(createdAtUtcMs);
+    return map;
+  }
+
+  TIMMessagesCompanion toCompanion(bool nullToAbsent) {
+    return TIMMessagesCompanion(
+      scopeUid: Value(scopeUid),
+      messageId: Value(messageId),
+      conversationId: Value(conversationId),
+      senderAppUserId: Value(senderAppUserId),
+      recipientAppUserId: Value(recipientAppUserId),
+      originDeviceId: Value(originDeviceId),
+      messageType: Value(messageType),
+      contentJson: Value(contentJson),
+      contentHash: Value(contentHash),
+      mediaBlobHash: mediaBlobHash == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mediaBlobHash),
+      createdHlcPacked: Value(createdHlcPacked),
+      createdHlcDeviceId: Value(createdHlcDeviceId),
+      createdAtUtcMs: Value(createdAtUtcMs),
+    );
+  }
+
+  factory TIMMessageRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TIMMessageRow(
+      scopeUid: serializer.fromJson<String>(json['scopeUid']),
+      messageId: serializer.fromJson<String>(json['messageId']),
+      conversationId: serializer.fromJson<String>(json['conversationId']),
+      senderAppUserId: serializer.fromJson<String>(json['senderAppUserId']),
+      recipientAppUserId: serializer.fromJson<String>(
+        json['recipientAppUserId'],
+      ),
+      originDeviceId: serializer.fromJson<String>(json['originDeviceId']),
+      messageType: serializer.fromJson<String>(json['messageType']),
+      contentJson: serializer.fromJson<String>(json['contentJson']),
+      contentHash: serializer.fromJson<String>(json['contentHash']),
+      mediaBlobHash: serializer.fromJson<String?>(json['mediaBlobHash']),
+      createdHlcPacked: serializer.fromJson<int>(json['createdHlcPacked']),
+      createdHlcDeviceId: serializer.fromJson<String>(
+        json['createdHlcDeviceId'],
+      ),
+      createdAtUtcMs: serializer.fromJson<int>(json['createdAtUtcMs']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'scopeUid': serializer.toJson<String>(scopeUid),
+      'messageId': serializer.toJson<String>(messageId),
+      'conversationId': serializer.toJson<String>(conversationId),
+      'senderAppUserId': serializer.toJson<String>(senderAppUserId),
+      'recipientAppUserId': serializer.toJson<String>(recipientAppUserId),
+      'originDeviceId': serializer.toJson<String>(originDeviceId),
+      'messageType': serializer.toJson<String>(messageType),
+      'contentJson': serializer.toJson<String>(contentJson),
+      'contentHash': serializer.toJson<String>(contentHash),
+      'mediaBlobHash': serializer.toJson<String?>(mediaBlobHash),
+      'createdHlcPacked': serializer.toJson<int>(createdHlcPacked),
+      'createdHlcDeviceId': serializer.toJson<String>(createdHlcDeviceId),
+      'createdAtUtcMs': serializer.toJson<int>(createdAtUtcMs),
+    };
+  }
+
+  TIMMessageRow copyWith({
+    String? scopeUid,
+    String? messageId,
+    String? conversationId,
+    String? senderAppUserId,
+    String? recipientAppUserId,
+    String? originDeviceId,
+    String? messageType,
+    String? contentJson,
+    String? contentHash,
+    Value<String?> mediaBlobHash = const Value.absent(),
+    int? createdHlcPacked,
+    String? createdHlcDeviceId,
+    int? createdAtUtcMs,
+  }) => TIMMessageRow(
+    scopeUid: scopeUid ?? this.scopeUid,
+    messageId: messageId ?? this.messageId,
+    conversationId: conversationId ?? this.conversationId,
+    senderAppUserId: senderAppUserId ?? this.senderAppUserId,
+    recipientAppUserId: recipientAppUserId ?? this.recipientAppUserId,
+    originDeviceId: originDeviceId ?? this.originDeviceId,
+    messageType: messageType ?? this.messageType,
+    contentJson: contentJson ?? this.contentJson,
+    contentHash: contentHash ?? this.contentHash,
+    mediaBlobHash: mediaBlobHash.present
+        ? mediaBlobHash.value
+        : this.mediaBlobHash,
+    createdHlcPacked: createdHlcPacked ?? this.createdHlcPacked,
+    createdHlcDeviceId: createdHlcDeviceId ?? this.createdHlcDeviceId,
+    createdAtUtcMs: createdAtUtcMs ?? this.createdAtUtcMs,
+  );
+  TIMMessageRow copyWithCompanion(TIMMessagesCompanion data) {
+    return TIMMessageRow(
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
+      messageId: data.messageId.present ? data.messageId.value : this.messageId,
+      conversationId: data.conversationId.present
+          ? data.conversationId.value
+          : this.conversationId,
+      senderAppUserId: data.senderAppUserId.present
+          ? data.senderAppUserId.value
+          : this.senderAppUserId,
+      recipientAppUserId: data.recipientAppUserId.present
+          ? data.recipientAppUserId.value
+          : this.recipientAppUserId,
+      originDeviceId: data.originDeviceId.present
+          ? data.originDeviceId.value
+          : this.originDeviceId,
+      messageType: data.messageType.present
+          ? data.messageType.value
+          : this.messageType,
+      contentJson: data.contentJson.present
+          ? data.contentJson.value
+          : this.contentJson,
+      contentHash: data.contentHash.present
+          ? data.contentHash.value
+          : this.contentHash,
+      mediaBlobHash: data.mediaBlobHash.present
+          ? data.mediaBlobHash.value
+          : this.mediaBlobHash,
+      createdHlcPacked: data.createdHlcPacked.present
+          ? data.createdHlcPacked.value
+          : this.createdHlcPacked,
+      createdHlcDeviceId: data.createdHlcDeviceId.present
+          ? data.createdHlcDeviceId.value
+          : this.createdHlcDeviceId,
+      createdAtUtcMs: data.createdAtUtcMs.present
+          ? data.createdAtUtcMs.value
+          : this.createdAtUtcMs,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TIMMessageRow(')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('messageId: $messageId, ')
+          ..write('conversationId: $conversationId, ')
+          ..write('senderAppUserId: $senderAppUserId, ')
+          ..write('recipientAppUserId: $recipientAppUserId, ')
+          ..write('originDeviceId: $originDeviceId, ')
+          ..write('messageType: $messageType, ')
+          ..write('contentJson: $contentJson, ')
+          ..write('contentHash: $contentHash, ')
+          ..write('mediaBlobHash: $mediaBlobHash, ')
+          ..write('createdHlcPacked: $createdHlcPacked, ')
+          ..write('createdHlcDeviceId: $createdHlcDeviceId, ')
+          ..write('createdAtUtcMs: $createdAtUtcMs')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    scopeUid,
+    messageId,
+    conversationId,
+    senderAppUserId,
+    recipientAppUserId,
+    originDeviceId,
+    messageType,
+    contentJson,
+    contentHash,
+    mediaBlobHash,
+    createdHlcPacked,
+    createdHlcDeviceId,
+    createdAtUtcMs,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TIMMessageRow &&
+          other.scopeUid == this.scopeUid &&
+          other.messageId == this.messageId &&
+          other.conversationId == this.conversationId &&
+          other.senderAppUserId == this.senderAppUserId &&
+          other.recipientAppUserId == this.recipientAppUserId &&
+          other.originDeviceId == this.originDeviceId &&
+          other.messageType == this.messageType &&
+          other.contentJson == this.contentJson &&
+          other.contentHash == this.contentHash &&
+          other.mediaBlobHash == this.mediaBlobHash &&
+          other.createdHlcPacked == this.createdHlcPacked &&
+          other.createdHlcDeviceId == this.createdHlcDeviceId &&
+          other.createdAtUtcMs == this.createdAtUtcMs);
+}
+
+class TIMMessagesCompanion extends UpdateCompanion<TIMMessageRow> {
+  final Value<String> scopeUid;
+  final Value<String> messageId;
+  final Value<String> conversationId;
+  final Value<String> senderAppUserId;
+  final Value<String> recipientAppUserId;
+  final Value<String> originDeviceId;
+  final Value<String> messageType;
+  final Value<String> contentJson;
+  final Value<String> contentHash;
+  final Value<String?> mediaBlobHash;
+  final Value<int> createdHlcPacked;
+  final Value<String> createdHlcDeviceId;
+  final Value<int> createdAtUtcMs;
+  final Value<int> rowid;
+  const TIMMessagesCompanion({
+    this.scopeUid = const Value.absent(),
+    this.messageId = const Value.absent(),
+    this.conversationId = const Value.absent(),
+    this.senderAppUserId = const Value.absent(),
+    this.recipientAppUserId = const Value.absent(),
+    this.originDeviceId = const Value.absent(),
+    this.messageType = const Value.absent(),
+    this.contentJson = const Value.absent(),
+    this.contentHash = const Value.absent(),
+    this.mediaBlobHash = const Value.absent(),
+    this.createdHlcPacked = const Value.absent(),
+    this.createdHlcDeviceId = const Value.absent(),
+    this.createdAtUtcMs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TIMMessagesCompanion.insert({
+    required String scopeUid,
+    required String messageId,
+    required String conversationId,
+    required String senderAppUserId,
+    required String recipientAppUserId,
+    required String originDeviceId,
+    required String messageType,
+    required String contentJson,
+    required String contentHash,
+    this.mediaBlobHash = const Value.absent(),
+    required int createdHlcPacked,
+    required String createdHlcDeviceId,
+    required int createdAtUtcMs,
+    this.rowid = const Value.absent(),
+  }) : scopeUid = Value(scopeUid),
+       messageId = Value(messageId),
+       conversationId = Value(conversationId),
+       senderAppUserId = Value(senderAppUserId),
+       recipientAppUserId = Value(recipientAppUserId),
+       originDeviceId = Value(originDeviceId),
+       messageType = Value(messageType),
+       contentJson = Value(contentJson),
+       contentHash = Value(contentHash),
+       createdHlcPacked = Value(createdHlcPacked),
+       createdHlcDeviceId = Value(createdHlcDeviceId),
+       createdAtUtcMs = Value(createdAtUtcMs);
+  static Insertable<TIMMessageRow> custom({
+    Expression<String>? scopeUid,
+    Expression<String>? messageId,
+    Expression<String>? conversationId,
+    Expression<String>? senderAppUserId,
+    Expression<String>? recipientAppUserId,
+    Expression<String>? originDeviceId,
+    Expression<String>? messageType,
+    Expression<String>? contentJson,
+    Expression<String>? contentHash,
+    Expression<String>? mediaBlobHash,
+    Expression<int>? createdHlcPacked,
+    Expression<String>? createdHlcDeviceId,
+    Expression<int>? createdAtUtcMs,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (scopeUid != null) 'scope_uid': scopeUid,
+      if (messageId != null) 'message_id': messageId,
+      if (conversationId != null) 'conversation_id': conversationId,
+      if (senderAppUserId != null) 'sender_app_user_id': senderAppUserId,
+      if (recipientAppUserId != null)
+        'recipient_app_user_id': recipientAppUserId,
+      if (originDeviceId != null) 'origin_device_id': originDeviceId,
+      if (messageType != null) 'message_type': messageType,
+      if (contentJson != null) 'content_json': contentJson,
+      if (contentHash != null) 'content_hash': contentHash,
+      if (mediaBlobHash != null) 'media_blob_hash': mediaBlobHash,
+      if (createdHlcPacked != null) 'created_hlc_packed': createdHlcPacked,
+      if (createdHlcDeviceId != null)
+        'created_hlc_device_id': createdHlcDeviceId,
+      if (createdAtUtcMs != null) 'created_at_utc_ms': createdAtUtcMs,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TIMMessagesCompanion copyWith({
+    Value<String>? scopeUid,
+    Value<String>? messageId,
+    Value<String>? conversationId,
+    Value<String>? senderAppUserId,
+    Value<String>? recipientAppUserId,
+    Value<String>? originDeviceId,
+    Value<String>? messageType,
+    Value<String>? contentJson,
+    Value<String>? contentHash,
+    Value<String?>? mediaBlobHash,
+    Value<int>? createdHlcPacked,
+    Value<String>? createdHlcDeviceId,
+    Value<int>? createdAtUtcMs,
+    Value<int>? rowid,
+  }) {
+    return TIMMessagesCompanion(
+      scopeUid: scopeUid ?? this.scopeUid,
+      messageId: messageId ?? this.messageId,
+      conversationId: conversationId ?? this.conversationId,
+      senderAppUserId: senderAppUserId ?? this.senderAppUserId,
+      recipientAppUserId: recipientAppUserId ?? this.recipientAppUserId,
+      originDeviceId: originDeviceId ?? this.originDeviceId,
+      messageType: messageType ?? this.messageType,
+      contentJson: contentJson ?? this.contentJson,
+      contentHash: contentHash ?? this.contentHash,
+      mediaBlobHash: mediaBlobHash ?? this.mediaBlobHash,
+      createdHlcPacked: createdHlcPacked ?? this.createdHlcPacked,
+      createdHlcDeviceId: createdHlcDeviceId ?? this.createdHlcDeviceId,
+      createdAtUtcMs: createdAtUtcMs ?? this.createdAtUtcMs,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
+    }
+    if (messageId.present) {
+      map['message_id'] = Variable<String>(messageId.value);
+    }
+    if (conversationId.present) {
+      map['conversation_id'] = Variable<String>(conversationId.value);
+    }
+    if (senderAppUserId.present) {
+      map['sender_app_user_id'] = Variable<String>(senderAppUserId.value);
+    }
+    if (recipientAppUserId.present) {
+      map['recipient_app_user_id'] = Variable<String>(recipientAppUserId.value);
+    }
+    if (originDeviceId.present) {
+      map['origin_device_id'] = Variable<String>(originDeviceId.value);
+    }
+    if (messageType.present) {
+      map['message_type'] = Variable<String>(messageType.value);
+    }
+    if (contentJson.present) {
+      map['content_json'] = Variable<String>(contentJson.value);
+    }
+    if (contentHash.present) {
+      map['content_hash'] = Variable<String>(contentHash.value);
+    }
+    if (mediaBlobHash.present) {
+      map['media_blob_hash'] = Variable<String>(mediaBlobHash.value);
+    }
+    if (createdHlcPacked.present) {
+      map['created_hlc_packed'] = Variable<int>(createdHlcPacked.value);
+    }
+    if (createdHlcDeviceId.present) {
+      map['created_hlc_device_id'] = Variable<String>(createdHlcDeviceId.value);
+    }
+    if (createdAtUtcMs.present) {
+      map['created_at_utc_ms'] = Variable<int>(createdAtUtcMs.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TIMMessagesCompanion(')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('messageId: $messageId, ')
+          ..write('conversationId: $conversationId, ')
+          ..write('senderAppUserId: $senderAppUserId, ')
+          ..write('recipientAppUserId: $recipientAppUserId, ')
+          ..write('originDeviceId: $originDeviceId, ')
+          ..write('messageType: $messageType, ')
+          ..write('contentJson: $contentJson, ')
+          ..write('contentHash: $contentHash, ')
+          ..write('mediaBlobHash: $mediaBlobHash, ')
+          ..write('createdHlcPacked: $createdHlcPacked, ')
+          ..write('createdHlcDeviceId: $createdHlcDeviceId, ')
+          ..write('createdAtUtcMs: $createdAtUtcMs, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TIMMessageTombstonesTable extends TIMMessageTombstones
+    with TableInfo<$TIMMessageTombstonesTable, TIMMessageTombstoneRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TIMMessageTombstonesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _messageIdMeta = const VerificationMeta(
+    'messageId',
+  );
+  @override
+  late final GeneratedColumn<String> messageId = GeneratedColumn<String>(
+    'message_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deleteHlcPackedMeta = const VerificationMeta(
+    'deleteHlcPacked',
+  );
+  @override
+  late final GeneratedColumn<int> deleteHlcPacked = GeneratedColumn<int>(
+    'delete_hlc_packed',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deleteHlcDeviceIdMeta = const VerificationMeta(
+    'deleteHlcDeviceId',
+  );
+  @override
+  late final GeneratedColumn<String> deleteHlcDeviceId =
+      GeneratedColumn<String>(
+        'delete_hlc_device_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _reasonMeta = const VerificationMeta('reason');
+  @override
+  late final GeneratedColumn<String> reason = GeneratedColumn<String>(
+    'reason',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    scopeUid,
+    messageId,
+    deleteHlcPacked,
+    deleteHlcDeviceId,
+    reason,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_im_message_tombstone';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TIMMessageTombstoneRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scopeUidMeta);
+    }
+    if (data.containsKey('message_id')) {
+      context.handle(
+        _messageIdMeta,
+        messageId.isAcceptableOrUnknown(data['message_id']!, _messageIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_messageIdMeta);
+    }
+    if (data.containsKey('delete_hlc_packed')) {
+      context.handle(
+        _deleteHlcPackedMeta,
+        deleteHlcPacked.isAcceptableOrUnknown(
+          data['delete_hlc_packed']!,
+          _deleteHlcPackedMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_deleteHlcPackedMeta);
+    }
+    if (data.containsKey('delete_hlc_device_id')) {
+      context.handle(
+        _deleteHlcDeviceIdMeta,
+        deleteHlcDeviceId.isAcceptableOrUnknown(
+          data['delete_hlc_device_id']!,
+          _deleteHlcDeviceIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_deleteHlcDeviceIdMeta);
+    }
+    if (data.containsKey('reason')) {
+      context.handle(
+        _reasonMeta,
+        reason.isAcceptableOrUnknown(data['reason']!, _reasonMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {scopeUid, messageId};
+  @override
+  TIMMessageTombstoneRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TIMMessageTombstoneRow(
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      )!,
+      messageId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}message_id'],
+      )!,
+      deleteHlcPacked: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}delete_hlc_packed'],
+      )!,
+      deleteHlcDeviceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}delete_hlc_device_id'],
+      )!,
+      reason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reason'],
+      ),
+    );
+  }
+
+  @override
+  $TIMMessageTombstonesTable createAlias(String alias) {
+    return $TIMMessageTombstonesTable(attachedDatabase, alias);
+  }
+}
+
+class TIMMessageTombstoneRow extends DataClass
+    implements Insertable<TIMMessageTombstoneRow> {
+  final String scopeUid;
+  final String messageId;
+  final int deleteHlcPacked;
+  final String deleteHlcDeviceId;
+  final String? reason;
+  const TIMMessageTombstoneRow({
+    required this.scopeUid,
+    required this.messageId,
+    required this.deleteHlcPacked,
+    required this.deleteHlcDeviceId,
+    this.reason,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['scope_uid'] = Variable<String>(scopeUid);
+    map['message_id'] = Variable<String>(messageId);
+    map['delete_hlc_packed'] = Variable<int>(deleteHlcPacked);
+    map['delete_hlc_device_id'] = Variable<String>(deleteHlcDeviceId);
+    if (!nullToAbsent || reason != null) {
+      map['reason'] = Variable<String>(reason);
+    }
+    return map;
+  }
+
+  TIMMessageTombstonesCompanion toCompanion(bool nullToAbsent) {
+    return TIMMessageTombstonesCompanion(
+      scopeUid: Value(scopeUid),
+      messageId: Value(messageId),
+      deleteHlcPacked: Value(deleteHlcPacked),
+      deleteHlcDeviceId: Value(deleteHlcDeviceId),
+      reason: reason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reason),
+    );
+  }
+
+  factory TIMMessageTombstoneRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TIMMessageTombstoneRow(
+      scopeUid: serializer.fromJson<String>(json['scopeUid']),
+      messageId: serializer.fromJson<String>(json['messageId']),
+      deleteHlcPacked: serializer.fromJson<int>(json['deleteHlcPacked']),
+      deleteHlcDeviceId: serializer.fromJson<String>(json['deleteHlcDeviceId']),
+      reason: serializer.fromJson<String?>(json['reason']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'scopeUid': serializer.toJson<String>(scopeUid),
+      'messageId': serializer.toJson<String>(messageId),
+      'deleteHlcPacked': serializer.toJson<int>(deleteHlcPacked),
+      'deleteHlcDeviceId': serializer.toJson<String>(deleteHlcDeviceId),
+      'reason': serializer.toJson<String?>(reason),
+    };
+  }
+
+  TIMMessageTombstoneRow copyWith({
+    String? scopeUid,
+    String? messageId,
+    int? deleteHlcPacked,
+    String? deleteHlcDeviceId,
+    Value<String?> reason = const Value.absent(),
+  }) => TIMMessageTombstoneRow(
+    scopeUid: scopeUid ?? this.scopeUid,
+    messageId: messageId ?? this.messageId,
+    deleteHlcPacked: deleteHlcPacked ?? this.deleteHlcPacked,
+    deleteHlcDeviceId: deleteHlcDeviceId ?? this.deleteHlcDeviceId,
+    reason: reason.present ? reason.value : this.reason,
+  );
+  TIMMessageTombstoneRow copyWithCompanion(TIMMessageTombstonesCompanion data) {
+    return TIMMessageTombstoneRow(
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
+      messageId: data.messageId.present ? data.messageId.value : this.messageId,
+      deleteHlcPacked: data.deleteHlcPacked.present
+          ? data.deleteHlcPacked.value
+          : this.deleteHlcPacked,
+      deleteHlcDeviceId: data.deleteHlcDeviceId.present
+          ? data.deleteHlcDeviceId.value
+          : this.deleteHlcDeviceId,
+      reason: data.reason.present ? data.reason.value : this.reason,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TIMMessageTombstoneRow(')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('messageId: $messageId, ')
+          ..write('deleteHlcPacked: $deleteHlcPacked, ')
+          ..write('deleteHlcDeviceId: $deleteHlcDeviceId, ')
+          ..write('reason: $reason')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    scopeUid,
+    messageId,
+    deleteHlcPacked,
+    deleteHlcDeviceId,
+    reason,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TIMMessageTombstoneRow &&
+          other.scopeUid == this.scopeUid &&
+          other.messageId == this.messageId &&
+          other.deleteHlcPacked == this.deleteHlcPacked &&
+          other.deleteHlcDeviceId == this.deleteHlcDeviceId &&
+          other.reason == this.reason);
+}
+
+class TIMMessageTombstonesCompanion
+    extends UpdateCompanion<TIMMessageTombstoneRow> {
+  final Value<String> scopeUid;
+  final Value<String> messageId;
+  final Value<int> deleteHlcPacked;
+  final Value<String> deleteHlcDeviceId;
+  final Value<String?> reason;
+  final Value<int> rowid;
+  const TIMMessageTombstonesCompanion({
+    this.scopeUid = const Value.absent(),
+    this.messageId = const Value.absent(),
+    this.deleteHlcPacked = const Value.absent(),
+    this.deleteHlcDeviceId = const Value.absent(),
+    this.reason = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TIMMessageTombstonesCompanion.insert({
+    required String scopeUid,
+    required String messageId,
+    required int deleteHlcPacked,
+    required String deleteHlcDeviceId,
+    this.reason = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : scopeUid = Value(scopeUid),
+       messageId = Value(messageId),
+       deleteHlcPacked = Value(deleteHlcPacked),
+       deleteHlcDeviceId = Value(deleteHlcDeviceId);
+  static Insertable<TIMMessageTombstoneRow> custom({
+    Expression<String>? scopeUid,
+    Expression<String>? messageId,
+    Expression<int>? deleteHlcPacked,
+    Expression<String>? deleteHlcDeviceId,
+    Expression<String>? reason,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (scopeUid != null) 'scope_uid': scopeUid,
+      if (messageId != null) 'message_id': messageId,
+      if (deleteHlcPacked != null) 'delete_hlc_packed': deleteHlcPacked,
+      if (deleteHlcDeviceId != null) 'delete_hlc_device_id': deleteHlcDeviceId,
+      if (reason != null) 'reason': reason,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TIMMessageTombstonesCompanion copyWith({
+    Value<String>? scopeUid,
+    Value<String>? messageId,
+    Value<int>? deleteHlcPacked,
+    Value<String>? deleteHlcDeviceId,
+    Value<String?>? reason,
+    Value<int>? rowid,
+  }) {
+    return TIMMessageTombstonesCompanion(
+      scopeUid: scopeUid ?? this.scopeUid,
+      messageId: messageId ?? this.messageId,
+      deleteHlcPacked: deleteHlcPacked ?? this.deleteHlcPacked,
+      deleteHlcDeviceId: deleteHlcDeviceId ?? this.deleteHlcDeviceId,
+      reason: reason ?? this.reason,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
+    }
+    if (messageId.present) {
+      map['message_id'] = Variable<String>(messageId.value);
+    }
+    if (deleteHlcPacked.present) {
+      map['delete_hlc_packed'] = Variable<int>(deleteHlcPacked.value);
+    }
+    if (deleteHlcDeviceId.present) {
+      map['delete_hlc_device_id'] = Variable<String>(deleteHlcDeviceId.value);
+    }
+    if (reason.present) {
+      map['reason'] = Variable<String>(reason.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TIMMessageTombstonesCompanion(')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('messageId: $messageId, ')
+          ..write('deleteHlcPacked: $deleteHlcPacked, ')
+          ..write('deleteHlcDeviceId: $deleteHlcDeviceId, ')
+          ..write('reason: $reason, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TIMMessageReceiptsTable extends TIMMessageReceipts
+    with TableInfo<$TIMMessageReceiptsTable, TIMMessageReceiptRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TIMMessageReceiptsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _messageIdMeta = const VerificationMeta(
+    'messageId',
+  );
+  @override
+  late final GeneratedColumn<String> messageId = GeneratedColumn<String>(
+    'message_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _recipientAppUserIdMeta =
+      const VerificationMeta('recipientAppUserId');
+  @override
+  late final GeneratedColumn<String> recipientAppUserId =
+      GeneratedColumn<String>(
+        'recipient_app_user_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _recipientDeviceIdMeta = const VerificationMeta(
+    'recipientDeviceId',
+  );
+  @override
+  late final GeneratedColumn<String> recipientDeviceId =
+      GeneratedColumn<String>(
+        'recipient_device_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _receiptTypeMeta = const VerificationMeta(
+    'receiptType',
+  );
+  @override
+  late final GeneratedColumn<String> receiptType = GeneratedColumn<String>(
+    'receipt_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _receiptHlcPackedMeta = const VerificationMeta(
+    'receiptHlcPacked',
+  );
+  @override
+  late final GeneratedColumn<int> receiptHlcPacked = GeneratedColumn<int>(
+    'receipt_hlc_packed',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _receiptHlcDeviceIdMeta =
+      const VerificationMeta('receiptHlcDeviceId');
+  @override
+  late final GeneratedColumn<String> receiptHlcDeviceId =
+      GeneratedColumn<String>(
+        'receipt_hlc_device_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [
+    scopeUid,
+    messageId,
+    recipientAppUserId,
+    recipientDeviceId,
+    receiptType,
+    receiptHlcPacked,
+    receiptHlcDeviceId,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_im_message_receipt';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TIMMessageReceiptRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scopeUidMeta);
+    }
+    if (data.containsKey('message_id')) {
+      context.handle(
+        _messageIdMeta,
+        messageId.isAcceptableOrUnknown(data['message_id']!, _messageIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_messageIdMeta);
+    }
+    if (data.containsKey('recipient_app_user_id')) {
+      context.handle(
+        _recipientAppUserIdMeta,
+        recipientAppUserId.isAcceptableOrUnknown(
+          data['recipient_app_user_id']!,
+          _recipientAppUserIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_recipientAppUserIdMeta);
+    }
+    if (data.containsKey('recipient_device_id')) {
+      context.handle(
+        _recipientDeviceIdMeta,
+        recipientDeviceId.isAcceptableOrUnknown(
+          data['recipient_device_id']!,
+          _recipientDeviceIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_recipientDeviceIdMeta);
+    }
+    if (data.containsKey('receipt_type')) {
+      context.handle(
+        _receiptTypeMeta,
+        receiptType.isAcceptableOrUnknown(
+          data['receipt_type']!,
+          _receiptTypeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_receiptTypeMeta);
+    }
+    if (data.containsKey('receipt_hlc_packed')) {
+      context.handle(
+        _receiptHlcPackedMeta,
+        receiptHlcPacked.isAcceptableOrUnknown(
+          data['receipt_hlc_packed']!,
+          _receiptHlcPackedMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_receiptHlcPackedMeta);
+    }
+    if (data.containsKey('receipt_hlc_device_id')) {
+      context.handle(
+        _receiptHlcDeviceIdMeta,
+        receiptHlcDeviceId.isAcceptableOrUnknown(
+          data['receipt_hlc_device_id']!,
+          _receiptHlcDeviceIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_receiptHlcDeviceIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {
+    scopeUid,
+    messageId,
+    recipientDeviceId,
+    receiptType,
+  };
+  @override
+  TIMMessageReceiptRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TIMMessageReceiptRow(
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      )!,
+      messageId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}message_id'],
+      )!,
+      recipientAppUserId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}recipient_app_user_id'],
+      )!,
+      recipientDeviceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}recipient_device_id'],
+      )!,
+      receiptType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}receipt_type'],
+      )!,
+      receiptHlcPacked: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}receipt_hlc_packed'],
+      )!,
+      receiptHlcDeviceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}receipt_hlc_device_id'],
+      )!,
+    );
+  }
+
+  @override
+  $TIMMessageReceiptsTable createAlias(String alias) {
+    return $TIMMessageReceiptsTable(attachedDatabase, alias);
+  }
+}
+
+class TIMMessageReceiptRow extends DataClass
+    implements Insertable<TIMMessageReceiptRow> {
+  final String scopeUid;
+  final String messageId;
+  final String recipientAppUserId;
+  final String recipientDeviceId;
+  final String receiptType;
+  final int receiptHlcPacked;
+  final String receiptHlcDeviceId;
+  const TIMMessageReceiptRow({
+    required this.scopeUid,
+    required this.messageId,
+    required this.recipientAppUserId,
+    required this.recipientDeviceId,
+    required this.receiptType,
+    required this.receiptHlcPacked,
+    required this.receiptHlcDeviceId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['scope_uid'] = Variable<String>(scopeUid);
+    map['message_id'] = Variable<String>(messageId);
+    map['recipient_app_user_id'] = Variable<String>(recipientAppUserId);
+    map['recipient_device_id'] = Variable<String>(recipientDeviceId);
+    map['receipt_type'] = Variable<String>(receiptType);
+    map['receipt_hlc_packed'] = Variable<int>(receiptHlcPacked);
+    map['receipt_hlc_device_id'] = Variable<String>(receiptHlcDeviceId);
+    return map;
+  }
+
+  TIMMessageReceiptsCompanion toCompanion(bool nullToAbsent) {
+    return TIMMessageReceiptsCompanion(
+      scopeUid: Value(scopeUid),
+      messageId: Value(messageId),
+      recipientAppUserId: Value(recipientAppUserId),
+      recipientDeviceId: Value(recipientDeviceId),
+      receiptType: Value(receiptType),
+      receiptHlcPacked: Value(receiptHlcPacked),
+      receiptHlcDeviceId: Value(receiptHlcDeviceId),
+    );
+  }
+
+  factory TIMMessageReceiptRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TIMMessageReceiptRow(
+      scopeUid: serializer.fromJson<String>(json['scopeUid']),
+      messageId: serializer.fromJson<String>(json['messageId']),
+      recipientAppUserId: serializer.fromJson<String>(
+        json['recipientAppUserId'],
+      ),
+      recipientDeviceId: serializer.fromJson<String>(json['recipientDeviceId']),
+      receiptType: serializer.fromJson<String>(json['receiptType']),
+      receiptHlcPacked: serializer.fromJson<int>(json['receiptHlcPacked']),
+      receiptHlcDeviceId: serializer.fromJson<String>(
+        json['receiptHlcDeviceId'],
+      ),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'scopeUid': serializer.toJson<String>(scopeUid),
+      'messageId': serializer.toJson<String>(messageId),
+      'recipientAppUserId': serializer.toJson<String>(recipientAppUserId),
+      'recipientDeviceId': serializer.toJson<String>(recipientDeviceId),
+      'receiptType': serializer.toJson<String>(receiptType),
+      'receiptHlcPacked': serializer.toJson<int>(receiptHlcPacked),
+      'receiptHlcDeviceId': serializer.toJson<String>(receiptHlcDeviceId),
+    };
+  }
+
+  TIMMessageReceiptRow copyWith({
+    String? scopeUid,
+    String? messageId,
+    String? recipientAppUserId,
+    String? recipientDeviceId,
+    String? receiptType,
+    int? receiptHlcPacked,
+    String? receiptHlcDeviceId,
+  }) => TIMMessageReceiptRow(
+    scopeUid: scopeUid ?? this.scopeUid,
+    messageId: messageId ?? this.messageId,
+    recipientAppUserId: recipientAppUserId ?? this.recipientAppUserId,
+    recipientDeviceId: recipientDeviceId ?? this.recipientDeviceId,
+    receiptType: receiptType ?? this.receiptType,
+    receiptHlcPacked: receiptHlcPacked ?? this.receiptHlcPacked,
+    receiptHlcDeviceId: receiptHlcDeviceId ?? this.receiptHlcDeviceId,
+  );
+  TIMMessageReceiptRow copyWithCompanion(TIMMessageReceiptsCompanion data) {
+    return TIMMessageReceiptRow(
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
+      messageId: data.messageId.present ? data.messageId.value : this.messageId,
+      recipientAppUserId: data.recipientAppUserId.present
+          ? data.recipientAppUserId.value
+          : this.recipientAppUserId,
+      recipientDeviceId: data.recipientDeviceId.present
+          ? data.recipientDeviceId.value
+          : this.recipientDeviceId,
+      receiptType: data.receiptType.present
+          ? data.receiptType.value
+          : this.receiptType,
+      receiptHlcPacked: data.receiptHlcPacked.present
+          ? data.receiptHlcPacked.value
+          : this.receiptHlcPacked,
+      receiptHlcDeviceId: data.receiptHlcDeviceId.present
+          ? data.receiptHlcDeviceId.value
+          : this.receiptHlcDeviceId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TIMMessageReceiptRow(')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('messageId: $messageId, ')
+          ..write('recipientAppUserId: $recipientAppUserId, ')
+          ..write('recipientDeviceId: $recipientDeviceId, ')
+          ..write('receiptType: $receiptType, ')
+          ..write('receiptHlcPacked: $receiptHlcPacked, ')
+          ..write('receiptHlcDeviceId: $receiptHlcDeviceId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    scopeUid,
+    messageId,
+    recipientAppUserId,
+    recipientDeviceId,
+    receiptType,
+    receiptHlcPacked,
+    receiptHlcDeviceId,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TIMMessageReceiptRow &&
+          other.scopeUid == this.scopeUid &&
+          other.messageId == this.messageId &&
+          other.recipientAppUserId == this.recipientAppUserId &&
+          other.recipientDeviceId == this.recipientDeviceId &&
+          other.receiptType == this.receiptType &&
+          other.receiptHlcPacked == this.receiptHlcPacked &&
+          other.receiptHlcDeviceId == this.receiptHlcDeviceId);
+}
+
+class TIMMessageReceiptsCompanion
+    extends UpdateCompanion<TIMMessageReceiptRow> {
+  final Value<String> scopeUid;
+  final Value<String> messageId;
+  final Value<String> recipientAppUserId;
+  final Value<String> recipientDeviceId;
+  final Value<String> receiptType;
+  final Value<int> receiptHlcPacked;
+  final Value<String> receiptHlcDeviceId;
+  final Value<int> rowid;
+  const TIMMessageReceiptsCompanion({
+    this.scopeUid = const Value.absent(),
+    this.messageId = const Value.absent(),
+    this.recipientAppUserId = const Value.absent(),
+    this.recipientDeviceId = const Value.absent(),
+    this.receiptType = const Value.absent(),
+    this.receiptHlcPacked = const Value.absent(),
+    this.receiptHlcDeviceId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TIMMessageReceiptsCompanion.insert({
+    required String scopeUid,
+    required String messageId,
+    required String recipientAppUserId,
+    required String recipientDeviceId,
+    required String receiptType,
+    required int receiptHlcPacked,
+    required String receiptHlcDeviceId,
+    this.rowid = const Value.absent(),
+  }) : scopeUid = Value(scopeUid),
+       messageId = Value(messageId),
+       recipientAppUserId = Value(recipientAppUserId),
+       recipientDeviceId = Value(recipientDeviceId),
+       receiptType = Value(receiptType),
+       receiptHlcPacked = Value(receiptHlcPacked),
+       receiptHlcDeviceId = Value(receiptHlcDeviceId);
+  static Insertable<TIMMessageReceiptRow> custom({
+    Expression<String>? scopeUid,
+    Expression<String>? messageId,
+    Expression<String>? recipientAppUserId,
+    Expression<String>? recipientDeviceId,
+    Expression<String>? receiptType,
+    Expression<int>? receiptHlcPacked,
+    Expression<String>? receiptHlcDeviceId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (scopeUid != null) 'scope_uid': scopeUid,
+      if (messageId != null) 'message_id': messageId,
+      if (recipientAppUserId != null)
+        'recipient_app_user_id': recipientAppUserId,
+      if (recipientDeviceId != null) 'recipient_device_id': recipientDeviceId,
+      if (receiptType != null) 'receipt_type': receiptType,
+      if (receiptHlcPacked != null) 'receipt_hlc_packed': receiptHlcPacked,
+      if (receiptHlcDeviceId != null)
+        'receipt_hlc_device_id': receiptHlcDeviceId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TIMMessageReceiptsCompanion copyWith({
+    Value<String>? scopeUid,
+    Value<String>? messageId,
+    Value<String>? recipientAppUserId,
+    Value<String>? recipientDeviceId,
+    Value<String>? receiptType,
+    Value<int>? receiptHlcPacked,
+    Value<String>? receiptHlcDeviceId,
+    Value<int>? rowid,
+  }) {
+    return TIMMessageReceiptsCompanion(
+      scopeUid: scopeUid ?? this.scopeUid,
+      messageId: messageId ?? this.messageId,
+      recipientAppUserId: recipientAppUserId ?? this.recipientAppUserId,
+      recipientDeviceId: recipientDeviceId ?? this.recipientDeviceId,
+      receiptType: receiptType ?? this.receiptType,
+      receiptHlcPacked: receiptHlcPacked ?? this.receiptHlcPacked,
+      receiptHlcDeviceId: receiptHlcDeviceId ?? this.receiptHlcDeviceId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
+    }
+    if (messageId.present) {
+      map['message_id'] = Variable<String>(messageId.value);
+    }
+    if (recipientAppUserId.present) {
+      map['recipient_app_user_id'] = Variable<String>(recipientAppUserId.value);
+    }
+    if (recipientDeviceId.present) {
+      map['recipient_device_id'] = Variable<String>(recipientDeviceId.value);
+    }
+    if (receiptType.present) {
+      map['receipt_type'] = Variable<String>(receiptType.value);
+    }
+    if (receiptHlcPacked.present) {
+      map['receipt_hlc_packed'] = Variable<int>(receiptHlcPacked.value);
+    }
+    if (receiptHlcDeviceId.present) {
+      map['receipt_hlc_device_id'] = Variable<String>(receiptHlcDeviceId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TIMMessageReceiptsCompanion(')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('messageId: $messageId, ')
+          ..write('recipientAppUserId: $recipientAppUserId, ')
+          ..write('recipientDeviceId: $recipientDeviceId, ')
+          ..write('receiptType: $receiptType, ')
+          ..write('receiptHlcPacked: $receiptHlcPacked, ')
+          ..write('receiptHlcDeviceId: $receiptHlcDeviceId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TIMConversationsTable extends TIMConversations
+    with TableInfo<$TIMConversationsTable, TIMConversationRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TIMConversationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _conversationIdMeta = const VerificationMeta(
+    'conversationId',
+  );
+  @override
+  late final GeneratedColumn<String> conversationId = GeneratedColumn<String>(
+    'conversation_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _peerAppUserIdMeta = const VerificationMeta(
+    'peerAppUserId',
+  );
+  @override
+  late final GeneratedColumn<String> peerAppUserId = GeneratedColumn<String>(
+    'peer_app_user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _peerNicknameSnapshotMeta =
+      const VerificationMeta('peerNicknameSnapshot');
+  @override
+  late final GeneratedColumn<String> peerNicknameSnapshot =
+      GeneratedColumn<String>(
+        'peer_nickname_snapshot',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _peerAvatarUrlSnapshotMeta =
+      const VerificationMeta('peerAvatarUrlSnapshot');
+  @override
+  late final GeneratedColumn<String> peerAvatarUrlSnapshot =
+      GeneratedColumn<String>(
+        'peer_avatar_url_snapshot',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _lastMessageIdMeta = const VerificationMeta(
+    'lastMessageId',
+  );
+  @override
+  late final GeneratedColumn<String> lastMessageId = GeneratedColumn<String>(
+    'last_message_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastMessageHlcPackedMeta =
+      const VerificationMeta('lastMessageHlcPacked');
+  @override
+  late final GeneratedColumn<int> lastMessageHlcPacked = GeneratedColumn<int>(
+    'last_message_hlc_packed',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastMessageHlcDeviceIdMeta =
+      const VerificationMeta('lastMessageHlcDeviceId');
+  @override
+  late final GeneratedColumn<String> lastMessageHlcDeviceId =
+      GeneratedColumn<String>(
+        'last_message_hlc_device_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _lastReadHlcPackedMeta = const VerificationMeta(
+    'lastReadHlcPacked',
+  );
+  @override
+  late final GeneratedColumn<int> lastReadHlcPacked = GeneratedColumn<int>(
+    'last_read_hlc_packed',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastReadHlcDeviceIdMeta =
+      const VerificationMeta('lastReadHlcDeviceId');
+  @override
+  late final GeneratedColumn<String> lastReadHlcDeviceId =
+      GeneratedColumn<String>(
+        'last_read_hlc_device_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _unreadCountCacheMeta = const VerificationMeta(
+    'unreadCountCache',
+  );
+  @override
+  late final GeneratedColumn<int> unreadCountCache = GeneratedColumn<int>(
+    'unread_count_cache',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _isPinnedMeta = const VerificationMeta(
+    'isPinned',
+  );
+  @override
+  late final GeneratedColumn<int> isPinned = GeneratedColumn<int>(
+    'is_pinned',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _isMutedMeta = const VerificationMeta(
+    'isMuted',
+  );
+  @override
+  late final GeneratedColumn<int> isMuted = GeneratedColumn<int>(
+    'is_muted',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _settingsHlcPackedMeta = const VerificationMeta(
+    'settingsHlcPacked',
+  );
+  @override
+  late final GeneratedColumn<int> settingsHlcPacked = GeneratedColumn<int>(
+    'settings_hlc_packed',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _settingsHlcDeviceIdMeta =
+      const VerificationMeta('settingsHlcDeviceId');
+  @override
+  late final GeneratedColumn<String> settingsHlcDeviceId =
+      GeneratedColumn<String>(
+        'settings_hlc_device_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _updatedAtUtcMsMeta = const VerificationMeta(
+    'updatedAtUtcMs',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAtUtcMs = GeneratedColumn<int>(
+    'updated_at_utc_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    scopeUid,
+    conversationId,
+    peerAppUserId,
+    peerNicknameSnapshot,
+    peerAvatarUrlSnapshot,
+    lastMessageId,
+    lastMessageHlcPacked,
+    lastMessageHlcDeviceId,
+    lastReadHlcPacked,
+    lastReadHlcDeviceId,
+    unreadCountCache,
+    isPinned,
+    isMuted,
+    settingsHlcPacked,
+    settingsHlcDeviceId,
+    updatedAtUtcMs,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_im_conversation';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TIMConversationRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scopeUidMeta);
+    }
+    if (data.containsKey('conversation_id')) {
+      context.handle(
+        _conversationIdMeta,
+        conversationId.isAcceptableOrUnknown(
+          data['conversation_id']!,
+          _conversationIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_conversationIdMeta);
+    }
+    if (data.containsKey('peer_app_user_id')) {
+      context.handle(
+        _peerAppUserIdMeta,
+        peerAppUserId.isAcceptableOrUnknown(
+          data['peer_app_user_id']!,
+          _peerAppUserIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_peerAppUserIdMeta);
+    }
+    if (data.containsKey('peer_nickname_snapshot')) {
+      context.handle(
+        _peerNicknameSnapshotMeta,
+        peerNicknameSnapshot.isAcceptableOrUnknown(
+          data['peer_nickname_snapshot']!,
+          _peerNicknameSnapshotMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_peerNicknameSnapshotMeta);
+    }
+    if (data.containsKey('peer_avatar_url_snapshot')) {
+      context.handle(
+        _peerAvatarUrlSnapshotMeta,
+        peerAvatarUrlSnapshot.isAcceptableOrUnknown(
+          data['peer_avatar_url_snapshot']!,
+          _peerAvatarUrlSnapshotMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_message_id')) {
+      context.handle(
+        _lastMessageIdMeta,
+        lastMessageId.isAcceptableOrUnknown(
+          data['last_message_id']!,
+          _lastMessageIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_message_hlc_packed')) {
+      context.handle(
+        _lastMessageHlcPackedMeta,
+        lastMessageHlcPacked.isAcceptableOrUnknown(
+          data['last_message_hlc_packed']!,
+          _lastMessageHlcPackedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_message_hlc_device_id')) {
+      context.handle(
+        _lastMessageHlcDeviceIdMeta,
+        lastMessageHlcDeviceId.isAcceptableOrUnknown(
+          data['last_message_hlc_device_id']!,
+          _lastMessageHlcDeviceIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_read_hlc_packed')) {
+      context.handle(
+        _lastReadHlcPackedMeta,
+        lastReadHlcPacked.isAcceptableOrUnknown(
+          data['last_read_hlc_packed']!,
+          _lastReadHlcPackedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_read_hlc_device_id')) {
+      context.handle(
+        _lastReadHlcDeviceIdMeta,
+        lastReadHlcDeviceId.isAcceptableOrUnknown(
+          data['last_read_hlc_device_id']!,
+          _lastReadHlcDeviceIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('unread_count_cache')) {
+      context.handle(
+        _unreadCountCacheMeta,
+        unreadCountCache.isAcceptableOrUnknown(
+          data['unread_count_cache']!,
+          _unreadCountCacheMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_pinned')) {
+      context.handle(
+        _isPinnedMeta,
+        isPinned.isAcceptableOrUnknown(data['is_pinned']!, _isPinnedMeta),
+      );
+    }
+    if (data.containsKey('is_muted')) {
+      context.handle(
+        _isMutedMeta,
+        isMuted.isAcceptableOrUnknown(data['is_muted']!, _isMutedMeta),
+      );
+    }
+    if (data.containsKey('settings_hlc_packed')) {
+      context.handle(
+        _settingsHlcPackedMeta,
+        settingsHlcPacked.isAcceptableOrUnknown(
+          data['settings_hlc_packed']!,
+          _settingsHlcPackedMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_settingsHlcPackedMeta);
+    }
+    if (data.containsKey('settings_hlc_device_id')) {
+      context.handle(
+        _settingsHlcDeviceIdMeta,
+        settingsHlcDeviceId.isAcceptableOrUnknown(
+          data['settings_hlc_device_id']!,
+          _settingsHlcDeviceIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_settingsHlcDeviceIdMeta);
+    }
+    if (data.containsKey('updated_at_utc_ms')) {
+      context.handle(
+        _updatedAtUtcMsMeta,
+        updatedAtUtcMs.isAcceptableOrUnknown(
+          data['updated_at_utc_ms']!,
+          _updatedAtUtcMsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtUtcMsMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {scopeUid, conversationId};
+  @override
+  TIMConversationRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TIMConversationRow(
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      )!,
+      conversationId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}conversation_id'],
+      )!,
+      peerAppUserId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}peer_app_user_id'],
+      )!,
+      peerNicknameSnapshot: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}peer_nickname_snapshot'],
+      )!,
+      peerAvatarUrlSnapshot: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}peer_avatar_url_snapshot'],
+      ),
+      lastMessageId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_message_id'],
+      ),
+      lastMessageHlcPacked: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}last_message_hlc_packed'],
+      ),
+      lastMessageHlcDeviceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_message_hlc_device_id'],
+      ),
+      lastReadHlcPacked: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}last_read_hlc_packed'],
+      ),
+      lastReadHlcDeviceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_read_hlc_device_id'],
+      ),
+      unreadCountCache: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}unread_count_cache'],
+      )!,
+      isPinned: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}is_pinned'],
+      )!,
+      isMuted: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}is_muted'],
+      )!,
+      settingsHlcPacked: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}settings_hlc_packed'],
+      )!,
+      settingsHlcDeviceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}settings_hlc_device_id'],
+      )!,
+      updatedAtUtcMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at_utc_ms'],
+      )!,
+    );
+  }
+
+  @override
+  $TIMConversationsTable createAlias(String alias) {
+    return $TIMConversationsTable(attachedDatabase, alias);
+  }
+}
+
+class TIMConversationRow extends DataClass
+    implements Insertable<TIMConversationRow> {
+  final String scopeUid;
+  final String conversationId;
+  final String peerAppUserId;
+  final String peerNicknameSnapshot;
+  final String? peerAvatarUrlSnapshot;
+  final String? lastMessageId;
+  final int? lastMessageHlcPacked;
+  final String? lastMessageHlcDeviceId;
+  final int? lastReadHlcPacked;
+  final String? lastReadHlcDeviceId;
+  final int unreadCountCache;
+  final int isPinned;
+  final int isMuted;
+  final int settingsHlcPacked;
+  final String settingsHlcDeviceId;
+  final int updatedAtUtcMs;
+  const TIMConversationRow({
+    required this.scopeUid,
+    required this.conversationId,
+    required this.peerAppUserId,
+    required this.peerNicknameSnapshot,
+    this.peerAvatarUrlSnapshot,
+    this.lastMessageId,
+    this.lastMessageHlcPacked,
+    this.lastMessageHlcDeviceId,
+    this.lastReadHlcPacked,
+    this.lastReadHlcDeviceId,
+    required this.unreadCountCache,
+    required this.isPinned,
+    required this.isMuted,
+    required this.settingsHlcPacked,
+    required this.settingsHlcDeviceId,
+    required this.updatedAtUtcMs,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['scope_uid'] = Variable<String>(scopeUid);
+    map['conversation_id'] = Variable<String>(conversationId);
+    map['peer_app_user_id'] = Variable<String>(peerAppUserId);
+    map['peer_nickname_snapshot'] = Variable<String>(peerNicknameSnapshot);
+    if (!nullToAbsent || peerAvatarUrlSnapshot != null) {
+      map['peer_avatar_url_snapshot'] = Variable<String>(peerAvatarUrlSnapshot);
+    }
+    if (!nullToAbsent || lastMessageId != null) {
+      map['last_message_id'] = Variable<String>(lastMessageId);
+    }
+    if (!nullToAbsent || lastMessageHlcPacked != null) {
+      map['last_message_hlc_packed'] = Variable<int>(lastMessageHlcPacked);
+    }
+    if (!nullToAbsent || lastMessageHlcDeviceId != null) {
+      map['last_message_hlc_device_id'] = Variable<String>(
+        lastMessageHlcDeviceId,
+      );
+    }
+    if (!nullToAbsent || lastReadHlcPacked != null) {
+      map['last_read_hlc_packed'] = Variable<int>(lastReadHlcPacked);
+    }
+    if (!nullToAbsent || lastReadHlcDeviceId != null) {
+      map['last_read_hlc_device_id'] = Variable<String>(lastReadHlcDeviceId);
+    }
+    map['unread_count_cache'] = Variable<int>(unreadCountCache);
+    map['is_pinned'] = Variable<int>(isPinned);
+    map['is_muted'] = Variable<int>(isMuted);
+    map['settings_hlc_packed'] = Variable<int>(settingsHlcPacked);
+    map['settings_hlc_device_id'] = Variable<String>(settingsHlcDeviceId);
+    map['updated_at_utc_ms'] = Variable<int>(updatedAtUtcMs);
+    return map;
+  }
+
+  TIMConversationsCompanion toCompanion(bool nullToAbsent) {
+    return TIMConversationsCompanion(
+      scopeUid: Value(scopeUid),
+      conversationId: Value(conversationId),
+      peerAppUserId: Value(peerAppUserId),
+      peerNicknameSnapshot: Value(peerNicknameSnapshot),
+      peerAvatarUrlSnapshot: peerAvatarUrlSnapshot == null && nullToAbsent
+          ? const Value.absent()
+          : Value(peerAvatarUrlSnapshot),
+      lastMessageId: lastMessageId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastMessageId),
+      lastMessageHlcPacked: lastMessageHlcPacked == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastMessageHlcPacked),
+      lastMessageHlcDeviceId: lastMessageHlcDeviceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastMessageHlcDeviceId),
+      lastReadHlcPacked: lastReadHlcPacked == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastReadHlcPacked),
+      lastReadHlcDeviceId: lastReadHlcDeviceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastReadHlcDeviceId),
+      unreadCountCache: Value(unreadCountCache),
+      isPinned: Value(isPinned),
+      isMuted: Value(isMuted),
+      settingsHlcPacked: Value(settingsHlcPacked),
+      settingsHlcDeviceId: Value(settingsHlcDeviceId),
+      updatedAtUtcMs: Value(updatedAtUtcMs),
+    );
+  }
+
+  factory TIMConversationRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TIMConversationRow(
+      scopeUid: serializer.fromJson<String>(json['scopeUid']),
+      conversationId: serializer.fromJson<String>(json['conversationId']),
+      peerAppUserId: serializer.fromJson<String>(json['peerAppUserId']),
+      peerNicknameSnapshot: serializer.fromJson<String>(
+        json['peerNicknameSnapshot'],
+      ),
+      peerAvatarUrlSnapshot: serializer.fromJson<String?>(
+        json['peerAvatarUrlSnapshot'],
+      ),
+      lastMessageId: serializer.fromJson<String?>(json['lastMessageId']),
+      lastMessageHlcPacked: serializer.fromJson<int?>(
+        json['lastMessageHlcPacked'],
+      ),
+      lastMessageHlcDeviceId: serializer.fromJson<String?>(
+        json['lastMessageHlcDeviceId'],
+      ),
+      lastReadHlcPacked: serializer.fromJson<int?>(json['lastReadHlcPacked']),
+      lastReadHlcDeviceId: serializer.fromJson<String?>(
+        json['lastReadHlcDeviceId'],
+      ),
+      unreadCountCache: serializer.fromJson<int>(json['unreadCountCache']),
+      isPinned: serializer.fromJson<int>(json['isPinned']),
+      isMuted: serializer.fromJson<int>(json['isMuted']),
+      settingsHlcPacked: serializer.fromJson<int>(json['settingsHlcPacked']),
+      settingsHlcDeviceId: serializer.fromJson<String>(
+        json['settingsHlcDeviceId'],
+      ),
+      updatedAtUtcMs: serializer.fromJson<int>(json['updatedAtUtcMs']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'scopeUid': serializer.toJson<String>(scopeUid),
+      'conversationId': serializer.toJson<String>(conversationId),
+      'peerAppUserId': serializer.toJson<String>(peerAppUserId),
+      'peerNicknameSnapshot': serializer.toJson<String>(peerNicknameSnapshot),
+      'peerAvatarUrlSnapshot': serializer.toJson<String?>(
+        peerAvatarUrlSnapshot,
+      ),
+      'lastMessageId': serializer.toJson<String?>(lastMessageId),
+      'lastMessageHlcPacked': serializer.toJson<int?>(lastMessageHlcPacked),
+      'lastMessageHlcDeviceId': serializer.toJson<String?>(
+        lastMessageHlcDeviceId,
+      ),
+      'lastReadHlcPacked': serializer.toJson<int?>(lastReadHlcPacked),
+      'lastReadHlcDeviceId': serializer.toJson<String?>(lastReadHlcDeviceId),
+      'unreadCountCache': serializer.toJson<int>(unreadCountCache),
+      'isPinned': serializer.toJson<int>(isPinned),
+      'isMuted': serializer.toJson<int>(isMuted),
+      'settingsHlcPacked': serializer.toJson<int>(settingsHlcPacked),
+      'settingsHlcDeviceId': serializer.toJson<String>(settingsHlcDeviceId),
+      'updatedAtUtcMs': serializer.toJson<int>(updatedAtUtcMs),
+    };
+  }
+
+  TIMConversationRow copyWith({
+    String? scopeUid,
+    String? conversationId,
+    String? peerAppUserId,
+    String? peerNicknameSnapshot,
+    Value<String?> peerAvatarUrlSnapshot = const Value.absent(),
+    Value<String?> lastMessageId = const Value.absent(),
+    Value<int?> lastMessageHlcPacked = const Value.absent(),
+    Value<String?> lastMessageHlcDeviceId = const Value.absent(),
+    Value<int?> lastReadHlcPacked = const Value.absent(),
+    Value<String?> lastReadHlcDeviceId = const Value.absent(),
+    int? unreadCountCache,
+    int? isPinned,
+    int? isMuted,
+    int? settingsHlcPacked,
+    String? settingsHlcDeviceId,
+    int? updatedAtUtcMs,
+  }) => TIMConversationRow(
+    scopeUid: scopeUid ?? this.scopeUid,
+    conversationId: conversationId ?? this.conversationId,
+    peerAppUserId: peerAppUserId ?? this.peerAppUserId,
+    peerNicknameSnapshot: peerNicknameSnapshot ?? this.peerNicknameSnapshot,
+    peerAvatarUrlSnapshot: peerAvatarUrlSnapshot.present
+        ? peerAvatarUrlSnapshot.value
+        : this.peerAvatarUrlSnapshot,
+    lastMessageId: lastMessageId.present
+        ? lastMessageId.value
+        : this.lastMessageId,
+    lastMessageHlcPacked: lastMessageHlcPacked.present
+        ? lastMessageHlcPacked.value
+        : this.lastMessageHlcPacked,
+    lastMessageHlcDeviceId: lastMessageHlcDeviceId.present
+        ? lastMessageHlcDeviceId.value
+        : this.lastMessageHlcDeviceId,
+    lastReadHlcPacked: lastReadHlcPacked.present
+        ? lastReadHlcPacked.value
+        : this.lastReadHlcPacked,
+    lastReadHlcDeviceId: lastReadHlcDeviceId.present
+        ? lastReadHlcDeviceId.value
+        : this.lastReadHlcDeviceId,
+    unreadCountCache: unreadCountCache ?? this.unreadCountCache,
+    isPinned: isPinned ?? this.isPinned,
+    isMuted: isMuted ?? this.isMuted,
+    settingsHlcPacked: settingsHlcPacked ?? this.settingsHlcPacked,
+    settingsHlcDeviceId: settingsHlcDeviceId ?? this.settingsHlcDeviceId,
+    updatedAtUtcMs: updatedAtUtcMs ?? this.updatedAtUtcMs,
+  );
+  TIMConversationRow copyWithCompanion(TIMConversationsCompanion data) {
+    return TIMConversationRow(
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
+      conversationId: data.conversationId.present
+          ? data.conversationId.value
+          : this.conversationId,
+      peerAppUserId: data.peerAppUserId.present
+          ? data.peerAppUserId.value
+          : this.peerAppUserId,
+      peerNicknameSnapshot: data.peerNicknameSnapshot.present
+          ? data.peerNicknameSnapshot.value
+          : this.peerNicknameSnapshot,
+      peerAvatarUrlSnapshot: data.peerAvatarUrlSnapshot.present
+          ? data.peerAvatarUrlSnapshot.value
+          : this.peerAvatarUrlSnapshot,
+      lastMessageId: data.lastMessageId.present
+          ? data.lastMessageId.value
+          : this.lastMessageId,
+      lastMessageHlcPacked: data.lastMessageHlcPacked.present
+          ? data.lastMessageHlcPacked.value
+          : this.lastMessageHlcPacked,
+      lastMessageHlcDeviceId: data.lastMessageHlcDeviceId.present
+          ? data.lastMessageHlcDeviceId.value
+          : this.lastMessageHlcDeviceId,
+      lastReadHlcPacked: data.lastReadHlcPacked.present
+          ? data.lastReadHlcPacked.value
+          : this.lastReadHlcPacked,
+      lastReadHlcDeviceId: data.lastReadHlcDeviceId.present
+          ? data.lastReadHlcDeviceId.value
+          : this.lastReadHlcDeviceId,
+      unreadCountCache: data.unreadCountCache.present
+          ? data.unreadCountCache.value
+          : this.unreadCountCache,
+      isPinned: data.isPinned.present ? data.isPinned.value : this.isPinned,
+      isMuted: data.isMuted.present ? data.isMuted.value : this.isMuted,
+      settingsHlcPacked: data.settingsHlcPacked.present
+          ? data.settingsHlcPacked.value
+          : this.settingsHlcPacked,
+      settingsHlcDeviceId: data.settingsHlcDeviceId.present
+          ? data.settingsHlcDeviceId.value
+          : this.settingsHlcDeviceId,
+      updatedAtUtcMs: data.updatedAtUtcMs.present
+          ? data.updatedAtUtcMs.value
+          : this.updatedAtUtcMs,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TIMConversationRow(')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('conversationId: $conversationId, ')
+          ..write('peerAppUserId: $peerAppUserId, ')
+          ..write('peerNicknameSnapshot: $peerNicknameSnapshot, ')
+          ..write('peerAvatarUrlSnapshot: $peerAvatarUrlSnapshot, ')
+          ..write('lastMessageId: $lastMessageId, ')
+          ..write('lastMessageHlcPacked: $lastMessageHlcPacked, ')
+          ..write('lastMessageHlcDeviceId: $lastMessageHlcDeviceId, ')
+          ..write('lastReadHlcPacked: $lastReadHlcPacked, ')
+          ..write('lastReadHlcDeviceId: $lastReadHlcDeviceId, ')
+          ..write('unreadCountCache: $unreadCountCache, ')
+          ..write('isPinned: $isPinned, ')
+          ..write('isMuted: $isMuted, ')
+          ..write('settingsHlcPacked: $settingsHlcPacked, ')
+          ..write('settingsHlcDeviceId: $settingsHlcDeviceId, ')
+          ..write('updatedAtUtcMs: $updatedAtUtcMs')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    scopeUid,
+    conversationId,
+    peerAppUserId,
+    peerNicknameSnapshot,
+    peerAvatarUrlSnapshot,
+    lastMessageId,
+    lastMessageHlcPacked,
+    lastMessageHlcDeviceId,
+    lastReadHlcPacked,
+    lastReadHlcDeviceId,
+    unreadCountCache,
+    isPinned,
+    isMuted,
+    settingsHlcPacked,
+    settingsHlcDeviceId,
+    updatedAtUtcMs,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TIMConversationRow &&
+          other.scopeUid == this.scopeUid &&
+          other.conversationId == this.conversationId &&
+          other.peerAppUserId == this.peerAppUserId &&
+          other.peerNicknameSnapshot == this.peerNicknameSnapshot &&
+          other.peerAvatarUrlSnapshot == this.peerAvatarUrlSnapshot &&
+          other.lastMessageId == this.lastMessageId &&
+          other.lastMessageHlcPacked == this.lastMessageHlcPacked &&
+          other.lastMessageHlcDeviceId == this.lastMessageHlcDeviceId &&
+          other.lastReadHlcPacked == this.lastReadHlcPacked &&
+          other.lastReadHlcDeviceId == this.lastReadHlcDeviceId &&
+          other.unreadCountCache == this.unreadCountCache &&
+          other.isPinned == this.isPinned &&
+          other.isMuted == this.isMuted &&
+          other.settingsHlcPacked == this.settingsHlcPacked &&
+          other.settingsHlcDeviceId == this.settingsHlcDeviceId &&
+          other.updatedAtUtcMs == this.updatedAtUtcMs);
+}
+
+class TIMConversationsCompanion extends UpdateCompanion<TIMConversationRow> {
+  final Value<String> scopeUid;
+  final Value<String> conversationId;
+  final Value<String> peerAppUserId;
+  final Value<String> peerNicknameSnapshot;
+  final Value<String?> peerAvatarUrlSnapshot;
+  final Value<String?> lastMessageId;
+  final Value<int?> lastMessageHlcPacked;
+  final Value<String?> lastMessageHlcDeviceId;
+  final Value<int?> lastReadHlcPacked;
+  final Value<String?> lastReadHlcDeviceId;
+  final Value<int> unreadCountCache;
+  final Value<int> isPinned;
+  final Value<int> isMuted;
+  final Value<int> settingsHlcPacked;
+  final Value<String> settingsHlcDeviceId;
+  final Value<int> updatedAtUtcMs;
+  final Value<int> rowid;
+  const TIMConversationsCompanion({
+    this.scopeUid = const Value.absent(),
+    this.conversationId = const Value.absent(),
+    this.peerAppUserId = const Value.absent(),
+    this.peerNicknameSnapshot = const Value.absent(),
+    this.peerAvatarUrlSnapshot = const Value.absent(),
+    this.lastMessageId = const Value.absent(),
+    this.lastMessageHlcPacked = const Value.absent(),
+    this.lastMessageHlcDeviceId = const Value.absent(),
+    this.lastReadHlcPacked = const Value.absent(),
+    this.lastReadHlcDeviceId = const Value.absent(),
+    this.unreadCountCache = const Value.absent(),
+    this.isPinned = const Value.absent(),
+    this.isMuted = const Value.absent(),
+    this.settingsHlcPacked = const Value.absent(),
+    this.settingsHlcDeviceId = const Value.absent(),
+    this.updatedAtUtcMs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TIMConversationsCompanion.insert({
+    required String scopeUid,
+    required String conversationId,
+    required String peerAppUserId,
+    required String peerNicknameSnapshot,
+    this.peerAvatarUrlSnapshot = const Value.absent(),
+    this.lastMessageId = const Value.absent(),
+    this.lastMessageHlcPacked = const Value.absent(),
+    this.lastMessageHlcDeviceId = const Value.absent(),
+    this.lastReadHlcPacked = const Value.absent(),
+    this.lastReadHlcDeviceId = const Value.absent(),
+    this.unreadCountCache = const Value.absent(),
+    this.isPinned = const Value.absent(),
+    this.isMuted = const Value.absent(),
+    required int settingsHlcPacked,
+    required String settingsHlcDeviceId,
+    required int updatedAtUtcMs,
+    this.rowid = const Value.absent(),
+  }) : scopeUid = Value(scopeUid),
+       conversationId = Value(conversationId),
+       peerAppUserId = Value(peerAppUserId),
+       peerNicknameSnapshot = Value(peerNicknameSnapshot),
+       settingsHlcPacked = Value(settingsHlcPacked),
+       settingsHlcDeviceId = Value(settingsHlcDeviceId),
+       updatedAtUtcMs = Value(updatedAtUtcMs);
+  static Insertable<TIMConversationRow> custom({
+    Expression<String>? scopeUid,
+    Expression<String>? conversationId,
+    Expression<String>? peerAppUserId,
+    Expression<String>? peerNicknameSnapshot,
+    Expression<String>? peerAvatarUrlSnapshot,
+    Expression<String>? lastMessageId,
+    Expression<int>? lastMessageHlcPacked,
+    Expression<String>? lastMessageHlcDeviceId,
+    Expression<int>? lastReadHlcPacked,
+    Expression<String>? lastReadHlcDeviceId,
+    Expression<int>? unreadCountCache,
+    Expression<int>? isPinned,
+    Expression<int>? isMuted,
+    Expression<int>? settingsHlcPacked,
+    Expression<String>? settingsHlcDeviceId,
+    Expression<int>? updatedAtUtcMs,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (scopeUid != null) 'scope_uid': scopeUid,
+      if (conversationId != null) 'conversation_id': conversationId,
+      if (peerAppUserId != null) 'peer_app_user_id': peerAppUserId,
+      if (peerNicknameSnapshot != null)
+        'peer_nickname_snapshot': peerNicknameSnapshot,
+      if (peerAvatarUrlSnapshot != null)
+        'peer_avatar_url_snapshot': peerAvatarUrlSnapshot,
+      if (lastMessageId != null) 'last_message_id': lastMessageId,
+      if (lastMessageHlcPacked != null)
+        'last_message_hlc_packed': lastMessageHlcPacked,
+      if (lastMessageHlcDeviceId != null)
+        'last_message_hlc_device_id': lastMessageHlcDeviceId,
+      if (lastReadHlcPacked != null) 'last_read_hlc_packed': lastReadHlcPacked,
+      if (lastReadHlcDeviceId != null)
+        'last_read_hlc_device_id': lastReadHlcDeviceId,
+      if (unreadCountCache != null) 'unread_count_cache': unreadCountCache,
+      if (isPinned != null) 'is_pinned': isPinned,
+      if (isMuted != null) 'is_muted': isMuted,
+      if (settingsHlcPacked != null) 'settings_hlc_packed': settingsHlcPacked,
+      if (settingsHlcDeviceId != null)
+        'settings_hlc_device_id': settingsHlcDeviceId,
+      if (updatedAtUtcMs != null) 'updated_at_utc_ms': updatedAtUtcMs,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TIMConversationsCompanion copyWith({
+    Value<String>? scopeUid,
+    Value<String>? conversationId,
+    Value<String>? peerAppUserId,
+    Value<String>? peerNicknameSnapshot,
+    Value<String?>? peerAvatarUrlSnapshot,
+    Value<String?>? lastMessageId,
+    Value<int?>? lastMessageHlcPacked,
+    Value<String?>? lastMessageHlcDeviceId,
+    Value<int?>? lastReadHlcPacked,
+    Value<String?>? lastReadHlcDeviceId,
+    Value<int>? unreadCountCache,
+    Value<int>? isPinned,
+    Value<int>? isMuted,
+    Value<int>? settingsHlcPacked,
+    Value<String>? settingsHlcDeviceId,
+    Value<int>? updatedAtUtcMs,
+    Value<int>? rowid,
+  }) {
+    return TIMConversationsCompanion(
+      scopeUid: scopeUid ?? this.scopeUid,
+      conversationId: conversationId ?? this.conversationId,
+      peerAppUserId: peerAppUserId ?? this.peerAppUserId,
+      peerNicknameSnapshot: peerNicknameSnapshot ?? this.peerNicknameSnapshot,
+      peerAvatarUrlSnapshot:
+          peerAvatarUrlSnapshot ?? this.peerAvatarUrlSnapshot,
+      lastMessageId: lastMessageId ?? this.lastMessageId,
+      lastMessageHlcPacked: lastMessageHlcPacked ?? this.lastMessageHlcPacked,
+      lastMessageHlcDeviceId:
+          lastMessageHlcDeviceId ?? this.lastMessageHlcDeviceId,
+      lastReadHlcPacked: lastReadHlcPacked ?? this.lastReadHlcPacked,
+      lastReadHlcDeviceId: lastReadHlcDeviceId ?? this.lastReadHlcDeviceId,
+      unreadCountCache: unreadCountCache ?? this.unreadCountCache,
+      isPinned: isPinned ?? this.isPinned,
+      isMuted: isMuted ?? this.isMuted,
+      settingsHlcPacked: settingsHlcPacked ?? this.settingsHlcPacked,
+      settingsHlcDeviceId: settingsHlcDeviceId ?? this.settingsHlcDeviceId,
+      updatedAtUtcMs: updatedAtUtcMs ?? this.updatedAtUtcMs,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
+    }
+    if (conversationId.present) {
+      map['conversation_id'] = Variable<String>(conversationId.value);
+    }
+    if (peerAppUserId.present) {
+      map['peer_app_user_id'] = Variable<String>(peerAppUserId.value);
+    }
+    if (peerNicknameSnapshot.present) {
+      map['peer_nickname_snapshot'] = Variable<String>(
+        peerNicknameSnapshot.value,
+      );
+    }
+    if (peerAvatarUrlSnapshot.present) {
+      map['peer_avatar_url_snapshot'] = Variable<String>(
+        peerAvatarUrlSnapshot.value,
+      );
+    }
+    if (lastMessageId.present) {
+      map['last_message_id'] = Variable<String>(lastMessageId.value);
+    }
+    if (lastMessageHlcPacked.present) {
+      map['last_message_hlc_packed'] = Variable<int>(
+        lastMessageHlcPacked.value,
+      );
+    }
+    if (lastMessageHlcDeviceId.present) {
+      map['last_message_hlc_device_id'] = Variable<String>(
+        lastMessageHlcDeviceId.value,
+      );
+    }
+    if (lastReadHlcPacked.present) {
+      map['last_read_hlc_packed'] = Variable<int>(lastReadHlcPacked.value);
+    }
+    if (lastReadHlcDeviceId.present) {
+      map['last_read_hlc_device_id'] = Variable<String>(
+        lastReadHlcDeviceId.value,
+      );
+    }
+    if (unreadCountCache.present) {
+      map['unread_count_cache'] = Variable<int>(unreadCountCache.value);
+    }
+    if (isPinned.present) {
+      map['is_pinned'] = Variable<int>(isPinned.value);
+    }
+    if (isMuted.present) {
+      map['is_muted'] = Variable<int>(isMuted.value);
+    }
+    if (settingsHlcPacked.present) {
+      map['settings_hlc_packed'] = Variable<int>(settingsHlcPacked.value);
+    }
+    if (settingsHlcDeviceId.present) {
+      map['settings_hlc_device_id'] = Variable<String>(
+        settingsHlcDeviceId.value,
+      );
+    }
+    if (updatedAtUtcMs.present) {
+      map['updated_at_utc_ms'] = Variable<int>(updatedAtUtcMs.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TIMConversationsCompanion(')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('conversationId: $conversationId, ')
+          ..write('peerAppUserId: $peerAppUserId, ')
+          ..write('peerNicknameSnapshot: $peerNicknameSnapshot, ')
+          ..write('peerAvatarUrlSnapshot: $peerAvatarUrlSnapshot, ')
+          ..write('lastMessageId: $lastMessageId, ')
+          ..write('lastMessageHlcPacked: $lastMessageHlcPacked, ')
+          ..write('lastMessageHlcDeviceId: $lastMessageHlcDeviceId, ')
+          ..write('lastReadHlcPacked: $lastReadHlcPacked, ')
+          ..write('lastReadHlcDeviceId: $lastReadHlcDeviceId, ')
+          ..write('unreadCountCache: $unreadCountCache, ')
+          ..write('isPinned: $isPinned, ')
+          ..write('isMuted: $isMuted, ')
+          ..write('settingsHlcPacked: $settingsHlcPacked, ')
+          ..write('settingsHlcDeviceId: $settingsHlcDeviceId, ')
+          ..write('updatedAtUtcMs: $updatedAtUtcMs, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TIMEnvelopeDedupsTable extends TIMEnvelopeDedups
+    with TableInfo<$TIMEnvelopeDedupsTable, TIMEnvelopeDedupRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TIMEnvelopeDedupsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _envelopeIdMeta = const VerificationMeta(
+    'envelopeId',
+  );
+  @override
+  late final GeneratedColumn<String> envelopeId = GeneratedColumn<String>(
+    'envelope_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _messageIdMeta = const VerificationMeta(
+    'messageId',
+  );
+  @override
+  late final GeneratedColumn<String> messageId = GeneratedColumn<String>(
+    'message_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _ciphertextHashMeta = const VerificationMeta(
+    'ciphertextHash',
+  );
+  @override
+  late final GeneratedColumn<String> ciphertextHash = GeneratedColumn<String>(
+    'ciphertext_hash',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _committedAtMeta = const VerificationMeta(
+    'committedAt',
+  );
+  @override
+  late final GeneratedColumn<int> committedAt = GeneratedColumn<int>(
+    'committed_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    scopeUid,
+    envelopeId,
+    messageId,
+    ciphertextHash,
+    committedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_im_envelope_dedup';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TIMEnvelopeDedupRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scopeUidMeta);
+    }
+    if (data.containsKey('envelope_id')) {
+      context.handle(
+        _envelopeIdMeta,
+        envelopeId.isAcceptableOrUnknown(data['envelope_id']!, _envelopeIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_envelopeIdMeta);
+    }
+    if (data.containsKey('message_id')) {
+      context.handle(
+        _messageIdMeta,
+        messageId.isAcceptableOrUnknown(data['message_id']!, _messageIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_messageIdMeta);
+    }
+    if (data.containsKey('ciphertext_hash')) {
+      context.handle(
+        _ciphertextHashMeta,
+        ciphertextHash.isAcceptableOrUnknown(
+          data['ciphertext_hash']!,
+          _ciphertextHashMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_ciphertextHashMeta);
+    }
+    if (data.containsKey('committed_at')) {
+      context.handle(
+        _committedAtMeta,
+        committedAt.isAcceptableOrUnknown(
+          data['committed_at']!,
+          _committedAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_committedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {scopeUid, envelopeId};
+  @override
+  TIMEnvelopeDedupRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TIMEnvelopeDedupRow(
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      )!,
+      envelopeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}envelope_id'],
+      )!,
+      messageId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}message_id'],
+      )!,
+      ciphertextHash: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}ciphertext_hash'],
+      )!,
+      committedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}committed_at'],
+      )!,
+    );
+  }
+
+  @override
+  $TIMEnvelopeDedupsTable createAlias(String alias) {
+    return $TIMEnvelopeDedupsTable(attachedDatabase, alias);
+  }
+}
+
+class TIMEnvelopeDedupRow extends DataClass
+    implements Insertable<TIMEnvelopeDedupRow> {
+  final String scopeUid;
+  final String envelopeId;
+  final String messageId;
+  final String ciphertextHash;
+  final int committedAt;
+  const TIMEnvelopeDedupRow({
+    required this.scopeUid,
+    required this.envelopeId,
+    required this.messageId,
+    required this.ciphertextHash,
+    required this.committedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['scope_uid'] = Variable<String>(scopeUid);
+    map['envelope_id'] = Variable<String>(envelopeId);
+    map['message_id'] = Variable<String>(messageId);
+    map['ciphertext_hash'] = Variable<String>(ciphertextHash);
+    map['committed_at'] = Variable<int>(committedAt);
+    return map;
+  }
+
+  TIMEnvelopeDedupsCompanion toCompanion(bool nullToAbsent) {
+    return TIMEnvelopeDedupsCompanion(
+      scopeUid: Value(scopeUid),
+      envelopeId: Value(envelopeId),
+      messageId: Value(messageId),
+      ciphertextHash: Value(ciphertextHash),
+      committedAt: Value(committedAt),
+    );
+  }
+
+  factory TIMEnvelopeDedupRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TIMEnvelopeDedupRow(
+      scopeUid: serializer.fromJson<String>(json['scopeUid']),
+      envelopeId: serializer.fromJson<String>(json['envelopeId']),
+      messageId: serializer.fromJson<String>(json['messageId']),
+      ciphertextHash: serializer.fromJson<String>(json['ciphertextHash']),
+      committedAt: serializer.fromJson<int>(json['committedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'scopeUid': serializer.toJson<String>(scopeUid),
+      'envelopeId': serializer.toJson<String>(envelopeId),
+      'messageId': serializer.toJson<String>(messageId),
+      'ciphertextHash': serializer.toJson<String>(ciphertextHash),
+      'committedAt': serializer.toJson<int>(committedAt),
+    };
+  }
+
+  TIMEnvelopeDedupRow copyWith({
+    String? scopeUid,
+    String? envelopeId,
+    String? messageId,
+    String? ciphertextHash,
+    int? committedAt,
+  }) => TIMEnvelopeDedupRow(
+    scopeUid: scopeUid ?? this.scopeUid,
+    envelopeId: envelopeId ?? this.envelopeId,
+    messageId: messageId ?? this.messageId,
+    ciphertextHash: ciphertextHash ?? this.ciphertextHash,
+    committedAt: committedAt ?? this.committedAt,
+  );
+  TIMEnvelopeDedupRow copyWithCompanion(TIMEnvelopeDedupsCompanion data) {
+    return TIMEnvelopeDedupRow(
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
+      envelopeId: data.envelopeId.present
+          ? data.envelopeId.value
+          : this.envelopeId,
+      messageId: data.messageId.present ? data.messageId.value : this.messageId,
+      ciphertextHash: data.ciphertextHash.present
+          ? data.ciphertextHash.value
+          : this.ciphertextHash,
+      committedAt: data.committedAt.present
+          ? data.committedAt.value
+          : this.committedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TIMEnvelopeDedupRow(')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('envelopeId: $envelopeId, ')
+          ..write('messageId: $messageId, ')
+          ..write('ciphertextHash: $ciphertextHash, ')
+          ..write('committedAt: $committedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(scopeUid, envelopeId, messageId, ciphertextHash, committedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TIMEnvelopeDedupRow &&
+          other.scopeUid == this.scopeUid &&
+          other.envelopeId == this.envelopeId &&
+          other.messageId == this.messageId &&
+          other.ciphertextHash == this.ciphertextHash &&
+          other.committedAt == this.committedAt);
+}
+
+class TIMEnvelopeDedupsCompanion extends UpdateCompanion<TIMEnvelopeDedupRow> {
+  final Value<String> scopeUid;
+  final Value<String> envelopeId;
+  final Value<String> messageId;
+  final Value<String> ciphertextHash;
+  final Value<int> committedAt;
+  final Value<int> rowid;
+  const TIMEnvelopeDedupsCompanion({
+    this.scopeUid = const Value.absent(),
+    this.envelopeId = const Value.absent(),
+    this.messageId = const Value.absent(),
+    this.ciphertextHash = const Value.absent(),
+    this.committedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TIMEnvelopeDedupsCompanion.insert({
+    required String scopeUid,
+    required String envelopeId,
+    required String messageId,
+    required String ciphertextHash,
+    required int committedAt,
+    this.rowid = const Value.absent(),
+  }) : scopeUid = Value(scopeUid),
+       envelopeId = Value(envelopeId),
+       messageId = Value(messageId),
+       ciphertextHash = Value(ciphertextHash),
+       committedAt = Value(committedAt);
+  static Insertable<TIMEnvelopeDedupRow> custom({
+    Expression<String>? scopeUid,
+    Expression<String>? envelopeId,
+    Expression<String>? messageId,
+    Expression<String>? ciphertextHash,
+    Expression<int>? committedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (scopeUid != null) 'scope_uid': scopeUid,
+      if (envelopeId != null) 'envelope_id': envelopeId,
+      if (messageId != null) 'message_id': messageId,
+      if (ciphertextHash != null) 'ciphertext_hash': ciphertextHash,
+      if (committedAt != null) 'committed_at': committedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TIMEnvelopeDedupsCompanion copyWith({
+    Value<String>? scopeUid,
+    Value<String>? envelopeId,
+    Value<String>? messageId,
+    Value<String>? ciphertextHash,
+    Value<int>? committedAt,
+    Value<int>? rowid,
+  }) {
+    return TIMEnvelopeDedupsCompanion(
+      scopeUid: scopeUid ?? this.scopeUid,
+      envelopeId: envelopeId ?? this.envelopeId,
+      messageId: messageId ?? this.messageId,
+      ciphertextHash: ciphertextHash ?? this.ciphertextHash,
+      committedAt: committedAt ?? this.committedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
+    }
+    if (envelopeId.present) {
+      map['envelope_id'] = Variable<String>(envelopeId.value);
+    }
+    if (messageId.present) {
+      map['message_id'] = Variable<String>(messageId.value);
+    }
+    if (ciphertextHash.present) {
+      map['ciphertext_hash'] = Variable<String>(ciphertextHash.value);
+    }
+    if (committedAt.present) {
+      map['committed_at'] = Variable<int>(committedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TIMEnvelopeDedupsCompanion(')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('envelopeId: $envelopeId, ')
+          ..write('messageId: $messageId, ')
+          ..write('ciphertextHash: $ciphertextHash, ')
+          ..write('committedAt: $committedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $IncomingDeliveriesTable extends IncomingDeliveries
+    with TableInfo<$IncomingDeliveriesTable, IncomingDeliveryRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $IncomingDeliveriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deliveryIdMeta = const VerificationMeta(
+    'deliveryId',
+  );
+  @override
+  late final GeneratedColumn<String> deliveryId = GeneratedColumn<String>(
+    'delivery_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _envelopeIdMeta = const VerificationMeta(
+    'envelopeId',
+  );
+  @override
+  late final GeneratedColumn<String> envelopeId = GeneratedColumn<String>(
+    'envelope_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _messageIdMeta = const VerificationMeta(
+    'messageId',
+  );
+  @override
+  late final GeneratedColumn<String> messageId = GeneratedColumn<String>(
+    'message_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _committedAtMeta = const VerificationMeta(
+    'committedAt',
+  );
+  @override
+  late final GeneratedColumn<int> committedAt = GeneratedColumn<int>(
+    'committed_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    scopeUid,
+    deliveryId,
+    envelopeId,
+    messageId,
+    committedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_incoming_delivery';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<IncomingDeliveryRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scopeUidMeta);
+    }
+    if (data.containsKey('delivery_id')) {
+      context.handle(
+        _deliveryIdMeta,
+        deliveryId.isAcceptableOrUnknown(data['delivery_id']!, _deliveryIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_deliveryIdMeta);
+    }
+    if (data.containsKey('envelope_id')) {
+      context.handle(
+        _envelopeIdMeta,
+        envelopeId.isAcceptableOrUnknown(data['envelope_id']!, _envelopeIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_envelopeIdMeta);
+    }
+    if (data.containsKey('message_id')) {
+      context.handle(
+        _messageIdMeta,
+        messageId.isAcceptableOrUnknown(data['message_id']!, _messageIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_messageIdMeta);
+    }
+    if (data.containsKey('committed_at')) {
+      context.handle(
+        _committedAtMeta,
+        committedAt.isAcceptableOrUnknown(
+          data['committed_at']!,
+          _committedAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_committedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {scopeUid, deliveryId};
+  @override
+  IncomingDeliveryRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return IncomingDeliveryRow(
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      )!,
+      deliveryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}delivery_id'],
+      )!,
+      envelopeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}envelope_id'],
+      )!,
+      messageId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}message_id'],
+      )!,
+      committedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}committed_at'],
+      )!,
+    );
+  }
+
+  @override
+  $IncomingDeliveriesTable createAlias(String alias) {
+    return $IncomingDeliveriesTable(attachedDatabase, alias);
+  }
+}
+
+class IncomingDeliveryRow extends DataClass
+    implements Insertable<IncomingDeliveryRow> {
+  final String scopeUid;
+  final String deliveryId;
+  final String envelopeId;
+  final String messageId;
+  final int committedAt;
+  const IncomingDeliveryRow({
+    required this.scopeUid,
+    required this.deliveryId,
+    required this.envelopeId,
+    required this.messageId,
+    required this.committedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['scope_uid'] = Variable<String>(scopeUid);
+    map['delivery_id'] = Variable<String>(deliveryId);
+    map['envelope_id'] = Variable<String>(envelopeId);
+    map['message_id'] = Variable<String>(messageId);
+    map['committed_at'] = Variable<int>(committedAt);
+    return map;
+  }
+
+  IncomingDeliveriesCompanion toCompanion(bool nullToAbsent) {
+    return IncomingDeliveriesCompanion(
+      scopeUid: Value(scopeUid),
+      deliveryId: Value(deliveryId),
+      envelopeId: Value(envelopeId),
+      messageId: Value(messageId),
+      committedAt: Value(committedAt),
+    );
+  }
+
+  factory IncomingDeliveryRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return IncomingDeliveryRow(
+      scopeUid: serializer.fromJson<String>(json['scopeUid']),
+      deliveryId: serializer.fromJson<String>(json['deliveryId']),
+      envelopeId: serializer.fromJson<String>(json['envelopeId']),
+      messageId: serializer.fromJson<String>(json['messageId']),
+      committedAt: serializer.fromJson<int>(json['committedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'scopeUid': serializer.toJson<String>(scopeUid),
+      'deliveryId': serializer.toJson<String>(deliveryId),
+      'envelopeId': serializer.toJson<String>(envelopeId),
+      'messageId': serializer.toJson<String>(messageId),
+      'committedAt': serializer.toJson<int>(committedAt),
+    };
+  }
+
+  IncomingDeliveryRow copyWith({
+    String? scopeUid,
+    String? deliveryId,
+    String? envelopeId,
+    String? messageId,
+    int? committedAt,
+  }) => IncomingDeliveryRow(
+    scopeUid: scopeUid ?? this.scopeUid,
+    deliveryId: deliveryId ?? this.deliveryId,
+    envelopeId: envelopeId ?? this.envelopeId,
+    messageId: messageId ?? this.messageId,
+    committedAt: committedAt ?? this.committedAt,
+  );
+  IncomingDeliveryRow copyWithCompanion(IncomingDeliveriesCompanion data) {
+    return IncomingDeliveryRow(
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
+      deliveryId: data.deliveryId.present
+          ? data.deliveryId.value
+          : this.deliveryId,
+      envelopeId: data.envelopeId.present
+          ? data.envelopeId.value
+          : this.envelopeId,
+      messageId: data.messageId.present ? data.messageId.value : this.messageId,
+      committedAt: data.committedAt.present
+          ? data.committedAt.value
+          : this.committedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('IncomingDeliveryRow(')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('deliveryId: $deliveryId, ')
+          ..write('envelopeId: $envelopeId, ')
+          ..write('messageId: $messageId, ')
+          ..write('committedAt: $committedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(scopeUid, deliveryId, envelopeId, messageId, committedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is IncomingDeliveryRow &&
+          other.scopeUid == this.scopeUid &&
+          other.deliveryId == this.deliveryId &&
+          other.envelopeId == this.envelopeId &&
+          other.messageId == this.messageId &&
+          other.committedAt == this.committedAt);
+}
+
+class IncomingDeliveriesCompanion extends UpdateCompanion<IncomingDeliveryRow> {
+  final Value<String> scopeUid;
+  final Value<String> deliveryId;
+  final Value<String> envelopeId;
+  final Value<String> messageId;
+  final Value<int> committedAt;
+  final Value<int> rowid;
+  const IncomingDeliveriesCompanion({
+    this.scopeUid = const Value.absent(),
+    this.deliveryId = const Value.absent(),
+    this.envelopeId = const Value.absent(),
+    this.messageId = const Value.absent(),
+    this.committedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  IncomingDeliveriesCompanion.insert({
+    required String scopeUid,
+    required String deliveryId,
+    required String envelopeId,
+    required String messageId,
+    required int committedAt,
+    this.rowid = const Value.absent(),
+  }) : scopeUid = Value(scopeUid),
+       deliveryId = Value(deliveryId),
+       envelopeId = Value(envelopeId),
+       messageId = Value(messageId),
+       committedAt = Value(committedAt);
+  static Insertable<IncomingDeliveryRow> custom({
+    Expression<String>? scopeUid,
+    Expression<String>? deliveryId,
+    Expression<String>? envelopeId,
+    Expression<String>? messageId,
+    Expression<int>? committedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (scopeUid != null) 'scope_uid': scopeUid,
+      if (deliveryId != null) 'delivery_id': deliveryId,
+      if (envelopeId != null) 'envelope_id': envelopeId,
+      if (messageId != null) 'message_id': messageId,
+      if (committedAt != null) 'committed_at': committedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  IncomingDeliveriesCompanion copyWith({
+    Value<String>? scopeUid,
+    Value<String>? deliveryId,
+    Value<String>? envelopeId,
+    Value<String>? messageId,
+    Value<int>? committedAt,
+    Value<int>? rowid,
+  }) {
+    return IncomingDeliveriesCompanion(
+      scopeUid: scopeUid ?? this.scopeUid,
+      deliveryId: deliveryId ?? this.deliveryId,
+      envelopeId: envelopeId ?? this.envelopeId,
+      messageId: messageId ?? this.messageId,
+      committedAt: committedAt ?? this.committedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
+    }
+    if (deliveryId.present) {
+      map['delivery_id'] = Variable<String>(deliveryId.value);
+    }
+    if (envelopeId.present) {
+      map['envelope_id'] = Variable<String>(envelopeId.value);
+    }
+    if (messageId.present) {
+      map['message_id'] = Variable<String>(messageId.value);
+    }
+    if (committedAt.present) {
+      map['committed_at'] = Variable<int>(committedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('IncomingDeliveriesCompanion(')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('deliveryId: $deliveryId, ')
+          ..write('envelopeId: $envelopeId, ')
+          ..write('messageId: $messageId, ')
+          ..write('committedAt: $committedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TIMSendStatesTable extends TIMSendStates
+    with TableInfo<$TIMSendStatesTable, TIMSendStateRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TIMSendStatesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _messageIdMeta = const VerificationMeta(
+    'messageId',
+  );
+  @override
+  late final GeneratedColumn<String> messageId = GeneratedColumn<String>(
+    'message_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _transportStateMeta = const VerificationMeta(
+    'transportState',
+  );
+  @override
+  late final GeneratedColumn<String> transportState = GeneratedColumn<String>(
+    'transport_state',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _attemptMeta = const VerificationMeta(
+    'attempt',
+  );
+  @override
+  late final GeneratedColumn<int> attempt = GeneratedColumn<int>(
+    'attempt',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _retryAtUtcMsMeta = const VerificationMeta(
+    'retryAtUtcMs',
+  );
+  @override
+  late final GeneratedColumn<int> retryAtUtcMs = GeneratedColumn<int>(
+    'retry_at_utc_ms',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastErrorCodeMeta = const VerificationMeta(
+    'lastErrorCode',
+  );
+  @override
+  late final GeneratedColumn<String> lastErrorCode = GeneratedColumn<String>(
+    'last_error_code',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtUtcMsMeta = const VerificationMeta(
+    'updatedAtUtcMs',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAtUtcMs = GeneratedColumn<int>(
+    'updated_at_utc_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    scopeUid,
+    messageId,
+    transportState,
+    attempt,
+    retryAtUtcMs,
+    lastErrorCode,
+    updatedAtUtcMs,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_im_send_state';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TIMSendStateRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scopeUidMeta);
+    }
+    if (data.containsKey('message_id')) {
+      context.handle(
+        _messageIdMeta,
+        messageId.isAcceptableOrUnknown(data['message_id']!, _messageIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_messageIdMeta);
+    }
+    if (data.containsKey('transport_state')) {
+      context.handle(
+        _transportStateMeta,
+        transportState.isAcceptableOrUnknown(
+          data['transport_state']!,
+          _transportStateMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_transportStateMeta);
+    }
+    if (data.containsKey('attempt')) {
+      context.handle(
+        _attemptMeta,
+        attempt.isAcceptableOrUnknown(data['attempt']!, _attemptMeta),
+      );
+    }
+    if (data.containsKey('retry_at_utc_ms')) {
+      context.handle(
+        _retryAtUtcMsMeta,
+        retryAtUtcMs.isAcceptableOrUnknown(
+          data['retry_at_utc_ms']!,
+          _retryAtUtcMsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_error_code')) {
+      context.handle(
+        _lastErrorCodeMeta,
+        lastErrorCode.isAcceptableOrUnknown(
+          data['last_error_code']!,
+          _lastErrorCodeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('updated_at_utc_ms')) {
+      context.handle(
+        _updatedAtUtcMsMeta,
+        updatedAtUtcMs.isAcceptableOrUnknown(
+          data['updated_at_utc_ms']!,
+          _updatedAtUtcMsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtUtcMsMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {scopeUid, messageId};
+  @override
+  TIMSendStateRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TIMSendStateRow(
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      )!,
+      messageId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}message_id'],
+      )!,
+      transportState: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}transport_state'],
+      )!,
+      attempt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}attempt'],
+      )!,
+      retryAtUtcMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}retry_at_utc_ms'],
+      ),
+      lastErrorCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_error_code'],
+      ),
+      updatedAtUtcMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at_utc_ms'],
+      )!,
+    );
+  }
+
+  @override
+  $TIMSendStatesTable createAlias(String alias) {
+    return $TIMSendStatesTable(attachedDatabase, alias);
+  }
+}
+
+class TIMSendStateRow extends DataClass implements Insertable<TIMSendStateRow> {
+  final String scopeUid;
+  final String messageId;
+  final String transportState;
+  final int attempt;
+  final int? retryAtUtcMs;
+  final String? lastErrorCode;
+  final int updatedAtUtcMs;
+  const TIMSendStateRow({
+    required this.scopeUid,
+    required this.messageId,
+    required this.transportState,
+    required this.attempt,
+    this.retryAtUtcMs,
+    this.lastErrorCode,
+    required this.updatedAtUtcMs,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['scope_uid'] = Variable<String>(scopeUid);
+    map['message_id'] = Variable<String>(messageId);
+    map['transport_state'] = Variable<String>(transportState);
+    map['attempt'] = Variable<int>(attempt);
+    if (!nullToAbsent || retryAtUtcMs != null) {
+      map['retry_at_utc_ms'] = Variable<int>(retryAtUtcMs);
+    }
+    if (!nullToAbsent || lastErrorCode != null) {
+      map['last_error_code'] = Variable<String>(lastErrorCode);
+    }
+    map['updated_at_utc_ms'] = Variable<int>(updatedAtUtcMs);
+    return map;
+  }
+
+  TIMSendStatesCompanion toCompanion(bool nullToAbsent) {
+    return TIMSendStatesCompanion(
+      scopeUid: Value(scopeUid),
+      messageId: Value(messageId),
+      transportState: Value(transportState),
+      attempt: Value(attempt),
+      retryAtUtcMs: retryAtUtcMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(retryAtUtcMs),
+      lastErrorCode: lastErrorCode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastErrorCode),
+      updatedAtUtcMs: Value(updatedAtUtcMs),
+    );
+  }
+
+  factory TIMSendStateRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TIMSendStateRow(
+      scopeUid: serializer.fromJson<String>(json['scopeUid']),
+      messageId: serializer.fromJson<String>(json['messageId']),
+      transportState: serializer.fromJson<String>(json['transportState']),
+      attempt: serializer.fromJson<int>(json['attempt']),
+      retryAtUtcMs: serializer.fromJson<int?>(json['retryAtUtcMs']),
+      lastErrorCode: serializer.fromJson<String?>(json['lastErrorCode']),
+      updatedAtUtcMs: serializer.fromJson<int>(json['updatedAtUtcMs']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'scopeUid': serializer.toJson<String>(scopeUid),
+      'messageId': serializer.toJson<String>(messageId),
+      'transportState': serializer.toJson<String>(transportState),
+      'attempt': serializer.toJson<int>(attempt),
+      'retryAtUtcMs': serializer.toJson<int?>(retryAtUtcMs),
+      'lastErrorCode': serializer.toJson<String?>(lastErrorCode),
+      'updatedAtUtcMs': serializer.toJson<int>(updatedAtUtcMs),
+    };
+  }
+
+  TIMSendStateRow copyWith({
+    String? scopeUid,
+    String? messageId,
+    String? transportState,
+    int? attempt,
+    Value<int?> retryAtUtcMs = const Value.absent(),
+    Value<String?> lastErrorCode = const Value.absent(),
+    int? updatedAtUtcMs,
+  }) => TIMSendStateRow(
+    scopeUid: scopeUid ?? this.scopeUid,
+    messageId: messageId ?? this.messageId,
+    transportState: transportState ?? this.transportState,
+    attempt: attempt ?? this.attempt,
+    retryAtUtcMs: retryAtUtcMs.present ? retryAtUtcMs.value : this.retryAtUtcMs,
+    lastErrorCode: lastErrorCode.present
+        ? lastErrorCode.value
+        : this.lastErrorCode,
+    updatedAtUtcMs: updatedAtUtcMs ?? this.updatedAtUtcMs,
+  );
+  TIMSendStateRow copyWithCompanion(TIMSendStatesCompanion data) {
+    return TIMSendStateRow(
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
+      messageId: data.messageId.present ? data.messageId.value : this.messageId,
+      transportState: data.transportState.present
+          ? data.transportState.value
+          : this.transportState,
+      attempt: data.attempt.present ? data.attempt.value : this.attempt,
+      retryAtUtcMs: data.retryAtUtcMs.present
+          ? data.retryAtUtcMs.value
+          : this.retryAtUtcMs,
+      lastErrorCode: data.lastErrorCode.present
+          ? data.lastErrorCode.value
+          : this.lastErrorCode,
+      updatedAtUtcMs: data.updatedAtUtcMs.present
+          ? data.updatedAtUtcMs.value
+          : this.updatedAtUtcMs,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TIMSendStateRow(')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('messageId: $messageId, ')
+          ..write('transportState: $transportState, ')
+          ..write('attempt: $attempt, ')
+          ..write('retryAtUtcMs: $retryAtUtcMs, ')
+          ..write('lastErrorCode: $lastErrorCode, ')
+          ..write('updatedAtUtcMs: $updatedAtUtcMs')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    scopeUid,
+    messageId,
+    transportState,
+    attempt,
+    retryAtUtcMs,
+    lastErrorCode,
+    updatedAtUtcMs,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TIMSendStateRow &&
+          other.scopeUid == this.scopeUid &&
+          other.messageId == this.messageId &&
+          other.transportState == this.transportState &&
+          other.attempt == this.attempt &&
+          other.retryAtUtcMs == this.retryAtUtcMs &&
+          other.lastErrorCode == this.lastErrorCode &&
+          other.updatedAtUtcMs == this.updatedAtUtcMs);
+}
+
+class TIMSendStatesCompanion extends UpdateCompanion<TIMSendStateRow> {
+  final Value<String> scopeUid;
+  final Value<String> messageId;
+  final Value<String> transportState;
+  final Value<int> attempt;
+  final Value<int?> retryAtUtcMs;
+  final Value<String?> lastErrorCode;
+  final Value<int> updatedAtUtcMs;
+  final Value<int> rowid;
+  const TIMSendStatesCompanion({
+    this.scopeUid = const Value.absent(),
+    this.messageId = const Value.absent(),
+    this.transportState = const Value.absent(),
+    this.attempt = const Value.absent(),
+    this.retryAtUtcMs = const Value.absent(),
+    this.lastErrorCode = const Value.absent(),
+    this.updatedAtUtcMs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TIMSendStatesCompanion.insert({
+    required String scopeUid,
+    required String messageId,
+    required String transportState,
+    this.attempt = const Value.absent(),
+    this.retryAtUtcMs = const Value.absent(),
+    this.lastErrorCode = const Value.absent(),
+    required int updatedAtUtcMs,
+    this.rowid = const Value.absent(),
+  }) : scopeUid = Value(scopeUid),
+       messageId = Value(messageId),
+       transportState = Value(transportState),
+       updatedAtUtcMs = Value(updatedAtUtcMs);
+  static Insertable<TIMSendStateRow> custom({
+    Expression<String>? scopeUid,
+    Expression<String>? messageId,
+    Expression<String>? transportState,
+    Expression<int>? attempt,
+    Expression<int>? retryAtUtcMs,
+    Expression<String>? lastErrorCode,
+    Expression<int>? updatedAtUtcMs,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (scopeUid != null) 'scope_uid': scopeUid,
+      if (messageId != null) 'message_id': messageId,
+      if (transportState != null) 'transport_state': transportState,
+      if (attempt != null) 'attempt': attempt,
+      if (retryAtUtcMs != null) 'retry_at_utc_ms': retryAtUtcMs,
+      if (lastErrorCode != null) 'last_error_code': lastErrorCode,
+      if (updatedAtUtcMs != null) 'updated_at_utc_ms': updatedAtUtcMs,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TIMSendStatesCompanion copyWith({
+    Value<String>? scopeUid,
+    Value<String>? messageId,
+    Value<String>? transportState,
+    Value<int>? attempt,
+    Value<int?>? retryAtUtcMs,
+    Value<String?>? lastErrorCode,
+    Value<int>? updatedAtUtcMs,
+    Value<int>? rowid,
+  }) {
+    return TIMSendStatesCompanion(
+      scopeUid: scopeUid ?? this.scopeUid,
+      messageId: messageId ?? this.messageId,
+      transportState: transportState ?? this.transportState,
+      attempt: attempt ?? this.attempt,
+      retryAtUtcMs: retryAtUtcMs ?? this.retryAtUtcMs,
+      lastErrorCode: lastErrorCode ?? this.lastErrorCode,
+      updatedAtUtcMs: updatedAtUtcMs ?? this.updatedAtUtcMs,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
+    }
+    if (messageId.present) {
+      map['message_id'] = Variable<String>(messageId.value);
+    }
+    if (transportState.present) {
+      map['transport_state'] = Variable<String>(transportState.value);
+    }
+    if (attempt.present) {
+      map['attempt'] = Variable<int>(attempt.value);
+    }
+    if (retryAtUtcMs.present) {
+      map['retry_at_utc_ms'] = Variable<int>(retryAtUtcMs.value);
+    }
+    if (lastErrorCode.present) {
+      map['last_error_code'] = Variable<String>(lastErrorCode.value);
+    }
+    if (updatedAtUtcMs.present) {
+      map['updated_at_utc_ms'] = Variable<int>(updatedAtUtcMs.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TIMSendStatesCompanion(')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('messageId: $messageId, ')
+          ..write('transportState: $transportState, ')
+          ..write('attempt: $attempt, ')
+          ..write('retryAtUtcMs: $retryAtUtcMs, ')
+          ..write('lastErrorCode: $lastErrorCode, ')
+          ..write('updatedAtUtcMs: $updatedAtUtcMs, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TIMPeerAuthorizationsTable extends TIMPeerAuthorizations
+    with TableInfo<$TIMPeerAuthorizationsTable, TIMPeerAuthorizationRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TIMPeerAuthorizationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _peerDeviceIdMeta = const VerificationMeta(
+    'peerDeviceId',
+  );
+  @override
+  late final GeneratedColumn<String> peerDeviceId = GeneratedColumn<String>(
+    'peer_device_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _peerPublicKeyFingerprintMeta =
+      const VerificationMeta('peerPublicKeyFingerprint');
+  @override
+  late final GeneratedColumn<String> peerPublicKeyFingerprint =
+      GeneratedColumn<String>(
+        'peer_public_key_fingerprint',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _accountBindingCertHashMeta =
+      const VerificationMeta('accountBindingCertHash');
+  @override
+  late final GeneratedColumn<String> accountBindingCertHash =
+      GeneratedColumn<String>(
+        'account_binding_cert_hash',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _keyEpochMeta = const VerificationMeta(
+    'keyEpoch',
+  );
+  @override
+  late final GeneratedColumn<int> keyEpoch = GeneratedColumn<int>(
+    'key_epoch',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _trustStateMeta = const VerificationMeta(
+    'trustState',
+  );
+  @override
+  late final GeneratedColumn<String> trustState = GeneratedColumn<String>(
+    'trust_state',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _expiresAtUtcMsMeta = const VerificationMeta(
+    'expiresAtUtcMs',
+  );
+  @override
+  late final GeneratedColumn<int> expiresAtUtcMs = GeneratedColumn<int>(
+    'expires_at_utc_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    scopeUid,
+    peerDeviceId,
+    peerPublicKeyFingerprint,
+    accountBindingCertHash,
+    keyEpoch,
+    trustState,
+    expiresAtUtcMs,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_im_peer_authorization';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TIMPeerAuthorizationRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scopeUidMeta);
+    }
+    if (data.containsKey('peer_device_id')) {
+      context.handle(
+        _peerDeviceIdMeta,
+        peerDeviceId.isAcceptableOrUnknown(
+          data['peer_device_id']!,
+          _peerDeviceIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_peerDeviceIdMeta);
+    }
+    if (data.containsKey('peer_public_key_fingerprint')) {
+      context.handle(
+        _peerPublicKeyFingerprintMeta,
+        peerPublicKeyFingerprint.isAcceptableOrUnknown(
+          data['peer_public_key_fingerprint']!,
+          _peerPublicKeyFingerprintMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_peerPublicKeyFingerprintMeta);
+    }
+    if (data.containsKey('account_binding_cert_hash')) {
+      context.handle(
+        _accountBindingCertHashMeta,
+        accountBindingCertHash.isAcceptableOrUnknown(
+          data['account_binding_cert_hash']!,
+          _accountBindingCertHashMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_accountBindingCertHashMeta);
+    }
+    if (data.containsKey('key_epoch')) {
+      context.handle(
+        _keyEpochMeta,
+        keyEpoch.isAcceptableOrUnknown(data['key_epoch']!, _keyEpochMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_keyEpochMeta);
+    }
+    if (data.containsKey('trust_state')) {
+      context.handle(
+        _trustStateMeta,
+        trustState.isAcceptableOrUnknown(data['trust_state']!, _trustStateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_trustStateMeta);
+    }
+    if (data.containsKey('expires_at_utc_ms')) {
+      context.handle(
+        _expiresAtUtcMsMeta,
+        expiresAtUtcMs.isAcceptableOrUnknown(
+          data['expires_at_utc_ms']!,
+          _expiresAtUtcMsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_expiresAtUtcMsMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {scopeUid, peerDeviceId};
+  @override
+  TIMPeerAuthorizationRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TIMPeerAuthorizationRow(
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      )!,
+      peerDeviceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}peer_device_id'],
+      )!,
+      peerPublicKeyFingerprint: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}peer_public_key_fingerprint'],
+      )!,
+      accountBindingCertHash: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}account_binding_cert_hash'],
+      )!,
+      keyEpoch: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}key_epoch'],
+      )!,
+      trustState: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}trust_state'],
+      )!,
+      expiresAtUtcMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}expires_at_utc_ms'],
+      )!,
+    );
+  }
+
+  @override
+  $TIMPeerAuthorizationsTable createAlias(String alias) {
+    return $TIMPeerAuthorizationsTable(attachedDatabase, alias);
+  }
+}
+
+class TIMPeerAuthorizationRow extends DataClass
+    implements Insertable<TIMPeerAuthorizationRow> {
+  final String scopeUid;
+  final String peerDeviceId;
+  final String peerPublicKeyFingerprint;
+  final String accountBindingCertHash;
+  final int keyEpoch;
+  final String trustState;
+  final int expiresAtUtcMs;
+  const TIMPeerAuthorizationRow({
+    required this.scopeUid,
+    required this.peerDeviceId,
+    required this.peerPublicKeyFingerprint,
+    required this.accountBindingCertHash,
+    required this.keyEpoch,
+    required this.trustState,
+    required this.expiresAtUtcMs,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['scope_uid'] = Variable<String>(scopeUid);
+    map['peer_device_id'] = Variable<String>(peerDeviceId);
+    map['peer_public_key_fingerprint'] = Variable<String>(
+      peerPublicKeyFingerprint,
+    );
+    map['account_binding_cert_hash'] = Variable<String>(accountBindingCertHash);
+    map['key_epoch'] = Variable<int>(keyEpoch);
+    map['trust_state'] = Variable<String>(trustState);
+    map['expires_at_utc_ms'] = Variable<int>(expiresAtUtcMs);
+    return map;
+  }
+
+  TIMPeerAuthorizationsCompanion toCompanion(bool nullToAbsent) {
+    return TIMPeerAuthorizationsCompanion(
+      scopeUid: Value(scopeUid),
+      peerDeviceId: Value(peerDeviceId),
+      peerPublicKeyFingerprint: Value(peerPublicKeyFingerprint),
+      accountBindingCertHash: Value(accountBindingCertHash),
+      keyEpoch: Value(keyEpoch),
+      trustState: Value(trustState),
+      expiresAtUtcMs: Value(expiresAtUtcMs),
+    );
+  }
+
+  factory TIMPeerAuthorizationRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TIMPeerAuthorizationRow(
+      scopeUid: serializer.fromJson<String>(json['scopeUid']),
+      peerDeviceId: serializer.fromJson<String>(json['peerDeviceId']),
+      peerPublicKeyFingerprint: serializer.fromJson<String>(
+        json['peerPublicKeyFingerprint'],
+      ),
+      accountBindingCertHash: serializer.fromJson<String>(
+        json['accountBindingCertHash'],
+      ),
+      keyEpoch: serializer.fromJson<int>(json['keyEpoch']),
+      trustState: serializer.fromJson<String>(json['trustState']),
+      expiresAtUtcMs: serializer.fromJson<int>(json['expiresAtUtcMs']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'scopeUid': serializer.toJson<String>(scopeUid),
+      'peerDeviceId': serializer.toJson<String>(peerDeviceId),
+      'peerPublicKeyFingerprint': serializer.toJson<String>(
+        peerPublicKeyFingerprint,
+      ),
+      'accountBindingCertHash': serializer.toJson<String>(
+        accountBindingCertHash,
+      ),
+      'keyEpoch': serializer.toJson<int>(keyEpoch),
+      'trustState': serializer.toJson<String>(trustState),
+      'expiresAtUtcMs': serializer.toJson<int>(expiresAtUtcMs),
+    };
+  }
+
+  TIMPeerAuthorizationRow copyWith({
+    String? scopeUid,
+    String? peerDeviceId,
+    String? peerPublicKeyFingerprint,
+    String? accountBindingCertHash,
+    int? keyEpoch,
+    String? trustState,
+    int? expiresAtUtcMs,
+  }) => TIMPeerAuthorizationRow(
+    scopeUid: scopeUid ?? this.scopeUid,
+    peerDeviceId: peerDeviceId ?? this.peerDeviceId,
+    peerPublicKeyFingerprint:
+        peerPublicKeyFingerprint ?? this.peerPublicKeyFingerprint,
+    accountBindingCertHash:
+        accountBindingCertHash ?? this.accountBindingCertHash,
+    keyEpoch: keyEpoch ?? this.keyEpoch,
+    trustState: trustState ?? this.trustState,
+    expiresAtUtcMs: expiresAtUtcMs ?? this.expiresAtUtcMs,
+  );
+  TIMPeerAuthorizationRow copyWithCompanion(
+    TIMPeerAuthorizationsCompanion data,
+  ) {
+    return TIMPeerAuthorizationRow(
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
+      peerDeviceId: data.peerDeviceId.present
+          ? data.peerDeviceId.value
+          : this.peerDeviceId,
+      peerPublicKeyFingerprint: data.peerPublicKeyFingerprint.present
+          ? data.peerPublicKeyFingerprint.value
+          : this.peerPublicKeyFingerprint,
+      accountBindingCertHash: data.accountBindingCertHash.present
+          ? data.accountBindingCertHash.value
+          : this.accountBindingCertHash,
+      keyEpoch: data.keyEpoch.present ? data.keyEpoch.value : this.keyEpoch,
+      trustState: data.trustState.present
+          ? data.trustState.value
+          : this.trustState,
+      expiresAtUtcMs: data.expiresAtUtcMs.present
+          ? data.expiresAtUtcMs.value
+          : this.expiresAtUtcMs,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TIMPeerAuthorizationRow(')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('peerDeviceId: $peerDeviceId, ')
+          ..write('peerPublicKeyFingerprint: $peerPublicKeyFingerprint, ')
+          ..write('accountBindingCertHash: $accountBindingCertHash, ')
+          ..write('keyEpoch: $keyEpoch, ')
+          ..write('trustState: $trustState, ')
+          ..write('expiresAtUtcMs: $expiresAtUtcMs')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    scopeUid,
+    peerDeviceId,
+    peerPublicKeyFingerprint,
+    accountBindingCertHash,
+    keyEpoch,
+    trustState,
+    expiresAtUtcMs,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TIMPeerAuthorizationRow &&
+          other.scopeUid == this.scopeUid &&
+          other.peerDeviceId == this.peerDeviceId &&
+          other.peerPublicKeyFingerprint == this.peerPublicKeyFingerprint &&
+          other.accountBindingCertHash == this.accountBindingCertHash &&
+          other.keyEpoch == this.keyEpoch &&
+          other.trustState == this.trustState &&
+          other.expiresAtUtcMs == this.expiresAtUtcMs);
+}
+
+class TIMPeerAuthorizationsCompanion
+    extends UpdateCompanion<TIMPeerAuthorizationRow> {
+  final Value<String> scopeUid;
+  final Value<String> peerDeviceId;
+  final Value<String> peerPublicKeyFingerprint;
+  final Value<String> accountBindingCertHash;
+  final Value<int> keyEpoch;
+  final Value<String> trustState;
+  final Value<int> expiresAtUtcMs;
+  final Value<int> rowid;
+  const TIMPeerAuthorizationsCompanion({
+    this.scopeUid = const Value.absent(),
+    this.peerDeviceId = const Value.absent(),
+    this.peerPublicKeyFingerprint = const Value.absent(),
+    this.accountBindingCertHash = const Value.absent(),
+    this.keyEpoch = const Value.absent(),
+    this.trustState = const Value.absent(),
+    this.expiresAtUtcMs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TIMPeerAuthorizationsCompanion.insert({
+    required String scopeUid,
+    required String peerDeviceId,
+    required String peerPublicKeyFingerprint,
+    required String accountBindingCertHash,
+    required int keyEpoch,
+    required String trustState,
+    required int expiresAtUtcMs,
+    this.rowid = const Value.absent(),
+  }) : scopeUid = Value(scopeUid),
+       peerDeviceId = Value(peerDeviceId),
+       peerPublicKeyFingerprint = Value(peerPublicKeyFingerprint),
+       accountBindingCertHash = Value(accountBindingCertHash),
+       keyEpoch = Value(keyEpoch),
+       trustState = Value(trustState),
+       expiresAtUtcMs = Value(expiresAtUtcMs);
+  static Insertable<TIMPeerAuthorizationRow> custom({
+    Expression<String>? scopeUid,
+    Expression<String>? peerDeviceId,
+    Expression<String>? peerPublicKeyFingerprint,
+    Expression<String>? accountBindingCertHash,
+    Expression<int>? keyEpoch,
+    Expression<String>? trustState,
+    Expression<int>? expiresAtUtcMs,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (scopeUid != null) 'scope_uid': scopeUid,
+      if (peerDeviceId != null) 'peer_device_id': peerDeviceId,
+      if (peerPublicKeyFingerprint != null)
+        'peer_public_key_fingerprint': peerPublicKeyFingerprint,
+      if (accountBindingCertHash != null)
+        'account_binding_cert_hash': accountBindingCertHash,
+      if (keyEpoch != null) 'key_epoch': keyEpoch,
+      if (trustState != null) 'trust_state': trustState,
+      if (expiresAtUtcMs != null) 'expires_at_utc_ms': expiresAtUtcMs,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TIMPeerAuthorizationsCompanion copyWith({
+    Value<String>? scopeUid,
+    Value<String>? peerDeviceId,
+    Value<String>? peerPublicKeyFingerprint,
+    Value<String>? accountBindingCertHash,
+    Value<int>? keyEpoch,
+    Value<String>? trustState,
+    Value<int>? expiresAtUtcMs,
+    Value<int>? rowid,
+  }) {
+    return TIMPeerAuthorizationsCompanion(
+      scopeUid: scopeUid ?? this.scopeUid,
+      peerDeviceId: peerDeviceId ?? this.peerDeviceId,
+      peerPublicKeyFingerprint:
+          peerPublicKeyFingerprint ?? this.peerPublicKeyFingerprint,
+      accountBindingCertHash:
+          accountBindingCertHash ?? this.accountBindingCertHash,
+      keyEpoch: keyEpoch ?? this.keyEpoch,
+      trustState: trustState ?? this.trustState,
+      expiresAtUtcMs: expiresAtUtcMs ?? this.expiresAtUtcMs,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
+    }
+    if (peerDeviceId.present) {
+      map['peer_device_id'] = Variable<String>(peerDeviceId.value);
+    }
+    if (peerPublicKeyFingerprint.present) {
+      map['peer_public_key_fingerprint'] = Variable<String>(
+        peerPublicKeyFingerprint.value,
+      );
+    }
+    if (accountBindingCertHash.present) {
+      map['account_binding_cert_hash'] = Variable<String>(
+        accountBindingCertHash.value,
+      );
+    }
+    if (keyEpoch.present) {
+      map['key_epoch'] = Variable<int>(keyEpoch.value);
+    }
+    if (trustState.present) {
+      map['trust_state'] = Variable<String>(trustState.value);
+    }
+    if (expiresAtUtcMs.present) {
+      map['expires_at_utc_ms'] = Variable<int>(expiresAtUtcMs.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TIMPeerAuthorizationsCompanion(')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('peerDeviceId: $peerDeviceId, ')
+          ..write('peerPublicKeyFingerprint: $peerPublicKeyFingerprint, ')
+          ..write('accountBindingCertHash: $accountBindingCertHash, ')
+          ..write('keyEpoch: $keyEpoch, ')
+          ..write('trustState: $trustState, ')
+          ..write('expiresAtUtcMs: $expiresAtUtcMs, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
   _$PersistenceDriftDatabase(QueryExecutor e) : super(e);
   $PersistenceDriftDatabaseManager get managers =>
@@ -20719,6 +25219,21 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
       $PlaygroundPostCachesTable(this);
   late final $PlaygroundReplyCachesTable playgroundReplyCaches =
       $PlaygroundReplyCachesTable(this);
+  late final $TIMMessagesTable tIMMessages = $TIMMessagesTable(this);
+  late final $TIMMessageTombstonesTable tIMMessageTombstones =
+      $TIMMessageTombstonesTable(this);
+  late final $TIMMessageReceiptsTable tIMMessageReceipts =
+      $TIMMessageReceiptsTable(this);
+  late final $TIMConversationsTable tIMConversations = $TIMConversationsTable(
+    this,
+  );
+  late final $TIMEnvelopeDedupsTable tIMEnvelopeDedups =
+      $TIMEnvelopeDedupsTable(this);
+  late final $IncomingDeliveriesTable incomingDeliveries =
+      $IncomingDeliveriesTable(this);
+  late final $TIMSendStatesTable tIMSendStates = $TIMSendStatesTable(this);
+  late final $TIMPeerAuthorizationsTable tIMPeerAuthorizations =
+      $TIMPeerAuthorizationsTable(this);
   late final OutboxRecordsDao outboxRecordsDao = OutboxRecordsDao(
     this as PersistenceDriftDatabase,
   );
@@ -20772,6 +25287,7 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
       DriftPlaygroundPostCacheStore(this as PersistenceDriftDatabase);
   late final DriftPlaygroundReplyCacheStore driftPlaygroundReplyCacheStore =
       DriftPlaygroundReplyCacheStore(this as PersistenceDriftDatabase);
+  late final TIMDao tIMDao = TIMDao(this as PersistenceDriftDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -20814,6 +25330,14 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
     blobRefs,
     playgroundPostCaches,
     playgroundReplyCaches,
+    tIMMessages,
+    tIMMessageTombstones,
+    tIMMessageReceipts,
+    tIMConversations,
+    tIMEnvelopeDedups,
+    incomingDeliveries,
+    tIMSendStates,
+    tIMPeerAuthorizations,
   ];
 }
 
@@ -21559,6 +26083,7 @@ typedef $$SyncStatesTableProcessedTableManager =
 typedef $$SeekersTableCreateCompanionBuilder =
     SeekersCompanion Function({
       required String uuid,
+      Value<String?> scopeUid,
       Value<String?> username,
       Value<String?> nickname,
       required Gender gender,
@@ -21584,6 +26109,7 @@ typedef $$SeekersTableCreateCompanionBuilder =
 typedef $$SeekersTableUpdateCompanionBuilder =
     SeekersCompanion Function({
       Value<String> uuid,
+      Value<String?> scopeUid,
       Value<String?> username,
       Value<String?> nickname,
       Value<Gender> gender,
@@ -21618,6 +26144,11 @@ class $$SeekersTableFilterComposer
   });
   ColumnFilters<String> get uuid => $composableBuilder(
     column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -21748,6 +26279,11 @@ class $$SeekersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get username => $composableBuilder(
     column: $table.username,
     builder: (column) => ColumnOrderings(column),
@@ -21860,6 +26396,9 @@ class $$SeekersTableAnnotationComposer
   });
   GeneratedColumn<String> get uuid =>
       $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
 
   GeneratedColumn<String> get username =>
       $composableBuilder(column: $table.username, builder: (column) => column);
@@ -21985,6 +26524,7 @@ class $$SeekersTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> uuid = const Value.absent(),
+                Value<String?> scopeUid = const Value.absent(),
                 Value<String?> username = const Value.absent(),
                 Value<String?> nickname = const Value.absent(),
                 Value<Gender> gender = const Value.absent(),
@@ -22009,6 +26549,7 @@ class $$SeekersTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => SeekersCompanion(
                 uuid: uuid,
+                scopeUid: scopeUid,
                 username: username,
                 nickname: nickname,
                 gender: gender,
@@ -22034,6 +26575,7 @@ class $$SeekersTableTableManager
           createCompanionCallback:
               ({
                 required String uuid,
+                Value<String?> scopeUid = const Value.absent(),
                 Value<String?> username = const Value.absent(),
                 Value<String?> nickname = const Value.absent(),
                 required Gender gender,
@@ -22058,6 +26600,7 @@ class $$SeekersTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => SeekersCompanion.insert(
                 uuid: uuid,
+                scopeUid: scopeUid,
                 username: username,
                 nickname: nickname,
                 gender: gender,
@@ -24582,6 +29125,7 @@ typedef $$TimingDivinationsTableCreateCompanionBuilder =
       Value<DateTime?> lastUpdatedAt,
       Value<DateTime?> deletedAt,
       required String divinationUuid,
+      Value<String?> scopeUid,
       required DateTimeType timingType,
       required DateTime datetime,
       Value<bool> isManual,
@@ -24605,6 +29149,7 @@ typedef $$TimingDivinationsTableUpdateCompanionBuilder =
       Value<DateTime?> lastUpdatedAt,
       Value<DateTime?> deletedAt,
       Value<String> divinationUuid,
+      Value<String?> scopeUid,
       Value<DateTimeType> timingType,
       Value<DateTime> datetime,
       Value<bool> isManual,
@@ -24653,6 +29198,11 @@ class $$TimingDivinationsTableFilterComposer
 
   ColumnFilters<String> get divinationUuid => $composableBuilder(
     column: $table.divinationUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -24772,6 +29322,11 @@ class $$TimingDivinationsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get timingType => $composableBuilder(
     column: $table.timingType,
     builder: (column) => ColumnOrderings(column),
@@ -24870,6 +29425,9 @@ class $$TimingDivinationsTableAnnotationComposer
     column: $table.divinationUuid,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
 
   GeneratedColumnWithTypeConverter<DateTimeType, int> get timingType =>
       $composableBuilder(
@@ -24982,6 +29540,7 @@ class $$TimingDivinationsTableTableManager
                 Value<DateTime?> lastUpdatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<String> divinationUuid = const Value.absent(),
+                Value<String?> scopeUid = const Value.absent(),
                 Value<DateTimeType> timingType = const Value.absent(),
                 Value<DateTime> datetime = const Value.absent(),
                 Value<bool> isManual = const Value.absent(),
@@ -25004,6 +29563,7 @@ class $$TimingDivinationsTableTableManager
                 lastUpdatedAt: lastUpdatedAt,
                 deletedAt: deletedAt,
                 divinationUuid: divinationUuid,
+                scopeUid: scopeUid,
                 timingType: timingType,
                 datetime: datetime,
                 isManual: isManual,
@@ -25027,6 +29587,7 @@ class $$TimingDivinationsTableTableManager
                 Value<DateTime?> lastUpdatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 required String divinationUuid,
+                Value<String?> scopeUid = const Value.absent(),
                 required DateTimeType timingType,
                 required DateTime datetime,
                 Value<bool> isManual = const Value.absent(),
@@ -25049,6 +29610,7 @@ class $$TimingDivinationsTableTableManager
                 lastUpdatedAt: lastUpdatedAt,
                 deletedAt: deletedAt,
                 divinationUuid: divinationUuid,
+                scopeUid: scopeUid,
                 timingType: timingType,
                 datetime: datetime,
                 isManual: isManual,
@@ -26023,6 +30585,7 @@ typedef $$SkillsTableProcessedTableManager =
 typedef $$SkillClassesTableCreateCompanionBuilder =
     SkillClassesCompanion Function({
       required String uuid,
+      Value<String?> scopeUid,
       required DateTime createdAt,
       required DateTime lastUpdatedAt,
       Value<DateTime?> deletedAt,
@@ -26036,6 +30599,7 @@ typedef $$SkillClassesTableCreateCompanionBuilder =
 typedef $$SkillClassesTableUpdateCompanionBuilder =
     SkillClassesCompanion Function({
       Value<String> uuid,
+      Value<String?> scopeUid,
       Value<DateTime> createdAt,
       Value<DateTime> lastUpdatedAt,
       Value<DateTime?> deletedAt,
@@ -26058,6 +30622,11 @@ class $$SkillClassesTableFilterComposer
   });
   ColumnFilters<String> get uuid => $composableBuilder(
     column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -26116,6 +30685,11 @@ class $$SkillClassesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -26168,6 +30742,9 @@ class $$SkillClassesTableAnnotationComposer
   });
   GeneratedColumn<String> get uuid =>
       $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -26238,6 +30815,7 @@ class $$SkillClassesTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> uuid = const Value.absent(),
+                Value<String?> scopeUid = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> lastUpdatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -26249,6 +30827,7 @@ class $$SkillClassesTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => SkillClassesCompanion(
                 uuid: uuid,
+                scopeUid: scopeUid,
                 createdAt: createdAt,
                 lastUpdatedAt: lastUpdatedAt,
                 deletedAt: deletedAt,
@@ -26262,6 +30841,7 @@ class $$SkillClassesTableTableManager
           createCompanionCallback:
               ({
                 required String uuid,
+                Value<String?> scopeUid = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime lastUpdatedAt,
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -26273,6 +30853,7 @@ class $$SkillClassesTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => SkillClassesCompanion.insert(
                 uuid: uuid,
+                scopeUid: scopeUid,
                 createdAt: createdAt,
                 lastUpdatedAt: lastUpdatedAt,
                 deletedAt: deletedAt,
@@ -31797,6 +36378,2277 @@ typedef $$PlaygroundReplyCachesTableProcessedTableManager =
       PlaygroundReplyCacheRow,
       PrefetchHooks Function()
     >;
+typedef $$TIMMessagesTableCreateCompanionBuilder =
+    TIMMessagesCompanion Function({
+      required String scopeUid,
+      required String messageId,
+      required String conversationId,
+      required String senderAppUserId,
+      required String recipientAppUserId,
+      required String originDeviceId,
+      required String messageType,
+      required String contentJson,
+      required String contentHash,
+      Value<String?> mediaBlobHash,
+      required int createdHlcPacked,
+      required String createdHlcDeviceId,
+      required int createdAtUtcMs,
+      Value<int> rowid,
+    });
+typedef $$TIMMessagesTableUpdateCompanionBuilder =
+    TIMMessagesCompanion Function({
+      Value<String> scopeUid,
+      Value<String> messageId,
+      Value<String> conversationId,
+      Value<String> senderAppUserId,
+      Value<String> recipientAppUserId,
+      Value<String> originDeviceId,
+      Value<String> messageType,
+      Value<String> contentJson,
+      Value<String> contentHash,
+      Value<String?> mediaBlobHash,
+      Value<int> createdHlcPacked,
+      Value<String> createdHlcDeviceId,
+      Value<int> createdAtUtcMs,
+      Value<int> rowid,
+    });
+
+class $$TIMMessagesTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $TIMMessagesTable> {
+  $$TIMMessagesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get messageId => $composableBuilder(
+    column: $table.messageId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get conversationId => $composableBuilder(
+    column: $table.conversationId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get senderAppUserId => $composableBuilder(
+    column: $table.senderAppUserId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get recipientAppUserId => $composableBuilder(
+    column: $table.recipientAppUserId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get originDeviceId => $composableBuilder(
+    column: $table.originDeviceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get messageType => $composableBuilder(
+    column: $table.messageType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get contentJson => $composableBuilder(
+    column: $table.contentJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get contentHash => $composableBuilder(
+    column: $table.contentHash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mediaBlobHash => $composableBuilder(
+    column: $table.mediaBlobHash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdHlcPacked => $composableBuilder(
+    column: $table.createdHlcPacked,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get createdHlcDeviceId => $composableBuilder(
+    column: $table.createdHlcDeviceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAtUtcMs => $composableBuilder(
+    column: $table.createdAtUtcMs,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$TIMMessagesTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $TIMMessagesTable> {
+  $$TIMMessagesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get messageId => $composableBuilder(
+    column: $table.messageId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get conversationId => $composableBuilder(
+    column: $table.conversationId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get senderAppUserId => $composableBuilder(
+    column: $table.senderAppUserId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get recipientAppUserId => $composableBuilder(
+    column: $table.recipientAppUserId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get originDeviceId => $composableBuilder(
+    column: $table.originDeviceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get messageType => $composableBuilder(
+    column: $table.messageType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get contentJson => $composableBuilder(
+    column: $table.contentJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get contentHash => $composableBuilder(
+    column: $table.contentHash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mediaBlobHash => $composableBuilder(
+    column: $table.mediaBlobHash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdHlcPacked => $composableBuilder(
+    column: $table.createdHlcPacked,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get createdHlcDeviceId => $composableBuilder(
+    column: $table.createdHlcDeviceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAtUtcMs => $composableBuilder(
+    column: $table.createdAtUtcMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TIMMessagesTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $TIMMessagesTable> {
+  $$TIMMessagesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
+
+  GeneratedColumn<String> get messageId =>
+      $composableBuilder(column: $table.messageId, builder: (column) => column);
+
+  GeneratedColumn<String> get conversationId => $composableBuilder(
+    column: $table.conversationId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get senderAppUserId => $composableBuilder(
+    column: $table.senderAppUserId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get recipientAppUserId => $composableBuilder(
+    column: $table.recipientAppUserId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get originDeviceId => $composableBuilder(
+    column: $table.originDeviceId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get messageType => $composableBuilder(
+    column: $table.messageType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get contentJson => $composableBuilder(
+    column: $table.contentJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get contentHash => $composableBuilder(
+    column: $table.contentHash,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get mediaBlobHash => $composableBuilder(
+    column: $table.mediaBlobHash,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get createdHlcPacked => $composableBuilder(
+    column: $table.createdHlcPacked,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get createdHlcDeviceId => $composableBuilder(
+    column: $table.createdHlcDeviceId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get createdAtUtcMs => $composableBuilder(
+    column: $table.createdAtUtcMs,
+    builder: (column) => column,
+  );
+}
+
+class $$TIMMessagesTableTableManager
+    extends
+        RootTableManager<
+          _$PersistenceDriftDatabase,
+          $TIMMessagesTable,
+          TIMMessageRow,
+          $$TIMMessagesTableFilterComposer,
+          $$TIMMessagesTableOrderingComposer,
+          $$TIMMessagesTableAnnotationComposer,
+          $$TIMMessagesTableCreateCompanionBuilder,
+          $$TIMMessagesTableUpdateCompanionBuilder,
+          (
+            TIMMessageRow,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $TIMMessagesTable,
+              TIMMessageRow
+            >,
+          ),
+          TIMMessageRow,
+          PrefetchHooks Function()
+        > {
+  $$TIMMessagesTableTableManager(
+    _$PersistenceDriftDatabase db,
+    $TIMMessagesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TIMMessagesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TIMMessagesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TIMMessagesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> scopeUid = const Value.absent(),
+                Value<String> messageId = const Value.absent(),
+                Value<String> conversationId = const Value.absent(),
+                Value<String> senderAppUserId = const Value.absent(),
+                Value<String> recipientAppUserId = const Value.absent(),
+                Value<String> originDeviceId = const Value.absent(),
+                Value<String> messageType = const Value.absent(),
+                Value<String> contentJson = const Value.absent(),
+                Value<String> contentHash = const Value.absent(),
+                Value<String?> mediaBlobHash = const Value.absent(),
+                Value<int> createdHlcPacked = const Value.absent(),
+                Value<String> createdHlcDeviceId = const Value.absent(),
+                Value<int> createdAtUtcMs = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TIMMessagesCompanion(
+                scopeUid: scopeUid,
+                messageId: messageId,
+                conversationId: conversationId,
+                senderAppUserId: senderAppUserId,
+                recipientAppUserId: recipientAppUserId,
+                originDeviceId: originDeviceId,
+                messageType: messageType,
+                contentJson: contentJson,
+                contentHash: contentHash,
+                mediaBlobHash: mediaBlobHash,
+                createdHlcPacked: createdHlcPacked,
+                createdHlcDeviceId: createdHlcDeviceId,
+                createdAtUtcMs: createdAtUtcMs,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String scopeUid,
+                required String messageId,
+                required String conversationId,
+                required String senderAppUserId,
+                required String recipientAppUserId,
+                required String originDeviceId,
+                required String messageType,
+                required String contentJson,
+                required String contentHash,
+                Value<String?> mediaBlobHash = const Value.absent(),
+                required int createdHlcPacked,
+                required String createdHlcDeviceId,
+                required int createdAtUtcMs,
+                Value<int> rowid = const Value.absent(),
+              }) => TIMMessagesCompanion.insert(
+                scopeUid: scopeUid,
+                messageId: messageId,
+                conversationId: conversationId,
+                senderAppUserId: senderAppUserId,
+                recipientAppUserId: recipientAppUserId,
+                originDeviceId: originDeviceId,
+                messageType: messageType,
+                contentJson: contentJson,
+                contentHash: contentHash,
+                mediaBlobHash: mediaBlobHash,
+                createdHlcPacked: createdHlcPacked,
+                createdHlcDeviceId: createdHlcDeviceId,
+                createdAtUtcMs: createdAtUtcMs,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$TIMMessagesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PersistenceDriftDatabase,
+      $TIMMessagesTable,
+      TIMMessageRow,
+      $$TIMMessagesTableFilterComposer,
+      $$TIMMessagesTableOrderingComposer,
+      $$TIMMessagesTableAnnotationComposer,
+      $$TIMMessagesTableCreateCompanionBuilder,
+      $$TIMMessagesTableUpdateCompanionBuilder,
+      (
+        TIMMessageRow,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $TIMMessagesTable,
+          TIMMessageRow
+        >,
+      ),
+      TIMMessageRow,
+      PrefetchHooks Function()
+    >;
+typedef $$TIMMessageTombstonesTableCreateCompanionBuilder =
+    TIMMessageTombstonesCompanion Function({
+      required String scopeUid,
+      required String messageId,
+      required int deleteHlcPacked,
+      required String deleteHlcDeviceId,
+      Value<String?> reason,
+      Value<int> rowid,
+    });
+typedef $$TIMMessageTombstonesTableUpdateCompanionBuilder =
+    TIMMessageTombstonesCompanion Function({
+      Value<String> scopeUid,
+      Value<String> messageId,
+      Value<int> deleteHlcPacked,
+      Value<String> deleteHlcDeviceId,
+      Value<String?> reason,
+      Value<int> rowid,
+    });
+
+class $$TIMMessageTombstonesTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $TIMMessageTombstonesTable> {
+  $$TIMMessageTombstonesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get messageId => $composableBuilder(
+    column: $table.messageId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get deleteHlcPacked => $composableBuilder(
+    column: $table.deleteHlcPacked,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get deleteHlcDeviceId => $composableBuilder(
+    column: $table.deleteHlcDeviceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get reason => $composableBuilder(
+    column: $table.reason,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$TIMMessageTombstonesTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $TIMMessageTombstonesTable> {
+  $$TIMMessageTombstonesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get messageId => $composableBuilder(
+    column: $table.messageId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get deleteHlcPacked => $composableBuilder(
+    column: $table.deleteHlcPacked,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get deleteHlcDeviceId => $composableBuilder(
+    column: $table.deleteHlcDeviceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get reason => $composableBuilder(
+    column: $table.reason,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TIMMessageTombstonesTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $TIMMessageTombstonesTable> {
+  $$TIMMessageTombstonesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
+
+  GeneratedColumn<String> get messageId =>
+      $composableBuilder(column: $table.messageId, builder: (column) => column);
+
+  GeneratedColumn<int> get deleteHlcPacked => $composableBuilder(
+    column: $table.deleteHlcPacked,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get deleteHlcDeviceId => $composableBuilder(
+    column: $table.deleteHlcDeviceId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get reason =>
+      $composableBuilder(column: $table.reason, builder: (column) => column);
+}
+
+class $$TIMMessageTombstonesTableTableManager
+    extends
+        RootTableManager<
+          _$PersistenceDriftDatabase,
+          $TIMMessageTombstonesTable,
+          TIMMessageTombstoneRow,
+          $$TIMMessageTombstonesTableFilterComposer,
+          $$TIMMessageTombstonesTableOrderingComposer,
+          $$TIMMessageTombstonesTableAnnotationComposer,
+          $$TIMMessageTombstonesTableCreateCompanionBuilder,
+          $$TIMMessageTombstonesTableUpdateCompanionBuilder,
+          (
+            TIMMessageTombstoneRow,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $TIMMessageTombstonesTable,
+              TIMMessageTombstoneRow
+            >,
+          ),
+          TIMMessageTombstoneRow,
+          PrefetchHooks Function()
+        > {
+  $$TIMMessageTombstonesTableTableManager(
+    _$PersistenceDriftDatabase db,
+    $TIMMessageTombstonesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TIMMessageTombstonesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TIMMessageTombstonesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$TIMMessageTombstonesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> scopeUid = const Value.absent(),
+                Value<String> messageId = const Value.absent(),
+                Value<int> deleteHlcPacked = const Value.absent(),
+                Value<String> deleteHlcDeviceId = const Value.absent(),
+                Value<String?> reason = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TIMMessageTombstonesCompanion(
+                scopeUid: scopeUid,
+                messageId: messageId,
+                deleteHlcPacked: deleteHlcPacked,
+                deleteHlcDeviceId: deleteHlcDeviceId,
+                reason: reason,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String scopeUid,
+                required String messageId,
+                required int deleteHlcPacked,
+                required String deleteHlcDeviceId,
+                Value<String?> reason = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TIMMessageTombstonesCompanion.insert(
+                scopeUid: scopeUid,
+                messageId: messageId,
+                deleteHlcPacked: deleteHlcPacked,
+                deleteHlcDeviceId: deleteHlcDeviceId,
+                reason: reason,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$TIMMessageTombstonesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PersistenceDriftDatabase,
+      $TIMMessageTombstonesTable,
+      TIMMessageTombstoneRow,
+      $$TIMMessageTombstonesTableFilterComposer,
+      $$TIMMessageTombstonesTableOrderingComposer,
+      $$TIMMessageTombstonesTableAnnotationComposer,
+      $$TIMMessageTombstonesTableCreateCompanionBuilder,
+      $$TIMMessageTombstonesTableUpdateCompanionBuilder,
+      (
+        TIMMessageTombstoneRow,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $TIMMessageTombstonesTable,
+          TIMMessageTombstoneRow
+        >,
+      ),
+      TIMMessageTombstoneRow,
+      PrefetchHooks Function()
+    >;
+typedef $$TIMMessageReceiptsTableCreateCompanionBuilder =
+    TIMMessageReceiptsCompanion Function({
+      required String scopeUid,
+      required String messageId,
+      required String recipientAppUserId,
+      required String recipientDeviceId,
+      required String receiptType,
+      required int receiptHlcPacked,
+      required String receiptHlcDeviceId,
+      Value<int> rowid,
+    });
+typedef $$TIMMessageReceiptsTableUpdateCompanionBuilder =
+    TIMMessageReceiptsCompanion Function({
+      Value<String> scopeUid,
+      Value<String> messageId,
+      Value<String> recipientAppUserId,
+      Value<String> recipientDeviceId,
+      Value<String> receiptType,
+      Value<int> receiptHlcPacked,
+      Value<String> receiptHlcDeviceId,
+      Value<int> rowid,
+    });
+
+class $$TIMMessageReceiptsTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $TIMMessageReceiptsTable> {
+  $$TIMMessageReceiptsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get messageId => $composableBuilder(
+    column: $table.messageId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get recipientAppUserId => $composableBuilder(
+    column: $table.recipientAppUserId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get recipientDeviceId => $composableBuilder(
+    column: $table.recipientDeviceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get receiptType => $composableBuilder(
+    column: $table.receiptType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get receiptHlcPacked => $composableBuilder(
+    column: $table.receiptHlcPacked,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get receiptHlcDeviceId => $composableBuilder(
+    column: $table.receiptHlcDeviceId,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$TIMMessageReceiptsTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $TIMMessageReceiptsTable> {
+  $$TIMMessageReceiptsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get messageId => $composableBuilder(
+    column: $table.messageId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get recipientAppUserId => $composableBuilder(
+    column: $table.recipientAppUserId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get recipientDeviceId => $composableBuilder(
+    column: $table.recipientDeviceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get receiptType => $composableBuilder(
+    column: $table.receiptType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get receiptHlcPacked => $composableBuilder(
+    column: $table.receiptHlcPacked,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get receiptHlcDeviceId => $composableBuilder(
+    column: $table.receiptHlcDeviceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TIMMessageReceiptsTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $TIMMessageReceiptsTable> {
+  $$TIMMessageReceiptsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
+
+  GeneratedColumn<String> get messageId =>
+      $composableBuilder(column: $table.messageId, builder: (column) => column);
+
+  GeneratedColumn<String> get recipientAppUserId => $composableBuilder(
+    column: $table.recipientAppUserId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get recipientDeviceId => $composableBuilder(
+    column: $table.recipientDeviceId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get receiptType => $composableBuilder(
+    column: $table.receiptType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get receiptHlcPacked => $composableBuilder(
+    column: $table.receiptHlcPacked,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get receiptHlcDeviceId => $composableBuilder(
+    column: $table.receiptHlcDeviceId,
+    builder: (column) => column,
+  );
+}
+
+class $$TIMMessageReceiptsTableTableManager
+    extends
+        RootTableManager<
+          _$PersistenceDriftDatabase,
+          $TIMMessageReceiptsTable,
+          TIMMessageReceiptRow,
+          $$TIMMessageReceiptsTableFilterComposer,
+          $$TIMMessageReceiptsTableOrderingComposer,
+          $$TIMMessageReceiptsTableAnnotationComposer,
+          $$TIMMessageReceiptsTableCreateCompanionBuilder,
+          $$TIMMessageReceiptsTableUpdateCompanionBuilder,
+          (
+            TIMMessageReceiptRow,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $TIMMessageReceiptsTable,
+              TIMMessageReceiptRow
+            >,
+          ),
+          TIMMessageReceiptRow,
+          PrefetchHooks Function()
+        > {
+  $$TIMMessageReceiptsTableTableManager(
+    _$PersistenceDriftDatabase db,
+    $TIMMessageReceiptsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TIMMessageReceiptsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TIMMessageReceiptsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TIMMessageReceiptsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> scopeUid = const Value.absent(),
+                Value<String> messageId = const Value.absent(),
+                Value<String> recipientAppUserId = const Value.absent(),
+                Value<String> recipientDeviceId = const Value.absent(),
+                Value<String> receiptType = const Value.absent(),
+                Value<int> receiptHlcPacked = const Value.absent(),
+                Value<String> receiptHlcDeviceId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TIMMessageReceiptsCompanion(
+                scopeUid: scopeUid,
+                messageId: messageId,
+                recipientAppUserId: recipientAppUserId,
+                recipientDeviceId: recipientDeviceId,
+                receiptType: receiptType,
+                receiptHlcPacked: receiptHlcPacked,
+                receiptHlcDeviceId: receiptHlcDeviceId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String scopeUid,
+                required String messageId,
+                required String recipientAppUserId,
+                required String recipientDeviceId,
+                required String receiptType,
+                required int receiptHlcPacked,
+                required String receiptHlcDeviceId,
+                Value<int> rowid = const Value.absent(),
+              }) => TIMMessageReceiptsCompanion.insert(
+                scopeUid: scopeUid,
+                messageId: messageId,
+                recipientAppUserId: recipientAppUserId,
+                recipientDeviceId: recipientDeviceId,
+                receiptType: receiptType,
+                receiptHlcPacked: receiptHlcPacked,
+                receiptHlcDeviceId: receiptHlcDeviceId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$TIMMessageReceiptsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PersistenceDriftDatabase,
+      $TIMMessageReceiptsTable,
+      TIMMessageReceiptRow,
+      $$TIMMessageReceiptsTableFilterComposer,
+      $$TIMMessageReceiptsTableOrderingComposer,
+      $$TIMMessageReceiptsTableAnnotationComposer,
+      $$TIMMessageReceiptsTableCreateCompanionBuilder,
+      $$TIMMessageReceiptsTableUpdateCompanionBuilder,
+      (
+        TIMMessageReceiptRow,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $TIMMessageReceiptsTable,
+          TIMMessageReceiptRow
+        >,
+      ),
+      TIMMessageReceiptRow,
+      PrefetchHooks Function()
+    >;
+typedef $$TIMConversationsTableCreateCompanionBuilder =
+    TIMConversationsCompanion Function({
+      required String scopeUid,
+      required String conversationId,
+      required String peerAppUserId,
+      required String peerNicknameSnapshot,
+      Value<String?> peerAvatarUrlSnapshot,
+      Value<String?> lastMessageId,
+      Value<int?> lastMessageHlcPacked,
+      Value<String?> lastMessageHlcDeviceId,
+      Value<int?> lastReadHlcPacked,
+      Value<String?> lastReadHlcDeviceId,
+      Value<int> unreadCountCache,
+      Value<int> isPinned,
+      Value<int> isMuted,
+      required int settingsHlcPacked,
+      required String settingsHlcDeviceId,
+      required int updatedAtUtcMs,
+      Value<int> rowid,
+    });
+typedef $$TIMConversationsTableUpdateCompanionBuilder =
+    TIMConversationsCompanion Function({
+      Value<String> scopeUid,
+      Value<String> conversationId,
+      Value<String> peerAppUserId,
+      Value<String> peerNicknameSnapshot,
+      Value<String?> peerAvatarUrlSnapshot,
+      Value<String?> lastMessageId,
+      Value<int?> lastMessageHlcPacked,
+      Value<String?> lastMessageHlcDeviceId,
+      Value<int?> lastReadHlcPacked,
+      Value<String?> lastReadHlcDeviceId,
+      Value<int> unreadCountCache,
+      Value<int> isPinned,
+      Value<int> isMuted,
+      Value<int> settingsHlcPacked,
+      Value<String> settingsHlcDeviceId,
+      Value<int> updatedAtUtcMs,
+      Value<int> rowid,
+    });
+
+class $$TIMConversationsTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $TIMConversationsTable> {
+  $$TIMConversationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get conversationId => $composableBuilder(
+    column: $table.conversationId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get peerAppUserId => $composableBuilder(
+    column: $table.peerAppUserId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get peerNicknameSnapshot => $composableBuilder(
+    column: $table.peerNicknameSnapshot,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get peerAvatarUrlSnapshot => $composableBuilder(
+    column: $table.peerAvatarUrlSnapshot,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastMessageId => $composableBuilder(
+    column: $table.lastMessageId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get lastMessageHlcPacked => $composableBuilder(
+    column: $table.lastMessageHlcPacked,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastMessageHlcDeviceId => $composableBuilder(
+    column: $table.lastMessageHlcDeviceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get lastReadHlcPacked => $composableBuilder(
+    column: $table.lastReadHlcPacked,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastReadHlcDeviceId => $composableBuilder(
+    column: $table.lastReadHlcDeviceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get unreadCountCache => $composableBuilder(
+    column: $table.unreadCountCache,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get isPinned => $composableBuilder(
+    column: $table.isPinned,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get isMuted => $composableBuilder(
+    column: $table.isMuted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get settingsHlcPacked => $composableBuilder(
+    column: $table.settingsHlcPacked,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get settingsHlcDeviceId => $composableBuilder(
+    column: $table.settingsHlcDeviceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAtUtcMs => $composableBuilder(
+    column: $table.updatedAtUtcMs,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$TIMConversationsTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $TIMConversationsTable> {
+  $$TIMConversationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get conversationId => $composableBuilder(
+    column: $table.conversationId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get peerAppUserId => $composableBuilder(
+    column: $table.peerAppUserId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get peerNicknameSnapshot => $composableBuilder(
+    column: $table.peerNicknameSnapshot,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get peerAvatarUrlSnapshot => $composableBuilder(
+    column: $table.peerAvatarUrlSnapshot,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastMessageId => $composableBuilder(
+    column: $table.lastMessageId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get lastMessageHlcPacked => $composableBuilder(
+    column: $table.lastMessageHlcPacked,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastMessageHlcDeviceId => $composableBuilder(
+    column: $table.lastMessageHlcDeviceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get lastReadHlcPacked => $composableBuilder(
+    column: $table.lastReadHlcPacked,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastReadHlcDeviceId => $composableBuilder(
+    column: $table.lastReadHlcDeviceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get unreadCountCache => $composableBuilder(
+    column: $table.unreadCountCache,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get isPinned => $composableBuilder(
+    column: $table.isPinned,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get isMuted => $composableBuilder(
+    column: $table.isMuted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get settingsHlcPacked => $composableBuilder(
+    column: $table.settingsHlcPacked,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get settingsHlcDeviceId => $composableBuilder(
+    column: $table.settingsHlcDeviceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAtUtcMs => $composableBuilder(
+    column: $table.updatedAtUtcMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TIMConversationsTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $TIMConversationsTable> {
+  $$TIMConversationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
+
+  GeneratedColumn<String> get conversationId => $composableBuilder(
+    column: $table.conversationId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get peerAppUserId => $composableBuilder(
+    column: $table.peerAppUserId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get peerNicknameSnapshot => $composableBuilder(
+    column: $table.peerNicknameSnapshot,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get peerAvatarUrlSnapshot => $composableBuilder(
+    column: $table.peerAvatarUrlSnapshot,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lastMessageId => $composableBuilder(
+    column: $table.lastMessageId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get lastMessageHlcPacked => $composableBuilder(
+    column: $table.lastMessageHlcPacked,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lastMessageHlcDeviceId => $composableBuilder(
+    column: $table.lastMessageHlcDeviceId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get lastReadHlcPacked => $composableBuilder(
+    column: $table.lastReadHlcPacked,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lastReadHlcDeviceId => $composableBuilder(
+    column: $table.lastReadHlcDeviceId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get unreadCountCache => $composableBuilder(
+    column: $table.unreadCountCache,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get isPinned =>
+      $composableBuilder(column: $table.isPinned, builder: (column) => column);
+
+  GeneratedColumn<int> get isMuted =>
+      $composableBuilder(column: $table.isMuted, builder: (column) => column);
+
+  GeneratedColumn<int> get settingsHlcPacked => $composableBuilder(
+    column: $table.settingsHlcPacked,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get settingsHlcDeviceId => $composableBuilder(
+    column: $table.settingsHlcDeviceId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get updatedAtUtcMs => $composableBuilder(
+    column: $table.updatedAtUtcMs,
+    builder: (column) => column,
+  );
+}
+
+class $$TIMConversationsTableTableManager
+    extends
+        RootTableManager<
+          _$PersistenceDriftDatabase,
+          $TIMConversationsTable,
+          TIMConversationRow,
+          $$TIMConversationsTableFilterComposer,
+          $$TIMConversationsTableOrderingComposer,
+          $$TIMConversationsTableAnnotationComposer,
+          $$TIMConversationsTableCreateCompanionBuilder,
+          $$TIMConversationsTableUpdateCompanionBuilder,
+          (
+            TIMConversationRow,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $TIMConversationsTable,
+              TIMConversationRow
+            >,
+          ),
+          TIMConversationRow,
+          PrefetchHooks Function()
+        > {
+  $$TIMConversationsTableTableManager(
+    _$PersistenceDriftDatabase db,
+    $TIMConversationsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TIMConversationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TIMConversationsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TIMConversationsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> scopeUid = const Value.absent(),
+                Value<String> conversationId = const Value.absent(),
+                Value<String> peerAppUserId = const Value.absent(),
+                Value<String> peerNicknameSnapshot = const Value.absent(),
+                Value<String?> peerAvatarUrlSnapshot = const Value.absent(),
+                Value<String?> lastMessageId = const Value.absent(),
+                Value<int?> lastMessageHlcPacked = const Value.absent(),
+                Value<String?> lastMessageHlcDeviceId = const Value.absent(),
+                Value<int?> lastReadHlcPacked = const Value.absent(),
+                Value<String?> lastReadHlcDeviceId = const Value.absent(),
+                Value<int> unreadCountCache = const Value.absent(),
+                Value<int> isPinned = const Value.absent(),
+                Value<int> isMuted = const Value.absent(),
+                Value<int> settingsHlcPacked = const Value.absent(),
+                Value<String> settingsHlcDeviceId = const Value.absent(),
+                Value<int> updatedAtUtcMs = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TIMConversationsCompanion(
+                scopeUid: scopeUid,
+                conversationId: conversationId,
+                peerAppUserId: peerAppUserId,
+                peerNicknameSnapshot: peerNicknameSnapshot,
+                peerAvatarUrlSnapshot: peerAvatarUrlSnapshot,
+                lastMessageId: lastMessageId,
+                lastMessageHlcPacked: lastMessageHlcPacked,
+                lastMessageHlcDeviceId: lastMessageHlcDeviceId,
+                lastReadHlcPacked: lastReadHlcPacked,
+                lastReadHlcDeviceId: lastReadHlcDeviceId,
+                unreadCountCache: unreadCountCache,
+                isPinned: isPinned,
+                isMuted: isMuted,
+                settingsHlcPacked: settingsHlcPacked,
+                settingsHlcDeviceId: settingsHlcDeviceId,
+                updatedAtUtcMs: updatedAtUtcMs,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String scopeUid,
+                required String conversationId,
+                required String peerAppUserId,
+                required String peerNicknameSnapshot,
+                Value<String?> peerAvatarUrlSnapshot = const Value.absent(),
+                Value<String?> lastMessageId = const Value.absent(),
+                Value<int?> lastMessageHlcPacked = const Value.absent(),
+                Value<String?> lastMessageHlcDeviceId = const Value.absent(),
+                Value<int?> lastReadHlcPacked = const Value.absent(),
+                Value<String?> lastReadHlcDeviceId = const Value.absent(),
+                Value<int> unreadCountCache = const Value.absent(),
+                Value<int> isPinned = const Value.absent(),
+                Value<int> isMuted = const Value.absent(),
+                required int settingsHlcPacked,
+                required String settingsHlcDeviceId,
+                required int updatedAtUtcMs,
+                Value<int> rowid = const Value.absent(),
+              }) => TIMConversationsCompanion.insert(
+                scopeUid: scopeUid,
+                conversationId: conversationId,
+                peerAppUserId: peerAppUserId,
+                peerNicknameSnapshot: peerNicknameSnapshot,
+                peerAvatarUrlSnapshot: peerAvatarUrlSnapshot,
+                lastMessageId: lastMessageId,
+                lastMessageHlcPacked: lastMessageHlcPacked,
+                lastMessageHlcDeviceId: lastMessageHlcDeviceId,
+                lastReadHlcPacked: lastReadHlcPacked,
+                lastReadHlcDeviceId: lastReadHlcDeviceId,
+                unreadCountCache: unreadCountCache,
+                isPinned: isPinned,
+                isMuted: isMuted,
+                settingsHlcPacked: settingsHlcPacked,
+                settingsHlcDeviceId: settingsHlcDeviceId,
+                updatedAtUtcMs: updatedAtUtcMs,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$TIMConversationsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PersistenceDriftDatabase,
+      $TIMConversationsTable,
+      TIMConversationRow,
+      $$TIMConversationsTableFilterComposer,
+      $$TIMConversationsTableOrderingComposer,
+      $$TIMConversationsTableAnnotationComposer,
+      $$TIMConversationsTableCreateCompanionBuilder,
+      $$TIMConversationsTableUpdateCompanionBuilder,
+      (
+        TIMConversationRow,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $TIMConversationsTable,
+          TIMConversationRow
+        >,
+      ),
+      TIMConversationRow,
+      PrefetchHooks Function()
+    >;
+typedef $$TIMEnvelopeDedupsTableCreateCompanionBuilder =
+    TIMEnvelopeDedupsCompanion Function({
+      required String scopeUid,
+      required String envelopeId,
+      required String messageId,
+      required String ciphertextHash,
+      required int committedAt,
+      Value<int> rowid,
+    });
+typedef $$TIMEnvelopeDedupsTableUpdateCompanionBuilder =
+    TIMEnvelopeDedupsCompanion Function({
+      Value<String> scopeUid,
+      Value<String> envelopeId,
+      Value<String> messageId,
+      Value<String> ciphertextHash,
+      Value<int> committedAt,
+      Value<int> rowid,
+    });
+
+class $$TIMEnvelopeDedupsTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $TIMEnvelopeDedupsTable> {
+  $$TIMEnvelopeDedupsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get envelopeId => $composableBuilder(
+    column: $table.envelopeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get messageId => $composableBuilder(
+    column: $table.messageId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ciphertextHash => $composableBuilder(
+    column: $table.ciphertextHash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get committedAt => $composableBuilder(
+    column: $table.committedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$TIMEnvelopeDedupsTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $TIMEnvelopeDedupsTable> {
+  $$TIMEnvelopeDedupsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get envelopeId => $composableBuilder(
+    column: $table.envelopeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get messageId => $composableBuilder(
+    column: $table.messageId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ciphertextHash => $composableBuilder(
+    column: $table.ciphertextHash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get committedAt => $composableBuilder(
+    column: $table.committedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TIMEnvelopeDedupsTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $TIMEnvelopeDedupsTable> {
+  $$TIMEnvelopeDedupsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
+
+  GeneratedColumn<String> get envelopeId => $composableBuilder(
+    column: $table.envelopeId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get messageId =>
+      $composableBuilder(column: $table.messageId, builder: (column) => column);
+
+  GeneratedColumn<String> get ciphertextHash => $composableBuilder(
+    column: $table.ciphertextHash,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get committedAt => $composableBuilder(
+    column: $table.committedAt,
+    builder: (column) => column,
+  );
+}
+
+class $$TIMEnvelopeDedupsTableTableManager
+    extends
+        RootTableManager<
+          _$PersistenceDriftDatabase,
+          $TIMEnvelopeDedupsTable,
+          TIMEnvelopeDedupRow,
+          $$TIMEnvelopeDedupsTableFilterComposer,
+          $$TIMEnvelopeDedupsTableOrderingComposer,
+          $$TIMEnvelopeDedupsTableAnnotationComposer,
+          $$TIMEnvelopeDedupsTableCreateCompanionBuilder,
+          $$TIMEnvelopeDedupsTableUpdateCompanionBuilder,
+          (
+            TIMEnvelopeDedupRow,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $TIMEnvelopeDedupsTable,
+              TIMEnvelopeDedupRow
+            >,
+          ),
+          TIMEnvelopeDedupRow,
+          PrefetchHooks Function()
+        > {
+  $$TIMEnvelopeDedupsTableTableManager(
+    _$PersistenceDriftDatabase db,
+    $TIMEnvelopeDedupsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TIMEnvelopeDedupsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TIMEnvelopeDedupsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TIMEnvelopeDedupsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> scopeUid = const Value.absent(),
+                Value<String> envelopeId = const Value.absent(),
+                Value<String> messageId = const Value.absent(),
+                Value<String> ciphertextHash = const Value.absent(),
+                Value<int> committedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TIMEnvelopeDedupsCompanion(
+                scopeUid: scopeUid,
+                envelopeId: envelopeId,
+                messageId: messageId,
+                ciphertextHash: ciphertextHash,
+                committedAt: committedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String scopeUid,
+                required String envelopeId,
+                required String messageId,
+                required String ciphertextHash,
+                required int committedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => TIMEnvelopeDedupsCompanion.insert(
+                scopeUid: scopeUid,
+                envelopeId: envelopeId,
+                messageId: messageId,
+                ciphertextHash: ciphertextHash,
+                committedAt: committedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$TIMEnvelopeDedupsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PersistenceDriftDatabase,
+      $TIMEnvelopeDedupsTable,
+      TIMEnvelopeDedupRow,
+      $$TIMEnvelopeDedupsTableFilterComposer,
+      $$TIMEnvelopeDedupsTableOrderingComposer,
+      $$TIMEnvelopeDedupsTableAnnotationComposer,
+      $$TIMEnvelopeDedupsTableCreateCompanionBuilder,
+      $$TIMEnvelopeDedupsTableUpdateCompanionBuilder,
+      (
+        TIMEnvelopeDedupRow,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $TIMEnvelopeDedupsTable,
+          TIMEnvelopeDedupRow
+        >,
+      ),
+      TIMEnvelopeDedupRow,
+      PrefetchHooks Function()
+    >;
+typedef $$IncomingDeliveriesTableCreateCompanionBuilder =
+    IncomingDeliveriesCompanion Function({
+      required String scopeUid,
+      required String deliveryId,
+      required String envelopeId,
+      required String messageId,
+      required int committedAt,
+      Value<int> rowid,
+    });
+typedef $$IncomingDeliveriesTableUpdateCompanionBuilder =
+    IncomingDeliveriesCompanion Function({
+      Value<String> scopeUid,
+      Value<String> deliveryId,
+      Value<String> envelopeId,
+      Value<String> messageId,
+      Value<int> committedAt,
+      Value<int> rowid,
+    });
+
+class $$IncomingDeliveriesTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $IncomingDeliveriesTable> {
+  $$IncomingDeliveriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get deliveryId => $composableBuilder(
+    column: $table.deliveryId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get envelopeId => $composableBuilder(
+    column: $table.envelopeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get messageId => $composableBuilder(
+    column: $table.messageId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get committedAt => $composableBuilder(
+    column: $table.committedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$IncomingDeliveriesTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $IncomingDeliveriesTable> {
+  $$IncomingDeliveriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get deliveryId => $composableBuilder(
+    column: $table.deliveryId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get envelopeId => $composableBuilder(
+    column: $table.envelopeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get messageId => $composableBuilder(
+    column: $table.messageId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get committedAt => $composableBuilder(
+    column: $table.committedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$IncomingDeliveriesTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $IncomingDeliveriesTable> {
+  $$IncomingDeliveriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
+
+  GeneratedColumn<String> get deliveryId => $composableBuilder(
+    column: $table.deliveryId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get envelopeId => $composableBuilder(
+    column: $table.envelopeId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get messageId =>
+      $composableBuilder(column: $table.messageId, builder: (column) => column);
+
+  GeneratedColumn<int> get committedAt => $composableBuilder(
+    column: $table.committedAt,
+    builder: (column) => column,
+  );
+}
+
+class $$IncomingDeliveriesTableTableManager
+    extends
+        RootTableManager<
+          _$PersistenceDriftDatabase,
+          $IncomingDeliveriesTable,
+          IncomingDeliveryRow,
+          $$IncomingDeliveriesTableFilterComposer,
+          $$IncomingDeliveriesTableOrderingComposer,
+          $$IncomingDeliveriesTableAnnotationComposer,
+          $$IncomingDeliveriesTableCreateCompanionBuilder,
+          $$IncomingDeliveriesTableUpdateCompanionBuilder,
+          (
+            IncomingDeliveryRow,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $IncomingDeliveriesTable,
+              IncomingDeliveryRow
+            >,
+          ),
+          IncomingDeliveryRow,
+          PrefetchHooks Function()
+        > {
+  $$IncomingDeliveriesTableTableManager(
+    _$PersistenceDriftDatabase db,
+    $IncomingDeliveriesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$IncomingDeliveriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$IncomingDeliveriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$IncomingDeliveriesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> scopeUid = const Value.absent(),
+                Value<String> deliveryId = const Value.absent(),
+                Value<String> envelopeId = const Value.absent(),
+                Value<String> messageId = const Value.absent(),
+                Value<int> committedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => IncomingDeliveriesCompanion(
+                scopeUid: scopeUid,
+                deliveryId: deliveryId,
+                envelopeId: envelopeId,
+                messageId: messageId,
+                committedAt: committedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String scopeUid,
+                required String deliveryId,
+                required String envelopeId,
+                required String messageId,
+                required int committedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => IncomingDeliveriesCompanion.insert(
+                scopeUid: scopeUid,
+                deliveryId: deliveryId,
+                envelopeId: envelopeId,
+                messageId: messageId,
+                committedAt: committedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$IncomingDeliveriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PersistenceDriftDatabase,
+      $IncomingDeliveriesTable,
+      IncomingDeliveryRow,
+      $$IncomingDeliveriesTableFilterComposer,
+      $$IncomingDeliveriesTableOrderingComposer,
+      $$IncomingDeliveriesTableAnnotationComposer,
+      $$IncomingDeliveriesTableCreateCompanionBuilder,
+      $$IncomingDeliveriesTableUpdateCompanionBuilder,
+      (
+        IncomingDeliveryRow,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $IncomingDeliveriesTable,
+          IncomingDeliveryRow
+        >,
+      ),
+      IncomingDeliveryRow,
+      PrefetchHooks Function()
+    >;
+typedef $$TIMSendStatesTableCreateCompanionBuilder =
+    TIMSendStatesCompanion Function({
+      required String scopeUid,
+      required String messageId,
+      required String transportState,
+      Value<int> attempt,
+      Value<int?> retryAtUtcMs,
+      Value<String?> lastErrorCode,
+      required int updatedAtUtcMs,
+      Value<int> rowid,
+    });
+typedef $$TIMSendStatesTableUpdateCompanionBuilder =
+    TIMSendStatesCompanion Function({
+      Value<String> scopeUid,
+      Value<String> messageId,
+      Value<String> transportState,
+      Value<int> attempt,
+      Value<int?> retryAtUtcMs,
+      Value<String?> lastErrorCode,
+      Value<int> updatedAtUtcMs,
+      Value<int> rowid,
+    });
+
+class $$TIMSendStatesTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $TIMSendStatesTable> {
+  $$TIMSendStatesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get messageId => $composableBuilder(
+    column: $table.messageId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get transportState => $composableBuilder(
+    column: $table.transportState,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get attempt => $composableBuilder(
+    column: $table.attempt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get retryAtUtcMs => $composableBuilder(
+    column: $table.retryAtUtcMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastErrorCode => $composableBuilder(
+    column: $table.lastErrorCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAtUtcMs => $composableBuilder(
+    column: $table.updatedAtUtcMs,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$TIMSendStatesTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $TIMSendStatesTable> {
+  $$TIMSendStatesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get messageId => $composableBuilder(
+    column: $table.messageId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get transportState => $composableBuilder(
+    column: $table.transportState,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get attempt => $composableBuilder(
+    column: $table.attempt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get retryAtUtcMs => $composableBuilder(
+    column: $table.retryAtUtcMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastErrorCode => $composableBuilder(
+    column: $table.lastErrorCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAtUtcMs => $composableBuilder(
+    column: $table.updatedAtUtcMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TIMSendStatesTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $TIMSendStatesTable> {
+  $$TIMSendStatesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
+
+  GeneratedColumn<String> get messageId =>
+      $composableBuilder(column: $table.messageId, builder: (column) => column);
+
+  GeneratedColumn<String> get transportState => $composableBuilder(
+    column: $table.transportState,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get attempt =>
+      $composableBuilder(column: $table.attempt, builder: (column) => column);
+
+  GeneratedColumn<int> get retryAtUtcMs => $composableBuilder(
+    column: $table.retryAtUtcMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lastErrorCode => $composableBuilder(
+    column: $table.lastErrorCode,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get updatedAtUtcMs => $composableBuilder(
+    column: $table.updatedAtUtcMs,
+    builder: (column) => column,
+  );
+}
+
+class $$TIMSendStatesTableTableManager
+    extends
+        RootTableManager<
+          _$PersistenceDriftDatabase,
+          $TIMSendStatesTable,
+          TIMSendStateRow,
+          $$TIMSendStatesTableFilterComposer,
+          $$TIMSendStatesTableOrderingComposer,
+          $$TIMSendStatesTableAnnotationComposer,
+          $$TIMSendStatesTableCreateCompanionBuilder,
+          $$TIMSendStatesTableUpdateCompanionBuilder,
+          (
+            TIMSendStateRow,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $TIMSendStatesTable,
+              TIMSendStateRow
+            >,
+          ),
+          TIMSendStateRow,
+          PrefetchHooks Function()
+        > {
+  $$TIMSendStatesTableTableManager(
+    _$PersistenceDriftDatabase db,
+    $TIMSendStatesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TIMSendStatesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TIMSendStatesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TIMSendStatesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> scopeUid = const Value.absent(),
+                Value<String> messageId = const Value.absent(),
+                Value<String> transportState = const Value.absent(),
+                Value<int> attempt = const Value.absent(),
+                Value<int?> retryAtUtcMs = const Value.absent(),
+                Value<String?> lastErrorCode = const Value.absent(),
+                Value<int> updatedAtUtcMs = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TIMSendStatesCompanion(
+                scopeUid: scopeUid,
+                messageId: messageId,
+                transportState: transportState,
+                attempt: attempt,
+                retryAtUtcMs: retryAtUtcMs,
+                lastErrorCode: lastErrorCode,
+                updatedAtUtcMs: updatedAtUtcMs,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String scopeUid,
+                required String messageId,
+                required String transportState,
+                Value<int> attempt = const Value.absent(),
+                Value<int?> retryAtUtcMs = const Value.absent(),
+                Value<String?> lastErrorCode = const Value.absent(),
+                required int updatedAtUtcMs,
+                Value<int> rowid = const Value.absent(),
+              }) => TIMSendStatesCompanion.insert(
+                scopeUid: scopeUid,
+                messageId: messageId,
+                transportState: transportState,
+                attempt: attempt,
+                retryAtUtcMs: retryAtUtcMs,
+                lastErrorCode: lastErrorCode,
+                updatedAtUtcMs: updatedAtUtcMs,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$TIMSendStatesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PersistenceDriftDatabase,
+      $TIMSendStatesTable,
+      TIMSendStateRow,
+      $$TIMSendStatesTableFilterComposer,
+      $$TIMSendStatesTableOrderingComposer,
+      $$TIMSendStatesTableAnnotationComposer,
+      $$TIMSendStatesTableCreateCompanionBuilder,
+      $$TIMSendStatesTableUpdateCompanionBuilder,
+      (
+        TIMSendStateRow,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $TIMSendStatesTable,
+          TIMSendStateRow
+        >,
+      ),
+      TIMSendStateRow,
+      PrefetchHooks Function()
+    >;
+typedef $$TIMPeerAuthorizationsTableCreateCompanionBuilder =
+    TIMPeerAuthorizationsCompanion Function({
+      required String scopeUid,
+      required String peerDeviceId,
+      required String peerPublicKeyFingerprint,
+      required String accountBindingCertHash,
+      required int keyEpoch,
+      required String trustState,
+      required int expiresAtUtcMs,
+      Value<int> rowid,
+    });
+typedef $$TIMPeerAuthorizationsTableUpdateCompanionBuilder =
+    TIMPeerAuthorizationsCompanion Function({
+      Value<String> scopeUid,
+      Value<String> peerDeviceId,
+      Value<String> peerPublicKeyFingerprint,
+      Value<String> accountBindingCertHash,
+      Value<int> keyEpoch,
+      Value<String> trustState,
+      Value<int> expiresAtUtcMs,
+      Value<int> rowid,
+    });
+
+class $$TIMPeerAuthorizationsTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $TIMPeerAuthorizationsTable> {
+  $$TIMPeerAuthorizationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get peerDeviceId => $composableBuilder(
+    column: $table.peerDeviceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get peerPublicKeyFingerprint => $composableBuilder(
+    column: $table.peerPublicKeyFingerprint,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get accountBindingCertHash => $composableBuilder(
+    column: $table.accountBindingCertHash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get keyEpoch => $composableBuilder(
+    column: $table.keyEpoch,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get trustState => $composableBuilder(
+    column: $table.trustState,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get expiresAtUtcMs => $composableBuilder(
+    column: $table.expiresAtUtcMs,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$TIMPeerAuthorizationsTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $TIMPeerAuthorizationsTable> {
+  $$TIMPeerAuthorizationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get peerDeviceId => $composableBuilder(
+    column: $table.peerDeviceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get peerPublicKeyFingerprint => $composableBuilder(
+    column: $table.peerPublicKeyFingerprint,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get accountBindingCertHash => $composableBuilder(
+    column: $table.accountBindingCertHash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get keyEpoch => $composableBuilder(
+    column: $table.keyEpoch,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get trustState => $composableBuilder(
+    column: $table.trustState,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get expiresAtUtcMs => $composableBuilder(
+    column: $table.expiresAtUtcMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TIMPeerAuthorizationsTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $TIMPeerAuthorizationsTable> {
+  $$TIMPeerAuthorizationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
+
+  GeneratedColumn<String> get peerDeviceId => $composableBuilder(
+    column: $table.peerDeviceId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get peerPublicKeyFingerprint => $composableBuilder(
+    column: $table.peerPublicKeyFingerprint,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get accountBindingCertHash => $composableBuilder(
+    column: $table.accountBindingCertHash,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get keyEpoch =>
+      $composableBuilder(column: $table.keyEpoch, builder: (column) => column);
+
+  GeneratedColumn<String> get trustState => $composableBuilder(
+    column: $table.trustState,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get expiresAtUtcMs => $composableBuilder(
+    column: $table.expiresAtUtcMs,
+    builder: (column) => column,
+  );
+}
+
+class $$TIMPeerAuthorizationsTableTableManager
+    extends
+        RootTableManager<
+          _$PersistenceDriftDatabase,
+          $TIMPeerAuthorizationsTable,
+          TIMPeerAuthorizationRow,
+          $$TIMPeerAuthorizationsTableFilterComposer,
+          $$TIMPeerAuthorizationsTableOrderingComposer,
+          $$TIMPeerAuthorizationsTableAnnotationComposer,
+          $$TIMPeerAuthorizationsTableCreateCompanionBuilder,
+          $$TIMPeerAuthorizationsTableUpdateCompanionBuilder,
+          (
+            TIMPeerAuthorizationRow,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $TIMPeerAuthorizationsTable,
+              TIMPeerAuthorizationRow
+            >,
+          ),
+          TIMPeerAuthorizationRow,
+          PrefetchHooks Function()
+        > {
+  $$TIMPeerAuthorizationsTableTableManager(
+    _$PersistenceDriftDatabase db,
+    $TIMPeerAuthorizationsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TIMPeerAuthorizationsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$TIMPeerAuthorizationsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$TIMPeerAuthorizationsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> scopeUid = const Value.absent(),
+                Value<String> peerDeviceId = const Value.absent(),
+                Value<String> peerPublicKeyFingerprint = const Value.absent(),
+                Value<String> accountBindingCertHash = const Value.absent(),
+                Value<int> keyEpoch = const Value.absent(),
+                Value<String> trustState = const Value.absent(),
+                Value<int> expiresAtUtcMs = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TIMPeerAuthorizationsCompanion(
+                scopeUid: scopeUid,
+                peerDeviceId: peerDeviceId,
+                peerPublicKeyFingerprint: peerPublicKeyFingerprint,
+                accountBindingCertHash: accountBindingCertHash,
+                keyEpoch: keyEpoch,
+                trustState: trustState,
+                expiresAtUtcMs: expiresAtUtcMs,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String scopeUid,
+                required String peerDeviceId,
+                required String peerPublicKeyFingerprint,
+                required String accountBindingCertHash,
+                required int keyEpoch,
+                required String trustState,
+                required int expiresAtUtcMs,
+                Value<int> rowid = const Value.absent(),
+              }) => TIMPeerAuthorizationsCompanion.insert(
+                scopeUid: scopeUid,
+                peerDeviceId: peerDeviceId,
+                peerPublicKeyFingerprint: peerPublicKeyFingerprint,
+                accountBindingCertHash: accountBindingCertHash,
+                keyEpoch: keyEpoch,
+                trustState: trustState,
+                expiresAtUtcMs: expiresAtUtcMs,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$TIMPeerAuthorizationsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PersistenceDriftDatabase,
+      $TIMPeerAuthorizationsTable,
+      TIMPeerAuthorizationRow,
+      $$TIMPeerAuthorizationsTableFilterComposer,
+      $$TIMPeerAuthorizationsTableOrderingComposer,
+      $$TIMPeerAuthorizationsTableAnnotationComposer,
+      $$TIMPeerAuthorizationsTableCreateCompanionBuilder,
+      $$TIMPeerAuthorizationsTableUpdateCompanionBuilder,
+      (
+        TIMPeerAuthorizationRow,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $TIMPeerAuthorizationsTable,
+          TIMPeerAuthorizationRow
+        >,
+      ),
+      TIMPeerAuthorizationRow,
+      PrefetchHooks Function()
+    >;
 
 class $PersistenceDriftDatabaseManager {
   final _$PersistenceDriftDatabase _db;
@@ -31888,4 +38740,20 @@ class $PersistenceDriftDatabaseManager {
       $$PlaygroundPostCachesTableTableManager(_db, _db.playgroundPostCaches);
   $$PlaygroundReplyCachesTableTableManager get playgroundReplyCaches =>
       $$PlaygroundReplyCachesTableTableManager(_db, _db.playgroundReplyCaches);
+  $$TIMMessagesTableTableManager get tIMMessages =>
+      $$TIMMessagesTableTableManager(_db, _db.tIMMessages);
+  $$TIMMessageTombstonesTableTableManager get tIMMessageTombstones =>
+      $$TIMMessageTombstonesTableTableManager(_db, _db.tIMMessageTombstones);
+  $$TIMMessageReceiptsTableTableManager get tIMMessageReceipts =>
+      $$TIMMessageReceiptsTableTableManager(_db, _db.tIMMessageReceipts);
+  $$TIMConversationsTableTableManager get tIMConversations =>
+      $$TIMConversationsTableTableManager(_db, _db.tIMConversations);
+  $$TIMEnvelopeDedupsTableTableManager get tIMEnvelopeDedups =>
+      $$TIMEnvelopeDedupsTableTableManager(_db, _db.tIMEnvelopeDedups);
+  $$IncomingDeliveriesTableTableManager get incomingDeliveries =>
+      $$IncomingDeliveriesTableTableManager(_db, _db.incomingDeliveries);
+  $$TIMSendStatesTableTableManager get tIMSendStates =>
+      $$TIMSendStatesTableTableManager(_db, _db.tIMSendStates);
+  $$TIMPeerAuthorizationsTableTableManager get tIMPeerAuthorizations =>
+      $$TIMPeerAuthorizationsTableTableManager(_db, _db.tIMPeerAuthorizations);
 }

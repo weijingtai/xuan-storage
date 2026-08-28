@@ -29,14 +29,17 @@ final class WebRtcPeerStream implements PeerStream {
   ///
   /// 参数说明：
   /// - [channel]: 底层 RTCDataChannel（本流独占）。
+  /// - [kind]: 逻辑流类型（oplog / blobChunk / reconciliation 等）。
   /// - [maxBufferedAmount]: 发送侧背压上限（字节）。
   // ignore: prefer_initializing_formals
   WebRtcPeerStream({
     required RTCDataChannel channel,
+    required StreamKind kind,
     required int maxBufferedAmount,
   })  // ignore: prefer_initializing_formals
       // ignore: prefer_initializing_formals
       : _channel = channel,
+        _kind = kind,
         // ignore: prefer_initializing_formals
         _maxBufferedAmount = maxBufferedAmount {
     // 订阅对端字节：二进制消息投递，文本消息按 UTF-8 编码投递。
@@ -51,7 +54,11 @@ final class WebRtcPeerStream implements PeerStream {
   static const _utf8 = _Utf8Codec();
 
   final RTCDataChannel _channel;
+  final StreamKind _kind;
   final int _maxBufferedAmount;
+
+  @override
+  StreamKind get kind => _kind;
 
   final StreamController<List<int>> _incoming =
       StreamController<List<int>>.broadcast();
@@ -147,8 +154,16 @@ final class WebRtcPeerSession implements PeerSession {
         channelBinding = localBinding {
     // 入站逻辑流：对端主动开 DataChannel → incomingStreams。
     _pc.onDataChannel = (channel) {
+      final label = channel.label ?? '';
+      final kind = StreamKind.values.where((k) => k.name == label).firstOrNull;
+      if (kind == null) {
+        // 未知 stream kind：拒绝并关闭
+        unawaited(channel.close());
+        return;
+      }
       _incomingStreams.add(WebRtcPeerStream(
         channel: channel,
+        kind: kind,
         maxBufferedAmount: _kMaxBufferedAmount,
       ));
     };
@@ -187,6 +202,7 @@ final class WebRtcPeerSession implements PeerSession {
     );
     return WebRtcPeerStream(
       channel: channel,
+      kind: kind,
       maxBufferedAmount: _kMaxBufferedAmount,
     );
   }

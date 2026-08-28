@@ -195,6 +195,9 @@ final class BackpressureOverflowError extends StorageError {
 /// 另一条流**：本流因 [overflowPolicy] 触顶挂起/抛错时，同一会话上其他流
 /// 的 [send] 必须照常完成。契约测试 A6 验证。
 abstract interface class PeerStream {
+  /// 本逻辑流的类型（StreamKind.oplog / StreamKind.blobChunk / StreamKind.reconciliation 等）。
+  StreamKind get kind;
+
   /// 对端发来的字节流。
   ///
   /// 背压传导（S3c-c-pre 决定记录 D3）：实现必须实现订阅者 `pause()`

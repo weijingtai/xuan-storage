@@ -42,6 +42,32 @@ class XiangReadingRepositoryImpl implements XiangReadingRepository {
         RecordRowMapper.moduleDataOf(row),
       );
 
+  @override
+  Future<XiangReading> save(XiangReading reading) async {
+    final res = await put(reading, _ctx);
+    return switch (res) {
+      Ok() => reading,
+      Err(error: final err) => throw StateError('Failed to save XiangReading: ${err.message}'),
+    };
+  }
+
+  @override
+  Future<XiangReading?> load(String uuid) async {
+    final res = await get(uuid, _ctx);
+    return switch (res) {
+      Ok(value: final val) => val,
+      Err(error: final err) => throw StateError('Failed to load XiangReading: ${err.message}'),
+    };
+  }
+
+  @override
+  Future<void> softDelete(String uuid) async {
+    final res = await softDeleteWithContext(uuid, _ctx);
+    if (res case Err(error: final err)) {
+      throw StateError('Failed to soft delete XiangReading: ${err.message}');
+    }
+  }
+
   // ── L0 切片实现 ──
 
   @override
@@ -77,8 +103,7 @@ class XiangReadingRepositoryImpl implements XiangReadingRepository {
     return Ok(Rev(effectiveUuid));
   }
 
-  @override
-  Future<Result<void>> softDelete(String id, RequestContext ctx, {Precondition pre = const Unconditional()}) async {
+  Future<Result<void>> softDeleteWithContext(String id, RequestContext ctx, {Precondition pre = const Unconditional()}) async {
     // FA12 单一方针：删除经媒体生命周期处理引用并落库审计（TDD-T7）。
     final handler = _deleteMediaHandler;
     if (handler != null) {

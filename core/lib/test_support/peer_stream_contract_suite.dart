@@ -26,7 +26,7 @@ library;
 
 import 'dart:async';
 
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:persistence_core/model/storage_error.dart';
 import 'package:persistence_core/model/transport.dart';
 

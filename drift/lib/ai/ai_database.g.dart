@@ -718,9 +718,6 @@ class $LlmModelsTable extends LlmModels
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_llm_providers (uuid)',
-    ),
   );
   static const VerificationMeta _modelIdMeta = const VerificationMeta(
     'modelId',
@@ -2395,9 +2392,6 @@ class $PromptVersionsTable extends PromptVersions
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_prompt_templates (uuid)',
-    ),
   );
   static const VerificationMeta _versionMeta = const VerificationMeta(
     'version',
@@ -2990,9 +2984,6 @@ class $PromptSkillBindingsTable extends PromptSkillBindings
         false,
         type: DriftSqlType.string,
         requiredDuringInsert: true,
-        defaultConstraints: GeneratedColumn.constraintIsAlways(
-          'REFERENCES t_prompt_templates (uuid)',
-        ),
       );
   static const VerificationMeta _skillIdMeta = const VerificationMeta(
     'skillId',
@@ -3615,9 +3606,6 @@ class $AiPersonasTable extends AiPersonas
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_llm_models (uuid)',
-    ),
   );
   static const VerificationMeta _systemPromptUuidMeta = const VerificationMeta(
     'systemPromptUuid',
@@ -3629,9 +3617,6 @@ class $AiPersonasTable extends AiPersonas
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_prompt_templates (uuid)',
-    ),
   );
   static const VerificationMeta _temperatureMeta = const VerificationMeta(
     'temperature',
@@ -4564,9 +4549,6 @@ class $AiChatSessionsTable extends AiChatSessions
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_ai_personas (uuid)',
-    ),
   );
   static const VerificationMeta _divinationUuidMeta = const VerificationMeta(
     'divinationUuid',
@@ -5208,6 +5190,784 @@ class AiChatSessionsCompanion extends UpdateCompanion<AiChatSession> {
   }
 }
 
+class $AiChatMessagesTable extends AiChatMessages
+    with TableInfo<$AiChatMessagesTable, AiChatMessage> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AiChatMessagesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 36,
+      maxTextLength: 36,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sessionUuidMeta = const VerificationMeta(
+    'sessionUuid',
+  );
+  @override
+  late final GeneratedColumn<String> sessionUuid = GeneratedColumn<String>(
+    'session_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _roleMeta = const VerificationMeta('role');
+  @override
+  late final GeneratedColumn<String> role = GeneratedColumn<String>(
+    'role',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 20,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _contentMeta = const VerificationMeta(
+    'content',
+  );
+  @override
+  late final GeneratedColumn<String> content = GeneratedColumn<String>(
+    'content',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sequenceMeta = const VerificationMeta(
+    'sequence',
+  );
+  @override
+  late final GeneratedColumn<int> sequence = GeneratedColumn<int>(
+    'sequence',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isStreamingMeta = const VerificationMeta(
+    'isStreaming',
+  );
+  @override
+  late final GeneratedColumn<bool> isStreaming = GeneratedColumn<bool>(
+    'is_streaming',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_streaming" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _streamCompletedAtMeta = const VerificationMeta(
+    'streamCompletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> streamCompletedAt =
+      GeneratedColumn<DateTime>(
+        'stream_completed_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _toolCallIdMeta = const VerificationMeta(
+    'toolCallId',
+  );
+  @override
+  late final GeneratedColumn<String> toolCallId = GeneratedColumn<String>(
+    'tool_call_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _toolCallsJsonMeta = const VerificationMeta(
+    'toolCallsJson',
+  );
+  @override
+  late final GeneratedColumn<String> toolCallsJson = GeneratedColumn<String>(
+    'tool_calls_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _usageJsonMeta = const VerificationMeta(
+    'usageJson',
+  );
+  @override
+  late final GeneratedColumn<String> usageJson = GeneratedColumn<String>(
+    'usage_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _apiCallUuidMeta = const VerificationMeta(
+    'apiCallUuid',
+  );
+  @override
+  late final GeneratedColumn<String> apiCallUuid = GeneratedColumn<String>(
+    'api_call_uuid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    sessionUuid,
+    role,
+    content,
+    sequence,
+    createdAt,
+    isStreaming,
+    streamCompletedAt,
+    toolCallId,
+    toolCallsJson,
+    usageJson,
+    apiCallUuid,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_ai_chat_messages';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AiChatMessage> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('session_uuid')) {
+      context.handle(
+        _sessionUuidMeta,
+        sessionUuid.isAcceptableOrUnknown(
+          data['session_uuid']!,
+          _sessionUuidMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_sessionUuidMeta);
+    }
+    if (data.containsKey('role')) {
+      context.handle(
+        _roleMeta,
+        role.isAcceptableOrUnknown(data['role']!, _roleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_roleMeta);
+    }
+    if (data.containsKey('content')) {
+      context.handle(
+        _contentMeta,
+        content.isAcceptableOrUnknown(data['content']!, _contentMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_contentMeta);
+    }
+    if (data.containsKey('sequence')) {
+      context.handle(
+        _sequenceMeta,
+        sequence.isAcceptableOrUnknown(data['sequence']!, _sequenceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sequenceMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('is_streaming')) {
+      context.handle(
+        _isStreamingMeta,
+        isStreaming.isAcceptableOrUnknown(
+          data['is_streaming']!,
+          _isStreamingMeta,
+        ),
+      );
+    }
+    if (data.containsKey('stream_completed_at')) {
+      context.handle(
+        _streamCompletedAtMeta,
+        streamCompletedAt.isAcceptableOrUnknown(
+          data['stream_completed_at']!,
+          _streamCompletedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('tool_call_id')) {
+      context.handle(
+        _toolCallIdMeta,
+        toolCallId.isAcceptableOrUnknown(
+          data['tool_call_id']!,
+          _toolCallIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('tool_calls_json')) {
+      context.handle(
+        _toolCallsJsonMeta,
+        toolCallsJson.isAcceptableOrUnknown(
+          data['tool_calls_json']!,
+          _toolCallsJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('usage_json')) {
+      context.handle(
+        _usageJsonMeta,
+        usageJson.isAcceptableOrUnknown(data['usage_json']!, _usageJsonMeta),
+      );
+    }
+    if (data.containsKey('api_call_uuid')) {
+      context.handle(
+        _apiCallUuidMeta,
+        apiCallUuid.isAcceptableOrUnknown(
+          data['api_call_uuid']!,
+          _apiCallUuidMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  AiChatMessage map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AiChatMessage(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      sessionUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_uuid'],
+      )!,
+      role: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}role'],
+      )!,
+      content: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content'],
+      )!,
+      sequence: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sequence'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      isStreaming: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_streaming'],
+      )!,
+      streamCompletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}stream_completed_at'],
+      ),
+      toolCallId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tool_call_id'],
+      ),
+      toolCallsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tool_calls_json'],
+      ),
+      usageJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}usage_json'],
+      ),
+      apiCallUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}api_call_uuid'],
+      ),
+    );
+  }
+
+  @override
+  $AiChatMessagesTable createAlias(String alias) {
+    return $AiChatMessagesTable(attachedDatabase, alias);
+  }
+}
+
+class AiChatMessage extends DataClass implements Insertable<AiChatMessage> {
+  final String uuid;
+
+  /// 关联的会话 UUID
+  final String sessionUuid;
+
+  /// 消息角色 (system, user, assistant, function, tool)
+  final String role;
+
+  /// 消息内容
+  final String content;
+
+  /// 消息序号
+  final int sequence;
+
+  /// 创建时间
+  final DateTime createdAt;
+
+  /// 是否为流式消息（正在生成中）
+  final bool isStreaming;
+
+  /// 流式消息完成时间
+  final DateTime? streamCompletedAt;
+
+  /// 关联的工具调用 ID
+  final String? toolCallId;
+
+  /// 工具调用详情 (JSON)
+  final String? toolCallsJson;
+
+  /// token 使用统计 (JSON)
+  final String? usageJson;
+
+  /// 关联的 API 调用 UUID
+  final String? apiCallUuid;
+  const AiChatMessage({
+    required this.uuid,
+    required this.sessionUuid,
+    required this.role,
+    required this.content,
+    required this.sequence,
+    required this.createdAt,
+    required this.isStreaming,
+    this.streamCompletedAt,
+    this.toolCallId,
+    this.toolCallsJson,
+    this.usageJson,
+    this.apiCallUuid,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['session_uuid'] = Variable<String>(sessionUuid);
+    map['role'] = Variable<String>(role);
+    map['content'] = Variable<String>(content);
+    map['sequence'] = Variable<int>(sequence);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['is_streaming'] = Variable<bool>(isStreaming);
+    if (!nullToAbsent || streamCompletedAt != null) {
+      map['stream_completed_at'] = Variable<DateTime>(streamCompletedAt);
+    }
+    if (!nullToAbsent || toolCallId != null) {
+      map['tool_call_id'] = Variable<String>(toolCallId);
+    }
+    if (!nullToAbsent || toolCallsJson != null) {
+      map['tool_calls_json'] = Variable<String>(toolCallsJson);
+    }
+    if (!nullToAbsent || usageJson != null) {
+      map['usage_json'] = Variable<String>(usageJson);
+    }
+    if (!nullToAbsent || apiCallUuid != null) {
+      map['api_call_uuid'] = Variable<String>(apiCallUuid);
+    }
+    return map;
+  }
+
+  AiChatMessagesCompanion toCompanion(bool nullToAbsent) {
+    return AiChatMessagesCompanion(
+      uuid: Value(uuid),
+      sessionUuid: Value(sessionUuid),
+      role: Value(role),
+      content: Value(content),
+      sequence: Value(sequence),
+      createdAt: Value(createdAt),
+      isStreaming: Value(isStreaming),
+      streamCompletedAt: streamCompletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(streamCompletedAt),
+      toolCallId: toolCallId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(toolCallId),
+      toolCallsJson: toolCallsJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(toolCallsJson),
+      usageJson: usageJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(usageJson),
+      apiCallUuid: apiCallUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(apiCallUuid),
+    );
+  }
+
+  factory AiChatMessage.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AiChatMessage(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      sessionUuid: serializer.fromJson<String>(json['sessionUuid']),
+      role: serializer.fromJson<String>(json['role']),
+      content: serializer.fromJson<String>(json['content']),
+      sequence: serializer.fromJson<int>(json['sequence']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      isStreaming: serializer.fromJson<bool>(json['isStreaming']),
+      streamCompletedAt: serializer.fromJson<DateTime?>(
+        json['streamCompletedAt'],
+      ),
+      toolCallId: serializer.fromJson<String?>(json['toolCallId']),
+      toolCallsJson: serializer.fromJson<String?>(json['toolCallsJson']),
+      usageJson: serializer.fromJson<String?>(json['usageJson']),
+      apiCallUuid: serializer.fromJson<String?>(json['apiCallUuid']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'sessionUuid': serializer.toJson<String>(sessionUuid),
+      'role': serializer.toJson<String>(role),
+      'content': serializer.toJson<String>(content),
+      'sequence': serializer.toJson<int>(sequence),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'isStreaming': serializer.toJson<bool>(isStreaming),
+      'streamCompletedAt': serializer.toJson<DateTime?>(streamCompletedAt),
+      'toolCallId': serializer.toJson<String?>(toolCallId),
+      'toolCallsJson': serializer.toJson<String?>(toolCallsJson),
+      'usageJson': serializer.toJson<String?>(usageJson),
+      'apiCallUuid': serializer.toJson<String?>(apiCallUuid),
+    };
+  }
+
+  AiChatMessage copyWith({
+    String? uuid,
+    String? sessionUuid,
+    String? role,
+    String? content,
+    int? sequence,
+    DateTime? createdAt,
+    bool? isStreaming,
+    Value<DateTime?> streamCompletedAt = const Value.absent(),
+    Value<String?> toolCallId = const Value.absent(),
+    Value<String?> toolCallsJson = const Value.absent(),
+    Value<String?> usageJson = const Value.absent(),
+    Value<String?> apiCallUuid = const Value.absent(),
+  }) => AiChatMessage(
+    uuid: uuid ?? this.uuid,
+    sessionUuid: sessionUuid ?? this.sessionUuid,
+    role: role ?? this.role,
+    content: content ?? this.content,
+    sequence: sequence ?? this.sequence,
+    createdAt: createdAt ?? this.createdAt,
+    isStreaming: isStreaming ?? this.isStreaming,
+    streamCompletedAt: streamCompletedAt.present
+        ? streamCompletedAt.value
+        : this.streamCompletedAt,
+    toolCallId: toolCallId.present ? toolCallId.value : this.toolCallId,
+    toolCallsJson: toolCallsJson.present
+        ? toolCallsJson.value
+        : this.toolCallsJson,
+    usageJson: usageJson.present ? usageJson.value : this.usageJson,
+    apiCallUuid: apiCallUuid.present ? apiCallUuid.value : this.apiCallUuid,
+  );
+  AiChatMessage copyWithCompanion(AiChatMessagesCompanion data) {
+    return AiChatMessage(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      sessionUuid: data.sessionUuid.present
+          ? data.sessionUuid.value
+          : this.sessionUuid,
+      role: data.role.present ? data.role.value : this.role,
+      content: data.content.present ? data.content.value : this.content,
+      sequence: data.sequence.present ? data.sequence.value : this.sequence,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      isStreaming: data.isStreaming.present
+          ? data.isStreaming.value
+          : this.isStreaming,
+      streamCompletedAt: data.streamCompletedAt.present
+          ? data.streamCompletedAt.value
+          : this.streamCompletedAt,
+      toolCallId: data.toolCallId.present
+          ? data.toolCallId.value
+          : this.toolCallId,
+      toolCallsJson: data.toolCallsJson.present
+          ? data.toolCallsJson.value
+          : this.toolCallsJson,
+      usageJson: data.usageJson.present ? data.usageJson.value : this.usageJson,
+      apiCallUuid: data.apiCallUuid.present
+          ? data.apiCallUuid.value
+          : this.apiCallUuid,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AiChatMessage(')
+          ..write('uuid: $uuid, ')
+          ..write('sessionUuid: $sessionUuid, ')
+          ..write('role: $role, ')
+          ..write('content: $content, ')
+          ..write('sequence: $sequence, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('isStreaming: $isStreaming, ')
+          ..write('streamCompletedAt: $streamCompletedAt, ')
+          ..write('toolCallId: $toolCallId, ')
+          ..write('toolCallsJson: $toolCallsJson, ')
+          ..write('usageJson: $usageJson, ')
+          ..write('apiCallUuid: $apiCallUuid')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    sessionUuid,
+    role,
+    content,
+    sequence,
+    createdAt,
+    isStreaming,
+    streamCompletedAt,
+    toolCallId,
+    toolCallsJson,
+    usageJson,
+    apiCallUuid,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AiChatMessage &&
+          other.uuid == this.uuid &&
+          other.sessionUuid == this.sessionUuid &&
+          other.role == this.role &&
+          other.content == this.content &&
+          other.sequence == this.sequence &&
+          other.createdAt == this.createdAt &&
+          other.isStreaming == this.isStreaming &&
+          other.streamCompletedAt == this.streamCompletedAt &&
+          other.toolCallId == this.toolCallId &&
+          other.toolCallsJson == this.toolCallsJson &&
+          other.usageJson == this.usageJson &&
+          other.apiCallUuid == this.apiCallUuid);
+}
+
+class AiChatMessagesCompanion extends UpdateCompanion<AiChatMessage> {
+  final Value<String> uuid;
+  final Value<String> sessionUuid;
+  final Value<String> role;
+  final Value<String> content;
+  final Value<int> sequence;
+  final Value<DateTime> createdAt;
+  final Value<bool> isStreaming;
+  final Value<DateTime?> streamCompletedAt;
+  final Value<String?> toolCallId;
+  final Value<String?> toolCallsJson;
+  final Value<String?> usageJson;
+  final Value<String?> apiCallUuid;
+  final Value<int> rowid;
+  const AiChatMessagesCompanion({
+    this.uuid = const Value.absent(),
+    this.sessionUuid = const Value.absent(),
+    this.role = const Value.absent(),
+    this.content = const Value.absent(),
+    this.sequence = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.isStreaming = const Value.absent(),
+    this.streamCompletedAt = const Value.absent(),
+    this.toolCallId = const Value.absent(),
+    this.toolCallsJson = const Value.absent(),
+    this.usageJson = const Value.absent(),
+    this.apiCallUuid = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AiChatMessagesCompanion.insert({
+    required String uuid,
+    required String sessionUuid,
+    required String role,
+    required String content,
+    required int sequence,
+    required DateTime createdAt,
+    this.isStreaming = const Value.absent(),
+    this.streamCompletedAt = const Value.absent(),
+    this.toolCallId = const Value.absent(),
+    this.toolCallsJson = const Value.absent(),
+    this.usageJson = const Value.absent(),
+    this.apiCallUuid = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       sessionUuid = Value(sessionUuid),
+       role = Value(role),
+       content = Value(content),
+       sequence = Value(sequence),
+       createdAt = Value(createdAt);
+  static Insertable<AiChatMessage> custom({
+    Expression<String>? uuid,
+    Expression<String>? sessionUuid,
+    Expression<String>? role,
+    Expression<String>? content,
+    Expression<int>? sequence,
+    Expression<DateTime>? createdAt,
+    Expression<bool>? isStreaming,
+    Expression<DateTime>? streamCompletedAt,
+    Expression<String>? toolCallId,
+    Expression<String>? toolCallsJson,
+    Expression<String>? usageJson,
+    Expression<String>? apiCallUuid,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (sessionUuid != null) 'session_uuid': sessionUuid,
+      if (role != null) 'role': role,
+      if (content != null) 'content': content,
+      if (sequence != null) 'sequence': sequence,
+      if (createdAt != null) 'created_at': createdAt,
+      if (isStreaming != null) 'is_streaming': isStreaming,
+      if (streamCompletedAt != null) 'stream_completed_at': streamCompletedAt,
+      if (toolCallId != null) 'tool_call_id': toolCallId,
+      if (toolCallsJson != null) 'tool_calls_json': toolCallsJson,
+      if (usageJson != null) 'usage_json': usageJson,
+      if (apiCallUuid != null) 'api_call_uuid': apiCallUuid,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AiChatMessagesCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? sessionUuid,
+    Value<String>? role,
+    Value<String>? content,
+    Value<int>? sequence,
+    Value<DateTime>? createdAt,
+    Value<bool>? isStreaming,
+    Value<DateTime?>? streamCompletedAt,
+    Value<String?>? toolCallId,
+    Value<String?>? toolCallsJson,
+    Value<String?>? usageJson,
+    Value<String?>? apiCallUuid,
+    Value<int>? rowid,
+  }) {
+    return AiChatMessagesCompanion(
+      uuid: uuid ?? this.uuid,
+      sessionUuid: sessionUuid ?? this.sessionUuid,
+      role: role ?? this.role,
+      content: content ?? this.content,
+      sequence: sequence ?? this.sequence,
+      createdAt: createdAt ?? this.createdAt,
+      isStreaming: isStreaming ?? this.isStreaming,
+      streamCompletedAt: streamCompletedAt ?? this.streamCompletedAt,
+      toolCallId: toolCallId ?? this.toolCallId,
+      toolCallsJson: toolCallsJson ?? this.toolCallsJson,
+      usageJson: usageJson ?? this.usageJson,
+      apiCallUuid: apiCallUuid ?? this.apiCallUuid,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (sessionUuid.present) {
+      map['session_uuid'] = Variable<String>(sessionUuid.value);
+    }
+    if (role.present) {
+      map['role'] = Variable<String>(role.value);
+    }
+    if (content.present) {
+      map['content'] = Variable<String>(content.value);
+    }
+    if (sequence.present) {
+      map['sequence'] = Variable<int>(sequence.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (isStreaming.present) {
+      map['is_streaming'] = Variable<bool>(isStreaming.value);
+    }
+    if (streamCompletedAt.present) {
+      map['stream_completed_at'] = Variable<DateTime>(streamCompletedAt.value);
+    }
+    if (toolCallId.present) {
+      map['tool_call_id'] = Variable<String>(toolCallId.value);
+    }
+    if (toolCallsJson.present) {
+      map['tool_calls_json'] = Variable<String>(toolCallsJson.value);
+    }
+    if (usageJson.present) {
+      map['usage_json'] = Variable<String>(usageJson.value);
+    }
+    if (apiCallUuid.present) {
+      map['api_call_uuid'] = Variable<String>(apiCallUuid.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AiChatMessagesCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('sessionUuid: $sessionUuid, ')
+          ..write('role: $role, ')
+          ..write('content: $content, ')
+          ..write('sequence: $sequence, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('isStreaming: $isStreaming, ')
+          ..write('streamCompletedAt: $streamCompletedAt, ')
+          ..write('toolCallId: $toolCallId, ')
+          ..write('toolCallsJson: $toolCallsJson, ')
+          ..write('usageJson: $usageJson, ')
+          ..write('apiCallUuid: $apiCallUuid, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $AiApiCallsTable extends AiApiCalls
     with TableInfo<$AiApiCallsTable, AiApiCall> {
   @override
@@ -5237,9 +5997,6 @@ class $AiApiCallsTable extends AiApiCalls
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_ai_chat_sessions (uuid)',
-    ),
   );
   static const VerificationMeta _modelUuidMeta = const VerificationMeta(
     'modelUuid',
@@ -5251,9 +6008,6 @@ class $AiApiCallsTable extends AiApiCalls
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_llm_models (uuid)',
-    ),
   );
   static const VerificationMeta _requestedAtMeta = const VerificationMeta(
     'requestedAt',
@@ -6096,790 +6850,6 @@ class AiApiCallsCompanion extends UpdateCompanion<AiApiCall> {
           ..write('totalTokens: $totalTokens, ')
           ..write('latencyMs: $latencyMs, ')
           ..write('isStreaming: $isStreaming, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $AiChatMessagesTable extends AiChatMessages
-    with TableInfo<$AiChatMessagesTable, AiChatMessage> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $AiChatMessagesTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
-  @override
-  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
-    'uuid',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 36,
-      maxTextLength: 36,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _sessionUuidMeta = const VerificationMeta(
-    'sessionUuid',
-  );
-  @override
-  late final GeneratedColumn<String> sessionUuid = GeneratedColumn<String>(
-    'session_uuid',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_ai_chat_sessions (uuid)',
-    ),
-  );
-  static const VerificationMeta _roleMeta = const VerificationMeta('role');
-  @override
-  late final GeneratedColumn<String> role = GeneratedColumn<String>(
-    'role',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 1,
-      maxTextLength: 20,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _contentMeta = const VerificationMeta(
-    'content',
-  );
-  @override
-  late final GeneratedColumn<String> content = GeneratedColumn<String>(
-    'content',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _sequenceMeta = const VerificationMeta(
-    'sequence',
-  );
-  @override
-  late final GeneratedColumn<int> sequence = GeneratedColumn<int>(
-    'sequence',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _isStreamingMeta = const VerificationMeta(
-    'isStreaming',
-  );
-  @override
-  late final GeneratedColumn<bool> isStreaming = GeneratedColumn<bool>(
-    'is_streaming',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_streaming" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
-  static const VerificationMeta _streamCompletedAtMeta = const VerificationMeta(
-    'streamCompletedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> streamCompletedAt =
-      GeneratedColumn<DateTime>(
-        'stream_completed_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _toolCallIdMeta = const VerificationMeta(
-    'toolCallId',
-  );
-  @override
-  late final GeneratedColumn<String> toolCallId = GeneratedColumn<String>(
-    'tool_call_id',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _toolCallsJsonMeta = const VerificationMeta(
-    'toolCallsJson',
-  );
-  @override
-  late final GeneratedColumn<String> toolCallsJson = GeneratedColumn<String>(
-    'tool_calls_json',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _usageJsonMeta = const VerificationMeta(
-    'usageJson',
-  );
-  @override
-  late final GeneratedColumn<String> usageJson = GeneratedColumn<String>(
-    'usage_json',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _apiCallUuidMeta = const VerificationMeta(
-    'apiCallUuid',
-  );
-  @override
-  late final GeneratedColumn<String> apiCallUuid = GeneratedColumn<String>(
-    'api_call_uuid',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_ai_api_calls (uuid)',
-    ),
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    uuid,
-    sessionUuid,
-    role,
-    content,
-    sequence,
-    createdAt,
-    isStreaming,
-    streamCompletedAt,
-    toolCallId,
-    toolCallsJson,
-    usageJson,
-    apiCallUuid,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 't_ai_chat_messages';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<AiChatMessage> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('uuid')) {
-      context.handle(
-        _uuidMeta,
-        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_uuidMeta);
-    }
-    if (data.containsKey('session_uuid')) {
-      context.handle(
-        _sessionUuidMeta,
-        sessionUuid.isAcceptableOrUnknown(
-          data['session_uuid']!,
-          _sessionUuidMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_sessionUuidMeta);
-    }
-    if (data.containsKey('role')) {
-      context.handle(
-        _roleMeta,
-        role.isAcceptableOrUnknown(data['role']!, _roleMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_roleMeta);
-    }
-    if (data.containsKey('content')) {
-      context.handle(
-        _contentMeta,
-        content.isAcceptableOrUnknown(data['content']!, _contentMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_contentMeta);
-    }
-    if (data.containsKey('sequence')) {
-      context.handle(
-        _sequenceMeta,
-        sequence.isAcceptableOrUnknown(data['sequence']!, _sequenceMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_sequenceMeta);
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_createdAtMeta);
-    }
-    if (data.containsKey('is_streaming')) {
-      context.handle(
-        _isStreamingMeta,
-        isStreaming.isAcceptableOrUnknown(
-          data['is_streaming']!,
-          _isStreamingMeta,
-        ),
-      );
-    }
-    if (data.containsKey('stream_completed_at')) {
-      context.handle(
-        _streamCompletedAtMeta,
-        streamCompletedAt.isAcceptableOrUnknown(
-          data['stream_completed_at']!,
-          _streamCompletedAtMeta,
-        ),
-      );
-    }
-    if (data.containsKey('tool_call_id')) {
-      context.handle(
-        _toolCallIdMeta,
-        toolCallId.isAcceptableOrUnknown(
-          data['tool_call_id']!,
-          _toolCallIdMeta,
-        ),
-      );
-    }
-    if (data.containsKey('tool_calls_json')) {
-      context.handle(
-        _toolCallsJsonMeta,
-        toolCallsJson.isAcceptableOrUnknown(
-          data['tool_calls_json']!,
-          _toolCallsJsonMeta,
-        ),
-      );
-    }
-    if (data.containsKey('usage_json')) {
-      context.handle(
-        _usageJsonMeta,
-        usageJson.isAcceptableOrUnknown(data['usage_json']!, _usageJsonMeta),
-      );
-    }
-    if (data.containsKey('api_call_uuid')) {
-      context.handle(
-        _apiCallUuidMeta,
-        apiCallUuid.isAcceptableOrUnknown(
-          data['api_call_uuid']!,
-          _apiCallUuidMeta,
-        ),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {uuid};
-  @override
-  AiChatMessage map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return AiChatMessage(
-      uuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}uuid'],
-      )!,
-      sessionUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}session_uuid'],
-      )!,
-      role: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}role'],
-      )!,
-      content: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}content'],
-      )!,
-      sequence: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}sequence'],
-      )!,
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-      isStreaming: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_streaming'],
-      )!,
-      streamCompletedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}stream_completed_at'],
-      ),
-      toolCallId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}tool_call_id'],
-      ),
-      toolCallsJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}tool_calls_json'],
-      ),
-      usageJson: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}usage_json'],
-      ),
-      apiCallUuid: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}api_call_uuid'],
-      ),
-    );
-  }
-
-  @override
-  $AiChatMessagesTable createAlias(String alias) {
-    return $AiChatMessagesTable(attachedDatabase, alias);
-  }
-}
-
-class AiChatMessage extends DataClass implements Insertable<AiChatMessage> {
-  final String uuid;
-
-  /// 关联的会话 UUID
-  final String sessionUuid;
-
-  /// 消息角色 (system, user, assistant, function, tool)
-  final String role;
-
-  /// 消息内容
-  final String content;
-
-  /// 消息序号
-  final int sequence;
-
-  /// 创建时间
-  final DateTime createdAt;
-
-  /// 是否为流式消息（正在生成中）
-  final bool isStreaming;
-
-  /// 流式消息完成时间
-  final DateTime? streamCompletedAt;
-
-  /// 关联的工具调用 ID
-  final String? toolCallId;
-
-  /// 工具调用详情 (JSON)
-  final String? toolCallsJson;
-
-  /// token 使用统计 (JSON)
-  final String? usageJson;
-
-  /// 关联的 API 调用 UUID
-  final String? apiCallUuid;
-  const AiChatMessage({
-    required this.uuid,
-    required this.sessionUuid,
-    required this.role,
-    required this.content,
-    required this.sequence,
-    required this.createdAt,
-    required this.isStreaming,
-    this.streamCompletedAt,
-    this.toolCallId,
-    this.toolCallsJson,
-    this.usageJson,
-    this.apiCallUuid,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['uuid'] = Variable<String>(uuid);
-    map['session_uuid'] = Variable<String>(sessionUuid);
-    map['role'] = Variable<String>(role);
-    map['content'] = Variable<String>(content);
-    map['sequence'] = Variable<int>(sequence);
-    map['created_at'] = Variable<DateTime>(createdAt);
-    map['is_streaming'] = Variable<bool>(isStreaming);
-    if (!nullToAbsent || streamCompletedAt != null) {
-      map['stream_completed_at'] = Variable<DateTime>(streamCompletedAt);
-    }
-    if (!nullToAbsent || toolCallId != null) {
-      map['tool_call_id'] = Variable<String>(toolCallId);
-    }
-    if (!nullToAbsent || toolCallsJson != null) {
-      map['tool_calls_json'] = Variable<String>(toolCallsJson);
-    }
-    if (!nullToAbsent || usageJson != null) {
-      map['usage_json'] = Variable<String>(usageJson);
-    }
-    if (!nullToAbsent || apiCallUuid != null) {
-      map['api_call_uuid'] = Variable<String>(apiCallUuid);
-    }
-    return map;
-  }
-
-  AiChatMessagesCompanion toCompanion(bool nullToAbsent) {
-    return AiChatMessagesCompanion(
-      uuid: Value(uuid),
-      sessionUuid: Value(sessionUuid),
-      role: Value(role),
-      content: Value(content),
-      sequence: Value(sequence),
-      createdAt: Value(createdAt),
-      isStreaming: Value(isStreaming),
-      streamCompletedAt: streamCompletedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(streamCompletedAt),
-      toolCallId: toolCallId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(toolCallId),
-      toolCallsJson: toolCallsJson == null && nullToAbsent
-          ? const Value.absent()
-          : Value(toolCallsJson),
-      usageJson: usageJson == null && nullToAbsent
-          ? const Value.absent()
-          : Value(usageJson),
-      apiCallUuid: apiCallUuid == null && nullToAbsent
-          ? const Value.absent()
-          : Value(apiCallUuid),
-    );
-  }
-
-  factory AiChatMessage.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return AiChatMessage(
-      uuid: serializer.fromJson<String>(json['uuid']),
-      sessionUuid: serializer.fromJson<String>(json['sessionUuid']),
-      role: serializer.fromJson<String>(json['role']),
-      content: serializer.fromJson<String>(json['content']),
-      sequence: serializer.fromJson<int>(json['sequence']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      isStreaming: serializer.fromJson<bool>(json['isStreaming']),
-      streamCompletedAt: serializer.fromJson<DateTime?>(
-        json['streamCompletedAt'],
-      ),
-      toolCallId: serializer.fromJson<String?>(json['toolCallId']),
-      toolCallsJson: serializer.fromJson<String?>(json['toolCallsJson']),
-      usageJson: serializer.fromJson<String?>(json['usageJson']),
-      apiCallUuid: serializer.fromJson<String?>(json['apiCallUuid']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'uuid': serializer.toJson<String>(uuid),
-      'sessionUuid': serializer.toJson<String>(sessionUuid),
-      'role': serializer.toJson<String>(role),
-      'content': serializer.toJson<String>(content),
-      'sequence': serializer.toJson<int>(sequence),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-      'isStreaming': serializer.toJson<bool>(isStreaming),
-      'streamCompletedAt': serializer.toJson<DateTime?>(streamCompletedAt),
-      'toolCallId': serializer.toJson<String?>(toolCallId),
-      'toolCallsJson': serializer.toJson<String?>(toolCallsJson),
-      'usageJson': serializer.toJson<String?>(usageJson),
-      'apiCallUuid': serializer.toJson<String?>(apiCallUuid),
-    };
-  }
-
-  AiChatMessage copyWith({
-    String? uuid,
-    String? sessionUuid,
-    String? role,
-    String? content,
-    int? sequence,
-    DateTime? createdAt,
-    bool? isStreaming,
-    Value<DateTime?> streamCompletedAt = const Value.absent(),
-    Value<String?> toolCallId = const Value.absent(),
-    Value<String?> toolCallsJson = const Value.absent(),
-    Value<String?> usageJson = const Value.absent(),
-    Value<String?> apiCallUuid = const Value.absent(),
-  }) => AiChatMessage(
-    uuid: uuid ?? this.uuid,
-    sessionUuid: sessionUuid ?? this.sessionUuid,
-    role: role ?? this.role,
-    content: content ?? this.content,
-    sequence: sequence ?? this.sequence,
-    createdAt: createdAt ?? this.createdAt,
-    isStreaming: isStreaming ?? this.isStreaming,
-    streamCompletedAt: streamCompletedAt.present
-        ? streamCompletedAt.value
-        : this.streamCompletedAt,
-    toolCallId: toolCallId.present ? toolCallId.value : this.toolCallId,
-    toolCallsJson: toolCallsJson.present
-        ? toolCallsJson.value
-        : this.toolCallsJson,
-    usageJson: usageJson.present ? usageJson.value : this.usageJson,
-    apiCallUuid: apiCallUuid.present ? apiCallUuid.value : this.apiCallUuid,
-  );
-  AiChatMessage copyWithCompanion(AiChatMessagesCompanion data) {
-    return AiChatMessage(
-      uuid: data.uuid.present ? data.uuid.value : this.uuid,
-      sessionUuid: data.sessionUuid.present
-          ? data.sessionUuid.value
-          : this.sessionUuid,
-      role: data.role.present ? data.role.value : this.role,
-      content: data.content.present ? data.content.value : this.content,
-      sequence: data.sequence.present ? data.sequence.value : this.sequence,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      isStreaming: data.isStreaming.present
-          ? data.isStreaming.value
-          : this.isStreaming,
-      streamCompletedAt: data.streamCompletedAt.present
-          ? data.streamCompletedAt.value
-          : this.streamCompletedAt,
-      toolCallId: data.toolCallId.present
-          ? data.toolCallId.value
-          : this.toolCallId,
-      toolCallsJson: data.toolCallsJson.present
-          ? data.toolCallsJson.value
-          : this.toolCallsJson,
-      usageJson: data.usageJson.present ? data.usageJson.value : this.usageJson,
-      apiCallUuid: data.apiCallUuid.present
-          ? data.apiCallUuid.value
-          : this.apiCallUuid,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('AiChatMessage(')
-          ..write('uuid: $uuid, ')
-          ..write('sessionUuid: $sessionUuid, ')
-          ..write('role: $role, ')
-          ..write('content: $content, ')
-          ..write('sequence: $sequence, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('isStreaming: $isStreaming, ')
-          ..write('streamCompletedAt: $streamCompletedAt, ')
-          ..write('toolCallId: $toolCallId, ')
-          ..write('toolCallsJson: $toolCallsJson, ')
-          ..write('usageJson: $usageJson, ')
-          ..write('apiCallUuid: $apiCallUuid')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    uuid,
-    sessionUuid,
-    role,
-    content,
-    sequence,
-    createdAt,
-    isStreaming,
-    streamCompletedAt,
-    toolCallId,
-    toolCallsJson,
-    usageJson,
-    apiCallUuid,
-  );
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is AiChatMessage &&
-          other.uuid == this.uuid &&
-          other.sessionUuid == this.sessionUuid &&
-          other.role == this.role &&
-          other.content == this.content &&
-          other.sequence == this.sequence &&
-          other.createdAt == this.createdAt &&
-          other.isStreaming == this.isStreaming &&
-          other.streamCompletedAt == this.streamCompletedAt &&
-          other.toolCallId == this.toolCallId &&
-          other.toolCallsJson == this.toolCallsJson &&
-          other.usageJson == this.usageJson &&
-          other.apiCallUuid == this.apiCallUuid);
-}
-
-class AiChatMessagesCompanion extends UpdateCompanion<AiChatMessage> {
-  final Value<String> uuid;
-  final Value<String> sessionUuid;
-  final Value<String> role;
-  final Value<String> content;
-  final Value<int> sequence;
-  final Value<DateTime> createdAt;
-  final Value<bool> isStreaming;
-  final Value<DateTime?> streamCompletedAt;
-  final Value<String?> toolCallId;
-  final Value<String?> toolCallsJson;
-  final Value<String?> usageJson;
-  final Value<String?> apiCallUuid;
-  final Value<int> rowid;
-  const AiChatMessagesCompanion({
-    this.uuid = const Value.absent(),
-    this.sessionUuid = const Value.absent(),
-    this.role = const Value.absent(),
-    this.content = const Value.absent(),
-    this.sequence = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.isStreaming = const Value.absent(),
-    this.streamCompletedAt = const Value.absent(),
-    this.toolCallId = const Value.absent(),
-    this.toolCallsJson = const Value.absent(),
-    this.usageJson = const Value.absent(),
-    this.apiCallUuid = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  AiChatMessagesCompanion.insert({
-    required String uuid,
-    required String sessionUuid,
-    required String role,
-    required String content,
-    required int sequence,
-    required DateTime createdAt,
-    this.isStreaming = const Value.absent(),
-    this.streamCompletedAt = const Value.absent(),
-    this.toolCallId = const Value.absent(),
-    this.toolCallsJson = const Value.absent(),
-    this.usageJson = const Value.absent(),
-    this.apiCallUuid = const Value.absent(),
-    this.rowid = const Value.absent(),
-  }) : uuid = Value(uuid),
-       sessionUuid = Value(sessionUuid),
-       role = Value(role),
-       content = Value(content),
-       sequence = Value(sequence),
-       createdAt = Value(createdAt);
-  static Insertable<AiChatMessage> custom({
-    Expression<String>? uuid,
-    Expression<String>? sessionUuid,
-    Expression<String>? role,
-    Expression<String>? content,
-    Expression<int>? sequence,
-    Expression<DateTime>? createdAt,
-    Expression<bool>? isStreaming,
-    Expression<DateTime>? streamCompletedAt,
-    Expression<String>? toolCallId,
-    Expression<String>? toolCallsJson,
-    Expression<String>? usageJson,
-    Expression<String>? apiCallUuid,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (uuid != null) 'uuid': uuid,
-      if (sessionUuid != null) 'session_uuid': sessionUuid,
-      if (role != null) 'role': role,
-      if (content != null) 'content': content,
-      if (sequence != null) 'sequence': sequence,
-      if (createdAt != null) 'created_at': createdAt,
-      if (isStreaming != null) 'is_streaming': isStreaming,
-      if (streamCompletedAt != null) 'stream_completed_at': streamCompletedAt,
-      if (toolCallId != null) 'tool_call_id': toolCallId,
-      if (toolCallsJson != null) 'tool_calls_json': toolCallsJson,
-      if (usageJson != null) 'usage_json': usageJson,
-      if (apiCallUuid != null) 'api_call_uuid': apiCallUuid,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  AiChatMessagesCompanion copyWith({
-    Value<String>? uuid,
-    Value<String>? sessionUuid,
-    Value<String>? role,
-    Value<String>? content,
-    Value<int>? sequence,
-    Value<DateTime>? createdAt,
-    Value<bool>? isStreaming,
-    Value<DateTime?>? streamCompletedAt,
-    Value<String?>? toolCallId,
-    Value<String?>? toolCallsJson,
-    Value<String?>? usageJson,
-    Value<String?>? apiCallUuid,
-    Value<int>? rowid,
-  }) {
-    return AiChatMessagesCompanion(
-      uuid: uuid ?? this.uuid,
-      sessionUuid: sessionUuid ?? this.sessionUuid,
-      role: role ?? this.role,
-      content: content ?? this.content,
-      sequence: sequence ?? this.sequence,
-      createdAt: createdAt ?? this.createdAt,
-      isStreaming: isStreaming ?? this.isStreaming,
-      streamCompletedAt: streamCompletedAt ?? this.streamCompletedAt,
-      toolCallId: toolCallId ?? this.toolCallId,
-      toolCallsJson: toolCallsJson ?? this.toolCallsJson,
-      usageJson: usageJson ?? this.usageJson,
-      apiCallUuid: apiCallUuid ?? this.apiCallUuid,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (uuid.present) {
-      map['uuid'] = Variable<String>(uuid.value);
-    }
-    if (sessionUuid.present) {
-      map['session_uuid'] = Variable<String>(sessionUuid.value);
-    }
-    if (role.present) {
-      map['role'] = Variable<String>(role.value);
-    }
-    if (content.present) {
-      map['content'] = Variable<String>(content.value);
-    }
-    if (sequence.present) {
-      map['sequence'] = Variable<int>(sequence.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    if (isStreaming.present) {
-      map['is_streaming'] = Variable<bool>(isStreaming.value);
-    }
-    if (streamCompletedAt.present) {
-      map['stream_completed_at'] = Variable<DateTime>(streamCompletedAt.value);
-    }
-    if (toolCallId.present) {
-      map['tool_call_id'] = Variable<String>(toolCallId.value);
-    }
-    if (toolCallsJson.present) {
-      map['tool_calls_json'] = Variable<String>(toolCallsJson.value);
-    }
-    if (usageJson.present) {
-      map['usage_json'] = Variable<String>(usageJson.value);
-    }
-    if (apiCallUuid.present) {
-      map['api_call_uuid'] = Variable<String>(apiCallUuid.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('AiChatMessagesCompanion(')
-          ..write('uuid: $uuid, ')
-          ..write('sessionUuid: $sessionUuid, ')
-          ..write('role: $role, ')
-          ..write('content: $content, ')
-          ..write('sequence: $sequence, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('isStreaming: $isStreaming, ')
-          ..write('streamCompletedAt: $streamCompletedAt, ')
-          ..write('toolCallId: $toolCallId, ')
-          ..write('toolCallsJson: $toolCallsJson, ')
-          ..write('usageJson: $usageJson, ')
-          ..write('apiCallUuid: $apiCallUuid, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -7776,9 +7746,6 @@ class $AiDivinationsTable extends AiDivinations
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_ai_personas (uuid)',
-    ),
   );
   static const VerificationMeta _sessionUuidMeta = const VerificationMeta(
     'sessionUuid',
@@ -7790,9 +7757,6 @@ class $AiDivinationsTable extends AiDivinations
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_ai_chat_sessions (uuid)',
-    ),
   );
   static const VerificationMeta _interpretationMeta = const VerificationMeta(
     'interpretation',
@@ -7869,9 +7833,6 @@ class $AiDivinationsTable extends AiDivinations
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_ai_provenance (uuid)',
-    ),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -8621,9 +8582,6 @@ class $AgentInvocationsTable extends AgentInvocations
         false,
         type: DriftSqlType.string,
         requiredDuringInsert: true,
-        defaultConstraints: GeneratedColumn.constraintIsAlways(
-          'REFERENCES t_ai_personas (uuid)',
-        ),
       );
   static const VerificationMeta _calleePersonaUuidMeta = const VerificationMeta(
     'calleePersonaUuid',
@@ -8636,9 +8594,6 @@ class $AgentInvocationsTable extends AgentInvocations
         false,
         type: DriftSqlType.string,
         requiredDuringInsert: true,
-        defaultConstraints: GeneratedColumn.constraintIsAlways(
-          'REFERENCES t_ai_personas (uuid)',
-        ),
       );
   static const VerificationMeta _sessionUuidMeta = const VerificationMeta(
     'sessionUuid',
@@ -8650,9 +8605,6 @@ class $AgentInvocationsTable extends AgentInvocations
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES t_ai_chat_sessions (uuid)',
-    ),
   );
   static const VerificationMeta _invokedAtMeta = const VerificationMeta(
     'invokedAt',
@@ -11087,8 +11039,8 @@ abstract class _$AiDatabase extends GeneratedDatabase {
       $PromptSkillBindingsTable(this);
   late final $AiPersonasTable aiPersonas = $AiPersonasTable(this);
   late final $AiChatSessionsTable aiChatSessions = $AiChatSessionsTable(this);
-  late final $AiApiCallsTable aiApiCalls = $AiApiCallsTable(this);
   late final $AiChatMessagesTable aiChatMessages = $AiChatMessagesTable(this);
+  late final $AiApiCallsTable aiApiCalls = $AiApiCallsTable(this);
   late final $AiProvenancesTable aiProvenances = $AiProvenancesTable(this);
   late final $AiDivinationsTable aiDivinations = $AiDivinationsTable(this);
   late final $AgentInvocationsTable agentInvocations = $AgentInvocationsTable(
@@ -11141,8 +11093,8 @@ abstract class _$AiDatabase extends GeneratedDatabase {
     promptSkillBindings,
     aiPersonas,
     aiChatSessions,
-    aiApiCalls,
     aiChatMessages,
+    aiApiCalls,
     aiProvenances,
     aiDivinations,
     agentInvocations,
@@ -11179,31 +11131,6 @@ typedef $$LlmProvidersTableUpdateCompanionBuilder =
       Value<String?> configJson,
       Value<int> rowid,
     });
-
-final class $$LlmProvidersTableReferences
-    extends BaseReferences<_$AiDatabase, $LlmProvidersTable, LlmProvider> {
-  $$LlmProvidersTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static MultiTypedResultKey<$LlmModelsTable, List<LlmModel>>
-  _llmModelsRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.llmModels,
-    aliasName: $_aliasNameGenerator(
-      db.llmProviders.uuid,
-      db.llmModels.providerUuid,
-    ),
-  );
-
-  $$LlmModelsTableProcessedTableManager get llmModelsRefs {
-    final manager = $$LlmModelsTableTableManager($_db, $_db.llmModels).filter(
-      (f) => f.providerUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-    );
-
-    final cache = $_typedResult.readTableOrNull(_llmModelsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
 
 class $$LlmProvidersTableFilterComposer
     extends Composer<_$AiDatabase, $LlmProvidersTable> {
@@ -11263,31 +11190,6 @@ class $$LlmProvidersTableFilterComposer
     column: $table.configJson,
     builder: (column) => ColumnFilters(column),
   );
-
-  Expression<bool> llmModelsRefs(
-    Expression<bool> Function($$LlmModelsTableFilterComposer f) f,
-  ) {
-    final $$LlmModelsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.llmModels,
-      getReferencedColumn: (t) => t.providerUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LlmModelsTableFilterComposer(
-            $db: $db,
-            $table: $db.llmModels,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$LlmProvidersTableOrderingComposer
@@ -11394,31 +11296,6 @@ class $$LlmProvidersTableAnnotationComposer
     column: $table.configJson,
     builder: (column) => column,
   );
-
-  Expression<T> llmModelsRefs<T extends Object>(
-    Expression<T> Function($$LlmModelsTableAnnotationComposer a) f,
-  ) {
-    final $$LlmModelsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.llmModels,
-      getReferencedColumn: (t) => t.providerUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LlmModelsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.llmModels,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$LlmProvidersTableTableManager
@@ -11432,9 +11309,12 @@ class $$LlmProvidersTableTableManager
           $$LlmProvidersTableAnnotationComposer,
           $$LlmProvidersTableCreateCompanionBuilder,
           $$LlmProvidersTableUpdateCompanionBuilder,
-          (LlmProvider, $$LlmProvidersTableReferences),
+          (
+            LlmProvider,
+            BaseReferences<_$AiDatabase, $LlmProvidersTable, LlmProvider>,
+          ),
           LlmProvider,
-          PrefetchHooks Function({bool llmModelsRefs})
+          PrefetchHooks Function()
         > {
   $$LlmProvidersTableTableManager(_$AiDatabase db, $LlmProvidersTable table)
     : super(
@@ -11500,45 +11380,9 @@ class $$LlmProvidersTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$LlmProvidersTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({llmModelsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (llmModelsRefs) db.llmModels],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (llmModelsRefs)
-                    await $_getPrefetchedData<
-                      LlmProvider,
-                      $LlmProvidersTable,
-                      LlmModel
-                    >(
-                      currentTable: table,
-                      referencedTable: $$LlmProvidersTableReferences
-                          ._llmModelsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$LlmProvidersTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).llmModelsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where(
-                            (e) => e.providerUuid == item.uuid,
-                          ),
-                      typedResults: items,
-                    ),
-                ];
-              },
-            );
-          },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -11553,9 +11397,12 @@ typedef $$LlmProvidersTableProcessedTableManager =
       $$LlmProvidersTableAnnotationComposer,
       $$LlmProvidersTableCreateCompanionBuilder,
       $$LlmProvidersTableUpdateCompanionBuilder,
-      (LlmProvider, $$LlmProvidersTableReferences),
+      (
+        LlmProvider,
+        BaseReferences<_$AiDatabase, $LlmProvidersTable, LlmProvider>,
+      ),
       LlmProvider,
-      PrefetchHooks Function({bool llmModelsRefs})
+      PrefetchHooks Function()
     >;
 typedef $$LlmModelsTableCreateCompanionBuilder =
     LlmModelsCompanion Function({
@@ -11596,66 +11443,6 @@ typedef $$LlmModelsTableUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
-final class $$LlmModelsTableReferences
-    extends BaseReferences<_$AiDatabase, $LlmModelsTable, LlmModel> {
-  $$LlmModelsTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static $LlmProvidersTable _providerUuidTable(_$AiDatabase db) =>
-      db.llmProviders.createAlias(
-        $_aliasNameGenerator(db.llmModels.providerUuid, db.llmProviders.uuid),
-      );
-
-  $$LlmProvidersTableProcessedTableManager get providerUuid {
-    final $_column = $_itemColumn<String>('provider_uuid')!;
-
-    final manager = $$LlmProvidersTableTableManager(
-      $_db,
-      $_db.llmProviders,
-    ).filter((f) => f.uuid.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_providerUuidTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static MultiTypedResultKey<$AiPersonasTable, List<AiPersona>>
-  _aiPersonasRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.aiPersonas,
-    aliasName: $_aliasNameGenerator(db.llmModels.uuid, db.aiPersonas.modelUuid),
-  );
-
-  $$AiPersonasTableProcessedTableManager get aiPersonasRefs {
-    final manager = $$AiPersonasTableTableManager(
-      $_db,
-      $_db.aiPersonas,
-    ).filter((f) => f.modelUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
-
-    final cache = $_typedResult.readTableOrNull(_aiPersonasRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
-  static MultiTypedResultKey<$AiApiCallsTable, List<AiApiCall>>
-  _aiApiCallsRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.aiApiCalls,
-    aliasName: $_aliasNameGenerator(db.llmModels.uuid, db.aiApiCalls.modelUuid),
-  );
-
-  $$AiApiCallsTableProcessedTableManager get aiApiCallsRefs {
-    final manager = $$AiApiCallsTableTableManager(
-      $_db,
-      $_db.aiApiCalls,
-    ).filter((f) => f.modelUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!));
-
-    final cache = $_typedResult.readTableOrNull(_aiApiCallsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
-
 class $$LlmModelsTableFilterComposer
     extends Composer<_$AiDatabase, $LlmModelsTable> {
   $$LlmModelsTableFilterComposer({
@@ -11682,6 +11469,11 @@ class $$LlmModelsTableFilterComposer
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
     column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get providerUuid => $composableBuilder(
+    column: $table.providerUuid,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11734,79 +11526,6 @@ class $$LlmModelsTableFilterComposer
     column: $table.configJson,
     builder: (column) => ColumnFilters(column),
   );
-
-  $$LlmProvidersTableFilterComposer get providerUuid {
-    final $$LlmProvidersTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.providerUuid,
-      referencedTable: $db.llmProviders,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LlmProvidersTableFilterComposer(
-            $db: $db,
-            $table: $db.llmProviders,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  Expression<bool> aiPersonasRefs(
-    Expression<bool> Function($$AiPersonasTableFilterComposer f) f,
-  ) {
-    final $$AiPersonasTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.modelUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableFilterComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<bool> aiApiCallsRefs(
-    Expression<bool> Function($$AiApiCallsTableFilterComposer f) f,
-  ) {
-    final $$AiApiCallsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiApiCalls,
-      getReferencedColumn: (t) => t.modelUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiApiCallsTableFilterComposer(
-            $db: $db,
-            $table: $db.aiApiCalls,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$LlmModelsTableOrderingComposer
@@ -11835,6 +11554,11 @@ class $$LlmModelsTableOrderingComposer
 
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
     column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get providerUuid => $composableBuilder(
+    column: $table.providerUuid,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -11887,29 +11611,6 @@ class $$LlmModelsTableOrderingComposer
     column: $table.configJson,
     builder: (column) => ColumnOrderings(column),
   );
-
-  $$LlmProvidersTableOrderingComposer get providerUuid {
-    final $$LlmProvidersTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.providerUuid,
-      referencedTable: $db.llmProviders,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LlmProvidersTableOrderingComposer(
-            $db: $db,
-            $table: $db.llmProviders,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$LlmModelsTableAnnotationComposer
@@ -11934,6 +11635,11 @@ class $$LlmModelsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get providerUuid => $composableBuilder(
+    column: $table.providerUuid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get modelId =>
       $composableBuilder(column: $table.modelId, builder: (column) => column);
@@ -11976,79 +11682,6 @@ class $$LlmModelsTableAnnotationComposer
     column: $table.configJson,
     builder: (column) => column,
   );
-
-  $$LlmProvidersTableAnnotationComposer get providerUuid {
-    final $$LlmProvidersTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.providerUuid,
-      referencedTable: $db.llmProviders,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LlmProvidersTableAnnotationComposer(
-            $db: $db,
-            $table: $db.llmProviders,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  Expression<T> aiPersonasRefs<T extends Object>(
-    Expression<T> Function($$AiPersonasTableAnnotationComposer a) f,
-  ) {
-    final $$AiPersonasTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.modelUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<T> aiApiCallsRefs<T extends Object>(
-    Expression<T> Function($$AiApiCallsTableAnnotationComposer a) f,
-  ) {
-    final $$AiApiCallsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiApiCalls,
-      getReferencedColumn: (t) => t.modelUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiApiCallsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiApiCalls,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$LlmModelsTableTableManager
@@ -12062,13 +11695,9 @@ class $$LlmModelsTableTableManager
           $$LlmModelsTableAnnotationComposer,
           $$LlmModelsTableCreateCompanionBuilder,
           $$LlmModelsTableUpdateCompanionBuilder,
-          (LlmModel, $$LlmModelsTableReferences),
+          (LlmModel, BaseReferences<_$AiDatabase, $LlmModelsTable, LlmModel>),
           LlmModel,
-          PrefetchHooks Function({
-            bool providerUuid,
-            bool aiPersonasRefs,
-            bool aiApiCallsRefs,
-          })
+          PrefetchHooks Function()
         > {
   $$LlmModelsTableTableManager(_$AiDatabase db, $LlmModelsTable table)
     : super(
@@ -12154,105 +11783,9 @@ class $$LlmModelsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$LlmModelsTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback:
-              ({
-                providerUuid = false,
-                aiPersonasRefs = false,
-                aiApiCallsRefs = false,
-              }) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [
-                    if (aiPersonasRefs) db.aiPersonas,
-                    if (aiApiCallsRefs) db.aiApiCalls,
-                  ],
-                  addJoins:
-                      <
-                        T extends TableManagerState<
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic
-                        >
-                      >(state) {
-                        if (providerUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.providerUuid,
-                                    referencedTable: $$LlmModelsTableReferences
-                                        ._providerUuidTable(db),
-                                    referencedColumn: $$LlmModelsTableReferences
-                                        ._providerUuidTable(db)
-                                        .uuid,
-                                  )
-                                  as T;
-                        }
-
-                        return state;
-                      },
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (aiPersonasRefs)
-                        await $_getPrefetchedData<
-                          LlmModel,
-                          $LlmModelsTable,
-                          AiPersona
-                        >(
-                          currentTable: table,
-                          referencedTable: $$LlmModelsTableReferences
-                              ._aiPersonasRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$LlmModelsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).aiPersonasRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.modelUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (aiApiCallsRefs)
-                        await $_getPrefetchedData<
-                          LlmModel,
-                          $LlmModelsTable,
-                          AiApiCall
-                        >(
-                          currentTable: table,
-                          referencedTable: $$LlmModelsTableReferences
-                              ._aiApiCallsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$LlmModelsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).aiApiCallsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.modelUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
-              },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -12267,13 +11800,9 @@ typedef $$LlmModelsTableProcessedTableManager =
       $$LlmModelsTableAnnotationComposer,
       $$LlmModelsTableCreateCompanionBuilder,
       $$LlmModelsTableUpdateCompanionBuilder,
-      (LlmModel, $$LlmModelsTableReferences),
+      (LlmModel, BaseReferences<_$AiDatabase, $LlmModelsTable, LlmModel>),
       LlmModel,
-      PrefetchHooks Function({
-        bool providerUuid,
-        bool aiPersonasRefs,
-        bool aiApiCallsRefs,
-      })
+      PrefetchHooks Function()
     >;
 typedef $$PromptTemplatesTableCreateCompanionBuilder =
     PromptTemplatesCompanion Function({
@@ -12307,89 +11836,6 @@ typedef $$PromptTemplatesTableUpdateCompanionBuilder =
       Value<bool> isEnabled,
       Value<int> rowid,
     });
-
-final class $$PromptTemplatesTableReferences
-    extends
-        BaseReferences<_$AiDatabase, $PromptTemplatesTable, PromptTemplate> {
-  $$PromptTemplatesTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static MultiTypedResultKey<$PromptVersionsTable, List<PromptVersion>>
-  _promptVersionsRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.promptVersions,
-    aliasName: $_aliasNameGenerator(
-      db.promptTemplates.uuid,
-      db.promptVersions.templateUuid,
-    ),
-  );
-
-  $$PromptVersionsTableProcessedTableManager get promptVersionsRefs {
-    final manager = $$PromptVersionsTableTableManager($_db, $_db.promptVersions)
-        .filter(
-          (f) => f.templateUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
-
-    final cache = $_typedResult.readTableOrNull(_promptVersionsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
-  static MultiTypedResultKey<
-    $PromptSkillBindingsTable,
-    List<PromptSkillBinding>
-  >
-  _promptSkillBindingsRefsTable(_$AiDatabase db) =>
-      MultiTypedResultKey.fromTable(
-        db.promptSkillBindings,
-        aliasName: $_aliasNameGenerator(
-          db.promptTemplates.uuid,
-          db.promptSkillBindings.promptTemplateUuid,
-        ),
-      );
-
-  $$PromptSkillBindingsTableProcessedTableManager get promptSkillBindingsRefs {
-    final manager =
-        $$PromptSkillBindingsTableTableManager(
-          $_db,
-          $_db.promptSkillBindings,
-        ).filter(
-          (f) => f.promptTemplateUuid.uuid.sqlEquals(
-            $_itemColumn<String>('uuid')!,
-          ),
-        );
-
-    final cache = $_typedResult.readTableOrNull(
-      _promptSkillBindingsRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
-  static MultiTypedResultKey<$AiPersonasTable, List<AiPersona>>
-  _aiPersonasRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.aiPersonas,
-    aliasName: $_aliasNameGenerator(
-      db.promptTemplates.uuid,
-      db.aiPersonas.systemPromptUuid,
-    ),
-  );
-
-  $$AiPersonasTableProcessedTableManager get aiPersonasRefs {
-    final manager = $$AiPersonasTableTableManager($_db, $_db.aiPersonas).filter(
-      (f) => f.systemPromptUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-    );
-
-    final cache = $_typedResult.readTableOrNull(_aiPersonasRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
 
 class $$PromptTemplatesTableFilterComposer
     extends Composer<_$AiDatabase, $PromptTemplatesTable> {
@@ -12459,81 +11905,6 @@ class $$PromptTemplatesTableFilterComposer
     column: $table.isEnabled,
     builder: (column) => ColumnFilters(column),
   );
-
-  Expression<bool> promptVersionsRefs(
-    Expression<bool> Function($$PromptVersionsTableFilterComposer f) f,
-  ) {
-    final $$PromptVersionsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.promptVersions,
-      getReferencedColumn: (t) => t.templateUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptVersionsTableFilterComposer(
-            $db: $db,
-            $table: $db.promptVersions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<bool> promptSkillBindingsRefs(
-    Expression<bool> Function($$PromptSkillBindingsTableFilterComposer f) f,
-  ) {
-    final $$PromptSkillBindingsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.promptSkillBindings,
-      getReferencedColumn: (t) => t.promptTemplateUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptSkillBindingsTableFilterComposer(
-            $db: $db,
-            $table: $db.promptSkillBindings,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<bool> aiPersonasRefs(
-    Expression<bool> Function($$AiPersonasTableFilterComposer f) f,
-  ) {
-    final $$AiPersonasTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.systemPromptUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableFilterComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$PromptTemplatesTableOrderingComposer
@@ -12660,82 +12031,6 @@ class $$PromptTemplatesTableAnnotationComposer
 
   GeneratedColumn<bool> get isEnabled =>
       $composableBuilder(column: $table.isEnabled, builder: (column) => column);
-
-  Expression<T> promptVersionsRefs<T extends Object>(
-    Expression<T> Function($$PromptVersionsTableAnnotationComposer a) f,
-  ) {
-    final $$PromptVersionsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.promptVersions,
-      getReferencedColumn: (t) => t.templateUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptVersionsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.promptVersions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<T> promptSkillBindingsRefs<T extends Object>(
-    Expression<T> Function($$PromptSkillBindingsTableAnnotationComposer a) f,
-  ) {
-    final $$PromptSkillBindingsTableAnnotationComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.uuid,
-          referencedTable: $db.promptSkillBindings,
-          getReferencedColumn: (t) => t.promptTemplateUuid,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$PromptSkillBindingsTableAnnotationComposer(
-                $db: $db,
-                $table: $db.promptSkillBindings,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
-  }
-
-  Expression<T> aiPersonasRefs<T extends Object>(
-    Expression<T> Function($$AiPersonasTableAnnotationComposer a) f,
-  ) {
-    final $$AiPersonasTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.systemPromptUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$PromptTemplatesTableTableManager
@@ -12749,13 +12044,12 @@ class $$PromptTemplatesTableTableManager
           $$PromptTemplatesTableAnnotationComposer,
           $$PromptTemplatesTableCreateCompanionBuilder,
           $$PromptTemplatesTableUpdateCompanionBuilder,
-          (PromptTemplate, $$PromptTemplatesTableReferences),
+          (
+            PromptTemplate,
+            BaseReferences<_$AiDatabase, $PromptTemplatesTable, PromptTemplate>,
+          ),
           PromptTemplate,
-          PrefetchHooks Function({
-            bool promptVersionsRefs,
-            bool promptSkillBindingsRefs,
-            bool aiPersonasRefs,
-          })
+          PrefetchHooks Function()
         > {
   $$PromptTemplatesTableTableManager(
     _$AiDatabase db,
@@ -12831,96 +12125,9 @@ class $$PromptTemplatesTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$PromptTemplatesTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback:
-              ({
-                promptVersionsRefs = false,
-                promptSkillBindingsRefs = false,
-                aiPersonasRefs = false,
-              }) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [
-                    if (promptVersionsRefs) db.promptVersions,
-                    if (promptSkillBindingsRefs) db.promptSkillBindings,
-                    if (aiPersonasRefs) db.aiPersonas,
-                  ],
-                  addJoins: null,
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (promptVersionsRefs)
-                        await $_getPrefetchedData<
-                          PromptTemplate,
-                          $PromptTemplatesTable,
-                          PromptVersion
-                        >(
-                          currentTable: table,
-                          referencedTable: $$PromptTemplatesTableReferences
-                              ._promptVersionsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$PromptTemplatesTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).promptVersionsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.templateUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (promptSkillBindingsRefs)
-                        await $_getPrefetchedData<
-                          PromptTemplate,
-                          $PromptTemplatesTable,
-                          PromptSkillBinding
-                        >(
-                          currentTable: table,
-                          referencedTable: $$PromptTemplatesTableReferences
-                              ._promptSkillBindingsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$PromptTemplatesTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).promptSkillBindingsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.promptTemplateUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (aiPersonasRefs)
-                        await $_getPrefetchedData<
-                          PromptTemplate,
-                          $PromptTemplatesTable,
-                          AiPersona
-                        >(
-                          currentTable: table,
-                          referencedTable: $$PromptTemplatesTableReferences
-                              ._aiPersonasRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$PromptTemplatesTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).aiPersonasRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.systemPromptUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
-              },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -12935,13 +12142,12 @@ typedef $$PromptTemplatesTableProcessedTableManager =
       $$PromptTemplatesTableAnnotationComposer,
       $$PromptTemplatesTableCreateCompanionBuilder,
       $$PromptTemplatesTableUpdateCompanionBuilder,
-      (PromptTemplate, $$PromptTemplatesTableReferences),
+      (
+        PromptTemplate,
+        BaseReferences<_$AiDatabase, $PromptTemplatesTable, PromptTemplate>,
+      ),
       PromptTemplate,
-      PrefetchHooks Function({
-        bool promptVersionsRefs,
-        bool promptSkillBindingsRefs,
-        bool aiPersonasRefs,
-      })
+      PrefetchHooks Function()
     >;
 typedef $$PromptVersionsTableCreateCompanionBuilder =
     PromptVersionsCompanion Function({
@@ -12968,37 +12174,6 @@ typedef $$PromptVersionsTableUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
-final class $$PromptVersionsTableReferences
-    extends BaseReferences<_$AiDatabase, $PromptVersionsTable, PromptVersion> {
-  $$PromptVersionsTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static $PromptTemplatesTable _templateUuidTable(_$AiDatabase db) =>
-      db.promptTemplates.createAlias(
-        $_aliasNameGenerator(
-          db.promptVersions.templateUuid,
-          db.promptTemplates.uuid,
-        ),
-      );
-
-  $$PromptTemplatesTableProcessedTableManager get templateUuid {
-    final $_column = $_itemColumn<String>('template_uuid')!;
-
-    final manager = $$PromptTemplatesTableTableManager(
-      $_db,
-      $_db.promptTemplates,
-    ).filter((f) => f.uuid.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_templateUuidTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
-
 class $$PromptVersionsTableFilterComposer
     extends Composer<_$AiDatabase, $PromptVersionsTable> {
   $$PromptVersionsTableFilterComposer({
@@ -13010,6 +12185,11 @@ class $$PromptVersionsTableFilterComposer
   });
   ColumnFilters<String> get uuid => $composableBuilder(
     column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get templateUuid => $composableBuilder(
+    column: $table.templateUuid,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -13042,29 +12222,6 @@ class $$PromptVersionsTableFilterComposer
     column: $table.changeNote,
     builder: (column) => ColumnFilters(column),
   );
-
-  $$PromptTemplatesTableFilterComposer get templateUuid {
-    final $$PromptTemplatesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.templateUuid,
-      referencedTable: $db.promptTemplates,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptTemplatesTableFilterComposer(
-            $db: $db,
-            $table: $db.promptTemplates,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$PromptVersionsTableOrderingComposer
@@ -13078,6 +12235,11 @@ class $$PromptVersionsTableOrderingComposer
   });
   ColumnOrderings<String> get uuid => $composableBuilder(
     column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get templateUuid => $composableBuilder(
+    column: $table.templateUuid,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -13110,29 +12272,6 @@ class $$PromptVersionsTableOrderingComposer
     column: $table.changeNote,
     builder: (column) => ColumnOrderings(column),
   );
-
-  $$PromptTemplatesTableOrderingComposer get templateUuid {
-    final $$PromptTemplatesTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.templateUuid,
-      referencedTable: $db.promptTemplates,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptTemplatesTableOrderingComposer(
-            $db: $db,
-            $table: $db.promptTemplates,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$PromptVersionsTableAnnotationComposer
@@ -13146,6 +12285,11 @@ class $$PromptVersionsTableAnnotationComposer
   });
   GeneratedColumn<String> get uuid =>
       $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get templateUuid => $composableBuilder(
+    column: $table.templateUuid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get version =>
       $composableBuilder(column: $table.version, builder: (column) => column);
@@ -13170,29 +12314,6 @@ class $$PromptVersionsTableAnnotationComposer
     column: $table.changeNote,
     builder: (column) => column,
   );
-
-  $$PromptTemplatesTableAnnotationComposer get templateUuid {
-    final $$PromptTemplatesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.templateUuid,
-      referencedTable: $db.promptTemplates,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptTemplatesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.promptTemplates,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$PromptVersionsTableTableManager
@@ -13206,9 +12327,12 @@ class $$PromptVersionsTableTableManager
           $$PromptVersionsTableAnnotationComposer,
           $$PromptVersionsTableCreateCompanionBuilder,
           $$PromptVersionsTableUpdateCompanionBuilder,
-          (PromptVersion, $$PromptVersionsTableReferences),
+          (
+            PromptVersion,
+            BaseReferences<_$AiDatabase, $PromptVersionsTable, PromptVersion>,
+          ),
           PromptVersion,
-          PrefetchHooks Function({bool templateUuid})
+          PrefetchHooks Function()
         > {
   $$PromptVersionsTableTableManager(_$AiDatabase db, $PromptVersionsTable table)
     : super(
@@ -13266,55 +12390,9 @@ class $$PromptVersionsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$PromptVersionsTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({templateUuid = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (templateUuid) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.templateUuid,
-                                referencedTable: $$PromptVersionsTableReferences
-                                    ._templateUuidTable(db),
-                                referencedColumn:
-                                    $$PromptVersionsTableReferences
-                                        ._templateUuidTable(db)
-                                        .uuid,
-                              )
-                              as T;
-                    }
-
-                    return state;
-                  },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -13329,9 +12407,12 @@ typedef $$PromptVersionsTableProcessedTableManager =
       $$PromptVersionsTableAnnotationComposer,
       $$PromptVersionsTableCreateCompanionBuilder,
       $$PromptVersionsTableUpdateCompanionBuilder,
-      (PromptVersion, $$PromptVersionsTableReferences),
+      (
+        PromptVersion,
+        BaseReferences<_$AiDatabase, $PromptVersionsTable, PromptVersion>,
+      ),
       PromptVersion,
-      PrefetchHooks Function({bool templateUuid})
+      PrefetchHooks Function()
     >;
 typedef $$PromptSkillBindingsTableCreateCompanionBuilder =
     PromptSkillBindingsCompanion Function({
@@ -13357,42 +12438,6 @@ typedef $$PromptSkillBindingsTableUpdateCompanionBuilder =
       Value<int> priority,
       Value<bool> isEnabled,
     });
-
-final class $$PromptSkillBindingsTableReferences
-    extends
-        BaseReferences<
-          _$AiDatabase,
-          $PromptSkillBindingsTable,
-          PromptSkillBinding
-        > {
-  $$PromptSkillBindingsTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static $PromptTemplatesTable _promptTemplateUuidTable(_$AiDatabase db) =>
-      db.promptTemplates.createAlias(
-        $_aliasNameGenerator(
-          db.promptSkillBindings.promptTemplateUuid,
-          db.promptTemplates.uuid,
-        ),
-      );
-
-  $$PromptTemplatesTableProcessedTableManager get promptTemplateUuid {
-    final $_column = $_itemColumn<String>('prompt_template_uuid')!;
-
-    final manager = $$PromptTemplatesTableTableManager(
-      $_db,
-      $_db.promptTemplates,
-    ).filter((f) => f.uuid.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_promptTemplateUuidTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
 
 class $$PromptSkillBindingsTableFilterComposer
     extends Composer<_$AiDatabase, $PromptSkillBindingsTable> {
@@ -13423,6 +12468,11 @@ class $$PromptSkillBindingsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get promptTemplateUuid => $composableBuilder(
+    column: $table.promptTemplateUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<int> get skillId => $composableBuilder(
     column: $table.skillId,
     builder: (column) => ColumnFilters(column),
@@ -13442,29 +12492,6 @@ class $$PromptSkillBindingsTableFilterComposer
     column: $table.isEnabled,
     builder: (column) => ColumnFilters(column),
   );
-
-  $$PromptTemplatesTableFilterComposer get promptTemplateUuid {
-    final $$PromptTemplatesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.promptTemplateUuid,
-      referencedTable: $db.promptTemplates,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptTemplatesTableFilterComposer(
-            $db: $db,
-            $table: $db.promptTemplates,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$PromptSkillBindingsTableOrderingComposer
@@ -13496,6 +12523,11 @@ class $$PromptSkillBindingsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get promptTemplateUuid => $composableBuilder(
+    column: $table.promptTemplateUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get skillId => $composableBuilder(
     column: $table.skillId,
     builder: (column) => ColumnOrderings(column),
@@ -13515,29 +12547,6 @@ class $$PromptSkillBindingsTableOrderingComposer
     column: $table.isEnabled,
     builder: (column) => ColumnOrderings(column),
   );
-
-  $$PromptTemplatesTableOrderingComposer get promptTemplateUuid {
-    final $$PromptTemplatesTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.promptTemplateUuid,
-      referencedTable: $db.promptTemplates,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptTemplatesTableOrderingComposer(
-            $db: $db,
-            $table: $db.promptTemplates,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$PromptSkillBindingsTableAnnotationComposer
@@ -13563,6 +12572,11 @@ class $$PromptSkillBindingsTableAnnotationComposer
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 
+  GeneratedColumn<String> get promptTemplateUuid => $composableBuilder(
+    column: $table.promptTemplateUuid,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<int> get skillId =>
       $composableBuilder(column: $table.skillId, builder: (column) => column);
 
@@ -13576,29 +12590,6 @@ class $$PromptSkillBindingsTableAnnotationComposer
 
   GeneratedColumn<bool> get isEnabled =>
       $composableBuilder(column: $table.isEnabled, builder: (column) => column);
-
-  $$PromptTemplatesTableAnnotationComposer get promptTemplateUuid {
-    final $$PromptTemplatesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.promptTemplateUuid,
-      referencedTable: $db.promptTemplates,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptTemplatesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.promptTemplates,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$PromptSkillBindingsTableTableManager
@@ -13612,9 +12603,16 @@ class $$PromptSkillBindingsTableTableManager
           $$PromptSkillBindingsTableAnnotationComposer,
           $$PromptSkillBindingsTableCreateCompanionBuilder,
           $$PromptSkillBindingsTableUpdateCompanionBuilder,
-          (PromptSkillBinding, $$PromptSkillBindingsTableReferences),
+          (
+            PromptSkillBinding,
+            BaseReferences<
+              _$AiDatabase,
+              $PromptSkillBindingsTable,
+              PromptSkillBinding
+            >,
+          ),
           PromptSkillBinding,
-          PrefetchHooks Function({bool promptTemplateUuid})
+          PrefetchHooks Function()
         > {
   $$PromptSkillBindingsTableTableManager(
     _$AiDatabase db,
@@ -13680,56 +12678,9 @@ class $$PromptSkillBindingsTableTableManager
                 isEnabled: isEnabled,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$PromptSkillBindingsTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({promptTemplateUuid = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (promptTemplateUuid) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.promptTemplateUuid,
-                                referencedTable:
-                                    $$PromptSkillBindingsTableReferences
-                                        ._promptTemplateUuidTable(db),
-                                referencedColumn:
-                                    $$PromptSkillBindingsTableReferences
-                                        ._promptTemplateUuidTable(db)
-                                        .uuid,
-                              )
-                              as T;
-                    }
-
-                    return state;
-                  },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -13744,9 +12695,16 @@ typedef $$PromptSkillBindingsTableProcessedTableManager =
       $$PromptSkillBindingsTableAnnotationComposer,
       $$PromptSkillBindingsTableCreateCompanionBuilder,
       $$PromptSkillBindingsTableUpdateCompanionBuilder,
-      (PromptSkillBinding, $$PromptSkillBindingsTableReferences),
+      (
+        PromptSkillBinding,
+        BaseReferences<
+          _$AiDatabase,
+          $PromptSkillBindingsTable,
+          PromptSkillBinding
+        >,
+      ),
       PromptSkillBinding,
-      PrefetchHooks Function({bool promptTemplateUuid})
+      PrefetchHooks Function()
     >;
 typedef $$AiPersonasTableCreateCompanionBuilder =
     AiPersonasCompanion Function({
@@ -13788,138 +12746,6 @@ typedef $$AiPersonasTableUpdateCompanionBuilder =
       Value<bool> isEnabled,
       Value<int> rowid,
     });
-
-final class $$AiPersonasTableReferences
-    extends BaseReferences<_$AiDatabase, $AiPersonasTable, AiPersona> {
-  $$AiPersonasTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static $LlmModelsTable _modelUuidTable(_$AiDatabase db) =>
-      db.llmModels.createAlias(
-        $_aliasNameGenerator(db.aiPersonas.modelUuid, db.llmModels.uuid),
-      );
-
-  $$LlmModelsTableProcessedTableManager get modelUuid {
-    final $_column = $_itemColumn<String>('model_uuid')!;
-
-    final manager = $$LlmModelsTableTableManager(
-      $_db,
-      $_db.llmModels,
-    ).filter((f) => f.uuid.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_modelUuidTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static $PromptTemplatesTable _systemPromptUuidTable(_$AiDatabase db) =>
-      db.promptTemplates.createAlias(
-        $_aliasNameGenerator(
-          db.aiPersonas.systemPromptUuid,
-          db.promptTemplates.uuid,
-        ),
-      );
-
-  $$PromptTemplatesTableProcessedTableManager? get systemPromptUuid {
-    final $_column = $_itemColumn<String>('system_prompt_uuid');
-    if ($_column == null) return null;
-    final manager = $$PromptTemplatesTableTableManager(
-      $_db,
-      $_db.promptTemplates,
-    ).filter((f) => f.uuid.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_systemPromptUuidTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static MultiTypedResultKey<$AiChatSessionsTable, List<AiChatSession>>
-  _aiChatSessionsRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.aiChatSessions,
-    aliasName: $_aliasNameGenerator(
-      db.aiPersonas.uuid,
-      db.aiChatSessions.personaUuid,
-    ),
-  );
-
-  $$AiChatSessionsTableProcessedTableManager get aiChatSessionsRefs {
-    final manager = $$AiChatSessionsTableTableManager($_db, $_db.aiChatSessions)
-        .filter(
-          (f) => f.personaUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
-
-    final cache = $_typedResult.readTableOrNull(_aiChatSessionsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
-  static MultiTypedResultKey<$AiDivinationsTable, List<AiDivination>>
-  _aiDivinationsRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.aiDivinations,
-    aliasName: $_aliasNameGenerator(
-      db.aiPersonas.uuid,
-      db.aiDivinations.personaUuid,
-    ),
-  );
-
-  $$AiDivinationsTableProcessedTableManager get aiDivinationsRefs {
-    final manager = $$AiDivinationsTableTableManager($_db, $_db.aiDivinations)
-        .filter(
-          (f) => f.personaUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
-
-    final cache = $_typedResult.readTableOrNull(_aiDivinationsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
-  static MultiTypedResultKey<$AgentInvocationsTable, List<AgentInvocation>>
-  _callerInvocationsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.agentInvocations,
-    aliasName: $_aliasNameGenerator(
-      db.aiPersonas.uuid,
-      db.agentInvocations.callerPersonaUuid,
-    ),
-  );
-
-  $$AgentInvocationsTableProcessedTableManager get callerInvocations {
-    final manager =
-        $$AgentInvocationsTableTableManager($_db, $_db.agentInvocations).filter(
-          (f) =>
-              f.callerPersonaUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
-
-    final cache = $_typedResult.readTableOrNull(_callerInvocationsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
-  static MultiTypedResultKey<$AgentInvocationsTable, List<AgentInvocation>>
-  _calleeInvocationsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.agentInvocations,
-    aliasName: $_aliasNameGenerator(
-      db.aiPersonas.uuid,
-      db.agentInvocations.calleePersonaUuid,
-    ),
-  );
-
-  $$AgentInvocationsTableProcessedTableManager get calleeInvocations {
-    final manager =
-        $$AgentInvocationsTableTableManager($_db, $_db.agentInvocations).filter(
-          (f) =>
-              f.calleePersonaUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
-
-    final cache = $_typedResult.readTableOrNull(_calleeInvocationsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
 
 class $$AiPersonasTableFilterComposer
     extends Composer<_$AiDatabase, $AiPersonasTable> {
@@ -13965,6 +12791,16 @@ class $$AiPersonasTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get modelUuid => $composableBuilder(
+    column: $table.modelUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get systemPromptUuid => $composableBuilder(
+    column: $table.systemPromptUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<double> get temperature => $composableBuilder(
     column: $table.temperature,
     builder: (column) => ColumnFilters(column),
@@ -13999,152 +12835,6 @@ class $$AiPersonasTableFilterComposer
     column: $table.isEnabled,
     builder: (column) => ColumnFilters(column),
   );
-
-  $$LlmModelsTableFilterComposer get modelUuid {
-    final $$LlmModelsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.modelUuid,
-      referencedTable: $db.llmModels,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LlmModelsTableFilterComposer(
-            $db: $db,
-            $table: $db.llmModels,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$PromptTemplatesTableFilterComposer get systemPromptUuid {
-    final $$PromptTemplatesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.systemPromptUuid,
-      referencedTable: $db.promptTemplates,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptTemplatesTableFilterComposer(
-            $db: $db,
-            $table: $db.promptTemplates,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  Expression<bool> aiChatSessionsRefs(
-    Expression<bool> Function($$AiChatSessionsTableFilterComposer f) f,
-  ) {
-    final $$AiChatSessionsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.personaUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableFilterComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<bool> aiDivinationsRefs(
-    Expression<bool> Function($$AiDivinationsTableFilterComposer f) f,
-  ) {
-    final $$AiDivinationsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiDivinations,
-      getReferencedColumn: (t) => t.personaUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiDivinationsTableFilterComposer(
-            $db: $db,
-            $table: $db.aiDivinations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<bool> callerInvocations(
-    Expression<bool> Function($$AgentInvocationsTableFilterComposer f) f,
-  ) {
-    final $$AgentInvocationsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.agentInvocations,
-      getReferencedColumn: (t) => t.callerPersonaUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AgentInvocationsTableFilterComposer(
-            $db: $db,
-            $table: $db.agentInvocations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<bool> calleeInvocations(
-    Expression<bool> Function($$AgentInvocationsTableFilterComposer f) f,
-  ) {
-    final $$AgentInvocationsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.agentInvocations,
-      getReferencedColumn: (t) => t.calleePersonaUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AgentInvocationsTableFilterComposer(
-            $db: $db,
-            $table: $db.agentInvocations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$AiPersonasTableOrderingComposer
@@ -14191,6 +12881,16 @@ class $$AiPersonasTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get modelUuid => $composableBuilder(
+    column: $table.modelUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get systemPromptUuid => $composableBuilder(
+    column: $table.systemPromptUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<double> get temperature => $composableBuilder(
     column: $table.temperature,
     builder: (column) => ColumnOrderings(column),
@@ -14225,52 +12925,6 @@ class $$AiPersonasTableOrderingComposer
     column: $table.isEnabled,
     builder: (column) => ColumnOrderings(column),
   );
-
-  $$LlmModelsTableOrderingComposer get modelUuid {
-    final $$LlmModelsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.modelUuid,
-      referencedTable: $db.llmModels,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LlmModelsTableOrderingComposer(
-            $db: $db,
-            $table: $db.llmModels,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$PromptTemplatesTableOrderingComposer get systemPromptUuid {
-    final $$PromptTemplatesTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.systemPromptUuid,
-      referencedTable: $db.promptTemplates,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptTemplatesTableOrderingComposer(
-            $db: $db,
-            $table: $db.promptTemplates,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$AiPersonasTableAnnotationComposer
@@ -14307,6 +12961,14 @@ class $$AiPersonasTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get modelUuid =>
+      $composableBuilder(column: $table.modelUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get systemPromptUuid => $composableBuilder(
+    column: $table.systemPromptUuid,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<double> get temperature => $composableBuilder(
     column: $table.temperature,
     builder: (column) => column,
@@ -14333,152 +12995,6 @@ class $$AiPersonasTableAnnotationComposer
 
   GeneratedColumn<bool> get isEnabled =>
       $composableBuilder(column: $table.isEnabled, builder: (column) => column);
-
-  $$LlmModelsTableAnnotationComposer get modelUuid {
-    final $$LlmModelsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.modelUuid,
-      referencedTable: $db.llmModels,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LlmModelsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.llmModels,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$PromptTemplatesTableAnnotationComposer get systemPromptUuid {
-    final $$PromptTemplatesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.systemPromptUuid,
-      referencedTable: $db.promptTemplates,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptTemplatesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.promptTemplates,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  Expression<T> aiChatSessionsRefs<T extends Object>(
-    Expression<T> Function($$AiChatSessionsTableAnnotationComposer a) f,
-  ) {
-    final $$AiChatSessionsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.personaUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<T> aiDivinationsRefs<T extends Object>(
-    Expression<T> Function($$AiDivinationsTableAnnotationComposer a) f,
-  ) {
-    final $$AiDivinationsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiDivinations,
-      getReferencedColumn: (t) => t.personaUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiDivinationsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiDivinations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<T> callerInvocations<T extends Object>(
-    Expression<T> Function($$AgentInvocationsTableAnnotationComposer a) f,
-  ) {
-    final $$AgentInvocationsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.agentInvocations,
-      getReferencedColumn: (t) => t.callerPersonaUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AgentInvocationsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.agentInvocations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<T> calleeInvocations<T extends Object>(
-    Expression<T> Function($$AgentInvocationsTableAnnotationComposer a) f,
-  ) {
-    final $$AgentInvocationsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.agentInvocations,
-      getReferencedColumn: (t) => t.calleePersonaUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AgentInvocationsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.agentInvocations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$AiPersonasTableTableManager
@@ -14492,16 +13008,12 @@ class $$AiPersonasTableTableManager
           $$AiPersonasTableAnnotationComposer,
           $$AiPersonasTableCreateCompanionBuilder,
           $$AiPersonasTableUpdateCompanionBuilder,
-          (AiPersona, $$AiPersonasTableReferences),
+          (
+            AiPersona,
+            BaseReferences<_$AiDatabase, $AiPersonasTable, AiPersona>,
+          ),
           AiPersona,
-          PrefetchHooks Function({
-            bool modelUuid,
-            bool systemPromptUuid,
-            bool aiChatSessionsRefs,
-            bool aiDivinationsRefs,
-            bool callerInvocations,
-            bool calleeInvocations,
-          })
+          PrefetchHooks Function()
         > {
   $$AiPersonasTableTableManager(_$AiDatabase db, $AiPersonasTable table)
     : super(
@@ -14591,167 +13103,9 @@ class $$AiPersonasTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$AiPersonasTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback:
-              ({
-                modelUuid = false,
-                systemPromptUuid = false,
-                aiChatSessionsRefs = false,
-                aiDivinationsRefs = false,
-                callerInvocations = false,
-                calleeInvocations = false,
-              }) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [
-                    if (aiChatSessionsRefs) db.aiChatSessions,
-                    if (aiDivinationsRefs) db.aiDivinations,
-                    if (callerInvocations) db.agentInvocations,
-                    if (calleeInvocations) db.agentInvocations,
-                  ],
-                  addJoins:
-                      <
-                        T extends TableManagerState<
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic
-                        >
-                      >(state) {
-                        if (modelUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.modelUuid,
-                                    referencedTable: $$AiPersonasTableReferences
-                                        ._modelUuidTable(db),
-                                    referencedColumn:
-                                        $$AiPersonasTableReferences
-                                            ._modelUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
-                        if (systemPromptUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.systemPromptUuid,
-                                    referencedTable: $$AiPersonasTableReferences
-                                        ._systemPromptUuidTable(db),
-                                    referencedColumn:
-                                        $$AiPersonasTableReferences
-                                            ._systemPromptUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
-
-                        return state;
-                      },
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (aiChatSessionsRefs)
-                        await $_getPrefetchedData<
-                          AiPersona,
-                          $AiPersonasTable,
-                          AiChatSession
-                        >(
-                          currentTable: table,
-                          referencedTable: $$AiPersonasTableReferences
-                              ._aiChatSessionsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$AiPersonasTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).aiChatSessionsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.personaUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (aiDivinationsRefs)
-                        await $_getPrefetchedData<
-                          AiPersona,
-                          $AiPersonasTable,
-                          AiDivination
-                        >(
-                          currentTable: table,
-                          referencedTable: $$AiPersonasTableReferences
-                              ._aiDivinationsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$AiPersonasTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).aiDivinationsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.personaUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (callerInvocations)
-                        await $_getPrefetchedData<
-                          AiPersona,
-                          $AiPersonasTable,
-                          AgentInvocation
-                        >(
-                          currentTable: table,
-                          referencedTable: $$AiPersonasTableReferences
-                              ._callerInvocationsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$AiPersonasTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).callerInvocations,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.callerPersonaUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (calleeInvocations)
-                        await $_getPrefetchedData<
-                          AiPersona,
-                          $AiPersonasTable,
-                          AgentInvocation
-                        >(
-                          currentTable: table,
-                          referencedTable: $$AiPersonasTableReferences
-                              ._calleeInvocationsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$AiPersonasTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).calleeInvocations,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.calleePersonaUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
-              },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -14766,16 +13120,9 @@ typedef $$AiPersonasTableProcessedTableManager =
       $$AiPersonasTableAnnotationComposer,
       $$AiPersonasTableCreateCompanionBuilder,
       $$AiPersonasTableUpdateCompanionBuilder,
-      (AiPersona, $$AiPersonasTableReferences),
+      (AiPersona, BaseReferences<_$AiDatabase, $AiPersonasTable, AiPersona>),
       AiPersona,
-      PrefetchHooks Function({
-        bool modelUuid,
-        bool systemPromptUuid,
-        bool aiChatSessionsRefs,
-        bool aiDivinationsRefs,
-        bool callerInvocations,
-        bool calleeInvocations,
-      })
+      PrefetchHooks Function()
     >;
 typedef $$AiChatSessionsTableCreateCompanionBuilder =
     AiChatSessionsCompanion Function({
@@ -14807,119 +13154,6 @@ typedef $$AiChatSessionsTableUpdateCompanionBuilder =
       Value<DateTime?> lastMessageAt,
       Value<int> rowid,
     });
-
-final class $$AiChatSessionsTableReferences
-    extends BaseReferences<_$AiDatabase, $AiChatSessionsTable, AiChatSession> {
-  $$AiChatSessionsTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static $AiPersonasTable _personaUuidTable(_$AiDatabase db) =>
-      db.aiPersonas.createAlias(
-        $_aliasNameGenerator(db.aiChatSessions.personaUuid, db.aiPersonas.uuid),
-      );
-
-  $$AiPersonasTableProcessedTableManager get personaUuid {
-    final $_column = $_itemColumn<String>('persona_uuid')!;
-
-    final manager = $$AiPersonasTableTableManager(
-      $_db,
-      $_db.aiPersonas,
-    ).filter((f) => f.uuid.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_personaUuidTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static MultiTypedResultKey<$AiApiCallsTable, List<AiApiCall>>
-  _aiApiCallsRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.aiApiCalls,
-    aliasName: $_aliasNameGenerator(
-      db.aiChatSessions.uuid,
-      db.aiApiCalls.sessionUuid,
-    ),
-  );
-
-  $$AiApiCallsTableProcessedTableManager get aiApiCallsRefs {
-    final manager = $$AiApiCallsTableTableManager($_db, $_db.aiApiCalls).filter(
-      (f) => f.sessionUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-    );
-
-    final cache = $_typedResult.readTableOrNull(_aiApiCallsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
-  static MultiTypedResultKey<$AiChatMessagesTable, List<AiChatMessage>>
-  _aiChatMessagesRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.aiChatMessages,
-    aliasName: $_aliasNameGenerator(
-      db.aiChatSessions.uuid,
-      db.aiChatMessages.sessionUuid,
-    ),
-  );
-
-  $$AiChatMessagesTableProcessedTableManager get aiChatMessagesRefs {
-    final manager = $$AiChatMessagesTableTableManager($_db, $_db.aiChatMessages)
-        .filter(
-          (f) => f.sessionUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
-
-    final cache = $_typedResult.readTableOrNull(_aiChatMessagesRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
-  static MultiTypedResultKey<$AiDivinationsTable, List<AiDivination>>
-  _aiDivinationsRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.aiDivinations,
-    aliasName: $_aliasNameGenerator(
-      db.aiChatSessions.uuid,
-      db.aiDivinations.sessionUuid,
-    ),
-  );
-
-  $$AiDivinationsTableProcessedTableManager get aiDivinationsRefs {
-    final manager = $$AiDivinationsTableTableManager($_db, $_db.aiDivinations)
-        .filter(
-          (f) => f.sessionUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
-
-    final cache = $_typedResult.readTableOrNull(_aiDivinationsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
-  static MultiTypedResultKey<$AgentInvocationsTable, List<AgentInvocation>>
-  _agentInvocationsRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.agentInvocations,
-    aliasName: $_aliasNameGenerator(
-      db.aiChatSessions.uuid,
-      db.agentInvocations.sessionUuid,
-    ),
-  );
-
-  $$AgentInvocationsTableProcessedTableManager get agentInvocationsRefs {
-    final manager =
-        $$AgentInvocationsTableTableManager($_db, $_db.agentInvocations).filter(
-          (f) => f.sessionUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
-
-    final cache = $_typedResult.readTableOrNull(
-      _agentInvocationsRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
 
 class $$AiChatSessionsTableFilterComposer
     extends Composer<_$AiDatabase, $AiChatSessionsTable> {
@@ -14955,6 +13189,11 @@ class $$AiChatSessionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get personaUuid => $composableBuilder(
+    column: $table.personaUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get divinationUuid => $composableBuilder(
     column: $table.divinationUuid,
     builder: (column) => ColumnFilters(column),
@@ -14979,129 +13218,6 @@ class $$AiChatSessionsTableFilterComposer
     column: $table.lastMessageAt,
     builder: (column) => ColumnFilters(column),
   );
-
-  $$AiPersonasTableFilterComposer get personaUuid {
-    final $$AiPersonasTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.personaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableFilterComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  Expression<bool> aiApiCallsRefs(
-    Expression<bool> Function($$AiApiCallsTableFilterComposer f) f,
-  ) {
-    final $$AiApiCallsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiApiCalls,
-      getReferencedColumn: (t) => t.sessionUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiApiCallsTableFilterComposer(
-            $db: $db,
-            $table: $db.aiApiCalls,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<bool> aiChatMessagesRefs(
-    Expression<bool> Function($$AiChatMessagesTableFilterComposer f) f,
-  ) {
-    final $$AiChatMessagesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiChatMessages,
-      getReferencedColumn: (t) => t.sessionUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatMessagesTableFilterComposer(
-            $db: $db,
-            $table: $db.aiChatMessages,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<bool> aiDivinationsRefs(
-    Expression<bool> Function($$AiDivinationsTableFilterComposer f) f,
-  ) {
-    final $$AiDivinationsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiDivinations,
-      getReferencedColumn: (t) => t.sessionUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiDivinationsTableFilterComposer(
-            $db: $db,
-            $table: $db.aiDivinations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<bool> agentInvocationsRefs(
-    Expression<bool> Function($$AgentInvocationsTableFilterComposer f) f,
-  ) {
-    final $$AgentInvocationsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.agentInvocations,
-      getReferencedColumn: (t) => t.sessionUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AgentInvocationsTableFilterComposer(
-            $db: $db,
-            $table: $db.agentInvocations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$AiChatSessionsTableOrderingComposer
@@ -15138,6 +13254,11 @@ class $$AiChatSessionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get personaUuid => $composableBuilder(
+    column: $table.personaUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get divinationUuid => $composableBuilder(
     column: $table.divinationUuid,
     builder: (column) => ColumnOrderings(column),
@@ -15162,29 +13283,6 @@ class $$AiChatSessionsTableOrderingComposer
     column: $table.lastMessageAt,
     builder: (column) => ColumnOrderings(column),
   );
-
-  $$AiPersonasTableOrderingComposer get personaUuid {
-    final $$AiPersonasTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.personaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableOrderingComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$AiChatSessionsTableAnnotationComposer
@@ -15213,6 +13311,11 @@ class $$AiChatSessionsTableAnnotationComposer
   GeneratedColumn<String> get title =>
       $composableBuilder(column: $table.title, builder: (column) => column);
 
+  GeneratedColumn<String> get personaUuid => $composableBuilder(
+    column: $table.personaUuid,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get divinationUuid => $composableBuilder(
     column: $table.divinationUuid,
     builder: (column) => column,
@@ -15235,129 +13338,6 @@ class $$AiChatSessionsTableAnnotationComposer
     column: $table.lastMessageAt,
     builder: (column) => column,
   );
-
-  $$AiPersonasTableAnnotationComposer get personaUuid {
-    final $$AiPersonasTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.personaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  Expression<T> aiApiCallsRefs<T extends Object>(
-    Expression<T> Function($$AiApiCallsTableAnnotationComposer a) f,
-  ) {
-    final $$AiApiCallsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiApiCalls,
-      getReferencedColumn: (t) => t.sessionUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiApiCallsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiApiCalls,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<T> aiChatMessagesRefs<T extends Object>(
-    Expression<T> Function($$AiChatMessagesTableAnnotationComposer a) f,
-  ) {
-    final $$AiChatMessagesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiChatMessages,
-      getReferencedColumn: (t) => t.sessionUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatMessagesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiChatMessages,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<T> aiDivinationsRefs<T extends Object>(
-    Expression<T> Function($$AiDivinationsTableAnnotationComposer a) f,
-  ) {
-    final $$AiDivinationsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiDivinations,
-      getReferencedColumn: (t) => t.sessionUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiDivinationsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiDivinations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<T> agentInvocationsRefs<T extends Object>(
-    Expression<T> Function($$AgentInvocationsTableAnnotationComposer a) f,
-  ) {
-    final $$AgentInvocationsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.agentInvocations,
-      getReferencedColumn: (t) => t.sessionUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AgentInvocationsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.agentInvocations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$AiChatSessionsTableTableManager
@@ -15371,15 +13351,12 @@ class $$AiChatSessionsTableTableManager
           $$AiChatSessionsTableAnnotationComposer,
           $$AiChatSessionsTableCreateCompanionBuilder,
           $$AiChatSessionsTableUpdateCompanionBuilder,
-          (AiChatSession, $$AiChatSessionsTableReferences),
+          (
+            AiChatSession,
+            BaseReferences<_$AiDatabase, $AiChatSessionsTable, AiChatSession>,
+          ),
           AiChatSession,
-          PrefetchHooks Function({
-            bool personaUuid,
-            bool aiApiCallsRefs,
-            bool aiChatMessagesRefs,
-            bool aiDivinationsRefs,
-            bool agentInvocationsRefs,
-          })
+          PrefetchHooks Function()
         > {
   $$AiChatSessionsTableTableManager(_$AiDatabase db, $AiChatSessionsTable table)
     : super(
@@ -15449,153 +13426,9 @@ class $$AiChatSessionsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$AiChatSessionsTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback:
-              ({
-                personaUuid = false,
-                aiApiCallsRefs = false,
-                aiChatMessagesRefs = false,
-                aiDivinationsRefs = false,
-                agentInvocationsRefs = false,
-              }) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [
-                    if (aiApiCallsRefs) db.aiApiCalls,
-                    if (aiChatMessagesRefs) db.aiChatMessages,
-                    if (aiDivinationsRefs) db.aiDivinations,
-                    if (agentInvocationsRefs) db.agentInvocations,
-                  ],
-                  addJoins:
-                      <
-                        T extends TableManagerState<
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic
-                        >
-                      >(state) {
-                        if (personaUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.personaUuid,
-                                    referencedTable:
-                                        $$AiChatSessionsTableReferences
-                                            ._personaUuidTable(db),
-                                    referencedColumn:
-                                        $$AiChatSessionsTableReferences
-                                            ._personaUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
-
-                        return state;
-                      },
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (aiApiCallsRefs)
-                        await $_getPrefetchedData<
-                          AiChatSession,
-                          $AiChatSessionsTable,
-                          AiApiCall
-                        >(
-                          currentTable: table,
-                          referencedTable: $$AiChatSessionsTableReferences
-                              ._aiApiCallsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$AiChatSessionsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).aiApiCallsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.sessionUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (aiChatMessagesRefs)
-                        await $_getPrefetchedData<
-                          AiChatSession,
-                          $AiChatSessionsTable,
-                          AiChatMessage
-                        >(
-                          currentTable: table,
-                          referencedTable: $$AiChatSessionsTableReferences
-                              ._aiChatMessagesRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$AiChatSessionsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).aiChatMessagesRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.sessionUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (aiDivinationsRefs)
-                        await $_getPrefetchedData<
-                          AiChatSession,
-                          $AiChatSessionsTable,
-                          AiDivination
-                        >(
-                          currentTable: table,
-                          referencedTable: $$AiChatSessionsTableReferences
-                              ._aiDivinationsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$AiChatSessionsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).aiDivinationsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.sessionUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (agentInvocationsRefs)
-                        await $_getPrefetchedData<
-                          AiChatSession,
-                          $AiChatSessionsTable,
-                          AgentInvocation
-                        >(
-                          currentTable: table,
-                          referencedTable: $$AiChatSessionsTableReferences
-                              ._agentInvocationsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$AiChatSessionsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).agentInvocationsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.sessionUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
-              },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -15610,15 +13443,357 @@ typedef $$AiChatSessionsTableProcessedTableManager =
       $$AiChatSessionsTableAnnotationComposer,
       $$AiChatSessionsTableCreateCompanionBuilder,
       $$AiChatSessionsTableUpdateCompanionBuilder,
-      (AiChatSession, $$AiChatSessionsTableReferences),
+      (
+        AiChatSession,
+        BaseReferences<_$AiDatabase, $AiChatSessionsTable, AiChatSession>,
+      ),
       AiChatSession,
-      PrefetchHooks Function({
-        bool personaUuid,
-        bool aiApiCallsRefs,
-        bool aiChatMessagesRefs,
-        bool aiDivinationsRefs,
-        bool agentInvocationsRefs,
-      })
+      PrefetchHooks Function()
+    >;
+typedef $$AiChatMessagesTableCreateCompanionBuilder =
+    AiChatMessagesCompanion Function({
+      required String uuid,
+      required String sessionUuid,
+      required String role,
+      required String content,
+      required int sequence,
+      required DateTime createdAt,
+      Value<bool> isStreaming,
+      Value<DateTime?> streamCompletedAt,
+      Value<String?> toolCallId,
+      Value<String?> toolCallsJson,
+      Value<String?> usageJson,
+      Value<String?> apiCallUuid,
+      Value<int> rowid,
+    });
+typedef $$AiChatMessagesTableUpdateCompanionBuilder =
+    AiChatMessagesCompanion Function({
+      Value<String> uuid,
+      Value<String> sessionUuid,
+      Value<String> role,
+      Value<String> content,
+      Value<int> sequence,
+      Value<DateTime> createdAt,
+      Value<bool> isStreaming,
+      Value<DateTime?> streamCompletedAt,
+      Value<String?> toolCallId,
+      Value<String?> toolCallsJson,
+      Value<String?> usageJson,
+      Value<String?> apiCallUuid,
+      Value<int> rowid,
+    });
+
+class $$AiChatMessagesTableFilterComposer
+    extends Composer<_$AiDatabase, $AiChatMessagesTable> {
+  $$AiChatMessagesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sessionUuid => $composableBuilder(
+    column: $table.sessionUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get role => $composableBuilder(
+    column: $table.role,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get content => $composableBuilder(
+    column: $table.content,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sequence => $composableBuilder(
+    column: $table.sequence,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isStreaming => $composableBuilder(
+    column: $table.isStreaming,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get streamCompletedAt => $composableBuilder(
+    column: $table.streamCompletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get toolCallId => $composableBuilder(
+    column: $table.toolCallId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get toolCallsJson => $composableBuilder(
+    column: $table.toolCallsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get usageJson => $composableBuilder(
+    column: $table.usageJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get apiCallUuid => $composableBuilder(
+    column: $table.apiCallUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AiChatMessagesTableOrderingComposer
+    extends Composer<_$AiDatabase, $AiChatMessagesTable> {
+  $$AiChatMessagesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sessionUuid => $composableBuilder(
+    column: $table.sessionUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get role => $composableBuilder(
+    column: $table.role,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get content => $composableBuilder(
+    column: $table.content,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sequence => $composableBuilder(
+    column: $table.sequence,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isStreaming => $composableBuilder(
+    column: $table.isStreaming,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get streamCompletedAt => $composableBuilder(
+    column: $table.streamCompletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get toolCallId => $composableBuilder(
+    column: $table.toolCallId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get toolCallsJson => $composableBuilder(
+    column: $table.toolCallsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get usageJson => $composableBuilder(
+    column: $table.usageJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get apiCallUuid => $composableBuilder(
+    column: $table.apiCallUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AiChatMessagesTableAnnotationComposer
+    extends Composer<_$AiDatabase, $AiChatMessagesTable> {
+  $$AiChatMessagesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get sessionUuid => $composableBuilder(
+    column: $table.sessionUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get role =>
+      $composableBuilder(column: $table.role, builder: (column) => column);
+
+  GeneratedColumn<String> get content =>
+      $composableBuilder(column: $table.content, builder: (column) => column);
+
+  GeneratedColumn<int> get sequence =>
+      $composableBuilder(column: $table.sequence, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isStreaming => $composableBuilder(
+    column: $table.isStreaming,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get streamCompletedAt => $composableBuilder(
+    column: $table.streamCompletedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get toolCallId => $composableBuilder(
+    column: $table.toolCallId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get toolCallsJson => $composableBuilder(
+    column: $table.toolCallsJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get usageJson =>
+      $composableBuilder(column: $table.usageJson, builder: (column) => column);
+
+  GeneratedColumn<String> get apiCallUuid => $composableBuilder(
+    column: $table.apiCallUuid,
+    builder: (column) => column,
+  );
+}
+
+class $$AiChatMessagesTableTableManager
+    extends
+        RootTableManager<
+          _$AiDatabase,
+          $AiChatMessagesTable,
+          AiChatMessage,
+          $$AiChatMessagesTableFilterComposer,
+          $$AiChatMessagesTableOrderingComposer,
+          $$AiChatMessagesTableAnnotationComposer,
+          $$AiChatMessagesTableCreateCompanionBuilder,
+          $$AiChatMessagesTableUpdateCompanionBuilder,
+          (
+            AiChatMessage,
+            BaseReferences<_$AiDatabase, $AiChatMessagesTable, AiChatMessage>,
+          ),
+          AiChatMessage,
+          PrefetchHooks Function()
+        > {
+  $$AiChatMessagesTableTableManager(_$AiDatabase db, $AiChatMessagesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AiChatMessagesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AiChatMessagesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AiChatMessagesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> sessionUuid = const Value.absent(),
+                Value<String> role = const Value.absent(),
+                Value<String> content = const Value.absent(),
+                Value<int> sequence = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<bool> isStreaming = const Value.absent(),
+                Value<DateTime?> streamCompletedAt = const Value.absent(),
+                Value<String?> toolCallId = const Value.absent(),
+                Value<String?> toolCallsJson = const Value.absent(),
+                Value<String?> usageJson = const Value.absent(),
+                Value<String?> apiCallUuid = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AiChatMessagesCompanion(
+                uuid: uuid,
+                sessionUuid: sessionUuid,
+                role: role,
+                content: content,
+                sequence: sequence,
+                createdAt: createdAt,
+                isStreaming: isStreaming,
+                streamCompletedAt: streamCompletedAt,
+                toolCallId: toolCallId,
+                toolCallsJson: toolCallsJson,
+                usageJson: usageJson,
+                apiCallUuid: apiCallUuid,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String sessionUuid,
+                required String role,
+                required String content,
+                required int sequence,
+                required DateTime createdAt,
+                Value<bool> isStreaming = const Value.absent(),
+                Value<DateTime?> streamCompletedAt = const Value.absent(),
+                Value<String?> toolCallId = const Value.absent(),
+                Value<String?> toolCallsJson = const Value.absent(),
+                Value<String?> usageJson = const Value.absent(),
+                Value<String?> apiCallUuid = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AiChatMessagesCompanion.insert(
+                uuid: uuid,
+                sessionUuid: sessionUuid,
+                role: role,
+                content: content,
+                sequence: sequence,
+                createdAt: createdAt,
+                isStreaming: isStreaming,
+                streamCompletedAt: streamCompletedAt,
+                toolCallId: toolCallId,
+                toolCallsJson: toolCallsJson,
+                usageJson: usageJson,
+                apiCallUuid: apiCallUuid,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AiChatMessagesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AiDatabase,
+      $AiChatMessagesTable,
+      AiChatMessage,
+      $$AiChatMessagesTableFilterComposer,
+      $$AiChatMessagesTableOrderingComposer,
+      $$AiChatMessagesTableAnnotationComposer,
+      $$AiChatMessagesTableCreateCompanionBuilder,
+      $$AiChatMessagesTableUpdateCompanionBuilder,
+      (
+        AiChatMessage,
+        BaseReferences<_$AiDatabase, $AiChatMessagesTable, AiChatMessage>,
+      ),
+      AiChatMessage,
+      PrefetchHooks Function()
     >;
 typedef $$AiApiCallsTableCreateCompanionBuilder =
     AiApiCallsCompanion Function({
@@ -15657,70 +13832,6 @@ typedef $$AiApiCallsTableUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
-final class $$AiApiCallsTableReferences
-    extends BaseReferences<_$AiDatabase, $AiApiCallsTable, AiApiCall> {
-  $$AiApiCallsTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static $AiChatSessionsTable _sessionUuidTable(_$AiDatabase db) =>
-      db.aiChatSessions.createAlias(
-        $_aliasNameGenerator(db.aiApiCalls.sessionUuid, db.aiChatSessions.uuid),
-      );
-
-  $$AiChatSessionsTableProcessedTableManager? get sessionUuid {
-    final $_column = $_itemColumn<String>('session_uuid');
-    if ($_column == null) return null;
-    final manager = $$AiChatSessionsTableTableManager(
-      $_db,
-      $_db.aiChatSessions,
-    ).filter((f) => f.uuid.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_sessionUuidTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static $LlmModelsTable _modelUuidTable(_$AiDatabase db) =>
-      db.llmModels.createAlias(
-        $_aliasNameGenerator(db.aiApiCalls.modelUuid, db.llmModels.uuid),
-      );
-
-  $$LlmModelsTableProcessedTableManager get modelUuid {
-    final $_column = $_itemColumn<String>('model_uuid')!;
-
-    final manager = $$LlmModelsTableTableManager(
-      $_db,
-      $_db.llmModels,
-    ).filter((f) => f.uuid.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_modelUuidTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static MultiTypedResultKey<$AiChatMessagesTable, List<AiChatMessage>>
-  _aiChatMessagesRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.aiChatMessages,
-    aliasName: $_aliasNameGenerator(
-      db.aiApiCalls.uuid,
-      db.aiChatMessages.apiCallUuid,
-    ),
-  );
-
-  $$AiChatMessagesTableProcessedTableManager get aiChatMessagesRefs {
-    final manager = $$AiChatMessagesTableTableManager($_db, $_db.aiChatMessages)
-        .filter(
-          (f) => f.apiCallUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
-
-    final cache = $_typedResult.readTableOrNull(_aiChatMessagesRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
-
 class $$AiApiCallsTableFilterComposer
     extends Composer<_$AiDatabase, $AiApiCallsTable> {
   $$AiApiCallsTableFilterComposer({
@@ -15732,6 +13843,16 @@ class $$AiApiCallsTableFilterComposer
   });
   ColumnFilters<String> get uuid => $composableBuilder(
     column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sessionUuid => $composableBuilder(
+    column: $table.sessionUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get modelUuid => $composableBuilder(
+    column: $table.modelUuid,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -15789,77 +13910,6 @@ class $$AiApiCallsTableFilterComposer
     column: $table.isStreaming,
     builder: (column) => ColumnFilters(column),
   );
-
-  $$AiChatSessionsTableFilterComposer get sessionUuid {
-    final $$AiChatSessionsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableFilterComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$LlmModelsTableFilterComposer get modelUuid {
-    final $$LlmModelsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.modelUuid,
-      referencedTable: $db.llmModels,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LlmModelsTableFilterComposer(
-            $db: $db,
-            $table: $db.llmModels,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  Expression<bool> aiChatMessagesRefs(
-    Expression<bool> Function($$AiChatMessagesTableFilterComposer f) f,
-  ) {
-    final $$AiChatMessagesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiChatMessages,
-      getReferencedColumn: (t) => t.apiCallUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatMessagesTableFilterComposer(
-            $db: $db,
-            $table: $db.aiChatMessages,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$AiApiCallsTableOrderingComposer
@@ -15873,6 +13923,16 @@ class $$AiApiCallsTableOrderingComposer
   });
   ColumnOrderings<String> get uuid => $composableBuilder(
     column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sessionUuid => $composableBuilder(
+    column: $table.sessionUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get modelUuid => $composableBuilder(
+    column: $table.modelUuid,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -15930,52 +13990,6 @@ class $$AiApiCallsTableOrderingComposer
     column: $table.isStreaming,
     builder: (column) => ColumnOrderings(column),
   );
-
-  $$AiChatSessionsTableOrderingComposer get sessionUuid {
-    final $$AiChatSessionsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableOrderingComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$LlmModelsTableOrderingComposer get modelUuid {
-    final $$LlmModelsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.modelUuid,
-      referencedTable: $db.llmModels,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LlmModelsTableOrderingComposer(
-            $db: $db,
-            $table: $db.llmModels,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$AiApiCallsTableAnnotationComposer
@@ -15989,6 +14003,14 @@ class $$AiApiCallsTableAnnotationComposer
   });
   GeneratedColumn<String> get uuid =>
       $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get sessionUuid => $composableBuilder(
+    column: $table.sessionUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get modelUuid =>
+      $composableBuilder(column: $table.modelUuid, builder: (column) => column);
 
   GeneratedColumn<DateTime> get requestedAt => $composableBuilder(
     column: $table.requestedAt,
@@ -16040,77 +14062,6 @@ class $$AiApiCallsTableAnnotationComposer
     column: $table.isStreaming,
     builder: (column) => column,
   );
-
-  $$AiChatSessionsTableAnnotationComposer get sessionUuid {
-    final $$AiChatSessionsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$LlmModelsTableAnnotationComposer get modelUuid {
-    final $$LlmModelsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.modelUuid,
-      referencedTable: $db.llmModels,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$LlmModelsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.llmModels,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  Expression<T> aiChatMessagesRefs<T extends Object>(
-    Expression<T> Function($$AiChatMessagesTableAnnotationComposer a) f,
-  ) {
-    final $$AiChatMessagesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiChatMessages,
-      getReferencedColumn: (t) => t.apiCallUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatMessagesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiChatMessages,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$AiApiCallsTableTableManager
@@ -16124,13 +14075,12 @@ class $$AiApiCallsTableTableManager
           $$AiApiCallsTableAnnotationComposer,
           $$AiApiCallsTableCreateCompanionBuilder,
           $$AiApiCallsTableUpdateCompanionBuilder,
-          (AiApiCall, $$AiApiCallsTableReferences),
+          (
+            AiApiCall,
+            BaseReferences<_$AiDatabase, $AiApiCallsTable, AiApiCall>,
+          ),
           AiApiCall,
-          PrefetchHooks Function({
-            bool sessionUuid,
-            bool modelUuid,
-            bool aiChatMessagesRefs,
-          })
+          PrefetchHooks Function()
         > {
   $$AiApiCallsTableTableManager(_$AiDatabase db, $AiApiCallsTable table)
     : super(
@@ -16212,98 +14162,9 @@ class $$AiApiCallsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$AiApiCallsTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback:
-              ({
-                sessionUuid = false,
-                modelUuid = false,
-                aiChatMessagesRefs = false,
-              }) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [
-                    if (aiChatMessagesRefs) db.aiChatMessages,
-                  ],
-                  addJoins:
-                      <
-                        T extends TableManagerState<
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic
-                        >
-                      >(state) {
-                        if (sessionUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.sessionUuid,
-                                    referencedTable: $$AiApiCallsTableReferences
-                                        ._sessionUuidTable(db),
-                                    referencedColumn:
-                                        $$AiApiCallsTableReferences
-                                            ._sessionUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
-                        if (modelUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.modelUuid,
-                                    referencedTable: $$AiApiCallsTableReferences
-                                        ._modelUuidTable(db),
-                                    referencedColumn:
-                                        $$AiApiCallsTableReferences
-                                            ._modelUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
-
-                        return state;
-                      },
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (aiChatMessagesRefs)
-                        await $_getPrefetchedData<
-                          AiApiCall,
-                          $AiApiCallsTable,
-                          AiChatMessage
-                        >(
-                          currentTable: table,
-                          referencedTable: $$AiApiCallsTableReferences
-                              ._aiChatMessagesRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$AiApiCallsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).aiChatMessagesRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.apiCallUuid == item.uuid,
-                              ),
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
-              },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -16318,570 +14179,9 @@ typedef $$AiApiCallsTableProcessedTableManager =
       $$AiApiCallsTableAnnotationComposer,
       $$AiApiCallsTableCreateCompanionBuilder,
       $$AiApiCallsTableUpdateCompanionBuilder,
-      (AiApiCall, $$AiApiCallsTableReferences),
+      (AiApiCall, BaseReferences<_$AiDatabase, $AiApiCallsTable, AiApiCall>),
       AiApiCall,
-      PrefetchHooks Function({
-        bool sessionUuid,
-        bool modelUuid,
-        bool aiChatMessagesRefs,
-      })
-    >;
-typedef $$AiChatMessagesTableCreateCompanionBuilder =
-    AiChatMessagesCompanion Function({
-      required String uuid,
-      required String sessionUuid,
-      required String role,
-      required String content,
-      required int sequence,
-      required DateTime createdAt,
-      Value<bool> isStreaming,
-      Value<DateTime?> streamCompletedAt,
-      Value<String?> toolCallId,
-      Value<String?> toolCallsJson,
-      Value<String?> usageJson,
-      Value<String?> apiCallUuid,
-      Value<int> rowid,
-    });
-typedef $$AiChatMessagesTableUpdateCompanionBuilder =
-    AiChatMessagesCompanion Function({
-      Value<String> uuid,
-      Value<String> sessionUuid,
-      Value<String> role,
-      Value<String> content,
-      Value<int> sequence,
-      Value<DateTime> createdAt,
-      Value<bool> isStreaming,
-      Value<DateTime?> streamCompletedAt,
-      Value<String?> toolCallId,
-      Value<String?> toolCallsJson,
-      Value<String?> usageJson,
-      Value<String?> apiCallUuid,
-      Value<int> rowid,
-    });
-
-final class $$AiChatMessagesTableReferences
-    extends BaseReferences<_$AiDatabase, $AiChatMessagesTable, AiChatMessage> {
-  $$AiChatMessagesTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static $AiChatSessionsTable _sessionUuidTable(_$AiDatabase db) =>
-      db.aiChatSessions.createAlias(
-        $_aliasNameGenerator(
-          db.aiChatMessages.sessionUuid,
-          db.aiChatSessions.uuid,
-        ),
-      );
-
-  $$AiChatSessionsTableProcessedTableManager get sessionUuid {
-    final $_column = $_itemColumn<String>('session_uuid')!;
-
-    final manager = $$AiChatSessionsTableTableManager(
-      $_db,
-      $_db.aiChatSessions,
-    ).filter((f) => f.uuid.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_sessionUuidTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static $AiApiCallsTable _apiCallUuidTable(_$AiDatabase db) =>
-      db.aiApiCalls.createAlias(
-        $_aliasNameGenerator(db.aiChatMessages.apiCallUuid, db.aiApiCalls.uuid),
-      );
-
-  $$AiApiCallsTableProcessedTableManager? get apiCallUuid {
-    final $_column = $_itemColumn<String>('api_call_uuid');
-    if ($_column == null) return null;
-    final manager = $$AiApiCallsTableTableManager(
-      $_db,
-      $_db.aiApiCalls,
-    ).filter((f) => f.uuid.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_apiCallUuidTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
-
-class $$AiChatMessagesTableFilterComposer
-    extends Composer<_$AiDatabase, $AiChatMessagesTable> {
-  $$AiChatMessagesTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get role => $composableBuilder(
-    column: $table.role,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get content => $composableBuilder(
-    column: $table.content,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get sequence => $composableBuilder(
-    column: $table.sequence,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<bool> get isStreaming => $composableBuilder(
-    column: $table.isStreaming,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get streamCompletedAt => $composableBuilder(
-    column: $table.streamCompletedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get toolCallId => $composableBuilder(
-    column: $table.toolCallId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get toolCallsJson => $composableBuilder(
-    column: $table.toolCallsJson,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get usageJson => $composableBuilder(
-    column: $table.usageJson,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  $$AiChatSessionsTableFilterComposer get sessionUuid {
-    final $$AiChatSessionsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableFilterComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$AiApiCallsTableFilterComposer get apiCallUuid {
-    final $$AiApiCallsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.apiCallUuid,
-      referencedTable: $db.aiApiCalls,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiApiCallsTableFilterComposer(
-            $db: $db,
-            $table: $db.aiApiCalls,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$AiChatMessagesTableOrderingComposer
-    extends Composer<_$AiDatabase, $AiChatMessagesTable> {
-  $$AiChatMessagesTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get uuid => $composableBuilder(
-    column: $table.uuid,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get role => $composableBuilder(
-    column: $table.role,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get content => $composableBuilder(
-    column: $table.content,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get sequence => $composableBuilder(
-    column: $table.sequence,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<bool> get isStreaming => $composableBuilder(
-    column: $table.isStreaming,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get streamCompletedAt => $composableBuilder(
-    column: $table.streamCompletedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get toolCallId => $composableBuilder(
-    column: $table.toolCallId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get toolCallsJson => $composableBuilder(
-    column: $table.toolCallsJson,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get usageJson => $composableBuilder(
-    column: $table.usageJson,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  $$AiChatSessionsTableOrderingComposer get sessionUuid {
-    final $$AiChatSessionsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableOrderingComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$AiApiCallsTableOrderingComposer get apiCallUuid {
-    final $$AiApiCallsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.apiCallUuid,
-      referencedTable: $db.aiApiCalls,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiApiCallsTableOrderingComposer(
-            $db: $db,
-            $table: $db.aiApiCalls,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$AiChatMessagesTableAnnotationComposer
-    extends Composer<_$AiDatabase, $AiChatMessagesTable> {
-  $$AiChatMessagesTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get uuid =>
-      $composableBuilder(column: $table.uuid, builder: (column) => column);
-
-  GeneratedColumn<String> get role =>
-      $composableBuilder(column: $table.role, builder: (column) => column);
-
-  GeneratedColumn<String> get content =>
-      $composableBuilder(column: $table.content, builder: (column) => column);
-
-  GeneratedColumn<int> get sequence =>
-      $composableBuilder(column: $table.sequence, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  GeneratedColumn<bool> get isStreaming => $composableBuilder(
-    column: $table.isStreaming,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get streamCompletedAt => $composableBuilder(
-    column: $table.streamCompletedAt,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get toolCallId => $composableBuilder(
-    column: $table.toolCallId,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get toolCallsJson => $composableBuilder(
-    column: $table.toolCallsJson,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get usageJson =>
-      $composableBuilder(column: $table.usageJson, builder: (column) => column);
-
-  $$AiChatSessionsTableAnnotationComposer get sessionUuid {
-    final $$AiChatSessionsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$AiApiCallsTableAnnotationComposer get apiCallUuid {
-    final $$AiApiCallsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.apiCallUuid,
-      referencedTable: $db.aiApiCalls,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiApiCallsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiApiCalls,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$AiChatMessagesTableTableManager
-    extends
-        RootTableManager<
-          _$AiDatabase,
-          $AiChatMessagesTable,
-          AiChatMessage,
-          $$AiChatMessagesTableFilterComposer,
-          $$AiChatMessagesTableOrderingComposer,
-          $$AiChatMessagesTableAnnotationComposer,
-          $$AiChatMessagesTableCreateCompanionBuilder,
-          $$AiChatMessagesTableUpdateCompanionBuilder,
-          (AiChatMessage, $$AiChatMessagesTableReferences),
-          AiChatMessage,
-          PrefetchHooks Function({bool sessionUuid, bool apiCallUuid})
-        > {
-  $$AiChatMessagesTableTableManager(_$AiDatabase db, $AiChatMessagesTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$AiChatMessagesTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$AiChatMessagesTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$AiChatMessagesTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> uuid = const Value.absent(),
-                Value<String> sessionUuid = const Value.absent(),
-                Value<String> role = const Value.absent(),
-                Value<String> content = const Value.absent(),
-                Value<int> sequence = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<bool> isStreaming = const Value.absent(),
-                Value<DateTime?> streamCompletedAt = const Value.absent(),
-                Value<String?> toolCallId = const Value.absent(),
-                Value<String?> toolCallsJson = const Value.absent(),
-                Value<String?> usageJson = const Value.absent(),
-                Value<String?> apiCallUuid = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => AiChatMessagesCompanion(
-                uuid: uuid,
-                sessionUuid: sessionUuid,
-                role: role,
-                content: content,
-                sequence: sequence,
-                createdAt: createdAt,
-                isStreaming: isStreaming,
-                streamCompletedAt: streamCompletedAt,
-                toolCallId: toolCallId,
-                toolCallsJson: toolCallsJson,
-                usageJson: usageJson,
-                apiCallUuid: apiCallUuid,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String uuid,
-                required String sessionUuid,
-                required String role,
-                required String content,
-                required int sequence,
-                required DateTime createdAt,
-                Value<bool> isStreaming = const Value.absent(),
-                Value<DateTime?> streamCompletedAt = const Value.absent(),
-                Value<String?> toolCallId = const Value.absent(),
-                Value<String?> toolCallsJson = const Value.absent(),
-                Value<String?> usageJson = const Value.absent(),
-                Value<String?> apiCallUuid = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => AiChatMessagesCompanion.insert(
-                uuid: uuid,
-                sessionUuid: sessionUuid,
-                role: role,
-                content: content,
-                sequence: sequence,
-                createdAt: createdAt,
-                isStreaming: isStreaming,
-                streamCompletedAt: streamCompletedAt,
-                toolCallId: toolCallId,
-                toolCallsJson: toolCallsJson,
-                usageJson: usageJson,
-                apiCallUuid: apiCallUuid,
-                rowid: rowid,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$AiChatMessagesTableReferences(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: ({sessionUuid = false, apiCallUuid = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (sessionUuid) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.sessionUuid,
-                                referencedTable: $$AiChatMessagesTableReferences
-                                    ._sessionUuidTable(db),
-                                referencedColumn:
-                                    $$AiChatMessagesTableReferences
-                                        ._sessionUuidTable(db)
-                                        .uuid,
-                              )
-                              as T;
-                    }
-                    if (apiCallUuid) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.apiCallUuid,
-                                referencedTable: $$AiChatMessagesTableReferences
-                                    ._apiCallUuidTable(db),
-                                referencedColumn:
-                                    $$AiChatMessagesTableReferences
-                                        ._apiCallUuidTable(db)
-                                        .uuid,
-                              )
-                              as T;
-                    }
-
-                    return state;
-                  },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
-        ),
-      );
-}
-
-typedef $$AiChatMessagesTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AiDatabase,
-      $AiChatMessagesTable,
-      AiChatMessage,
-      $$AiChatMessagesTableFilterComposer,
-      $$AiChatMessagesTableOrderingComposer,
-      $$AiChatMessagesTableAnnotationComposer,
-      $$AiChatMessagesTableCreateCompanionBuilder,
-      $$AiChatMessagesTableUpdateCompanionBuilder,
-      (AiChatMessage, $$AiChatMessagesTableReferences),
-      AiChatMessage,
-      PrefetchHooks Function({bool sessionUuid, bool apiCallUuid})
+      PrefetchHooks Function()
     >;
 typedef $$AiProvenancesTableCreateCompanionBuilder =
     AiProvenancesCompanion Function({
@@ -16915,36 +14215,6 @@ typedef $$AiProvenancesTableUpdateCompanionBuilder =
       Value<String> integrityHash,
       Value<int> rowid,
     });
-
-final class $$AiProvenancesTableReferences
-    extends BaseReferences<_$AiDatabase, $AiProvenancesTable, AiProvenance> {
-  $$AiProvenancesTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static MultiTypedResultKey<$AiDivinationsTable, List<AiDivination>>
-  _aiDivinationsRefsTable(_$AiDatabase db) => MultiTypedResultKey.fromTable(
-    db.aiDivinations,
-    aliasName: $_aliasNameGenerator(
-      db.aiProvenances.uuid,
-      db.aiDivinations.provenanceUuid,
-    ),
-  );
-
-  $$AiDivinationsTableProcessedTableManager get aiDivinationsRefs {
-    final manager = $$AiDivinationsTableTableManager($_db, $_db.aiDivinations)
-        .filter(
-          (f) => f.provenanceUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
-        );
-
-    final cache = $_typedResult.readTableOrNull(_aiDivinationsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
 
 class $$AiProvenancesTableFilterComposer
     extends Composer<_$AiDatabase, $AiProvenancesTable> {
@@ -17014,31 +14284,6 @@ class $$AiProvenancesTableFilterComposer
     column: $table.integrityHash,
     builder: (column) => ColumnFilters(column),
   );
-
-  Expression<bool> aiDivinationsRefs(
-    Expression<bool> Function($$AiDivinationsTableFilterComposer f) f,
-  ) {
-    final $$AiDivinationsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiDivinations,
-      getReferencedColumn: (t) => t.provenanceUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiDivinationsTableFilterComposer(
-            $db: $db,
-            $table: $db.aiDivinations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$AiProvenancesTableOrderingComposer
@@ -17173,31 +14418,6 @@ class $$AiProvenancesTableAnnotationComposer
     column: $table.integrityHash,
     builder: (column) => column,
   );
-
-  Expression<T> aiDivinationsRefs<T extends Object>(
-    Expression<T> Function($$AiDivinationsTableAnnotationComposer a) f,
-  ) {
-    final $$AiDivinationsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.uuid,
-      referencedTable: $db.aiDivinations,
-      getReferencedColumn: (t) => t.provenanceUuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiDivinationsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiDivinations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$AiProvenancesTableTableManager
@@ -17211,9 +14431,12 @@ class $$AiProvenancesTableTableManager
           $$AiProvenancesTableAnnotationComposer,
           $$AiProvenancesTableCreateCompanionBuilder,
           $$AiProvenancesTableUpdateCompanionBuilder,
-          (AiProvenance, $$AiProvenancesTableReferences),
+          (
+            AiProvenance,
+            BaseReferences<_$AiDatabase, $AiProvenancesTable, AiProvenance>,
+          ),
           AiProvenance,
-          PrefetchHooks Function({bool aiDivinationsRefs})
+          PrefetchHooks Function()
         > {
   $$AiProvenancesTableTableManager(_$AiDatabase db, $AiProvenancesTable table)
     : super(
@@ -17287,47 +14510,9 @@ class $$AiProvenancesTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$AiProvenancesTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({aiDivinationsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (aiDivinationsRefs) db.aiDivinations,
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (aiDivinationsRefs)
-                    await $_getPrefetchedData<
-                      AiProvenance,
-                      $AiProvenancesTable,
-                      AiDivination
-                    >(
-                      currentTable: table,
-                      referencedTable: $$AiProvenancesTableReferences
-                          ._aiDivinationsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$AiProvenancesTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).aiDivinationsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where(
-                            (e) => e.provenanceUuid == item.uuid,
-                          ),
-                      typedResults: items,
-                    ),
-                ];
-              },
-            );
-          },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -17342,9 +14527,12 @@ typedef $$AiProvenancesTableProcessedTableManager =
       $$AiProvenancesTableAnnotationComposer,
       $$AiProvenancesTableCreateCompanionBuilder,
       $$AiProvenancesTableUpdateCompanionBuilder,
-      (AiProvenance, $$AiProvenancesTableReferences),
+      (
+        AiProvenance,
+        BaseReferences<_$AiDatabase, $AiProvenancesTable, AiProvenance>,
+      ),
       AiProvenance,
-      PrefetchHooks Function({bool aiDivinationsRefs})
+      PrefetchHooks Function()
     >;
 typedef $$AiDivinationsTableCreateCompanionBuilder =
     AiDivinationsCompanion Function({
@@ -17383,78 +14571,6 @@ typedef $$AiDivinationsTableUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
-final class $$AiDivinationsTableReferences
-    extends BaseReferences<_$AiDatabase, $AiDivinationsTable, AiDivination> {
-  $$AiDivinationsTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static $AiPersonasTable _personaUuidTable(_$AiDatabase db) =>
-      db.aiPersonas.createAlias(
-        $_aliasNameGenerator(db.aiDivinations.personaUuid, db.aiPersonas.uuid),
-      );
-
-  $$AiPersonasTableProcessedTableManager get personaUuid {
-    final $_column = $_itemColumn<String>('persona_uuid')!;
-
-    final manager = $$AiPersonasTableTableManager(
-      $_db,
-      $_db.aiPersonas,
-    ).filter((f) => f.uuid.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_personaUuidTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static $AiChatSessionsTable _sessionUuidTable(_$AiDatabase db) =>
-      db.aiChatSessions.createAlias(
-        $_aliasNameGenerator(
-          db.aiDivinations.sessionUuid,
-          db.aiChatSessions.uuid,
-        ),
-      );
-
-  $$AiChatSessionsTableProcessedTableManager? get sessionUuid {
-    final $_column = $_itemColumn<String>('session_uuid');
-    if ($_column == null) return null;
-    final manager = $$AiChatSessionsTableTableManager(
-      $_db,
-      $_db.aiChatSessions,
-    ).filter((f) => f.uuid.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_sessionUuidTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static $AiProvenancesTable _provenanceUuidTable(_$AiDatabase db) =>
-      db.aiProvenances.createAlias(
-        $_aliasNameGenerator(
-          db.aiDivinations.provenanceUuid,
-          db.aiProvenances.uuid,
-        ),
-      );
-
-  $$AiProvenancesTableProcessedTableManager? get provenanceUuid {
-    final $_column = $_itemColumn<String>('provenance_uuid');
-    if ($_column == null) return null;
-    final manager = $$AiProvenancesTableTableManager(
-      $_db,
-      $_db.aiProvenances,
-    ).filter((f) => f.uuid.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_provenanceUuidTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
-
 class $$AiDivinationsTableFilterComposer
     extends Composer<_$AiDatabase, $AiDivinationsTable> {
   $$AiDivinationsTableFilterComposer({
@@ -17489,6 +14605,16 @@ class $$AiDivinationsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get personaUuid => $composableBuilder(
+    column: $table.personaUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sessionUuid => $composableBuilder(
+    column: $table.sessionUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get interpretation => $composableBuilder(
     column: $table.interpretation,
     builder: (column) => ColumnFilters(column),
@@ -17519,74 +14645,10 @@ class $$AiDivinationsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  $$AiPersonasTableFilterComposer get personaUuid {
-    final $$AiPersonasTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.personaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableFilterComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$AiChatSessionsTableFilterComposer get sessionUuid {
-    final $$AiChatSessionsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableFilterComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$AiProvenancesTableFilterComposer get provenanceUuid {
-    final $$AiProvenancesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.provenanceUuid,
-      referencedTable: $db.aiProvenances,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiProvenancesTableFilterComposer(
-            $db: $db,
-            $table: $db.aiProvenances,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
+  ColumnFilters<String> get provenanceUuid => $composableBuilder(
+    column: $table.provenanceUuid,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$AiDivinationsTableOrderingComposer
@@ -17623,6 +14685,16 @@ class $$AiDivinationsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get personaUuid => $composableBuilder(
+    column: $table.personaUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sessionUuid => $composableBuilder(
+    column: $table.sessionUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get interpretation => $composableBuilder(
     column: $table.interpretation,
     builder: (column) => ColumnOrderings(column),
@@ -17653,74 +14725,10 @@ class $$AiDivinationsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  $$AiPersonasTableOrderingComposer get personaUuid {
-    final $$AiPersonasTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.personaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableOrderingComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$AiChatSessionsTableOrderingComposer get sessionUuid {
-    final $$AiChatSessionsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableOrderingComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$AiProvenancesTableOrderingComposer get provenanceUuid {
-    final $$AiProvenancesTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.provenanceUuid,
-      referencedTable: $db.aiProvenances,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiProvenancesTableOrderingComposer(
-            $db: $db,
-            $table: $db.aiProvenances,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
+  ColumnOrderings<String> get provenanceUuid => $composableBuilder(
+    column: $table.provenanceUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$AiDivinationsTableAnnotationComposer
@@ -17748,6 +14756,16 @@ class $$AiDivinationsTableAnnotationComposer
 
   GeneratedColumn<String> get divinationUuid => $composableBuilder(
     column: $table.divinationUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get personaUuid => $composableBuilder(
+    column: $table.personaUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sessionUuid => $composableBuilder(
+    column: $table.sessionUuid,
     builder: (column) => column,
   );
 
@@ -17779,74 +14797,10 @@ class $$AiDivinationsTableAnnotationComposer
     builder: (column) => column,
   );
 
-  $$AiPersonasTableAnnotationComposer get personaUuid {
-    final $$AiPersonasTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.personaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$AiChatSessionsTableAnnotationComposer get sessionUuid {
-    final $$AiChatSessionsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$AiProvenancesTableAnnotationComposer get provenanceUuid {
-    final $$AiProvenancesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.provenanceUuid,
-      referencedTable: $db.aiProvenances,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiProvenancesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiProvenances,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
+  GeneratedColumn<String> get provenanceUuid => $composableBuilder(
+    column: $table.provenanceUuid,
+    builder: (column) => column,
+  );
 }
 
 class $$AiDivinationsTableTableManager
@@ -17860,13 +14814,12 @@ class $$AiDivinationsTableTableManager
           $$AiDivinationsTableAnnotationComposer,
           $$AiDivinationsTableCreateCompanionBuilder,
           $$AiDivinationsTableUpdateCompanionBuilder,
-          (AiDivination, $$AiDivinationsTableReferences),
+          (
+            AiDivination,
+            BaseReferences<_$AiDatabase, $AiDivinationsTable, AiDivination>,
+          ),
           AiDivination,
-          PrefetchHooks Function({
-            bool personaUuid,
-            bool sessionUuid,
-            bool provenanceUuid,
-          })
+          PrefetchHooks Function()
         > {
   $$AiDivinationsTableTableManager(_$AiDatabase db, $AiDivinationsTable table)
     : super(
@@ -17948,91 +14901,9 @@ class $$AiDivinationsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$AiDivinationsTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback:
-              ({
-                personaUuid = false,
-                sessionUuid = false,
-                provenanceUuid = false,
-              }) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [],
-                  addJoins:
-                      <
-                        T extends TableManagerState<
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic
-                        >
-                      >(state) {
-                        if (personaUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.personaUuid,
-                                    referencedTable:
-                                        $$AiDivinationsTableReferences
-                                            ._personaUuidTable(db),
-                                    referencedColumn:
-                                        $$AiDivinationsTableReferences
-                                            ._personaUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
-                        if (sessionUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.sessionUuid,
-                                    referencedTable:
-                                        $$AiDivinationsTableReferences
-                                            ._sessionUuidTable(db),
-                                    referencedColumn:
-                                        $$AiDivinationsTableReferences
-                                            ._sessionUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
-                        if (provenanceUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.provenanceUuid,
-                                    referencedTable:
-                                        $$AiDivinationsTableReferences
-                                            ._provenanceUuidTable(db),
-                                    referencedColumn:
-                                        $$AiDivinationsTableReferences
-                                            ._provenanceUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
-
-                        return state;
-                      },
-                  getPrefetchedDataCallback: (items) async {
-                    return [];
-                  },
-                );
-              },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -18047,13 +14918,12 @@ typedef $$AiDivinationsTableProcessedTableManager =
       $$AiDivinationsTableAnnotationComposer,
       $$AiDivinationsTableCreateCompanionBuilder,
       $$AiDivinationsTableUpdateCompanionBuilder,
-      (AiDivination, $$AiDivinationsTableReferences),
+      (
+        AiDivination,
+        BaseReferences<_$AiDatabase, $AiDivinationsTable, AiDivination>,
+      ),
       AiDivination,
-      PrefetchHooks Function({
-        bool personaUuid,
-        bool sessionUuid,
-        bool provenanceUuid,
-      })
+      PrefetchHooks Function()
     >;
 typedef $$AgentInvocationsTableCreateCompanionBuilder =
     AgentInvocationsCompanion Function({
@@ -18090,82 +14960,6 @@ typedef $$AgentInvocationsTableUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
-final class $$AgentInvocationsTableReferences
-    extends
-        BaseReferences<_$AiDatabase, $AgentInvocationsTable, AgentInvocation> {
-  $$AgentInvocationsTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static $AiPersonasTable _callerPersonaUuidTable(_$AiDatabase db) =>
-      db.aiPersonas.createAlias(
-        $_aliasNameGenerator(
-          db.agentInvocations.callerPersonaUuid,
-          db.aiPersonas.uuid,
-        ),
-      );
-
-  $$AiPersonasTableProcessedTableManager get callerPersonaUuid {
-    final $_column = $_itemColumn<String>('caller_persona_uuid')!;
-
-    final manager = $$AiPersonasTableTableManager(
-      $_db,
-      $_db.aiPersonas,
-    ).filter((f) => f.uuid.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_callerPersonaUuidTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static $AiPersonasTable _calleePersonaUuidTable(_$AiDatabase db) =>
-      db.aiPersonas.createAlias(
-        $_aliasNameGenerator(
-          db.agentInvocations.calleePersonaUuid,
-          db.aiPersonas.uuid,
-        ),
-      );
-
-  $$AiPersonasTableProcessedTableManager get calleePersonaUuid {
-    final $_column = $_itemColumn<String>('callee_persona_uuid')!;
-
-    final manager = $$AiPersonasTableTableManager(
-      $_db,
-      $_db.aiPersonas,
-    ).filter((f) => f.uuid.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_calleePersonaUuidTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static $AiChatSessionsTable _sessionUuidTable(_$AiDatabase db) =>
-      db.aiChatSessions.createAlias(
-        $_aliasNameGenerator(
-          db.agentInvocations.sessionUuid,
-          db.aiChatSessions.uuid,
-        ),
-      );
-
-  $$AiChatSessionsTableProcessedTableManager? get sessionUuid {
-    final $_column = $_itemColumn<String>('session_uuid');
-    if ($_column == null) return null;
-    final manager = $$AiChatSessionsTableTableManager(
-      $_db,
-      $_db.aiChatSessions,
-    ).filter((f) => f.uuid.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_sessionUuidTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
-
 class $$AgentInvocationsTableFilterComposer
     extends Composer<_$AiDatabase, $AgentInvocationsTable> {
   $$AgentInvocationsTableFilterComposer({
@@ -18177,6 +14971,21 @@ class $$AgentInvocationsTableFilterComposer
   });
   ColumnFilters<String> get uuid => $composableBuilder(
     column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get callerPersonaUuid => $composableBuilder(
+    column: $table.callerPersonaUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get calleePersonaUuid => $composableBuilder(
+    column: $table.calleePersonaUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sessionUuid => $composableBuilder(
+    column: $table.sessionUuid,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -18224,75 +15033,6 @@ class $$AgentInvocationsTableFilterComposer
     column: $table.depth,
     builder: (column) => ColumnFilters(column),
   );
-
-  $$AiPersonasTableFilterComposer get callerPersonaUuid {
-    final $$AiPersonasTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.callerPersonaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableFilterComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$AiPersonasTableFilterComposer get calleePersonaUuid {
-    final $$AiPersonasTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.calleePersonaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableFilterComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$AiChatSessionsTableFilterComposer get sessionUuid {
-    final $$AiChatSessionsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableFilterComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$AgentInvocationsTableOrderingComposer
@@ -18306,6 +15046,21 @@ class $$AgentInvocationsTableOrderingComposer
   });
   ColumnOrderings<String> get uuid => $composableBuilder(
     column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get callerPersonaUuid => $composableBuilder(
+    column: $table.callerPersonaUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get calleePersonaUuid => $composableBuilder(
+    column: $table.calleePersonaUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sessionUuid => $composableBuilder(
+    column: $table.sessionUuid,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -18353,75 +15108,6 @@ class $$AgentInvocationsTableOrderingComposer
     column: $table.depth,
     builder: (column) => ColumnOrderings(column),
   );
-
-  $$AiPersonasTableOrderingComposer get callerPersonaUuid {
-    final $$AiPersonasTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.callerPersonaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableOrderingComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$AiPersonasTableOrderingComposer get calleePersonaUuid {
-    final $$AiPersonasTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.calleePersonaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableOrderingComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$AiChatSessionsTableOrderingComposer get sessionUuid {
-    final $$AiChatSessionsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableOrderingComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$AgentInvocationsTableAnnotationComposer
@@ -18435,6 +15121,21 @@ class $$AgentInvocationsTableAnnotationComposer
   });
   GeneratedColumn<String> get uuid =>
       $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get callerPersonaUuid => $composableBuilder(
+    column: $table.callerPersonaUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get calleePersonaUuid => $composableBuilder(
+    column: $table.calleePersonaUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sessionUuid => $composableBuilder(
+    column: $table.sessionUuid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get invokedAt =>
       $composableBuilder(column: $table.invokedAt, builder: (column) => column);
@@ -18472,75 +15173,6 @@ class $$AgentInvocationsTableAnnotationComposer
 
   GeneratedColumn<int> get depth =>
       $composableBuilder(column: $table.depth, builder: (column) => column);
-
-  $$AiPersonasTableAnnotationComposer get callerPersonaUuid {
-    final $$AiPersonasTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.callerPersonaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$AiPersonasTableAnnotationComposer get calleePersonaUuid {
-    final $$AiPersonasTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.calleePersonaUuid,
-      referencedTable: $db.aiPersonas,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiPersonasTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiPersonas,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$AiChatSessionsTableAnnotationComposer get sessionUuid {
-    final $$AiChatSessionsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionUuid,
-      referencedTable: $db.aiChatSessions,
-      getReferencedColumn: (t) => t.uuid,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AiChatSessionsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.aiChatSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$AgentInvocationsTableTableManager
@@ -18554,13 +15186,16 @@ class $$AgentInvocationsTableTableManager
           $$AgentInvocationsTableAnnotationComposer,
           $$AgentInvocationsTableCreateCompanionBuilder,
           $$AgentInvocationsTableUpdateCompanionBuilder,
-          (AgentInvocation, $$AgentInvocationsTableReferences),
+          (
+            AgentInvocation,
+            BaseReferences<
+              _$AiDatabase,
+              $AgentInvocationsTable,
+              AgentInvocation
+            >,
+          ),
           AgentInvocation,
-          PrefetchHooks Function({
-            bool callerPersonaUuid,
-            bool calleePersonaUuid,
-            bool sessionUuid,
-          })
+          PrefetchHooks Function()
         > {
   $$AgentInvocationsTableTableManager(
     _$AiDatabase db,
@@ -18640,91 +15275,9 @@ class $$AgentInvocationsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$AgentInvocationsTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback:
-              ({
-                callerPersonaUuid = false,
-                calleePersonaUuid = false,
-                sessionUuid = false,
-              }) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [],
-                  addJoins:
-                      <
-                        T extends TableManagerState<
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic
-                        >
-                      >(state) {
-                        if (callerPersonaUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.callerPersonaUuid,
-                                    referencedTable:
-                                        $$AgentInvocationsTableReferences
-                                            ._callerPersonaUuidTable(db),
-                                    referencedColumn:
-                                        $$AgentInvocationsTableReferences
-                                            ._callerPersonaUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
-                        if (calleePersonaUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.calleePersonaUuid,
-                                    referencedTable:
-                                        $$AgentInvocationsTableReferences
-                                            ._calleePersonaUuidTable(db),
-                                    referencedColumn:
-                                        $$AgentInvocationsTableReferences
-                                            ._calleePersonaUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
-                        if (sessionUuid) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.sessionUuid,
-                                    referencedTable:
-                                        $$AgentInvocationsTableReferences
-                                            ._sessionUuidTable(db),
-                                    referencedColumn:
-                                        $$AgentInvocationsTableReferences
-                                            ._sessionUuidTable(db)
-                                            .uuid,
-                                  )
-                                  as T;
-                        }
-
-                        return state;
-                      },
-                  getPrefetchedDataCallback: (items) async {
-                    return [];
-                  },
-                );
-              },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -18739,13 +15292,12 @@ typedef $$AgentInvocationsTableProcessedTableManager =
       $$AgentInvocationsTableAnnotationComposer,
       $$AgentInvocationsTableCreateCompanionBuilder,
       $$AgentInvocationsTableUpdateCompanionBuilder,
-      (AgentInvocation, $$AgentInvocationsTableReferences),
+      (
+        AgentInvocation,
+        BaseReferences<_$AiDatabase, $AgentInvocationsTable, AgentInvocation>,
+      ),
       AgentInvocation,
-      PrefetchHooks Function({
-        bool callerPersonaUuid,
-        bool calleePersonaUuid,
-        bool sessionUuid,
-      })
+      PrefetchHooks Function()
     >;
 typedef $$AiUsageAuditsTableCreateCompanionBuilder =
     AiUsageAuditsCompanion Function({
@@ -19485,10 +16037,10 @@ class $AiDatabaseManager {
       $$AiPersonasTableTableManager(_db, _db.aiPersonas);
   $$AiChatSessionsTableTableManager get aiChatSessions =>
       $$AiChatSessionsTableTableManager(_db, _db.aiChatSessions);
-  $$AiApiCallsTableTableManager get aiApiCalls =>
-      $$AiApiCallsTableTableManager(_db, _db.aiApiCalls);
   $$AiChatMessagesTableTableManager get aiChatMessages =>
       $$AiChatMessagesTableTableManager(_db, _db.aiChatMessages);
+  $$AiApiCallsTableTableManager get aiApiCalls =>
+      $$AiApiCallsTableTableManager(_db, _db.aiApiCalls);
   $$AiProvenancesTableTableManager get aiProvenances =>
       $$AiProvenancesTableTableManager(_db, _db.aiProvenances);
   $$AiDivinationsTableTableManager get aiDivinations =>

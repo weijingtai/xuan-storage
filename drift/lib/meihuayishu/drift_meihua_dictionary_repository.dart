@@ -119,6 +119,21 @@ class DriftMeiHuaDictionaryRepository implements MeiHuaDictionaryRepository {
   }
 
   @override
+  Future<int> getStrokeCount(String character) async {
+    final char = await queryCharacter(character);
+    return char?.matchesJson?.length ?? 0;
+  }
+
+  @override
+  Future<List<int>> getStrokeCounts(String text) async {
+    final list = <int>[];
+    for (var i = 0; i < text.length; i++) {
+      list.add(await getStrokeCount(text[i]));
+    }
+    return list;
+  }
+
+  @override
   Future<String?> getPinyin(String character) {
     return _database.getPinyin(character);
   }

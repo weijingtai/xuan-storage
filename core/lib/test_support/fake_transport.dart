@@ -226,10 +226,12 @@ final class FakePeerSession implements PeerSession {
     // NOT by returning the same object — that would make A5/A6 test
     // the fake itself rather than the contract.
     final sender = _FakeBackpressureStream(
+      kind: kind,
       maxBufferedAmount: bufferSize,
       overflowPolicy: OverflowPolicy.wait,
     );
     final receiver = _FakeBackpressureStream(
+      kind: kind,
       maxBufferedAmount: bufferSize,
       overflowPolicy: OverflowPolicy.wait,
     );
@@ -259,6 +261,7 @@ final class FakePeerSession implements PeerSession {
 ///   back to the sender's `_confirm` to release suspended sends.
 class _FakeBackpressureStream implements PeerStream {
   _FakeBackpressureStream({
+    required this.kind,
     required this.maxBufferedAmount,
     required this.overflowPolicy,
   }) {
@@ -269,6 +272,9 @@ class _FakeBackpressureStream implements PeerStream {
       onCancel: _onInactive,
     );
   }
+
+  @override
+  final StreamKind kind;
 
   @override
   final int maxBufferedAmount;
