@@ -11,9 +11,15 @@ Future<int> migrateMeihuaRecords({
   var migrated = 0;
   for (final row in rows) {
     // 幂等：已存在则跳过
-    final existing = await target.getRecordByUuid(row.uuid);
+    final existingResult = await target.get(row.uuid, ctx);
+    final existing = switch (existingResult) {
+      Ok(:final value) => value,
+      Err(:final error) => throw StateError(
+        'Meihua migration read failed for ${row.uuid}: $error',
+      ),
+    };
     if (existing != null) continue;
-    await target.saveRecord(
+    final writeResult = await target.put(
       MeiHuaDivinationRecordContract(
         uuid: row.uuid,
         divinationUuid: row.divinationUuid,
@@ -31,7 +37,11 @@ Future<int> migrateMeihuaRecords({
         updatedAt: row.updatedAt,
         deletedAt: row.deletedAt,
       ),
+      ctx,
     );
+    if (writeResult case Err(:final error)) {
+      throw StateError('Meihua migration write failed for ${row.uuid}: $error');
+    }
     migrated++;
   }
   return migrated;

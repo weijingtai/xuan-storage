@@ -46,7 +46,7 @@ class FourZhuCardTemplateRepositoryAdapter
   }
 
   @override
-  Future<LayoutTemplateContract?> getTemplate(String id) async {
+  Future<LayoutTemplateContract?> get(String id) async {
     final dtos = await _localDataSource.loadTemplates(_defaultCollectionId);
     for (final dto in dtos) {
       final domain = dto.toDomain();
@@ -58,7 +58,7 @@ class FourZhuCardTemplateRepositoryAdapter
   }
 
   @override
-  Future<void> saveTemplate(LayoutTemplateContract template) async {
+  Future<void> put(LayoutTemplateContract template) async {
     final domain = _toDomain(template);
     final collectionId = domain.collectionId.isEmpty
         ? _defaultCollectionId
@@ -85,7 +85,9 @@ class FourZhuCardTemplateRepositoryAdapter
   }
 
   @override
-  Future<List<LayoutTemplateContract>> listTemplates() async {
+  Future<List<LayoutTemplateContract>> query([
+    Map<String, Object?>? criteria,
+  ]) async {
     final dtos = await _localDataSource.loadTemplates(_defaultCollectionId);
     return dtos
         .map((dto) => _toContract(dto.toDomain()))
@@ -93,7 +95,7 @@ class FourZhuCardTemplateRepositoryAdapter
   }
 
   @override
-  Future<void> deleteTemplate(String id) async {
+  Future<void> delete(String id) async {
     final scopeUid = await _authScopeProvider.getScopeUid();
     await _localDataSource.softDeleteTemplate(
       _defaultCollectionId,
@@ -101,21 +103,5 @@ class FourZhuCardTemplateRepositoryAdapter
       enqueueOutbox: true,
       scopeUid: scopeUid,
     );
-  }
-
-  @override
-  Future<LayoutTemplateContract?> getTemplate(String uuid) => get(uuid);
-
-  @override
-  Future<List<LayoutTemplateContract>> listTemplates() => query();
-
-  @override
-  Future<void> saveTemplate(LayoutTemplateContract template) async {
-    await put(template);
-  }
-
-  @override
-  Future<void> deleteTemplate(String uuid) async {
-    await delete(uuid);
   }
 }
