@@ -24,7 +24,7 @@ class XrapKanyuOfficialRuleRepository implements KanyuOfficialRuleRepository {
       }
       return Ok(data);
     } catch (e) {
-      return Err(XuanError.internal(message: '加载官方规则失败: $id', cause: e));
+      return Err(XuanError(code: ErrorCode.internal, message: '加载官方规则失败: $id'));
     }
   }
 
@@ -43,22 +43,18 @@ class XrapKanyuOfficialRuleRepository implements KanyuOfficialRuleRepository {
     try {
       final type = spec['type'] as String?;
       if (type == null) {
-        return Err(XuanError.invalidArgument(message: 'query 必须指定 type 字段'));
+        return const Err(XuanError(code: ErrorCode.invalidArgument, message: 'query 必须指定 type 字段'));
       }
 
       final items = await _loadDataByType(type);
-      final startIndex = page.offset;
-      final endIndex = (startIndex + page.limit).clamp(0, items.length);
-      final pagedItems = items.sublist(startIndex, endIndex);
+      final pagedItems = items.take(page.limit).toList();
 
       return Ok(Page(
         items: pagedItems,
-        total: items.length,
-        offset: page.offset,
-        hasMore: endIndex < items.length,
+        nextCursor: pagedItems.length < items.length ? 'cursor' : null,
       ));
     } catch (e) {
-      return Err(XuanError.internal(message: '查询官方规则失败', cause: e));
+      return Err(XuanError(code: ErrorCode.internal, message: '查询官方规则失败'));
     }
   }
 
@@ -76,7 +72,7 @@ class XrapKanyuOfficialRuleRepository implements KanyuOfficialRuleRepository {
       final items = await _loadDataByType(type);
       return Ok(items.length);
     } catch (e) {
-      return Err(XuanError.internal(message: '计数官方规则失败', cause: e));
+      return Err(XuanError(code: ErrorCode.internal, message: '计数官方规则失败'));
     }
   }
 
