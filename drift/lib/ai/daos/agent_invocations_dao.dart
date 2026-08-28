@@ -19,8 +19,9 @@ class AgentInvocationsDao extends DatabaseAccessor<AiDatabase>
 
   /// Get invocation by UUID
   Future<AgentInvocation?> getByUuid(String uuid) {
-    return (select(agentInvocations)..where((t) => t.uuid.equals(uuid)))
-        .getSingleOrNull();
+    return (select(
+      agentInvocations,
+    )..where((t) => t.uuid.equals(uuid))).getSingleOrNull();
   }
 
   /// Get child invocations
@@ -74,8 +75,9 @@ class AgentInvocationsDao extends DatabaseAccessor<AiDatabase>
 
   /// Update invocation status to running
   Future<void> markRunning(String uuid) {
-    return (update(agentInvocations)..where((t) => t.uuid.equals(uuid)))
-        .write(const AgentInvocationsCompanion(status: Value('running')));
+    return (update(agentInvocations)..where((t) => t.uuid.equals(uuid))).write(
+      const AgentInvocationsCompanion(status: Value('running')),
+    );
   }
 
   /// Complete an invocation

@@ -13,9 +13,9 @@ class FourZhuCardTemplateInstallerAdapter
     required LayoutTemplateLocalDataSource localDataSource,
     required MarketTemplateInstallsDao installsDao,
     required AuthScopeProvider authScopeProvider,
-  })  : _localDataSource = localDataSource,
-        _installsDao = installsDao,
-        _authScopeProvider = authScopeProvider;
+  }) : _localDataSource = localDataSource,
+       _installsDao = installsDao,
+       _authScopeProvider = authScopeProvider;
 
   final LayoutTemplateLocalDataSource _localDataSource;
   final MarketTemplateInstallsDao _installsDao;

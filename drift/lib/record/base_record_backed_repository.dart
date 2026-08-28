@@ -22,13 +22,13 @@ abstract class BaseRecordBackedRepository<TContract> {
     required ScopedRecordStore store,
     required RecordModuleCodec<TContract> codec,
     Uuid? uuid,
-  })  : _store = store,
-        _codec = codec,
-        _uuid = uuid ?? const Uuid(),
-        _l0 = CrudBaseRepository<Map<String, Object?>, String>(
-          descriptor: recordEntityDescriptor(module: codec.module),
-          driver: RecordStorageDriver(store: store),
-        );
+  }) : _store = store,
+       _codec = codec,
+       _uuid = uuid ?? const Uuid(),
+       _l0 = CrudBaseRepository<Map<String, Object?>, String>(
+         descriptor: recordEntityDescriptor(module: codec.module),
+         driver: RecordStorageDriver(store: store),
+       );
 
   final ScopedRecordStore _store;
   final RecordModuleCodec<TContract> _codec;
@@ -43,17 +43,18 @@ abstract class BaseRecordBackedRepository<TContract> {
 
   /// 行 → 契约实体：RecordMeta + moduleData 一起交给 codec decode。
   TContract _decodeRow(Map<String, Object?> row) => _codec.decode(
-        RecordRowMapper.rowToMeta(row),
-        RecordRowMapper.moduleDataOf(row),
-      );
+    RecordRowMapper.rowToMeta(row),
+    RecordRowMapper.moduleDataOf(row),
+  );
 
   // ── save ──
   @Deprecated('M4 退场，改用 L0 切片')
   Future<String> save(TContract contract) async {
     final currentUuid = _codec.uuidOf(contract);
     final effectiveUuid = currentUuid.isNotEmpty ? currentUuid : _uuid.v7();
-    final fixed =
-        currentUuid.isNotEmpty ? contract : _codec.withUuid(contract, effectiveUuid);
+    final fixed = currentUuid.isNotEmpty
+        ? contract
+        : _codec.withUuid(contract, effectiveUuid);
     final encoded = _codec.encode(fixed, scopeUid: _store.scopeUid);
     _validateEncodedMeta(encoded.meta, effectiveUuid);
     final row = RecordRowMapper.metaToRow(encoded.meta);
@@ -96,15 +97,16 @@ abstract class BaseRecordBackedRepository<TContract> {
   @Deprecated('M4 退场，改用 L0 切片')
   Stream<List<TContract>> watchAll() => _l0
       .watch({'category': _codec.category}, _ctx)
-      .map((r) => ((r as Ok<List<Map<String, Object?>>>).value)
-          .map(_decodeRow)
-          .toList());
+      .map(
+        (r) => ((r as Ok<List<Map<String, Object?>>>).value)
+            .map(_decodeRow)
+            .toList(),
+      );
 
   @Deprecated('M4 退场，改用 L0 切片')
   Future<List<TContract>> getLatest({int limit = 10}) async {
     final r = await _l0.query(const {}, PageRequest(limit: limit), _ctx);
-    return ((r as Ok<Page<Map<String, Object?>>>).value)
-        .items
+    return ((r as Ok<Page<Map<String, Object?>>>).value).items
         .map(_decodeRow)
         .toList();
   }
@@ -115,8 +117,7 @@ abstract class BaseRecordBackedRepository<TContract> {
     String id,
     RequestContext ctx, {
     Precondition pre = const Unconditional(),
-  }) =>
-      _l0.softDelete(id, ctx, pre: pre);
+  }) => _l0.softDelete(id, ctx, pre: pre);
 
   /// 遗留软删（返回 bool）。与 L0 [SoftDeletable] 切片的
   /// `Future<Result<void>> softDelete(id, ctx)` 签名冲突，故更名让位；
@@ -138,8 +139,11 @@ abstract class BaseRecordBackedRepository<TContract> {
   }
 
   @Deprecated('M4 退场，改用 L0 切片')
-  Future<List<TContract>> getAllByIndex(String indexKey, String indexValue,
-      {int limit = 200}) async {
+  Future<List<TContract>> getAllByIndex(
+    String indexKey,
+    String indexValue, {
+    int limit = 200,
+  }) async {
     final r = await _l0.getByIndex(indexKey, indexValue, _ctx, limit: limit);
     if (r case Ok(value: final rows)) {
       return rows.map(_decodeRow).toList();
@@ -149,14 +153,12 @@ abstract class BaseRecordBackedRepository<TContract> {
 
   @Deprecated('M4 退场，改用 L0 切片')
   Stream<TContract?> watchFirstByIndex(String indexKey, String indexValue) =>
-      _l0
-          .watchByIndex(indexKey, indexValue, _ctx, limit: 1)
-          .map((r) {
-            if (r case Ok(value: final rows)) {
-              return rows.isEmpty ? null : _decodeRow(rows.first);
-            }
-            return null;
-          });
+      _l0.watchByIndex(indexKey, indexValue, _ctx, limit: 1).map((r) {
+        if (r case Ok(value: final rows)) {
+          return rows.isEmpty ? null : _decodeRow(rows.first);
+        }
+        return null;
+      });
 
   void _validateEncodedMeta(RecordMeta meta, String expectedUuid) {
     if (meta.uuid != expectedUuid) {

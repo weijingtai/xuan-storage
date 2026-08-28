@@ -36,10 +36,13 @@ class DriftThemeTokenStore {
   ///
   /// 返回 Map.unmodifiable 只读视图（对齐内存版 A16 不可变性）。
   Future<Map<String, dynamic>?> tokensOf(int generation) async {
-    final rows = await (_db.select(_db.themeTokens)
-          ..where((t) =>
-              t.datasetId.equals(datasetId) & t.generation.equals(generation)))
-        .get();
+    final rows =
+        await (_db.select(_db.themeTokens)..where(
+              (t) =>
+                  t.datasetId.equals(datasetId) &
+                  t.generation.equals(generation),
+            ))
+            .get();
     if (rows.isEmpty) return null;
     final tokens = <String, dynamic>{};
     for (final row in rows) {
@@ -52,12 +55,15 @@ class DriftThemeTokenStore {
   ///
   /// 幂等实现：先删该代全部行，再批量插入。只有 materializer 调用它
   /// （照内存版 putGeneration 的调用约束）。
-  Future<void> putGeneration(int generation, Map<String, dynamic> tokens) async {
+  Future<void> putGeneration(
+    int generation,
+    Map<String, dynamic> tokens,
+  ) async {
     await _db.transaction(() async {
-      await (_db.delete(_db.themeTokens)
-            ..where((t) =>
-                t.datasetId.equals(datasetId) &
-                t.generation.equals(generation)))
+      await (_db.delete(_db.themeTokens)..where(
+            (t) =>
+                t.datasetId.equals(datasetId) & t.generation.equals(generation),
+          ))
           .go();
       if (tokens.isEmpty) return;
       await _db.batch((b) {
@@ -78,19 +84,21 @@ class DriftThemeTokenStore {
 
   /// 删除某一代。不存在时静默返回（XRAP 要求 dropGeneration 幂等）。
   Future<void> dropGeneration(int generation) async {
-    await (_db.delete(_db.themeTokens)
-          ..where((t) =>
-              t.datasetId.equals(datasetId) & t.generation.equals(generation)))
+    await (_db.delete(_db.themeTokens)..where(
+          (t) =>
+              t.datasetId.equals(datasetId) & t.generation.equals(generation),
+        ))
         .go();
   }
 
   /// 已落地的世代号集合。诊断与 P4/A20/A21 断言用（对齐内存版 generations）。
   Future<Set<int>> get generations async {
-    final rows = await (_db.selectOnly(_db.themeTokens)
-          ..addColumns([_db.themeTokens.generation])
-          ..where(_db.themeTokens.datasetId.equals(datasetId))
-          ..groupBy([_db.themeTokens.generation]))
-        .get();
+    final rows =
+        await (_db.selectOnly(_db.themeTokens)
+              ..addColumns([_db.themeTokens.generation])
+              ..where(_db.themeTokens.datasetId.equals(datasetId))
+              ..groupBy([_db.themeTokens.generation]))
+            .get();
     return rows.map((r) => r.read(_db.themeTokens.generation)!).toSet();
   }
 }

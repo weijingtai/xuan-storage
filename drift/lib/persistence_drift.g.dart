@@ -9205,13 +9205,13 @@ class $SkillClassesTable extends SkillClasses
   );
   @override
   late final GeneratedColumn<DateTime> lastUpdatedAt =
-    GeneratedColumn<DateTime>(
-      'last_updated_at',
-      aliasedName,
-      false,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: true,
-    );
+      GeneratedColumn<DateTime>(
+        'last_updated_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: true,
+      );
   static const VerificationMeta _deletedAtMeta = const VerificationMeta(
     'deletedAt',
   );

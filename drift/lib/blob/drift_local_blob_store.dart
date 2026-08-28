@@ -28,10 +28,10 @@ final class DriftLocalBlobStore implements LocalBlobStore {
     required BlobCipherResolver cipherResolver,
     required String rootDir,
     required PersistenceDriftDatabase db,
-  })  : _metadata = metadataRepository,
-        _cipherResolver = cipherResolver,
-        _backend = FileSystemBlobByteBackend(rootDir: rootDir),
-        _db = db;
+  }) : _metadata = metadataRepository,
+       _cipherResolver = cipherResolver,
+       _backend = FileSystemBlobByteBackend(rootDir: rootDir),
+       _db = db;
 
   final BlobMetadataRepository _metadata;
   final BlobCipherResolver _cipherResolver;
@@ -112,7 +112,8 @@ final class DriftLocalBlobStore implements LocalBlobStore {
 
     // 从 pending 队列中取出恰好 chunkSize 字节。
     Uint8List? takeChunk() {
-      final avail = pending.fold(0, (int sum, e) => sum + e.length) - pendingOffset;
+      final avail =
+          pending.fold(0, (int sum, e) => sum + e.length) - pendingOffset;
       if (avail < blobChunkSize) return null;
       final result = Uint8List(blobChunkSize);
       var written = 0;
@@ -169,7 +170,10 @@ final class DriftLocalBlobStore implements LocalBlobStore {
 
         chunkCount++;
         totalBytes += chunkBytes.length;
-        onProgress?.call(chunkCount, (expectedBytes + blobChunkSize - 1) ~/ blobChunkSize);
+        onProgress?.call(
+          chunkCount,
+          (expectedBytes + blobChunkSize - 1) ~/ blobChunkSize,
+        );
       }
     }
 
@@ -231,11 +235,13 @@ final class DriftLocalBlobStore implements LocalBlobStore {
     }
 
     // 收尾去重：如果已有相同 plaintextSha256 的 blob，删除刚写入的
-    final existing = await (_db.select(_db.blobMetas)
-          ..where((t) =>
-              t.plaintextSha256.equals(plaintextSha256) &
-              t.scopeUid.equals(scopeUid)))
-        .get();
+    final existing =
+        await (_db.select(_db.blobMetas)..where(
+              (t) =>
+                  t.plaintextSha256.equals(plaintextSha256) &
+                  t.scopeUid.equals(scopeUid),
+            ))
+            .get();
     if (existing.isNotEmpty) {
       // 内容已存在，删除本次写入的 chunk 文件，复用已有
       await _backend.deleteManifest('$scopeUid/$cipherManifestId');
@@ -261,7 +267,9 @@ final class DriftLocalBlobStore implements LocalBlobStore {
     );
 
     // 插入 blob meta（staged 状态）
-    await _db.into(_db.blobMetas).insert(
+    await _db
+        .into(_db.blobMetas)
+        .insert(
           BlobMetasCompanion.insert(
             cipherManifestId: handle.cipherManifestId,
             scopeUid: scopeUid,
@@ -283,7 +291,11 @@ final class DriftLocalBlobStore implements LocalBlobStore {
   }
 
   @override
-  Future<void> putChunk(BlobHandle handle, int index, List<int> cipherBytes) async {
+  Future<void> putChunk(
+    BlobHandle handle,
+    int index,
+    List<int> cipherBytes,
+  ) async {
     final chunkSha256 = sha256.convert(cipherBytes).toString();
     await _backend.writeChunk(
       '$scopeUid/${handle.cipherManifestId}',
@@ -300,14 +312,14 @@ final class DriftLocalBlobStore implements LocalBlobStore {
 
   @override
   Future<List<int>> readCipherChunk(BlobHandle handle, int index) async {
-    return _backend.readChunk(
-      '$scopeUid/${handle.cipherManifestId}',
-      index,
-    );
+    return _backend.readChunk('$scopeUid/${handle.cipherManifestId}', index);
   }
 
   @override
-  Future<BlobReadResult> openRead(BlobHandle handle, {CancellationToken? cancel}) async {
+  Future<BlobReadResult> openRead(
+    BlobHandle handle, {
+    CancellationToken? cancel,
+  }) async {
     final meta = await _metadata.getMeta(handle.cipherManifestId);
     if (meta == null) return const BlobReadResult.absent();
 
@@ -323,10 +335,11 @@ final class DriftLocalBlobStore implements LocalBlobStore {
     }
 
     // 阶段 2：惰性校验 —— 一次性批量取出所有 chunk 元数据，逐块流式校验
-    final chunkMetaRows = await (_db.select(_db.blobChunks)
-          ..where((t) => t.cipherManifestId.equals(handle.cipherManifestId))
-          ..orderBy([(t) => dr.OrderingTerm.asc(t.chunkIndex)]))
-        .get();
+    final chunkMetaRows =
+        await (_db.select(_db.blobChunks)
+              ..where((t) => t.cipherManifestId.equals(handle.cipherManifestId))
+              ..orderBy([(t) => dr.OrderingTerm.asc(t.chunkIndex)]))
+            .get();
     // 构建索引：index → expectedSha256
     final expectedShaMap = <int, String>{};
     for (final row in chunkMetaRows) {
@@ -425,12 +438,14 @@ final class DriftLocalBlobStore implements LocalBlobStore {
     required String ownerRecordUuid,
     required Set<BlobHandle> handles,
   }) async {
-    await (_db.delete(_db.blobRefs)
-          ..where((t) => t.ownerRecordUuid.equals(ownerRecordUuid)))
-        .go();
+    await (_db.delete(
+      _db.blobRefs,
+    )..where((t) => t.ownerRecordUuid.equals(ownerRecordUuid))).go();
 
     for (final handle in handles) {
-      await _db.into(_db.blobRefs).insert(
+      await _db
+          .into(_db.blobRefs)
+          .insert(
             BlobRefsCompanion.insert(
               ownerRecordUuid: ownerRecordUuid,
               cipherManifestId: handle.cipherManifestId,
@@ -439,14 +454,16 @@ final class DriftLocalBlobStore implements LocalBlobStore {
     }
 
     for (final handle in handles) {
-      final existing = await (_db.select(_db.blobMetas)
-            ..where((t) => t.cipherManifestId.equals(handle.cipherManifestId)))
-          .get();
+      final existing =
+          await (_db.select(_db.blobMetas)..where(
+                (t) => t.cipherManifestId.equals(handle.cipherManifestId),
+              ))
+              .get();
       for (final meta in existing) {
         if (meta.status == 0) {
-          await (_db.update(_db.blobMetas)
-                ..where((t) =>
-                    t.cipherManifestId.equals(handle.cipherManifestId)))
+          await (_db.update(_db.blobMetas)..where(
+                (t) => t.cipherManifestId.equals(handle.cipherManifestId),
+              ))
               .write(BlobMetasCompanion(status: dr.Value(1)));
         }
       }
@@ -455,9 +472,9 @@ final class DriftLocalBlobStore implements LocalBlobStore {
 
   @override
   Future<void> evictByExternalId(String externalId) async {
-    final metas = await (_db.select(_db.blobMetas)
-          ..where((t) => t.externalId.equals(externalId)))
-        .get();
+    final metas = await (_db.select(
+      _db.blobMetas,
+    )..where((t) => t.externalId.equals(externalId))).get();
     for (final meta in metas) {
       await _backend.deleteManifest('$scopeUid/${meta.cipherManifestId}');
       await _metadata.deleteMeta(meta.cipherManifestId);
@@ -468,10 +485,13 @@ final class DriftLocalBlobStore implements LocalBlobStore {
   Future<({int freed, int unreclaimable})> evictCache({
     required int targetFreeBytes,
   }) async {
-    final cacheMetas = await (_db.select(_db.blobMetas)
-          ..where((t) =>
-              t.scopeUid.equals(scopeUid) & t.tier.equals(BlobTier.cache.index)))
-        .get();
+    final cacheMetas =
+        await (_db.select(_db.blobMetas)..where(
+              (t) =>
+                  t.scopeUid.equals(scopeUid) &
+                  t.tier.equals(BlobTier.cache.index),
+            ))
+            .get();
 
     var freed = 0;
     var unreclaimable = 0;
@@ -482,11 +502,13 @@ final class DriftLocalBlobStore implements LocalBlobStore {
     for (final meta in sorted) {
       if (freed >= targetFreeBytes) break;
 
-      final refCountResult = await _db.customSelect(
-        'SELECT COUNT(*) AS cnt FROM t_blob_ref '
-        'WHERE cipher_manifest_id = ?',
-        variables: [dr.Variable.withString(meta.cipherManifestId)],
-      ).get();
+      final refCountResult = await _db
+          .customSelect(
+            'SELECT COUNT(*) AS cnt FROM t_blob_ref '
+            'WHERE cipher_manifest_id = ?',
+            variables: [dr.Variable.withString(meta.cipherManifestId)],
+          )
+          .get();
       final refCount = refCountResult.single.read<int>('cnt');
 
       if (refCount > 0) {
@@ -510,7 +532,10 @@ final class DriftLocalBlobStore implements LocalBlobStore {
   }
 
   String _randomUuid() {
-    final bytes = List<int>.generate(16, (_) => DateTime.now().microsecondsSinceEpoch & 0xFF);
+    final bytes = List<int>.generate(
+      16,
+      (_) => DateTime.now().microsecondsSinceEpoch & 0xFF,
+    );
     return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
   }
 }

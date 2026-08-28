@@ -14,8 +14,7 @@ class MeiHuaGuaInfos extends Table {
   TextColumn get scopeUid => text().named('scope_uid').nullable()();
 
   /// 占卜记录 UUID（关联到 common 的 t_divinations 表）
-  TextColumn get divinationUuid =>
-      text().named('divination_uuid')();
+  TextColumn get divinationUuid => text().named('divination_uuid')();
 
   /// 卜问内容
   TextColumn get question => text().nullable().named('question')();

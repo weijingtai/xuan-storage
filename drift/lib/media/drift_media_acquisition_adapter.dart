@@ -29,11 +29,7 @@ class DriftMediaAcquisitionAdapter implements MediaAcquisitionPort {
     double? maxWidth,
     double? maxHeight,
   }) {
-    return _acquire(
-      role: role,
-      maxWidth: maxWidth,
-      maxHeight: maxHeight,
-    );
+    return _acquire(role: role, maxWidth: maxWidth, maxHeight: maxHeight);
   }
 
   @override

@@ -3,7 +3,6 @@ import 'package:enumeration/enums.dart';
 import 'package:persistence_drift/tables/seekers_table.dart';
 import 'package:metaphysics_core/datamodel/divination_request_info_datamodel.dart';
 
-
 @UseRowClass(DivinationRequestInfoDataModel)
 class Divinations extends Table {
   @override
@@ -13,8 +12,7 @@ class Divinations extends Table {
   DateTimeColumn get lastUpdatedAt => dateTime().named('last_updated_at')();
   DateTimeColumn get deletedAt => dateTime().nullable().named('deleted_at')();
   // [命理、运程、占测、择吉、化解、运筹、堪舆]
-  TextColumn get divinationTypeUuid =>
-      text().named('divination_type_uuid')();
+  TextColumn get divinationTypeUuid => text().named('divination_type_uuid')();
 
   TextColumn get fateYear => text().nullable().named("fate_year")();
 

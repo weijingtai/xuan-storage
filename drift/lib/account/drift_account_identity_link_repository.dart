@@ -20,11 +20,10 @@ final class DriftAccountIdentityLinkRepository
   Future<AccountIdentityLink?> getByAnonymousUserId(
     AccountUserId anonymousId,
   ) async {
-    final row = await (_db.select(_db.accountIdentityLinks)
-          ..where(
-            (t) => t.anonymousAppUserId.equals(anonymousId.value),
-          ))
-        .getSingleOrNull();
+    final row =
+        await (_db.select(_db.accountIdentityLinks)
+              ..where((t) => t.anonymousAppUserId.equals(anonymousId.value)))
+            .getSingleOrNull();
     if (row == null) return null;
     return _toDomain(row);
   }
@@ -32,11 +31,9 @@ final class DriftAccountIdentityLinkRepository
   Future<AccountIdentityLink?> getByRegisteredUserId(
     AccountUserId registeredId,
   ) async {
-    final rows = await (_db.select(_db.accountIdentityLinks)
-          ..where(
-            (t) => t.registeredAppUserId.equals(registeredId.value),
-          ))
-        .get();
+    final rows = await (_db.select(
+      _db.accountIdentityLinks,
+    )..where((t) => t.registeredAppUserId.equals(registeredId.value))).get();
     if (rows.isEmpty) return null;
     return _toDomain(rows.first);
   }
@@ -49,13 +46,16 @@ final class DriftAccountIdentityLinkRepository
         existing.registeredAppUserId != link.registeredAppUserId) {
       throw AccountRepositoryError(
         code: AccountErrorCode.identityMappingConflict,
-        message: 'Identity link conflict: anonymous ${link.anonymousAppUserId.value} '
+        message:
+            'Identity link conflict: anonymous ${link.anonymousAppUserId.value} '
             'already linked to ${existing.registeredAppUserId.value}, '
             'cannot overwrite with ${link.registeredAppUserId.value}',
       );
     }
 
-    await _db.into(_db.accountIdentityLinks).insertOnConflictUpdate(
+    await _db
+        .into(_db.accountIdentityLinks)
+        .insertOnConflictUpdate(
           AccountIdentityLinksCompanion.insert(
             anonymousAppUserId: link.anonymousAppUserId.value,
             registeredAppUserId: link.registeredAppUserId.value,
@@ -71,15 +71,20 @@ final class DriftAccountIdentityLinkRepository
   // id 语义取匿名 appUserId 字符串（表内唯一键）。
 
   @override
-  Future<Result<AccountIdentityLink?>> get(String id, RequestContext ctx) async {
+  Future<Result<AccountIdentityLink?>> get(
+    String id,
+    RequestContext ctx,
+  ) async {
     try {
       final link = await getByAnonymousUserId(AccountUserId(id));
       return Ok(link);
     } catch (e) {
-      return Err(XuanError(
-        code: ErrorCode.internal,
-        message: 'identity link get failed: $e',
-      ));
+      return Err(
+        XuanError(
+          code: ErrorCode.internal,
+          message: 'identity link get failed: $e',
+        ),
+      );
     }
   }
 
@@ -99,16 +104,19 @@ final class DriftAccountIdentityLinkRepository
     Precondition pre = const Unconditional(),
   }) async {
     try {
-      final existing =
-          await getByAnonymousUserId(entity.anonymousAppUserId);
+      final existing = await getByAnonymousUserId(entity.anonymousAppUserId);
       if (existing != null &&
           existing.registeredAppUserId != entity.registeredAppUserId) {
-        return const Err(XuanError(
-          code: ErrorCode.conflictUnique,
-          message: 'identity link already bound to another registered user',
-        ));
+        return const Err(
+          XuanError(
+            code: ErrorCode.conflictUnique,
+            message: 'identity link already bound to another registered user',
+          ),
+        );
       }
-      await _db.into(_db.accountIdentityLinks).insertOnConflictUpdate(
+      await _db
+          .into(_db.accountIdentityLinks)
+          .insertOnConflictUpdate(
             AccountIdentityLinksCompanion.insert(
               anonymousAppUserId: entity.anonymousAppUserId.value,
               registeredAppUserId: entity.registeredAppUserId.value,
@@ -119,10 +127,12 @@ final class DriftAccountIdentityLinkRepository
           );
       return Ok(Rev(entity.anonymousAppUserId.value));
     } catch (e) {
-      return Err(XuanError(
-        code: ErrorCode.internal,
-        message: 'identity link put failed: $e',
-      ));
+      return Err(
+        XuanError(
+          code: ErrorCode.internal,
+          message: 'identity link put failed: $e',
+        ),
+      );
     }
   }
 
@@ -138,15 +148,19 @@ final class DriftAccountIdentityLinkRepository
       final end = (start + page.limit).clamp(0, all.length);
       final items = all.sublist(start, end);
       final hasMore = end < all.length;
-      return Ok(Page<AccountIdentityLink>(
-        items: items,
-        nextCursor: hasMore ? '$end' : null,
-      ));
+      return Ok(
+        Page<AccountIdentityLink>(
+          items: items,
+          nextCursor: hasMore ? '$end' : null,
+        ),
+      );
     } catch (e) {
-      return Err(XuanError(
-        code: ErrorCode.internal,
-        message: 'identity link query failed: $e',
-      ));
+      return Err(
+        XuanError(
+          code: ErrorCode.internal,
+          message: 'identity link query failed: $e',
+        ),
+      );
     }
   }
 
@@ -158,10 +172,12 @@ final class DriftAccountIdentityLinkRepository
     try {
       return Ok(await _queryAll(spec).then((v) => v.length));
     } catch (e) {
-      return Err(XuanError(
-        code: ErrorCode.internal,
-        message: 'identity link count failed: $e',
-      ));
+      return Err(
+        XuanError(
+          code: ErrorCode.internal,
+          message: 'identity link count failed: $e',
+        ),
+      );
     }
   }
 
@@ -171,17 +187,17 @@ final class DriftAccountIdentityLinkRepository
       final result = await _db.transaction(() => body());
       return Ok(result);
     } catch (e) {
-      return Err(XuanError(
-        code: ErrorCode.internal,
-        message: 'identity link transaction failed: $e',
-      ));
+      return Err(
+        XuanError(
+          code: ErrorCode.internal,
+          message: 'identity link transaction failed: $e',
+        ),
+      );
     }
   }
 
   /// 按 spec 等值过滤全部链路（游标用偏移量字符串表达）。
-  Future<List<AccountIdentityLink>> _queryAll(
-    Map<String, Object?> spec,
-  ) async {
+  Future<List<AccountIdentityLink>> _queryAll(Map<String, Object?> spec) async {
     final query = _db.select(_db.accountIdentityLinks);
     if (spec case {'anonymousAppUserId': final String v}) {
       query.where((t) => t.anonymousAppUserId.equals(v));

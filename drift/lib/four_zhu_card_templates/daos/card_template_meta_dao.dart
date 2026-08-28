@@ -12,9 +12,9 @@ class CardTemplateMetaDao extends DatabaseAccessor<AppDatabase>
   final AppDatabase db;
 
   Future<CardTemplateMeta?> findByTemplateUuid(String templateUuid) {
-    return (select(db.cardTemplateMetas)
-          ..where((t) => t.templateUuid.equals(templateUuid)))
-        .getSingleOrNull();
+    return (select(
+      db.cardTemplateMetas,
+    )..where((t) => t.templateUuid.equals(templateUuid))).getSingleOrNull();
   }
 
   Future<void> touchModifiedAt({
@@ -22,16 +22,18 @@ class CardTemplateMetaDao extends DatabaseAccessor<AppDatabase>
     required DateTime modifiedAt,
     bool? isCustomized,
   }) async {
-    final updated = await (update(db.cardTemplateMetas)
-          ..where((t) => t.templateUuid.equals(templateUuid)))
-        .write(
-      CardTemplateMetasCompanion(
-        modifiedAt: Value(modifiedAt),
-        deletedAt: const Value(null),
-        isCustomized:
-            isCustomized == null ? const Value.absent() : Value(isCustomized),
-      ),
-    );
+    final updated =
+        await (update(
+          db.cardTemplateMetas,
+        )..where((t) => t.templateUuid.equals(templateUuid))).write(
+          CardTemplateMetasCompanion(
+            modifiedAt: Value(modifiedAt),
+            deletedAt: const Value(null),
+            isCustomized: isCustomized == null
+                ? const Value.absent()
+                : Value(isCustomized),
+          ),
+        );
 
     if (updated > 0) return;
 

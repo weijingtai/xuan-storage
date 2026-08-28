@@ -78,15 +78,16 @@ class XiangRecordCodec implements RecordModuleCodec<XiangReading> {
   XiangReading decode(RecordMeta meta, Map<String, dynamic>? moduleData) {
     if (meta.module != module) {
       throw RecordCodecMismatch(
-          message: 'module mismatch: expected $module but got ${meta.module}');
+        message: 'module mismatch: expected $module but got ${meta.module}',
+      );
     }
-    final d = moduleData ??
-        (meta.moduleDataJson != null
-            ? jsonDecode(meta.moduleDataJson!)
-            : null);
+    final d =
+        moduleData ??
+        (meta.moduleDataJson != null ? jsonDecode(meta.moduleDataJson!) : null);
     if (d is! Map<String, dynamic>) {
       throw const FormatException(
-          'xiang moduleData is missing or not a JSON object');
+        'xiang moduleData is missing or not a JSON object',
+      );
     }
 
     final judgments =
@@ -99,9 +100,9 @@ class XiangRecordCodec implements RecordModuleCodec<XiangReading> {
           ? meta.divinationType
           : (d['methodId'] as String? ?? ''),
       methodVersion: d['methodVersion'] as int? ?? 1,
-      occurredAt: (meta.occurredAtUtc ??
-              DateTime.parse(d['occurredAt'] as String))
-          .toUtc(),
+      occurredAt:
+          (meta.occurredAtUtc ?? DateTime.parse(d['occurredAt'] as String))
+              .toUtc(),
       evidence: (d['evidence'] as List<dynamic>? ?? const [])
           .map((e) => XiangEvidence.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -117,7 +118,8 @@ class XiangRecordCodec implements RecordModuleCodec<XiangReading> {
       detailedJudgment: judgments['detailed'] == null
           ? null
           : XiangJudgment.fromJson(
-              judgments['detailed'] as Map<String, dynamic>),
+              judgments['detailed'] as Map<String, dynamic>,
+            ),
       readingSchemaVersion: d['readingSchemaVersion'] as int? ?? 1,
       renderingSnapshots: snapshots,
     );
@@ -125,11 +127,12 @@ class XiangRecordCodec implements RecordModuleCodec<XiangReading> {
 
   @override
   List<SearchTag> extractSearchTags(
-      RecordMeta meta, Map<String, dynamic>? moduleData) {
-    final d = moduleData ??
-        (meta.moduleDataJson != null
-            ? jsonDecode(meta.moduleDataJson!)
-            : null);
+    RecordMeta meta,
+    Map<String, dynamic>? moduleData,
+  ) {
+    final d =
+        moduleData ??
+        (meta.moduleDataJson != null ? jsonDecode(meta.moduleDataJson!) : null);
     if (d is! Map<String, dynamic>) return const <SearchTag>[];
 
     final tags = <SearchTag>[];

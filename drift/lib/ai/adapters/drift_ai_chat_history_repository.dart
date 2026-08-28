@@ -70,7 +70,8 @@ class DriftAiChatHistoryRepository implements AiChatHistoryRepository {
 
   @override
   Future<List<AiChatSessionContract>> listSessionsForDivination(
-      String divinationUuid) async {
+    String divinationUuid,
+  ) async {
     final rows = await _db.aiChatSessionsDao.getByDivination(divinationUuid);
     return rows.map(_sessionToContract).toList();
   }
@@ -110,7 +111,9 @@ class DriftAiChatHistoryRepository implements AiChatHistoryRepository {
 
   @override
   Future<List<AiChatMessageContract>> getLastMessages(
-      String sessionUuid, int count) async {
+    String sessionUuid,
+    int count,
+  ) async {
     final rows = await _db.aiChatMessagesDao.getLastN(sessionUuid, count);
     return rows.map(_messageToContract).toList();
   }
@@ -131,10 +134,13 @@ class DriftAiChatHistoryRepository implements AiChatHistoryRepository {
       _db.aiChatMessagesDao.appendContent(messageUuid, content);
 
   @override
-  Future<void> completeStreamingMessage(String messageUuid,
-          {String? usageJson}) =>
-      _db.aiChatMessagesDao
-          .completeStreaming(messageUuid, usageJson: usageJson);
+  Future<void> completeStreamingMessage(
+    String messageUuid, {
+    String? usageJson,
+  }) => _db.aiChatMessagesDao.completeStreaming(
+    messageUuid,
+    usageJson: usageJson,
+  );
 
   @override
   Future<void> updateSessionTitle(String sessionUuid, String title) =>

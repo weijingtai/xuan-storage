@@ -11,6 +11,5 @@ class ZiweidoushuModuleRegistry {
   static ZiweiRecordRepository repository({
     required ScopedRecordStore store,
     Uuid? uuid,
-  }) =>
-      RecordBackedZiweiRepository(store: store, codec: codec(), uuid: uuid);
+  }) => RecordBackedZiweiRepository(store: store, codec: codec(), uuid: uuid);
 }

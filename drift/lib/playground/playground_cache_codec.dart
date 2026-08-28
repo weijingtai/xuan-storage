@@ -19,9 +19,7 @@ List<PlaygroundAttachment> decodeAttachments(String? json) {
   if (json == null || json.isEmpty) return const [];
   final raw = jsonDecode(json);
   if (raw is! List) return const [];
-  return raw
-      .map((e) => mapToAttachment(e as Map<String, dynamic>))
-      .toList();
+  return raw.map((e) => mapToAttachment(e as Map<String, dynamic>)).toList();
 }
 
 /// 把单个附件序列化为 JSON 字符串；null → null。

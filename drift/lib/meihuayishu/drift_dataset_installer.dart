@@ -19,26 +19,34 @@ class MeihuaDriftDatasetGenerationStore implements DatasetGenerationStore {
 
   @override
   Future<InstalledDataset?> findGeneration(
-      String datasetId, int generation) async {
-    final row = await (_db.select(_db.meihuaDatasetGenerations)
-          ..where((t) =>
-              t.datasetId.equals(datasetId) & t.generation.equals(generation)))
-        .getSingleOrNull();
+    String datasetId,
+    int generation,
+  ) async {
+    final row =
+        await (_db.select(_db.meihuaDatasetGenerations)..where(
+              (t) =>
+                  t.datasetId.equals(datasetId) &
+                  t.generation.equals(generation),
+            ))
+            .getSingleOrNull();
     return row == null ? null : _toInstalled(row);
   }
 
   @override
   Future<List<InstalledDataset>> listGenerations(String datasetId) async {
-    final rows = await (_db.select(_db.meihuaDatasetGenerations)
-          ..where((t) => t.datasetId.equals(datasetId))
-          ..orderBy([(t) => OrderingTerm(expression: t.generation)]))
-        .get();
+    final rows =
+        await (_db.select(_db.meihuaDatasetGenerations)
+              ..where((t) => t.datasetId.equals(datasetId))
+              ..orderBy([(t) => OrderingTerm(expression: t.generation)]))
+            .get();
     return rows.map(_toInstalled).toList();
   }
 
   @override
   Future<void> saveGeneration(InstalledDataset record) async {
-    await _db.into(_db.meihuaDatasetGenerations).insertOnConflictUpdate(
+    await _db
+        .into(_db.meihuaDatasetGenerations)
+        .insertOnConflictUpdate(
           MeihuaDatasetGenerationsCompanion.insert(
             datasetId: record.datasetId,
             generation: record.generation,
@@ -54,36 +62,43 @@ class MeihuaDriftDatasetGenerationStore implements DatasetGenerationStore {
 
   @override
   Future<void> deleteGeneration(String datasetId, int generation) async {
-    await (_db.delete(_db.meihuaDatasetGenerations)
-          ..where((t) =>
-              t.datasetId.equals(datasetId) & t.generation.equals(generation)))
+    await (_db.delete(_db.meihuaDatasetGenerations)..where(
+          (t) =>
+              t.datasetId.equals(datasetId) & t.generation.equals(generation),
+        ))
         .go();
   }
 
   @override
   Future<int?> activeGeneration(String datasetId) async {
-    final row = await (_db.select(_db.meihuaDatasetGenerations)
-          ..where((t) =>
-              t.datasetId.equals(datasetId) & t.status.equals('ready'))
-          ..limit(1))
-        .getSingleOrNull();
+    final row =
+        await (_db.select(_db.meihuaDatasetGenerations)
+              ..where(
+                (t) => t.datasetId.equals(datasetId) & t.status.equals('ready'),
+              )
+              ..limit(1))
+            .getSingleOrNull();
     return row?.generation;
   }
 
   @override
   Future<void> setActiveGeneration(String datasetId, int generation) async {
     await _db.transaction(() async {
-      await (_db.update(_db.meihuaDatasetGenerations)
-            ..where((t) =>
-                t.datasetId.equals(datasetId) & t.status.equals('ready')))
-          .write(const MeihuaDatasetGenerationsCompanion(
-              status: Value('superseded')));
-      await (_db.update(_db.meihuaDatasetGenerations)
-            ..where((t) =>
-                t.datasetId.equals(datasetId) &
-                t.generation.equals(generation)))
-          .write(const MeihuaDatasetGenerationsCompanion(
-              status: Value('ready')));
+      await (_db.update(_db.meihuaDatasetGenerations)..where(
+            (t) => t.datasetId.equals(datasetId) & t.status.equals('ready'),
+          ))
+          .write(
+            const MeihuaDatasetGenerationsCompanion(
+              status: Value('superseded'),
+            ),
+          );
+      await (_db.update(_db.meihuaDatasetGenerations)..where(
+            (t) =>
+                t.datasetId.equals(datasetId) & t.generation.equals(generation),
+          ))
+          .write(
+            const MeihuaDatasetGenerationsCompanion(status: Value('ready')),
+          );
     });
   }
 
@@ -120,7 +135,7 @@ class MeihuaDriftDatasetInstaller extends DatasetInstallerBase {
     required DictionaryDatabase db,
     DatasetSource? bundledSource,
   }) : super(
-          store: MeihuaDriftDatasetGenerationStore(db),
-          bundledSource: bundledSource,
-        );
+         store: MeihuaDriftDatasetGenerationStore(db),
+         bundledSource: bundledSource,
+       );
 }

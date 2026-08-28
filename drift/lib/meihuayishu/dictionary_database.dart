@@ -8,28 +8,34 @@ import 'dictionary_tables.dart';
 part 'dictionary_database.g.dart';
 
 /// 字典数据库
-@DriftDatabase(tables: [Characters, Pinyins, Etymologies, MeihuaDatasetGenerations])
+@DriftDatabase(
+  tables: [Characters, Pinyins, Etymologies, MeihuaDatasetGenerations],
+)
 class DictionaryDatabase extends _$DictionaryDatabase {
-  DictionaryDatabase([QueryExecutor? executor]) : super(executor ?? createDictionaryConnection());
+  DictionaryDatabase([QueryExecutor? executor])
+    : super(executor ?? createDictionaryConnection());
 
   @override
   int get schemaVersion => 1;
 
   /// 查询单个汉字
   Future<DictionaryCharacter?> queryCharacter(String character) {
-    return (select(characters)..where((c) => c.character.equals(character)))
-        .getSingleOrNull();
+    return (select(
+      characters,
+    )..where((c) => c.character.equals(character))).getSingleOrNull();
   }
 
   /// 查询汉字的所有拼音
   Future<List<DictionaryPinyin>> queryPinyins(int characterId) {
-    return (select(pinyins)..where((p) => p.characterId.equals(characterId)))
-        .get();
+    return (select(
+      pinyins,
+    )..where((p) => p.characterId.equals(characterId))).get();
   }
 
   /// 根据汉字查询拼音
   Future<List<DictionaryPinyin>> queryPinyinsByCharacter(
-      String character) async {
+    String character,
+  ) async {
     final char = await queryCharacter(character);
     if (char == null) return [];
     return queryPinyins(char.id);
@@ -37,9 +43,9 @@ class DictionaryDatabase extends _$DictionaryDatabase {
 
   /// 查询汉字的字源信息
   Future<List<DictionaryEtymology>> queryEtymology(int characterId) {
-    return (select(etymologies)
-          ..where((e) => e.characterId.equals(characterId)))
-        .get();
+    return (select(
+      etymologies,
+    )..where((e) => e.characterId.equals(characterId))).get();
   }
 
   /// 获取汉字的笔画数（通过计算 matches_json 数组长度）

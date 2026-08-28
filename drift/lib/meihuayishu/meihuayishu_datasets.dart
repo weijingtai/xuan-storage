@@ -91,10 +91,7 @@ class MeihuaSqlMaterializer implements AssetBackedMaterializer {
     final sqlText = utf8.decode(bytes);
     await db.customStatement(sqlText);
     final actualRows = await _countRows();
-    return MaterializeOutcome(
-      rowCount: actualRows,
-      bytesOnDisk: bytes.length,
-    );
+    return MaterializeOutcome(rowCount: actualRows, bytesOnDisk: bytes.length);
   }
 
   @override
@@ -105,7 +102,8 @@ class MeihuaSqlMaterializer implements AssetBackedMaterializer {
   Future<int> _countRows() async {
     var total = 0;
     for (final t in const ['characters', 'pinyin', 'etymology']) {
-      final row = await db.customSelect('SELECT COUNT(*) AS c FROM $t')
+      final row = await db
+          .customSelect('SELECT COUNT(*) AS c FROM $t')
           .getSingle();
       total += row.read<int>('c');
     }

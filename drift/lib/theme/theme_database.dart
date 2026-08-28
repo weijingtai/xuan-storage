@@ -32,7 +32,12 @@ part 'theme_database.g.dart';
 /// schemaVersion 从 1 起（D2）。未来主题落地结构升级递增本库版本，
 /// 与主库 PersistenceDriftDatabase 的版本号无关。
 @DriftDatabase(
-  tables: [ThemeTokens, ThemeOverrides, ThemeSelections, ThemeDatasetGenerations],
+  tables: [
+    ThemeTokens,
+    ThemeOverrides,
+    ThemeSelections,
+    ThemeDatasetGenerations,
+  ],
 )
 class ThemeDatabase extends _$ThemeDatabase {
   ThemeDatabase(super.e);
@@ -42,18 +47,18 @@ class ThemeDatabase extends _$ThemeDatabase {
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        onCreate: (m) async {
-          await m.createAll();
-          await _createThemeTokenIndices();
-        },
-        // 独立库 v1 起步，暂无升级路径。未来加表/列时在此追加 from<N> 分支。
-        onUpgrade: (m, from, to) async {
-          if (from < 1) {
-            await m.createAll();
-            await _createThemeTokenIndices();
-          }
-        },
-      );
+    onCreate: (m) async {
+      await m.createAll();
+      await _createThemeTokenIndices();
+    },
+    // 独立库 v1 起步，暂无升级路径。未来加表/列时在此追加 from<N> 分支。
+    onUpgrade: (m, from, to) async {
+      if (from < 1) {
+        await m.createAll();
+        await _createThemeTokenIndices();
+      }
+    },
+  );
 
   /// m.createAll 会建表声明的索引，但 onCreate 额外显式建一次以与
   /// onUpgrade 路径对齐（照主库 _createBlobIndices 的防御性写法）。

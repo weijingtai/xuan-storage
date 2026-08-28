@@ -13,7 +13,7 @@ class DriftDivinationCaseRepository
         DivinationParticipantRepository,
         PanelRefRepository {
   DriftDivinationCaseRepository(this.db, {required ScopedRecordStore store})
-      : _store = store;
+    : _store = store;
   final PersistenceDriftDatabase db;
   final ScopedRecordStore _store;
 
@@ -22,14 +22,17 @@ class DriftDivinationCaseRepository
   @override
   Future<DivinationCaseModel?> getCase(String uuid) async {
     final query = db.select(db.divinationCases)
-      ..where((t) => t.uuid.equals(uuid));
+      ..where((t) => t.uuid.equals(uuid) & t.scopeUid.equals(_store.scopeUid));
     final row = await query.getSingleOrNull();
     return row == null ? null : _caseFromRow(row);
   }
 
   @override
-  Future<List<DivinationCaseModel>> listCases({bool includeDeleted = false}) async {
-    final query = db.select(db.divinationCases);
+  Future<List<DivinationCaseModel>> listCases({
+    bool includeDeleted = false,
+  }) async {
+    final query = db.select(db.divinationCases)
+      ..where((t) => t.scopeUid.equals(_store.scopeUid));
     if (!includeDeleted) {
       query.where((t) => t.deletedAt.isNull());
     }
@@ -39,6 +42,12 @@ class DriftDivinationCaseRepository
 
   @override
   Future<void> saveCase(DivinationCaseModel model) async {
+    final existing = await (db.select(
+      db.divinationCases,
+    )..where((t) => t.uuid.equals(model.uuid))).getSingleOrNull();
+    if (existing != null && existing.scopeUid != _store.scopeUid) {
+      throw StateError('Case ${model.uuid} belongs to another scope');
+    }
     await db.into(db.divinationCases).insertOnConflictUpdate(_caseToRow(model));
   }
 
@@ -74,9 +83,16 @@ class DriftDivinationCaseRepository
   // --- DivinationRecordRepository ---
 
   @override
-  Future<List<DivinationRecordModel>> listRecordsForCase(String caseUuid) async {
+  Future<List<DivinationRecordModel>> listRecordsForCase(
+    String caseUuid,
+  ) async {
     final query = db.select(db.tRecordMeta)
-      ..where((t) => t.caseUuid.equals(caseUuid) & t.deletedAt.isNull());
+      ..where(
+        (t) =>
+            t.caseUuid.equals(caseUuid) &
+            t.scopeUid.equals(_store.scopeUid) &
+            t.deletedAt.isNull(),
+      );
     final rows = await query.get();
     return rows.map(_recordFromRow).toList();
   }
@@ -84,44 +100,54 @@ class DriftDivinationCaseRepository
   @override
   Future<DivinationRecordModel?> getRecord(String uuid) async {
     final query = db.select(db.tRecordMeta)
-      ..where((t) => t.uuid.equals(uuid));
+      ..where((t) => t.uuid.equals(uuid) & t.scopeUid.equals(_store.scopeUid));
     final row = await query.getSingleOrNull();
     return row == null ? null : _recordFromRow(row);
   }
 
   @override
   Future<void> saveRecord(DivinationRecordModel model) async {
-    final existing = await (db.select(db.tRecordMeta)
-          ..where((t) => t.uuid.equals(model.uuid)))
-        .getSingleOrNull();
+    final existing =
+        await (db.select(db.tRecordMeta)..where(
+              (t) =>
+                  t.uuid.equals(model.uuid) &
+                  t.scopeUid.equals(_store.scopeUid),
+            ))
+            .getSingleOrNull();
     if (existing != null) {
-      await (db.update(db.tRecordMeta)..where((t) => t.uuid.equals(model.uuid))).write(
-        TRecordMetaCompanion(
-          caseUuid: Value(model.caseUuid),
-          question: Value(model.question),
-          detail: Value(model.detail),
-          directPredict: Value(model.directlyPredict),
-          updatedAt: Value(DateTime.now().toUtc()),
-          deletedAt: Value(model.deletedAt),
-        ),
-      );
+      await (db.update(db.tRecordMeta)..where(
+            (t) =>
+                t.uuid.equals(model.uuid) & t.scopeUid.equals(_store.scopeUid),
+          ))
+          .write(
+            TRecordMetaCompanion(
+              caseUuid: Value(model.caseUuid),
+              question: Value(model.question),
+              detail: Value(model.detail),
+              directPredict: Value(model.directlyPredict),
+              updatedAt: Value(DateTime.now().toUtc()),
+              deletedAt: Value(model.deletedAt),
+            ),
+          );
     } else {
-      await db.into(db.tRecordMeta).insertOnConflictUpdate(
-        TRecordMetaCompanion(
-          uuid: Value(model.uuid),
-          scopeUid: Value(_store.scopeUid),
-          module: const Value('divination_case'),
-          category: const Value('record'),
-          divinationType: const Value('general'),
-          caseUuid: Value(model.caseUuid),
-          question: Value(model.question),
-          detail: Value(model.detail),
-          directPredict: Value(model.directlyPredict),
-          createdAt: Value(model.createdAt.toUtc()),
-          deletedAt: Value(model.deletedAt),
-          rev: const Value(1),
-        ),
-      );
+      await db
+          .into(db.tRecordMeta)
+          .insertOnConflictUpdate(
+            TRecordMetaCompanion(
+              uuid: Value(model.uuid),
+              scopeUid: Value(_store.scopeUid),
+              module: const Value('divination_case'),
+              category: const Value('record'),
+              divinationType: const Value('general'),
+              caseUuid: Value(model.caseUuid),
+              question: Value(model.question),
+              detail: Value(model.detail),
+              directPredict: Value(model.directlyPredict),
+              createdAt: Value(model.createdAt.toUtc()),
+              deletedAt: Value(model.deletedAt),
+              rev: const Value(1),
+            ),
+          );
     }
   }
 
@@ -141,9 +167,13 @@ class DriftDivinationCaseRepository
   // --- DivinationWorkItemRepository ---
 
   @override
-  Future<List<DivinationWorkItemModel>> listWorkItemsForCase(String caseUuid) async {
+  Future<List<DivinationWorkItemModel>> listWorkItemsForCase(
+    String caseUuid,
+  ) async {
     final query = db.select(db.divinationWorkItems)
-      ..where((t) => t.caseUuid.equals(caseUuid));
+      ..where(
+        (t) => t.caseUuid.equals(caseUuid) & t.scopeUid.equals(_store.scopeUid),
+      );
     final rows = await query.get();
     return rows.map(_workItemFromRow).toList();
   }
@@ -151,14 +181,17 @@ class DriftDivinationCaseRepository
   @override
   Future<DivinationWorkItemModel?> getWorkItem(String uuid) async {
     final query = db.select(db.divinationWorkItems)
-      ..where((t) => t.uuid.equals(uuid));
+      ..where((t) => t.uuid.equals(uuid) & t.scopeUid.equals(_store.scopeUid));
     final row = await query.getSingleOrNull();
     return row == null ? null : _workItemFromRow(row);
   }
 
   @override
   Future<void> saveWorkItem(DivinationWorkItemModel model) async {
-    await db.into(db.divinationWorkItems).insertOnConflictUpdate(_workItemToRow(model));
+    await _validateWorkItemWrite(model);
+    await db
+        .into(db.divinationWorkItems)
+        .insertOnConflictUpdate(_workItemToRow(model));
   }
 
   DivinationWorkItemModel _workItemFromRow(DivinationWorkItem row) {
@@ -195,16 +228,23 @@ class DriftDivinationCaseRepository
   // --- DivinationParticipantRepository ---
 
   @override
-  Future<List<DivinationParticipantModel>> listParticipantsForCase(String caseUuid) async {
+  Future<List<DivinationParticipantModel>> listParticipantsForCase(
+    String caseUuid,
+  ) async {
     final query = db.select(db.caseParticipants)
-      ..where((t) => t.caseUuid.equals(caseUuid));
+      ..where(
+        (t) => t.caseUuid.equals(caseUuid) & t.scopeUid.equals(_store.scopeUid),
+      );
     final rows = await query.get();
     return rows.map(_participantFromRow).toList();
   }
 
   @override
   Future<void> saveParticipant(DivinationParticipantModel model) async {
-    await db.into(db.caseParticipants).insertOnConflictUpdate(_participantToRow(model));
+    await _validateParticipantWrite(model);
+    await db
+        .into(db.caseParticipants)
+        .insertOnConflictUpdate(_participantToRow(model));
   }
 
   DivinationParticipantModel _participantFromRow(CaseParticipant row) {
@@ -218,7 +258,9 @@ class DriftDivinationCaseRepository
     );
   }
 
-  CaseParticipantsCompanion _participantToRow(DivinationParticipantModel model) {
+  CaseParticipantsCompanion _participantToRow(
+    DivinationParticipantModel model,
+  ) {
     return CaseParticipantsCompanion.insert(
       uuid: model.uuid,
       scopeUid: Value(_store.scopeUid),
@@ -232,7 +274,10 @@ class DriftDivinationCaseRepository
 
   /// 通过 t_record_meta (module='seeker') 解析 seeker 名称。
   /// 返回 nickname ?? username, 如果不存在则返回 null。
-  Future<String?> resolveSeekerName(String seekerUuid, ScopedRecordStore store) async {
+  Future<String?> resolveSeekerName(
+    String seekerUuid,
+    ScopedRecordStore store,
+  ) async {
     final repo = SeekerModuleRegistry.repository(store: store);
     final seeker = await repo.getSeekerByUuid(seekerUuid);
     return seeker?.nickname ?? seeker?.username;
@@ -243,27 +288,172 @@ class DriftDivinationCaseRepository
   @override
   Future<PanelRefModel?> getPanelRef(String uuid) async {
     final query = db.select(db.panelRefs)
-      ..where((t) => t.uuid.equals(uuid));
+      ..where((t) => t.uuid.equals(uuid) & t.scopeUid.equals(_store.scopeUid));
     final row = await query.getSingleOrNull();
     return row == null ? null : _panelRefFromRow(row);
   }
 
   @override
   Future<void> savePanelRef(PanelRefModel model) async {
+    await _validatePanelRefWrite(model);
     await db.into(db.panelRefs).insertOnConflictUpdate(_panelRefToRow(model));
   }
 
   @override
-  Future<List<WorkItemPanelRefModel>> listPanelRefsForWorkItem(String workItemUuid) async {
+  Future<List<WorkItemPanelRefModel>> listPanelRefsForWorkItem(
+    String workItemUuid,
+  ) async {
     final query = db.select(db.workItemPanelRefs)
-      ..where((t) => t.workItemUuid.equals(workItemUuid));
+      ..where(
+        (t) =>
+            t.workItemUuid.equals(workItemUuid) &
+            t.scopeUid.equals(_store.scopeUid),
+      );
     final rows = await query.get();
     return rows.map(_workItemPanelRefFromRow).toList();
   }
 
   @override
   Future<void> attachPanelRefToWorkItem(WorkItemPanelRefModel model) async {
-    await db.into(db.workItemPanelRefs).insertOnConflictUpdate(_workItemPanelRefToRow(model));
+    await _validateWorkItemPanelRefWrite(model);
+    await db
+        .into(db.workItemPanelRefs)
+        .insertOnConflictUpdate(_workItemPanelRefToRow(model));
+  }
+
+  Future<void> _validateWorkItemWrite(DivinationWorkItemModel model) async {
+    final existing = await (db.select(
+      db.divinationWorkItems,
+    )..where((t) => t.uuid.equals(model.uuid))).getSingleOrNull();
+    if (existing != null && existing.scopeUid != _store.scopeUid) {
+      throw StateError('WorkItem ${model.uuid} belongs to another scope');
+    }
+
+    final caseRow =
+        await (db.select(db.divinationCases)..where(
+              (t) =>
+                  t.uuid.equals(model.caseUuid) &
+                  t.scopeUid.equals(_store.scopeUid),
+            ))
+            .getSingleOrNull();
+    if (caseRow == null) {
+      throw StateError('Case ${model.caseUuid} is not in the current scope');
+    }
+
+    final parentUuid = model.parentWorkItemUuid;
+    if (parentUuid == null) return;
+    final parent = await (db.select(
+      db.divinationWorkItems,
+    )..where((t) => t.uuid.equals(parentUuid))).getSingleOrNull();
+    if (parent == null || parent.scopeUid != _store.scopeUid) {
+      throw StateError(
+        'Parent WorkItem $parentUuid is not in the current scope',
+      );
+    }
+    if (parent.caseUuid != model.caseUuid) {
+      throw StateError('Parent WorkItem $parentUuid belongs to another case');
+    }
+  }
+
+  Future<void> _validateParticipantWrite(
+    DivinationParticipantModel model,
+  ) async {
+    final existing = await (db.select(
+      db.caseParticipants,
+    )..where((t) => t.uuid.equals(model.uuid))).getSingleOrNull();
+    if (existing != null && existing.scopeUid != _store.scopeUid) {
+      throw StateError('Participant ${model.uuid} belongs to another scope');
+    }
+    final caseRow =
+        await (db.select(db.divinationCases)..where(
+              (t) =>
+                  t.uuid.equals(model.caseUuid) &
+                  t.scopeUid.equals(_store.scopeUid),
+            ))
+            .getSingleOrNull();
+    if (caseRow == null) {
+      throw StateError('Case ${model.caseUuid} is not in the current scope');
+    }
+    final recordUuid = model.recordUuid;
+    if (recordUuid == null) return;
+    final record = await (db.select(
+      db.tRecordMeta,
+    )..where((t) => t.uuid.equals(recordUuid))).getSingleOrNull();
+    if (record != null && record.scopeUid != _store.scopeUid) {
+      throw StateError(
+        'Participant record $recordUuid belongs to another scope',
+      );
+    }
+    if (record != null &&
+        record.caseUuid != null &&
+        record.caseUuid != model.caseUuid) {
+      throw StateError(
+        'Participant record $recordUuid belongs to another case',
+      );
+    }
+  }
+
+  Future<void> _validatePanelRefWrite(PanelRefModel model) async {
+    final existing = await (db.select(
+      db.panelRefs,
+    )..where((t) => t.uuid.equals(model.uuid))).getSingleOrNull();
+    if (existing != null && existing.scopeUid != _store.scopeUid) {
+      throw StateError('PanelRef ${model.uuid} belongs to another scope');
+    }
+
+    // PanelRef may target either a record-backed panel or a legacy global
+    // panel. Whenever the target is record-backed, enforce both scope and
+    // declared module; unresolved external panel IDs remain valid references.
+    final record = await (db.select(
+      db.tRecordMeta,
+    )..where((t) => t.uuid.equals(model.panelUuid))).getSingleOrNull();
+    if (record == null) return;
+    if (record.scopeUid != _store.scopeUid) {
+      throw StateError('Panel ${model.panelUuid} belongs to another scope');
+    }
+    if (record.module != model.module) {
+      throw StateError(
+        'Panel ${model.panelUuid} module ${record.module} does not match ${model.module}',
+      );
+    }
+  }
+
+  Future<void> _validateWorkItemPanelRefWrite(
+    WorkItemPanelRefModel model,
+  ) async {
+    final existing = await (db.select(
+      db.workItemPanelRefs,
+    )..where((t) => t.uuid.equals(model.uuid))).getSingleOrNull();
+    if (existing != null && existing.scopeUid != _store.scopeUid) {
+      throw StateError(
+        'WorkItemPanelRef ${model.uuid} belongs to another scope',
+      );
+    }
+
+    final workItem = await (db.select(
+      db.divinationWorkItems,
+    )..where((t) => t.uuid.equals(model.workItemUuid))).getSingleOrNull();
+    if (workItem == null || workItem.scopeUid != _store.scopeUid) {
+      throw StateError(
+        'WorkItem ${model.workItemUuid} is not in the current scope',
+      );
+    }
+    final panelRef = await (db.select(
+      db.panelRefs,
+    )..where((t) => t.uuid.equals(model.panelRefUuid))).getSingleOrNull();
+    if (panelRef == null || panelRef.scopeUid != _store.scopeUid) {
+      throw StateError(
+        'PanelRef ${model.panelRefUuid} is not in the current scope',
+      );
+    }
+    final targetRecord = await (db.select(
+      db.tRecordMeta,
+    )..where((t) => t.uuid.equals(panelRef.panelUuid))).getSingleOrNull();
+    if (targetRecord != null &&
+        targetRecord.caseUuid != null &&
+        targetRecord.caseUuid != workItem.caseUuid) {
+      throw StateError('PanelRef ${model.panelRefUuid} targets another case');
+    }
   }
 
   PanelRefModel _panelRefFromRow(PanelRef row) {
@@ -299,7 +489,9 @@ class DriftDivinationCaseRepository
     );
   }
 
-  WorkItemPanelRefsCompanion _workItemPanelRefToRow(WorkItemPanelRefModel model) {
+  WorkItemPanelRefsCompanion _workItemPanelRefToRow(
+    WorkItemPanelRefModel model,
+  ) {
     return WorkItemPanelRefsCompanion.insert(
       uuid: model.uuid,
       scopeUid: Value(_store.scopeUid),
@@ -312,10 +504,16 @@ class DriftDivinationCaseRepository
 
   /// 通过 work_item_uuid 找到关联的 t_record_meta，再查询其 decision_links。
   Future<List<DecisionLinkRow>> getDecisionLinksForWorkItem(
-      String workItemUuid, String scopeUid) async {
-    final records = await (db.select(db.tRecordMeta)
-          ..where((t) => t.workItemUuid.equals(workItemUuid) & t.scopeUid.equals(scopeUid)))
-        .get();
+    String workItemUuid,
+    String scopeUid,
+  ) async {
+    final records =
+        await (db.select(db.tRecordMeta)..where(
+              (t) =>
+                  t.workItemUuid.equals(workItemUuid) &
+                  t.scopeUid.equals(scopeUid),
+            ))
+            .get();
     if (records.isEmpty) return [];
     final recordUuids = records.map((r) => r.uuid).toSet();
     final results = <DecisionLinkRow>[];

@@ -42,13 +42,13 @@ class CreationAuditLogs extends Table {
   // 本仓 drift 版本不会自动创建此处声明的索引，实际创建见 persistence_drift.dart 的 _createAuditLogIndices()。
   @override
   List<Index> get indexes => [
-        Index(
-          'idx_audit_case_uuid',
-          'CREATE INDEX idx_audit_case_uuid ON t_creation_audit_logs(case_uuid);',
-        ),
-        Index(
-          'idx_audit_audited_at',
-          'CREATE INDEX idx_audit_audited_at ON t_creation_audit_logs(audited_at DESC);',
-        ),
-      ];
+    Index(
+      'idx_audit_case_uuid',
+      'CREATE INDEX idx_audit_case_uuid ON t_creation_audit_logs(case_uuid);',
+    ),
+    Index(
+      'idx_audit_audited_at',
+      'CREATE INDEX idx_audit_audited_at ON t_creation_audit_logs(audited_at DESC);',
+    ),
+  ];
 }

@@ -65,16 +65,15 @@ class CreationAuditLogsDao extends DatabaseAccessor<PersistenceDriftDatabase>
     required DateTime end,
   }) {
     return (select(creationAuditLogs)
-          ..where(
-              (t) => t.auditedAt.isBetweenValues(start, end))
+          ..where((t) => t.auditedAt.isBetweenValues(start, end))
           ..orderBy([(t) => OrderingTerm.desc(t.auditedAt)]))
         .get();
   }
 
   /// 删除某案例的所有审计记录
   Future<int> deleteAuditLogsByCaseUuid(String caseUuid) {
-    return (delete(creationAuditLogs)
-          ..where((t) => t.caseUuid.equals(caseUuid)))
-        .go();
+    return (delete(
+      creationAuditLogs,
+    )..where((t) => t.caseUuid.equals(caseUuid))).go();
   }
 }

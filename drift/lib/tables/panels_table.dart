@@ -12,8 +12,7 @@ class Panels extends Table {
   // [单盘、合盘、合婚(合盘的一种，但)、同参(俗称‘穿’)、校验]
   IntColumn get panelType => intEnum<EnumPanelType>().named('panel_type')();
   // 一对一关系
-  IntColumn get skillId =>
-      integer().named('skill_id')();
+  IntColumn get skillId => integer().named('skill_id')();
 
   // 随机起盘（如，三式从阴阳遁局中随机选取），手动指定，时间起盘，数字起盘、测字等。
   TextColumn get divinateType => text().named('divinate_type')();

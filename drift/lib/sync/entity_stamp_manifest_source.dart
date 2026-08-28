@@ -15,7 +15,8 @@ import '../persistence_drift.dart';
 /// 分片。record 实体单账号行数在千级以下，t_entity_stamp 是窄表（5 列），
 /// 全读的成本可接受；若未来单分片实体量上十万，再换 keyset 游标分页
 /// （WHERE entity_id > last）以保持分片边界稳定。
-class EntityStampManifestSource extends DatabaseAccessor<PersistenceDriftDatabase>
+class EntityStampManifestSource
+    extends DatabaseAccessor<PersistenceDriftDatabase>
     implements ManifestSource {
   /// 构造一个 [EntityStampManifestSource]。
   ///
@@ -36,14 +37,15 @@ class EntityStampManifestSource extends DatabaseAccessor<PersistenceDriftDatabas
       throw ArgumentError.value(pageSize, 'pageSize', '必须 > 0');
     }
 
-    final rows = await (select(db.entityStamps)
-          ..where(
-            (t) =>
-                t.scopeUid.equals(scopeUid) &
-                t.entityType.equals(entityType),
-          )
-          ..orderBy([(t) => OrderingTerm.asc(t.entityId)]))
-        .get();
+    final rows =
+        await (select(db.entityStamps)
+              ..where(
+                (t) =>
+                    t.scopeUid.equals(scopeUid) &
+                    t.entityType.equals(entityType),
+              )
+              ..orderBy([(t) => OrderingTerm.asc(t.entityId)]))
+            .get();
 
     if (rows.isEmpty) {
       // 契约：该 (scopeUid, entityType) 有实体类型但清单为空 → 返回空片，

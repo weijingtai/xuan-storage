@@ -21,8 +21,8 @@ class RecordReconciliationApplier implements LocalReconciliationApplier {
   RecordReconciliationApplier({
     required RecordLocalApplier delegate,
     required DateTime Function() nowUtc,
-  })  : _delegate = delegate,
-        _nowUtc = nowUtc;
+  }) : _delegate = delegate,
+       _nowUtc = nowUtc;
 
   final RecordLocalApplier _delegate;
   final DateTime Function() _nowUtc;
@@ -45,24 +45,26 @@ class RecordReconciliationApplier implements LocalReconciliationApplier {
 
     final changes = <RemoteChange>[];
     for (final t in terminals) {
-      changes.add(RemoteChange(
-        // 全量对齐没有远端 operationId：用稳定可去重的合成 id。
-        // 前缀 `reconciled:` 保证与增量 oplog 的 operationId 空间不撞。
-        operationId: 'reconciled:$entityType:${t.entityId}',
-        entityType: entityType,
-        entityId: t.entityId,
-        opType: t.isDeleted
-            ? RecordOutboxMapper.opDelete
-            : RecordOutboxMapper.opUpsert,
-        cursor: TimestampCursor(
-          serverUpdatedAtUtc: _nowUtc(),
-          tieBreaker: 'reconciled:${t.entityId}',
+      changes.add(
+        RemoteChange(
+          // 全量对齐没有远端 operationId：用稳定可去重的合成 id。
+          // 前缀 `reconciled:` 保证与增量 oplog 的 operationId 空间不撞。
+          operationId: 'reconciled:$entityType:${t.entityId}',
+          entityType: entityType,
+          entityId: t.entityId,
+          opType: t.isDeleted
+              ? RecordOutboxMapper.opDelete
+              : RecordOutboxMapper.opUpsert,
+          cursor: TimestampCursor(
+            serverUpdatedAtUtc: _nowUtc(),
+            tieBreaker: 'reconciled:${t.entityId}',
+          ),
+          payloadJson: t.payloadJson ?? '{}',
+          serverTimeUtc: null,
+          hlcPacked: t.hlcPacked,
+          deviceId: t.deviceId,
         ),
-        payloadJson: t.payloadJson ?? '{}',
-        serverTimeUtc: null,
-        hlcPacked: t.hlcPacked,
-        deviceId: t.deviceId,
-      ));
+      );
     }
 
     final result = await _delegate.applyRemoteChanges(

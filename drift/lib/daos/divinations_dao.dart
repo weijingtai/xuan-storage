@@ -11,7 +11,7 @@ class DivinationsDao extends DatabaseAccessor<PersistenceDriftDatabase>
   DivinationsDao(this.db) : super(db);
 
   SimpleSelectStatement<$DivinationsTable, DivinationRequestInfoDataModel>
-      _baseSelect() => select(db.divinations);
+  _baseSelect() => select(db.divinations);
 
   Future<List<DivinationRequestInfoDataModel>> getAllDivinations() {
     return (_baseSelect()..where((tbl) => tbl.deletedAt.isNull())).get();
@@ -32,7 +32,8 @@ class DivinationsDao extends DatabaseAccessor<PersistenceDriftDatabase>
   }
 
   Future<int> softDeleteDivination(String uuid) {
-    return (update(db.divinations)..where((t) => t.uuid.equals(uuid)))
-        .write(DivinationsCompanion(deletedAt: Value(DateTime.now())));
+    return (update(db.divinations)..where((t) => t.uuid.equals(uuid))).write(
+      DivinationsCompanion(deletedAt: Value(DateTime.now())),
+    );
   }
 }

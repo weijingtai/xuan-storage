@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:persistence_drift/tables/divinations_table.dart';
 
-
 @DataClassName('CombinedDivination')
 class CombinedDivinations extends Table {
   @override

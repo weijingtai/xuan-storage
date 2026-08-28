@@ -13,18 +13,20 @@ class AiProvenancesDao extends DatabaseAccessor<AiDatabase>
 
   /// Get provenance by UUID
   Future<AiProvenance?> getByUuid(String uuid) {
-    return (select(aiProvenances)..where((t) => t.uuid.equals(uuid)))
-        .getSingleOrNull();
+    return (select(
+      aiProvenances,
+    )..where((t) => t.uuid.equals(uuid))).getSingleOrNull();
   }
 
   /// Get provenance chain for an entity
   Future<List<AiProvenance>> getChain(String entityUuid) async {
     final List<AiProvenance> chain = [];
-    AiProvenance? current = await (select(aiProvenances)
-          ..where((t) => t.entityUuid.equals(entityUuid))
-          ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
-          ..limit(1))
-        .getSingleOrNull();
+    AiProvenance? current =
+        await (select(aiProvenances)
+              ..where((t) => t.entityUuid.equals(entityUuid))
+              ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
+              ..limit(1))
+            .getSingleOrNull();
 
     while (current != null) {
       chain.add(current);

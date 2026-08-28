@@ -29,7 +29,9 @@ class PromptSkillBindingsDao extends DatabaseAccessor<AiDatabase>
 
   /// Get bindings by type for a skill
   Future<List<PromptSkillBinding>> getBySkillAndType(
-      int skillId, String bindingType) {
+    int skillId,
+    String bindingType,
+  ) {
     return (select(promptSkillBindings)
           ..where((t) => t.skillId.equals(skillId))
           ..where((t) => t.bindingType.equals(bindingType))
@@ -66,7 +68,8 @@ class PromptSkillBindingsDao extends DatabaseAccessor<AiDatabase>
 
   /// Soft delete a binding
   Future<void> softDelete(int id) {
-    return (update(promptSkillBindings)..where((t) => t.id.equals(id)))
-        .write(PromptSkillBindingsCompanion(deletedAt: Value(DateTime.now())));
+    return (update(promptSkillBindings)..where((t) => t.id.equals(id))).write(
+      PromptSkillBindingsCompanion(deletedAt: Value(DateTime.now())),
+    );
   }
 }

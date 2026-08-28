@@ -40,7 +40,10 @@ class RecordModuleRegistry {
   }) {
     switch (module) {
       case 'meihua':
-        return MeiHuaModuleRegistry.repository(store: store, scopeUid: scopeUid ?? store.scopeUid);
+        return MeiHuaModuleRegistry.repository(
+          store: store,
+          scopeUid: scopeUid ?? store.scopeUid,
+        );
       case 'liuyao':
         return LiuYaoModuleRegistry.repository(store: store);
       case 'qizhengsiyu':

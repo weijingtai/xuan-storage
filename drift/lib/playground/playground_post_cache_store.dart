@@ -23,25 +23,25 @@ class DriftPlaygroundPostCacheStore
 
   @override
   Future<PlaygroundPost?> getPost(PlaygroundPostId postId) async {
-    final row = await (select(playgroundPostCaches)
-          ..where((t) => t.postId.equals(postId.value)))
-        .getSingleOrNull();
+    final row = await (select(
+      playgroundPostCaches,
+    )..where((t) => t.postId.equals(postId.value))).getSingleOrNull();
     if (row == null) return null;
     return rowToPost(row);
   }
 
   @override
   Future<void> upsertPost(PlaygroundPost post) async {
-    await into(playgroundPostCaches).insertOnConflictUpdate(
-      postToCompanion(post),
-    );
+    await into(
+      playgroundPostCaches,
+    ).insertOnConflictUpdate(postToCompanion(post));
   }
 
   @override
   Future<void> deletePost(PlaygroundPostId postId) async {
-    await (delete(playgroundPostCaches)
-          ..where((t) => t.postId.equals(postId.value)))
-        .go();
+    await (delete(
+      playgroundPostCaches,
+    )..where((t) => t.postId.equals(postId.value))).go();
   }
 
   /// [PlaygroundPost] → 行写入。
@@ -50,12 +50,13 @@ class DriftPlaygroundPostCacheStore
       postId: post.id.value,
       authorUserId: post.authorUserId.value,
       textContent: post.text,
-      allowedChartTechniqueIds: encodeStringList(
-          post.allowedChartTechniqueIds),
+      allowedChartTechniqueIds: encodeStringList(post.allowedChartTechniqueIds),
       attachmentJson: Value(
-          post.attachments.isEmpty ? null : encodeAttachments(post.attachments)),
+        post.attachments.isEmpty ? null : encodeAttachments(post.attachments),
+      ),
       revisionJson: Value(
-          post.revisions.isEmpty ? null : encodeRevisions(post.revisions)),
+        post.revisions.isEmpty ? null : encodeRevisions(post.revisions),
+      ),
       status: post.status.name,
       createdAt: post.createdAt.millisecondsSinceEpoch,
       updatedAt: Value(post.updatedAt?.millisecondsSinceEpoch),

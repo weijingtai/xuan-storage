@@ -32,8 +32,7 @@ class ThemeOverrides extends Table {
   TextColumn get originKind => text().named('origin_kind')();
 
   /// 取值来源主题包 id；manual 时为 null（照 OverrideOrigin.sourceThemeId）。
-  TextColumn get originThemeId =>
-      text().nullable().named('origin_theme_id')();
+  TextColumn get originThemeId => text().nullable().named('origin_theme_id')();
 
   /// 取值时该主题包版本；manual 时为 null（照 OverrideOrigin.sourceThemeVersion）。
   TextColumn get originThemeVersion =>

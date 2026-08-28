@@ -1,8 +1,8 @@
 /// 别名身份类型。
 enum ScopeAuthKind {
-  anonymous,  // guest appUserId
+  anonymous, // guest appUserId
   registered, // 注册 appUserId
-  device,     // 设备 id (无 BaaS 场景，仅 ScopeBootstrapStore 内部标识 ghost scope)
+  device, // 设备 id (无 BaaS 场景，仅 ScopeBootstrapStore 内部标识 ghost scope)
 }
 
 /// 别名账本条目：某个身份 → 某个 scope_uid 的映射。

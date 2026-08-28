@@ -10,8 +10,8 @@ class DivinationCalendarsDao {
   }
 
   Future<List<DivinationCalendar>> getBySource(String sourceUuid) {
-    return (db.select(db.divinationCalendars)
-          ..where((t) => t.sourceUuid.equals(sourceUuid)))
-        .get();
+    return (db.select(
+      db.divinationCalendars,
+    )..where((t) => t.sourceUuid.equals(sourceUuid))).get();
   }
 }

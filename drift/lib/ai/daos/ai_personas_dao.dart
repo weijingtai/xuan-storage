@@ -50,11 +50,13 @@ class AiPersonasDao extends DatabaseAccessor<AiDatabase>
   /// Set default persona
   Future<void> setDefault(String uuid) async {
     await transaction(() async {
-      await (update(aiPersonas)..where((t) => t.isDefault.equals(true)))
-          .write(const AiPersonasCompanion(isDefault: Value(false)));
+      await (update(aiPersonas)..where((t) => t.isDefault.equals(true))).write(
+        const AiPersonasCompanion(isDefault: Value(false)),
+      );
 
-      await (update(aiPersonas)..where((t) => t.uuid.equals(uuid)))
-          .write(const AiPersonasCompanion(isDefault: Value(true)));
+      await (update(aiPersonas)..where((t) => t.uuid.equals(uuid))).write(
+        const AiPersonasCompanion(isDefault: Value(true)),
+      );
     });
   }
 
@@ -70,8 +72,9 @@ class AiPersonasDao extends DatabaseAccessor<AiDatabase>
 
   /// Soft delete a persona
   Future<void> softDelete(String uuid) {
-    return (update(aiPersonas)..where((t) => t.uuid.equals(uuid)))
-        .write(AiPersonasCompanion(deletedAt: Value(DateTime.now())));
+    return (update(aiPersonas)..where((t) => t.uuid.equals(uuid))).write(
+      AiPersonasCompanion(deletedAt: Value(DateTime.now())),
+    );
   }
 
   /// Watch all personas (for reactive UI)

@@ -11,26 +11,28 @@ Future<int> migrateMeihuaRecords({
   var migrated = 0;
   for (final row in rows) {
     // 幂等：已存在则跳过
-    final existing = await target.get(row.uuid, ctx);
-    switch (existing) {
-      case Ok(:final value):
-        if (value != null) continue;
-      case Err():
-        break;
-    }
-    final result = await target.put(MeiHuaDivinationRecordContract(
-      uuid: row.uuid, divinationUuid: row.divinationUuid, question: row.question,
-      originalUpperGua: row.originalUpperGua, originalLowerGua: row.originalLowerGua,
-      changingYao: row.changingYao, changedUpperGua: row.changedUpperGua,
-      changedLowerGua: row.changedLowerGua, huUpperGua: row.huUpperGua,
-      huLowerGua: row.huLowerGua, method: row.method, paramsJson: row.paramsJson,
-      createdAt: row.createdAt, updatedAt: row.updatedAt, deletedAt: row.deletedAt), ctx);
-    switch (result) {
-      case Ok():
-        migrated++;
-      case Err():
-        break;
-    }
+    final existing = await target.getRecordByUuid(row.uuid);
+    if (existing != null) continue;
+    await target.saveRecord(
+      MeiHuaDivinationRecordContract(
+        uuid: row.uuid,
+        divinationUuid: row.divinationUuid,
+        question: row.question,
+        originalUpperGua: row.originalUpperGua,
+        originalLowerGua: row.originalLowerGua,
+        changingYao: row.changingYao,
+        changedUpperGua: row.changedUpperGua,
+        changedLowerGua: row.changedLowerGua,
+        huUpperGua: row.huUpperGua,
+        huLowerGua: row.huLowerGua,
+        method: row.method,
+        paramsJson: row.paramsJson,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+        deletedAt: row.deletedAt,
+      ),
+    );
+    migrated++;
   }
   return migrated;
 }

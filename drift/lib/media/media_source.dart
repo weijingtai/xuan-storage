@@ -26,17 +26,19 @@ class MediaSourceData {
 
 /// 平台采集回调：由 Shell 组合根注入真实采集器（image_picker 等），
 /// 测试注入内存字节。适配器负责把原始数据交给 xuan-storage blob 生命周期。
-typedef MediaSourcePicker = Future<MediaSourceData> Function(
-  MediaRole role, {
-  double? maxWidth,
-  double? maxHeight,
-  int? maxDurationMs,
-});
+typedef MediaSourcePicker =
+    Future<MediaSourceData> Function(
+      MediaRole role, {
+      double? maxWidth,
+      double? maxHeight,
+      int? maxDurationMs,
+    });
 
 /// 视频关键帧解码回调：由平台注入（ffmpeg 等解码器），适配器负责持久化。
-typedef VideoKeyframeProvider = Future<MediaSourceData> Function(
-  MediaReference sourceVideo,
-  int positionMs, {
-  double? maxWidth,
-  double? maxHeight,
-});
+typedef VideoKeyframeProvider =
+    Future<MediaSourceData> Function(
+      MediaReference sourceVideo,
+      int positionMs, {
+      double? maxWidth,
+      double? maxHeight,
+    });

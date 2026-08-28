@@ -13,7 +13,7 @@ class CardTemplateSkillUsageDao extends DatabaseAccessor<AppDatabase>
   final AppDatabase db;
 
   SimpleSelectStatement<$CardTemplateSkillUsagesTable, CardTemplateSkillUsage>
-      _baseSelect() {
+  _baseSelect() {
     return select(db.cardTemplateSkillUsages)
       ..where((t) => t.deletedAt.isNull());
   }
@@ -55,10 +55,11 @@ class CardTemplateSkillUsageDao extends DatabaseAccessor<AppDatabase>
   }) {
     return (_baseSelect()
           ..where(
-              (t) => t.queryUuid.equals(queryUuid) & t.skillId.equals(skillId))
+            (t) => t.queryUuid.equals(queryUuid) & t.skillId.equals(skillId),
+          )
           ..orderBy([
             (t) => OrderingTerm.desc(t.usedAt),
-            (t) => OrderingTerm.desc(t.id)
+            (t) => OrderingTerm.desc(t.id),
           ])
           ..limit(1))
         .getSingleOrNull();
@@ -70,8 +71,10 @@ class CardTemplateSkillUsageDao extends DatabaseAccessor<AppDatabase>
   }) {
     final stmt = _baseSelect()
       ..where((t) => t.templateUuid.equals(templateUuid))
-      ..orderBy(
-          [(t) => OrderingTerm.desc(t.usedAt), (t) => OrderingTerm.desc(t.id)]);
+      ..orderBy([
+        (t) => OrderingTerm.desc(t.usedAt),
+        (t) => OrderingTerm.desc(t.id),
+      ]);
     if (limit != null) {
       stmt.limit(limit);
     }

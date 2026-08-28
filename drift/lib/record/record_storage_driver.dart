@@ -40,7 +40,10 @@ class RecordStorageDriver implements StorageDriver {
 
   @override
   Future<Map<String, Object?>?> readOne(
-      String resource, Object id, RawFilter filter) async {
+    String resource,
+    Object id,
+    RawFilter filter,
+  ) async {
     if (!_scopeOk(filter.scopeUid)) return null;
     final meta = await _store.getRecord('$id', module: resource);
     if (meta == null) return null;
@@ -50,7 +53,10 @@ class RecordStorageDriver implements StorageDriver {
 
   @override
   Future<List<Map<String, Object?>>> readMany(
-      String resource, RawFilter filter, RawPage page) async {
+    String resource,
+    RawFilter filter,
+    RawPage page,
+  ) async {
     if (!_scopeOk(filter.scopeUid)) return const [];
     if (filter.equals.isNotEmpty) {
       if (filter.equals.length == 1 && filter.equals.containsKey('category')) {
@@ -89,8 +95,7 @@ class RecordStorageDriver implements StorageDriver {
       // 不是同一体系，这里用「全量 + 内存过滤 + id 游标续页」实现。
       final all = await _store.listRecords(module: resource, limit: 10000);
       final filtered = all
-          .where((m) =>
-              filter.includeSoftDeleted || m.deletedAt == null)
+          .where((m) => filter.includeSoftDeleted || m.deletedAt == null)
           .where((m) => _matchesEquals(m, filter.equals))
           .toList();
       final cursorId = page.cursor == null ? null : _cursorIdOf(page.cursor!);
@@ -99,15 +104,19 @@ class RecordStorageDriver implements StorageDriver {
           : filtered.indexWhere((m) => m.uuid == cursorId) + 1;
       final end = start + page.limit;
       return filtered
-          .sublist(start.clamp(0, filtered.length),
-              end.clamp(0, filtered.length))
+          .sublist(
+            start.clamp(0, filtered.length),
+            end.clamp(0, filtered.length),
+          )
           .map(RecordRowMapper.metaToRow)
           .toList();
     }
     String? cursor;
     if (page.cursor != null) {
       final cid = _cursorIdOf(page.cursor!);
-      final anchor = cid == null ? null : await _store.getRecord(cid, module: resource);
+      final anchor = cid == null
+          ? null
+          : await _store.getRecord(cid, module: resource);
       if (anchor != null) {
         cursor = RecordCursor(anchor.createdAt, anchor.uuid).encode();
       }
@@ -146,8 +155,7 @@ class RecordStorageDriver implements StorageDriver {
       throw const StorageScopeViolation();
     }
 
-    final existing =
-        await _store.getRecord('$id', module: resource);
+    final existing = await _store.getRecord('$id', module: resource);
     if (expectedRev != null && '${existing?.rev}' != expectedRev) {
       throw StorageRevMismatch('${existing?.rev}');
     }
@@ -169,13 +177,15 @@ class RecordStorageDriver implements StorageDriver {
 
   @override
   Future<void> deleteOne(String resource, Object id, RawFilter filter) {
-    throw UnsupportedError(
-        'record 切片 M1 不提供物理删除（既有语义为软删）');
+    throw UnsupportedError('record 切片 M1 不提供物理删除（既有语义为软删）');
   }
 
   @override
   Stream<List<Map<String, Object?>>> watchMany(
-      String resource, RawFilter filter, RawPage page) {
+    String resource,
+    RawFilter filter,
+    RawPage page,
+  ) {
     if (!_scopeOk(filter.scopeUid)) {
       return Stream.value(const <Map<String, Object?>>[]);
     }
@@ -194,15 +204,13 @@ class RecordStorageDriver implements StorageDriver {
       );
     } else {
       final category = filter.equals['category'] as String?;
-      source = _store.watchRecords(
-        module: resource,
-        category: category,
-      );
+      source = _store.watchRecords(module: resource, category: category);
     }
 
     return source.map((metas) {
-      var visible = metas
-          .where((m) => filter.includeSoftDeleted || m.deletedAt == null);
+      var visible = metas.where(
+        (m) => filter.includeSoftDeleted || m.deletedAt == null,
+      );
       if (filter.equals.isNotEmpty && !filter.equals.containsKey('category')) {
         visible = visible.where((m) => _matchesEquals(m, filter.equals));
       }

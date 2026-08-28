@@ -4,14 +4,19 @@ import 'package:persistence_drift/persistence_drift.dart';
 
 part 'seekers_dao.g.dart';
 
-@Deprecated('已迁移至 t_record_meta (module=\'seeker\')，请使用 RecordBackedSeekerRepository')
+@Deprecated(
+  '已迁移至 t_record_meta (module=\'seeker\')，请使用 RecordBackedSeekerRepository',
+)
 @DriftAccessor(tables: [Seekers])
-class SeekersDao extends DatabaseAccessor<PersistenceDriftDatabase> with _$SeekersDaoMixin {
+class SeekersDao extends DatabaseAccessor<PersistenceDriftDatabase>
+    with _$SeekersDaoMixin {
   final PersistenceDriftDatabase db;
   final String? scopeUid;
   SeekersDao(this.db, {this.scopeUid}) : super(db);
 
-  SimpleSelectStatement<$SeekersTable, SeekerModel> _baseSelect({String? scopeUid}) {
+  SimpleSelectStatement<$SeekersTable, SeekerModel> _baseSelect({
+    String? scopeUid,
+  }) {
     final effectiveScope = scopeUid ?? this.scopeUid;
     final s = select(db.seekers);
     if (effectiveScope != null) {
@@ -21,7 +26,9 @@ class SeekersDao extends DatabaseAccessor<PersistenceDriftDatabase> with _$Seeke
   }
 
   Future<List<SeekerModel>> getAllSeekers({String? scopeUid}) {
-    return (_baseSelect(scopeUid: scopeUid)..where((tbl) => tbl.deletedAt.isNull())).get();
+    return (_baseSelect(
+      scopeUid: scopeUid,
+    )..where((tbl) => tbl.deletedAt.isNull())).get();
   }
 
   Future<SeekerModel?> getSeekerByUuid(String uuid, {String? scopeUid}) {
@@ -31,10 +38,13 @@ class SeekersDao extends DatabaseAccessor<PersistenceDriftDatabase> with _$Seeke
   }
 
   @Deprecated('使用 RecordModuleRegistry.repositoryFor(module: \'seeker\') 替代')
-  Future<List<SeekerModel>> getSeekersByDivinationUuid(String divinationUuid, {String? scopeUid}) {
-    return (_baseSelect(scopeUid: scopeUid)
-          ..where((t) =>
-              t.divinationUuid.equals(divinationUuid) & t.deletedAt.isNull()))
+  Future<List<SeekerModel>> getSeekersByDivinationUuid(
+    String divinationUuid, {
+    String? scopeUid,
+  }) {
+    return (_baseSelect(scopeUid: scopeUid)..where(
+          (t) => t.divinationUuid.equals(divinationUuid) & t.deletedAt.isNull(),
+        ))
         .get();
   }
 
@@ -48,8 +58,11 @@ class SeekersDao extends DatabaseAccessor<PersistenceDriftDatabase> with _$Seeke
   Future<bool> updateSeeker(SeekersCompanion companion, {String? scopeUid}) {
     final effectiveScope = scopeUid ?? this.scopeUid;
     if (effectiveScope != null) {
-      return (update(db.seekers)
-            ..where((t) => t.uuid.equals(companion.uuid.value) & t.scopeUid.equals(effectiveScope)))
+      return (update(db.seekers)..where(
+            (t) =>
+                t.uuid.equals(companion.uuid.value) &
+                t.scopeUid.equals(effectiveScope),
+          ))
           .write(companion)
           .then((count) => count > 0);
     }

@@ -35,30 +35,30 @@ part 'app_database.g.dart';
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? e, bool loadInitialData = true])
-      : _loadInitialData = loadInitialData,
-        super(
-          e ??
-              driftDatabase(
-                name: 'app_database',
-                native: const DriftNativeOptions(
-                  databaseDirectory: getApplicationSupportDirectory,
-                ),
-                web: DriftWebOptions(
-                  sqlite3Wasm: Uri.parse('sqlite3.wasm'),
-                  driftWorker: Uri.parse('drift_worker.js'),
-                  onResult: (result) {
-                    if (result.missingFeatures.isNotEmpty) {
-                      if (kDebugMode) {
-                        debugPrint(
-                          'Using ${result.chosenImplementation} due to unsupported '
-                          'browser features: ${result.missingFeatures}',
-                        );
-                      }
-                    }
-                  },
-                ),
+    : _loadInitialData = loadInitialData,
+      super(
+        e ??
+            driftDatabase(
+              name: 'app_database',
+              native: const DriftNativeOptions(
+                databaseDirectory: getApplicationSupportDirectory,
               ),
-        );
+              web: DriftWebOptions(
+                sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+                driftWorker: Uri.parse('drift_worker.js'),
+                onResult: (result) {
+                  if (result.missingFeatures.isNotEmpty) {
+                    if (kDebugMode) {
+                      debugPrint(
+                        'Using ${result.chosenImplementation} due to unsupported '
+                        'browser features: ${result.missingFeatures}',
+                      );
+                    }
+                  }
+                },
+              ),
+            ),
+      );
 
   final bool _loadInitialData;
 
@@ -163,7 +163,9 @@ class AppDatabase extends _$AppDatabase {
       if (relativePath.startsWith('packages/xuan_four_zhu_card/')) {
         return rootBundle.loadString(relativePath);
       }
-      return await rootBundle.loadString('packages/xuan_four_zhu_card/$relativePath');
+      return await rootBundle.loadString(
+        'packages/xuan_four_zhu_card/$relativePath',
+      );
     } catch (_) {
       return rootBundle.loadString(relativePath);
     }

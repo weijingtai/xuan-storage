@@ -19,8 +19,9 @@ class AiApiCallsDao extends DatabaseAccessor<AiDatabase>
 
   /// Get API call by UUID
   Future<AiApiCall?> getByUuid(String uuid) {
-    return (select(aiApiCalls)..where((t) => t.uuid.equals(uuid)))
-        .getSingleOrNull();
+    return (select(
+      aiApiCalls,
+    )..where((t) => t.uuid.equals(uuid))).getSingleOrNull();
   }
 
   /// Get recent API calls
@@ -99,11 +100,12 @@ class AiApiCallsDao extends DatabaseAccessor<AiDatabase>
 
   /// Get total token usage for a period
   Future<int> getTotalTokens(DateTime start, DateTime end) async {
-    final calls = await (select(aiApiCalls)
-          ..where((t) => t.requestedAt.isBiggerOrEqualValue(start))
-          ..where((t) => t.requestedAt.isSmallerOrEqualValue(end))
-          ..where((t) => t.status.equals('success')))
-        .get();
+    final calls =
+        await (select(aiApiCalls)
+              ..where((t) => t.requestedAt.isBiggerOrEqualValue(start))
+              ..where((t) => t.requestedAt.isSmallerOrEqualValue(end))
+              ..where((t) => t.status.equals('success')))
+            .get();
 
     return calls.fold<int>(0, (sum, call) => sum + (call.totalTokens ?? 0));
   }

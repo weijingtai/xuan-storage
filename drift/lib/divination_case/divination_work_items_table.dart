@@ -7,7 +7,8 @@ class DivinationWorkItems extends Table {
   TextColumn get uuid => text().named('uuid')();
   TextColumn get scopeUid => text().named('scope_uid').nullable()();
   TextColumn get caseUuid => text().named('case_uuid')();
-  TextColumn get parentWorkItemUuid => text().nullable().named('parent_work_item_uuid')();
+  TextColumn get parentWorkItemUuid =>
+      text().nullable().named('parent_work_item_uuid')();
   TextColumn get title => text().named('title')();
   TextColumn get purpose => text().named('purpose')();
   TextColumn get methodGroup => text().named('method_group')();

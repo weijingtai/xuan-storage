@@ -11,13 +11,13 @@ class RecordBackedBaziRepository implements BaziRecordRepository {
     required ScopedRecordStore store,
     required RecordModuleCodec<BaziRecordContract> codec,
     Uuid? uuid,
-  })  : _store = store,
-        _codec = codec,
-        _uuid = uuid ?? const Uuid(),
-        _l0 = CrudBaseRepository<Map<String, Object?>, String>(
-          descriptor: recordEntityDescriptor(module: codec.module),
-          driver: RecordStorageDriver(store: store),
-        );
+  }) : _store = store,
+       _codec = codec,
+       _uuid = uuid ?? const Uuid(),
+       _l0 = CrudBaseRepository<Map<String, Object?>, String>(
+         descriptor: recordEntityDescriptor(module: codec.module),
+         driver: RecordStorageDriver(store: store),
+       );
 
   final ScopedRecordStore _store;
   final RecordModuleCodec<BaziRecordContract> _codec;
@@ -27,15 +27,17 @@ class RecordBackedBaziRepository implements BaziRecordRepository {
   RequestContext get _ctx => RequestContext(scopeUid: _store.scopeUid);
 
   BaziRecordContract _decodeRow(Map<String, Object?> row) => _codec.decode(
-        RecordRowMapper.rowToMeta(row),
-        RecordRowMapper.moduleDataOf(row),
-      );
+    RecordRowMapper.rowToMeta(row),
+    RecordRowMapper.moduleDataOf(row),
+  );
 
   // ── 内部复用原 Base 的已验证逻辑（供 L0 委托） ──
   Future<String> _saveInternal(BaziRecordContract contract) async {
     final currentUuid = _codec.uuidOf(contract);
     final effectiveUuid = currentUuid.isNotEmpty ? currentUuid : _uuid.v7();
-    final fixed = currentUuid.isNotEmpty ? contract : _codec.withUuid(contract, effectiveUuid);
+    final fixed = currentUuid.isNotEmpty
+        ? contract
+        : _codec.withUuid(contract, effectiveUuid);
     final encoded = _codec.encode(fixed, scopeUid: _store.scopeUid);
     final row = RecordRowMapper.metaToRow(encoded.meta);
     final r = await _l0.put(row, _ctx);
@@ -45,7 +47,8 @@ class RecordBackedBaziRepository implements BaziRecordRepository {
 
   Future<BaziRecordContract?> _getByUuidInternal(String uuid) async {
     final r = await _l0.getIncludingDeleted(uuid, _ctx);
-    if (r case Ok(value: final row)) return row == null ? null : _decodeRow(row);
+    if (r case Ok(value: final row))
+      return row == null ? null : _decodeRow(row);
     return null;
   }
 
@@ -53,7 +56,11 @@ class RecordBackedBaziRepository implements BaziRecordRepository {
     final results = <BaziRecordContract>[];
     String? cursor;
     while (true) {
-      final r = await _l0.query(const {}, PageRequest(limit: pageSize, cursor: cursor), _ctx);
+      final r = await _l0.query(
+        const {},
+        PageRequest(limit: pageSize, cursor: cursor),
+        _ctx,
+      );
       final page = (r as Ok<Page<Map<String, Object?>>>).value;
       results.addAll(page.items.map(_decodeRow));
       if (!page.hasMore) break;
@@ -62,7 +69,11 @@ class RecordBackedBaziRepository implements BaziRecordRepository {
     return results;
   }
 
-  Future<List<BaziRecordContract>> _getAllByIndexInternal(String indexKey, String indexValue, {int limit = 200}) async {
+  Future<List<BaziRecordContract>> _getAllByIndexInternal(
+    String indexKey,
+    String indexValue, {
+    int limit = 200,
+  }) async {
     final r = await _l0.getByIndex(indexKey, indexValue, _ctx, limit: limit);
     if (r case Ok(value: final rows)) return rows.map(_decodeRow).toList();
     return const [];
@@ -87,27 +98,47 @@ class RecordBackedBaziRepository implements BaziRecordRepository {
   }
 
   @override
-  Future<Result<BaziRecordContract?>> getIncludingDeleted(String id, RequestContext ctx) => get(id, ctx);
+  Future<Result<BaziRecordContract?>> getIncludingDeleted(
+    String id,
+    RequestContext ctx,
+  ) => get(id, ctx);
 
   @override
-  Future<Result<Rev>> put(BaziRecordContract entity, RequestContext ctx, {Precondition pre = const Unconditional()}) async {
+  Future<Result<Rev>> put(
+    BaziRecordContract entity,
+    RequestContext ctx, {
+    Precondition pre = const Unconditional(),
+  }) async {
     final id = await _saveInternal(entity);
     return Ok(Rev(id));
   }
 
   @override
-  Future<Result<void>> softDelete(String id, RequestContext ctx, {Precondition pre = const Unconditional()}) async {
+  Future<Result<void>> softDelete(
+    String id,
+    RequestContext ctx, {
+    Precondition pre = const Unconditional(),
+  }) async {
     await _softDeleteInternal(id);
     return const Ok(null);
   }
 
   @override
   Future<Result<void>> restore(String id, RequestContext ctx) async {
-    return Err(const XuanError(code: ErrorCode.invalidArgument, message: 'BaziRecord restore not supported'));
+    return Err(
+      const XuanError(
+        code: ErrorCode.invalidArgument,
+        message: 'BaziRecord restore not supported',
+      ),
+    );
   }
 
   @override
-  Future<Result<Page<BaziRecordContract>>> query(Map<String, Object?> spec, PageRequest page, RequestContext ctx) async {
+  Future<Result<Page<BaziRecordContract>>> query(
+    Map<String, Object?> spec,
+    PageRequest page,
+    RequestContext ctx,
+  ) async {
     final caseUuid = spec['caseUuid'] ?? spec['case_uuid'];
     List<BaziRecordContract> items;
     if (caseUuid is String && caseUuid.isNotEmpty) {
@@ -122,24 +153,50 @@ class RecordBackedBaziRepository implements BaziRecordRepository {
     }
     final end = (start + page.limit).clamp(0, items.length);
     final pageItems = items.sublist(start, end);
-    final nextCursor = end < items.length ? (pageItems.isNotEmpty ? pageItems.last.uuid : null) : null;
+    final nextCursor = end < items.length
+        ? (pageItems.isNotEmpty ? pageItems.last.uuid : null)
+        : null;
     return Ok(Page(items: pageItems, nextCursor: nextCursor));
   }
 
   @override
-  Future<Result<int>> count(Map<String, Object?> spec, RequestContext ctx) async {
+  Future<Result<int>> count(
+    Map<String, Object?> spec,
+    RequestContext ctx,
+  ) async {
     final r = await query(spec, PageRequest(limit: 1000), ctx);
     return r.map((p) => p.items.length);
   }
 
   @override
-  Future<Result<BatchOutcome<String>>> putAll(List<BaziRecordContract> entities, RequestContext ctx) async {
+  Future<Result<BatchOutcome<String>>> putAll(
+    List<BaziRecordContract> entities,
+    RequestContext ctx,
+  ) async {
     final results = <({String id, Result<Rev> result})>[];
     for (final e in entities) {
       final r = await put(e, ctx);
       results.add((id: e.uuid, result: r));
     }
     return Ok(BatchOutcome(results));
+  }
+
+  @override
+  Future<List<BaziRecordContract>> listRecords(String caseUuid) =>
+      _getAllByIndexInternal('case_uuid', caseUuid);
+
+  @override
+  Future<BaziRecordContract?> getRecord(String uuid) =>
+      _getByUuidInternal(uuid);
+
+  @override
+  Future<void> saveRecord(BaziRecordContract record) async {
+    await _saveInternal(record);
+  }
+
+  @override
+  Future<void> deleteRecord(String uuid) async {
+    await _softDeleteInternal(uuid);
   }
 
   @override

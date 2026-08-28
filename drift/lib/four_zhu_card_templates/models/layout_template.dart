@@ -24,11 +24,11 @@ class LayoutTemplate {
     Map<String, dynamic>? editableTheme,
     this.version = 1,
     required this.updatedAt,
-  })  : chartGroups = List.unmodifiable(chartGroups),
-        rowConfigs = List.unmodifiable(rowConfigs),
-        editableTheme = editableTheme == null
-            ? null
-            : Map<String, dynamic>.unmodifiable(editableTheme);
+  }) : chartGroups = List.unmodifiable(chartGroups),
+       rowConfigs = List.unmodifiable(rowConfigs),
+       editableTheme = editableTheme == null
+           ? null
+           : Map<String, dynamic>.unmodifiable(editableTheme);
 
   final String id;
   final String name;
@@ -101,7 +101,8 @@ class LayoutTemplate {
           .toList(),
       editableTheme: (json['editableTheme'] as Map?)?.cast<String, dynamic>(),
       version: json['version'] as int? ?? 1,
-      updatedAt: DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
+      updatedAt:
+          DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
     );
   }
@@ -116,28 +117,32 @@ class LayoutTemplate {
         other.description == description &&
         other.collectionId == collectionId &&
         other.cardStyle == cardStyle &&
-        const ListEquality<ChartGroup>()
-            .equals(other.chartGroups, chartGroups) &&
+        const ListEquality<ChartGroup>().equals(
+          other.chartGroups,
+          chartGroups,
+        ) &&
         const ListEquality<RowConfig>().equals(other.rowConfigs, rowConfigs) &&
-        const DeepCollectionEquality()
-            .equals(other.editableTheme, editableTheme) &&
+        const DeepCollectionEquality().equals(
+          other.editableTheme,
+          editableTheme,
+        ) &&
         other.version == version &&
         other.updatedAt == updatedAt;
   }
 
   @override
   int get hashCode => Object.hash(
-        id,
-        name,
-        description,
-        collectionId,
-        cardStyle,
-        const ListEquality<ChartGroup>().hash(chartGroups),
-        const ListEquality<RowConfig>().hash(rowConfigs),
-        const DeepCollectionEquality().hash(editableTheme),
-        version,
-        updatedAt,
-      );
+    id,
+    name,
+    description,
+    collectionId,
+    cardStyle,
+    const ListEquality<ChartGroup>().hash(chartGroups),
+    const ListEquality<RowConfig>().hash(rowConfigs),
+    const DeepCollectionEquality().hash(editableTheme),
+    version,
+    updatedAt,
+  );
 }
 
 class ChartGroup {
@@ -191,9 +196,12 @@ class ChartGroup {
       id: json['id'] as String,
       title: json['title'] as String,
       pillarOrder: (json['pillarOrder'] as List<dynamic>)
-          .map((name) => PillarType.values.firstWhere(
+          .map(
+            (name) => PillarType.values.firstWhere(
               (element) => element.name == name as String,
-              orElse: () => PillarType.year))
+              orElse: () => PillarType.year,
+            ),
+          )
           .toList(),
       locked: json['locked'] as bool? ?? false,
       colorHex: json['colorHex'] as String?,
@@ -208,8 +216,10 @@ class ChartGroup {
     return other is ChartGroup &&
         other.id == id &&
         other.title == title &&
-        const ListEquality<PillarType>()
-            .equals(other.pillarOrder, pillarOrder) &&
+        const ListEquality<PillarType>().equals(
+          other.pillarOrder,
+          pillarOrder,
+        ) &&
         other.locked == locked &&
         other.colorHex == colorHex &&
         other.expanded == expanded;
@@ -217,13 +227,13 @@ class ChartGroup {
 
   @override
   int get hashCode => Object.hash(
-        id,
-        title,
-        const ListEquality<PillarType>().hash(pillarOrder),
-        locked,
-        colorHex,
-        expanded,
-      );
+    id,
+    title,
+    const ListEquality<PillarType>().hash(pillarOrder),
+    locked,
+    colorHex,
+    expanded,
+  );
 }
 
 class CardStyle {
@@ -341,14 +351,14 @@ class CardStyle {
 
   @override
   int get hashCode => Object.hash(
-        dividerType,
-        dividerColorHex,
-        dividerThickness,
-        _normalizeFontFamily(globalFontFamily),
-        globalFontSize,
-        globalFontColorHex,
-        contentPadding,
-      );
+    dividerType,
+    dividerColorHex,
+    dividerThickness,
+    _normalizeFontFamily(globalFontFamily),
+    globalFontSize,
+    globalFontColorHex,
+    contentPadding,
+  );
 }
 
 class RowConfig {
@@ -556,17 +566,17 @@ class RowConfig {
 
   @override
   int get hashCode => Object.hash(
-        type,
-        isVisible,
-        isTitleVisible,
-        textStyleConfig,
-        textAlign,
-        paddingVertical,
-        marginVertical,
-        marginHorizontal,
-        paddingHorizontal,
-        borderType,
-        borderColorHex,
-        tenGodLabelType,
-      );
+    type,
+    isVisible,
+    isTitleVisible,
+    textStyleConfig,
+    textAlign,
+    paddingVertical,
+    marginVertical,
+    marginHorizontal,
+    paddingHorizontal,
+    borderType,
+    borderColorHex,
+    tenGodLabelType,
+  );
 }

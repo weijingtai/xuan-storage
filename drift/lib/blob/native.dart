@@ -12,11 +12,7 @@ import 'package:persistence_core/persistence_core.dart';
 /// Platform-agnostic interface for byte-level blob storage.
 abstract interface class BlobByteBackend {
   /// Write bytes at [index] to a temp file, then atomically rename.
-  Future<void> writeChunk(
-    String manifestDir,
-    int index,
-    List<int> bytes,
-  );
+  Future<void> writeChunk(String manifestDir, int index, List<int> bytes);
 
   /// Read bytes for chunk at [index].
   Future<List<int>> readChunk(String manifestDir, int index);

@@ -11,6 +11,5 @@ class TiebanshenshuModuleRegistry {
   static TiebanRecordRepository repository({
     required ScopedRecordStore store,
     Uuid? uuid,
-  }) =>
-      RecordBackedTiebanRepository(store: store, codec: codec(), uuid: uuid);
+  }) => RecordBackedTiebanRepository(store: store, codec: codec(), uuid: uuid);
 }

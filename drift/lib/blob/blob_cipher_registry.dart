@@ -37,8 +37,6 @@ final class BlobCipherRegistry implements BlobCipherResolver {
       return Future<BlobCipher>.value(cipher);
     }
     // Private key not available — throw undecryptable error.
-    return Future<BlobCipher>.error(
-      BlobUndecryptableError(),
-    );
+    return Future<BlobCipher>.error(BlobUndecryptableError());
   }
 }

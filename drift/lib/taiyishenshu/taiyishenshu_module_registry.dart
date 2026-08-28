@@ -11,6 +11,5 @@ class TaiyishenshuModuleRegistry {
   static TaiyiRecordRepository repository({
     required ScopedRecordStore store,
     Uuid? uuid,
-  }) =>
-      RecordBackedTaiyiRepository(store: store, codec: codec(), uuid: uuid);
+  }) => RecordBackedTaiyiRepository(store: store, codec: codec(), uuid: uuid);
 }

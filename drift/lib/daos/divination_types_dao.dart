@@ -12,16 +12,16 @@ class DivinationTypesDao extends DatabaseAccessor<PersistenceDriftDatabase>
   DivinationTypesDao(this.db) : super(db);
 
   SimpleSelectStatement<$DivinationTypesTable, DivinationTypeDataModel>
-      _baseSelect() => select(db.divinationTypes);
+  _baseSelect() => select(db.divinationTypes);
 
   Future<List<DivinationTypeDataModel>> getAllDivinationTypes() {
     return (_baseSelect()..where((tbl) => tbl.deletedAt.isNull())).get();
   }
 
   Future<List<DivinationTypeDataModel>> listAvailable() {
-    return (_baseSelect()
-          ..where(
-              (tbl) => tbl.deletedAt.isNull() & tbl.isAvailable.equals(true)))
+    return (_baseSelect()..where(
+          (tbl) => tbl.deletedAt.isNull() & tbl.isAvailable.equals(true),
+        ))
         .get();
   }
 

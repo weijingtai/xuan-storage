@@ -25,11 +25,11 @@ class DriftScopeLedger implements ScopeLedger {
     String authId,
     ScopeAuthKind authKind,
   ) async {
-    final row = await (_db.select(_db.tScopeAlias)
-          ..where((t) =>
-              t.authKind.equals(authKind.name) &
-              t.authId.equals(authId)))
-        .getSingleOrNull();
+    final row =
+        await (_db.select(_db.tScopeAlias)..where(
+              (t) => t.authKind.equals(authKind.name) & t.authId.equals(authId),
+            ))
+            .getSingleOrNull();
     return row?.scopeUid;
   }
 
@@ -39,7 +39,9 @@ class DriftScopeLedger implements ScopeLedger {
     ScopeAuthKind authKind,
     String scopeUid,
   ) async {
-    await _db.into(_db.tScopeAlias).insertOnConflictUpdate(
+    await _db
+        .into(_db.tScopeAlias)
+        .insertOnConflictUpdate(
           TScopeAliasCompanion.insert(
             authKind: authKind.name,
             authId: authId,
@@ -58,25 +60,31 @@ class DriftScopeLedger implements ScopeLedger {
 
   @override
   Future<List<ScopeAliasEntry>> entriesForScope(String scopeUid) async {
-    final rows = await (_db.select(_db.tScopeAlias)
-          ..where((t) => t.scopeUid.equals(scopeUid) & t.authKind.equals('device').not()))
-        .get();
-    return rows
-        .map((r) => ScopeAliasEntry(
-              authKind: ScopeAuthKind.values.byName(r.authKind),
-              authId: r.authId,
-              scopeUid: r.scopeUid,
-              linkedAt: r.linkedAt,
+    final rows =
+        await (_db.select(_db.tScopeAlias)..where(
+              (t) =>
+                  t.scopeUid.equals(scopeUid) &
+                  t.authKind.equals('device').not(),
             ))
+            .get();
+    return rows
+        .map(
+          (r) => ScopeAliasEntry(
+            authKind: ScopeAuthKind.values.byName(r.authKind),
+            authId: r.authId,
+            scopeUid: r.scopeUid,
+            linkedAt: r.linkedAt,
+          ),
+        )
         .toList();
   }
 
   @override
   Future<void> clearScope(String scopeUid) async {
-    await (_db.delete(_db.tScopeAlias)
-          ..where((t) =>
-              t.scopeUid.equals(scopeUid) &
-              t.authKind.equals('device').not()))
+    await (_db.delete(_db.tScopeAlias)..where(
+          (t) =>
+              t.scopeUid.equals(scopeUid) & t.authKind.equals('device').not(),
+        ))
         .go();
   }
 }

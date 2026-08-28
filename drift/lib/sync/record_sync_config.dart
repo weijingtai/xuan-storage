@@ -5,14 +5,22 @@ class RecordSyncConfig {
   static const entityType = 'record_meta';
   static const cursorType = 'timestamp';
 
-  static Future<void> ensureInitialized(SyncStateStore store, String scopeUid) async {
+  static Future<void> ensureInitialized(
+    SyncStateStore store,
+    String scopeUid,
+  ) async {
     const peerId = PeerId('firestore');
-    final existing =
-        await store.getCursor(scopeUid: scopeUid, peerId: peerId, entityType: entityType);
+    final existing = await store.getCursor(
+      scopeUid: scopeUid,
+      peerId: peerId,
+      entityType: entityType,
+    );
     if (existing != null) return;
 
     await store.setCursorIfNewer(
-      scopeUid: scopeUid, peerId: peerId, entityType: entityType,
+      scopeUid: scopeUid,
+      peerId: peerId,
+      entityType: entityType,
       cursor: TimestampCursor(
         serverUpdatedAtUtc: DateTime.utc(1970, 1, 1),
         tieBreaker: '',

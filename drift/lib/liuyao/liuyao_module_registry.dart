@@ -12,6 +12,5 @@ class LiuYaoModuleRegistry {
   static SixYaoDivinationRecordRepository repository({
     required ScopedRecordStore store,
     Uuid? uuid,
-  }) =>
-      RecordBackedLiuYaoRepository(store: store, codec: codec(), uuid: uuid);
+  }) => RecordBackedLiuYaoRepository(store: store, codec: codec(), uuid: uuid);
 }

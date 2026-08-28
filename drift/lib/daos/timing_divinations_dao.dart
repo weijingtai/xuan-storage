@@ -13,7 +13,7 @@ class TimingDivinationsDao extends DatabaseAccessor<PersistenceDriftDatabase>
   TimingDivinationsDao(this.db, {this.scopeUid}) : super(db);
 
   SimpleSelectStatement<$TimingDivinationsTable, TimingDivinationModel>
-      _baseSelect({String? scopeUid}) {
+  _baseSelect({String? scopeUid}) {
     final effectiveScope = scopeUid ?? this.scopeUid;
     final s = select(db.timingDivinations);
     if (effectiveScope != null) {
@@ -22,11 +22,18 @@ class TimingDivinationsDao extends DatabaseAccessor<PersistenceDriftDatabase>
     return s;
   }
 
-  Future<List<TimingDivinationModel>> getAllTimingDivinations({String? scopeUid}) {
-    return (_baseSelect(scopeUid: scopeUid)..where((tbl) => tbl.deletedAt.isNull())).get();
+  Future<List<TimingDivinationModel>> getAllTimingDivinations({
+    String? scopeUid,
+  }) {
+    return (_baseSelect(
+      scopeUid: scopeUid,
+    )..where((tbl) => tbl.deletedAt.isNull())).get();
   }
 
-  Future<TimingDivinationModel?> getTimingDivinationByUuid(String uuid, {String? scopeUid}) {
+  Future<TimingDivinationModel?> getTimingDivinationByUuid(
+    String uuid, {
+    String? scopeUid,
+  }) {
     return (_baseSelect(scopeUid: scopeUid)
           ..where((t) => t.uuid.equals(uuid) & t.deletedAt.isNull()))
         .getSingleOrNull();
@@ -39,11 +46,17 @@ class TimingDivinationsDao extends DatabaseAccessor<PersistenceDriftDatabase>
     return into(db.timingDivinations).insert(companion);
   }
 
-  Future<bool> updateTimingDivination(TimingDivinationsCompanion companion, {String? scopeUid}) {
+  Future<bool> updateTimingDivination(
+    TimingDivinationsCompanion companion, {
+    String? scopeUid,
+  }) {
     final effectiveScope = scopeUid ?? this.scopeUid;
     if (effectiveScope != null) {
-      return (update(db.timingDivinations)
-            ..where((t) => t.uuid.equals(companion.uuid.value) & t.scopeUid.equals(effectiveScope)))
+      return (update(db.timingDivinations)..where(
+            (t) =>
+                t.uuid.equals(companion.uuid.value) &
+                t.scopeUid.equals(effectiveScope),
+          ))
           .write(companion)
           .then((count) => count > 0);
     }
@@ -52,10 +65,13 @@ class TimingDivinationsDao extends DatabaseAccessor<PersistenceDriftDatabase>
 
   Future<int> softDeleteTimingDivination(String uuid, {String? scopeUid}) {
     final effectiveScope = scopeUid ?? this.scopeUid;
-    final query = update(db.timingDivinations)..where((t) => t.uuid.equals(uuid));
+    final query = update(db.timingDivinations)
+      ..where((t) => t.uuid.equals(uuid));
     if (effectiveScope != null) {
       query.where((t) => t.scopeUid.equals(effectiveScope));
     }
-    return query.write(TimingDivinationsCompanion(deletedAt: Value(DateTime.now())));
+    return query.write(
+      TimingDivinationsCompanion(deletedAt: Value(DateTime.now())),
+    );
   }
 }

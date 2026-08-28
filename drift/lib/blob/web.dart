@@ -15,8 +15,7 @@ final class WebBlobByteBackend implements BlobByteBackend {
       _unsupported();
 
   @override
-  Future<List<int>> readChunk(String manifestDir, int index) =>
-      _unsupported();
+  Future<List<int>> readChunk(String manifestDir, int index) => _unsupported();
 
   @override
   Future<void> deleteChunk(String manifestDir, int index) => _unsupported();
@@ -34,7 +33,7 @@ final class WebBlobByteBackend implements BlobByteBackend {
   Future<int> manifestSize(String manifestDir) => _unsupported();
 
   Never _unsupported() => throw UnsupportedError(
-        'Blob byte storage is not supported on web platforms in S1d. '
-        'See docs/superpowers/specs/2026-08-03-s1d-blob-store-design.md',
-      );
+    'Blob byte storage is not supported on web platforms in S1d. '
+    'See docs/superpowers/specs/2026-08-03-s1d-blob-store-design.md',
+  );
 }

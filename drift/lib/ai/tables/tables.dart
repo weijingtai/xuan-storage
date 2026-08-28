@@ -241,14 +241,16 @@ class AiPersonas extends Table with UuidPrimaryKey, TimestampColumns {
       real().withDefault(const Constant(0.7)).named('temperature')();
 
   /// Top P 参数
-  RealColumn get topP => real().withDefault(const Constant(1.0)).named('top_p')();
+  RealColumn get topP =>
+      real().withDefault(const Constant(1.0)).named('top_p')();
 
   /// 最大输出 token
   IntColumn get maxTokens =>
       integer().withDefault(const Constant(2048)).named('max_tokens')();
 
   /// 人设性格特征 (JSON)
-  TextColumn get personalityJson => text().nullable().named('personality_json')();
+  TextColumn get personalityJson =>
+      text().nullable().named('personality_json')();
 
   /// 专业领域 (JSON 数组)
   TextColumn get expertiseJson => text().nullable().named('expertise_json')();
@@ -309,8 +311,7 @@ class AiChatMessages extends Table with UuidPrimaryKey {
       text().named('session_uuid').references(AiChatSessions, #uuid)();
 
   /// 消息角色 (system, user, assistant, function, tool)
-  TextColumn get role =>
-      text().withLength(min: 1, max: 20).named('role')();
+  TextColumn get role => text().withLength(min: 1, max: 20).named('role')();
 
   /// 消息内容
   TextColumn get content => text().named('content')();
@@ -350,8 +351,10 @@ class AiApiCalls extends Table with UuidPrimaryKey {
   String get tableName => 't_ai_api_calls';
 
   /// 关联的会话 UUID
-  TextColumn get sessionUuid =>
-      text().nullable().named('session_uuid').references(AiChatSessions, #uuid)();
+  TextColumn get sessionUuid => text()
+      .nullable()
+      .named('session_uuid')
+      .references(AiChatSessions, #uuid)();
 
   /// 关联的模型 UUID
   TextColumn get modelUuid =>
@@ -378,16 +381,13 @@ class AiApiCalls extends Table with UuidPrimaryKey {
   TextColumn get errorMessage => text().nullable().named('error_message')();
 
   /// 输入 token 数
-  IntColumn get inputTokens =>
-      integer().nullable().named('input_tokens')();
+  IntColumn get inputTokens => integer().nullable().named('input_tokens')();
 
   /// 输出 token 数
-  IntColumn get outputTokens =>
-      integer().nullable().named('output_tokens')();
+  IntColumn get outputTokens => integer().nullable().named('output_tokens')();
 
   /// 总 token 数
-  IntColumn get totalTokens =>
-      integer().nullable().named('total_tokens')();
+  IntColumn get totalTokens => integer().nullable().named('total_tokens')();
 
   /// 延迟 (毫秒)
   IntColumn get latencyMs => integer().nullable().named('latency_ms')();
@@ -467,8 +467,10 @@ class AiDivinations extends Table with UuidPrimaryKey, TimestampColumns {
       text().named('persona_uuid').references(AiPersonas, #uuid)();
 
   /// 关联的对话会话 UUID
-  TextColumn get sessionUuid =>
-      text().nullable().named('session_uuid').references(AiChatSessions, #uuid)();
+  TextColumn get sessionUuid => text()
+      .nullable()
+      .named('session_uuid')
+      .references(AiChatSessions, #uuid)();
 
   /// AI 解读结果
   TextColumn get interpretation => text().named('interpretation')();
@@ -490,19 +492,21 @@ class AiDivinations extends Table with UuidPrimaryKey, TimestampColumns {
   TextColumn get userFeedback => text().nullable().named('user_feedback')();
 
   /// 溯源记录 UUID
-  TextColumn get provenanceUuid =>
-      text().nullable().named('provenance_uuid').references(AiProvenances, #uuid)();
+  TextColumn get provenanceUuid => text()
+      .nullable()
+      .named('provenance_uuid')
+      .references(AiProvenances, #uuid)();
 
   List<Index> get indexes => [
-        Index(
-          'idx_ai_divinations_divination_uuid',
-          'CREATE INDEX idx_ai_divinations_divination_uuid ON t_ai_divinations (divination_uuid)',
-        ),
-        Index(
-          'idx_ai_divinations_persona_uuid',
-          'CREATE INDEX idx_ai_divinations_persona_uuid ON t_ai_divinations (persona_uuid)',
-        ),
-      ];
+    Index(
+      'idx_ai_divinations_divination_uuid',
+      'CREATE INDEX idx_ai_divinations_divination_uuid ON t_ai_divinations (divination_uuid)',
+    ),
+    Index(
+      'idx_ai_divinations_persona_uuid',
+      'CREATE INDEX idx_ai_divinations_persona_uuid ON t_ai_divinations (persona_uuid)',
+    ),
+  ];
 }
 
 // ============================================================================
@@ -526,8 +530,10 @@ class AgentInvocations extends Table with UuidPrimaryKey {
       text().named('callee_persona_uuid').references(AiPersonas, #uuid)();
 
   /// 关联的会话 UUID
-  TextColumn get sessionUuid =>
-      text().nullable().named('session_uuid').references(AiChatSessions, #uuid)();
+  TextColumn get sessionUuid => text()
+      .nullable()
+      .named('session_uuid')
+      .references(AiChatSessions, #uuid)();
 
   /// 调用时间
   DateTimeColumn get invokedAt => dateTime().named('invoked_at')();
@@ -540,7 +546,8 @@ class AgentInvocations extends Table with UuidPrimaryKey {
   TextColumn get purpose => text().named('purpose')();
 
   /// 共享上下文 (JSON)
-  TextColumn get sharedContextJson => text().nullable().named('shared_context_json')();
+  TextColumn get sharedContextJson =>
+      text().nullable().named('shared_context_json')();
 
   /// 调用结果 (JSON)
   TextColumn get resultJson => text().nullable().named('result_json')();
@@ -557,7 +564,8 @@ class AgentInvocations extends Table with UuidPrimaryKey {
       text().nullable().named('parent_invocation_uuid')();
 
   /// 调用深度
-  IntColumn get depth => integer().withDefault(const Constant(0)).named('depth')();
+  IntColumn get depth =>
+      integer().withDefault(const Constant(0)).named('depth')();
 }
 
 // ============================================================================
@@ -596,8 +604,7 @@ class AiUsageAudits extends Table with AutoIncrementingPrimaryKey {
   IntColumn get tokensUsed => integer().nullable().named('tokens_used')();
 
   /// 费用估算
-  RealColumn get estimatedCost =>
-      real().nullable().named('estimated_cost')();
+  RealColumn get estimatedCost => real().nullable().named('estimated_cost')();
 
   /// IP 地址
   TextColumn get ipAddress => text().nullable().named('ip_address')();
@@ -606,15 +613,15 @@ class AiUsageAudits extends Table with AutoIncrementingPrimaryKey {
   TextColumn get deviceInfo => text().nullable().named('device_info')();
 
   List<Index> get indexes => [
-        Index(
-          'idx_ai_usage_audits_audited_at',
-          'CREATE INDEX idx_ai_usage_audits_audited_at ON t_ai_usage_audits (audited_at)',
-        ),
-        Index(
-          'idx_ai_usage_audits_audit_type',
-          'CREATE INDEX idx_ai_usage_audits_audit_type ON t_ai_usage_audits (audit_type)',
-        ),
-      ];
+    Index(
+      'idx_ai_usage_audits_audited_at',
+      'CREATE INDEX idx_ai_usage_audits_audited_at ON t_ai_usage_audits (audited_at)',
+    ),
+    Index(
+      'idx_ai_usage_audits_audit_type',
+      'CREATE INDEX idx_ai_usage_audits_audit_type ON t_ai_usage_audits (audit_type)',
+    ),
+  ];
 }
 
 // ============================================================================
@@ -641,15 +648,17 @@ class AiTools extends Table with UuidPrimaryKey, TimestampColumns {
   IntColumn get skillId => integer().nullable().named('skill_id')();
 
   /// 工具参数 Schema (JSON Schema 格式)
-  TextColumn get parametersSchemaJson => text().named('parameters_schema_json')();
+  TextColumn get parametersSchemaJson =>
+      text().named('parameters_schema_json')();
 
   /// 工具返回值 Schema (JSON Schema 格式)
   TextColumn get returnSchemaJson =>
       text().nullable().named('return_schema_json')();
 
   /// 是否需要确认才能执行
-  BoolColumn get requiresConfirmation =>
-      boolean().withDefault(const Constant(false)).named('requires_confirmation')();
+  BoolColumn get requiresConfirmation => boolean()
+      .withDefault(const Constant(false))
+      .named('requires_confirmation')();
 
   /// 是否启用
   BoolColumn get isEnabled =>

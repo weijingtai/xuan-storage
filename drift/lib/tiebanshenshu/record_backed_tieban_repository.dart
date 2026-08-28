@@ -6,7 +6,6 @@ import '../record/base_record_backed_repository.dart';
 class RecordBackedTiebanRepository
     extends BaseRecordBackedRepository<TiebanDivinationRecordContract>
     implements TiebanRecordRepository {
-
   RecordBackedTiebanRepository({
     required super.store,
     required super.codec,
@@ -24,10 +23,9 @@ class RecordBackedTiebanRepository
       final result = await super.getByUuid(id);
       return Ok(result);
     } catch (e) {
-      return Err(XuanError(
-        code: ErrorCode.internal,
-        message: '获取铁板神数记录失败: $e',
-      ));
+      return Err(
+        XuanError(code: ErrorCode.internal, message: '获取铁板神数记录失败: $e'),
+      );
     }
   }
 
@@ -52,10 +50,9 @@ class RecordBackedTiebanRepository
       await super.save(entity);
       return const Ok(Rev('v1'));
     } catch (e) {
-      return Err(XuanError(
-        code: ErrorCode.internal,
-        message: '保存铁板神数记录失败: $e',
-      ));
+      return Err(
+        XuanError(code: ErrorCode.internal, message: '保存铁板神数记录失败: $e'),
+      );
     }
   }
 
@@ -71,19 +68,15 @@ class RecordBackedTiebanRepository
       await super.softDeleteLegacy(id);
       return const Ok(null);
     } catch (e) {
-      return Err(XuanError(
-        code: ErrorCode.internal,
-        message: '软删除铁板神数记录失败: $e',
-      ));
+      return Err(
+        XuanError(code: ErrorCode.internal, message: '软删除铁板神数记录失败: $e'),
+      );
     }
   }
 
   @override
   Future<Result<void>> restore(String id, RequestContext ctx) async {
-    return Err(XuanError(
-      code: ErrorCode.internal,
-      message: 'restore 尚未实现',
-    ));
+    return Err(XuanError(code: ErrorCode.internal, message: 'restore 尚未实现'));
   }
 
   // ── SoftDeleteReadable ──
@@ -106,10 +99,9 @@ class RecordBackedTiebanRepository
       final results = await super.getAll(pageSize: page.limit);
       return Ok(Page(items: results));
     } catch (e) {
-      return Err(XuanError(
-        code: ErrorCode.internal,
-        message: '查询铁板神数记录失败: $e',
-      ));
+      return Err(
+        XuanError(code: ErrorCode.internal, message: '查询铁板神数记录失败: $e'),
+      );
     }
   }
 
@@ -122,10 +114,9 @@ class RecordBackedTiebanRepository
       final results = await super.getAll();
       return Ok(results.length);
     } catch (e) {
-      return Err(XuanError(
-        code: ErrorCode.internal,
-        message: '计数铁板神数记录失败: $e',
-      ));
+      return Err(
+        XuanError(code: ErrorCode.internal, message: '计数铁板神数记录失败: $e'),
+      );
     }
   }
 
@@ -167,7 +158,8 @@ class RecordBackedTiebanRepository
   Future<List<TiebanDivinationRecordContract>> getAllRecords() => getAll();
 
   @Deprecated('M4 退场：改用 L0 切片')
-  Future<TiebanDivinationRecordContract?> getRecordByUuid(String uuid) => getByUuid(uuid);
+  Future<TiebanDivinationRecordContract?> getRecordByUuid(String uuid) =>
+      getByUuid(uuid);
 
   @Deprecated('M4 退场：改用 L0 切片')
   Future<bool> softDeleteRecord(String uuid) => softDeleteLegacy(uuid);

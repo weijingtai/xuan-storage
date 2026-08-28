@@ -41,12 +41,12 @@ class DivinationTags extends Table {
   Set<Column> get primaryKey => {tagId};
 
   List<Index> get indexes => [
-        Index(
-          'idx_divination_tags_dimension',
-          'CREATE INDEX idx_divination_tags_dimension '
+    Index(
+      'idx_divination_tags_dimension',
+      'CREATE INDEX idx_divination_tags_dimension '
           'ON divination_tags (dimension_id, sort_order);',
-        ),
-      ];
+    ),
+  ];
 }
 
 /// 一期内置种子维度：五行、吉凶。
@@ -58,43 +58,51 @@ const List<TagDimension> seedTagDimensions = [
 /// 一期内置种子标签：五行（金木水火土）、吉凶（吉凶平），按 sortOrder 排列。
 const List<DimensionTag> seedDimensionTags = [
   DimensionTag(
-      tagId: 'tag.wu-xing.jin',
-      dimensionId: 'wu-xing',
-      text: '金',
-      sortOrder: 1),
+    tagId: 'tag.wu-xing.jin',
+    dimensionId: 'wu-xing',
+    text: '金',
+    sortOrder: 1,
+  ),
   DimensionTag(
-      tagId: 'tag.wu-xing.mu',
-      dimensionId: 'wu-xing',
-      text: '木',
-      sortOrder: 2),
+    tagId: 'tag.wu-xing.mu',
+    dimensionId: 'wu-xing',
+    text: '木',
+    sortOrder: 2,
+  ),
   DimensionTag(
-      tagId: 'tag.wu-xing.shui',
-      dimensionId: 'wu-xing',
-      text: '水',
-      sortOrder: 3),
+    tagId: 'tag.wu-xing.shui',
+    dimensionId: 'wu-xing',
+    text: '水',
+    sortOrder: 3,
+  ),
   DimensionTag(
-      tagId: 'tag.wu-xing.huo',
-      dimensionId: 'wu-xing',
-      text: '火',
-      sortOrder: 4),
+    tagId: 'tag.wu-xing.huo',
+    dimensionId: 'wu-xing',
+    text: '火',
+    sortOrder: 4,
+  ),
   DimensionTag(
-      tagId: 'tag.wu-xing.tu',
-      dimensionId: 'wu-xing',
-      text: '土',
-      sortOrder: 5),
+    tagId: 'tag.wu-xing.tu',
+    dimensionId: 'wu-xing',
+    text: '土',
+    sortOrder: 5,
+  ),
   DimensionTag(
-      tagId: 'tag.ji-xiong.ji',
-      dimensionId: 'ji-xiong',
-      text: '吉',
-      sortOrder: 1),
+    tagId: 'tag.ji-xiong.ji',
+    dimensionId: 'ji-xiong',
+    text: '吉',
+    sortOrder: 1,
+  ),
   DimensionTag(
-      tagId: 'tag.ji-xiong.xiong',
-      dimensionId: 'ji-xiong',
-      text: '凶',
-      sortOrder: 2),
+    tagId: 'tag.ji-xiong.xiong',
+    dimensionId: 'ji-xiong',
+    text: '凶',
+    sortOrder: 2,
+  ),
   DimensionTag(
-      tagId: 'tag.ji-xiong.ping',
-      dimensionId: 'ji-xiong',
-      text: '平',
-      sortOrder: 3),
+    tagId: 'tag.ji-xiong.ping',
+    dimensionId: 'ji-xiong',
+    text: '平',
+    sortOrder: 3,
+  ),
 ];

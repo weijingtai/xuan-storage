@@ -121,19 +121,19 @@ class CardTemplateSkillUsages extends Table with AutoIncrementingPrimaryKey {
 
   @override
   List<Index> get indexes => [
-        Index(
-          'idx_card_template_skill_usage_query_uuid',
-          'CREATE INDEX idx_card_template_skill_usage_query_uuid ON t_card_template_skill_usage (query_uuid);',
-        ),
-        Index(
-          'idx_card_template_skill_usage_template_uuid',
-          'CREATE INDEX idx_card_template_skill_usage_template_uuid ON t_card_template_skill_usage (template_uuid);',
-        ),
-        Index(
-          'idx_card_template_skill_usage_skill_id',
-          'CREATE INDEX idx_card_template_skill_usage_skill_id ON t_card_template_skill_usage (skill_id);',
-        ),
-      ];
+    Index(
+      'idx_card_template_skill_usage_query_uuid',
+      'CREATE INDEX idx_card_template_skill_usage_query_uuid ON t_card_template_skill_usage (query_uuid);',
+    ),
+    Index(
+      'idx_card_template_skill_usage_template_uuid',
+      'CREATE INDEX idx_card_template_skill_usage_template_uuid ON t_card_template_skill_usage (template_uuid);',
+    ),
+    Index(
+      'idx_card_template_skill_usage_skill_id',
+      'CREATE INDEX idx_card_template_skill_usage_skill_id ON t_card_template_skill_usage (skill_id);',
+    ),
+  ];
 }
 
 @DataClassName('MarketTemplateInstall')
@@ -157,13 +157,13 @@ class MarketTemplateInstalls extends Table {
 
   @override
   List<Index> get indexes => [
-        Index(
-          'idx_market_template_installs_market_template_id',
-          'CREATE INDEX idx_market_template_installs_market_template_id ON t_market_template_installs (market_template_id);',
-        ),
-        Index(
-          'idx_market_template_installs_market_version_id',
-          'CREATE INDEX idx_market_template_installs_market_version_id ON t_market_template_installs (market_version_id);',
-        ),
-      ];
+    Index(
+      'idx_market_template_installs_market_template_id',
+      'CREATE INDEX idx_market_template_installs_market_template_id ON t_market_template_installs (market_template_id);',
+    ),
+    Index(
+      'idx_market_template_installs_market_version_id',
+      'CREATE INDEX idx_market_template_installs_market_version_id ON t_market_template_installs (market_version_id);',
+    ),
+  ];
 }

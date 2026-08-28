@@ -6,16 +6,18 @@ import 'package:persistence_domain/vocabulary/divination_type_registry.dart';
 Future<void> seedDivinationTypes(PersistenceDriftDatabase db) async {
   final now = DateTime.now();
   for (final key in DivinationTypeRegistry.all) {
-    await db.into(db.divinationTypes).insertOnConflictUpdate(
-      DivinationTypesCompanion(
-        uuid: Value(key),
-        createdAt: Value(now),
-        lastUpdatedAt: Value(now),
-        name: Value(DivinationTypeRegistry.labelOf(key)),
-        description: Value(DivinationTypeRegistry.labelOf(key)),
-        isCustomized: const Value(false),
-        isAvailable: const Value(true),
-      ),
-    );
+    await db
+        .into(db.divinationTypes)
+        .insertOnConflictUpdate(
+          DivinationTypesCompanion(
+            uuid: Value(key),
+            createdAt: Value(now),
+            lastUpdatedAt: Value(now),
+            name: Value(DivinationTypeRegistry.labelOf(key)),
+            description: Value(DivinationTypeRegistry.labelOf(key)),
+            isCustomized: const Value(false),
+            isAvailable: const Value(true),
+          ),
+        );
   }
 }

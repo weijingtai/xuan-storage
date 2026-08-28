@@ -2,18 +2,28 @@ import 'dart:convert';
 import 'package:repository_interface_meihuayishu/repository_interface_meihuayishu.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
 
-class MeihuaRecordAdapter implements ModuleRecordAdapter, RecordModuleCodec<MeiHuaDivinationRecordContract> {
+class MeihuaRecordAdapter
+    implements
+        ModuleRecordAdapter,
+        RecordModuleCodec<MeiHuaDivinationRecordContract> {
   final String scopeUid;
   MeihuaRecordAdapter({required this.scopeUid});
 
-  @override String get module => 'meihua';
-  @override String get category => 'divination';
-  @override String get divinationType => 'mei_hua';
-
-  @override String uuidOf(MeiHuaDivinationRecordContract c) => c.uuid;
+  @override
+  String get module => 'meihua';
+  @override
+  String get category => 'divination';
+  @override
+  String get divinationType => 'mei_hua';
 
   @override
-  MeiHuaDivinationRecordContract withUuid(MeiHuaDivinationRecordContract c, String uuid) {
+  String uuidOf(MeiHuaDivinationRecordContract c) => c.uuid;
+
+  @override
+  MeiHuaDivinationRecordContract withUuid(
+    MeiHuaDivinationRecordContract c,
+    String uuid,
+  ) {
     return MeiHuaDivinationRecordContract(
       uuid: uuid,
       divinationUuid: c.divinationUuid.isNotEmpty ? c.divinationUuid : uuid,
@@ -34,7 +44,10 @@ class MeihuaRecordAdapter implements ModuleRecordAdapter, RecordModuleCodec<MeiH
   }
 
   @override
-  EncodedRecord encode(MeiHuaDivinationRecordContract c, {required String scopeUid}) {
+  EncodedRecord encode(
+    MeiHuaDivinationRecordContract c, {
+    required String scopeUid,
+  }) {
     final res = toRecord(c);
     final meta = res.meta;
     if (meta.scopeUid == scopeUid) {
@@ -50,10 +63,14 @@ class MeihuaRecordAdapter implements ModuleRecordAdapter, RecordModuleCodec<MeiH
         question: meta.question,
         moduleDataJson: meta.moduleDataJson,
         navParamsJson: meta.navParamsJson,
-        occurredAtUtc: meta.occurredAtUtc, reckoningType: meta.reckoningType,
-        timezoneStr: meta.timezoneStr, latitude: meta.latitude,
-        longitude: meta.longitude, locationName: meta.locationName,
-        spacetimeJson: meta.spacetimeJson, gender: meta.gender,
+        occurredAtUtc: meta.occurredAtUtc,
+        reckoningType: meta.reckoningType,
+        timezoneStr: meta.timezoneStr,
+        latitude: meta.latitude,
+        longitude: meta.longitude,
+        locationName: meta.locationName,
+        spacetimeJson: meta.spacetimeJson,
+        gender: meta.gender,
         createdAt: meta.createdAt,
         updatedAt: meta.updatedAt,
         deletedAt: meta.deletedAt,
@@ -64,7 +81,10 @@ class MeihuaRecordAdapter implements ModuleRecordAdapter, RecordModuleCodec<MeiH
   }
 
   @override
-  MeiHuaDivinationRecordContract decode(RecordMeta meta, Map<String, dynamic>? moduleData) {
+  MeiHuaDivinationRecordContract decode(
+    RecordMeta meta,
+    Map<String, dynamic>? moduleData,
+  ) {
     return fromRecord(meta, moduleData) as MeiHuaDivinationRecordContract;
   }
 
@@ -84,13 +104,25 @@ class MeihuaRecordAdapter implements ModuleRecordAdapter, RecordModuleCodec<MeiH
       'paramsJson': r.paramsJson,
     };
     final meta = RecordMeta(
-      uuid: r.uuid, scopeUid: scopeUid, module: module, category: category,
-      divinationType: divinationType, question: r.question,
+      uuid: r.uuid,
+      scopeUid: scopeUid,
+      module: module,
+      category: category,
+      divinationType: divinationType,
+      question: r.question,
       moduleDataJson: jsonEncode(data),
       navParamsJson: jsonEncode({'recordUuid': r.uuid}),
-      occurredAtUtc: null, reckoningType: null, timezoneStr: null,
-      latitude: null, longitude: null, locationName: null, spacetimeJson: null, gender: null,
-      createdAt: r.createdAt, updatedAt: r.updatedAt, deletedAt: r.deletedAt,
+      occurredAtUtc: null,
+      reckoningType: null,
+      timezoneStr: null,
+      latitude: null,
+      longitude: null,
+      locationName: null,
+      spacetimeJson: null,
+      gender: null,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+      deletedAt: r.deletedAt,
       rev: 1,
     );
     return (meta: meta, moduleData: data);
@@ -98,7 +130,8 @@ class MeihuaRecordAdapter implements ModuleRecordAdapter, RecordModuleCodec<MeiH
 
   @override
   Object fromRecord(RecordMeta meta, Map<String, dynamic>? moduleData) {
-    final d = moduleData ??
+    final d =
+        moduleData ??
         (meta.moduleDataJson == null
             ? const <String, dynamic>{}
             : jsonDecode(meta.moduleDataJson!) as Map<String, dynamic>);
@@ -122,8 +155,12 @@ class MeihuaRecordAdapter implements ModuleRecordAdapter, RecordModuleCodec<MeiH
   }
 
   @override
-  List<SearchTag> extractSearchTags(RecordMeta meta, Map<String, dynamic>? moduleData) {
-    final d = moduleData ??
+  List<SearchTag> extractSearchTags(
+    RecordMeta meta,
+    Map<String, dynamic>? moduleData,
+  ) {
+    final d =
+        moduleData ??
         (meta.moduleDataJson == null
             ? const <String, dynamic>{}
             : jsonDecode(meta.moduleDataJson!) as Map<String, dynamic>);
