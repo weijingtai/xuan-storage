@@ -29,7 +29,7 @@ class LocalRecordRepository implements ScopedRecordStore {
         const <SearchTag>[];
 
     await _ds.db.transaction(() async {
-      await _ds.saveRecord(record, tags);
+      await _ds.saveRecordDirect(record, tags);
 
       final outbox = _outbox;
       if (outbox != null) {
@@ -46,8 +46,8 @@ class LocalRecordRepository implements ScopedRecordStore {
 
   @override
   Future<RecordMeta?> getRecord(String uuid, {required String module}) async {
-    final record = await _ds.getRecord(uuid);
-    if (record == null || record.module != module) return null;
+    final record = await _ds.getRecord(uuid, module: module);
+    if (record == null) return null;
     return record;
   }
 
@@ -71,11 +71,11 @@ class LocalRecordRepository implements ScopedRecordStore {
   @override
   Future<bool> softDeleteRecord(String uuid, {required String module}) async {
     return _ds.db.transaction(() async {
-      final meta = await _ds.getRecord(uuid);
-      if (meta == null || meta.module != module) {
+      final meta = await _ds.getRecord(uuid, module: module);
+      if (meta == null) {
         return false;
       }
-      final deleted = await _ds.softDeleteRecord(uuid);
+      final deleted = await _ds.softDeleteRecordDirect(uuid, module: module);
       if (deleted) {
         final outbox = _outbox;
         if (outbox != null) {
@@ -102,13 +102,14 @@ class LocalRecordRepository implements ScopedRecordStore {
     RecordMeta record, {
     Map<String, dynamic>? moduleData,
   }) async {
+    if (record.scopeUid != scopeUid) return false;
     return _ds.db.transaction(() async {
       final tags =
           _registry
               .forModule(record.module)
               ?.extractSearchTags(record, moduleData) ??
           const <SearchTag>[];
-      final restored = await _ds.restoreRecord(record, tags);
+      final restored = await _ds.restoreRecordDirect(record, tags);
       if (restored) {
         final outbox = _outbox;
         if (outbox != null) {

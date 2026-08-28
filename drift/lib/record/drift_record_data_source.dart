@@ -76,6 +76,17 @@ class DriftRecordDataSource {
   /// Callers composing a larger unit of work must invoke this from their
   /// existing transaction.
   Future<void> saveRecordDirect(RecordMeta record, List<SearchTag> tags) async {
+    if (record.scopeUid != scopeUid) {
+      throw StateError(
+        'Record ${record.uuid} belongs to ${record.scopeUid}, not $scopeUid',
+      );
+    }
+    final existing = await (db.select(
+      db.tRecordMeta,
+    )..where((t) => t.uuid.equals(record.uuid))).getSingleOrNull();
+    if (existing != null && existing.scopeUid != scopeUid) {
+      throw StateError('Record ${record.uuid} belongs to another scope');
+    }
     await db.into(db.tRecordMeta).insertOnConflictUpdate(_companion(record));
     await (db.delete(db.tRecordSearchIndex)..where(
           (t) => t.recordUuid.equals(record.uuid) & t.scopeUid.equals(scopeUid),
@@ -102,6 +113,11 @@ class DriftRecordDataSource {
 
   /// 供 RecordLocalApplier 使用：直接写入本地，不触发 outbox。
   Future<void> applyRemoteRecord(RecordMeta record, List<SearchTag> tags) {
+    if (record.scopeUid != scopeUid) {
+      throw StateError(
+        'Remote record ${record.uuid} belongs to ${record.scopeUid}, not $scopeUid',
+      );
+    }
     return db.transaction(() async {
       await db.into(db.tRecordMeta).insertOnConflictUpdate(_companion(record));
       await (db.delete(
@@ -123,11 +139,11 @@ class DriftRecordDataSource {
     });
   }
 
-  Future<RecordMeta?> getRecord(String uuid) async {
-    final row =
-        await (db.select(db.tRecordMeta)
-              ..where((t) => t.uuid.equals(uuid) & t.scopeUid.equals(scopeUid)))
-            .getSingleOrNull();
+  Future<RecordMeta?> getRecord(String uuid, {String? module}) async {
+    final query = db.select(db.tRecordMeta)
+      ..where((t) => t.uuid.equals(uuid) & t.scopeUid.equals(scopeUid));
+    if (module != null) query.where((t) => t.module.equals(module));
+    final row = await query.getSingleOrNull();
     return row == null ? null : _toMeta(row);
   }
 
@@ -213,10 +229,15 @@ class DriftRecordDataSource {
     return (await q.get()).map(_toMeta).toList();
   }
 
-  Future<bool> softDeleteRecordDirect(String uuid) async {
+  Future<bool> softDeleteRecordDirect(String uuid, {String? module}) async {
     final n =
-        await (db.update(db.tRecordMeta)
-              ..where((t) => t.uuid.equals(uuid) & t.scopeUid.equals(scopeUid)))
+        await (db.update(db.tRecordMeta)..where((t) {
+              final scopedUuid =
+                  t.uuid.equals(uuid) & t.scopeUid.equals(scopeUid);
+              return module == null
+                  ? scopedUuid
+                  : scopedUuid & t.module.equals(module);
+            }))
             .write(
               TRecordMetaCompanion(deletedAt: Value(DateTime.now().toUtc())),
             );
@@ -227,8 +248,8 @@ class DriftRecordDataSource {
     return n > 0;
   }
 
-  Future<bool> softDeleteRecord(String uuid) {
-    return db.transaction(() => softDeleteRecordDirect(uuid));
+  Future<bool> softDeleteRecord(String uuid, {String? module}) {
+    return db.transaction(() => softDeleteRecordDirect(uuid, module: module));
   }
 
   /// Restore (un-soft-delete) a previously soft-deleted record.
@@ -240,6 +261,11 @@ class DriftRecordDataSource {
     RecordMeta record,
     List<SearchTag> tags,
   ) async {
+    if (record.scopeUid != scopeUid) {
+      throw StateError(
+        'Record ${record.uuid} belongs to ${record.scopeUid}, not $scopeUid',
+      );
+    }
     final existing =
         await (db.select(db.tRecordMeta)..where(
               (t) => t.uuid.equals(record.uuid) & t.scopeUid.equals(scopeUid),

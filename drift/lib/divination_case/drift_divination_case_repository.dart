@@ -182,6 +182,7 @@ class DriftDivinationCaseRepository
 
   @override
   Future<void> saveWorkItem(DivinationWorkItemModel model) async {
+    await _validateWorkItemWrite(model);
     await db
         .into(db.divinationWorkItems)
         .insertOnConflictUpdate(_workItemToRow(model));
@@ -234,6 +235,7 @@ class DriftDivinationCaseRepository
 
   @override
   Future<void> saveParticipant(DivinationParticipantModel model) async {
+    await _validateParticipantWrite(model);
     await db
         .into(db.caseParticipants)
         .insertOnConflictUpdate(_participantToRow(model));
@@ -287,6 +289,7 @@ class DriftDivinationCaseRepository
 
   @override
   Future<void> savePanelRef(PanelRefModel model) async {
+    await _validatePanelRefWrite(model);
     await db.into(db.panelRefs).insertOnConflictUpdate(_panelRefToRow(model));
   }
 
@@ -306,9 +309,145 @@ class DriftDivinationCaseRepository
 
   @override
   Future<void> attachPanelRefToWorkItem(WorkItemPanelRefModel model) async {
+    await _validateWorkItemPanelRefWrite(model);
     await db
         .into(db.workItemPanelRefs)
         .insertOnConflictUpdate(_workItemPanelRefToRow(model));
+  }
+
+  Future<void> _validateWorkItemWrite(DivinationWorkItemModel model) async {
+    final existing = await (db.select(
+      db.divinationWorkItems,
+    )..where((t) => t.uuid.equals(model.uuid))).getSingleOrNull();
+    if (existing != null && existing.scopeUid != _store.scopeUid) {
+      throw StateError('WorkItem ${model.uuid} belongs to another scope');
+    }
+
+    final caseRow =
+        await (db.select(db.divinationCases)..where(
+              (t) =>
+                  t.uuid.equals(model.caseUuid) &
+                  t.scopeUid.equals(_store.scopeUid),
+            ))
+            .getSingleOrNull();
+    if (caseRow == null) {
+      throw StateError('Case ${model.caseUuid} is not in the current scope');
+    }
+
+    final parentUuid = model.parentWorkItemUuid;
+    if (parentUuid == null) return;
+    final parent = await (db.select(
+      db.divinationWorkItems,
+    )..where((t) => t.uuid.equals(parentUuid))).getSingleOrNull();
+    if (parent == null || parent.scopeUid != _store.scopeUid) {
+      throw StateError(
+        'Parent WorkItem $parentUuid is not in the current scope',
+      );
+    }
+    if (parent.caseUuid != model.caseUuid) {
+      throw StateError('Parent WorkItem $parentUuid belongs to another case');
+    }
+  }
+
+  Future<void> _validateParticipantWrite(
+    DivinationParticipantModel model,
+  ) async {
+    final existing = await (db.select(
+      db.caseParticipants,
+    )..where((t) => t.uuid.equals(model.uuid))).getSingleOrNull();
+    if (existing != null && existing.scopeUid != _store.scopeUid) {
+      throw StateError('Participant ${model.uuid} belongs to another scope');
+    }
+    final caseRow =
+        await (db.select(db.divinationCases)..where(
+              (t) =>
+                  t.uuid.equals(model.caseUuid) &
+                  t.scopeUid.equals(_store.scopeUid),
+            ))
+            .getSingleOrNull();
+    if (caseRow == null) {
+      throw StateError('Case ${model.caseUuid} is not in the current scope');
+    }
+    final recordUuid = model.recordUuid;
+    if (recordUuid == null) return;
+    final record = await (db.select(
+      db.tRecordMeta,
+    )..where((t) => t.uuid.equals(recordUuid))).getSingleOrNull();
+    if (record != null && record.scopeUid != _store.scopeUid) {
+      throw StateError(
+        'Participant record $recordUuid belongs to another scope',
+      );
+    }
+    if (record != null &&
+        record.caseUuid != null &&
+        record.caseUuid != model.caseUuid) {
+      throw StateError(
+        'Participant record $recordUuid belongs to another case',
+      );
+    }
+  }
+
+  Future<void> _validatePanelRefWrite(PanelRefModel model) async {
+    final existing = await (db.select(
+      db.panelRefs,
+    )..where((t) => t.uuid.equals(model.uuid))).getSingleOrNull();
+    if (existing != null && existing.scopeUid != _store.scopeUid) {
+      throw StateError('PanelRef ${model.uuid} belongs to another scope');
+    }
+
+    // PanelRef may target either a record-backed panel or a legacy global
+    // panel. Whenever the target is record-backed, enforce both scope and
+    // declared module; unresolved external panel IDs remain valid references.
+    final record = await (db.select(
+      db.tRecordMeta,
+    )..where((t) => t.uuid.equals(model.panelUuid))).getSingleOrNull();
+    if (record == null) return;
+    if (record.scopeUid != _store.scopeUid) {
+      throw StateError('Panel ${model.panelUuid} belongs to another scope');
+    }
+    if (record.module != model.module) {
+      throw StateError(
+        'Panel ${model.panelUuid} module ${record.module} does not match ${model.module}',
+      );
+    }
+  }
+
+  Future<void> _validateWorkItemPanelRefWrite(
+    WorkItemPanelRefModel model,
+  ) async {
+    final existing = await (db.select(
+      db.workItemPanelRefs,
+    )..where((t) => t.uuid.equals(model.uuid))).getSingleOrNull();
+    if (existing != null && existing.scopeUid != _store.scopeUid) {
+      throw StateError(
+        'WorkItemPanelRef ${model.uuid} belongs to another scope',
+      );
+    }
+
+    final workItem = await (db.select(
+      db.divinationWorkItems,
+    )..where((t) => t.uuid.equals(model.workItemUuid))).getSingleOrNull();
+    if (workItem == null || workItem.scopeUid != _store.scopeUid) {
+      throw StateError(
+        'WorkItem ${model.workItemUuid} is not in the current scope',
+      );
+    }
+    final panelRef = await (db.select(
+      db.panelRefs,
+    )..where((t) => t.uuid.equals(model.panelRefUuid))).getSingleOrNull();
+    if (panelRef == null || panelRef.scopeUid != _store.scopeUid) {
+      throw StateError(
+        'PanelRef ${model.panelRefUuid} is not in the current scope',
+      );
+    }
+    final targetRecord = await (db.select(
+      db.tRecordMeta,
+    )..where((t) => t.uuid.equals(panelRef.panelUuid))).getSingleOrNull();
+    if (targetRecord != null &&
+        targetRecord.caseUuid != null &&
+        targetRecord.caseUuid != workItem.caseUuid) {
+      throw StateError('PanelRef ${model.panelRefUuid} targets another case');
+    }
   }
 
   PanelRefModel _panelRefFromRow(PanelRef row) {
