@@ -53,59 +53,63 @@ class XrapTaiyiSchoolRepository implements SchoolRepository {
   XrapTaiyiSchoolRepository({
     required this.db,
     required this.installer,
-  })  : _schoolsEnsure = _DatasetEnsurer(installer, 'taiyi.schools'),
-        _deitiesEnsure = _DatasetEnsurer(installer, 'taiyi.deities');
+  })  : _schoolsEnsure = _DatasetEnsurer(installer, 'taiyi.schools');
 
   final TaiyishenshuDatabase db;
   final DatasetInstaller installer;
   final _DatasetEnsurer _schoolsEnsure;
-  final _DatasetEnsurer _deitiesEnsure;
 
   // -------------------------------------------------------------------------
   // schools（taiyi.schools）
   // -------------------------------------------------------------------------
 
   @override
-  Future<List<TaiYiSchoolContract>> query([Map<String, Object?>? criteria]) async {
+  Future<Result<Page<TaiYiSchoolContract>>> query(
+    Map<String, Object?> spec,
+    PageRequest page,
+    RequestContext ctx,
+  ) async {
     await _schoolsEnsure.ensure();
     final rows = await db.select(db.taiyiSchoolDocuments).get();
-    return rows
+    final items = rows
         .map((r) => TaiYiSchoolContract.fromJson(jsonDecode(r.payloadJson)))
         .toList();
+    final paged = items.take(page.limit).toList();
+    return Ok(Page(
+      items: paged,
+      nextCursor: paged.length < items.length ? 'cursor' : null,
+    ));
   }
 
   @override
-  Future<TaiYiSchoolContract?> get(String id) async {
+  Future<Result<TaiYiSchoolContract?>> get(String id, RequestContext ctx) async {
     await _schoolsEnsure.ensure();
     final row = await (db.select(db.taiyiSchoolDocuments)
           ..where((t) => t.fileName.equals('${_toKebab(id)}.json')))
         .getSingleOrNull();
-    if (row == null) return null;
-    return TaiYiSchoolContract.fromJson(jsonDecode(row.payloadJson));
+    if (row == null) return const Ok(null);
+    return Ok(TaiYiSchoolContract.fromJson(jsonDecode(row.payloadJson)));
+  }
+
+  @override
+  Future<Result<bool>> exists(String id, RequestContext ctx) async {
+    final result = await get(id, ctx);
+    return result.map((v) => v != null);
+  }
+
+  @override
+  Future<Result<int>> count(
+    Map<String, Object?> spec,
+    RequestContext ctx,
+  ) async {
+    await _schoolsEnsure.ensure();
+    final rows = await db.select(db.taiyiSchoolDocuments).get();
+    return Ok(rows.length);
   }
 
   // -------------------------------------------------------------------------
   // deities（taiyi.deities）
   // -------------------------------------------------------------------------
-
-  @override
-  Future<List<DeityDefinitionContract>> loadAllDeities() async {
-    await _deitiesEnsure.ensure();
-    final rows = await db.select(db.taiyiDeityDocuments).get();
-    return rows
-        .map((r) => DeityDefinitionContract.fromJson(jsonDecode(r.payloadJson)))
-        .toList();
-  }
-
-  @override
-  Future<DeityDefinitionContract?> loadDeity(String id) async {
-    await _deitiesEnsure.ensure();
-    final row = await (db.select(db.taiyiDeityDocuments)
-          ..where((t) => t.fileName.equals('${_toKebab(id)}.json')))
-        .getSingleOrNull();
-    if (row == null) return null;
-    return DeityDefinitionContract.fromJson(jsonDecode(row.payloadJson));
-  }
 
   // loadAllDeities 和 loadDeity 保留为内部方法，对外统一使用 query/get
 
@@ -118,15 +122,7 @@ class XrapTaiyiSchoolRepository implements SchoolRepository {
       throw UnsupportedError('Official repository is read-only');
 
   @override
-  Future<Result<Rev>> putDeity(DeityDefinitionContract entity, RequestContext ctx, {Precondition pre = const Unconditional()}) =>
-      throw UnsupportedError('Official repository is read-only');
-
-  @override
   Future<Result<void>> delete(String id, RequestContext ctx, {Precondition pre = const Unconditional()}) =>
-      throw UnsupportedError('Official repository is read-only');
-
-  @override
-  Future<Result<void>> deleteDeity(String id, RequestContext ctx, {Precondition pre = const Unconditional()}) =>
       throw UnsupportedError('Official repository is read-only');
 }
 
@@ -144,32 +140,54 @@ class XrapTaiyiMingGuaRepository implements MingGuaRepository {
   static const _kFileName = 'tong_zong_sequence.json';
 
   @override
-  Future<List<MingGuaConfigContract>> loadAllConfigs() async {
+  Future<Result<Page<MingGuaConfigContract>>> query(
+    Map<String, Object?> spec,
+    PageRequest page,
+    RequestContext ctx,
+  ) async {
     await _ensure.ensure();
     final row = await (db.select(db.taiyiMingGuaDocuments)
           ..where((t) => t.fileName.equals(_kFileName)))
         .getSingleOrNull();
     if (row == null) {
-      throw const NotFound('tong_zong_sequence.json');
+      return const Ok(Page(items: []));
     }
     final json = jsonDecode(row.payloadJson) as Map<String, dynamic>;
-    return [MingGuaConfigContract.fromJson(json)];
+    final items = [MingGuaConfigContract.fromJson(json)];
+    return Ok(Page(items: items));
   }
 
   @override
-  Future<MingGuaConfigContract?> loadConfig(String id) async {
-    final configs = await loadAllConfigs();
-    for (final c in configs) {
-      if (c.id == id) return c;
-    }
-    return null;
+  Future<Result<MingGuaConfigContract?>> get(String id, RequestContext ctx) async {
+    final result = await query({}, PageRequest(limit: 100), ctx);
+    return result.map((page) {
+      for (final c in page.items) {
+        if (c.id == id) return c;
+      }
+      return null;
+    });
   }
 
   @override
-  Future<void> saveConfig(MingGuaConfigContract config) =>
+  Future<Result<bool>> exists(String id, RequestContext ctx) async {
+    final result = await get(id, ctx);
+    return result.map((v) => v != null);
+  }
+
+  @override
+  Future<Result<int>> count(
+    Map<String, Object?> spec,
+    RequestContext ctx,
+  ) async {
+    final result = await query(spec, PageRequest(limit: 1000), ctx);
+    return result.map((page) => page.items.length);
+  }
+
+  @override
+  Future<Result<Rev>> put(MingGuaConfigContract entity, RequestContext ctx, {Precondition pre = const Unconditional()}) =>
       throw UnsupportedError('Official configs are read-only');
 
   @override
-  Future<void> deleteConfig(String id) =>
+  Future<Result<void>> delete(String id, RequestContext ctx, {Precondition pre = const Unconditional()}) =>
       throw UnsupportedError('Official configs are read-only');
 }
