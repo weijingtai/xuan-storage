@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/services.dart' show AssetBundle, rootBundle;
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_taiyishenshu/repository_interface_taiyishenshu.dart';
 import 'package:taiyishenshu/taiyi/taiyi.dart' show TaiYiSchool, DeityDefinition;
 import 'official_json_mapper.dart';
@@ -95,18 +96,10 @@ class OfficialJsonSchoolRepository implements SchoolRepository {
   // loadAllDeities 和 loadDeity 保留为内部方法，对外统一使用 query/get
 
   @override
-  Future<void> put(TaiYiSchoolContract entity) =>
+  Future<Result<Rev>> put(TaiYiSchoolContract entity, RequestContext ctx, {Precondition pre = const Unconditional()}) =>
       throw UnsupportedError('Official repository is read-only');
 
   @override
-  Future<void> putDeity(DeityDefinitionContract entity) =>
-      throw UnsupportedError('Official repository is read-only');
-
-  @override
-  Future<void> delete(String id) =>
-      throw UnsupportedError('Official repository is read-only');
-
-  @override
-  Future<void> deleteDeity(String id) =>
+  Future<Result<void>> delete(String id, RequestContext ctx, {Precondition pre = const Unconditional()}) =>
       throw UnsupportedError('Official repository is read-only');
 }
