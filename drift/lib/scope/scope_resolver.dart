@@ -48,7 +48,10 @@ class ScopeResolver {
   ///
   /// 绝不返回空字符串。任何异常路径都抛出而非静默返回空值。
   Future<ResolvedScope> resolve() async {
-    final ctx = RequestContext(scopeUid: 'local-anonymous');
+    // The bootstrap/device scope is the only scope known before reading the
+    // current session. It is still a real ledger scope, never a sentinel.
+    final deviceScope = await _ledger.deviceScope();
+    final ctx = RequestContext(scopeUid: deviceScope);
     final sessionResult = await _sessionRepository.get('current', ctx);
     final session = switch (sessionResult) {
       Ok(:final value) => value,
@@ -59,7 +62,6 @@ class ScopeResolver {
 
     // 1. 无 session (登出 / 尚未登录) → 返回 device scope
     if (session == null) {
-      final deviceScope = await _ledger.deviceScope();
       return ResolvedScope(
         scopeUid: deviceScope,
         isUpgrade: false,
@@ -87,7 +89,6 @@ class ScopeResolver {
     }
 
     // 4. appUserId 还没有别名 → 检查 device scope
-    final deviceScope = await _ledger.deviceScope();
     final entries = await _ledger.entriesForScope(deviceScope);
 
     if (entries.isEmpty) {
@@ -142,13 +143,16 @@ class ScopeResolver {
     String appUserId,
     List<ScopeAliasEntry> deviceEntries,
   ) async {
-    final ctx = RequestContext(scopeUid: 'local-anonymous');
+    final deviceScope = await _ledger.deviceScope();
+    final ctx = RequestContext(scopeUid: deviceScope);
     for (final entry in deviceEntries) {
       if (entry.authKind == ScopeAuthKind.anonymous) {
         final linkResult = await _identityLinkRepository.get(entry.authId, ctx);
         final link = switch (linkResult) {
           Ok(:final value) => value,
-          Err() => null,
+          Err(:final error) => throw StateError(
+            'ScopeResolver: identity-link retrieval failed: $error',
+          ),
         };
         if (link != null && link.registeredAppUserId.value == appUserId) {
           return true;
@@ -158,7 +162,9 @@ class ScopeResolver {
         final linkResult = await _identityLinkRepository.get(entry.authId, ctx);
         final link = switch (linkResult) {
           Ok(:final value) => value,
-          Err() => null,
+          Err(:final error) => throw StateError(
+            'ScopeResolver: identity-link retrieval failed: $error',
+          ),
         };
         if (link != null && link.anonymousAppUserId.value == appUserId) {
           return true;
