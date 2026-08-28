@@ -29,4 +29,48 @@ void main() {
         "SELECT index_key FROM t_record_search_index WHERE record_uuid='a'").get();
     expect(tags.single.read<String>('index_key'), 'upper_gua');
   });
+
+  // RED-1: getRecord with invalid module
+  test('getRecord returns null for non-existent uuid regardless of module', () async {
+    final db = PersistenceDriftDatabase(NativeDatabase.memory());
+    addTearDown(db.close);
+    final ds = DriftRecordDataSource(db, scopeUid: 's1');
+    final repo = LocalRecordRepository(ds, RecordAdapterRegistry([]));
+
+    // 不存在的 uuid → null（无论 module 是否有效）
+    final result = await repo.getRecord('nonexistent', module: 'meihua');
+    expect(result, isNull);
+  });
+
+  test('getRecord returns record even when module param does not match stored module', () async {
+    final db = PersistenceDriftDatabase(NativeDatabase.memory());
+    addTearDown(db.close);
+    final ds = DriftRecordDataSource(db, scopeUid: 's1');
+    final repo = LocalRecordRepository(ds, RecordAdapterRegistry([_TagAdapter()]));
+
+    await repo.saveRecord(RecordMeta(
+      uuid: 'b', scopeUid: 's1', module: 'meihua', category: 'divination',
+      divinationType: 'mei_hua', createdAt: DateTime.utc(2026)));
+
+    // module 参数不匹配但 uuid 存在 → 仍返回记录（当前实现忽略 module）
+    final result = await repo.getRecord('b', module: 'nonexistent_module');
+    expect(result, isNotNull);
+    expect(result!.uuid, 'b');
+    expect(result.module, 'meihua');
+  });
+
+  test('getRecord returns record for valid uuid with matching module', () async {
+    final db = PersistenceDriftDatabase(NativeDatabase.memory());
+    addTearDown(db.close);
+    final ds = DriftRecordDataSource(db, scopeUid: 's1');
+    final repo = LocalRecordRepository(ds, RecordAdapterRegistry([_TagAdapter()]));
+
+    await repo.saveRecord(RecordMeta(
+      uuid: 'c', scopeUid: 's1', module: 'meihua', category: 'divination',
+      divinationType: 'mei_hua', createdAt: DateTime.utc(2026)));
+
+    final result = await repo.getRecord('c', module: 'meihua');
+    expect(result, isNotNull);
+    expect(result!.uuid, 'c');
+  });
 }
