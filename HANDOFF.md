@@ -2,7 +2,13 @@
 
 更新时间：2026-08-28
 当前分支/worktree：`feature/xiang-s4-uow-search-restore` / `/Users/jingtaiwei/Git/Public/xuan-migration/xuan-storage/.worktrees/wave2-xiang-s4`
-刚完成：Storage S4 的 Wave 0 依赖收敛；未修改 S4 业务实现。
+刚完成：Storage S4 的 Wave 0 依赖收敛，以及 Wave 1A A2-A4 Storage closure。
+
+Wave 1A 提交：`606fbc7`（ScopeResolver 使用真实 device scope context、identity-link Err 传播）；`c1cbdee`（Record direct body、UoW 单事务、生产 outbox required）；`336bc26`（LocalRecord 与 Case/WorkItem/Participant/PanelRef/WorkItemPanelRef scope/关系写验证及 A/B mutation 测试）。
+
+Wave 1A 修改文件：`drift/lib/scope/scope_resolver.dart`、`drift/lib/blob/drift_record_blob_unit_of_work.dart`、`drift/lib/record/drift_record_data_source.dart`、`drift/lib/record/local_record_repository.dart`、`drift/lib/divination_case/drift_divination_case_repository.dart`，及对应 scope/UoW/local-record/case 测试。
+
+Wave 1A 验证：第 10.7 五测试 + resolver 合并 `flutter test --no-pub ...` exit 0，46 tests；限定变更 9 items `flutter analyze --no-pub` exit 0，0 issues；`git diff --check` exit 0。fresh 全量 `flutter analyze --no-pub` exit 1、396 baseline issues（既有 build/unit_test_assets GeoDatabase 缺失与历史 warnings，未修）。
 
 - `drift/pubspec.yaml`：保留正常的 `repository_interface_xiang` 直接 git 依赖（无 `ref`）；删除其重复的 `dependency_overrides` 块。Account 与 Record 也各自是本任务相关、与直接依赖重复的 override，已删除；其余历史 overrides 未改。
 - `drift/test/account/account_repository_contract_compile_test.dart`：新增真实 L0 契约 seam，执行 `put(entity, context, {pre})` 与 `get(id, context)`，并断言 revision、非空读回值、标识字段和同一时刻。
@@ -30,6 +36,6 @@
 - `pubspec_overrides.yaml` 不存在；`pubspec.yaml` 与 `pubspec.lock` 中不含 `feature/xiang-interface-l0`；任务相关 Account/Record/Xiang override 不存在。
 
 进行到一半的事：无。
-下一步（第一件事）：由后续 Wave 1A owner 从 10.7 开始；先运行 fresh `flutter analyze` 锁定当时的错误清单，不得把本 Wave 0 验证称为 Wave 4 通过。
-未运行项：无全量 `flutter analyze`、无全量 Drift suite、无 Wave 1A/1B/2/3/4 验收、无真实平台媒体验证；它们不属于本原子任务。
+下一步（第一件事）：Terra 只读审核当前三个提交；人工验收通过后由人类合并，不由 Agent merge/rebase/push main。
+未运行项：全量 Drift suite、Shell/Kanyu、真实平台媒体及 Wave 2-4 门禁。
 已知的坑：`pubspec.lock` 和 `pubspec_overrides.yaml` 被忽略；新 worktree 必须重新 `flutter pub get` 并从实际 lockfile 核验 resolved-ref。
