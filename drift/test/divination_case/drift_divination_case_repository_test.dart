@@ -408,4 +408,46 @@ void main() {
       expect(await repo.getPanelRef('panel-ref-module-mismatch'), isNull);
     },
   );
+
+  test('scope B cannot overwrite scope A case by uuid', () async {
+    final sharedDb = PersistenceDriftDatabase(NativeDatabase.memory());
+    addTearDown(sharedDb.close);
+    DriftDivinationCaseRepository repoFor(String scopeUid) {
+      final store = LocalRecordRepository(
+        DriftRecordDataSource(sharedDb, scopeUid: scopeUid),
+        RecordAdapterRegistry([]),
+      );
+      return DriftDivinationCaseRepository(sharedDb, store: store);
+    }
+
+    final repoA = repoFor('scope-a');
+    final repoB = repoFor('scope-b');
+    final caseA = _caseFixture('case-overwrite-a');
+    await repoA.saveCase(caseA);
+
+    await expectLater(
+      repoB.saveCase(
+        DivinationCaseModel(
+          uuid: caseA.uuid,
+          title: 'scope B must not overwrite A',
+          mainQuestion: caseA.mainQuestion,
+          status: caseA.status,
+          createdAt: caseA.createdAt,
+          updatedAt: caseA.updatedAt,
+        ),
+      ),
+      throwsStateError,
+    );
+
+    expect(await repoA.getCase(caseA.uuid), equals(caseA));
+    expect(await repoB.getCase(caseA.uuid), isNull);
+    final rows = await sharedDb
+        .customSelect(
+          "SELECT uuid, scope_uid, title FROM t_divination_cases WHERE uuid = 'case-overwrite-a'",
+        )
+        .get();
+    expect(rows, hasLength(1));
+    expect(rows.single.read<String>('scope_uid'), 'scope-a');
+    expect(rows.single.read<String>('title'), caseA.title);
+  });
 }

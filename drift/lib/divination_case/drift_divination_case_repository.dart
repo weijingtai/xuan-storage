@@ -42,6 +42,12 @@ class DriftDivinationCaseRepository
 
   @override
   Future<void> saveCase(DivinationCaseModel model) async {
+    final existing = await (db.select(
+      db.divinationCases,
+    )..where((t) => t.uuid.equals(model.uuid))).getSingleOrNull();
+    if (existing != null && existing.scopeUid != _store.scopeUid) {
+      throw StateError('Case ${model.uuid} belongs to another scope');
+    }
     await db.into(db.divinationCases).insertOnConflictUpdate(_caseToRow(model));
   }
 
