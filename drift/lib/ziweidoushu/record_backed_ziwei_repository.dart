@@ -202,4 +202,23 @@ class RecordBackedZiweiRepository
   Future<Result<R>> inTransaction<R>(Future<R> Function() body) {
     return _l0.inTransaction(body);
   }
+
+  // ── 遗留别名（旧调用方与既有测试的过渡层，M4 随适配层一并退场） ──
+
+  @override
+  Future<String> saveRecord(ZiweiDivinationRecordContract record) =>
+      save(record);
+
+  @override
+  Future<List<ZiweiDivinationRecordContract>> getAllRecords() => getAll();
+
+  @override
+  Future<ZiweiDivinationRecordContract?> getRecordByUuid(String uuid) =>
+      getByUuid(uuid);
+
+  @override
+  Future<bool> softDeleteRecord(String uuid) => softDeleteLegacy(uuid);
+
+  @override
+  Stream<List<ZiweiDivinationRecordContract>> watchAllRecords() => watchAll();
 }

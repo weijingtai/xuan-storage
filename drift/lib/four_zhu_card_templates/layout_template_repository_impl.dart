@@ -286,4 +286,34 @@ class LayoutTemplateRepositoryImpl implements LayoutTemplateRepository {
       ));
     }
   }
+
+  // ── 遗留别名（旧调用方与既有测试的过渡层，M4 随适配层一并退场） ──
+
+  Future<RequestContext> _legacyCtx() async =>
+      RequestContext(scopeUid: await _authScopeProvider.getScopeUid());
+
+  @override
+  Future<List<LayoutTemplateContract>> getAllTemplates(String collectionId) =>
+      _loadContracts(collectionId: collectionId);
+
+  @override
+  Future<LayoutTemplateContract?> getTemplateById(
+    String collectionId,
+    String templateId,
+  ) async {
+    final list = await _loadContracts(collectionId: collectionId);
+    return list.firstWhereOrNull((c) => c.uuid == templateId);
+  }
+
+  @override
+  Future<void> saveTemplate(LayoutTemplateContract template) async {
+    final r = await put(template, await _legacyCtx());
+    if (r case Err(error: final e)) throw e;
+  }
+
+  @override
+  Future<void> deleteTemplate(String collectionId, String templateId) async {
+    final r = await softDelete(templateId, await _legacyCtx());
+    if (r case Err(error: final e)) throw e;
+  }
 }

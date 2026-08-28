@@ -153,4 +153,24 @@ class RecordBackedBaziRepository implements BaziRecordRepository {
       return Err(XuanError(code: ErrorCode.internal, message: e.toString()));
     }
   }
+
+  // ── 遗留别名（旧调用方与既有测试的过渡层，M4 随适配层一并退场） ──
+
+  @override
+  Future<List<BaziRecordContract>> listRecords(String caseUuid) =>
+      _getAllByIndexInternal('case_uuid', caseUuid);
+
+  @override
+  Future<BaziRecordContract?> getRecord(String uuid) =>
+      _getByUuidInternal(uuid);
+
+  @override
+  Future<void> saveRecord(BaziRecordContract record) async {
+    await _saveInternal(record);
+  }
+
+  @override
+  Future<void> deleteRecord(String uuid) async {
+    await _softDeleteInternal(uuid);
+  }
 }
