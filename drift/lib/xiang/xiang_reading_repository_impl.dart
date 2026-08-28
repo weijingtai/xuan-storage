@@ -107,29 +107,21 @@ class XiangReadingRepositoryImpl implements XiangReadingRepository {
   }
 
   @override
-  Future<void> softDelete(String uuid) async {
-    // FA12 单一方针：删除经媒体生命周期处理引用并落库审计（TDD-T7）。
-    final handler = _deleteMediaHandler;
-    if (handler != null) {
-      await handler.handleDelete(uuid);
-      return;
-    }
-    // 未装配 handler（旧装配）时退化为纯软删。
-    await _l0.softDelete(uuid, _ctx);
-  }
-
-  Future<Result<void>> softDeleteL0(
+  Future<Result<void>> softDelete(
     String id,
     RequestContext ctx, {
     Precondition pre = const Unconditional(),
   }) async {
+    // FA12 单一方针：删除经媒体生命周期处理引用并落库审计（TDD-T7）。
     final handler = _deleteMediaHandler;
     if (handler != null) {
       await handler.handleDelete(id);
       return const Ok(null);
     }
-    return _l0.softDelete(id, ctx);
+    // 未装配 handler（旧装配）时退化为纯软删。
+    return _l0.softDelete(id, ctx, pre: pre);
   }
+
 
   @override
   Future<Result<void>> restore(String id, RequestContext ctx) {
