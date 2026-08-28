@@ -15,6 +15,7 @@ library;
 import 'dart:convert';
 
 import 'package:persistence_core/persistence_core.dart' hide StorageError;
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_taiyishenshu/repository_interface_taiyishenshu.dart';
 
 import 'drift/taiyishenshu_database.dart';
