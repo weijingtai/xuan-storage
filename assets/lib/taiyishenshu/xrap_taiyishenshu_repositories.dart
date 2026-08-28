@@ -113,19 +113,19 @@ class XrapTaiyiSchoolRepository implements SchoolRepository {
   // -------------------------------------------------------------------------
 
   @override
-  Future<void> put(TaiYiSchoolContract entity) =>
+  Future<Result<Rev>> put(TaiYiSchoolContract entity, RequestContext ctx, {Precondition pre = const Unconditional()}) =>
       throw UnsupportedError('Official repository is read-only');
 
   @override
-  Future<void> putDeity(DeityDefinitionContract entity) =>
+  Future<Result<Rev>> putDeity(DeityDefinitionContract entity, RequestContext ctx, {Precondition pre = const Unconditional()}) =>
       throw UnsupportedError('Official repository is read-only');
 
   @override
-  Future<void> delete(String id) =>
+  Future<Result<void>> delete(String id, RequestContext ctx, {Precondition pre = const Unconditional()}) =>
       throw UnsupportedError('Official repository is read-only');
 
   @override
-  Future<void> deleteDeity(String id) =>
+  Future<Result<void>> deleteDeity(String id, RequestContext ctx, {Precondition pre = const Unconditional()}) =>
       throw UnsupportedError('Official repository is read-only');
 }
 
