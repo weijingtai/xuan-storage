@@ -14,7 +14,7 @@ library;
 
 import 'dart:convert';
 
-import 'package:persistence_core/persistence_core.dart' hide StorageError;
+import 'package:persistence_core/persistence_core.dart' hide StorageError, XuanError;
 import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_ziweidoushu/repository_interface_ziwei.dart';
 
