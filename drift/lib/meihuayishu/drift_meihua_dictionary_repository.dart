@@ -14,7 +14,8 @@ class DriftMeiHuaDictionaryRepository implements MeiHuaDictionaryRepository {
 
   @override
   Future<MeiHuaDictionaryCharacterContract?> queryCharacter(
-      String character) async {
+    String character,
+  ) async {
     final row = await _database.queryCharacter(character);
     if (row == null) return null;
     return MeiHuaDictionaryCharacterContract(
@@ -29,15 +30,18 @@ class DriftMeiHuaDictionaryRepository implements MeiHuaDictionaryRepository {
 
   @override
   Future<List<MeiHuaDictionaryPinyinContract>> queryPinyins(
-      int characterId) async {
+    int characterId,
+  ) async {
     final rows = await _database.queryPinyins(characterId);
     return rows
-        .map((p) => MeiHuaDictionaryPinyinContract(
-              id: p.id,
-              characterId: p.characterId,
-              pinyin: p.pinyin,
-              pinyinWithToneNumber: p.pinyinWithToneNumber,
-            ))
+        .map(
+          (p) => MeiHuaDictionaryPinyinContract(
+            id: p.id,
+            characterId: p.characterId,
+            pinyin: p.pinyin,
+            pinyinWithToneNumber: p.pinyinWithToneNumber,
+          ),
+        )
         .toList();
   }
 
@@ -49,14 +53,16 @@ class DriftMeiHuaDictionaryRepository implements MeiHuaDictionaryRepository {
     if (id.isEmpty) return const Ok(null);
     final row = await _database.queryCharacter(id);
     if (row == null) return const Ok(null);
-    return Ok(MeiHuaDictionaryCharacterContract(
-      id: row.id,
-      character: row.character,
-      definition: row.definition,
-      radical: row.radical,
-      decomposition: row.decomposition,
-      matchesJson: row.matchesJson,
-    ));
+    return Ok(
+      MeiHuaDictionaryCharacterContract(
+        id: row.id,
+        character: row.character,
+        definition: row.definition,
+        radical: row.radical,
+        decomposition: row.decomposition,
+        matchesJson: row.matchesJson,
+      ),
+    );
   }
 
   @override
@@ -76,14 +82,16 @@ class DriftMeiHuaDictionaryRepository implements MeiHuaDictionaryRepository {
     for (final char in text.split('')) {
       final row = await _database.queryCharacter(char);
       if (row != null) {
-        items.add(MeiHuaDictionaryCharacterContract(
-          id: row.id,
-          character: row.character,
-          definition: row.definition,
-          radical: row.radical,
-          decomposition: row.decomposition,
-          matchesJson: row.matchesJson,
-        ));
+        items.add(
+          MeiHuaDictionaryCharacterContract(
+            id: row.id,
+            character: row.character,
+            definition: row.definition,
+            radical: row.radical,
+            decomposition: row.decomposition,
+            matchesJson: row.matchesJson,
+          ),
+        );
       }
     }
     return Ok(Page(items: items, nextCursor: null));
@@ -116,6 +124,22 @@ class DriftMeiHuaDictionaryRepository implements MeiHuaDictionaryRepository {
     int limit = 200,
   }) {
     return const Stream.empty();
+  }
+
+  @override
+  Future<int> getStrokeCount(String character) async {
+    final count = await _database.getStrokeCount(character);
+    return count ?? 7;
+  }
+
+  @override
+  Future<List<int>> getStrokeCounts(String text) async {
+    final result = <int>[];
+    for (final char in text.split('')) {
+      final count = await getStrokeCount(char);
+      result.add(count);
+    }
+    return result;
   }
 
   @override

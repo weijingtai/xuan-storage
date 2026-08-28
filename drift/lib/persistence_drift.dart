@@ -186,15 +186,15 @@ class OutboxRecords extends Table {
   Set<Column> get primaryKey => {operationId};
 
   List<Index> get indexes => [
-        Index(
-          'idx_outbox_scope_status_created',
-          'CREATE INDEX idx_outbox_scope_status_created ON t_outbox (scope_uid, status, created_at_utc);',
-        ),
-        Index(
-          'idx_outbox_scope_status',
-          'CREATE INDEX idx_outbox_scope_status ON t_outbox (scope_uid, status);',
-        ),
-      ];
+    Index(
+      'idx_outbox_scope_status_created',
+      'CREATE INDEX idx_outbox_scope_status_created ON t_outbox (scope_uid, status, created_at_utc);',
+    ),
+    Index(
+      'idx_outbox_scope_status',
+      'CREATE INDEX idx_outbox_scope_status ON t_outbox (scope_uid, status);',
+    ),
+  ];
 }
 
 @DataClassName('OutboxPeerAckRow')
@@ -232,23 +232,24 @@ class OutboxPeerAcks extends Table {
   TextColumn get lastErrorCode => text().nullable().named('last_error_code')();
   TextColumn get lastErrorMessage =>
       text().nullable().named('last_error_message')();
-  DateTimeColumn get ackedAtUtc => dateTime().nullable().named('acked_at_utc')();
+  DateTimeColumn get ackedAtUtc =>
+      dateTime().nullable().named('acked_at_utc')();
 
   @override
   Set<Column> get primaryKey => {operationId, peerId};
 
   List<Index> get indexes => [
-        Index(
-          'idx_outbox_peer_ack_peer_status',
-          'CREATE INDEX idx_outbox_peer_ack_peer_status '
+    Index(
+      'idx_outbox_peer_ack_peer_status',
+      'CREATE INDEX idx_outbox_peer_ack_peer_status '
           'ON t_outbox_peer_ack (peer_id, status);',
-        ),
-        Index(
-          'idx_outbox_peer_ack_operation',
-          'CREATE INDEX idx_outbox_peer_ack_operation '
+    ),
+    Index(
+      'idx_outbox_peer_ack_operation',
+      'CREATE INDEX idx_outbox_peer_ack_operation '
           'ON t_outbox_peer_ack (operation_id);',
-        ),
-      ];
+    ),
+  ];
 }
 
 /// 每个实体当前版本的 HLC 戳（边表）。
@@ -306,8 +307,7 @@ class HlcClockStates extends Table {
   String get tableName => 't_hlc_clock_state';
 
   /// 固定为 0。单行表的哨兵主键 —— 有 CHECK 约束保证只可能有一行。
-  IntColumn get id =>
-      integer().withDefault(const Constant(0)).named('id')();
+  IntColumn get id => integer().withDefault(const Constant(0)).named('id')();
 
   /// 上次退出/上次 tick 时的 HLC 打包值（int64，见 hlc_wire_format_spec ②）。
   IntColumn get hlcPacked => integer().named('hlc_packed')();
@@ -355,11 +355,11 @@ class SyncStates extends Table {
   Set<Column> get primaryKey => {scopeUid, peerId, entityType};
 
   List<Index> get indexes => [
-        Index(
-          'idx_sync_state_scope',
-          'CREATE INDEX idx_sync_state_scope ON t_sync_state (scope_uid);',
-        ),
-      ];
+    Index(
+      'idx_sync_state_scope',
+      'CREATE INDEX idx_sync_state_scope ON t_sync_state (scope_uid);',
+    ),
+  ];
 }
 
 @DriftAccessor(tables: [OutboxRecords])
@@ -436,8 +436,9 @@ class OutboxRecordsDao extends DatabaseAccessor<PersistenceDriftDatabase>
   }
 
   Future<void> deleteByScope({required String scopeUid}) async {
-    await (delete(db.outboxRecords)..where((t) => t.scopeUid.equals(scopeUid)))
-        .go();
+    await (delete(
+      db.outboxRecords,
+    )..where((t) => t.scopeUid.equals(scopeUid))).go();
   }
 
   Future<void> enqueueMany(List<OutboxRecordsCompanion> companions) async {
@@ -460,23 +461,24 @@ class OutboxRecordsDao extends DatabaseAccessor<PersistenceDriftDatabase>
     final countExp = db.outboxRecords.operationId.count();
     final o = db.outboxRecords;
     final a = db.outboxPeerAcks;
-    final rows = await (selectOnly(o)
-          ..addColumns([o.scopeUid, o.entityType, countExp])
-          ..join([
-            leftOuterJoin(
-              a,
-              o.operationId.equalsExp(a.operationId) &
-                  a.peerId.equals(peerId.value),
-            ),
-          ])
-          ..where(
-            o.scopeUid.equals(scopeUid) &
-                (a.status.isNull() |
-                    a.status.equals('pending') |
-                    a.status.equals('failed')),
-          )
-          ..groupBy([o.entityType]))
-        .get();
+    final rows =
+        await (selectOnly(o)
+              ..addColumns([o.scopeUid, o.entityType, countExp])
+              ..join([
+                leftOuterJoin(
+                  a,
+                  o.operationId.equalsExp(a.operationId) &
+                      a.peerId.equals(peerId.value),
+                ),
+              ])
+              ..where(
+                o.scopeUid.equals(scopeUid) &
+                    (a.status.isNull() |
+                        a.status.equals('pending') |
+                        a.status.equals('failed')),
+              )
+              ..groupBy([o.entityType]))
+            .get();
     var count = 0;
     for (final row in rows) {
       if (!PeerEligibility.allows(row.read(o.entityType)!, channel)) continue;
@@ -519,13 +521,14 @@ class OutboxRecordsDao extends DatabaseAccessor<PersistenceDriftDatabase>
           ..groupBy([o.entityType]))
         .watch()
         .map((rows) {
-      var count = 0;
-      for (final row in rows) {
-        if (!PeerEligibility.allows(row.read(o.entityType)!, channel)) continue;
-        count += row.read(countExp) ?? 0;
-      }
-      return count;
-    });
+          var count = 0;
+          for (final row in rows) {
+            if (!PeerEligibility.allows(row.read(o.entityType)!, channel))
+              continue;
+            count += row.read(countExp) ?? 0;
+          }
+          return count;
+        });
   }
 
   /// 该对端的死信数（该对端 ack 行 status = 'dead' 的条数）。
@@ -540,18 +543,19 @@ class OutboxRecordsDao extends DatabaseAccessor<PersistenceDriftDatabase>
     final countExp = db.outboxRecords.operationId.count();
     final o = db.outboxRecords;
     final a = db.outboxPeerAcks;
-    final rows = await (selectOnly(o)
-          ..addColumns([o.entityType, countExp])
-          ..join([
-            leftOuterJoin(
-              a,
-              o.operationId.equalsExp(a.operationId) &
-                  a.peerId.equals(peerId.value),
-            ),
-          ])
-          ..where(o.scopeUid.equals(scopeUid) & a.status.equals('dead'))
-          ..groupBy([o.entityType]))
-        .get();
+    final rows =
+        await (selectOnly(o)
+              ..addColumns([o.entityType, countExp])
+              ..join([
+                leftOuterJoin(
+                  a,
+                  o.operationId.equalsExp(a.operationId) &
+                      a.peerId.equals(peerId.value),
+                ),
+              ])
+              ..where(o.scopeUid.equals(scopeUid) & a.status.equals('dead'))
+              ..groupBy([o.entityType]))
+            .get();
     var count = 0;
     for (final row in rows) {
       if (!PeerEligibility.allows(row.read(o.entityType)!, channel)) continue;
@@ -616,13 +620,13 @@ class OutboxRecordsDao extends DatabaseAccessor<PersistenceDriftDatabase>
     required String operationId,
     required PeerId peerId,
   }) async {
-    final row = await (select(db.outboxPeerAcks)
-          ..where(
-            (t) =>
-                t.operationId.equals(operationId) &
-                t.peerId.equals(peerId.value),
-          ))
-        .getSingleOrNull();
+    final row =
+        await (select(db.outboxPeerAcks)..where(
+              (t) =>
+                  t.operationId.equals(operationId) &
+                  t.peerId.equals(peerId.value),
+            ))
+            .getSingleOrNull();
     return row?.attempt ?? 0;
   }
 }
@@ -734,13 +738,12 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
     required PeerId peerId,
     required String entityType,
   }) {
-    return (select(db.syncStates)
-          ..where(
-            (t) =>
-                t.scopeUid.equals(scopeUid) &
-                t.peerId.equals(peerId.value) &
-                t.entityType.equals(entityType),
-          ))
+    return (select(db.syncStates)..where(
+          (t) =>
+              t.scopeUid.equals(scopeUid) &
+              t.peerId.equals(peerId.value) &
+              t.entityType.equals(entityType),
+        ))
         .getSingleOrNull();
   }
 
@@ -753,13 +756,12 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
     required PeerId peerId,
     required String entityType,
   }) async {
-    await (delete(db.syncStates)
-          ..where(
-            (t) =>
-                t.scopeUid.equals(scopeUid) &
-                t.peerId.equals(peerId.value) &
-                t.entityType.equals(entityType),
-          ))
+    await (delete(db.syncStates)..where(
+          (t) =>
+              t.scopeUid.equals(scopeUid) &
+              t.peerId.equals(peerId.value) &
+              t.entityType.equals(entityType),
+        ))
         .go();
   }
 
@@ -769,13 +771,12 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
     required String entityType,
     required DateTime atUtc,
   }) async {
-    await (update(db.syncStates)
-          ..where(
-            (t) =>
-                t.scopeUid.equals(scopeUid) &
-                t.peerId.equals(peerId.value) &
-                t.entityType.equals(entityType),
-          ))
+    await (update(db.syncStates)..where(
+          (t) =>
+              t.scopeUid.equals(scopeUid) &
+              t.peerId.equals(peerId.value) &
+              t.entityType.equals(entityType),
+        ))
         .write(SyncStatesCompanion(lastPulledAtUtc: Value(atUtc)));
   }
 
@@ -784,12 +785,9 @@ class SyncStatesDao extends DatabaseAccessor<PersistenceDriftDatabase>
     required PeerId peerId,
     required DateTime atUtc,
   }) async {
-    await (update(db.syncStates)
-          ..where(
-            (t) =>
-                t.scopeUid.equals(scopeUid) &
-                t.peerId.equals(peerId.value),
-          ))
+    await (update(db.syncStates)..where(
+          (t) => t.scopeUid.equals(scopeUid) & t.peerId.equals(peerId.value),
+        ))
         .write(SyncStatesCompanion(lastPushedAtUtc: Value(atUtc)));
   }
 }
@@ -857,20 +855,20 @@ class EntityStampDao extends DatabaseAccessor<PersistenceDriftDatabase>
     required String entityType,
     required String entityId,
   }) {
-    return (select(db.entityStamps)
-          ..where(
-            (t) =>
-                t.scopeUid.equals(scopeUid) &
-                t.entityType.equals(entityType) &
-                t.entityId.equals(entityId),
-          ))
+    return (select(db.entityStamps)..where(
+          (t) =>
+              t.scopeUid.equals(scopeUid) &
+              t.entityType.equals(entityType) &
+              t.entityId.equals(entityId),
+        ))
         .getSingleOrNull();
   }
 
   /// 读回本设备上次退出时的时钟；从未存过返回 null。
   Future<HlcClockStateRow?> loadClock() {
-    return (select(db.hlcClockStates)..where((t) => t.id.equals(0)))
-        .getSingleOrNull();
+    return (select(
+      db.hlcClockStates,
+    )..where((t) => t.id.equals(0))).getSingleOrNull();
   }
 
   /// 落盘本设备时钟（单行表，固定 id = 0）。
@@ -991,7 +989,8 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
         await m.alterTable(TableMigration(tRecordMeta));
         await customStatement(
           'CREATE INDEX IF NOT EXISTS idx_record_meta_occurred '
-          'ON t_record_meta(scope_uid, occurred_at_utc DESC)');
+          'ON t_record_meta(scope_uid, occurred_at_utc DESC)',
+        );
       }
       if (from < 5) {
         // schema v5：案例表增 extras_json 列（T1 裁定扩展位）
@@ -1060,8 +1059,9 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
           final stampCols = await customSelect(
             'SELECT name FROM pragma_table_info("t_entity_stamp")',
           ).get();
-          final hasIsDeleted =
-              stampCols.any((r) => r.read<String>('name') == 'is_deleted');
+          final hasIsDeleted = stampCols.any(
+            (r) => r.read<String>('name') == 'is_deleted',
+          );
           if (!hasIsDeleted) {
             await m.addColumn(entityStamps, entityStamps.isDeleted);
           }
@@ -1122,28 +1122,35 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
   Future<void> _createRecordIndices() async {
     await customStatement(
       'CREATE INDEX idx_record_meta_scope_created '
-      'ON t_record_meta(scope_uid, deleted_at, created_at DESC)');
+      'ON t_record_meta(scope_uid, deleted_at, created_at DESC)',
+    );
     await customStatement(
       'CREATE INDEX idx_record_meta_scope_cat_mod '
-      'ON t_record_meta(scope_uid, category, module)');
+      'ON t_record_meta(scope_uid, category, module)',
+    );
     await customStatement(
       'CREATE INDEX idx_record_meta_scope_type '
-      'ON t_record_meta(scope_uid, divination_type)');
+      'ON t_record_meta(scope_uid, divination_type)',
+    );
     await customStatement(
       'CREATE INDEX idx_record_search '
-      'ON t_record_search_index(scope_uid, module, index_key, index_value)');
+      'ON t_record_search_index(scope_uid, module, index_key, index_value)',
+    );
     await customStatement(
       'CREATE INDEX idx_record_search_by_record '
-      'ON t_record_search_index(record_uuid)');
+      'ON t_record_search_index(record_uuid)',
+    );
   }
 
   Future<void> _createAuditLogIndices() async {
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_audit_case_uuid '
-      'ON t_creation_audit_logs(case_uuid)');
+      'ON t_creation_audit_logs(case_uuid)',
+    );
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_audit_audited_at '
-      'ON t_creation_audit_logs(audited_at DESC)');
+      'ON t_creation_audit_logs(audited_at DESC)',
+    );
   }
 
   Future<void> _createOutboxPeerAckIndices() async {
@@ -1151,28 +1158,35 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
     // 因此 from<7 分支必须手动建这两条索引；fresh 库由 indexes getter 经 createAll 建。
     await customStatement(
       'CREATE INDEX idx_outbox_peer_ack_peer_status '
-      'ON t_outbox_peer_ack (peer_id, status)');
+      'ON t_outbox_peer_ack (peer_id, status)',
+    );
     await customStatement(
       'CREATE INDEX idx_outbox_peer_ack_operation '
-      'ON t_outbox_peer_ack (operation_id)');
+      'ON t_outbox_peer_ack (operation_id)',
+    );
   }
 
   Future<void> _createBlobIndices() async {
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_blob_scope_tier_access '
-      'ON t_blob_meta(scope_uid, tier, last_access_at_utc DESC)');
+      'ON t_blob_meta(scope_uid, tier, last_access_at_utc DESC)',
+    );
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_blob_plaintext_sha '
-      'ON t_blob_meta(plaintext_sha256)');
+      'ON t_blob_meta(plaintext_sha256)',
+    );
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_blob_status_staged '
-      'ON t_blob_meta(status, staged_at_utc)');
+      'ON t_blob_meta(status, staged_at_utc)',
+    );
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_blob_external_id '
-      'ON t_blob_meta(external_id)');
+      'ON t_blob_meta(external_id)',
+    );
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_blob_ref_manifest '
-      'ON t_blob_ref(cipher_manifest_id)');
+      'ON t_blob_ref(cipher_manifest_id)',
+    );
   }
 
   /// schema v11：为案卷创建流 6 张表补 scope_uid 列。
@@ -1181,14 +1195,40 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
   /// - 旧表无 scope_uid → addColumn 补列
   /// - from<6 等分支用当前表定义 createTable 建出的表已含 scope_uid → 跳过
   Future<void> _addCaseFlowScopeColumns(Migrator m) async {
-    final tableCols = <(String, String, TableInfo<Table, dynamic>, GeneratedColumn)>[
-      ('t_divination_cases', 'divination_cases', divinationCases, divinationCases.scopeUid),
-      ('t_divination_work_items', 'divination_work_items', divinationWorkItems, divinationWorkItems.scopeUid),
-      ('t_case_participants', 'case_participants', caseParticipants, caseParticipants.scopeUid),
-      ('t_panel_refs', 'panel_refs', panelRefs, panelRefs.scopeUid),
-      ('t_work_item_panel_refs', 'work_item_panel_refs', workItemPanelRefs, workItemPanelRefs.scopeUid),
-      ('t_creation_audit_logs', 'creation_audit_logs', creationAuditLogs, creationAuditLogs.scopeUid),
-    ];
+    final tableCols =
+        <(String, String, TableInfo<Table, dynamic>, GeneratedColumn)>[
+          (
+            't_divination_cases',
+            'divination_cases',
+            divinationCases,
+            divinationCases.scopeUid,
+          ),
+          (
+            't_divination_work_items',
+            'divination_work_items',
+            divinationWorkItems,
+            divinationWorkItems.scopeUid,
+          ),
+          (
+            't_case_participants',
+            'case_participants',
+            caseParticipants,
+            caseParticipants.scopeUid,
+          ),
+          ('t_panel_refs', 'panel_refs', panelRefs, panelRefs.scopeUid),
+          (
+            't_work_item_panel_refs',
+            'work_item_panel_refs',
+            workItemPanelRefs,
+            workItemPanelRefs.scopeUid,
+          ),
+          (
+            't_creation_audit_logs',
+            'creation_audit_logs',
+            creationAuditLogs,
+            creationAuditLogs.scopeUid,
+          ),
+        ];
     for (final (tableName, _, table, column) in tableCols) {
       if (!await _tableExists(tableName)) {
         await m.createTable(table);
@@ -1239,10 +1279,11 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
     // 第一级：反查 t_record_meta。手搓旧库（迁移测试）可能没有 t_record_meta
     // 或没有 case_uuid/work_item_uuid 列，此时跳过对应 UPDATE。
     if (await _tableExists('t_record_meta')) {
-      final hasCaseUuid =
-          await _columnExists('t_record_meta', 'case_uuid');
-      final hasWorkItemUuid =
-          await _columnExists('t_record_meta', 'work_item_uuid');
+      final hasCaseUuid = await _columnExists('t_record_meta', 'case_uuid');
+      final hasWorkItemUuid = await _columnExists(
+        't_record_meta',
+        'work_item_uuid',
+      );
       if (await _tableExists('t_divination_cases') && hasCaseUuid) {
         await customStatement(
           'UPDATE t_divination_cases '
@@ -1338,7 +1379,10 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
         );
       }
       if (await _tableExists('t_seekers')) {
-        final hasSeekerUuid = await _columnExists('t_record_meta', 'seeker_uuid');
+        final hasSeekerUuid = await _columnExists(
+          't_record_meta',
+          'seeker_uuid',
+        );
         if (hasSeekerUuid) {
           await customStatement(
             'UPDATE t_seekers '
@@ -1363,13 +1407,16 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
   Future<void> _createSw2Indices() async {
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_timing_divinations_scope '
-      'ON t_timing_divinations(scope_uid)');
+      'ON t_timing_divinations(scope_uid)',
+    );
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_seekers_scope '
-      'ON t_seekers(scope_uid)');
+      'ON t_seekers(scope_uid)',
+    );
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_skill_classes_scope '
-      'ON t_skill_classes(scope_uid)');
+      'ON t_skill_classes(scope_uid)',
+    );
   }
 }
 
@@ -1389,8 +1436,8 @@ class DriftOutboxStore implements OutboxStore {
   /// - [dao]：OutboxRecords 的 DAO。
   /// - [logger]：可选日志器；未传入则为 no-op（生产可按需注入 sink）。
   DriftOutboxStore({required OutboxRecordsDao dao, SyncLogger? logger})
-      : _dao = dao,
-        _logger = logger ?? SyncLogger.noop();
+    : _dao = dao,
+      _logger = logger ?? SyncLogger.noop();
 
   final OutboxRecordsDao _dao;
   final SyncLogger _logger;
@@ -1422,9 +1469,7 @@ class DriftOutboxStore implements OutboxStore {
   /// 返回值：
   /// - 可用于日志采集的精简信息。
   Object _errorSummary(Object error) {
-    return <String, Object?>{
-      'type': error.runtimeType.toString(),
-    };
+    return <String, Object?>{'type': error.runtimeType.toString()};
   }
 
   OutboxRecord _mapRow(OutboxRecordRow row) {
@@ -1594,7 +1639,11 @@ class DriftOutboxStore implements OutboxStore {
         'atUtc': atUtc.toUtc().toIso8601String(),
       },
     );
-    return _dao.markSuccess(operationId: operationId, peerId: peerId, atUtc: atUtc);
+    return _dao.markSuccess(
+      operationId: operationId,
+      peerId: peerId,
+      atUtc: atUtc,
+    );
   }
 
   /// Marks one outbox record as failed (or dead).
@@ -1710,11 +1759,7 @@ class DriftOutboxStore implements OutboxStore {
       },
     );
     return _dao
-        .watchBacklogCount(
-          scopeUid: scopeUid,
-          peerId: peerId,
-          channel: channel,
-        )
+        .watchBacklogCount(scopeUid: scopeUid, peerId: peerId, channel: channel)
         .distinct();
   }
 
@@ -1744,11 +1789,7 @@ class DriftOutboxStore implements OutboxStore {
         'channel': channel.name,
       },
     );
-    return _dao.deadCount(
-      scopeUid: scopeUid,
-      peerId: peerId,
-      channel: channel,
-    );
+    return _dao.deadCount(scopeUid: scopeUid, peerId: peerId, channel: channel);
   }
 }
 
@@ -1769,8 +1810,8 @@ class DriftSyncStateStore implements SyncStateStore {
   /// - [dao]：SyncStates 的 DAO。
   /// - [logger]：可选日志器；未传入则为 no-op。
   DriftSyncStateStore({required SyncStatesDao dao, SyncLogger? logger})
-      : _dao = dao,
-        _logger = logger ?? SyncLogger.noop();
+    : _dao = dao,
+      _logger = logger ?? SyncLogger.noop();
 
   final SyncStatesDao _dao;
   final SyncLogger _logger;
@@ -1809,8 +1850,11 @@ class DriftSyncStateStore implements SyncStateStore {
     required String entityType,
   }) async {
     final sw = Stopwatch()..start();
-    final row =
-        await _dao.find(scopeUid: scopeUid, peerId: peerId, entityType: entityType);
+    final row = await _dao.find(
+      scopeUid: scopeUid,
+      peerId: peerId,
+      entityType: entityType,
+    );
     PullCursor? out;
     String cursorType = 'none';
 
@@ -1926,7 +1970,11 @@ class DriftSyncStateStore implements SyncStateStore {
         'entityType': entityType,
       },
     );
-    return _dao.clear(scopeUid: scopeUid, peerId: peerId, entityType: entityType);
+    return _dao.clear(
+      scopeUid: scopeUid,
+      peerId: peerId,
+      entityType: entityType,
+    );
   }
 
   /// Marks last pulled timestamp for a scope + entity type.
@@ -1958,7 +2006,11 @@ class DriftSyncStateStore implements SyncStateStore {
       },
     );
     return _dao.markPulledAt(
-        scopeUid: scopeUid, peerId: peerId, entityType: entityType, atUtc: atUtc);
+      scopeUid: scopeUid,
+      peerId: peerId,
+      entityType: entityType,
+      atUtc: atUtc,
+    );
   }
 
   /// Marks last pushed timestamp for a scope.

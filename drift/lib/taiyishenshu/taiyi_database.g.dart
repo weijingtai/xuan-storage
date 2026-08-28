@@ -60,7 +60,13 @@ class $UserSchoolsTable extends UserSchools
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, scopeUid, name, source, contentJson];
+  List<GeneratedColumn> get $columns => [
+    id,
+    scopeUid,
+    name,
+    source,
+    contentJson,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -416,7 +422,13 @@ class $UserDeitiesTable extends UserDeities
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, scopeUid, name, source, contentJson];
+  List<GeneratedColumn> get $columns => [
+    id,
+    scopeUid,
+    name,
+    source,
+    contentJson,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override

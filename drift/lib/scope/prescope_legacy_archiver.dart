@@ -13,8 +13,8 @@ class PrescopeLegacyArchiver {
   PrescopeLegacyArchiver({
     required Future<Directory> Function() databaseDirectory,
     required Directory backupDirectory,
-  })  : _databaseDirectory = databaseDirectory,
-        _backupDirectory = backupDirectory;
+  }) : _databaseDirectory = databaseDirectory,
+       _backupDirectory = backupDirectory;
 
   final Future<Directory> Function() _databaseDirectory;
   final Directory _backupDirectory;

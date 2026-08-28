@@ -9,11 +9,10 @@ part 'meihua_database.g.dart';
 
 /// 梅花易数数据库
 /// 只包含梅花易数专用表
-@DriftDatabase(tables: [
-  MeiHuaGuaInfos,
-])
+@DriftDatabase(tables: [MeiHuaGuaInfos])
 class MeiHuaDatabase extends _$MeiHuaDatabase {
-  MeiHuaDatabase([QueryExecutor? executor]) : super(executor ?? createMeihuaConnection());
+  MeiHuaDatabase([QueryExecutor? executor])
+    : super(executor ?? createMeihuaConnection());
 
   @override
   int get schemaVersion => 2;
@@ -31,7 +30,10 @@ class MeiHuaDatabase extends _$MeiHuaDatabase {
             'SELECT name FROM pragma_table_info("t_meihua_gua_info")',
           ).get();
           if (!cols.any((r) => r.read<String>('name') == 'scope_uid')) {
-            await m.addColumn(meiHuaGuaInfos, (meiHuaGuaInfos as $MeiHuaGuaInfosTable).scopeUid);
+            await m.addColumn(
+              meiHuaGuaInfos,
+              (meiHuaGuaInfos as $MeiHuaGuaInfosTable).scopeUid,
+            );
           }
           await _createIndices();
         }

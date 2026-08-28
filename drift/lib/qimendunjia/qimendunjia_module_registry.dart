@@ -11,6 +11,5 @@ class QimendunjiaModuleRegistry {
   static QimenRecordRepository repository({
     required ScopedRecordStore store,
     Uuid? uuid,
-  }) =>
-      RecordBackedQimenRepository(store: store, codec: codec(), uuid: uuid);
+  }) => RecordBackedQimenRepository(store: store, codec: codec(), uuid: uuid);
 }

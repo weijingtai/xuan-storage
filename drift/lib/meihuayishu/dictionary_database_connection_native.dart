@@ -12,7 +12,9 @@ import 'package:path/path.dart' as p;
 /// （dictionary_database.sql 载荷）灌入 [DictionaryDatabase]，不再整库拷贝
 /// 二进制 db。默认构造保留以兼容旧调用，但新装配一律显式传 executor +
 /// [MeihuaDriftDatasetInstaller]。
-@Deprecated('改用 XRAP：DictionaryDatabase(executor) + registerMeihuaDatasets + MeihuaDriftDatasetInstaller')
+@Deprecated(
+  '改用 XRAP：DictionaryDatabase(executor) + registerMeihuaDatasets + MeihuaDriftDatasetInstaller',
+)
 QueryExecutor createDictionaryConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();

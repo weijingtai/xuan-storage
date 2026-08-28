@@ -49,13 +49,14 @@ class DriftThemeMaterializer implements DatasetMaterializer {
     final tokens = <String, dynamic>{};
     var rowCount = 0;
     var bytes = 0;
-    await for (final line in payload
-        .map((chunk) {
-          bytes += chunk.length;
-          return chunk;
-        })
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())) {
+    await for (final line
+        in payload
+            .map((chunk) {
+              bytes += chunk.length;
+              return chunk;
+            })
+            .transform(utf8.decoder)
+            .transform(const LineSplitter())) {
       if (line.isEmpty) continue;
       final j = jsonDecode(line) as Map<String, dynamic>;
       if (j['v'] is Map) {

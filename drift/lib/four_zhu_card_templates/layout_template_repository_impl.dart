@@ -59,8 +59,9 @@ class LayoutTemplateRepositoryImpl implements LayoutTemplateRepository {
       final dtos = await _localDataSource.loadTemplates(collectionId);
       return dtos.map((dto) => _toContract(dto.toDomain())).toList();
     }
-    final allDtos =
-        await _localDataSource.loadAllTemplates(includeDeleted: includeDeleted);
+    final allDtos = await _localDataSource.loadAllTemplates(
+      includeDeleted: includeDeleted,
+    );
     return allDtos.map((dto) => _toContract(dto.toDomain())).toList();
   }
 
@@ -76,10 +77,12 @@ class LayoutTemplateRepositoryImpl implements LayoutTemplateRepository {
       final target = all.firstWhereOrNull((t) => t.uuid == id);
       return Ok(target);
     } catch (e) {
-      return Err(XuanError(
-        code: ErrorCode.internal,
-        message: 'layout template get failed: $e',
-      ));
+      return Err(
+        XuanError(
+          code: ErrorCode.internal,
+          message: 'layout template get failed: $e',
+        ),
+      );
     }
   }
 
@@ -124,10 +127,12 @@ class LayoutTemplateRepositoryImpl implements LayoutTemplateRepository {
       );
       return Ok(Rev(template.uuid));
     } catch (e) {
-      return Err(XuanError(
-        code: ErrorCode.internal,
-        message: 'layout template put failed: $e',
-      ));
+      return Err(
+        XuanError(
+          code: ErrorCode.internal,
+          message: 'layout template put failed: $e',
+        ),
+      );
     }
   }
 
@@ -143,10 +148,12 @@ class LayoutTemplateRepositoryImpl implements LayoutTemplateRepository {
       final allDtos = await _localDataSource.loadAllTemplates();
       final target = allDtos.firstWhereOrNull((dto) => dto.template.id == id);
       if (target == null) {
-        return Err(const XuanError(
-          code: ErrorCode.notFound,
-          message: 'layout template not found',
-        ));
+        return Err(
+          const XuanError(
+            code: ErrorCode.notFound,
+            message: 'layout template not found',
+          ),
+        );
       }
       final scopeUid = await _authScopeProvider.getScopeUid();
       await _localDataSource.softDeleteTemplate(
@@ -157,20 +164,24 @@ class LayoutTemplateRepositoryImpl implements LayoutTemplateRepository {
       );
       return const Ok(null);
     } catch (e) {
-      return Err(XuanError(
-        code: ErrorCode.internal,
-        message: 'layout template softDelete failed: $e',
-      ));
+      return Err(
+        XuanError(
+          code: ErrorCode.internal,
+          message: 'layout template softDelete failed: $e',
+        ),
+      );
     }
   }
 
   /// 本后端暂不支持恢复（软删行无唯一键回收语义），显式返回 invalid_argument。
   @override
   Future<Result<void>> restore(String id, RequestContext ctx) async {
-    return const Err(XuanError(
-      code: ErrorCode.invalidArgument,
-      message: 'restore not supported for layout templates',
-    ));
+    return const Err(
+      XuanError(
+        code: ErrorCode.invalidArgument,
+        message: 'restore not supported for layout templates',
+      ),
+    );
   }
 
   // ── L0 SoftDeleteReadable ──
@@ -185,10 +196,12 @@ class LayoutTemplateRepositoryImpl implements LayoutTemplateRepository {
       final target = all.firstWhereOrNull((t) => t.uuid == id);
       return Ok(target);
     } catch (e) {
-      return Err(XuanError(
-        code: ErrorCode.internal,
-        message: 'layout template getIncludingDeleted failed: $e',
-      ));
+      return Err(
+        XuanError(
+          code: ErrorCode.internal,
+          message: 'layout template getIncludingDeleted failed: $e',
+        ),
+      );
     }
   }
 
@@ -213,15 +226,19 @@ class LayoutTemplateRepositoryImpl implements LayoutTemplateRepository {
       final end = (start + page.limit).clamp(0, list.length);
       final items = list.sublist(start, end);
       final hasMore = end < list.length;
-      return Ok(Page<LayoutTemplateContract>(
-        items: items,
-        nextCursor: hasMore ? '$end' : null,
-      ));
+      return Ok(
+        Page<LayoutTemplateContract>(
+          items: items,
+          nextCursor: hasMore ? '$end' : null,
+        ),
+      );
     } catch (e) {
-      return Err(XuanError(
-        code: ErrorCode.internal,
-        message: 'layout template query failed: $e',
-      ));
+      return Err(
+        XuanError(
+          code: ErrorCode.internal,
+          message: 'layout template query failed: $e',
+        ),
+      );
     }
   }
 
@@ -251,10 +268,12 @@ class LayoutTemplateRepositoryImpl implements LayoutTemplateRepository {
       final list = await _loadContracts(collectionId: collectionId);
       yield Ok(list);
     } catch (e) {
-      yield Err(XuanError(
-        code: ErrorCode.internal,
-        message: 'layout template watch failed: $e',
-      ));
+      yield Err(
+        XuanError(
+          code: ErrorCode.internal,
+          message: 'layout template watch failed: $e',
+        ),
+      );
     }
   }
 
@@ -280,10 +299,37 @@ class LayoutTemplateRepositoryImpl implements LayoutTemplateRepository {
       final result = await body();
       return Ok(result);
     } catch (e) {
-      return Err(XuanError(
-        code: ErrorCode.internal,
-        message: 'layout template transaction failed: $e',
-      ));
+      return Err(
+        XuanError(
+          code: ErrorCode.internal,
+          message: 'layout template transaction failed: $e',
+        ),
+      );
     }
+  }
+
+  @override
+  Future<List<LayoutTemplateContract>> getAllTemplates(String collectionId) =>
+      _loadContracts(collectionId: collectionId);
+
+  @override
+  Future<LayoutTemplateContract?> getTemplateById(
+    String collectionId,
+    String templateId,
+  ) async {
+    final all = await _loadContracts(collectionId: collectionId);
+    return all.firstWhereOrNull((t) => t.uuid == templateId);
+  }
+
+  @override
+  Future<void> saveTemplate(LayoutTemplateContract template) async {
+    final scopeUid = await _authScopeProvider.getScopeUid();
+    await put(template, RequestContext(scopeUid: scopeUid));
+  }
+
+  @override
+  Future<void> deleteTemplate(String collectionId, String templateId) async {
+    final scopeUid = await _authScopeProvider.getScopeUid();
+    await softDelete(templateId, RequestContext(scopeUid: scopeUid));
   }
 }

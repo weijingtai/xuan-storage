@@ -53,8 +53,8 @@ class ScopeResolver {
     final session = switch (sessionResult) {
       Ok(:final value) => value,
       Err(:final error) => throw StateError(
-          'ScopeResolver: session retrieval failed: $error',
-        ),
+        'ScopeResolver: session retrieval failed: $error',
+      ),
     };
 
     // 1. 无 session (登出 / 尚未登录) → 返回 device scope
@@ -83,11 +83,7 @@ class ScopeResolver {
         : ScopeAuthKind.registered;
     final hit = await _ledger.scopeForIdentity(appUserId, authKind);
     if (hit != null) {
-      return ResolvedScope(
-        scopeUid: hit,
-        isUpgrade: false,
-        isConflict: false,
-      );
+      return ResolvedScope(scopeUid: hit, isUpgrade: false, isConflict: false);
     }
 
     // 4. appUserId 还没有别名 → 检查 device scope
@@ -149,26 +145,22 @@ class ScopeResolver {
     final ctx = RequestContext(scopeUid: 'local-anonymous');
     for (final entry in deviceEntries) {
       if (entry.authKind == ScopeAuthKind.anonymous) {
-        final linkResult = await _identityLinkRepository
-            .get(entry.authId, ctx);
+        final linkResult = await _identityLinkRepository.get(entry.authId, ctx);
         final link = switch (linkResult) {
           Ok(:final value) => value,
           Err() => null,
         };
-        if (link != null &&
-            link.registeredAppUserId.value == appUserId) {
+        if (link != null && link.registeredAppUserId.value == appUserId) {
           return true;
         }
       }
       if (entry.authKind == ScopeAuthKind.registered) {
-        final linkResult = await _identityLinkRepository
-            .get(entry.authId, ctx);
+        final linkResult = await _identityLinkRepository.get(entry.authId, ctx);
         final link = switch (linkResult) {
           Ok(:final value) => value,
           Err() => null,
         };
-        if (link != null &&
-            link.anonymousAppUserId.value == appUserId) {
+        if (link != null && link.anonymousAppUserId.value == appUserId) {
           return true;
         }
       }

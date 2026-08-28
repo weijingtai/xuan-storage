@@ -14,15 +14,14 @@ import '../record/record_storage_driver.dart';
 class RecordBackedLiuYaoRepository
     extends BaseRecordBackedRepository<SixYaoDivinationRecord>
     implements SixYaoDivinationRecordRepository {
-
   RecordBackedLiuYaoRepository({
     required ScopedRecordStore store,
     required RecordModuleCodec<SixYaoDivinationRecord> codec,
     Uuid? uuid,
-  })  : _store = store,
-        _codec = codec,
-        _uuidGen = uuid ?? const Uuid(),
-        super(store: store, codec: codec, uuid: uuid);
+  }) : _store = store,
+       _codec = codec,
+       _uuidGen = uuid ?? const Uuid(),
+       super(store: store, codec: codec, uuid: uuid);
 
   final ScopedRecordStore _store;
   final RecordModuleCodec<SixYaoDivinationRecord> _codec;
@@ -31,9 +30,11 @@ class RecordBackedLiuYaoRepository
   /// L0 契约内核仓储（与父类 _l0 同源；子类无法访问父类私有字段，故自建）。
   late final CrudBaseRepository<Map<String, Object?>, String> _l0 =
       CrudBaseRepository<Map<String, Object?>, String>(
-    descriptor: recordEntityDescriptor(module: _codec.module),
-    driver: RecordStorageDriver(store: _store),
-  );
+        descriptor: recordEntityDescriptor(module: _codec.module),
+        driver: RecordStorageDriver(store: _store),
+      );
+
+  RequestContext get _ctx => RequestContext(scopeUid: _store.scopeUid);
 
   // ── 编码 / 解码辅助 ──
 
@@ -43,8 +44,7 @@ class RecordBackedLiuYaoRepository
     required String scopeUid,
   }) {
     final currentUuid = _codec.uuidOf(entity);
-    final effectiveUuid =
-        currentUuid.isNotEmpty ? currentUuid : _uuidGen.v7();
+    final effectiveUuid = currentUuid.isNotEmpty ? currentUuid : _uuidGen.v7();
     final fixed = currentUuid.isNotEmpty
         ? entity
         : _codec.withUuid(entity, effectiveUuid);
@@ -53,11 +53,10 @@ class RecordBackedLiuYaoRepository
   }
 
   /// L0 扁平行 → 实体。
-  SixYaoDivinationRecord _decodeRow(Map<String, Object?> row) =>
-      _codec.decode(
-        RecordRowMapper.rowToMeta(row),
-        RecordRowMapper.moduleDataOf(row),
-      );
+  SixYaoDivinationRecord _decodeRow(Map<String, Object?> row) => _codec.decode(
+    RecordRowMapper.rowToMeta(row),
+    RecordRowMapper.moduleDataOf(row),
+  );
 
   // ── L0 Readable ──
 
@@ -93,8 +92,7 @@ class RecordBackedLiuYaoRepository
     String id,
     RequestContext ctx, {
     Precondition pre = const Unconditional(),
-  }) =>
-      _l0.softDelete(id, ctx, pre: pre);
+  }) => _l0.softDelete(id, ctx, pre: pre);
 
   @override
   Future<Result<void>> restore(String id, RequestContext ctx) =>
@@ -120,17 +118,16 @@ class RecordBackedLiuYaoRepository
     RequestContext ctx,
   ) async {
     final r = await _l0.query(spec, page, ctx);
-    return r.map((p) => Page(
-          items: p.items.map(_decodeRow).toList(),
-          nextCursor: p.nextCursor,
-        ));
+    return r.map(
+      (p) => Page(
+        items: p.items.map(_decodeRow).toList(),
+        nextCursor: p.nextCursor,
+      ),
+    );
   }
 
   @override
-  Future<Result<int>> count(
-    Map<String, Object?> spec,
-    RequestContext ctx,
-  ) =>
+  Future<Result<int>> count(Map<String, Object?> spec, RequestContext ctx) =>
       _l0.count(spec, ctx);
 
   // ── L0 BatchWritable ──
@@ -161,4 +158,28 @@ class RecordBackedLiuYaoRepository
   /// 按变卦 ID 查询记录。
   Future<List<SixYaoDivinationRecord>> getRecordsByChangedGua(int guaId) =>
       getAllByIndex('changed_gua_id', '$guaId', limit: 200);
+
+  @override
+  Future<String> saveRecord(SixYaoDivinationRecord record) => save(record);
+
+  @override
+  Future<SixYaoDivinationRecord?> getRecordByUuid(String uuid) =>
+      getByUuid(uuid);
+
+  @override
+  Future<List<SixYaoDivinationRecord>> getAllRecords() => getAll();
+
+  @override
+  Future<bool> softDeleteRecord(String uuid) async {
+    final r = await softDelete(uuid, _ctx);
+    return r is Ok;
+  }
+
+  @override
+  Future<List<SixYaoDivinationRecord>> getLatestRecords({
+    int limit = 10,
+  }) async {
+    final all = await getAll();
+    return all.take(limit).toList();
+  }
 }

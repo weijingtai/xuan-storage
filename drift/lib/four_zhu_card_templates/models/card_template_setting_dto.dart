@@ -32,10 +32,14 @@ class CardTemplateSettingDto {
       createdAt: DateTime.parse(json['createdAt'] as String),
       modifiedAt: DateTime.parse(json['modifiedAt'] as String),
       isHiddenTitlePillar: json['isHiddenTitlePillar'] as bool?,
-      showInCellTitleByRowTypeKey: (json['showInCellTitleByRowTypeKey'] as Map<String, dynamic>?)
-          ?.map((k, v) => MapEntry(k, v as bool)),
+      showInCellTitleByRowTypeKey:
+          (json['showInCellTitleByRowTypeKey'] as Map<String, dynamic>?)?.map(
+            (k, v) => MapEntry(k, v as bool),
+          ),
       overrides: json['overrides'] != null
-          ? CardTemplateSettingOverrideDto.fromJson(json['overrides'] as Map<String, dynamic>)
+          ? CardTemplateSettingOverrideDto.fromJson(
+              json['overrides'] as Map<String, dynamic>,
+            )
           : null,
     );
   }
@@ -58,8 +62,10 @@ class CardTemplateSettingOverrideDto {
   factory CardTemplateSettingOverrideDto.fromJson(Map<String, dynamic> json) {
     return CardTemplateSettingOverrideDto(
       isHiddenTitlePillar: json['isHiddenTitlePillar'] as bool?,
-      showInCellTitleByRowTypeKey: (json['showInCellTitleByRowTypeKey'] as Map<String, dynamic>?)
-          ?.map((k, v) => MapEntry(k, v as bool)),
+      showInCellTitleByRowTypeKey:
+          (json['showInCellTitleByRowTypeKey'] as Map<String, dynamic>?)?.map(
+            (k, v) => MapEntry(k, v as bool),
+          ),
     );
   }
 }

@@ -32,9 +32,9 @@ class DriftThemeLocalReader implements ThemeLocalReader {
     required DriftThemeTokenStore tokenStore,
     required DatasetInstaller installer,
     required this.scopeUid,
-  })  : _db = db,
-        _tokens = tokenStore,
-        _installer = installer;
+  }) : _db = db,
+       _tokens = tokenStore,
+       _installer = installer;
 
   /// 覆盖表宿主库（t_theme_override）。
   final ThemeDatabase _db;
@@ -58,9 +58,7 @@ class DriftThemeLocalReader implements ThemeLocalReader {
   Future<Map<String, dynamic>> readBundledTokens() async {
     final tokens = await _tokens.tokensOf(0);
     if (tokens == null) {
-      throw StateError(
-        'generation 0 未落地：装配期漏调 ensureInstalled（§4.5 第 3 步）',
-      );
+      throw StateError('generation 0 未落地：装配期漏调 ensureInstalled（§4.5 第 3 步）');
     }
     return tokens;
   }
@@ -94,9 +92,9 @@ class DriftThemeLocalReader implements ThemeLocalReader {
   /// 查 t_theme_override 表（scope_uid 分片），还原成 [OverrideEntry]。
   @override
   Future<Map<String, OverrideEntry>> readOverrides() async {
-    final rows = await (_db.select(_db.themeOverrides)
-          ..where((t) => t.scopeUid.equals(scopeUid)))
-        .get();
+    final rows = await (_db.select(
+      _db.themeOverrides,
+    )..where((t) => t.scopeUid.equals(scopeUid))).get();
     final result = <String, OverrideEntry>{};
     for (final row in rows) {
       result[row.tokenKey] = OverrideEntry(

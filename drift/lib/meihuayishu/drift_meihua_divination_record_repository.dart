@@ -15,7 +15,7 @@ class DriftMeiHuaDivinationRecordRepository
   final String? scopeUid;
 
   DriftMeiHuaDivinationRecordRepository(this._database, {this.scopeUid})
-      : _dao = MeiHuaDivinationsDao(_database, scopeUid: scopeUid);
+    : _dao = MeiHuaDivinationsDao(_database, scopeUid: scopeUid);
 
   MeiHuaDivinationRecordContract _toContract(MeiHuaGuaInfo row) {
     return MeiHuaDivinationRecordContract(
@@ -49,7 +49,8 @@ class DriftMeiHuaDivinationRecordRepository
         uuid: Value(uuid),
         scopeUid: Value(scopeUid),
         divinationUuid: Value(
-            entity.divinationUuid.isNotEmpty ? entity.divinationUuid : uuid),
+          entity.divinationUuid.isNotEmpty ? entity.divinationUuid : uuid,
+        ),
         question: Value(entity.question),
         originalUpperGua: Value(entity.originalUpperGua),
         originalLowerGua: Value(entity.originalLowerGua),
@@ -92,9 +93,9 @@ class DriftMeiHuaDivinationRecordRepository
     Map<String, Object?> spec,
     RequestContext ctx,
   ) {
-    return _dao
-        .watchAllRecords()
-        .map((rows) => Ok(rows.map(_toContract).toList()));
+    return _dao.watchAllRecords().map(
+      (rows) => Ok(rows.map(_toContract).toList()),
+    );
   }
 
   @override
@@ -114,14 +115,16 @@ class DriftMeiHuaDivinationRecordRepository
 
   @override
   Future<MeiHuaDivinationRecordContract?> getRecordByDivinationUuid(
-      String divinationUuid) async {
+    String divinationUuid,
+  ) async {
     final row = await _dao.getRecordByDivinationUuid(divinationUuid);
     return row == null ? null : _toContract(row);
   }
 
   @override
   Stream<MeiHuaDivinationRecordContract?> watchRecordByDivinationUuid(
-      String divinationUuid) {
+    String divinationUuid,
+  ) {
     return _dao
         .watchRecordByDivinationUuid(divinationUuid)
         .map((row) => row == null ? null : _toContract(row));
@@ -135,18 +138,17 @@ class DriftMeiHuaDivinationRecordRepository
   }) async {
     final count = await _dao.softDeleteRecord(id);
     if (count > 0) return const Ok(null);
-    return const Err(XuanError(
-      code: ErrorCode.notFound,
-      message: '要软删的记录不存在',
-    ));
+    return const Err(XuanError(code: ErrorCode.notFound, message: '要软删的记录不存在'));
   }
 
   @override
   Future<Result<void>> restore(String id, RequestContext ctx) async {
-    return const Err(XuanError(
-      code: ErrorCode.invalidArgument,
-      message: 'restore not supported for drift records',
-    ));
+    return const Err(
+      XuanError(
+        code: ErrorCode.invalidArgument,
+        message: 'restore not supported for drift records',
+      ),
+    );
   }
 
   @override
@@ -168,14 +170,13 @@ class DriftMeiHuaDivinationRecordRepository
       final result = await body();
       return Ok(result);
     } catch (e) {
-      return Err(XuanError(
-        code: ErrorCode.internal,
-        message: 'Transaction failed: $e',
-      ));
+      return Err(
+        XuanError(code: ErrorCode.internal, message: 'Transaction failed: $e'),
+      );
     }
   }
 
-  @Deprecated('M4 退场')
+  @override
   Future<String> saveRecord(MeiHuaDivinationRecordContract r) async {
     final uuid = r.uuid.isNotEmpty ? r.uuid : const Uuid().v4();
     final toSave = r.uuid.isNotEmpty
@@ -201,15 +202,30 @@ class DriftMeiHuaDivinationRecordRepository
     return uuid;
   }
 
-  @Deprecated('M4 退场')
+  @override
   Future<List<MeiHuaDivinationRecordContract>> getAllRecords() async {
-    final res = await query(const {}, PageRequest(limit: 1000), RequestContext(scopeUid: scopeUid ?? ''));
+    final res = await query(
+      const {},
+      PageRequest(limit: 1000),
+      RequestContext(scopeUid: scopeUid ?? ''),
+    );
     return (res as Ok<Page<MeiHuaDivinationRecordContract>>).value.items;
   }
 
-  @Deprecated('M4 退场')
+  @override
   Future<MeiHuaDivinationRecordContract?> getRecordByUuid(String uuid) async {
     final res = await get(uuid, RequestContext(scopeUid: scopeUid ?? ''));
     return (res as Ok<MeiHuaDivinationRecordContract?>).value;
+  }
+
+  @override
+  Future<bool> softDeleteRecord(String uuid) async {
+    final count = await _dao.softDeleteRecord(uuid);
+    return count > 0;
+  }
+
+  @override
+  Stream<List<MeiHuaDivinationRecordContract>> watchAllRecords() {
+    return _dao.watchAllRecords().map((rows) => rows.map(_toContract).toList());
   }
 }

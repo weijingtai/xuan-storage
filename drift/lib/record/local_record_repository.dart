@@ -10,7 +10,7 @@ class LocalRecordRepository implements ScopedRecordStore {
   final OutboxStore? _outboxStore;
 
   LocalRecordRepository(this._ds, this._registry, {OutboxStore? outboxStore})
-      : _outboxStore = outboxStore;
+    : _outboxStore = outboxStore;
 
   OutboxStore? get _outbox => _outboxStore;
 
@@ -18,10 +18,15 @@ class LocalRecordRepository implements ScopedRecordStore {
   String get scopeUid => _ds.scopeUid;
 
   @override
-  Future<void> saveRecord(RecordMeta record, {Map<String, dynamic>? moduleData}) async {
+  Future<void> saveRecord(
+    RecordMeta record, {
+    Map<String, dynamic>? moduleData,
+  }) async {
     final tags =
-        _registry.forModule(record.module)?.extractSearchTags(record, moduleData) ??
-            const <SearchTag>[];
+        _registry
+            .forModule(record.module)
+            ?.extractSearchTags(record, moduleData) ??
+        const <SearchTag>[];
 
     await _ds.db.transaction(() async {
       await _ds.saveRecord(record, tags);
@@ -29,7 +34,10 @@ class LocalRecordRepository implements ScopedRecordStore {
       final outbox = _outbox;
       if (outbox != null) {
         final outboxRecord = RecordOutboxMapper.toOutboxRecord(
-          meta: record, moduleData: moduleData, tags: tags, opType: RecordOutboxMapper.opUpsert,
+          meta: record,
+          moduleData: moduleData,
+          tags: tags,
+          opType: RecordOutboxMapper.opUpsert,
         );
         await outbox.enqueue(outboxRecord);
       }
@@ -51,10 +59,14 @@ class LocalRecordRepository implements ScopedRecordStore {
     required int limit,
     String? cursor,
     RecordSortBy sortBy = RecordSortBy.auto,
-  }) =>
-      _ds.listRecords(
-          module: module, category: category, divinationType: divinationType,
-          limit: limit, cursor: cursor, sortBy: sortBy);
+  }) => _ds.listRecords(
+    module: module,
+    category: category,
+    divinationType: divinationType,
+    limit: limit,
+    cursor: cursor,
+    sortBy: sortBy,
+  );
 
   @override
   Future<bool> softDeleteRecord(String uuid, {required String module}) async {
@@ -86,17 +98,25 @@ class LocalRecordRepository implements ScopedRecordStore {
   ///
   /// Returns `true` if the record was restored, `false` if the uuid was
   /// not found or was already active (not soft-deleted).
-  Future<bool> restoreRecord(RecordMeta record, {Map<String, dynamic>? moduleData}) async {
+  Future<bool> restoreRecord(
+    RecordMeta record, {
+    Map<String, dynamic>? moduleData,
+  }) async {
     return _ds.db.transaction(() async {
       final tags =
-          _registry.forModule(record.module)?.extractSearchTags(record, moduleData) ??
-              const <SearchTag>[];
+          _registry
+              .forModule(record.module)
+              ?.extractSearchTags(record, moduleData) ??
+          const <SearchTag>[];
       final restored = await _ds.restoreRecord(record, tags);
       if (restored) {
         final outbox = _outbox;
         if (outbox != null) {
           final outboxRecord = RecordOutboxMapper.toOutboxRecord(
-            meta: record, moduleData: moduleData, tags: tags, opType: RecordOutboxMapper.opUpsert,
+            meta: record,
+            moduleData: moduleData,
+            tags: tags,
+            opType: RecordOutboxMapper.opUpsert,
           );
           await outbox.enqueue(outboxRecord);
         }
@@ -119,8 +139,7 @@ class LocalRecordRepository implements ScopedRecordStore {
     required String module,
     String? category,
     RecordSortBy sortBy = RecordSortBy.auto,
-  }) =>
-      _ds.watchRecords(module: module, category: category, sortBy: sortBy);
+  }) => _ds.watchRecords(module: module, category: category, sortBy: sortBy);
 
   @override
   Future<List<RecordMeta>> findByIndex({
@@ -128,15 +147,21 @@ class LocalRecordRepository implements ScopedRecordStore {
     required String indexKey,
     required String indexValue,
     required int limit,
-  }) =>
-      _ds.findByIndex(
-          module: module, indexKey: indexKey, indexValue: indexValue, limit: limit);
+  }) => _ds.findByIndex(
+    module: module,
+    indexKey: indexKey,
+    indexValue: indexValue,
+    limit: limit,
+  );
 
   @override
   Stream<List<RecordMeta>> watchByIndex({
     required String module,
     required String indexKey,
     required String indexValue,
-  }) =>
-      _ds.watchByIndex(module: module, indexKey: indexKey, indexValue: indexValue);
+  }) => _ds.watchByIndex(
+    module: module,
+    indexKey: indexKey,
+    indexValue: indexValue,
+  );
 }

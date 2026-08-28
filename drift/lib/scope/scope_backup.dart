@@ -10,10 +10,7 @@ abstract interface class ScopeBackupService {
   ///
   /// 命名必须能识别是哪次搬迁（含 from → to scope 标识）。
   /// 失败抛异常，绝不静默返回。
-  Future<String> backup({
-    required String fromScope,
-    required String toScope,
-  });
+  Future<String> backup({required String fromScope, required String toScope});
 }
 
 /// SQLite 文件物理复制备份实现。
@@ -29,8 +26,8 @@ class DriftSqliteFileBackupService implements ScopeBackupService {
   DriftSqliteFileBackupService({
     required PersistenceDriftDatabase db,
     required Directory backupDirectory,
-  })  : _db = db,
-        _backupDirectory = backupDirectory;
+  }) : _db = db,
+       _backupDirectory = backupDirectory;
 
   final PersistenceDriftDatabase _db;
   final Directory _backupDirectory;
@@ -58,8 +55,7 @@ class DriftSqliteFileBackupService implements ScopeBackupService {
       await _backupDirectory.create(recursive: true);
     }
     final stamp = DateTime.now().millisecondsSinceEpoch;
-    final fileName =
-        'scope_handover_${fromScope}_to_${toScope}_$stamp.sqlite';
+    final fileName = 'scope_handover_${fromScope}_to_${toScope}_$stamp.sqlite';
     final backupPath = '${_backupDirectory.path}/$fileName';
 
     // 3. 物理复制（整体文件复制，非 SQL 导出）
@@ -71,9 +67,11 @@ class DriftSqliteFileBackupService implements ScopeBackupService {
   /// 通过 PRAGMA database_list 获取 main 库文件路径。
   Future<String?> _mainDatabaseFilePath() async {
     try {
-      final rows = await _db.customSelect(
-        "SELECT file FROM pragma_database_list WHERE name = 'main'",
-      ).get();
+      final rows = await _db
+          .customSelect(
+            "SELECT file FROM pragma_database_list WHERE name = 'main'",
+          )
+          .get();
       if (rows.isEmpty) return null;
       final file = rows.first.read<String>('file');
       return file == '' ? null : file;

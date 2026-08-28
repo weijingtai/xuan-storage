@@ -3,7 +3,8 @@ import 'package:drift/drift.dart';
 import 'taiyi_database.dart';
 import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_taiyishenshu/repository_interface_taiyishenshu.dart';
-import 'package:taiyishenshu/taiyi/taiyi.dart' show TaiYiSchool, DeityDefinition;
+import 'package:taiyishenshu/taiyi/taiyi.dart'
+    show TaiYiSchool, DeityDefinition;
 import 'drift_user_mapper.dart';
 
 /// 用户流派（School / UserSchool）L0 切片的 Drift 实现。
@@ -14,8 +15,10 @@ class DriftUserRepository implements SchoolRepository, UserSchoolRepository {
   final String? scopeUid;
 
   /// 神明仓储（按接口拆分后的独立实现；组合复用同库）。
-  late final DriftDeityRepository deities =
-      DriftDeityRepository(db, scopeUid: scopeUid);
+  late final DriftDeityRepository deities = DriftDeityRepository(
+    db,
+    scopeUid: scopeUid,
+  );
 
   /// 遗留别名方法使用的请求上下文。
   ///
@@ -34,8 +37,17 @@ class DriftUserRepository implements SchoolRepository, UserSchoolRepository {
 
   // ── 遗留别名（旧调用方与既有测试的过渡层，随 M4 一并退场） ──
 
+  @override
+  Future<List<TaiYiSchoolContract>> loadAllSchools() => loadUserSchools();
+
+  @override
+  Future<List<DeityDefinitionContract>> loadAllDeities() =>
+      deities.loadAllDeities();
+
+  @override
   Future<void> saveSchool(TaiYiSchoolContract school) => put(school, _ctx);
 
+  @override
   Future<TaiYiSchoolContract?> loadSchool(String id) async {
     final r = await get(id, _ctx);
     return switch (r) {
@@ -44,30 +56,43 @@ class DriftUserRepository implements SchoolRepository, UserSchoolRepository {
     };
   }
 
+  @override
   Future<void> deleteSchool(String id) => _hardDeleteSchool(id);
 
+  @override
   Future<void> saveDeity(DeityDefinitionContract d) => deities.put(d, _ctx);
 
-  Future<DeityDefinitionContract?> loadDeity(String id) => deities.loadDeity(id);
+  @override
+  Future<DeityDefinitionContract?> loadDeity(String id) =>
+      deities.loadDeity(id);
 
   Future<List<DeityDefinitionContract>> loadUserDeities() =>
       deities.loadUserDeities();
 
+  @override
   Future<void> deleteDeity(String id) => deities.deleteUserDeity(id);
 
   // ── 领域便捷方法（非切片成员，保留给既有调用方） ──
 
+  @override
   Future<List<TaiYiSchoolContract>> loadUserSchools() async {
     final query = db.select(db.userSchools);
     if (scopeUid != null) {
       query.where((t) => t.scopeUid.equals(scopeUid!));
     }
     final rows = await query.get();
-    return rows.map((row) => TaiYiSchool.fromJson(jsonDecode(row.contentJson)).toContract()).toList();
+    return rows
+        .map(
+          (row) =>
+              TaiYiSchool.fromJson(jsonDecode(row.contentJson)).toContract(),
+        )
+        .toList();
   }
 
+  @override
   Future<void> saveUserSchool(TaiYiSchoolContract school) => put(school, _ctx);
 
+  @override
   Future<void> deleteUserSchool(String id) async => _hardDeleteSchool(id);
 
   Future<void> delete(String id) => _hardDeleteSchool(id);
@@ -75,7 +100,10 @@ class DriftUserRepository implements SchoolRepository, UserSchoolRepository {
   // ── L0 Readable ──
 
   @override
-  Future<Result<TaiYiSchoolContract?>> get(String id, RequestContext ctx) async {
+  Future<Result<TaiYiSchoolContract?>> get(
+    String id,
+    RequestContext ctx,
+  ) async {
     final row = await _schoolRowById(id);
     if (row == null) return const Ok(null);
     return Ok(TaiYiSchool.fromJson(jsonDecode(row.contentJson)).toContract());
@@ -95,15 +123,17 @@ class DriftUserRepository implements SchoolRepository, UserSchoolRepository {
     RequestContext ctx, {
     Precondition pre = const Unconditional(),
   }) async {
-    await db.into(db.userSchools).insertOnConflictUpdate(
-      UserSchoolsCompanion(
-        id: Value(entity.id),
-        name: Value(entity.name),
-        source: Value(entity.source),
-        contentJson: Value(jsonEncode(entity.toModel().toJson())),
-        scopeUid: Value(scopeUid),
-      ),
-    );
+    await db
+        .into(db.userSchools)
+        .insertOnConflictUpdate(
+          UserSchoolsCompanion(
+            id: Value(entity.id),
+            name: Value(entity.name),
+            source: Value(entity.source),
+            contentJson: Value(jsonEncode(entity.toModel().toJson())),
+            scopeUid: Value(scopeUid),
+          ),
+        );
     return Ok(Rev(entity.id));
   }
 
@@ -118,10 +148,12 @@ class DriftUserRepository implements SchoolRepository, UserSchoolRepository {
     final all = await loadUserSchools();
     final start = page.cursor == null ? 0 : int.tryParse(page.cursor!) ?? 0;
     final end = (start + page.limit).clamp(0, all.length);
-    return Ok(Page<TaiYiSchoolContract>(
-      items: all.sublist(start, end),
-      nextCursor: end < all.length ? '$end' : null,
-    ));
+    return Ok(
+      Page<TaiYiSchoolContract>(
+        items: all.sublist(start, end),
+        nextCursor: end < all.length ? '$end' : null,
+      ),
+    );
   }
 
   @override
@@ -145,10 +177,12 @@ class DriftUserRepository implements SchoolRepository, UserSchoolRepository {
       final result = await db.transaction(() => body());
       return Ok(result);
     } catch (e) {
-      return Err(XuanError(
-        code: ErrorCode.internal,
-        message: 'user school transaction failed: $e',
-      ));
+      return Err(
+        XuanError(
+          code: ErrorCode.internal,
+          message: 'user school transaction failed: $e',
+        ),
+      );
     }
   }
 
@@ -203,7 +237,13 @@ class DriftDeityRepository implements DeityRepository {
       query.where((t) => t.scopeUid.equals(scopeUid!) | t.scopeUid.isNull());
     }
     final rows = await query.get();
-    return rows.map((row) => DeityDefinition.fromJson(jsonDecode(row.contentJson)).toContract()).toList();
+    return rows
+        .map(
+          (row) => DeityDefinition.fromJson(
+            jsonDecode(row.contentJson),
+          ).toContract(),
+        )
+        .toList();
   }
 
   Future<List<DeityDefinitionContract>> loadUserDeities() async {
@@ -212,7 +252,13 @@ class DriftDeityRepository implements DeityRepository {
       query.where((t) => t.scopeUid.equals(scopeUid!));
     }
     final rows = await query.get();
-    return rows.map((row) => DeityDefinition.fromJson(jsonDecode(row.contentJson)).toContract()).toList();
+    return rows
+        .map(
+          (row) => DeityDefinition.fromJson(
+            jsonDecode(row.contentJson),
+          ).toContract(),
+        )
+        .toList();
   }
 
   Future<void> saveUserDeity(DeityDefinitionContract deity) => put(deity, _ctx);
@@ -224,10 +270,15 @@ class DriftDeityRepository implements DeityRepository {
   // ── L0 Readable ──
 
   @override
-  Future<Result<DeityDefinitionContract?>> get(String id, RequestContext ctx) async {
+  Future<Result<DeityDefinitionContract?>> get(
+    String id,
+    RequestContext ctx,
+  ) async {
     final row = await _deityRowById(id);
     if (row == null) return const Ok(null);
-    return Ok(DeityDefinition.fromJson(jsonDecode(row.contentJson)).toContract());
+    return Ok(
+      DeityDefinition.fromJson(jsonDecode(row.contentJson)).toContract(),
+    );
   }
 
   @override
@@ -253,15 +304,17 @@ class DriftDeityRepository implements DeityRepository {
     RequestContext ctx, {
     Precondition pre = const Unconditional(),
   }) async {
-    await db.into(db.userDeities).insertOnConflictUpdate(
-      UserDeitiesCompanion(
-        id: Value(entity.id),
-        name: Value(entity.name),
-        source: Value(entity.source),
-        contentJson: Value(jsonEncode(entity.toModel().toJson())),
-        scopeUid: Value(scopeUid),
-      ),
-    );
+    await db
+        .into(db.userDeities)
+        .insertOnConflictUpdate(
+          UserDeitiesCompanion(
+            id: Value(entity.id),
+            name: Value(entity.name),
+            source: Value(entity.source),
+            contentJson: Value(jsonEncode(entity.toModel().toJson())),
+            scopeUid: Value(scopeUid),
+          ),
+        );
     return Ok(Rev(entity.id));
   }
 
@@ -276,10 +329,12 @@ class DriftDeityRepository implements DeityRepository {
     final all = await loadUserDeities();
     final start = page.cursor == null ? 0 : int.tryParse(page.cursor!) ?? 0;
     final end = (start + page.limit).clamp(0, all.length);
-    return Ok(Page<DeityDefinitionContract>(
-      items: all.sublist(start, end),
-      nextCursor: end < all.length ? '$end' : null,
-    ));
+    return Ok(
+      Page<DeityDefinitionContract>(
+        items: all.sublist(start, end),
+        nextCursor: end < all.length ? '$end' : null,
+      ),
+    );
   }
 
   @override
@@ -299,10 +354,12 @@ class DriftDeityRepository implements DeityRepository {
       final result = await db.transaction(() => body());
       return Ok(result);
     } catch (e) {
-      return Err(XuanError(
-        code: ErrorCode.internal,
-        message: 'deity transaction failed: $e',
-      ));
+      return Err(
+        XuanError(
+          code: ErrorCode.internal,
+          message: 'deity transaction failed: $e',
+        ),
+      );
     }
   }
 

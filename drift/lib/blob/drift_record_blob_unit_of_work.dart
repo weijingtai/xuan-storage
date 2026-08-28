@@ -23,14 +23,15 @@ final class DriftRecordBlobUnitOfWork implements RecordBlobUnitOfWork {
     Future<void> Function()? injectFailureAfterBlobRefs,
     Future<void> Function()? injectFailureAfterOutbox,
     Future<void> Function()? injectFailureAfterSave,
-  })  : _db = db,
-        _blobStore = blobStore,
-        _recordDataSource = DriftRecordDataSource(db, scopeUid: scopeUid),
-        _adapterRegistry = adapterRegistry,
-        _outboxStore = outboxStore,
-        _injectFailureAfterRecord = injectFailureAfterRecord ?? injectFailureAfterSave,
-        _injectFailureAfterBlobRefs = injectFailureAfterBlobRefs,
-        _injectFailureAfterOutbox = injectFailureAfterOutbox;
+  }) : _db = db,
+       _blobStore = blobStore,
+       _recordDataSource = DriftRecordDataSource(db, scopeUid: scopeUid),
+       _adapterRegistry = adapterRegistry,
+       _outboxStore = outboxStore,
+       _injectFailureAfterRecord =
+           injectFailureAfterRecord ?? injectFailureAfterSave,
+       _injectFailureAfterBlobRefs = injectFailureAfterBlobRefs,
+       _injectFailureAfterOutbox = injectFailureAfterOutbox;
 
   final PersistenceDriftDatabase _db;
   final DriftLocalBlobStore _blobStore;
@@ -48,11 +49,13 @@ final class DriftRecordBlobUnitOfWork implements RecordBlobUnitOfWork {
     Map<String, dynamic>? moduleData,
     List<SearchTag>? tags,
   }) async {
-    final effectiveModuleData = moduleData ??
+    final effectiveModuleData =
+        moduleData ??
         (record.moduleDataJson != null
             ? jsonDecode(record.moduleDataJson!) as Map<String, dynamic>
             : null);
-    final effectiveTags = tags ??
+    final effectiveTags =
+        tags ??
         _adapterRegistry
             ?.forModule(record.module)
             ?.extractSearchTags(record, effectiveModuleData) ??
@@ -106,10 +109,7 @@ final class DriftRecordBlobUnitOfWork implements RecordBlobUnitOfWork {
       await _injectFailureAfterRecord?.call();
 
       // 2. Release blob refs
-      await _blobStore.reconcileRefs(
-        ownerRecordUuid: recordUuid,
-        handles: {},
-      );
+      await _blobStore.reconcileRefs(ownerRecordUuid: recordUuid, handles: {});
       await _injectFailureAfterBlobRefs?.call();
 
       // 3. Enqueue outbox
@@ -135,7 +135,8 @@ final class DriftRecordBlobUnitOfWork implements RecordBlobUnitOfWork {
     final moduleData = record.moduleDataJson != null
         ? jsonDecode(record.moduleDataJson!) as Map<String, dynamic>
         : null;
-    final tags = _adapterRegistry
+    final tags =
+        _adapterRegistry
             ?.forModule(record.module)
             ?.extractSearchTags(record, moduleData) ??
         <SearchTag>[];

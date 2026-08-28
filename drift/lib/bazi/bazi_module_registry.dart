@@ -10,6 +10,5 @@ class BaziModuleRegistry {
   static BaziRecordRepository repository({
     required ScopedRecordStore store,
     Uuid? uuid,
-  }) =>
-      RecordBackedBaziRepository(store: store, codec: codec(), uuid: uuid);
+  }) => RecordBackedBaziRepository(store: store, codec: codec(), uuid: uuid);
 }

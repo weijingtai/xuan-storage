@@ -48,7 +48,9 @@ final class XiangDeleteMediaHandler {
     }
 
     // 审计持久化落库（共享通用审计表）。
-    await db.into(db.creationAuditLogs).insert(
+    await db
+        .into(db.creationAuditLogs)
+        .insert(
           CreationAuditLogsCompanion.insert(
             caseUuid: uuid,
             auditedAt: DateTime.now().toUtc(),
@@ -57,7 +59,9 @@ final class XiangDeleteMediaHandler {
             entityUuid: Value(uuid),
             oldJson: Value(jsonEncode({'mediaRefIds': mediaRefIds})),
             newJson: Value(null),
-            summary: Value('xiang reading deleted, mediaRefCount=${mediaRefIds.length}'),
+            summary: Value(
+              'xiang reading deleted, mediaRefCount=${mediaRefIds.length}',
+            ),
             operatorId: Value(store.scopeUid),
           ),
         );
@@ -65,17 +69,18 @@ final class XiangDeleteMediaHandler {
 
   /// 查询本 scope 的相法删除审计（持久化，跨实例可查）。
   Future<List<XiangDeletionAuditEvent>> queryAuditLogs() async {
-    final rows = await (db.select(db.creationAuditLogs)
-          ..where((t) => t.entityType.equals('xiang_reading'))
-          ..where((t) => t.changeType.equals('delete'))
-          ..orderBy([(t) => OrderingTerm.desc(t.auditedAt)]))
-        .get();
+    final rows =
+        await (db.select(db.creationAuditLogs)
+              ..where((t) => t.entityType.equals('xiang_reading'))
+              ..where((t) => t.changeType.equals('delete'))
+              ..orderBy([(t) => OrderingTerm.desc(t.auditedAt)]))
+            .get();
     return rows.map((r) {
       final summary = r.summary ?? '';
-      final count = RegExp(r'mediaRefCount=(\d+)')
-              .firstMatch(summary)
-              ?.group(1)
-              ?.let(int.parse) ??
+      final count =
+          RegExp(
+            r'mediaRefCount=(\d+)',
+          ).firstMatch(summary)?.group(1)?.let(int.parse) ??
           0;
       return XiangDeletionAuditEvent(
         operation: 'reading.delete',

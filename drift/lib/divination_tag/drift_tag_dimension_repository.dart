@@ -13,8 +13,8 @@ class DriftTagDimensionRepository implements TagDimensionRepository {
   DriftTagDimensionRepository({
     List<TagDimension> dimensions = seedTagDimensions,
     List<DimensionTag> tags = seedDimensionTags,
-  })  : _dimensions = List.unmodifiable(dimensions),
-        _tags = List.unmodifiable(tags);
+  }) : _dimensions = List.unmodifiable(dimensions),
+       _tags = List.unmodifiable(tags);
 
   final List<TagDimension> _dimensions;
   final List<DimensionTag> _tags;
@@ -78,10 +78,9 @@ class DriftTagDimensionRepository implements TagDimensionRepository {
     final end = (start + page.limit).clamp(0, list.length);
     final items = list.sublist(start, end);
     final hasMore = end < list.length;
-    return Ok(Page<TagDimension>(
-      items: items,
-      nextCursor: hasMore ? '$end' : null,
-    ));
+    return Ok(
+      Page<TagDimension>(items: items, nextCursor: hasMore ? '$end' : null),
+    );
   }
 
   @override
@@ -100,10 +99,12 @@ class DriftTagDimensionRepository implements TagDimensionRepository {
       final result = await body();
       return Ok(result);
     } catch (e) {
-      return Err(XuanError(
-        code: ErrorCode.internal,
-        message: 'tag dimension transaction failed: $e',
-      ));
+      return Err(
+        XuanError(
+          code: ErrorCode.internal,
+          message: 'tag dimension transaction failed: $e',
+        ),
+      );
     }
   }
 
@@ -128,8 +129,9 @@ class DriftTagDimensionRepository implements TagDimensionRepository {
     for (final entry in dimensionTags.entries) {
       for (final tagId in entry.value) {
         final key = '${entry.key}:$tagId';
-        result[key] =
-            _tags.any((t) => t.dimensionId == entry.key && t.tagId == tagId);
+        result[key] = _tags.any(
+          (t) => t.dimensionId == entry.key && t.tagId == tagId,
+        );
       }
     }
     return Ok(result);

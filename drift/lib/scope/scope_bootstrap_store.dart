@@ -44,15 +44,20 @@ class DriftScopeBootstrapStore implements ScopeBootstrapStore {
 
   @override
   Future<String> getOrCreate() async {
-    final row = await (_db.select(_db.tScopeAlias)
-          ..where((t) => t.authKind.equals('device') & t.authId.equals('ghost_scope')))
-        .getSingleOrNull();
+    final row =
+        await (_db.select(_db.tScopeAlias)..where(
+              (t) =>
+                  t.authKind.equals('device') & t.authId.equals('ghost_scope'),
+            ))
+            .getSingleOrNull();
     if (row != null && row.scopeUid.isNotEmpty) {
       return row.scopeUid;
     }
 
     final newScope = _uuid.v7();
-    await _db.into(_db.tScopeAlias).insertOnConflictUpdate(
+    await _db
+        .into(_db.tScopeAlias)
+        .insertOnConflictUpdate(
           TScopeAliasCompanion.insert(
             authKind: 'device',
             authId: 'ghost_scope',
@@ -65,9 +70,9 @@ class DriftScopeBootstrapStore implements ScopeBootstrapStore {
 
   @override
   Future<void> resetForTest() async {
-    await (_db.delete(_db.tScopeAlias)
-          ..where((t) => t.authKind.equals('device') & t.authId.equals('ghost_scope')))
+    await (_db.delete(_db.tScopeAlias)..where(
+          (t) => t.authKind.equals('device') & t.authId.equals('ghost_scope'),
+        ))
         .go();
   }
 }
-

@@ -51,12 +51,12 @@ class PlaygroundPostCaches extends Table {
   IntColumn get cachedAt => integer().named('cached_at')();
 
   /// 回复数（仅用于缓存内帖子展示，不用于读取裁定）。
-  IntColumn get replyCount => integer().named('reply_count')
-      .withDefault(const Constant(0))();
+  IntColumn get replyCount =>
+      integer().named('reply_count').withDefault(const Constant(0))();
 
   /// 点赞数（仅用于缓存内帖子展示，不用于读取裁定）。
-  IntColumn get likeCount => integer().named('like_count')
-      .withDefault(const Constant(0))();
+  IntColumn get likeCount =>
+      integer().named('like_count').withDefault(const Constant(0))();
 
   @override
   Set<Column> get primaryKey => {postId};

@@ -23,19 +23,22 @@ class DriftPlaygroundReplyCacheStore
 
   @override
   Future<List<Object>> getReplies(PlaygroundPostId postId) async {
-    final rows = await (select(playgroundReplyCaches)
-          ..where((t) => t.postId.equals(postId.value))
-          ..orderBy([
-            (t) => OrderingTerm.asc(t.depth),
-            (t) => OrderingTerm.asc(t.createdAt),
-          ]))
-        .get();
+    final rows =
+        await (select(playgroundReplyCaches)
+              ..where((t) => t.postId.equals(postId.value))
+              ..orderBy([
+                (t) => OrderingTerm.asc(t.depth),
+                (t) => OrderingTerm.asc(t.createdAt),
+              ]))
+            .get();
     return rows.map(rowToReply).toList();
   }
 
   @override
   Future<void> upsertReplies(
-      PlaygroundPostId postId, List<Object> replies) async {
+    PlaygroundPostId postId,
+    List<Object> replies,
+  ) async {
     // 先清后写在同一事务内：避免「清空已提交、批量写入失败」留下空缓存。
     await transaction(() async {
       await deleteReplies(postId);
@@ -51,16 +54,16 @@ class DriftPlaygroundReplyCacheStore
 
   @override
   Future<void> deleteReplies(PlaygroundPostId postId) async {
-    await (delete(playgroundReplyCaches)
-          ..where((t) => t.postId.equals(postId.value)))
-        .go();
+    await (delete(
+      playgroundReplyCaches,
+    )..where((t) => t.postId.equals(postId.value))).go();
   }
 
   @override
   Future<void> removeReply(PlaygroundReplyId replyId) async {
-    await (delete(playgroundReplyCaches)
-          ..where((t) => t.replyId.equals(replyId.value)))
-        .go();
+    await (delete(
+      playgroundReplyCaches,
+    )..where((t) => t.replyId.equals(replyId.value))).go();
   }
 
   /// [PlaygroundRootReply] / [PlaygroundDiscussionReply] → 行写入。
@@ -75,16 +78,20 @@ class DriftPlaygroundReplyCacheStore
         isRoot: 1,
         rootReplyId: const Value(null),
         replyToReplyId: const Value(null),
-        techniqueTagsJson: Value(reply.techniqueTags.isEmpty
-            ? null
-            : encodeStringList(reply.techniqueTags)),
-        chartAttachmentJson:
-            Value(encodeAttachment(reply.chartAttachment)),
-        mediaAttachmentsJson: Value(reply.mediaAttachments.isEmpty
-            ? null
-            : encodeAttachments(reply.mediaAttachments)),
+        techniqueTagsJson: Value(
+          reply.techniqueTags.isEmpty
+              ? null
+              : encodeStringList(reply.techniqueTags),
+        ),
+        chartAttachmentJson: Value(encodeAttachment(reply.chartAttachment)),
+        mediaAttachmentsJson: Value(
+          reply.mediaAttachments.isEmpty
+              ? null
+              : encodeAttachments(reply.mediaAttachments),
+        ),
         revisionJson: Value(
-            reply.revisions.isEmpty ? null : encodeRevisions(reply.revisions)),
+          reply.revisions.isEmpty ? null : encodeRevisions(reply.revisions),
+        ),
         status: reply.isTombstoned ? 'tombstoned' : 'active',
         createdAt: reply.createdAt.millisecondsSinceEpoch,
         updatedAt: Value(reply.updatedAt?.millisecondsSinceEpoch),
@@ -103,11 +110,14 @@ class DriftPlaygroundReplyCacheStore
         replyToReplyId: Value(reply.replyToReplyId?.value),
         techniqueTagsJson: const Value(null),
         chartAttachmentJson: const Value(null),
-        mediaAttachmentsJson: Value(reply.mediaAttachments.isEmpty
-            ? null
-            : encodeAttachments(reply.mediaAttachments)),
+        mediaAttachmentsJson: Value(
+          reply.mediaAttachments.isEmpty
+              ? null
+              : encodeAttachments(reply.mediaAttachments),
+        ),
         revisionJson: Value(
-            reply.revisions.isEmpty ? null : encodeRevisions(reply.revisions)),
+          reply.revisions.isEmpty ? null : encodeRevisions(reply.revisions),
+        ),
         status: reply.isTombstoned ? 'tombstoned' : 'active',
         createdAt: reply.createdAt.millisecondsSinceEpoch,
         updatedAt: Value(reply.updatedAt?.millisecondsSinceEpoch),

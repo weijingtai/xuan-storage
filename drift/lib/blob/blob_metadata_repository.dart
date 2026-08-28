@@ -56,7 +56,9 @@ final class BlobMetadataRepository {
       );
     }
 
-    await _db.into(_db.blobMetas).insert(
+    await _db
+        .into(_db.blobMetas)
+        .insert(
           BlobMetasCompanion.insert(
             cipherManifestId: peerManifest.cipherManifestId,
             scopeUid: scopeUid,
@@ -81,7 +83,9 @@ final class BlobMetadataRepository {
     required int cipherBytesLen,
     required String chunkSha256,
   }) async {
-    await _db.into(_db.blobChunks).insert(
+    await _db
+        .into(_db.blobChunks)
+        .insert(
           BlobChunksCompanion.insert(
             cipherManifestId: cipherManifestId,
             chunkIndex: chunkIndex,
@@ -92,43 +96,43 @@ final class BlobMetadataRepository {
   }
 
   Future<Set<int>> presentChunks(String cipherManifestId) async {
-    final rows = await (_db.select(_db.blobChunks)
-          ..where((t) => t.cipherManifestId.equals(cipherManifestId)))
-        .get();
+    final rows = await (_db.select(
+      _db.blobChunks,
+    )..where((t) => t.cipherManifestId.equals(cipherManifestId))).get();
     return rows.map((r) => r.chunkIndex).toSet();
   }
 
   Future<BlobMetaRow?> getMeta(String cipherManifestId) async {
-    final rows = await (_db.select(_db.blobMetas)
-          ..where((t) =>
-              t.cipherManifestId.equals(cipherManifestId) &
-              t.scopeUid.equals(scopeUid)))
-        .get();
+    final rows =
+        await (_db.select(_db.blobMetas)..where(
+              (t) =>
+                  t.cipherManifestId.equals(cipherManifestId) &
+                  t.scopeUid.equals(scopeUid),
+            ))
+            .get();
     return rows.isEmpty ? null : rows.single;
   }
 
   Future<List<BlobMetaRow>> listByTier(BlobTier tier) async {
-    return (_db.select(_db.blobMetas)
-          ..where((t) =>
-              t.scopeUid.equals(scopeUid) & t.tier.equals(tier.index)))
+    return (_db.select(_db.blobMetas)..where(
+          (t) => t.scopeUid.equals(scopeUid) & t.tier.equals(tier.index),
+        ))
         .get();
   }
 
   Future<void> touchAccess(String cipherManifestId) async {
     await (_db.update(_db.blobMetas)
           ..where((t) => t.cipherManifestId.equals(cipherManifestId)))
-        .write(BlobMetasCompanion(
-          lastAccessAtUtc: Value(DateTime.now()),
-        ));
+        .write(BlobMetasCompanion(lastAccessAtUtc: Value(DateTime.now())));
   }
 
   Future<void> deleteMeta(String cipherManifestId) async {
-    await (_db.delete(_db.blobChunks)
-          ..where((t) => t.cipherManifestId.equals(cipherManifestId)))
-        .go();
-    await (_db.delete(_db.blobMetas)
-          ..where((t) => t.cipherManifestId.equals(cipherManifestId)))
-        .go();
+    await (_db.delete(
+      _db.blobChunks,
+    )..where((t) => t.cipherManifestId.equals(cipherManifestId))).go();
+    await (_db.delete(
+      _db.blobMetas,
+    )..where((t) => t.cipherManifestId.equals(cipherManifestId))).go();
   }
 
   BlobVisibility _deriveVisibility(DataVisibility v) {

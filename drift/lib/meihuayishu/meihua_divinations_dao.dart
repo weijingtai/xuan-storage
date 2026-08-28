@@ -15,8 +15,7 @@ class MeiHuaDivinationsDao extends DatabaseAccessor<MeiHuaDatabase>
   /// 获取所有起卦记录
   Future<List<MeiHuaGuaInfo>> getAllRecords({String? scopeUid}) {
     final effectiveScope = scopeUid ?? this.scopeUid;
-    final query = select(db.meiHuaGuaInfos)
-      ..where((t) => t.deletedAt.isNull());
+    final query = select(db.meiHuaGuaInfos)..where((t) => t.deletedAt.isNull());
     if (effectiveScope != null) {
       query.where((t) => t.scopeUid.equals(effectiveScope));
     }
@@ -26,8 +25,7 @@ class MeiHuaDivinationsDao extends DatabaseAccessor<MeiHuaDatabase>
   /// 监听起卦记录变化
   Stream<List<MeiHuaGuaInfo>> watchAllRecords({String? scopeUid}) {
     final effectiveScope = scopeUid ?? this.scopeUid;
-    final query = select(db.meiHuaGuaInfos)
-      ..where((t) => t.deletedAt.isNull());
+    final query = select(db.meiHuaGuaInfos)..where((t) => t.deletedAt.isNull());
     if (effectiveScope != null) {
       query.where((t) => t.scopeUid.equals(effectiveScope));
     }
@@ -45,7 +43,10 @@ class MeiHuaDivinationsDao extends DatabaseAccessor<MeiHuaDatabase>
   }
 
   /// 根据占卜 UUID 获取起卦记录
-  Future<MeiHuaGuaInfo?> getRecordByDivinationUuid(String divinationUuid, {String? scopeUid}) {
+  Future<MeiHuaGuaInfo?> getRecordByDivinationUuid(
+    String divinationUuid, {
+    String? scopeUid,
+  }) {
     final effectiveScope = scopeUid ?? this.scopeUid;
     final query = select(db.meiHuaGuaInfos)
       ..where((t) => t.divinationUuid.equals(divinationUuid))
@@ -65,7 +66,11 @@ class MeiHuaDivinationsDao extends DatabaseAccessor<MeiHuaDatabase>
   }
 
   /// 更新起卦记录
-  Future<bool> updateRecord(String uuid, MeiHuaGuaInfosCompanion companion, {String? scopeUid}) {
+  Future<bool> updateRecord(
+    String uuid,
+    MeiHuaGuaInfosCompanion companion, {
+    String? scopeUid,
+  }) {
     final effectiveScope = scopeUid ?? this.scopeUid;
     final query = update(db.meiHuaGuaInfos)..where((t) => t.uuid.equals(uuid));
     if (effectiveScope != null) {
@@ -81,11 +86,16 @@ class MeiHuaDivinationsDao extends DatabaseAccessor<MeiHuaDatabase>
     if (effectiveScope != null) {
       query.where((t) => t.scopeUid.equals(effectiveScope));
     }
-    return query.write(MeiHuaGuaInfosCompanion(deletedAt: Value(DateTime.now())));
+    return query.write(
+      MeiHuaGuaInfosCompanion(deletedAt: Value(DateTime.now())),
+    );
   }
 
   /// 监听指定记录变化
-  Stream<MeiHuaGuaInfo?> watchRecordByDivinationUuid(String divinationUuid, {String? scopeUid}) {
+  Stream<MeiHuaGuaInfo?> watchRecordByDivinationUuid(
+    String divinationUuid, {
+    String? scopeUid,
+  }) {
     final effectiveScope = scopeUid ?? this.scopeUid;
     final query = select(db.meiHuaGuaInfos)
       ..where((t) => t.divinationUuid.equals(divinationUuid))

@@ -28,17 +28,19 @@ class AiChatMessagesDao extends DatabaseAccessor<AiDatabase>
 
   /// Get message by UUID
   Future<AiChatMessage?> getByUuid(String uuid) {
-    return (select(aiChatMessages)..where((t) => t.uuid.equals(uuid)))
-        .getSingleOrNull();
+    return (select(
+      aiChatMessages,
+    )..where((t) => t.uuid.equals(uuid))).getSingleOrNull();
   }
 
   /// Get the next sequence number for a session
   Future<int> getNextSequence(String sessionUuid) async {
-    final lastMessage = await (select(aiChatMessages)
-          ..where((t) => t.sessionUuid.equals(sessionUuid))
-          ..orderBy([(t) => OrderingTerm.desc(t.sequence)])
-          ..limit(1))
-        .getSingleOrNull();
+    final lastMessage =
+        await (select(aiChatMessages)
+              ..where((t) => t.sessionUuid.equals(sessionUuid))
+              ..orderBy([(t) => OrderingTerm.desc(t.sequence)])
+              ..limit(1))
+            .getSingleOrNull();
     return (lastMessage?.sequence ?? 0) + 1;
   }
 
@@ -73,8 +75,9 @@ class AiChatMessagesDao extends DatabaseAccessor<AiDatabase>
 
   /// Update message content (for streaming messages)
   Future<void> updateContent(String uuid, String content) {
-    return (update(aiChatMessages)..where((t) => t.uuid.equals(uuid)))
-        .write(AiChatMessagesCompanion(content: Value(content)));
+    return (update(aiChatMessages)..where((t) => t.uuid.equals(uuid))).write(
+      AiChatMessagesCompanion(content: Value(content)),
+    );
   }
 
   /// Append content to a streaming message
@@ -98,9 +101,9 @@ class AiChatMessagesDao extends DatabaseAccessor<AiDatabase>
 
   /// Delete all messages for a session
   Future<void> deleteBySession(String sessionUuid) {
-    return (delete(aiChatMessages)
-          ..where((t) => t.sessionUuid.equals(sessionUuid)))
-        .go();
+    return (delete(
+      aiChatMessages,
+    )..where((t) => t.sessionUuid.equals(sessionUuid))).go();
   }
 
   /// Watch messages for a session (for reactive UI)

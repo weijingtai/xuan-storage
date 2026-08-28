@@ -12,6 +12,7 @@ class XiangModuleRegistry {
 
   static XiangRecordCodec codec() => XiangRecordCodec();
 
-  static XiangReadingRepository repository({required ScopedRecordStore store}) =>
-      XiangReadingRepositoryImpl(store: store, codec: codec());
+  static XiangReadingRepository repository({
+    required ScopedRecordStore store,
+  }) => XiangReadingRepositoryImpl(store: store, codec: codec());
 }

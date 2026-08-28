@@ -21,10 +21,7 @@ abstract interface class ScopeHandoverService {
   /// [toScope]：数据新归属 scope（通常为刚铸的注册用户 scope）。
   ///
   /// 实现必须保证：任何失败路径都不产生半搬迁状态，也不残留脏数据。
-  Future<void> handover({
-    required String fromScope,
-    required String toScope,
-  });
+  Future<void> handover({required String fromScope, required String toScope});
 }
 
 /// 分文件独立数据库的 handover 参与描述符。
@@ -116,11 +113,10 @@ class DriftScopeHandoverService implements ScopeHandoverService {
     required ScopeBackupService backupService,
     this.scopedDatabases = const [],
     this.backupDirectory,
-    @visibleForTesting
-    this.beforeEachTableUpdate,
-  })  : _db = db,
-        _ledger = ledger,
-        _backupService = backupService;
+    @visibleForTesting this.beforeEachTableUpdate,
+  }) : _db = db,
+       _ledger = ledger,
+       _backupService = backupService;
 
   /// 返回某个 scope 的 blob 根目录（不存在返回 null）。
   final String? Function(String scopeUid) blobDirForScope;
@@ -172,7 +168,8 @@ class DriftScopeHandoverService implements ScopeHandoverService {
     await _backupService.backup(fromScope: fromScope, toScope: toScope);
 
     // 2.2 分文件库备份与连接释放
-    final resolvedBackupDir = backupDirectory ??
+    final resolvedBackupDir =
+        backupDirectory ??
         (_backupService is DriftSqliteFileBackupService
             ? (_backupService as DriftSqliteFileBackupService).backupDirectory
             : null);
@@ -193,7 +190,9 @@ class DriftScopeHandoverService implements ScopeHandoverService {
         }
         final stamp = DateTime.now().millisecondsSinceEpoch;
         for (final ext in const ['', '-wal', '-shm', '-journal']) {
-          final srcFile = File('${dir.path}/${desc.name}_$fromScope.sqlite$ext');
+          final srcFile = File(
+            '${dir.path}/${desc.name}_$fromScope.sqlite$ext',
+          );
           if (await srcFile.exists()) {
             final bPath =
                 '${bDir.path}/${desc.name}_scope_handover_${fromScope}_to_${toScope}_$stamp.sqlite$ext';
@@ -219,20 +218,26 @@ class DriftScopeHandoverService implements ScopeHandoverService {
       if (await srcMain.exists()) {
         final copiedExts = <String>[];
         for (final ext in const ['', '-wal', '-shm', '-journal']) {
-          final srcFile = File('${dir.path}/${desc.name}_$fromScope.sqlite$ext');
+          final srcFile = File(
+            '${dir.path}/${desc.name}_$fromScope.sqlite$ext',
+          );
           if (await srcFile.exists()) {
-            final dstFile = File('${dir.path}/${desc.name}_$toScope.sqlite$ext');
+            final dstFile = File(
+              '${dir.path}/${desc.name}_$toScope.sqlite$ext',
+            );
             await srcFile.copy(dstFile.path);
             copiedExts.add(ext);
           }
         }
-        copiedScopedDbs.add(_CopiedScopedDbEntry(
-          dir: dir,
-          name: desc.name,
-          fromScope: fromScope,
-          toScope: toScope,
-          extensions: copiedExts,
-        ));
+        copiedScopedDbs.add(
+          _CopiedScopedDbEntry(
+            dir: dir,
+            name: desc.name,
+            fromScope: fromScope,
+            toScope: toScope,
+            extensions: copiedExts,
+          ),
+        );
       }
     }
 
@@ -260,8 +265,9 @@ class DriftScopeHandoverService implements ScopeHandoverService {
       }
       for (final entry in copiedScopedDbs) {
         for (final ext in entry.extensions) {
-          final dstFile =
-              File('${entry.dir.path}/${entry.name}_${entry.toScope}.sqlite$ext');
+          final dstFile = File(
+            '${entry.dir.path}/${entry.name}_${entry.toScope}.sqlite$ext',
+          );
           if (await dstFile.exists()) {
             await dstFile.delete();
           }
@@ -276,8 +282,9 @@ class DriftScopeHandoverService implements ScopeHandoverService {
     }
     for (final entry in copiedScopedDbs) {
       for (final ext in entry.extensions) {
-        final srcFile =
-            File('${entry.dir.path}/${entry.name}_${entry.fromScope}.sqlite$ext');
+        final srcFile = File(
+          '${entry.dir.path}/${entry.name}_${entry.fromScope}.sqlite$ext',
+        );
         if (await srcFile.exists()) {
           await srcFile.delete();
         }

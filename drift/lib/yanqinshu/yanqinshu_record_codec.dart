@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'package:repository_interface_record/repository_interface_record.dart';
 import 'package:repository_interface_yanqinshu/repository_interface_yanqinshu.dart';
 
-class YanqinshuRecordCodec implements RecordModuleCodec<YanqinshuDivinationRecordContract> {
+class YanqinshuRecordCodec
+    implements RecordModuleCodec<YanqinshuDivinationRecordContract> {
   @override
   String get module => 'yanqinshu';
 
@@ -16,7 +17,10 @@ class YanqinshuRecordCodec implements RecordModuleCodec<YanqinshuDivinationRecor
   String uuidOf(YanqinshuDivinationRecordContract c) => c.uuid;
 
   @override
-  YanqinshuDivinationRecordContract withUuid(YanqinshuDivinationRecordContract c, String uuid) {
+  YanqinshuDivinationRecordContract withUuid(
+    YanqinshuDivinationRecordContract c,
+    String uuid,
+  ) {
     return YanqinshuDivinationRecordContract(
       uuid: uuid,
       question: c.question,
@@ -36,7 +40,10 @@ class YanqinshuRecordCodec implements RecordModuleCodec<YanqinshuDivinationRecor
   }
 
   @override
-  EncodedRecord encode(YanqinshuDivinationRecordContract c, {required String scopeUid}) {
+  EncodedRecord encode(
+    YanqinshuDivinationRecordContract c, {
+    required String scopeUid,
+  }) {
     final data = <String, dynamic>{
       'question': c.question,
       'technique': c.technique,
@@ -57,7 +64,10 @@ class YanqinshuRecordCodec implements RecordModuleCodec<YanqinshuDivinationRecor
       divinationType: divinationType,
       question: c.question,
       moduleDataJson: jsonEncode(data),
-      navParamsJson: jsonEncode({'recordUuid': c.uuid, 'technique': c.technique}),
+      navParamsJson: jsonEncode({
+        'recordUuid': c.uuid,
+        'technique': c.technique,
+      }),
       occurredAtUtc: null,
       reckoningType: null,
       timezoneStr: null,
@@ -75,11 +85,20 @@ class YanqinshuRecordCodec implements RecordModuleCodec<YanqinshuDivinationRecor
   }
 
   @override
-  YanqinshuDivinationRecordContract decode(RecordMeta meta, Map<String, dynamic>? moduleData) {
+  YanqinshuDivinationRecordContract decode(
+    RecordMeta meta,
+    Map<String, dynamic>? moduleData,
+  ) {
     if (meta.module != module) {
-      throw RecordCodecMismatch(message: 'module mismatch: expected $module got ${meta.module}');
+      throw RecordCodecMismatch(
+        message: 'module mismatch: expected $module got ${meta.module}',
+      );
     }
-    final d = moduleData ?? (meta.moduleDataJson != null ? jsonDecode(meta.moduleDataJson!) : const <String, dynamic>{});
+    final d =
+        moduleData ??
+        (meta.moduleDataJson != null
+            ? jsonDecode(meta.moduleDataJson!)
+            : const <String, dynamic>{});
     return YanqinshuDivinationRecordContract(
       uuid: meta.uuid,
       question: meta.question,
@@ -99,11 +118,20 @@ class YanqinshuRecordCodec implements RecordModuleCodec<YanqinshuDivinationRecor
   }
 
   @override
-  List<SearchTag> extractSearchTags(RecordMeta meta, Map<String, dynamic>? moduleData) {
-    final d = moduleData ?? (meta.moduleDataJson != null ? jsonDecode(meta.moduleDataJson!) : const <String, dynamic>{});
+  List<SearchTag> extractSearchTags(
+    RecordMeta meta,
+    Map<String, dynamic>? moduleData,
+  ) {
+    final d =
+        moduleData ??
+        (meta.moduleDataJson != null
+            ? jsonDecode(meta.moduleDataJson!)
+            : const <String, dynamic>{});
     final tags = <SearchTag>[];
-    if (d['technique'] != null) tags.add(SearchTag('technique', '${d['technique']}'));
-    if (d['schoolId'] != null) tags.add(SearchTag('school_id', '${d['schoolId']}'));
+    if (d['technique'] != null)
+      tags.add(SearchTag('technique', '${d['technique']}'));
+    if (d['schoolId'] != null)
+      tags.add(SearchTag('school_id', '${d['schoolId']}'));
     return tags;
   }
 }

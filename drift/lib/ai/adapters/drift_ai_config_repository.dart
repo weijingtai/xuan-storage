@@ -11,44 +11,44 @@ class DriftAiConfigRepository implements AiConfigRepository {
   final AiDatabase _db;
 
   AiProviderContract _providerToContract(LlmProvider p) => AiProviderContract(
-        uuid: p.uuid,
-        name: p.name,
-        baseUrl: p.baseUrl,
-        isDefault: p.isDefault,
-        isEnabled: p.isEnabled,
-        configJson: p.configJson,
-      );
+    uuid: p.uuid,
+    name: p.name,
+    baseUrl: p.baseUrl,
+    isDefault: p.isDefault,
+    isEnabled: p.isEnabled,
+    configJson: p.configJson,
+  );
 
   AiModelContract _modelToContract(LlmModel m) => AiModelContract(
-        uuid: m.uuid,
-        providerUuid: m.providerUuid,
-        modelId: m.modelId,
-        displayName: m.displayName,
-        modelType: m.modelType,
-        maxContextLength: m.maxContextLength,
-        maxOutputTokens: m.maxOutputTokens,
-        supportsStreaming: m.supportsStreaming,
-        supportsFunctionCalling: m.supportsFunctionCalling,
-        isDefault: m.isDefault,
-        isEnabled: m.isEnabled,
-        configJson: m.configJson,
-      );
+    uuid: m.uuid,
+    providerUuid: m.providerUuid,
+    modelId: m.modelId,
+    displayName: m.displayName,
+    modelType: m.modelType,
+    maxContextLength: m.maxContextLength,
+    maxOutputTokens: m.maxOutputTokens,
+    supportsStreaming: m.supportsStreaming,
+    supportsFunctionCalling: m.supportsFunctionCalling,
+    isDefault: m.isDefault,
+    isEnabled: m.isEnabled,
+    configJson: m.configJson,
+  );
 
   AiPersonaContract _personaToContract(AiPersona p) => AiPersonaContract(
-        uuid: p.uuid,
-        name: p.name,
-        avatarUrl: p.avatarUrl,
-        description: p.description,
-        modelUuid: p.modelUuid,
-        systemPromptUuid: p.systemPromptUuid,
-        temperature: p.temperature,
-        topP: p.topP,
-        maxTokens: p.maxTokens,
-        personalityJson: p.personalityJson,
-        expertiseJson: p.expertiseJson,
-        isDefault: p.isDefault,
-        isEnabled: p.isEnabled,
-      );
+    uuid: p.uuid,
+    name: p.name,
+    avatarUrl: p.avatarUrl,
+    description: p.description,
+    modelUuid: p.modelUuid,
+    systemPromptUuid: p.systemPromptUuid,
+    temperature: p.temperature,
+    topP: p.topP,
+    maxTokens: p.maxTokens,
+    personalityJson: p.personalityJson,
+    expertiseJson: p.expertiseJson,
+    isDefault: p.isDefault,
+    isEnabled: p.isEnabled,
+  );
 
   @override
   Future<List<AiProviderContract>> listProviders() async =>
@@ -113,25 +113,24 @@ class DriftAiConfigRepository implements AiConfigRepository {
   }
 
   @override
-  Future<void> upsertModel(AiModelContract model) =>
-      _db.llmModelsDao.upsert(
-        LlmModelsCompanion(
-          uuid: Value(model.uuid),
-          providerUuid: Value(model.providerUuid),
-          modelId: Value(model.modelId),
-          displayName: Value(model.displayName),
-          modelType: Value(model.modelType),
-          maxContextLength: Value(model.maxContextLength),
-          maxOutputTokens: Value(model.maxOutputTokens),
-          supportsStreaming: Value(model.supportsStreaming),
-          supportsFunctionCalling: Value(model.supportsFunctionCalling),
-          isDefault: Value(model.isDefault),
-          isEnabled: Value(model.isEnabled),
-          configJson: Value(model.configJson),
-          createdAt: Value(DateTime.now()),
-          lastUpdatedAt: Value(DateTime.now()),
-        ),
-      );
+  Future<void> upsertModel(AiModelContract model) => _db.llmModelsDao.upsert(
+    LlmModelsCompanion(
+      uuid: Value(model.uuid),
+      providerUuid: Value(model.providerUuid),
+      modelId: Value(model.modelId),
+      displayName: Value(model.displayName),
+      modelType: Value(model.modelType),
+      maxContextLength: Value(model.maxContextLength),
+      maxOutputTokens: Value(model.maxOutputTokens),
+      supportsStreaming: Value(model.supportsStreaming),
+      supportsFunctionCalling: Value(model.supportsFunctionCalling),
+      isDefault: Value(model.isDefault),
+      isEnabled: Value(model.isEnabled),
+      configJson: Value(model.configJson),
+      createdAt: Value(DateTime.now()),
+      lastUpdatedAt: Value(DateTime.now()),
+    ),
+  );
 
   @override
   Future<void> setDefaultModel(String uuid) =>
@@ -139,7 +138,9 @@ class DriftAiConfigRepository implements AiConfigRepository {
 
   @override
   Future<List<AiPersonaContract>> listPersonas() async =>
-      (await _db.aiPersonasDao.getAllEnabled()).map(_personaToContract).toList();
+      (await _db.aiPersonasDao.getAllEnabled())
+          .map(_personaToContract)
+          .toList();
 
   @override
   Future<AiPersonaContract?> getPersona(String uuid) async {

@@ -174,28 +174,28 @@ class AiDatabase extends _$AiDatabase {
     required String scopeUid,
     Future<Directory> Function()? databaseDirectory,
   }) : super(
-          driftDatabase(
-            name: 'ai_database_$scopeUid',
-            native: DriftNativeOptions(
-              databaseDirectory:
-                  databaseDirectory ?? getApplicationSupportDirectory,
-            ),
-            web: DriftWebOptions(
-              sqlite3Wasm: Uri.parse('sqlite3.wasm'),
-              driftWorker: Uri.parse('drift_worker.js'),
-              onResult: (result) {
-                debugPrint(
-                  '[AiDatabase] Web storage: ${result.chosenImplementation}',
-                );
-                if (result.missingFeatures.isNotEmpty) {
-                  debugPrint(
-                    '[AiDatabase] Missing features: ${result.missingFeatures}',
-                  );
-                }
-              },
-            ),
-          ),
-        ) {
+         driftDatabase(
+           name: 'ai_database_$scopeUid',
+           native: DriftNativeOptions(
+             databaseDirectory:
+                 databaseDirectory ?? getApplicationSupportDirectory,
+           ),
+           web: DriftWebOptions(
+             sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+             driftWorker: Uri.parse('drift_worker.js'),
+             onResult: (result) {
+               debugPrint(
+                 '[AiDatabase] Web storage: ${result.chosenImplementation}',
+               );
+               if (result.missingFeatures.isNotEmpty) {
+                 debugPrint(
+                   '[AiDatabase] Missing features: ${result.missingFeatures}',
+                 );
+               }
+             },
+           ),
+         ),
+       ) {
     _registerSchemaOnce();
   }
 
@@ -243,8 +243,7 @@ class AiDatabase extends _$AiDatabase {
           // PRAGMA quick_check scans all tables/indices for corruption.
           // Unlike integrity_check it skips index cross-referencing, so it's
           // faster while still catching page-level corruption.
-          final result =
-              await customSelect('PRAGMA quick_check').get();
+          final result = await customSelect('PRAGMA quick_check').get();
           final status = result.firstOrNull?.data['quick_check'] as String?;
           if (status != null && status != 'ok') {
             throw Exception('quick_check failed: $status');
@@ -257,7 +256,9 @@ class AiDatabase extends _$AiDatabase {
               .toList()
               .reversed;
           for (final table in allTables) {
-            await customStatement('DROP TABLE IF EXISTS "${table.actualTableName}"');
+            await customStatement(
+              'DROP TABLE IF EXISTS "${table.actualTableName}"',
+            );
           }
           final m = createMigrator();
           await m.createAll();

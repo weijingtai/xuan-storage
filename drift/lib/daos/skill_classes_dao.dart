@@ -10,7 +10,9 @@ class SkillClassesDao {
     final effectiveScope = scopeUid ?? this.scopeUid;
     final query = db.select(db.skillClasses);
     if (effectiveScope != null) {
-      query.where((t) => t.scopeUid.equals(effectiveScope) | t.scopeUid.isNull());
+      query.where(
+        (t) => t.scopeUid.equals(effectiveScope) | t.scopeUid.isNull(),
+      );
     }
     return query.get();
   }

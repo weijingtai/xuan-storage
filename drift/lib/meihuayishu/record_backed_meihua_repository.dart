@@ -6,7 +6,6 @@ import '../record/base_record_backed_repository.dart';
 class RecordBackedMeiHuaRepository
     extends BaseRecordBackedRepository<MeiHuaDivinationRecordContract>
     implements MeiHuaDivinationRecordRepository {
-
   RecordBackedMeiHuaRepository(
     ScopedRecordStore store,
     RecordModuleCodec<MeiHuaDivinationRecordContract> codec, [
@@ -70,24 +69,26 @@ class RecordBackedMeiHuaRepository
     String id,
     RequestContext ctx, {
     Precondition pre = const Unconditional(),
-  }) =>
-      softDeleteSlice(id, ctx, pre: pre);
+  }) => softDeleteSlice(id, ctx, pre: pre);
 
   @override
   Future<Result<void>> restore(String id, RequestContext ctx) async {
-    return const Err(XuanError(
-      code: ErrorCode.invalidArgument,
-      message: 'restore not supported',
-    ));
+    return const Err(
+      XuanError(
+        code: ErrorCode.invalidArgument,
+        message: 'restore not supported',
+      ),
+    );
   }
 
   @override
-  Future<MeiHuaDivinationRecordContract?> getRecordByDivinationUuid(
-      String d) => getFirstByIndex('divination_uuid', d);
+  Future<MeiHuaDivinationRecordContract?> getRecordByDivinationUuid(String d) =>
+      getFirstByIndex('divination_uuid', d);
 
   @override
   Stream<MeiHuaDivinationRecordContract?> watchRecordByDivinationUuid(
-      String d) => watchFirstByIndex('divination_uuid', d);
+    String d,
+  ) => watchFirstByIndex('divination_uuid', d);
 
   @override
   Future<Result<BatchOutcome<String>>> putAll(
@@ -108,13 +109,11 @@ class RecordBackedMeiHuaRepository
       final result = await body();
       return Ok(result);
     } catch (e) {
-      return Err(XuanError(
-        code: ErrorCode.internal,
-        message: 'Transaction failed: $e',
-      ));
+      return Err(
+        XuanError(code: ErrorCode.internal, message: 'Transaction failed: $e'),
+      );
     }
   }
-
 
   // ── 遗留别名（旧调用方与既有测试的过渡层，M4 随适配层一并退场） ──
 
@@ -125,7 +124,8 @@ class RecordBackedMeiHuaRepository
   Future<List<MeiHuaDivinationRecordContract>> getAllRecords() => getAll();
 
   @Deprecated('M4 退场：改用 L0 切片')
-  Future<MeiHuaDivinationRecordContract?> getRecordByUuid(String uuid) => getByUuid(uuid);
+  Future<MeiHuaDivinationRecordContract?> getRecordByUuid(String uuid) =>
+      getByUuid(uuid);
 
   @Deprecated('M4 退场：改用 L0 切片')
   Future<bool> softDeleteRecord(String uuid) => softDeleteLegacy(uuid);

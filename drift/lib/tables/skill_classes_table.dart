@@ -9,8 +9,7 @@ class SkillClasses extends Table {
   DateTimeColumn get createdAt => dateTime().named('created_at')();
   DateTimeColumn get lastUpdatedAt => dateTime().named('last_updated_at')();
   DateTimeColumn get deletedAt => dateTime().nullable().named('deleted_at')();
-  IntColumn get skillId =>
-      integer().named('skill_id')();
+  IntColumn get skillId => integer().named('skill_id')();
   TextColumn get name => text().named('name')();
   TextColumn get specification => text().named('specification')();
   TextColumn get feature => text().named('feature')();

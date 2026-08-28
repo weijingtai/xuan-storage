@@ -11,8 +11,10 @@ class DivinationDatetimeModelConverter
   List<DivinationDatetimeModel> fromSql(String fromDb) {
     final List<dynamic> jsonList = jsonDecode(fromDb);
     return jsonList
-        .map((json) =>
-            DivinationDatetimeModel.fromJson(json as Map<String, dynamic>))
+        .map(
+          (json) =>
+              DivinationDatetimeModel.fromJson(json as Map<String, dynamic>),
+        )
         .toList();
   }
 

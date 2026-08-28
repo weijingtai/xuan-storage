@@ -18,7 +18,8 @@ class RecordLocalApplier implements LocalApplier {
   /// [applyRemoteChanges] 收到不同的 scopeUid 时【拒绝处理】。
   final String scopeUid;
 
-  final Future<void> Function(RecordMeta meta, List<SearchTag> tags) applyRecord;
+  final Future<void> Function(RecordMeta meta, List<SearchTag> tags)
+  applyRecord;
   final Future<bool> Function(String uuid) deleteRecord;
 
   /// 读本地实体是否存在。用于区分 local stamp == null 的两种现实
@@ -45,7 +46,8 @@ class RecordLocalApplier implements LocalApplier {
     required String deviceId,
     required Future<void> Function() write,
     bool isDeleted,
-  }) applyWithStamp;
+  })
+  applyWithStamp;
 
   /// 冲突仲裁器。字段类型是抽象接口 [ConflictArbiter]（纯函数、无 IO），
   /// 生产实例化具体类 `const HlcConflictArbiter()`。
@@ -68,7 +70,8 @@ class RecordLocalApplier implements LocalApplier {
   });
 
   // ignore: annotate_overrides — LocalApplier 未定义 canApply，此为扩展方法
-  bool canApply(String entityType) => entityType == RecordOutboxMapper.entityType;
+  bool canApply(String entityType) =>
+      entityType == RecordOutboxMapper.entityType;
 
   @override
   Future<LocalApplyResult> applyRemoteChanges({
@@ -91,7 +94,10 @@ class RecordLocalApplier implements LocalApplier {
 
     if (entityType != RecordOutboxMapper.entityType) {
       return LocalApplyResult(
-        canAdvanceCursor: false, appliedCount: 0, outcomes: const [], lastError: null,
+        canAdvanceCursor: false,
+        appliedCount: 0,
+        outcomes: const [],
+        lastError: null,
       );
     }
 
@@ -112,13 +118,21 @@ class RecordLocalApplier implements LocalApplier {
           // 无戳的历史条目：走 fail-safe（keepLocal），但仍需读本地判断留档。
           outcome = await _applyStampless(change, scopeUid, entityType);
         } else {
-          outcome = await _applyStamped(change, scopeUid, entityType, remoteStamp);
+          outcome = await _applyStamped(
+            change,
+            scopeUid,
+            entityType,
+            remoteStamp,
+          );
         }
       } catch (e) {
         outcome = ChangeApplyOutcome(
-          operationId: change.operationId, entityType: entityType,
-          entityId: change.entityId, decision: ChangeApplyDecision.failed,
-          reason: SkipReasonCode.unknown, message: e.toString(),
+          operationId: change.operationId,
+          entityType: entityType,
+          entityId: change.entityId,
+          decision: ChangeApplyDecision.failed,
+          reason: SkipReasonCode.unknown,
+          message: e.toString(),
         );
       }
 
@@ -142,7 +156,8 @@ class RecordLocalApplier implements LocalApplier {
       lastError: hasFailed
           ? SyncError(
               code: SyncErrorCode.unknown,
-              message: '${firstFailed.first.operationId}: ${firstFailed.first.message}',
+              message:
+                  '${firstFailed.first.operationId}: ${firstFailed.first.message}',
             )
           : null,
     );
@@ -170,15 +185,20 @@ class RecordLocalApplier implements LocalApplier {
       // 本地无实体 → 直接应用，无冲突、无留档
       await _applyWrite(change, scopeUid, entityType);
       return ChangeApplyOutcome(
-        operationId: change.operationId, entityType: entityType,
-        entityId: change.entityId, decision: ChangeApplyDecision.applied,
-        reason: null, message: null,
+        operationId: change.operationId,
+        entityType: entityType,
+        entityId: change.entityId,
+        decision: ChangeApplyDecision.applied,
+        reason: null,
+        message: null,
       );
     }
     // 本地有实体但远端无戳：不覆盖（fail-safe），丢弃的远端版本留档。
     return ChangeApplyOutcome(
-      operationId: change.operationId, entityType: entityType,
-      entityId: change.entityId, decision: ChangeApplyDecision.skipped,
+      operationId: change.operationId,
+      entityType: entityType,
+      entityId: change.entityId,
+      decision: ChangeApplyDecision.skipped,
       reason: SkipReasonCode.olderThanLocal,
       message: 'remote 无 HLC 戳（历史条目），本地已有版本，保留本地',
       discardedSide: ConflictSide.remote,
@@ -208,7 +228,10 @@ class RecordLocalApplier implements LocalApplier {
 
     VersionStamp? localStamp;
     if (localStampRow != null) {
-      localStamp = VersionStamp.fromPacked(localStampRow.hlcPacked, localStampRow.deviceId);
+      localStamp = VersionStamp.fromPacked(
+        localStampRow.hlcPacked,
+        localStampRow.deviceId,
+      );
     }
 
     final decision = arbiter.arbitrate(remote: remoteStamp, local: localStamp);
@@ -222,17 +245,22 @@ class RecordLocalApplier implements LocalApplier {
         final discardedSide = localMeta == null ? null : ConflictSide.local;
         await _applyWrite(change, scopeUid, entityType);
         return ChangeApplyOutcome(
-          operationId: change.operationId, entityType: entityType,
-          entityId: change.entityId, decision: ChangeApplyDecision.applied,
-          reason: null, message: null,
+          operationId: change.operationId,
+          entityType: entityType,
+          entityId: change.entityId,
+          decision: ChangeApplyDecision.applied,
+          reason: null,
+          message: null,
           discardedSide: discardedSide,
           discardedPayloadJson: overwrittenPayload,
           discardedStamp: localStamp,
         );
       case ArbitrationDecision.keepLocal:
         return ChangeApplyOutcome(
-          operationId: change.operationId, entityType: entityType,
-          entityId: change.entityId, decision: ChangeApplyDecision.skipped,
+          operationId: change.operationId,
+          entityType: entityType,
+          entityId: change.entityId,
+          decision: ChangeApplyDecision.skipped,
           reason: SkipReasonCode.conflictLwwLost,
           message: '仲裁判 keepLocal：本地版本较新，丢弃远端变更',
           discardedSide: ConflictSide.remote,
@@ -241,8 +269,10 @@ class RecordLocalApplier implements LocalApplier {
         );
       case ArbitrationDecision.identical:
         return ChangeApplyOutcome(
-          operationId: change.operationId, entityType: entityType,
-          entityId: change.entityId, decision: ChangeApplyDecision.skipped,
+          operationId: change.operationId,
+          entityType: entityType,
+          entityId: change.entityId,
+          decision: ChangeApplyDecision.skipped,
           reason: SkipReasonCode.alreadyApplied,
           message: '与本地版本相同，无需写入',
         );
@@ -315,7 +345,9 @@ class RecordLocalApplier implements LocalApplier {
       seekerName: json['seekerName'] as String?,
       gender: json['gender'] as String?,
       fateYear: json['fateYear'] as String?,
-      occurredAtUtc: json['occurredAtUtc'] != null ? DateTime.parse(json['occurredAtUtc'] as String) : null,
+      occurredAtUtc: json['occurredAtUtc'] != null
+          ? DateTime.parse(json['occurredAtUtc'] as String)
+          : null,
       reckoningType: json['reckoningType'] as String?,
       timezoneStr: json['timezoneStr'] as String?,
       latitude: (json['latitude'] as num?)?.toDouble(),
@@ -325,8 +357,12 @@ class RecordLocalApplier implements LocalApplier {
       moduleDataJson: json['moduleDataJson'] as String?,
       navParamsJson: json['navParamsJson'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt'] as String) : null,
-      deletedAt: json['deletedAt'] != null ? DateTime.parse(json['deletedAt'] as String) : null,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'] as String)
+          : null,
+      deletedAt: json['deletedAt'] != null
+          ? DateTime.parse(json['deletedAt'] as String)
+          : null,
       rev: json['rev'] as int? ?? 1,
     );
   }

@@ -19,9 +19,9 @@ class DivinationTags extends Table {
   String? get tableName => 't_divination_tags';
 
   List<Index> get indexes => [
-        Index(
-          'idx_tags_lookup',
-          'CREATE INDEX idx_tags_lookup ON t_divination_tags (domain, tag_key, tag_value);',
-        ),
-      ];
+    Index(
+      'idx_tags_lookup',
+      'CREATE INDEX idx_tags_lookup ON t_divination_tags (domain, tag_key, tag_value);',
+    ),
+  ];
 }

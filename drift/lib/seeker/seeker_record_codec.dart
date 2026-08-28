@@ -6,11 +6,15 @@ import 'package:metaphysics_core/models/divination_datetime.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
 
 class SeekerRecordCodec implements RecordModuleCodec<SeekerModel> {
-  @override String get module => 'seeker';
-  @override String get category => 'person';
-  @override String get divinationType => '';
+  @override
+  String get module => 'seeker';
+  @override
+  String get category => 'person';
+  @override
+  String get divinationType => '';
 
-  @override String uuidOf(SeekerModel c) => c.uuid;
+  @override
+  String uuidOf(SeekerModel c) => c.uuid;
 
   @override
   SeekerModel withUuid(SeekerModel c, String uuid) {
@@ -56,48 +60,75 @@ class SeekerRecordCodec implements RecordModuleCodec<SeekerModel> {
       'timingInfoUuid': c.timingInfoUuid,
     };
     data['location'] = c.location?.toJson();
-    data['timingInfoListJson'] = c.timingInfoListJson?.map((e) => e.toJson()).toList();
+    data['timingInfoListJson'] = c.timingInfoListJson
+        ?.map((e) => e.toJson())
+        .toList();
     final meta = RecordMeta(
-      uuid: c.uuid, scopeUid: scopeUid, module: module, category: category,
-      divinationType: divinationType, seekerName: c.nickname ?? c.username,
-      gender: c.gender == Gender.male ? 'M' : (c.gender == Gender.female ? 'F' : null), fateYear: null,
-      occurredAtUtc: null, reckoningType: null, timezoneStr: null,
-      latitude: null, longitude: null, locationName: null, spacetimeJson: null,
+      uuid: c.uuid,
+      scopeUid: scopeUid,
+      module: module,
+      category: category,
+      divinationType: divinationType,
+      seekerName: c.nickname ?? c.username,
+      gender: c.gender == Gender.male
+          ? 'M'
+          : (c.gender == Gender.female ? 'F' : null),
+      fateYear: null,
+      occurredAtUtc: null,
+      reckoningType: null,
+      timezoneStr: null,
+      latitude: null,
+      longitude: null,
+      locationName: null,
+      spacetimeJson: null,
       moduleDataJson: jsonEncode(data),
       navParamsJson: jsonEncode({'recordUuid': c.uuid}),
-      createdAt: c.createdAt, updatedAt: c.lastUpdatedAt,
-      deletedAt: c.deletedAt, rev: 1,
+      createdAt: c.createdAt,
+      updatedAt: c.lastUpdatedAt,
+      deletedAt: c.deletedAt,
+      rev: 1,
     );
     return (meta: meta, moduleData: data);
   }
 
   @override
   SeekerModel decode(RecordMeta meta, Map<String, dynamic>? moduleData) {
-    if (meta.module != module) throw RecordCodecMismatch(message: 'module mismatch');
-    final d = moduleData ?? (meta.moduleDataJson != null ? jsonDecode(meta.moduleDataJson!) as Map<String, dynamic> : <String, dynamic>{});
+    if (meta.module != module)
+      throw RecordCodecMismatch(message: 'module mismatch');
+    final d =
+        moduleData ??
+        (meta.moduleDataJson != null
+            ? jsonDecode(meta.moduleDataJson!) as Map<String, dynamic>
+            : <String, dynamic>{});
     final locRaw = d['location'];
-    final location = locRaw != null ? Location.fromJson(locRaw as Map<String, dynamic>) : null;
+    final location = locRaw != null
+        ? Location.fromJson(locRaw as Map<String, dynamic>)
+        : null;
     List<DivinationDatetimeModel>? timingInfoList;
     if (d['timingInfoListJson'] != null) {
       timingInfoList = (d['timingInfoListJson'] as List<dynamic>)
-          .map((e) => DivinationDatetimeModel.fromJson(e as Map<String, dynamic>))
+          .map(
+            (e) => DivinationDatetimeModel.fromJson(e as Map<String, dynamic>),
+          )
           .toList();
     }
     final decodedGender = meta.gender == 'M'
         ? Gender.male
         : (meta.gender == 'F'
-            ? Gender.female
-            : (d['gender'] == 'male' || d['gender'] == 'M'
-                ? Gender.male
-                : (d['gender'] == 'female' || d['gender'] == 'F'
-                    ? Gender.female
-                    : Gender.unknown)));
+              ? Gender.female
+              : (d['gender'] == 'male' || d['gender'] == 'M'
+                    ? Gender.male
+                    : (d['gender'] == 'female' || d['gender'] == 'F'
+                          ? Gender.female
+                          : Gender.unknown)));
     return SeekerModel(
       uuid: meta.uuid,
       username: d['username'] as String?,
       nickname: d['nickname'] as String? ?? meta.seekerName,
       gender: decodedGender,
-      timingType: DateTimeType.values.firstWhere((t) => t.name == d['timingType']),
+      timingType: DateTimeType.values.firstWhere(
+        (t) => t.name == d['timingType'],
+      ),
       datetime: DateTime.parse(d['datetime'] as String),
       yearGanZhi: JiaZi.values.firstWhere((j) => j.name == d['yearGanZhi']),
       monthGanZhi: JiaZi.values.firstWhere((j) => j.name == d['monthGanZhi']),
@@ -117,12 +148,20 @@ class SeekerRecordCodec implements RecordModuleCodec<SeekerModel> {
   }
 
   @override
-  List<SearchTag> extractSearchTags(RecordMeta meta, Map<String, dynamic>? moduleData) {
-    final d = moduleData ?? (meta.moduleDataJson != null ? jsonDecode(meta.moduleDataJson!) as Map<String, dynamic> : <String, dynamic>{});
+  List<SearchTag> extractSearchTags(
+    RecordMeta meta,
+    Map<String, dynamic>? moduleData,
+  ) {
+    final d =
+        moduleData ??
+        (meta.moduleDataJson != null
+            ? jsonDecode(meta.moduleDataJson!) as Map<String, dynamic>
+            : <String, dynamic>{});
     return [
       if (meta.seekerName != null) SearchTag('seeker_name', meta.seekerName!),
       if (meta.gender != null) SearchTag('gender', meta.gender!),
-      if (d['lunarMonth'] != null) SearchTag('lunar_month', '${d['lunarMonth']}'),
+      if (d['lunarMonth'] != null)
+        SearchTag('lunar_month', '${d['lunarMonth']}'),
     ];
   }
 }

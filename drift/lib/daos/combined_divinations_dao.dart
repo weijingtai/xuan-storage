@@ -10,7 +10,7 @@ class CombinedDivinationsDao extends DatabaseAccessor<PersistenceDriftDatabase>
   CombinedDivinationsDao(this.db) : super(db);
 
   SimpleSelectStatement<$CombinedDivinationsTable, CombinedDivination>
-      _baseSelect() => select(db.combinedDivinations);
+  _baseSelect() => select(db.combinedDivinations);
 
   Future<List<CombinedDivination>> getAllCombinedDivinations() {
     return (_baseSelect()..where((tbl) => tbl.deletedAt.isNull())).get();
@@ -27,7 +27,8 @@ class CombinedDivinationsDao extends DatabaseAccessor<PersistenceDriftDatabase>
   }
 
   Future<bool> updateCombinedDivination(
-      CombinedDivinationsCompanion companion) {
+    CombinedDivinationsCompanion companion,
+  ) {
     return update(db.combinedDivinations).replace(companion);
   }
 

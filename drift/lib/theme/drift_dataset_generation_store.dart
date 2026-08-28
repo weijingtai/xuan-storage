@@ -25,26 +25,34 @@ class DriftThemeDatasetGenerationStore implements DatasetGenerationStore {
 
   @override
   Future<InstalledDataset?> findGeneration(
-      String datasetId, int generation) async {
-    final row = await (_db.select(_db.themeDatasetGenerations)
-          ..where((t) =>
-              t.datasetId.equals(datasetId) & t.generation.equals(generation)))
-        .getSingleOrNull();
+    String datasetId,
+    int generation,
+  ) async {
+    final row =
+        await (_db.select(_db.themeDatasetGenerations)..where(
+              (t) =>
+                  t.datasetId.equals(datasetId) &
+                  t.generation.equals(generation),
+            ))
+            .getSingleOrNull();
     return row == null ? null : _toInstalled(row);
   }
 
   @override
   Future<List<InstalledDataset>> listGenerations(String datasetId) async {
-    final rows = await (_db.select(_db.themeDatasetGenerations)
-          ..where((t) => t.datasetId.equals(datasetId))
-          ..orderBy([(t) => OrderingTerm(expression: t.generation)]))
-        .get();
+    final rows =
+        await (_db.select(_db.themeDatasetGenerations)
+              ..where((t) => t.datasetId.equals(datasetId))
+              ..orderBy([(t) => OrderingTerm(expression: t.generation)]))
+            .get();
     return rows.map(_toInstalled).toList();
   }
 
   @override
   Future<void> saveGeneration(InstalledDataset record) async {
-    await _db.into(_db.themeDatasetGenerations).insertOnConflictUpdate(
+    await _db
+        .into(_db.themeDatasetGenerations)
+        .insertOnConflictUpdate(
           ThemeDatasetGenerationsCompanion.insert(
             datasetId: record.datasetId,
             generation: record.generation,
@@ -60,20 +68,23 @@ class DriftThemeDatasetGenerationStore implements DatasetGenerationStore {
 
   @override
   Future<void> deleteGeneration(String datasetId, int generation) async {
-    await (_db.delete(_db.themeDatasetGenerations)
-          ..where((t) =>
-              t.datasetId.equals(datasetId) & t.generation.equals(generation)))
+    await (_db.delete(_db.themeDatasetGenerations)..where(
+          (t) =>
+              t.datasetId.equals(datasetId) & t.generation.equals(generation),
+        ))
         .go();
   }
 
   @override
   Future<int?> activeGeneration(String datasetId) async {
     // 活跃指针由 status='ready' 隐式表达（照 T1）。
-    final row = await (_db.select(_db.themeDatasetGenerations)
-          ..where((t) =>
-              t.datasetId.equals(datasetId) & t.status.equals('ready'))
-          ..limit(1))
-        .getSingleOrNull();
+    final row =
+        await (_db.select(_db.themeDatasetGenerations)
+              ..where(
+                (t) => t.datasetId.equals(datasetId) & t.status.equals('ready'),
+              )
+              ..limit(1))
+            .getSingleOrNull();
     return row?.generation;
   }
 
@@ -81,16 +92,19 @@ class DriftThemeDatasetGenerationStore implements DatasetGenerationStore {
   Future<void> setActiveGeneration(String datasetId, int generation) async {
     // 翻转：先把当前 ready 的转 superseded，再把目标设 ready（照 T1，单事务）。
     await _db.transaction(() async {
-      await (_db.update(_db.themeDatasetGenerations)
-            ..where((t) =>
-                t.datasetId.equals(datasetId) & t.status.equals('ready')))
-          .write(const ThemeDatasetGenerationsCompanion(
-              status: Value('superseded')));
-      await (_db.update(_db.themeDatasetGenerations)
-            ..where((t) =>
-                t.datasetId.equals(datasetId) &
-                t.generation.equals(generation)))
-          .write(const ThemeDatasetGenerationsCompanion(status: Value('ready')));
+      await (_db.update(_db.themeDatasetGenerations)..where(
+            (t) => t.datasetId.equals(datasetId) & t.status.equals('ready'),
+          ))
+          .write(
+            const ThemeDatasetGenerationsCompanion(status: Value('superseded')),
+          );
+      await (_db.update(_db.themeDatasetGenerations)..where(
+            (t) =>
+                t.datasetId.equals(datasetId) & t.generation.equals(generation),
+          ))
+          .write(
+            const ThemeDatasetGenerationsCompanion(status: Value('ready')),
+          );
     });
   }
 
@@ -123,10 +137,6 @@ class DriftThemeDatasetGenerationStore implements DatasetGenerationStore {
 /// drift 版安装器（主题独立库）：用 [DriftThemeDatasetGenerationStore]
 /// 持久化世代状态，安装序列逻辑继承自 [DatasetInstallerBase]。
 class DriftThemeDatasetInstaller extends DatasetInstallerBase {
-  DriftThemeDatasetInstaller({
-    required ThemeDatabase db,
-    super.bundledSource,
-  }) : super(
-          store: DriftThemeDatasetGenerationStore(db),
-        );
+  DriftThemeDatasetInstaller({required ThemeDatabase db, super.bundledSource})
+    : super(store: DriftThemeDatasetGenerationStore(db));
 }

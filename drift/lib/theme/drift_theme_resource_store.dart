@@ -40,8 +40,8 @@ class DriftThemeResourceStore implements ThemeResourceStore {
     required ThemeDatabase db,
     required this.scopeUid,
     required ThemeLocalReader localReader,
-  })  : _db = db,
-        _reader = localReader;
+  }) : _db = db,
+       _reader = localReader;
 
   final ThemeDatabase _db;
 
@@ -91,8 +91,8 @@ class DriftThemeResourceStore implements ThemeResourceStore {
     final selectionOrigin = selectedThemeId != null
         ? ThemeSelectionOrigin.userSelected
         : (packageTokens == null
-            ? ThemeSelectionOrigin.bundledFallback
-            : ThemeSelectionOrigin.officialDefault);
+              ? ThemeSelectionOrigin.bundledFallback
+              : ThemeSelectionOrigin.officialDefault);
 
     final result = mergeThemeTokens(
       bundledTokens: bundled,
@@ -148,7 +148,9 @@ class DriftThemeResourceStore implements ThemeResourceStore {
         '多主题包并存属 THEME-DRIFT）',
       );
     }
-    await _db.into(_db.themeSelections).insertOnConflictUpdate(
+    await _db
+        .into(_db.themeSelections)
+        .insertOnConflictUpdate(
           ThemeSelectionsCompanion.insert(
             scopeUid: scopeUid,
             selectedThemeId: Value(themeId),
@@ -160,9 +162,9 @@ class DriftThemeResourceStore implements ThemeResourceStore {
   @override
   Future<void> clearThemeSelection() async {
     // 行不存在 = 跟随官方默认（_readSelection 返回 null），删除即清除。
-    await (_db.delete(_db.themeSelections)
-          ..where((t) => t.scopeUid.equals(scopeUid)))
-        .go();
+    await (_db.delete(
+      _db.themeSelections,
+    )..where((t) => t.scopeUid.equals(scopeUid))).go();
     await _refreshAndNotify();
   }
 
@@ -174,16 +176,16 @@ class DriftThemeResourceStore implements ThemeResourceStore {
     // 原子提交（D5 / A11②）：先整批校验，任一非法整批不生效（事务外）。
     for (final entry in patch.entries) {
       if (entry.value is Map) {
-        throw StateError(
-          '覆盖值不得为 Map（扁平差量契约违反，§4.3 v 不得为 Map）: ${entry.key}',
-        );
+        throw StateError('覆盖值不得为 Map（扁平差量契约违反，§4.3 v 不得为 Map）: ${entry.key}');
       }
     }
     // 写入段：单事务，中途失败整批回滚（A5）。
     await _db.transaction(() async {
       final now = DateTime.now().toUtc();
       for (final entry in patch.entries) {
-        await _db.into(_db.themeOverrides).insertOnConflictUpdate(
+        await _db
+            .into(_db.themeOverrides)
+            .insertOnConflictUpdate(
               ThemeOverridesCompanion.insert(
                 scopeUid: scopeUid,
                 tokenKey: entry.key,
@@ -204,9 +206,9 @@ class DriftThemeResourceStore implements ThemeResourceStore {
     // 幂等（A12②）：不存在的 key 静默忽略。单事务。
     await _db.transaction(() async {
       for (final key in tokenKeys) {
-        await (_db.delete(_db.themeOverrides)
-              ..where((t) =>
-                  t.scopeUid.equals(scopeUid) & t.tokenKey.equals(key)))
+        await (_db.delete(_db.themeOverrides)..where(
+              (t) => t.scopeUid.equals(scopeUid) & t.tokenKey.equals(key),
+            ))
             .go();
       }
     });
@@ -239,9 +241,9 @@ class DriftThemeResourceStore implements ThemeResourceStore {
 
   /// 查 t_theme_selection（scope_uid 单行），返回 selected_theme_id（可空）。
   Future<String?> _readSelection() async {
-    final row = await (_db.select(_db.themeSelections)
-          ..where((t) => t.scopeUid.equals(scopeUid)))
-        .getSingleOrNull();
+    final row = await (_db.select(
+      _db.themeSelections,
+    )..where((t) => t.scopeUid.equals(scopeUid))).getSingleOrNull();
     return row?.selectedThemeId;
   }
 
@@ -250,9 +252,9 @@ class DriftThemeResourceStore implements ThemeResourceStore {
   /// 与 reader.readOverrides 同表同构；store 直接读库保证写路径新鲜
   /// （reader 在测试里可注入 fake，不能依赖它读 applied）。
   Future<Map<String, OverrideEntry>> _readAppliedOverridesFromDb() async {
-    final rows = await (_db.select(_db.themeOverrides)
-          ..where((t) => t.scopeUid.equals(scopeUid)))
-        .get();
+    final rows = await (_db.select(
+      _db.themeOverrides,
+    )..where((t) => t.scopeUid.equals(scopeUid))).get();
     final result = <String, OverrideEntry>{};
     for (final row in rows) {
       result[row.tokenKey] = OverrideEntry(
@@ -275,17 +277,17 @@ class DriftThemeResourceStore implements ThemeResourceStore {
   /// 同 key 重写（行数不变、秒精度不变）的残留风险由
   /// [_refreshAndNotify] 的「写后必失效重算」兜住（D8 第 2 条）。
   Future<int> _readOverridesRevision() async {
-    final row = await (_db.selectOnly(_db.themeOverrides)
-          ..addColumns([
-            _db.themeOverrides.updatedAtUtc.max(),
-            countAll(),
-          ])
-          ..where(_db.themeOverrides.scopeUid.equals(scopeUid)))
-        .getSingleOrNull();
+    final row =
+        await (_db.selectOnly(_db.themeOverrides)
+              ..addColumns([_db.themeOverrides.updatedAtUtc.max(), countAll()])
+              ..where(_db.themeOverrides.scopeUid.equals(scopeUid)))
+            .getSingleOrNull();
     if (row == null) return 0;
     final maxMs =
-        row.read(_db.themeOverrides.updatedAtUtc.max())?.millisecondsSinceEpoch ??
-            0;
+        row
+            .read(_db.themeOverrides.updatedAtUtc.max())
+            ?.millisecondsSinceEpoch ??
+        0;
     final count = row.read(countAll()) ?? 0;
     // 组合成单调可比较的 int：行数分量低位，毫秒分量高位。
     return maxMs * 1000000 + count;

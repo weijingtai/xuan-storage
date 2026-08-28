@@ -45,8 +45,11 @@ class PromptTemplatesDao extends DatabaseAccessor<AiDatabase>
   }
 
   /// Update template content and increment version
-  Future<void> updateContent(String uuid, String newContent,
-      {String? changeNote}) async {
+  Future<void> updateContent(
+    String uuid,
+    String newContent, {
+    String? changeNote,
+  }) async {
     final template = await getByUuid(uuid);
     if (template == null) return;
 
@@ -61,8 +64,9 @@ class PromptTemplatesDao extends DatabaseAccessor<AiDatabase>
 
   /// Soft delete a template
   Future<void> softDelete(String uuid) {
-    return (update(promptTemplates)..where((t) => t.uuid.equals(uuid)))
-        .write(PromptTemplatesCompanion(deletedAt: Value(DateTime.now())));
+    return (update(promptTemplates)..where((t) => t.uuid.equals(uuid))).write(
+      PromptTemplatesCompanion(deletedAt: Value(DateTime.now())),
+    );
   }
 
   /// Watch all templates (for reactive UI)

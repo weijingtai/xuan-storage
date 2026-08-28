@@ -21,13 +21,13 @@ class XiangReadingRepositoryImpl implements XiangReadingRepository {
     required ScopedRecordStore store,
     required RecordModuleCodec<XiangReading> codec,
     XiangDeleteMediaHandler? deleteMediaHandler,
-  })  : _store = store,
-        _codec = codec,
-        _l0 = CrudBaseRepository<Map<String, Object?>, String>(
-          descriptor: recordEntityDescriptor(module: codec.module),
-          driver: RecordStorageDriver(store: store),
-        ),
-        _deleteMediaHandler = deleteMediaHandler;
+  }) : _store = store,
+       _codec = codec,
+       _l0 = CrudBaseRepository<Map<String, Object?>, String>(
+         descriptor: recordEntityDescriptor(module: codec.module),
+         driver: RecordStorageDriver(store: store),
+       ),
+       _deleteMediaHandler = deleteMediaHandler;
 
   final ScopedRecordStore _store;
   final RecordModuleCodec<XiangReading> _codec;
@@ -38,9 +38,9 @@ class XiangReadingRepositoryImpl implements XiangReadingRepository {
 
   /// 行 → 契约实体：RecordMeta + moduleData 一起交给 codec decode。
   XiangReading _decodeRow(Map<String, Object?> row) => _codec.decode(
-        RecordRowMapper.rowToMeta(row),
-        RecordRowMapper.moduleDataOf(row),
-      );
+    RecordRowMapper.rowToMeta(row),
+    RecordRowMapper.moduleDataOf(row),
+  );
 
   // ── L0 切片实现 ──
 
@@ -64,11 +64,19 @@ class XiangReadingRepositoryImpl implements XiangReadingRepository {
   }
 
   @override
-  Future<Result<Rev>> put(XiangReading entity, RequestContext ctx, {Precondition pre = const Unconditional()}) async {
+  Future<Result<Rev>> put(
+    XiangReading entity,
+    RequestContext ctx, {
+    Precondition pre = const Unconditional(),
+  }) async {
     // 内部保存逻辑：处理 uuid 生成和编码
     final currentUuid = _codec.uuidOf(entity);
-    final effectiveUuid = currentUuid.isNotEmpty ? currentUuid : _generateUuid();
-    final fixed = currentUuid.isNotEmpty ? entity : _codec.withUuid(entity, effectiveUuid);
+    final effectiveUuid = currentUuid.isNotEmpty
+        ? currentUuid
+        : _generateUuid();
+    final fixed = currentUuid.isNotEmpty
+        ? entity
+        : _codec.withUuid(entity, effectiveUuid);
     final encoded = _codec.encode(fixed, scopeUid: _store.scopeUid);
     final row = RecordRowMapper.metaToRow(encoded.meta);
     final r = await _l0.put(row, ctx);
@@ -78,14 +86,48 @@ class XiangReadingRepositoryImpl implements XiangReadingRepository {
   }
 
   @override
-  Future<Result<void>> softDelete(String id, RequestContext ctx, {Precondition pre = const Unconditional()}) async {
+  Future<XiangReading> save(XiangReading reading) async {
+    final currentUuid = _codec.uuidOf(reading);
+    final effectiveUuid = currentUuid.isNotEmpty
+        ? currentUuid
+        : _generateUuid();
+    final fixed = currentUuid.isNotEmpty
+        ? reading
+        : _codec.withUuid(reading, effectiveUuid);
+    final res = await put(fixed, _ctx);
+    if (res case Err(error: final e)) throw e;
+    return fixed;
+  }
+
+  @override
+  Future<XiangReading?> load(String uuid) async {
+    final res = await get(uuid, _ctx);
+    if (res case Ok(value: final val)) return val;
+    return null;
+  }
+
+  @override
+  Future<void> softDelete(String uuid) async {
     // FA12 单一方针：删除经媒体生命周期处理引用并落库审计（TDD-T7）。
+    final handler = _deleteMediaHandler;
+    if (handler != null) {
+      await handler.handleDelete(uuid);
+      return;
+    }
+    // 未装配 handler（旧装配）时退化为纯软删。
+    await _l0.softDelete(uuid, _ctx);
+  }
+
+  Future<Result<void>> softDeleteL0(
+    String id,
+    RequestContext ctx, {
+    Precondition pre = const Unconditional(),
+  }) async {
     final handler = _deleteMediaHandler;
     if (handler != null) {
       await handler.handleDelete(id);
       return const Ok(null);
     }
-    // 未装配 handler（旧装配）时退化为纯软删。
     return _l0.softDelete(id, ctx);
   }
 
@@ -95,7 +137,10 @@ class XiangReadingRepositoryImpl implements XiangReadingRepository {
   }
 
   @override
-  Future<Result<XiangReading?>> getIncludingDeleted(String id, RequestContext ctx) {
+  Future<Result<XiangReading?>> getIncludingDeleted(
+    String id,
+    RequestContext ctx,
+  ) {
     return _l0.getIncludingDeleted(id, ctx).then((r) {
       if (r case Ok(value: final row)) {
         return Ok(row == null ? null : _decodeRow(row));
@@ -105,15 +150,23 @@ class XiangReadingRepositoryImpl implements XiangReadingRepository {
   }
 
   @override
-  Future<Result<Page<XiangReading>>> query(Map<String, Object?> spec, PageRequest page, RequestContext ctx) {
+  Future<Result<Page<XiangReading>>> query(
+    Map<String, Object?> spec,
+    PageRequest page,
+    RequestContext ctx,
+  ) {
     return _l0.query(spec, page, ctx).then((r) {
       if (r case Ok(value: final pageData)) {
-        return Ok(Page(
-          items: pageData.items.map(_decodeRow).toList(),
-          nextCursor: pageData.nextCursor,
-        ));
+        return Ok(
+          Page(
+            items: pageData.items.map(_decodeRow).toList(),
+            nextCursor: pageData.nextCursor,
+          ),
+        );
       }
-      return const Err(XuanError(code: ErrorCode.internal, message: 'query failed'));
+      return const Err(
+        XuanError(code: ErrorCode.internal, message: 'query failed'),
+      );
     });
   }
 
@@ -123,18 +176,32 @@ class XiangReadingRepositoryImpl implements XiangReadingRepository {
   }
 
   @override
-  Future<Result<BatchOutcome<String>>> putAll(List<XiangReading> entities, RequestContext ctx) {
-    return _l0.putAll(entities.map((e) {
-      final encoded = _codec.encode(e, scopeUid: _store.scopeUid);
-      return RecordRowMapper.metaToRow(encoded.meta);
-    }).toList(), ctx).then((r) {
-      if (r case Ok(value: final outcome)) {
-        return Ok(BatchOutcome(outcome.results.map((item) {
-          return (id: item.id, result: item.result);
-        }).toList()));
-      }
-      return const Err(XuanError(code: ErrorCode.internal, message: 'putAll failed'));
-    });
+  Future<Result<BatchOutcome<String>>> putAll(
+    List<XiangReading> entities,
+    RequestContext ctx,
+  ) {
+    return _l0
+        .putAll(
+          entities.map((e) {
+            final encoded = _codec.encode(e, scopeUid: _store.scopeUid);
+            return RecordRowMapper.metaToRow(encoded.meta);
+          }).toList(),
+          ctx,
+        )
+        .then((r) {
+          if (r case Ok(value: final outcome)) {
+            return Ok(
+              BatchOutcome(
+                outcome.results.map((item) {
+                  return (id: item.id, result: item.result);
+                }).toList(),
+              ),
+            );
+          }
+          return const Err(
+            XuanError(code: ErrorCode.internal, message: 'putAll failed'),
+          );
+        });
   }
 
   @override

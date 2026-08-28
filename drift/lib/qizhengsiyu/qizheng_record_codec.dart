@@ -6,9 +6,12 @@ import 'package:repository_interface_record/repository_interface_record.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 class QiZhengRecordCodec implements RecordModuleCodec<QiZhengSiYuPanContract> {
-  @override String get module => 'qizhengsiyu';
-  @override String get category => 'divination';
-  @override String get divinationType => 'qi_zheng';
+  @override
+  String get module => 'qizhengsiyu';
+  @override
+  String get category => 'divination';
+  @override
+  String get divinationType => 'qi_zheng';
 
   // ponytail: politicalCenter 枚举在当前依赖 metaphysics_core@41efe45 不存在，升级后添加
   static const _reckoningMap = {
@@ -20,12 +23,20 @@ class QiZhengRecordCodec implements RecordModuleCodec<QiZhengSiYuPanContract> {
 
   static DateTime? _localToUtc(DateTime local, String tzStr) {
     final loc = tz.getLocation(tzStr);
-    final tzDt = tz.TZDateTime(loc, local.year, local.month, local.day,
-        local.hour, local.minute, local.second);
+    final tzDt = tz.TZDateTime(
+      loc,
+      local.year,
+      local.month,
+      local.day,
+      local.hour,
+      local.minute,
+      local.second,
+    );
     return tzDt.toUtc();
   }
 
-  @override String uuidOf(QiZhengSiYuPanContract c) => c.uuid;
+  @override
+  String uuidOf(QiZhengSiYuPanContract c) => c.uuid;
 
   @override
   QiZhengSiYuPanContract withUuid(QiZhengSiYuPanContract c, String uuid) {
@@ -54,7 +65,8 @@ class QiZhengRecordCodec implements RecordModuleCodec<QiZhengSiYuPanContract> {
     double? latitude, longitude;
     DateTime? occurredAtUtc;
 
-    if (c.divinationDatetimeJson.isNotEmpty && c.divinationDatetimeJson != '{}') {
+    if (c.divinationDatetimeJson.isNotEmpty &&
+        c.divinationDatetimeJson != '{}') {
       try {
         final dt = DivinationDatetimeModel.fromJson(
           jsonDecode(c.divinationDatetimeJson) as Map<String, dynamic>,
@@ -76,27 +88,44 @@ class QiZhengRecordCodec implements RecordModuleCodec<QiZhengSiYuPanContract> {
     }
 
     final meta = RecordMeta(
-      uuid: c.uuid, scopeUid: scopeUid, module: module, category: category,
+      uuid: c.uuid,
+      scopeUid: scopeUid,
+      module: module,
+      category: category,
       divinationType: divinationType,
       moduleDataJson: jsonEncode(data),
       navParamsJson: jsonEncode({'recordUuid': c.uuid}),
       occurredAtUtc: occurredAtUtc,
-      reckoningType: reckoningType, timezoneStr: timezoneStr,
-      latitude: latitude, longitude: longitude,
-      locationName: locationName, spacetimeJson: spacetimeJson,
+      reckoningType: reckoningType,
+      timezoneStr: timezoneStr,
+      latitude: latitude,
+      longitude: longitude,
+      locationName: locationName,
+      spacetimeJson: spacetimeJson,
       gender: null,
-      createdAt: c.createdAt, updatedAt: c.lastUpdatedAt,
-      deletedAt: c.deletedAt, rev: 1,
+      createdAt: c.createdAt,
+      updatedAt: c.lastUpdatedAt,
+      deletedAt: c.deletedAt,
+      rev: 1,
     );
     return (meta: meta, moduleData: data);
   }
 
   @override
-  QiZhengSiYuPanContract decode(RecordMeta meta, Map<String, dynamic>? moduleData) {
-    if (meta.module != module) throw RecordCodecMismatch(message: 'module mismatch');
-    final d = moduleData ?? (meta.moduleDataJson != null ? jsonDecode(meta.moduleDataJson!) : const {});
+  QiZhengSiYuPanContract decode(
+    RecordMeta meta,
+    Map<String, dynamic>? moduleData,
+  ) {
+    if (meta.module != module)
+      throw RecordCodecMismatch(message: 'module mismatch');
+    final d =
+        moduleData ??
+        (meta.moduleDataJson != null
+            ? jsonDecode(meta.moduleDataJson!)
+            : const {});
     return QiZhengSiYuPanContract(
-      uuid: meta.uuid, createdAt: meta.createdAt,
+      uuid: meta.uuid,
+      createdAt: meta.createdAt,
       lastUpdatedAt: meta.updatedAt ?? meta.createdAt,
       deletedAt: meta.deletedAt,
       divinationRequestInfoUuid: d['divinationRequestInfoUuid'],
@@ -107,8 +136,15 @@ class QiZhengRecordCodec implements RecordModuleCodec<QiZhengSiYuPanContract> {
   }
 
   @override
-  List<SearchTag> extractSearchTags(RecordMeta meta, Map<String, dynamic>? moduleData) {
-    final d = moduleData ?? (meta.moduleDataJson != null ? jsonDecode(meta.moduleDataJson!) : const {});
+  List<SearchTag> extractSearchTags(
+    RecordMeta meta,
+    Map<String, dynamic>? moduleData,
+  ) {
+    final d =
+        moduleData ??
+        (meta.moduleDataJson != null
+            ? jsonDecode(meta.moduleDataJson!)
+            : const {});
     final tags = <SearchTag>[];
     final requestUuid = d['divinationRequestInfoUuid'];
     if (requestUuid != null && '$requestUuid'.isNotEmpty) {

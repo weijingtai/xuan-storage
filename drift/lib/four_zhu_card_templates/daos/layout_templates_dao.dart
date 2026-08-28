@@ -18,23 +18,21 @@ class LayoutTemplatesDao extends DatabaseAccessor<AppDatabase>
   SimpleSelectStatement<$LayoutTemplatesTable, LayoutTemplateRow> _baseSelect(
     String collectionId,
   ) {
-    return select(db.layoutTemplates)
-      ..where(
-          (t) => t.collectionId.equals(collectionId) & t.deletedAt.isNull());
+    return select(
+      db.layoutTemplates,
+    )..where((t) => t.collectionId.equals(collectionId) & t.deletedAt.isNull());
   }
 
   Future<List<LayoutTemplateRow>> getAllByCollection(String collectionId) {
-    return (_baseSelect(collectionId)
-          ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)]))
-        .get();
+    return (_baseSelect(
+      collectionId,
+    )..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])).get();
   }
 
-  Future<LayoutTemplateRow?> getById(
-    String collectionId,
-    String templateId,
-  ) {
-    return (_baseSelect(collectionId)..where((t) => t.uuid.equals(templateId)))
-        .getSingleOrNull();
+  Future<LayoutTemplateRow?> getById(String collectionId, String templateId) {
+    return (_baseSelect(
+      collectionId,
+    )..where((t) => t.uuid.equals(templateId))).getSingleOrNull();
   }
 
   Future<void> upsertTemplate(LayoutTemplate template) async {
@@ -76,9 +74,10 @@ class LayoutTemplatesDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<int> softDeleteById(String collectionId, String templateId) {
-    return (update(db.layoutTemplates)
-          ..where((t) =>
-              t.collectionId.equals(collectionId) & t.uuid.equals(templateId)))
+    return (update(db.layoutTemplates)..where(
+          (t) =>
+              t.collectionId.equals(collectionId) & t.uuid.equals(templateId),
+        ))
         .write(LayoutTemplatesCompanion(deletedAt: Value(DateTime.now())));
   }
 
@@ -87,9 +86,10 @@ class LayoutTemplatesDao extends DatabaseAccessor<AppDatabase>
     String templateId,
     DateTime deletedAt,
   ) {
-    return (update(db.layoutTemplates)
-          ..where((t) =>
-              t.collectionId.equals(collectionId) & t.uuid.equals(templateId)))
+    return (update(db.layoutTemplates)..where(
+          (t) =>
+              t.collectionId.equals(collectionId) & t.uuid.equals(templateId),
+        ))
         .write(LayoutTemplatesCompanion(deletedAt: Value(deletedAt)));
   }
 
@@ -106,10 +106,11 @@ class LayoutTemplatesDao extends DatabaseAccessor<AppDatabase>
     if (keepTemplateIds.isEmpty) {
       return softDeleteByCollection(collectionId);
     }
-    return (update(db.layoutTemplates)
-          ..where((t) =>
+    return (update(db.layoutTemplates)..where(
+          (t) =>
               t.collectionId.equals(collectionId) &
-              t.uuid.isNotIn(keepTemplateIds.toList())))
+              t.uuid.isNotIn(keepTemplateIds.toList()),
+        ))
         .write(LayoutTemplatesCompanion(deletedAt: Value(DateTime.now())));
   }
 }

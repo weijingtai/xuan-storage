@@ -16,15 +16,14 @@ import '../record/record_storage_driver.dart';
 class RecordBackedZiweiRepository
     extends BaseRecordBackedRepository<ZiweiDivinationRecordContract>
     implements ZiweiRecordRepository {
-
   RecordBackedZiweiRepository({
     required ScopedRecordStore store,
     required RecordModuleCodec<ZiweiDivinationRecordContract> codec,
     Uuid? uuid,
-  })  : _store = store,
-        _codec = codec,
-        _uuid = uuid ?? const Uuid(),
-        super(store: store, codec: codec, uuid: uuid);
+  }) : _store = store,
+       _codec = codec,
+       _uuid = uuid ?? const Uuid(),
+       super(store: store, codec: codec, uuid: uuid);
 
   // 子类无法访问父类私有字段，故自建同源成员（与 liuyao 等模块一致）。
   final ScopedRecordStore _store;
@@ -34,9 +33,9 @@ class RecordBackedZiweiRepository
   /// L0 契约内核仓储（CrudBaseRepository + RecordStorageDriver）。
   late final CrudBaseRepository<Map<String, Object?>, String> _l0 =
       CrudBaseRepository<Map<String, Object?>, String>(
-    descriptor: recordEntityDescriptor(module: _codec.module),
-    driver: RecordStorageDriver(store: _store),
-  );
+        descriptor: recordEntityDescriptor(module: _codec.module),
+        driver: RecordStorageDriver(store: _store),
+      );
 
   RequestContext get _ctx => RequestContext(scopeUid: _store.scopeUid);
 
@@ -88,10 +87,10 @@ class RecordBackedZiweiRepository
   }) async {
     // 模块契约：put 返回的 Rev 即记录 uuid（便于调用方回读）。
     final currentUuid = _codec.uuidOf(entity);
-    final effectiveUuid =
-        currentUuid.isNotEmpty ? currentUuid : _uuid.v7();
-    final fixed =
-        currentUuid.isNotEmpty ? entity : _codec.withUuid(entity, effectiveUuid);
+    final effectiveUuid = currentUuid.isNotEmpty ? currentUuid : _uuid.v7();
+    final fixed = currentUuid.isNotEmpty
+        ? entity
+        : _codec.withUuid(entity, effectiveUuid);
     final encoded = _codec.encode(fixed, scopeUid: ctx.scopeUid);
     _validateEncodedMeta(encoded.meta, effectiveUuid);
     final row = RecordRowMapper.metaToRow(encoded.meta);
@@ -112,10 +111,12 @@ class RecordBackedZiweiRepository
   ) async {
     final r = await _l0.query(spec, page, _ctx);
     return switch (r) {
-      Ok(:final value) => Ok(Page(
-        items: value.items.map(_decodeRow).toList(),
-        nextCursor: value.nextCursor,
-      )),
+      Ok(:final value) => Ok(
+        Page(
+          items: value.items.map(_decodeRow).toList(),
+          nextCursor: value.nextCursor,
+        ),
+      ),
       Err(:final error) => Err(error),
     };
   }
@@ -165,10 +166,14 @@ class RecordBackedZiweiRepository
     Map<String, Object?> spec,
     RequestContext ctx,
   ) {
-    return _l0.watch(spec, _ctx).map((r) => switch (r) {
-      Ok(:final value) => Ok(value.map(_decodeRow).toList()),
-      Err(:final error) => Err(error),
-    });
+    return _l0
+        .watch(spec, _ctx)
+        .map(
+          (r) => switch (r) {
+            Ok(:final value) => Ok(value.map(_decodeRow).toList()),
+            Err(:final error) => Err(error),
+          },
+        );
   }
 
   // ── BatchWritable ──
@@ -188,10 +193,7 @@ class RecordBackedZiweiRepository
       final encoded = _codec.encode(fixed, scopeUid: _store.scopeUid);
       _validateEncodedMeta(encoded.meta, effectiveUuid);
       final row = RecordRowMapper.metaToRow(encoded.meta);
-      results.add((
-        id: effectiveUuid,
-        result: await _l0.put(row, _ctx),
-      ));
+      results.add((id: effectiveUuid, result: await _l0.put(row, _ctx)));
     }
     return Ok(BatchOutcome<String>(results));
   }
@@ -201,5 +203,34 @@ class RecordBackedZiweiRepository
   @override
   Future<Result<R>> inTransaction<R>(Future<R> Function() body) {
     return _l0.inTransaction(body);
+  }
+
+  @override
+  Future<String> saveRecord(ZiweiDivinationRecordContract record) =>
+      save(record);
+
+  @override
+  Future<List<ZiweiDivinationRecordContract>> getAllRecords() => getAll();
+
+  @override
+  Future<ZiweiDivinationRecordContract?> getRecordByUuid(String uuid) =>
+      getByUuid(uuid);
+
+  @override
+  Future<bool> softDeleteRecord(String uuid) async {
+    final r = await softDelete(uuid, _ctx);
+    return r is Ok;
+  }
+
+  @override
+  Stream<List<ZiweiDivinationRecordContract>> watchAllRecords() {
+    return _l0
+        .watch(const {}, _ctx)
+        .map(
+          (r) => switch (r) {
+            Ok(:final value) => value.map(_decodeRow).toList(),
+            Err() => const <ZiweiDivinationRecordContract>[],
+          },
+        );
   }
 }

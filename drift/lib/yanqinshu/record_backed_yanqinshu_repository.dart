@@ -4,7 +4,6 @@ import '../record/base_record_backed_repository.dart';
 class RecordBackedYanqinshuRepository
     extends BaseRecordBackedRepository<YanqinshuDivinationRecordContract>
     implements YanqinshuRecordRepository {
-
   RecordBackedYanqinshuRepository({
     required super.store,
     required super.codec,
@@ -15,10 +14,13 @@ class RecordBackedYanqinshuRepository
   Future<String> put(YanqinshuDivinationRecordContract r) => save(r);
 
   @override
-  Future<List<YanqinshuDivinationRecordContract>> query([Map<String, Object?>? criteria]) => getAll();
+  Future<List<YanqinshuDivinationRecordContract>> query([
+    Map<String, Object?>? criteria,
+  ]) => getAll();
 
   @override
-  Stream<List<YanqinshuDivinationRecordContract>> watchAll() => super.watchAll();
+  Stream<List<YanqinshuDivinationRecordContract>> watchAll() =>
+      super.watchAll();
 
   @override
   Future<YanqinshuDivinationRecordContract?> get(String u) => getByUuid(u);
@@ -35,11 +37,13 @@ class RecordBackedYanqinshuRepository
   Future<List<YanqinshuDivinationRecordContract>> getAllRecords() => getAll();
 
   @Deprecated('M4 退场：改用 L0 切片')
-  Future<YanqinshuDivinationRecordContract?> getRecordByUuid(String uuid) => getByUuid(uuid);
+  Future<YanqinshuDivinationRecordContract?> getRecordByUuid(String uuid) =>
+      getByUuid(uuid);
 
   @Deprecated('M4 退场：改用 L0 切片')
   Future<bool> softDeleteRecord(String uuid) => softDeleteLegacy(uuid);
 
   @Deprecated('M4 退场：改用 L0 切片')
-  Stream<List<YanqinshuDivinationRecordContract>> watchAllRecords() => watchAll();
+  Stream<List<YanqinshuDivinationRecordContract>> watchAllRecords() =>
+      watchAll();
 }

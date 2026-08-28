@@ -6,7 +6,8 @@ import 'package:drift/drift.dart';
 
 QueryExecutor createMemoryExecutor() {
   throw UnsupportedError(
-      'TaiYiDatabase.memory() is only available on native platforms. '
-      'On the web, construct a real TaiYiDatabase() which uses the Drift web '
-      'worker backend.');
+    'TaiYiDatabase.memory() is only available on native platforms. '
+    'On the web, construct a real TaiYiDatabase() which uses the Drift web '
+    'worker backend.',
+  );
 }

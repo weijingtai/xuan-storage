@@ -3,7 +3,6 @@ import 'record_codec_template.dart';
 
 class RecordBackedTemplateRepository
     extends BaseRecordBackedRepository<DummyRecord> {
-
   RecordBackedTemplateRepository({
     required super.store,
     required super.codec,

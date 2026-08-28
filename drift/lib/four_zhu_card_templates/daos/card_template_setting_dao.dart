@@ -16,14 +16,16 @@ class CardTemplateSettingDao extends DatabaseAccessor<AppDatabase>
   final AppDatabase db;
 
   SimpleSelectStatement<$CardTemplateSettingsTable, CardTemplateSettingRecord>
-      _baseSelect() {
+  _baseSelect() {
     return select(db.cardTemplateSettings)..where((t) => t.deletedAt.isNull());
   }
 
-  Future<CardTemplateSettingDto?> findByTemplateUuid(String templateUuid) async {
-    final row = await (_baseSelect()
-          ..where((t) => t.templateUuid.equals(templateUuid)))
-        .getSingleOrNull();
+  Future<CardTemplateSettingDto?> findByTemplateUuid(
+    String templateUuid,
+  ) async {
+    final row =
+        await (_baseSelect()..where((t) => t.templateUuid.equals(templateUuid)))
+            .getSingleOrNull();
     if (row == null) return null;
 
     final decoded = jsonDecode(row.settingJson);
@@ -34,16 +36,17 @@ class CardTemplateSettingDao extends DatabaseAccessor<AppDatabase>
   Future<void> upsert(CardTemplateSettingDto setting) async {
     final encoded = jsonEncode(setting.toJson());
 
-    final updated = await (update(db.cardTemplateSettings)
-          ..where((t) => t.templateUuid.equals(setting.templateUuid)))
-        .write(
-      CardTemplateSettingsCompanion(
-        createdAt: Value(setting.createdAt),
-        modifiedAt: Value(setting.modifiedAt),
-        deletedAt: const Value(null),
-        settingJson: Value(encoded),
-      ),
-    );
+    final updated =
+        await (update(
+          db.cardTemplateSettings,
+        )..where((t) => t.templateUuid.equals(setting.templateUuid))).write(
+          CardTemplateSettingsCompanion(
+            createdAt: Value(setting.createdAt),
+            modifiedAt: Value(setting.modifiedAt),
+            deletedAt: const Value(null),
+            settingJson: Value(encoded),
+          ),
+        );
 
     if (updated > 0) return;
 
@@ -60,9 +63,9 @@ class CardTemplateSettingDao extends DatabaseAccessor<AppDatabase>
 
   Future<int> softDelete({required String templateUuid}) {
     final now = DateTime.now();
-    return (update(db.cardTemplateSettings)
-          ..where((t) => t.templateUuid.equals(templateUuid)))
-        .write(
+    return (update(
+      db.cardTemplateSettings,
+    )..where((t) => t.templateUuid.equals(templateUuid))).write(
       CardTemplateSettingsCompanion(
         modifiedAt: Value(now),
         deletedAt: Value(now),

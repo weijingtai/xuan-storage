@@ -15,8 +15,7 @@ final class UnsupportedBlobByteBackend implements BlobByteBackend {
       _unsupported();
 
   @override
-  Future<List<int>> readChunk(String manifestDir, int index) =>
-      _unsupported();
+  Future<List<int>> readChunk(String manifestDir, int index) => _unsupported();
 
   @override
   Future<void> deleteChunk(String manifestDir, int index) => _unsupported();
@@ -34,6 +33,6 @@ final class UnsupportedBlobByteBackend implements BlobByteBackend {
   Future<int> manifestSize(String manifestDir) => _unsupported();
 
   Never _unsupported() => throw UnsupportedError(
-        'Blob byte storage is not supported on this platform.',
-      );
+    'Blob byte storage is not supported on this platform.',
+  );
 }

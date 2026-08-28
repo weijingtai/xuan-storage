@@ -40,11 +40,11 @@ class ThemeTokens extends Table {
   Set<Column> get primaryKey => {datasetId, generation, tokenKey};
 
   List<Index> get indexes => [
-        // 按世代批量读 / 删（dropGeneration、tokensOf）。
-        Index(
-          'idx_theme_token_dataset_generation',
-          'CREATE INDEX idx_theme_token_dataset_generation '
+    // 按世代批量读 / 删（dropGeneration、tokensOf）。
+    Index(
+      'idx_theme_token_dataset_generation',
+      'CREATE INDEX idx_theme_token_dataset_generation '
           'ON t_theme_token (dataset_id, generation);',
-        ),
-      ];
+    ),
+  ];
 }

@@ -18,9 +18,9 @@ class PromptVersionsDao extends DatabaseAccessor<AiDatabase>
     String? variablesJson,
     String? changeNote,
   }) async {
-    final template = await (select(db.promptTemplates)
-          ..where((t) => t.uuid.equals(templateUuid)))
-        .getSingleOrNull();
+    final template = await (select(
+      db.promptTemplates,
+    )..where((t) => t.uuid.equals(templateUuid))).getSingleOrNull();
 
     if (template == null) {
       throw Exception('Template not found: $templateUuid');
@@ -56,8 +56,9 @@ class PromptVersionsDao extends DatabaseAccessor<AiDatabase>
 
   /// Get a specific version
   Future<PromptVersion?> getByUuid(String uuid) {
-    return (select(promptVersions)..where((t) => t.uuid.equals(uuid)))
-        .getSingleOrNull();
+    return (select(
+      promptVersions,
+    )..where((t) => t.uuid.equals(uuid))).getSingleOrNull();
   }
 
   /// Get the latest version for a template

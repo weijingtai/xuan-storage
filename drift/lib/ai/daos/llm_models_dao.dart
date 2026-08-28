@@ -71,17 +71,20 @@ class LlmModelsDao extends DatabaseAccessor<AiDatabase>
   /// Set default model
   Future<void> setDefault(String uuid) async {
     await transaction(() async {
-      await (update(llmModels)..where((t) => t.isDefault.equals(true)))
-          .write(const LlmModelsCompanion(isDefault: Value(false)));
+      await (update(llmModels)..where((t) => t.isDefault.equals(true))).write(
+        const LlmModelsCompanion(isDefault: Value(false)),
+      );
 
-      await (update(llmModels)..where((t) => t.uuid.equals(uuid)))
-          .write(const LlmModelsCompanion(isDefault: Value(true)));
+      await (update(llmModels)..where((t) => t.uuid.equals(uuid))).write(
+        const LlmModelsCompanion(isDefault: Value(true)),
+      );
     });
   }
 
   /// Soft delete a model
   Future<void> softDelete(String uuid) {
-    return (update(llmModels)..where((t) => t.uuid.equals(uuid)))
-        .write(LlmModelsCompanion(deletedAt: Value(DateTime.now())));
+    return (update(llmModels)..where((t) => t.uuid.equals(uuid))).write(
+      LlmModelsCompanion(deletedAt: Value(DateTime.now())),
+    );
   }
 }

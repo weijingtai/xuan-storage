@@ -54,11 +54,7 @@ class TaiYiDatabase extends _$TaiYiDatabase {
   }) {
     final existing = _scopeFutures[scopeUid];
     if (existing != null) return existing;
-    final future = _createScoped(
-      scopeUid,
-      databaseDirectory,
-      backupDirectory,
-    );
+    final future = _createScoped(scopeUid, databaseDirectory, backupDirectory);
     _scopeFutures[scopeUid] = future;
     return future;
   }
@@ -110,30 +106,30 @@ class TaiYiDatabase extends _$TaiYiDatabase {
     String? scopeUid,
     Future<Directory> Function()? databaseDirectory,
   }) : super(
-          driftDatabase(
-            name: scopeUid == null
-                ? 'taiyi_database'
-                : 'taiyi_database_$scopeUid',
-            native: DriftNativeOptions(
-              databaseDirectory:
-                  databaseDirectory ?? getApplicationSupportDirectory,
-            ),
-            web: DriftWebOptions(
-              sqlite3Wasm: Uri.parse('sqlite3.wasm'),
-              driftWorker: Uri.parse('drift_worker.js'),
-              onResult: (result) {
-                debugPrint(
-                  '[TaiYiDatabase] Web storage: ${result.chosenImplementation}',
-                );
-                if (result.missingFeatures.isNotEmpty) {
-                  debugPrint(
-                    '[TaiYiDatabase] Missing features: ${result.missingFeatures}',
-                  );
-                }
-              },
-            ),
-          ),
-        );
+         driftDatabase(
+           name: scopeUid == null
+               ? 'taiyi_database'
+               : 'taiyi_database_$scopeUid',
+           native: DriftNativeOptions(
+             databaseDirectory:
+                 databaseDirectory ?? getApplicationSupportDirectory,
+           ),
+           web: DriftWebOptions(
+             sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+             driftWorker: Uri.parse('drift_worker.js'),
+             onResult: (result) {
+               debugPrint(
+                 '[TaiYiDatabase] Web storage: ${result.chosenImplementation}',
+               );
+               if (result.missingFeatures.isNotEmpty) {
+                 debugPrint(
+                   '[TaiYiDatabase] Missing features: ${result.missingFeatures}',
+                 );
+               }
+             },
+           ),
+         ),
+       );
 
   /// In-memory test executor. Native-only — on web this throws
   /// UnsupportedError. Used by the integration tests in
@@ -147,28 +143,28 @@ class TaiYiDatabase extends _$TaiYiDatabase {
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        onCreate: (Migrator m) async {
-          await m.createAll();
-          await _createIndices();
-        },
-        onUpgrade: (Migrator m, int from, int to) async {
-          if (from < 2) {
-            final schoolCols = await customSelect(
-              'SELECT name FROM pragma_table_info("user_schools")',
-            ).get();
-            if (!schoolCols.any((r) => r.read<String>('name') == 'scope_uid')) {
-              await m.addColumn(userSchools, userSchools.scopeUid);
-            }
-            final deityCols = await customSelect(
-              'SELECT name FROM pragma_table_info("user_deities")',
-            ).get();
-            if (!deityCols.any((r) => r.read<String>('name') == 'scope_uid')) {
-              await m.addColumn(userDeities, userDeities.scopeUid);
-            }
-            await _createIndices();
-          }
-        },
-      );
+    onCreate: (Migrator m) async {
+      await m.createAll();
+      await _createIndices();
+    },
+    onUpgrade: (Migrator m, int from, int to) async {
+      if (from < 2) {
+        final schoolCols = await customSelect(
+          'SELECT name FROM pragma_table_info("user_schools")',
+        ).get();
+        if (!schoolCols.any((r) => r.read<String>('name') == 'scope_uid')) {
+          await m.addColumn(userSchools, userSchools.scopeUid);
+        }
+        final deityCols = await customSelect(
+          'SELECT name FROM pragma_table_info("user_deities")',
+        ).get();
+        if (!deityCols.any((r) => r.read<String>('name') == 'scope_uid')) {
+          await m.addColumn(userDeities, userDeities.scopeUid);
+        }
+        await _createIndices();
+      }
+    },
+  );
 
   Future<void> _createIndices() async {
     await customStatement(

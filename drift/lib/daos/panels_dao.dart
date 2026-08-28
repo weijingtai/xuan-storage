@@ -10,8 +10,7 @@ class PanelsDao extends DatabaseAccessor<PersistenceDriftDatabase>
   final PersistenceDriftDatabase db;
   PanelsDao(this.db) : super(db);
 
-  SimpleSelectStatement<$PanelsTable, Panel> _baseSelect() => 
-      select(db.panels);
+  SimpleSelectStatement<$PanelsTable, Panel> _baseSelect() => select(db.panels);
 
   Future<List<Panel>> getAllPanels() {
     return (_baseSelect()..where((tbl) => tbl.deletedAt.isNull())).get();
@@ -32,7 +31,8 @@ class PanelsDao extends DatabaseAccessor<PersistenceDriftDatabase>
   }
 
   Future<int> softDeletePanel(String uuid) {
-    return (update(db.panels)..where((t) => t.uuid.equals(uuid)))
-        .write(PanelsCompanion(deletedAt: Value(DateTime.now())));
+    return (update(db.panels)..where((t) => t.uuid.equals(uuid))).write(
+      PanelsCompanion(deletedAt: Value(DateTime.now())),
+    );
   }
 }

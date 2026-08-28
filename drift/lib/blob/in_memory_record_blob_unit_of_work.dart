@@ -19,11 +19,12 @@ final class InMemoryRecordBlobUnitOfWork implements RecordBlobUnitOfWork {
     Future<void> Function()? injectFailureAfterBlobRefs,
     Future<void> Function()? injectFailureAfterOutbox,
     Future<void> Function()? injectFailureAfterSave,
-  })  : _outboxStore = outboxStore,
-        _adapterRegistry = adapterRegistry,
-        _injectFailureAfterRecord = injectFailureAfterRecord ?? injectFailureAfterSave,
-        _injectFailureAfterBlobRefs = injectFailureAfterBlobRefs,
-        _injectFailureAfterOutbox = injectFailureAfterOutbox;
+  }) : _outboxStore = outboxStore,
+       _adapterRegistry = adapterRegistry,
+       _injectFailureAfterRecord =
+           injectFailureAfterRecord ?? injectFailureAfterSave,
+       _injectFailureAfterBlobRefs = injectFailureAfterBlobRefs,
+       _injectFailureAfterOutbox = injectFailureAfterOutbox;
 
   final Map<String, RecordMeta> _records = {};
   final Map<String, Set<BlobHandle>> _refs = {};
@@ -55,13 +56,16 @@ final class InMemoryRecordBlobUnitOfWork implements RecordBlobUnitOfWork {
     _locked = true;
     final prevRecords = Map<String, RecordMeta>.of(_records);
     final prevRefs = _refs.map((k, v) => MapEntry(k, Set<BlobHandle>.of(v)));
-    final prevTags = _searchTags.map((k, v) => MapEntry(k, List<SearchTag>.of(v)));
+    final prevTags = _searchTags.map(
+      (k, v) => MapEntry(k, List<SearchTag>.of(v)),
+    );
 
     try {
       final moduleData = record.moduleDataJson != null
           ? jsonDecode(record.moduleDataJson!) as Map<String, dynamic>
           : null;
-      final tags = _adapterRegistry
+      final tags =
+          _adapterRegistry
               ?.forModule(record.module)
               ?.extractSearchTags(record, moduleData) ??
           <SearchTag>[];
@@ -109,12 +113,16 @@ final class InMemoryRecordBlobUnitOfWork implements RecordBlobUnitOfWork {
     _locked = true;
     final prevRecords = Map<String, RecordMeta>.of(_records);
     final prevRefs = _refs.map((k, v) => MapEntry(k, Set<BlobHandle>.of(v)));
-    final prevTags = _searchTags.map((k, v) => MapEntry(k, List<SearchTag>.of(v)));
+    final prevTags = _searchTags.map(
+      (k, v) => MapEntry(k, List<SearchTag>.of(v)),
+    );
 
     try {
       final existing = _records[recordUuid];
       if (existing != null) {
-        _records[recordUuid] = existing.copyWith(deletedAt: DateTime.now().toUtc());
+        _records[recordUuid] = existing.copyWith(
+          deletedAt: DateTime.now().toUtc(),
+        );
         _searchTags.remove(recordUuid);
       }
       await _injectFailureAfterRecord?.call();
@@ -158,7 +166,9 @@ final class InMemoryRecordBlobUnitOfWork implements RecordBlobUnitOfWork {
     _locked = true;
     final prevRecords = Map<String, RecordMeta>.of(_records);
     final prevRefs = _refs.map((k, v) => MapEntry(k, Set<BlobHandle>.of(v)));
-    final prevTags = _searchTags.map((k, v) => MapEntry(k, List<SearchTag>.of(v)));
+    final prevTags = _searchTags.map(
+      (k, v) => MapEntry(k, List<SearchTag>.of(v)),
+    );
 
     try {
       final existing = _records[record.uuid];
@@ -168,7 +178,8 @@ final class InMemoryRecordBlobUnitOfWork implements RecordBlobUnitOfWork {
       final moduleData = record.moduleDataJson != null
           ? jsonDecode(record.moduleDataJson!) as Map<String, dynamic>
           : null;
-      final tags = _adapterRegistry
+      final tags =
+          _adapterRegistry
               ?.forModule(record.module)
               ?.extractSearchTags(record, moduleData) ??
           <SearchTag>[];

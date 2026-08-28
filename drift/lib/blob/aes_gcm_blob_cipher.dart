@@ -34,7 +34,7 @@ final class AesGcmBlobCipher implements BlobCipher {
   /// - [dek]: 数据加密密钥（32 字节）。**每设备一把独立 DEK**（D17），
   ///   严禁跨设备共享。经 app 组装根注入，不在跨包签名里出现。
   AesGcmBlobCipher({required List<int> dek})
-      : _dek = SecretKey(List<int>.from(dek));
+    : _dek = SecretKey(List<int>.from(dek));
 
   final SecretKey _dek;
   final AesGcm _aesGcm = AesGcm.with256bits(nonceLength: nonceLength);

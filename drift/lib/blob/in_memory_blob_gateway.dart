@@ -16,8 +16,8 @@ final class InMemoryBlobGateway implements BlobGateway {
   InMemoryBlobGateway({
     required DateTime Function() now,
     required String Function() generateUuid,
-  })  : _now = now,
-        _uuid = generateUuid;
+  }) : _now = now,
+       _uuid = generateUuid;
 
   final DateTime Function() _now;
   final String Function() _uuid;

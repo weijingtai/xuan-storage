@@ -43,27 +43,30 @@ class LlmProvidersDao extends DatabaseAccessor<AiDatabase>
   Future<void> setDefault(String uuid) async {
     await transaction(() async {
       // Clear all defaults
-      await (update(llmProviders)
-            ..where((t) => t.isDefault.equals(true)))
+      await (update(llmProviders)..where((t) => t.isDefault.equals(true)))
           .write(const LlmProvidersCompanion(isDefault: Value(false)));
 
       // Set new default
-      await (update(llmProviders)..where((t) => t.uuid.equals(uuid)))
-          .write(const LlmProvidersCompanion(isDefault: Value(true)));
+      await (update(llmProviders)..where((t) => t.uuid.equals(uuid))).write(
+        const LlmProvidersCompanion(isDefault: Value(true)),
+      );
     });
   }
 
   /// Soft delete a provider
   Future<void> softDelete(String uuid) {
-    return (update(llmProviders)..where((t) => t.uuid.equals(uuid)))
-        .write(LlmProvidersCompanion(deletedAt: Value(DateTime.now())));
+    return (update(llmProviders)..where((t) => t.uuid.equals(uuid))).write(
+      LlmProvidersCompanion(deletedAt: Value(DateTime.now())),
+    );
   }
 
   /// Update API key
   Future<void> updateApiKey(String uuid, String encryptedApiKey) {
     return (update(llmProviders)..where((t) => t.uuid.equals(uuid))).write(
-        LlmProvidersCompanion(
-            encryptedApiKey: Value(encryptedApiKey),
-            lastUpdatedAt: Value(DateTime.now())));
+      LlmProvidersCompanion(
+        encryptedApiKey: Value(encryptedApiKey),
+        lastUpdatedAt: Value(DateTime.now()),
+      ),
+    );
   }
 }

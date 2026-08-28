@@ -6,7 +6,6 @@ import '../record/base_record_backed_repository.dart';
 class RecordBackedQiZhengRepository
     extends BaseRecordBackedRepository<QiZhengSiYuPanContract>
     implements QiZhengRecordRepository {
-
   RecordBackedQiZhengRepository({
     required super.store,
     required super.codec,
@@ -16,7 +15,10 @@ class RecordBackedQiZhengRepository
   final RecordModuleCodec<QiZhengSiYuPanContract> _codec;
 
   @override
-  Future<Result<QiZhengSiYuPanContract?>> get(String id, RequestContext ctx) async {
+  Future<Result<QiZhengSiYuPanContract?>> get(
+    String id,
+    RequestContext ctx,
+  ) async {
     final item = await getByUuid(id);
     return Ok(item);
   }
@@ -49,10 +51,12 @@ class RecordBackedQiZhengRepository
 
   @override
   Future<Result<void>> restore(String id, RequestContext ctx) async {
-    return const Err(XuanError(
-      code: ErrorCode.invalidArgument,
-      message: 'restore not supported',
-    ));
+    return const Err(
+      XuanError(
+        code: ErrorCode.invalidArgument,
+        message: 'restore not supported',
+      ),
+    );
   }
 
   @override
@@ -110,10 +114,9 @@ class RecordBackedQiZhengRepository
       final result = await body();
       return Ok(result);
     } catch (e) {
-      return Err(XuanError(
-        code: ErrorCode.internal,
-        message: 'Transaction failed: $e',
-      ));
+      return Err(
+        XuanError(code: ErrorCode.internal, message: 'Transaction failed: $e'),
+      );
     }
   }
 
@@ -126,7 +129,8 @@ class RecordBackedQiZhengRepository
   Future<List<QiZhengSiYuPanContract>> getAllRecords() => getAll();
 
   @Deprecated('M4 退场：改用 L0 切片')
-  Future<QiZhengSiYuPanContract?> getRecordByUuid(String uuid) => getByUuid(uuid);
+  Future<QiZhengSiYuPanContract?> getRecordByUuid(String uuid) =>
+      getByUuid(uuid);
 
   @Deprecated('M4 退场：改用 L0 切片')
   Future<bool> softDeleteRecord(String uuid) => softDeleteLegacy(uuid);

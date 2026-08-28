@@ -75,8 +75,9 @@ class AiToolsDao extends DatabaseAccessor<AiDatabase> with _$AiToolsDaoMixin {
 
   /// Soft delete a tool
   Future<void> softDelete(String uuid) {
-    return (update(aiTools)..where((t) => t.uuid.equals(uuid)))
-        .write(AiToolsCompanion(deletedAt: Value(DateTime.now())));
+    return (update(aiTools)..where((t) => t.uuid.equals(uuid))).write(
+      AiToolsCompanion(deletedAt: Value(DateTime.now())),
+    );
   }
 
   /// Watch all tools (for reactive UI)

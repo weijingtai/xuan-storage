@@ -37,7 +37,9 @@ class AiDivinationsDao extends DatabaseAccessor<AiDatabase>
 
   /// Get by divination and persona (dual index query)
   Future<AiDivination?> getByDivinationAndPersona(
-      String divinationUuid, String personaUuid) {
+    String divinationUuid,
+    String personaUuid,
+  ) {
     return (select(aiDivinations)
           ..where((t) => t.divinationUuid.equals(divinationUuid))
           ..where((t) => t.personaUuid.equals(personaUuid))
@@ -89,8 +91,9 @@ class AiDivinationsDao extends DatabaseAccessor<AiDatabase>
 
   /// Soft delete
   Future<void> softDelete(String uuid) {
-    return (update(aiDivinations)..where((t) => t.uuid.equals(uuid)))
-        .write(AiDivinationsCompanion(deletedAt: Value(DateTime.now())));
+    return (update(aiDivinations)..where((t) => t.uuid.equals(uuid))).write(
+      AiDivinationsCompanion(deletedAt: Value(DateTime.now())),
+    );
   }
 
   /// Get recent divinations with ratings

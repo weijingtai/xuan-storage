@@ -12,6 +12,5 @@ class QiZhengModuleRegistry {
   static QiZhengRecordRepository repository({
     required ScopedRecordStore store,
     Uuid? uuid,
-  }) =>
-      RecordBackedQiZhengRepository(store: store, codec: codec(), uuid: uuid);
+  }) => RecordBackedQiZhengRepository(store: store, codec: codec(), uuid: uuid);
 }
