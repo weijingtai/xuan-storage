@@ -264,4 +264,28 @@ class XrapZiweiStarRepository implements ZiweiStarRepository {
       entries: List.unmodifiable(entries),
     )];
   }
+
+  @override
+  Future<List<ZiweiStar>> getAllMainStars() => _queryAll({'type': 'main'});
+
+  @override
+  Future<List<ZiweiStar>> getAllAuxiliaryStars() =>
+      _queryAll({'type': 'auxiliary'});
+
+  @override
+  Future<ZiweiStar?> getStarByName(String name) async {
+    final res = await get(name, RequestContext(scopeUid: 'system'));
+    return switch (res) {
+      Ok(:final value) => value,
+      Err() => null,
+    };
+  }
+
+  @override
+  Future<ZiweiFourTransformations?> getFourTransformations(
+    int tianGanIndex,
+  ) async {
+    final list = await _queryFourTransformations(tianGanIndex);
+    return list.isNotEmpty ? list.first : null;
+  }
 }

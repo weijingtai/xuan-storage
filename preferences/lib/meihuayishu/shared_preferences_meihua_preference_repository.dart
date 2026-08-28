@@ -11,6 +11,20 @@ class SharedPreferencesMeiHuaPreferenceRepository
   SharedPreferencesMeiHuaPreferenceRepository(this.prefs);
 
   @override
+  Future<int> loadLongTextThreshold() async {
+    final res = await get('', RequestContext(scopeUid: 'system'));
+    return switch (res) {
+      Ok(:final value) => value ?? 10,
+      Err() => 10,
+    };
+  }
+
+  @override
+  Future<void> saveLongTextThreshold(int value) async {
+    await put(value, RequestContext(scopeUid: 'system'));
+  }
+
+  @override
   Future<Result<int?>> get(String id, RequestContext ctx) async {
     final Map<String, dynamic> map = await _loadMap();
     final value = map['long_text_threshold'] as int?;

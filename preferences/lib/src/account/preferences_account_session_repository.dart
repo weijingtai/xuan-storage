@@ -17,6 +17,25 @@ final class PreferencesAccountSessionRepository
   static const _keyEmail = '${_prefix}email';
 
   @override
+  Future<AccountSession?> getCurrentSession() async {
+    final res = await get('', RequestContext(scopeUid: 'system'));
+    return switch (res) {
+      Ok(:final value) => value,
+      Err() => null,
+    };
+  }
+
+  @override
+  Future<void> saveCurrentSession(AccountSession session) async {
+    await put(session, RequestContext(scopeUid: 'system'));
+  }
+
+  @override
+  Future<void> clearCurrentSession() async {
+    await purge('', RequestContext(scopeUid: 'system'));
+  }
+
+  @override
   Future<Result<AccountSession?>> get(String id, RequestContext ctx) async {
     final appUserId = _preferences.getString(_keyAppUserId);
     if (appUserId == null) return const Ok(null);

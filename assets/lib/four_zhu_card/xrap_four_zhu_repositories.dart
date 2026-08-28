@@ -145,6 +145,22 @@ class XrapFourZhuTemplateRepository implements FourZhuCardTemplateRepository {
   }
 
   @override
+  Future<LayoutTemplateContract?> getTemplate(String uuid) => get(uuid);
+
+  @override
+  Future<List<LayoutTemplateContract>> listTemplates() => _allTemplates();
+
+  @override
+  Future<void> saveTemplate(LayoutTemplateContract template) async {
+    await put(template);
+  }
+
+  @override
+  Future<void> deleteTemplate(String uuid) async {
+    await delete(uuid);
+  }
+
+  @override
   Future<LayoutTemplateContract?> get(String id) async {
     final all = await _allTemplates();
     for (final t in all) {

@@ -8,7 +8,10 @@ import 'drift/kanyu_database.dart';
 /// XRAP 版官方规则配置 Repository 实现（三元九星、八宅规则、罗盘图层）
 ///
 /// 实现 L0 切片: `Readable<dynamic, String>` + `Queryable<dynamic, Map<String, Object?>>`
-class XrapKanyuOfficialRuleRepository implements KanyuOfficialRuleRepository {
+class XrapKanyuOfficialRuleRepository
+    implements
+        Readable<dynamic, String>,
+        Queryable<dynamic, Map<String, Object?>> {
   XrapKanyuOfficialRuleRepository({
     required this.db,
   });

@@ -107,11 +107,56 @@ class XrapTaiyiSchoolRepository implements SchoolRepository {
     return Ok(rows.length);
   }
 
-  // -------------------------------------------------------------------------
-  // deities（taiyi.deities）
-  // -------------------------------------------------------------------------
+  @override
+  Future<List<TaiYiSchoolContract>> loadAllSchools() async {
+    await _schoolsEnsure.ensure();
+    final rows = await db.select(db.taiyiSchoolDocuments).get();
+    return rows
+        .map((r) => TaiYiSchoolContract.fromJson(jsonDecode(r.payloadJson)))
+        .toList();
+  }
 
-  // loadAllDeities 和 loadDeity 保留为内部方法，对外统一使用 query/get
+  @override
+  Future<TaiYiSchoolContract?> loadSchool(String id) async {
+    final res = await get(id, RequestContext(scopeUid: 'system'));
+    return switch (res) {
+      Ok(:final value) => value,
+      Err() => null,
+    };
+  }
+
+  @override
+  Future<List<DeityDefinitionContract>> loadAllDeities() async {
+    final rows = await db.select(db.taiyiDeityDocuments).get();
+    return rows
+        .map((r) => DeityDefinitionContract.fromJson(jsonDecode(r.payloadJson)))
+        .toList();
+  }
+
+  @override
+  Future<DeityDefinitionContract?> loadDeity(String id) async {
+    final row = await (db.select(db.taiyiDeityDocuments)
+          ..where((t) => t.fileName.equals('${_toKebab(id)}.json')))
+        .getSingleOrNull();
+    if (row == null) return null;
+    return DeityDefinitionContract.fromJson(jsonDecode(row.payloadJson));
+  }
+
+  @override
+  Future<void> saveSchool(TaiYiSchoolContract school) =>
+      throw UnsupportedError('Official repository is read-only');
+
+  @override
+  Future<void> saveDeity(DeityDefinitionContract deity) =>
+      throw UnsupportedError('Official repository is read-only');
+
+  @override
+  Future<void> deleteSchool(String id) =>
+      throw UnsupportedError('Official repository is read-only');
+
+  @override
+  Future<void> deleteDeity(String id) =>
+      throw UnsupportedError('Official repository is read-only');
 
   // -------------------------------------------------------------------------
   // 只读：官方资源库不支持写（照旧桩 throw UnsupportedError）
@@ -147,6 +192,32 @@ class XrapTaiyiMingGuaRepository implements MingGuaRepository {
   final _DatasetEnsurer _ensure;
 
   static const _kFileName = 'tong_zong_sequence.json';
+
+  @override
+  Future<List<MingGuaConfigContract>> loadAllConfigs() async {
+    final res = await query({}, PageRequest(limit: 1000), RequestContext(scopeUid: 'system'));
+    return switch (res) {
+      Ok(:final value) => value.items,
+      Err() => const [],
+    };
+  }
+
+  @override
+  Future<MingGuaConfigContract?> loadConfig(String id) async {
+    final res = await get(id, RequestContext(scopeUid: 'system'));
+    return switch (res) {
+      Ok(:final value) => value,
+      Err() => null,
+    };
+  }
+
+  @override
+  Future<void> saveConfig(MingGuaConfigContract config) =>
+      throw UnsupportedError('Official configs are read-only');
+
+  @override
+  Future<void> deleteConfig(String id) =>
+      throw UnsupportedError('Official configs are read-only');
 
   @override
   Future<Result<Page<MingGuaConfigContract>>> query(
