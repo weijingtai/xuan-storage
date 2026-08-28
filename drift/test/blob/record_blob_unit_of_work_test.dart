@@ -48,6 +48,7 @@ void main() {
     late PersistenceDriftDatabase db;
     late DriftRecordBlobUnitOfWork uow;
     late DriftRecordDataSource recordDs;
+    late DriftOutboxStore outboxStore;
 
     setUp(() {
       StoragePolicyRegistry.clearForTesting();
@@ -74,9 +75,8 @@ void main() {
         db: db,
         scopeUid: 'scope-a',
         blobStore: blobStore,
-        adapterRegistry: RecordAdapterRegistry([
-          MeiHuaRecordCodec(),
-        ]),
+        adapterRegistry: RecordAdapterRegistry([MeiHuaRecordCodec()]),
+        outboxStore: outboxStore = DriftOutboxStore(dao: OutboxRecordsDao(db)),
       );
       recordDs = DriftRecordDataSource(db, scopeUid: 'scope-a');
     });
@@ -97,9 +97,9 @@ void main() {
       expect(saved, isNotNull);
       expect(saved!.uuid, 'rec-1');
 
-      final refRows = await (db.select(db.blobRefs)
-            ..where((t) => t.ownerRecordUuid.equals('rec-1')))
-          .get();
+      final refRows = await (db.select(
+        db.blobRefs,
+      )..where((t) => t.ownerRecordUuid.equals('rec-1'))).get();
       expect(refRows, hasLength(1));
       expect(refRows.single.cipherManifestId, 'manifest-1');
     });
@@ -119,31 +119,74 @@ void main() {
       expect(saved!.deletedAt, isNotNull, reason: '软删后 deletedAt 应被设置');
 
       // Blob refs should be released
-      final refRows = await (db.select(db.blobRefs)
-            ..where((t) => t.ownerRecordUuid.equals('rec-2')))
-          .get();
+      final refRows = await (db.select(
+        db.blobRefs,
+      )..where((t) => t.ownerRecordUuid.equals('rec-2'))).get();
       expect(refRows, isEmpty, reason: '软删后 blob ref 应释放');
     });
 
-  test('saveWithBlobs populates search index from codec', () async {
-    // RED：当前 saveWithBlobs 不提取搜索标签到 t_record_search_index。
-    // findByIndex 应返回空列表（RED 失败）。
-    final handle = _makeHandle('manifest-idx');
-    await uow.saveWithBlobs(
-      record: _makeRecord('rec-idx'),
-      referencedBlobs: {handle},
+    test('saveWithBlobs populates search index from codec', () async {
+      // RED：当前 saveWithBlobs 不提取搜索标签到 t_record_search_index。
+      // findByIndex 应返回空列表（RED 失败）。
+      final handle = _makeHandle('manifest-idx');
+      await uow.saveWithBlobs(
+        record: _makeRecord('rec-idx'),
+        referencedBlobs: {handle},
+      );
+
+      final results = await recordDs.findByIndex(
+        module: 'meihua',
+        indexKey: 'divination_uuid',
+        indexValue: 'null',
+        limit: 10,
+      );
+      // RED：当前未填充搜索索引，期望 0 条结果。
+      expect(
+        results,
+        isNotEmpty,
+        reason:
+            'RED：saveWithBlobs 未提取搜索标签到 t_record_search_index；修复后 findByIndex 应返回 rec-idx',
+      );
+    });
+
+    test(
+      'direct save joins the caller transaction and rolls back with it',
+      () async {
+        final handle = _makeHandle('manifest-direct');
+        await expectLater(
+          db.transaction(() async {
+            await uow.saveWithBlobsDirect(
+              record: _makeRecord('rec-direct'),
+              referencedBlobs: {handle},
+            );
+            throw StateError('caller transaction failed');
+          }),
+          throwsStateError,
+        );
+
+        expect(await recordDs.getRecord('rec-direct'), isNull);
+        expect(
+          await outboxStore.peekBatch(
+            scopeUid: 'scope-a',
+            peerId: const PeerId('cloud'),
+            channel: Channel.cloud,
+            limit: 10,
+          ),
+          isEmpty,
+        );
+      },
     );
 
-    final results = await recordDs.findByIndex(
-      module: 'meihua',
-      indexKey: 'divination_uuid',
-      indexValue: 'null',
-      limit: 10,
+    test(
+      'record data source exposes a non-transactional save body for UoW composition',
+      () async {
+        final record = _makeRecord('rec-direct-body');
+        await db.transaction(() async {
+          await recordDs.saveRecordDirect(record, const <SearchTag>[]);
+        });
+        expect(await recordDs.getRecord('rec-direct-body'), isNotNull);
+      },
     );
-    // RED：当前未填充搜索索引，期望 0 条结果。
-    expect(results, isNotEmpty,
-        reason: 'RED：saveWithBlobs 未提取搜索标签到 t_record_search_index；修复后 findByIndex 应返回 rec-idx');
-  });
   });
 
   group('InMemoryRecordBlobUnitOfWork', () {
@@ -203,7 +246,7 @@ void main() {
 
       // 注入一个失败：保存记录后抛异常
       var injected = false;
-      final uow = DriftRecordBlobUnitOfWork(
+      final uow = DriftRecordBlobUnitOfWork.testWithoutOutbox(
         db: db,
         scopeUid: 'scope-a',
         blobStore: blobStore,
@@ -231,9 +274,9 @@ void main() {
       expect(saved, isNull, reason: '事务回滚后记录应不存在');
 
       // 验证 blob ref 被回滚
-      final refRows = await (db.select(db.blobRefs)
-            ..where((t) => t.ownerRecordUuid.equals('rec-rollback')))
-          .get();
+      final refRows = await (db.select(
+        db.blobRefs,
+      )..where((t) => t.ownerRecordUuid.equals('rec-rollback'))).get();
       expect(refRows, isEmpty, reason: '事务回滚后 blob ref 应不存在');
     });
   });

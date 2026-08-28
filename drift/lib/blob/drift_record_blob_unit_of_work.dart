@@ -5,6 +5,7 @@ library;
 
 import 'dart:convert';
 
+import 'package:meta/meta.dart' show visibleForTesting;
 import 'package:persistence_core/persistence_core.dart';
 import 'package:persistence_drift/blob/drift_local_blob_store.dart';
 import 'package:persistence_drift/persistence_drift.dart';
@@ -17,12 +18,59 @@ final class DriftRecordBlobUnitOfWork implements RecordBlobUnitOfWork {
     required PersistenceDriftDatabase db,
     required String scopeUid,
     required DriftLocalBlobStore blobStore,
+    required OutboxStore outboxStore,
     RecordAdapterRegistry? adapterRegistry,
-    OutboxStore? outboxStore,
     Future<void> Function()? injectFailureAfterRecord,
     Future<void> Function()? injectFailureAfterBlobRefs,
     Future<void> Function()? injectFailureAfterOutbox,
     Future<void> Function()? injectFailureAfterSave,
+  }) : this._(
+         db: db,
+         scopeUid: scopeUid,
+         blobStore: blobStore,
+         adapterRegistry: adapterRegistry,
+         outboxStore: outboxStore,
+         injectFailureAfterRecord: injectFailureAfterRecord,
+         injectFailureAfterBlobRefs: injectFailureAfterBlobRefs,
+         injectFailureAfterOutbox: injectFailureAfterOutbox,
+         injectFailureAfterSave: injectFailureAfterSave,
+       );
+
+  /// Test-only constructor for isolated record/blob tests that intentionally
+  /// do not model sync outbox delivery. Production composition must use the
+  /// required [OutboxStore] constructor above.
+  @visibleForTesting
+  factory DriftRecordBlobUnitOfWork.testWithoutOutbox({
+    required PersistenceDriftDatabase db,
+    required String scopeUid,
+    required DriftLocalBlobStore blobStore,
+    RecordAdapterRegistry? adapterRegistry,
+    Future<void> Function()? injectFailureAfterRecord,
+    Future<void> Function()? injectFailureAfterBlobRefs,
+    Future<void> Function()? injectFailureAfterOutbox,
+    Future<void> Function()? injectFailureAfterSave,
+  }) => DriftRecordBlobUnitOfWork._(
+    db: db,
+    scopeUid: scopeUid,
+    blobStore: blobStore,
+    adapterRegistry: adapterRegistry,
+    outboxStore: null,
+    injectFailureAfterRecord: injectFailureAfterRecord,
+    injectFailureAfterBlobRefs: injectFailureAfterBlobRefs,
+    injectFailureAfterOutbox: injectFailureAfterOutbox,
+    injectFailureAfterSave: injectFailureAfterSave,
+  );
+
+  DriftRecordBlobUnitOfWork._({
+    required PersistenceDriftDatabase db,
+    required String scopeUid,
+    required DriftLocalBlobStore blobStore,
+    required RecordAdapterRegistry? adapterRegistry,
+    required OutboxStore? outboxStore,
+    required Future<void> Function()? injectFailureAfterRecord,
+    required Future<void> Function()? injectFailureAfterBlobRefs,
+    required Future<void> Function()? injectFailureAfterOutbox,
+    required Future<void> Function()? injectFailureAfterSave,
   }) : _db = db,
        _blobStore = blobStore,
        _recordDataSource = DriftRecordDataSource(db, scopeUid: scopeUid),
@@ -62,7 +110,7 @@ final class DriftRecordBlobUnitOfWork implements RecordBlobUnitOfWork {
         <SearchTag>[];
 
     // 1. Save record + search index
-    await _recordDataSource.saveRecord(record, effectiveTags);
+    await _recordDataSource.saveRecordDirect(record, effectiveTags);
     await _injectFailureAfterRecord?.call();
 
     // 2. Reconcile blob refs
@@ -105,7 +153,9 @@ final class DriftRecordBlobUnitOfWork implements RecordBlobUnitOfWork {
       final meta = await _recordDataSource.getRecord(recordUuid);
 
       // 1. Soft delete record
-      final deleted = await _recordDataSource.softDeleteRecord(recordUuid);
+      final deleted = await _recordDataSource.softDeleteRecordDirect(
+        recordUuid,
+      );
       await _injectFailureAfterRecord?.call();
 
       // 2. Release blob refs
@@ -143,7 +193,10 @@ final class DriftRecordBlobUnitOfWork implements RecordBlobUnitOfWork {
 
     return await _db.transaction(() async {
       // 1. Restore record + search index
-      final restored = await _recordDataSource.restoreRecord(record, tags);
+      final restored = await _recordDataSource.restoreRecordDirect(
+        record,
+        tags,
+      );
       if (!restored) return false;
       await _injectFailureAfterRecord?.call();
 

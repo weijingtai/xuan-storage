@@ -72,26 +72,32 @@ class DriftRecordDataSource {
     rev: row.rev,
   );
 
+  /// Writes a record and its search index rows without opening a transaction.
+  /// Callers composing a larger unit of work must invoke this from their
+  /// existing transaction.
+  Future<void> saveRecordDirect(RecordMeta record, List<SearchTag> tags) async {
+    await db.into(db.tRecordMeta).insertOnConflictUpdate(_companion(record));
+    await (db.delete(db.tRecordSearchIndex)..where(
+          (t) => t.recordUuid.equals(record.uuid) & t.scopeUid.equals(scopeUid),
+        ))
+        .go();
+    for (final t in tags) {
+      await db
+          .into(db.tRecordSearchIndex)
+          .insert(
+            TRecordSearchIndexCompanion(
+              recordUuid: Value(record.uuid),
+              scopeUid: Value(scopeUid),
+              module: Value(record.module),
+              indexKey: Value(t.key),
+              indexValue: Value(t.value),
+            ),
+          );
+    }
+  }
+
   Future<void> saveRecord(RecordMeta record, List<SearchTag> tags) {
-    return db.transaction(() async {
-      await db.into(db.tRecordMeta).insertOnConflictUpdate(_companion(record));
-      await (db.delete(
-        db.tRecordSearchIndex,
-      )..where((t) => t.recordUuid.equals(record.uuid))).go();
-      for (final t in tags) {
-        await db
-            .into(db.tRecordSearchIndex)
-            .insert(
-              TRecordSearchIndexCompanion(
-                recordUuid: Value(record.uuid),
-                scopeUid: Value(scopeUid),
-                module: Value(record.module),
-                indexKey: Value(t.key),
-                indexValue: Value(t.value),
-              ),
-            );
-      }
-    });
+    return db.transaction(() => saveRecordDirect(record, tags));
   }
 
   /// 供 RecordLocalApplier 使用：直接写入本地，不触发 outbox。
@@ -207,19 +213,22 @@ class DriftRecordDataSource {
     return (await q.get()).map(_toMeta).toList();
   }
 
+  Future<bool> softDeleteRecordDirect(String uuid) async {
+    final n =
+        await (db.update(db.tRecordMeta)
+              ..where((t) => t.uuid.equals(uuid) & t.scopeUid.equals(scopeUid)))
+            .write(
+              TRecordMetaCompanion(deletedAt: Value(DateTime.now().toUtc())),
+            );
+    await (db.delete(db.tRecordSearchIndex)..where(
+          (t) => t.recordUuid.equals(uuid) & t.scopeUid.equals(scopeUid),
+        ))
+        .go();
+    return n > 0;
+  }
+
   Future<bool> softDeleteRecord(String uuid) {
-    return db.transaction(() async {
-      final n =
-          await (db.update(db.tRecordMeta)..where(
-                (t) => t.uuid.equals(uuid) & t.scopeUid.equals(scopeUid),
-              ))
-              .write(TRecordMetaCompanion(deletedAt: Value(DateTime.now())));
-      await (db.delete(db.tRecordSearchIndex)..where(
-            (t) => t.recordUuid.equals(uuid) & t.scopeUid.equals(scopeUid),
-          ))
-          .go();
-      return n > 0;
-    });
+    return db.transaction(() => softDeleteRecordDirect(uuid));
   }
 
   /// Restore (un-soft-delete) a previously soft-deleted record.
@@ -227,34 +236,40 @@ class DriftRecordDataSource {
   /// Clears [deletedAt] and restores search index tags.
   /// Returns `true` if a record was restored, `false` if the uuid was not found
   /// or was already active (not soft-deleted).
-  Future<bool> restoreRecord(RecordMeta record, List<SearchTag> tags) {
-    return db.transaction(() async {
-      final existing =
-          await (db.select(db.tRecordMeta)..where(
-                (t) => t.uuid.equals(record.uuid) & t.scopeUid.equals(scopeUid),
-              ))
-              .getSingleOrNull();
-      if (existing == null || existing.deletedAt == null) return false;
+  Future<bool> restoreRecordDirect(
+    RecordMeta record,
+    List<SearchTag> tags,
+  ) async {
+    final existing =
+        await (db.select(db.tRecordMeta)..where(
+              (t) => t.uuid.equals(record.uuid) & t.scopeUid.equals(scopeUid),
+            ))
+            .getSingleOrNull();
+    if (existing == null || existing.deletedAt == null) return false;
 
-      await db.into(db.tRecordMeta).insertOnConflictUpdate(_companion(record));
-      await (db.delete(
-        db.tRecordSearchIndex,
-      )..where((t) => t.recordUuid.equals(record.uuid))).go();
-      for (final t in tags) {
-        await db
-            .into(db.tRecordSearchIndex)
-            .insert(
-              TRecordSearchIndexCompanion(
-                recordUuid: Value(record.uuid),
-                scopeUid: Value(scopeUid),
-                module: Value(record.module),
-                indexKey: Value(t.key),
-                indexValue: Value(t.value),
-              ),
-            );
-      }
-      return true;
-    });
+    await db.into(db.tRecordMeta).insertOnConflictUpdate(_companion(record));
+    await (db.delete(db.tRecordSearchIndex)..where(
+          (t) => t.recordUuid.equals(record.uuid) & t.scopeUid.equals(scopeUid),
+        ))
+        .go();
+    for (final t in tags) {
+      await db
+          .into(db.tRecordSearchIndex)
+          .insert(
+            TRecordSearchIndexCompanion(
+              recordUuid: Value(record.uuid),
+              scopeUid: Value(scopeUid),
+              module: Value(record.module),
+              indexKey: Value(t.key),
+              indexValue: Value(t.value),
+            ),
+          );
+    }
+    return true;
+  }
+
+  Future<bool> restoreRecord(RecordMeta record, List<SearchTag> tags) {
+    return db.transaction(() => restoreRecordDirect(record, tags));
   }
 
   Stream<List<RecordMeta>> watchRecords({
