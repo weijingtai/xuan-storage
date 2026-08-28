@@ -161,4 +161,23 @@ class RecordBackedLiuYaoRepository
   /// 按变卦 ID 查询记录。
   Future<List<SixYaoDivinationRecord>> getRecordsByChangedGua(int guaId) =>
       getAllByIndex('changed_gua_id', '$guaId', limit: 200);
+
+  // ── 遗留别名（旧调用方与既有测试的过渡层，M4 随适配层一并退场） ──
+
+  @override
+  Future<String> saveRecord(SixYaoDivinationRecord record) => save(record);
+
+  @override
+  Future<SixYaoDivinationRecord?> getRecordByUuid(String uuid) =>
+      getByUuid(uuid);
+
+  @override
+  Future<List<SixYaoDivinationRecord>> getAllRecords() => getAll();
+
+  @override
+  Future<bool> softDeleteRecord(String uuid) => softDeleteLegacy(uuid);
+
+  @override
+  Future<List<SixYaoDivinationRecord>> getLatestRecords({int limit = 10}) =>
+      getLatest(limit: limit);
 }
