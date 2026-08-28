@@ -110,6 +110,14 @@ abstract class BaseRecordBackedRepository<TContract> {
   }
 
   // ── delete ──
+  /// L0 [SoftDeletable] 切片软删。
+  Future<Result<void>> softDeleteSlice(
+    String id,
+    RequestContext ctx, {
+    Precondition pre = const Unconditional(),
+  }) =>
+      _l0.softDelete(id, ctx, pre: pre);
+
   /// 遗留软删（返回 bool）。与 L0 [SoftDeletable] 切片的
   /// `Future<Result<void>> softDelete(id, ctx)` 签名冲突，故更名让位；
   /// M4 随整体适配层一并退场。

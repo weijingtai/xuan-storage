@@ -1054,7 +1054,7 @@ INSERT INTO ephemeris_document ("file_name", "payload_json") VALUES ('yuan_shous
   "constellationSystemType": "古宿制",
   "panelSystemType": "恒星制",
   "epochCorrection": "元·授时历",
-  "totalDegree": 365.25,
+  "totalDegree": 360.0,
   "gongOrder": [
     "戌",
     "酉",

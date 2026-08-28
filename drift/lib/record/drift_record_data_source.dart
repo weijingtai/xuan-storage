@@ -175,6 +175,33 @@ class DriftRecordDataSource {
     });
   }
 
+  /// Restore (un-soft-delete) a previously soft-deleted record.
+  ///
+  /// Clears [deletedAt] and restores search index tags.
+  /// Returns `true` if a record was restored, `false` if the uuid was not found
+  /// or was already active (not soft-deleted).
+  Future<bool> restoreRecord(RecordMeta record, List<SearchTag> tags) {
+    return db.transaction(() async {
+      final existing = await (db.select(db.tRecordMeta)
+            ..where((t) => t.uuid.equals(record.uuid) & t.scopeUid.equals(scopeUid)))
+          .getSingleOrNull();
+      if (existing == null || existing.deletedAt == null) return false;
+
+      await db.into(db.tRecordMeta).insertOnConflictUpdate(_companion(record));
+      await (db.delete(db.tRecordSearchIndex)
+            ..where((t) => t.recordUuid.equals(record.uuid)))
+          .go();
+      for (final t in tags) {
+        await db.into(db.tRecordSearchIndex).insert(TRecordSearchIndexCompanion(
+              recordUuid: Value(record.uuid), scopeUid: Value(scopeUid),
+              module: Value(record.module), indexKey: Value(t.key),
+              indexValue: Value(t.value),
+            ));
+      }
+      return true;
+    });
+  }
+
   Stream<List<RecordMeta>> watchRecords({
     String? module, String? category,
     RecordSortBy sortBy = RecordSortBy.auto,

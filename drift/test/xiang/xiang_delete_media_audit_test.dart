@@ -14,11 +14,12 @@ import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_media/repository_interface_media.dart';
 import 'package:repository_interface_xiang/repository_interface_xiang.dart';
 
-RequestContext _ctx(String id) => RequestContext(scopeUid: id);
+const _testScopeUid = 'scope-t7';
+RequestContext _ctx([String scope = _testScopeUid]) => RequestContext(scopeUid: scope);
 
 /// Helper: put + unwrap
 Future<void> _save(XiangReadingRepository repo, XiangReading reading) async {
-  final ctx = _ctx(reading.uuid);
+  final ctx = _ctx();
   final r = await repo.put(reading, ctx);
   switch (r) {
     case Ok():
@@ -30,7 +31,7 @@ Future<void> _save(XiangReadingRepository repo, XiangReading reading) async {
 
 /// Helper: softDelete + unwrap
 Future<void> _softDeleteById(XiangReadingRepository repo, String uuid) async {
-  final r = await repo.softDelete(uuid, _ctx(uuid));
+  final r = await repo.softDelete(uuid, _ctx());
   switch (r) {
     case Ok():
       return;

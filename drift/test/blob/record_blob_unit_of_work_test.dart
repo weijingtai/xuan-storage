@@ -74,6 +74,9 @@ void main() {
         db: db,
         scopeUid: 'scope-a',
         blobStore: blobStore,
+        adapterRegistry: RecordAdapterRegistry([
+          MeiHuaRecordCodec(),
+        ]),
       );
       recordDs = DriftRecordDataSource(db, scopeUid: 'scope-a');
     });
@@ -121,10 +124,30 @@ void main() {
           .get();
       expect(refRows, isEmpty, reason: '软删后 blob ref 应释放');
     });
+
+  test('saveWithBlobs populates search index from codec', () async {
+    // RED：当前 saveWithBlobs 不提取搜索标签到 t_record_search_index。
+    // findByIndex 应返回空列表（RED 失败）。
+    final handle = _makeHandle('manifest-idx');
+    await uow.saveWithBlobs(
+      record: _makeRecord('rec-idx'),
+      referencedBlobs: {handle},
+    );
+
+    final results = await recordDs.findByIndex(
+      module: 'meihua',
+      indexKey: 'divination_uuid',
+      indexValue: 'null',
+      limit: 10,
+    );
+    // RED：当前未填充搜索索引，期望 0 条结果。
+    expect(results, isNotEmpty,
+        reason: 'RED：saveWithBlobs 未提取搜索标签到 t_record_search_index；修复后 findByIndex 应返回 rec-idx');
+  });
   });
 
   group('InMemoryRecordBlobUnitOfWork', () {
-    test('save and delete follow same contract', () async {
+    test('save, delete, and restore follow same contract', () async {
       final uow = support.InMemoryRecordBlobUnitOfWork();
       final handle = _makeHandle('manifest-1');
 
@@ -134,12 +157,21 @@ void main() {
       );
 
       expect(uow.records, hasLength(1));
+      expect(uow.records['rec-1']!.deletedAt, isNull);
       expect(uow.refs, hasLength(1));
       expect(uow.refs['rec-1'], contains(handle));
 
       await uow.deleteWithBlobs('rec-1');
-      expect(uow.records, isEmpty);
-      expect(uow.refs, isEmpty);
+      expect(uow.records['rec-1']!.deletedAt, isNotNull);
+      expect(uow.refs['rec-1'], isNull);
+
+      final restored = await uow.restoreWithBlobs(
+        record: _makeRecord('rec-1').copyWith(deletedAt: null),
+        referencedBlobs: {handle},
+      );
+      expect(restored, isTrue);
+      expect(uow.records['rec-1']!.deletedAt, isNull);
+      expect(uow.refs['rec-1'], contains(handle));
     });
   });
 

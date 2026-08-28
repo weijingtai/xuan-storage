@@ -1,4 +1,3 @@
-import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_account/repository_interface_account.dart';
 import 'scope_handover.dart';
 import 'scope_ledger.dart';
@@ -48,12 +47,8 @@ class ScopeResolver {
   ///
   /// 绝不返回空字符串。任何异常路径都抛出而非静默返回空值。
   Future<ResolvedScope> resolve() async {
-    final ctx = RequestContext(scopeUid: 'local-anonymous');
-    final sessionResult = await _sessionRepository.get("current", ctx);
-    final session = switch (sessionResult) {
-      Ok(:final value) => value,
-      Err() => null,
-    };
+    // 旧版 AccountSessionRepository 使用 getCurrentSession() 而非 get(id, ctx)
+    final session = await _sessionRepository.getCurrentSession();
 
     // 1. 无 session (登出 / 尚未登录) → 返回 device scope
     if (session == null) {
@@ -144,27 +139,20 @@ class ScopeResolver {
     String appUserId,
     List<ScopeAliasEntry> deviceEntries,
   ) async {
-    final ctx = RequestContext(scopeUid: 'local-anonymous');
     for (final entry in deviceEntries) {
       if (entry.authKind == ScopeAuthKind.anonymous) {
-        final linkResult = await _identityLinkRepository
-            .get(entry.authId, ctx);
-        final link = switch (linkResult) {
-          Ok(:final value) => value,
-          Err() => null,
-        };
+        // 旧版 API: getByAnonymousUserId 返回 Future<AccountIdentityLink?>
+        final link = await _identityLinkRepository
+            .getByAnonymousUserId(AccountUserId(entry.authId));
         if (link != null &&
             link.registeredAppUserId.value == appUserId) {
           return true;
         }
       }
       if (entry.authKind == ScopeAuthKind.registered) {
-        final linkResult = await _identityLinkRepository
-            .get(entry.authId, ctx);
-        final link = switch (linkResult) {
-          Ok(:final value) => value,
-          Err() => null,
-        };
+        // 旧版 API: getByRegisteredUserId 返回 Future<AccountIdentityLink?>
+        final link = await _identityLinkRepository
+            .getByRegisteredUserId(AccountUserId(entry.authId));
         if (link != null &&
             link.anonymousAppUserId.value == appUserId) {
           return true;

@@ -50,23 +50,18 @@ void main() {
     addTearDown(db.close);
     final repo = _build(db);
     for (var i = 0; i < 1001; i++) {
-      await repo.put(_rec(), ctx);
+      await repo.saveRecord(_rec(uuid: 'm-$i'));
     }
-    final result = await repo.query(const {}, PageRequest(limit: 2000), ctx);
-    switch (result) {
-      case Ok(:final value):
-        expect(value.items.length, 1001);
-      case Err(:final error):
-        fail('unexpected error: $error');
-    }
+    final all = await repo.getAllRecords();
+    expect(all.length, 1001);
   });
 
   test('soft delete hides record', () async {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repo = _build(db);
-    await repo.put(_rec(), ctx);
-    await repo.softDelete('', ctx);
+    await repo.put(_rec(uuid: 'del-meihua-1'), ctx);
+    await repo.softDelete('del-meihua-1', ctx);
     final result = await repo.query(const {}, PageRequest(limit: 1000), ctx);
     switch (result) {
       case Ok(:final value):

@@ -15,7 +15,7 @@ RecordBackedMeiHuaRepository _repo(PersistenceDriftDatabase db) {
 void main() {
   group('record e2e', () {
     late PersistenceDriftDatabase db;
-    late MeiHuaDivinationRecordRepository repo;
+    late RecordBackedMeiHuaRepository repo;
 
     setUp(() {
       db = _db();
