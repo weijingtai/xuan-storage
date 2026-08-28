@@ -37,7 +37,11 @@ class LocalRecordRepository implements ScopedRecordStore {
   }
 
   @override
-  Future<RecordMeta?> getRecord(String uuid, {required String module}) => _ds.getRecord(uuid);
+  Future<RecordMeta?> getRecord(String uuid, {required String module}) async {
+    final record = await _ds.getRecord(uuid);
+    if (record == null || record.module != module) return null;
+    return record;
+  }
 
   @override
   Future<List<RecordMeta>> listRecords({
@@ -56,8 +60,11 @@ class LocalRecordRepository implements ScopedRecordStore {
   Future<bool> softDeleteRecord(String uuid, {required String module}) async {
     return _ds.db.transaction(() async {
       final meta = await _ds.getRecord(uuid);
+      if (meta == null || meta.module != module) {
+        return false;
+      }
       final deleted = await _ds.softDeleteRecord(uuid);
-      if (deleted && meta != null) {
+      if (deleted) {
         final outbox = _outbox;
         if (outbox != null) {
           final outboxRecord = RecordOutboxMapper.toOutboxRecord(

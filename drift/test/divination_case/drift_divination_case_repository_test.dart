@@ -122,4 +122,93 @@ void main() {
     final list = await repository.listRecordsForCase('case-1');
     expect(list.map((r) => r.uuid), contains('rec-1'));
   });
+
+  test('Double Scope Isolation: Scope B cannot read Scope A data', () async {
+    // 1. Create and save entities in scope-a
+    final caseModel = DivinationCaseModel(
+      uuid: 'case-iso-1',
+      title: 'Scope A Case',
+      mainQuestion: 'Question A',
+      status: DivinationCaseStatus.inProgress,
+      createdAt: DateTime.utc(2026, 6, 6, 12, 0, 0),
+      updatedAt: DateTime.utc(2026, 6, 6, 12, 30, 0),
+    );
+    await repository.saveCase(caseModel);
+
+    final workItem = DivinationWorkItemModel(
+      uuid: 'item-iso-1',
+      caseUuid: 'case-iso-1',
+      parentWorkItemUuid: null,
+      title: 'Work Item Scope A',
+      purpose: 'Verification',
+      methodGroup: DivinationMethodGroup.verification,
+      order: 1,
+      status: DivinationWorkItemStatus.planned,
+    );
+    await repository.saveWorkItem(workItem);
+
+    final record = DivinationRecordModel(
+      uuid: 'rec-iso-1',
+      caseUuid: 'case-iso-1',
+      question: 'Question A',
+      order: 0,
+      createdAt: DateTime.utc(2026, 6, 6, 12, 0, 0),
+    );
+    await repository.saveRecord(record);
+
+    final participant = DivinationParticipantModel(
+      uuid: 'part-iso-1',
+      caseUuid: 'case-iso-1',
+      name: 'Alice',
+      role: DivinationParticipantRole.primarySeeker,
+    );
+    await repository.saveParticipant(participant);
+
+    final panelRef = PanelRefModel(
+      uuid: 'panel-iso-1',
+      module: 'qimendunjia',
+      panelUuid: 'uuid-iso-123',
+      panelType: 'hour',
+      role: PanelRefRole.main,
+      title: 'Main Panel',
+    );
+    await repository.savePanelRef(panelRef);
+
+    final workItemPanelRef = WorkItemPanelRefModel(
+      uuid: 'wipr-iso-1',
+      workItemUuid: 'item-iso-1',
+      panelRefUuid: 'panel-iso-1',
+      role: PanelRefRole.main,
+      order: 1,
+    );
+    await repository.attachPanelRefToWorkItem(workItemPanelRef);
+
+    // Verify scope-a can read all of them
+    expect(await repository.getCase('case-iso-1'), isNotNull);
+    expect(await repository.getWorkItem('item-iso-1'), isNotNull);
+    expect(await repository.getRecord('rec-iso-1'), isNotNull);
+    expect((await repository.listParticipantsForCase('case-iso-1')).length, 1);
+    expect(await repository.getPanelRef('panel-iso-1'), isNotNull);
+    expect((await repository.listPanelRefsForWorkItem('item-iso-1')).length, 1);
+
+    // 2. Initialize Scope B repository on the same database
+    final dsB = DriftRecordDataSource(db, scopeUid: 'scope-b');
+    final repoB = DriftDivinationCaseRepository(db,
+        store: LocalRecordRepository(dsB, RecordAdapterRegistry([])));
+
+    // 3. Assert Scope B CANNOT read any of Scope A data
+    expect(await repoB.getCase('case-iso-1'), isNull);
+    expect((await repoB.listCases()).where((c) => c.uuid == 'case-iso-1'), isEmpty);
+
+    expect(await repoB.getWorkItem('item-iso-1'), isNull);
+    expect(await repoB.listWorkItemsForCase('case-iso-1'), isEmpty);
+
+    expect(await repoB.getRecord('rec-iso-1'), isNull);
+    expect(await repoB.listRecordsForCase('case-iso-1'), isEmpty);
+
+    expect(await repoB.listParticipantsForCase('case-iso-1'), isEmpty);
+
+    expect(await repoB.getPanelRef('panel-iso-1'), isNull);
+    expect(await repoB.listPanelRefsForWorkItem('item-iso-1'), isEmpty);
+  });
 }

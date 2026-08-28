@@ -52,7 +52,9 @@ class ScopeResolver {
     final sessionResult = await _sessionRepository.get('current', ctx);
     final session = switch (sessionResult) {
       Ok(:final value) => value,
-      Err() => null,
+      Err(:final error) => throw StateError(
+          'ScopeResolver: session retrieval failed: $error',
+        ),
     };
 
     // 1. 无 session (登出 / 尚未登录) → 返回 device scope

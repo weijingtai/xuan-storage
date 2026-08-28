@@ -22,14 +22,15 @@ class DriftDivinationCaseRepository
   @override
   Future<DivinationCaseModel?> getCase(String uuid) async {
     final query = db.select(db.divinationCases)
-      ..where((t) => t.uuid.equals(uuid));
+      ..where((t) => t.uuid.equals(uuid) & t.scopeUid.equals(_store.scopeUid));
     final row = await query.getSingleOrNull();
     return row == null ? null : _caseFromRow(row);
   }
 
   @override
   Future<List<DivinationCaseModel>> listCases({bool includeDeleted = false}) async {
-    final query = db.select(db.divinationCases);
+    final query = db.select(db.divinationCases)
+      ..where((t) => t.scopeUid.equals(_store.scopeUid));
     if (!includeDeleted) {
       query.where((t) => t.deletedAt.isNull());
     }
@@ -76,7 +77,10 @@ class DriftDivinationCaseRepository
   @override
   Future<List<DivinationRecordModel>> listRecordsForCase(String caseUuid) async {
     final query = db.select(db.tRecordMeta)
-      ..where((t) => t.caseUuid.equals(caseUuid) & t.deletedAt.isNull());
+      ..where((t) =>
+          t.caseUuid.equals(caseUuid) &
+          t.scopeUid.equals(_store.scopeUid) &
+          t.deletedAt.isNull());
     final rows = await query.get();
     return rows.map(_recordFromRow).toList();
   }
@@ -84,7 +88,7 @@ class DriftDivinationCaseRepository
   @override
   Future<DivinationRecordModel?> getRecord(String uuid) async {
     final query = db.select(db.tRecordMeta)
-      ..where((t) => t.uuid.equals(uuid));
+      ..where((t) => t.uuid.equals(uuid) & t.scopeUid.equals(_store.scopeUid));
     final row = await query.getSingleOrNull();
     return row == null ? null : _recordFromRow(row);
   }
@@ -92,10 +96,16 @@ class DriftDivinationCaseRepository
   @override
   Future<void> saveRecord(DivinationRecordModel model) async {
     final existing = await (db.select(db.tRecordMeta)
-          ..where((t) => t.uuid.equals(model.uuid)))
+          ..where((t) =>
+              t.uuid.equals(model.uuid) &
+              t.scopeUid.equals(_store.scopeUid)))
         .getSingleOrNull();
     if (existing != null) {
-      await (db.update(db.tRecordMeta)..where((t) => t.uuid.equals(model.uuid))).write(
+      await (db.update(db.tRecordMeta)
+            ..where((t) =>
+                t.uuid.equals(model.uuid) &
+                t.scopeUid.equals(_store.scopeUid)))
+          .write(
         TRecordMetaCompanion(
           caseUuid: Value(model.caseUuid),
           question: Value(model.question),
@@ -143,7 +153,9 @@ class DriftDivinationCaseRepository
   @override
   Future<List<DivinationWorkItemModel>> listWorkItemsForCase(String caseUuid) async {
     final query = db.select(db.divinationWorkItems)
-      ..where((t) => t.caseUuid.equals(caseUuid));
+      ..where((t) =>
+          t.caseUuid.equals(caseUuid) &
+          t.scopeUid.equals(_store.scopeUid));
     final rows = await query.get();
     return rows.map(_workItemFromRow).toList();
   }
@@ -151,7 +163,7 @@ class DriftDivinationCaseRepository
   @override
   Future<DivinationWorkItemModel?> getWorkItem(String uuid) async {
     final query = db.select(db.divinationWorkItems)
-      ..where((t) => t.uuid.equals(uuid));
+      ..where((t) => t.uuid.equals(uuid) & t.scopeUid.equals(_store.scopeUid));
     final row = await query.getSingleOrNull();
     return row == null ? null : _workItemFromRow(row);
   }
@@ -197,7 +209,9 @@ class DriftDivinationCaseRepository
   @override
   Future<List<DivinationParticipantModel>> listParticipantsForCase(String caseUuid) async {
     final query = db.select(db.caseParticipants)
-      ..where((t) => t.caseUuid.equals(caseUuid));
+      ..where((t) =>
+          t.caseUuid.equals(caseUuid) &
+          t.scopeUid.equals(_store.scopeUid));
     final rows = await query.get();
     return rows.map(_participantFromRow).toList();
   }
@@ -243,7 +257,7 @@ class DriftDivinationCaseRepository
   @override
   Future<PanelRefModel?> getPanelRef(String uuid) async {
     final query = db.select(db.panelRefs)
-      ..where((t) => t.uuid.equals(uuid));
+      ..where((t) => t.uuid.equals(uuid) & t.scopeUid.equals(_store.scopeUid));
     final row = await query.getSingleOrNull();
     return row == null ? null : _panelRefFromRow(row);
   }
@@ -256,7 +270,9 @@ class DriftDivinationCaseRepository
   @override
   Future<List<WorkItemPanelRefModel>> listPanelRefsForWorkItem(String workItemUuid) async {
     final query = db.select(db.workItemPanelRefs)
-      ..where((t) => t.workItemUuid.equals(workItemUuid));
+      ..where((t) =>
+          t.workItemUuid.equals(workItemUuid) &
+          t.scopeUid.equals(_store.scopeUid));
     final rows = await query.get();
     return rows.map(_workItemPanelRefFromRow).toList();
   }

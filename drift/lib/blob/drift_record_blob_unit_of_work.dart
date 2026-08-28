@@ -41,43 +41,58 @@ final class DriftRecordBlobUnitOfWork implements RecordBlobUnitOfWork {
   final Future<void> Function()? _injectFailureAfterBlobRefs;
   final Future<void> Function()? _injectFailureAfterOutbox;
 
+  /// 直接在调用方当前事务中执行 Record + Blob 引用 + Outbox 写入。
+  Future<void> saveWithBlobsDirect({
+    required RecordMeta record,
+    required Set<BlobHandle> referencedBlobs,
+    Map<String, dynamic>? moduleData,
+    List<SearchTag>? tags,
+  }) async {
+    final effectiveModuleData = moduleData ??
+        (record.moduleDataJson != null
+            ? jsonDecode(record.moduleDataJson!) as Map<String, dynamic>
+            : null);
+    final effectiveTags = tags ??
+        _adapterRegistry
+            ?.forModule(record.module)
+            ?.extractSearchTags(record, effectiveModuleData) ??
+        <SearchTag>[];
+
+    // 1. Save record + search index
+    await _recordDataSource.saveRecord(record, effectiveTags);
+    await _injectFailureAfterRecord?.call();
+
+    // 2. Reconcile blob refs
+    await _blobStore.reconcileRefs(
+      ownerRecordUuid: record.uuid,
+      handles: referencedBlobs,
+    );
+    await _injectFailureAfterBlobRefs?.call();
+
+    // 3. Enqueue outbox
+    final outbox = _outboxStore;
+    if (outbox != null) {
+      final outboxRecord = RecordOutboxMapper.toOutboxRecord(
+        meta: record,
+        moduleData: effectiveModuleData,
+        tags: effectiveTags,
+        opType: RecordOutboxMapper.opUpsert,
+      );
+      await outbox.enqueue(outboxRecord);
+    }
+    await _injectFailureAfterOutbox?.call();
+  }
+
   @override
   Future<void> saveWithBlobs({
     required RecordMeta record,
     required Set<BlobHandle> referencedBlobs,
   }) async {
-    final moduleData = record.moduleDataJson != null
-        ? jsonDecode(record.moduleDataJson!) as Map<String, dynamic>
-        : null;
-    final tags = _adapterRegistry
-            ?.forModule(record.module)
-            ?.extractSearchTags(record, moduleData) ??
-        <SearchTag>[];
-
     await _db.transaction(() async {
-      // 1. Save record + search index
-      await _recordDataSource.saveRecord(record, tags);
-      await _injectFailureAfterRecord?.call();
-
-      // 2. Reconcile blob refs
-      await _blobStore.reconcileRefs(
-        ownerRecordUuid: record.uuid,
-        handles: referencedBlobs,
+      await saveWithBlobsDirect(
+        record: record,
+        referencedBlobs: referencedBlobs,
       );
-      await _injectFailureAfterBlobRefs?.call();
-
-      // 3. Enqueue outbox
-      final outbox = _outboxStore;
-      if (outbox != null) {
-        final outboxRecord = RecordOutboxMapper.toOutboxRecord(
-          meta: record,
-          moduleData: moduleData,
-          tags: tags,
-          opType: RecordOutboxMapper.opUpsert,
-        );
-        await outbox.enqueue(outboxRecord);
-      }
-      await _injectFailureAfterOutbox?.call();
     });
   }
 

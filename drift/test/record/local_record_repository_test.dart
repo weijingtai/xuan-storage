@@ -42,7 +42,7 @@ void main() {
     expect(result, isNull);
   });
 
-  test('getRecord returns record even when module param does not match stored module', () async {
+  test('getRecord returns null when module param does not match stored module', () async {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final ds = DriftRecordDataSource(db, scopeUid: 's1');
@@ -52,11 +52,37 @@ void main() {
       uuid: 'b', scopeUid: 's1', module: 'meihua', category: 'divination',
       divinationType: 'mei_hua', createdAt: DateTime.utc(2026)));
 
-    // module 参数不匹配但 uuid 存在 → 仍返回记录（当前实现忽略 module）
-    final result = await repo.getRecord('b', module: 'nonexistent_module');
-    expect(result, isNotNull);
-    expect(result!.uuid, 'b');
-    expect(result.module, 'meihua');
+    // 保存 meihua 记录后，用 liuyao 查询返回 null
+    final resultLiuyao = await repo.getRecord('b', module: 'liuyao');
+    expect(resultLiuyao, isNull);
+
+    // 用 meihua 查询返回原记录
+    final resultMeihua = await repo.getRecord('b', module: 'meihua');
+    expect(resultMeihua, isNotNull);
+    expect(resultMeihua!.uuid, 'b');
+    expect(resultMeihua.module, 'meihua');
+  });
+
+  test('softDeleteRecord returns false when module param does not match stored module', () async {
+    final db = PersistenceDriftDatabase(NativeDatabase.memory());
+    addTearDown(db.close);
+    final ds = DriftRecordDataSource(db, scopeUid: 's1');
+    final repo = LocalRecordRepository(ds, RecordAdapterRegistry([_TagAdapter()]));
+
+    await repo.saveRecord(RecordMeta(
+      uuid: 'd', scopeUid: 's1', module: 'meihua', category: 'divination',
+      divinationType: 'mei_hua', createdAt: DateTime.utc(2026)));
+
+    // 用不匹配的 module 软删应返回 false
+    final deletedMismatched = await repo.softDeleteRecord('d', module: 'liuyao');
+    expect(deletedMismatched, isFalse);
+
+    // 记录仍然存活
+    expect(await repo.getRecord('d', module: 'meihua'), isNotNull);
+
+    // 用匹配的 module 软删应返回 true
+    final deletedMatched = await repo.softDeleteRecord('d', module: 'meihua');
+    expect(deletedMatched, isTrue);
   });
 
   test('getRecord returns record for valid uuid with matching module', () async {
