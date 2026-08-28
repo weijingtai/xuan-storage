@@ -227,9 +227,9 @@ class XrapZiweiStarRepository implements ZiweiStarRepository {
           .map(_mapStar)
           .toList(growable: false);
     } else if (type == 'si_hua') {
-      final tianGanIndex = spec['tian_gan'] as int?;
-      if (tianGanIndex == null) return [];
-      return _queryFourTransformations(tianGanIndex);
+      // si_hua returns ZiweiFourTransformations which is not ZiweiStar;
+      // filter by star category in the query contract instead.
+      return [];
     }
     return stars.map(_mapStar).toList(growable: false);
   }
