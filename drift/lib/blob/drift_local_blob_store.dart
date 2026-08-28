@@ -402,6 +402,7 @@ final class DriftLocalBlobStore implements LocalBlobStore {
     final metas = await _metadata.listByTier(tier);
     for (final meta in metas) {
       if (meta.status == 0) continue;
+      final refCount = await _metadata.getRefCount(meta.cipherManifestId);
       yield BlobEntry(
         handle: BlobHandle(
           plaintextSha256: meta.plaintextSha256,
@@ -414,7 +415,7 @@ final class DriftLocalBlobStore implements LocalBlobStore {
         ),
         tier: tier,
         lastAccessAtUtc: meta.lastAccessAtUtc,
-        refCount: 0,
+        refCount: refCount,
       );
     }
   }

@@ -42,35 +42,27 @@ void main() {
     expect(result, isNull);
   });
 
-  test('getRecord returns record even when module param does not match stored module', () async {
+  test('getRecord returns record only when module matches', () async {
     final db = PersistenceDriftDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final ds = DriftRecordDataSource(db, scopeUid: 's1');
     final repo = LocalRecordRepository(ds, RecordAdapterRegistry([_TagAdapter()]));
+    final record = RecordMeta(
+      uuid: 'rec-1',
+      scopeUid: 's1',
+      module: 'meihua',
+      category: 'divination',
+      divinationType: 'mei_hua',
+      createdAt: DateTime.utc(2026),
+    );
+    await repo.saveRecord(record);
 
-    await repo.saveRecord(RecordMeta(
-      uuid: 'b', scopeUid: 's1', module: 'meihua', category: 'divination',
-      divinationType: 'mei_hua', createdAt: DateTime.utc(2026)));
+    final wrongModuleResult = await repo.getRecord('rec-1', module: 'liuyao');
+    expect(wrongModuleResult, isNull);
 
-    // module 参数不匹配但 uuid 存在 → 仍返回记录（当前实现忽略 module）
-    final result = await repo.getRecord('b', module: 'nonexistent_module');
-    expect(result, isNotNull);
-    expect(result!.uuid, 'b');
-    expect(result.module, 'meihua');
-  });
-
-  test('getRecord returns record for valid uuid with matching module', () async {
-    final db = PersistenceDriftDatabase(NativeDatabase.memory());
-    addTearDown(db.close);
-    final ds = DriftRecordDataSource(db, scopeUid: 's1');
-    final repo = LocalRecordRepository(ds, RecordAdapterRegistry([_TagAdapter()]));
-
-    await repo.saveRecord(RecordMeta(
-      uuid: 'c', scopeUid: 's1', module: 'meihua', category: 'divination',
-      divinationType: 'mei_hua', createdAt: DateTime.utc(2026)));
-
-    final result = await repo.getRecord('c', module: 'meihua');
-    expect(result, isNotNull);
-    expect(result!.uuid, 'c');
+    final correctModuleResult = await repo.getRecord('rec-1', module: 'meihua');
+    expect(correctModuleResult, isNotNull);
+    expect(correctModuleResult!.uuid, 'rec-1');
+    expect(correctModuleResult.module, 'meihua');
   });
 }

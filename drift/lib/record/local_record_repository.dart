@@ -37,7 +37,13 @@ class LocalRecordRepository implements ScopedRecordStore {
   }
 
   @override
-  Future<RecordMeta?> getRecord(String uuid, {required String module}) => _ds.getRecord(uuid);
+  Future<RecordMeta?> getRecord(String uuid, {required String module}) async {
+    final record = await _ds.getRecord(uuid);
+    if (record == null || record.module != module) {
+      return null;
+    }
+    return record;
+  }
 
   @override
   Future<List<RecordMeta>> listRecords({

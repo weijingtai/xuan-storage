@@ -17,18 +17,11 @@ class DriftMediaAcquisitionAdapter implements MediaAcquisitionPort {
   final MediaSourcePicker picker;
   final BlobTier _tier;
 
-  /// 采集即就绪的引用登记（供 [resolveReadiness] 使用）。
-  final Map<String, MediaReadiness> _readiness = {};
-
   DriftMediaAcquisitionAdapter({
     required this.blobStore,
     required this.picker,
     BlobTier tier = BlobTier.sourceOfTruth,
   }) : _tier = tier;
-
-  /// 按 refId 解析就绪状态；采集过的引用视为 ready。
-  MediaReadiness resolveReadiness(String refId) =>
-      _readiness[refId] ?? MediaReadiness.unavailable;
 
   @override
   Future<MediaAcquisitionResult> acquireImage({
@@ -84,7 +77,6 @@ class DriftMediaAcquisitionAdapter implements MediaAcquisitionPort {
       durationMs: source.durationMs,
       createdAtUtc: DateTime.now().toUtc(),
     );
-    _readiness[reference.refId] = MediaReadiness.ready;
     return MediaAcquisitionResult(
       reference: reference,
       descriptor: MediaDescriptor(

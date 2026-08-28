@@ -107,6 +107,33 @@ final class BlobMetadataRepository {
     return rows.isEmpty ? null : rows.single;
   }
 
+  /// Returns the number of active references pointing to [cipherManifestId].
+  Future<int> getRefCount(String cipherManifestId) async {
+    final result = await _db.customSelect(
+      'SELECT COUNT(*) AS cnt FROM t_blob_ref '
+      'WHERE cipher_manifest_id = ?',
+      variables: [Variable.withString(cipherManifestId)],
+    ).get();
+    return result.isEmpty ? 0 : result.single.read<int>('cnt');
+  }
+
+  /// Resolves an existing handle by [cipherManifestId] constrained to [scopeUid].
+  ///
+  /// Returns `null` if the blob metadata does not exist under the current scope.
+  Future<BlobHandle?> getHandle(String cipherManifestId) async {
+    final meta = await getMeta(cipherManifestId);
+    if (meta == null) return null;
+    return BlobHandle(
+      plaintextSha256: meta.plaintextSha256,
+      cipherManifestId: meta.cipherManifestId,
+      cipherId: meta.cipherId,
+      keyVersion: meta.keyVersion,
+      totalBytes: meta.totalBytes,
+      chunkCount: meta.chunkCount,
+      mimeType: meta.mimeType,
+    );
+  }
+
   Future<List<BlobMetaRow>> listByTier(BlobTier tier) async {
     return (_db.select(_db.blobMetas)
           ..where((t) =>
