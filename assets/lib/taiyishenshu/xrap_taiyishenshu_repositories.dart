@@ -14,7 +14,7 @@ library;
 
 import 'dart:convert';
 
-import 'package:persistence_core/persistence_core.dart' hide StorageError;
+import 'package:persistence_core/persistence_core.dart' hide StorageError, XuanError;
 import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_taiyishenshu/repository_interface_taiyishenshu.dart';
 
@@ -124,6 +124,15 @@ class XrapTaiyiSchoolRepository implements SchoolRepository {
   @override
   Future<Result<void>> delete(String id, RequestContext ctx, {Precondition pre = const Unconditional()}) =>
       throw UnsupportedError('Official repository is read-only');
+
+  @override
+  Future<Result<R>> inTransaction<R>(Future<R> Function() body) async {
+    try {
+      return Ok(await body());
+    } catch (e) {
+      return Err(XuanError(code: ErrorCode.internal, message: '$e'));
+    }
+  }
 }
 
 /// XRAP 版太乙命卦配置 Repository（taiyi.minggua，人类裁定迁入）。
@@ -190,4 +199,13 @@ class XrapTaiyiMingGuaRepository implements MingGuaRepository {
   @override
   Future<Result<void>> delete(String id, RequestContext ctx, {Precondition pre = const Unconditional()}) =>
       throw UnsupportedError('Official configs are read-only');
+
+  @override
+  Future<Result<R>> inTransaction<R>(Future<R> Function() body) async {
+    try {
+      return Ok(await body());
+    } catch (e) {
+      return Err(XuanError(code: ErrorCode.internal, message: '$e'));
+    }
+  }
 }

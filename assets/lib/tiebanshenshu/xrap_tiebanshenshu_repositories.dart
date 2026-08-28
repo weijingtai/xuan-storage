@@ -15,6 +15,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:metaphysics_core/enums.dart';
 import 'package:persistence_core/persistence_core.dart' hide StorageError;
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_tiebanshenshu/repository_interface_tiebanshenshu.dart';
 
 import 'drift/tiebanshenshu_database.dart';
@@ -370,6 +371,63 @@ class XrapTiaoWenRepository implements TiaoWenRepository {
           ..where((t) => t.id.isIn(ids)))
         .get();
     return {for (final r in rows) r.id: _toModel(r)};
+  }
+
+  @override
+  Future<Result<TiaoWenDataModel?>> get(int id, RequestContext ctx) async {
+    try {
+      await _ensure.ensure();
+      final row = await (db.select(db.tiaoWenEntries)
+            ..where((t) => t.id.equals(id)))
+          .getSingleOrNull();
+      return Ok(row != null ? _toModel(row) : null);
+    } catch (_) {
+      return const Ok(null);
+    }
+  }
+
+  @override
+  Future<Result<bool>> exists(int id, RequestContext ctx) async {
+    final result = await get(id, ctx);
+    return result.map((v) => v != null);
+  }
+
+  @override
+  Future<Result<Page<TiaoWenDataModel>>> query(
+    Map<String, Object?> spec,
+    PageRequest page,
+    RequestContext ctx,
+  ) async {
+    try {
+      await _ensure.ensure();
+      final query = db.select(db.tiaoWenEntries);
+      final setName = spec['setName'] as String?;
+      if (setName != null) {
+        query.where((t) => t.setName.equals(setName));
+      }
+      final contentKeyword = spec['contentKeyword'] as String?;
+      if (contentKeyword != null && contentKeyword.isNotEmpty) {
+        query.where((t) => t.content1.like('%$contentKeyword%'));
+      }
+      final rows = await query.get();
+      final items = rows.map((r) => _toModel(r)).toList();
+      final paged = items.take(page.limit).toList();
+      return Ok(Page(
+        items: paged,
+        nextCursor: paged.length < items.length ? 'cursor' : null,
+      ));
+    } catch (_) {
+      return const Ok(Page(items: []));
+    }
+  }
+
+  @override
+  Future<Result<int>> count(
+    Map<String, Object?> spec,
+    RequestContext ctx,
+  ) async {
+    final result = await query(spec, PageRequest(limit: 100000), ctx);
+    return result.map((page) => page.items.length);
   }
 }
 

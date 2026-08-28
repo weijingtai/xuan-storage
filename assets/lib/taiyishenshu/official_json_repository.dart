@@ -70,15 +70,39 @@ class OfficialJsonSchoolRepository implements SchoolRepository {
 
 
   @override
-  Future<List<TaiYiSchoolContract>> query([Map<String, Object?>? criteria]) async {
+  Future<Result<Page<TaiYiSchoolContract>>> query(
+    Map<String, Object?> spec,
+    PageRequest page,
+    RequestContext ctx,
+  ) async {
     await _ensureLoaded();
-    return _schools.values.map((s) => s.toContract()).toList();
+    final items = _schools.values.map((s) => s.toContract()).toList();
+    final paged = items.take(page.limit).toList();
+    return Ok(Page(
+      items: paged,
+      nextCursor: paged.length < items.length ? 'cursor' : null,
+    ));
   }
 
   @override
-  Future<TaiYiSchoolContract?> get(String id) async {
+  Future<Result<TaiYiSchoolContract?>> get(String id, RequestContext ctx) async {
     await _ensureLoaded();
-    return _schools[id]?.toContract();
+    return Ok(_schools[id]?.toContract());
+  }
+
+  @override
+  Future<Result<bool>> exists(String id, RequestContext ctx) async {
+    await _ensureLoaded();
+    return Ok(_schools.containsKey(id));
+  }
+
+  @override
+  Future<Result<int>> count(
+    Map<String, Object?> spec,
+    RequestContext ctx,
+  ) async {
+    await _ensureLoaded();
+    return Ok(_schools.length);
   }
 
   @override
@@ -102,4 +126,13 @@ class OfficialJsonSchoolRepository implements SchoolRepository {
   @override
   Future<Result<void>> delete(String id, RequestContext ctx, {Precondition pre = const Unconditional()}) =>
       throw UnsupportedError('Official repository is read-only');
+
+  @override
+  Future<Result<R>> inTransaction<R>(Future<R> Function() body) async {
+    try {
+      return Ok(await body());
+    } catch (e) {
+      return Err(XuanError(code: ErrorCode.internal, message: '$e'));
+    }
+  }
 }

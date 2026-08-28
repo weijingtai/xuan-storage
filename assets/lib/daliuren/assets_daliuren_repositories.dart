@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_daliuren/repository_interface_daliuren.dart';
 
 /// ⚠️ 旧实现（deprecated）：直接 rootBundle 直读 asset JSON，不走 XRAP。
@@ -16,31 +17,63 @@ class AssetsDaLiuRenOfficialDataRepository
   static const String _prefix = 'packages/daliuren/assets/da_liu_ren/';
 
   @override
-  Future<dynamic> get(String id) async {
-    switch (id) {
-      case 'yuding':
-        final raw = await rootBundle.loadString('${_prefix}御定大六壬.json');
-        return json.decode(raw) as List<dynamic>;
-      case 'jumapper':
-        final raw = await rootBundle.loadString('${_prefix}ju_mapper.json');
-        return json.decode(raw) as Map<String, dynamic>;
-      case 'yangpan':
-        final raw = await rootBundle.loadString('${_prefix}甲午庚牛羊_阳.json');
-        final list = json.decode(raw) as List<dynamic>;
-        return list.cast<Map<String, dynamic>>();
-      case 'yinpan':
-        final raw = await rootBundle.loadString('${_prefix}甲午庚牛羊_阴.json');
-        final list = json.decode(raw) as List<dynamic>;
-        return list.cast<Map<String, dynamic>>();
-      default:
-        throw ArgumentError('Unknown id: $id');
+  Future<Result<dynamic>> get(String id, RequestContext ctx) async {
+    try {
+      switch (id) {
+        case 'yuding':
+          final raw = await rootBundle.loadString('${_prefix}御定大六壬.json');
+          return Ok(json.decode(raw) as List<dynamic>);
+        case 'jumapper':
+          final raw = await rootBundle.loadString('${_prefix}ju_mapper.json');
+          return Ok(json.decode(raw) as Map<String, dynamic>);
+        case 'yangpan':
+          final raw = await rootBundle.loadString('${_prefix}甲午庚牛羊_阳.json');
+          final list = json.decode(raw) as List<dynamic>;
+          return Ok(list.cast<Map<String, dynamic>>());
+        case 'yinpan':
+          final raw = await rootBundle.loadString('${_prefix}甲午庚牛羊_阴.json');
+          final list = json.decode(raw) as List<dynamic>;
+          return Ok(list.cast<Map<String, dynamic>>());
+        default:
+          return const Ok(null);
+      }
+    } catch (_) {
+      return const Ok(null);
     }
   }
 
   @override
-  Future<List<dynamic>> query([Map<String, Object?>? criteria]) async {
-    final type = criteria?['type'] as String? ?? 'yuding';
-    return get(type) as Future<List<dynamic>>;
+  Future<Result<bool>> exists(String id, RequestContext ctx) async {
+    final result = await get(id, ctx);
+    return result.map((v) => v != null);
+  }
+
+  @override
+  Future<Result<Page<dynamic>>> query(
+    Map<String, Object?> spec,
+    PageRequest page,
+    RequestContext ctx,
+  ) async {
+    final type = spec['type'] as String? ?? 'yuding';
+    final result = await get(type, ctx);
+    return result.map((v) {
+      final list = v as List<dynamic>? ?? [];
+      final paged = list.take(page.limit).toList();
+      return Page(
+        items: paged,
+        nextCursor: paged.length < list.length ? 'cursor' : null,
+      );
+    });
+  }
+
+  @override
+  Future<Result<int>> count(
+    Map<String, Object?> spec,
+    RequestContext ctx,
+  ) async {
+    final type = spec['type'] as String? ?? 'yuding';
+    final result = await get(type, ctx);
+    return result.map((v) => (v as List<dynamic>?)?.length ?? 0);
   }
 }
 
@@ -56,9 +89,45 @@ class AssetsDaLiuRenKetiRepository implements DaLiuRenKetiRepository {
   static const String _prefix = 'packages/daliuren/assets/da_liu_ren/';
 
   @override
-  Future<List<dynamic>> query([Map<String, Object?>? criteria]) async {
-    final raw = await rootBundle.loadString('${_prefix}keti_data.json');
-    return json.decode(raw) as List<dynamic>;
+  Future<Result<dynamic>> get(String id, RequestContext ctx) async {
+    try {
+      final raw = await rootBundle.loadString('${_prefix}keti_data.json');
+      return Ok(json.decode(raw));
+    } catch (_) {
+      return const Ok(null);
+    }
+  }
+
+  @override
+  Future<Result<bool>> exists(String id, RequestContext ctx) async {
+    final result = await get(id, ctx);
+    return result.map((v) => v != null);
+  }
+
+  @override
+  Future<Result<Page<dynamic>>> query(
+    Map<String, Object?> spec,
+    PageRequest page,
+    RequestContext ctx,
+  ) async {
+    final result = await get('', ctx);
+    return result.map((v) {
+      final list = v as List<dynamic>? ?? [];
+      final paged = list.take(page.limit).toList();
+      return Page(
+        items: paged,
+        nextCursor: paged.length < list.length ? 'cursor' : null,
+      );
+    });
+  }
+
+  @override
+  Future<Result<int>> count(
+    Map<String, Object?> spec,
+    RequestContext ctx,
+  ) async {
+    final result = await get('', ctx);
+    return result.map((v) => (v as List<dynamic>?)?.length ?? 0);
   }
 }
 
@@ -74,41 +143,74 @@ class AssetsDaLiuRenShenShaDataRepository
 
   static const String _prefix = 'packages/daliuren/assets/shen_sha/';
 
-  @override
   Future<List<dynamic>> loadGanShenShaRaw() async =>
       _load('${_prefix}6_shensha_gan.json');
 
-  @override
   Future<List<dynamic>> loadYearShenShaRaw() async =>
       _load('${_prefix}6_shensha_year.json');
 
-  @override
   Future<List<dynamic>> loadMonthShenShaRaw() async =>
       _load('${_prefix}6_shensha_month.json');
 
-  @override
   Future<List<dynamic>> loadZhiShenShaRaw() async =>
       _load('${_prefix}6_shensha_zhi.json');
 
-  @override
   Future<List<dynamic>> loadJiShenShaRaw() async =>
       _load('${_prefix}6_shensha_ji.json');
 
-  @override
   Future<List<dynamic>> loadXunShenShaRaw() async =>
       _load('${_prefix}6_shensha_xun.json');
 
-  @override
   Future<List<dynamic>> loadYearGanShenShaRaw() async =>
       _load('${_prefix}6_shensha_year_gan.json');
 
-  @override
   Future<List<dynamic>> loadMonthGanShenShaRaw() async =>
       _load('${_prefix}6_shensha_month_gan.json');
 
-  @override
   Future<List<dynamic>> loadMonthZhiGanShenShaRaw() async =>
       _load('${_prefix}6_shensha_month_zhi_gan.json');
+
+  @override
+  Future<Result<dynamic>> get(String id, RequestContext ctx) async {
+    try {
+      final raw = await rootBundle.loadString('${_prefix}$id.json');
+      return Ok(json.decode(raw));
+    } catch (_) {
+      return const Ok(null);
+    }
+  }
+
+  @override
+  Future<Result<bool>> exists(String id, RequestContext ctx) async {
+    final result = await get(id, ctx);
+    return result.map((v) => v != null);
+  }
+
+  @override
+  Future<Result<Page<dynamic>>> query(
+    Map<String, Object?> spec,
+    PageRequest page,
+    RequestContext ctx,
+  ) async {
+    final result = await get('', ctx);
+    return result.map((v) {
+      final list = v as List<dynamic>? ?? [];
+      final paged = list.take(page.limit).toList();
+      return Page(
+        items: paged,
+        nextCursor: paged.length < list.length ? 'cursor' : null,
+      );
+    });
+  }
+
+  @override
+  Future<Result<int>> count(
+    Map<String, Object?> spec,
+    RequestContext ctx,
+  ) async {
+    final result = await get('', ctx);
+    return result.map((v) => (v as List<dynamic>?)?.length ?? 0);
+  }
 
   Future<List<dynamic>> _load(String path) async {
     try {
@@ -131,17 +233,65 @@ class AssetsDaLiuRenSchoolDataRepository
   const AssetsDaLiuRenSchoolDataRepository();
 
   @override
-  Future<List<SchoolEntryContract>> query([Map<String, Object?>? criteria]) async {
+  Future<Result<SchoolEntryContract?>> get(String id, RequestContext ctx) async {
     try {
       final raw = await rootBundle.loadString(
         'packages/daliuren/assets/dataset/daliuren_dataset.json',
       );
       final list = json.decode(raw) as List<dynamic>;
-      return list
+      for (final e in list) {
+        final entry = _parseEntry(e as Map<String, dynamic>);
+        if (entry.schoolId == id) return Ok(entry);
+      }
+      return const Ok(null);
+    } catch (_) {
+      return const Ok(null);
+    }
+  }
+
+  @override
+  Future<Result<bool>> exists(String id, RequestContext ctx) async {
+    final result = await get(id, ctx);
+    return result.map((v) => v != null);
+  }
+
+  @override
+  Future<Result<Page<SchoolEntryContract>>> query(
+    Map<String, Object?> spec,
+    PageRequest page,
+    RequestContext ctx,
+  ) async {
+    try {
+      final raw = await rootBundle.loadString(
+        'packages/daliuren/assets/dataset/daliuren_dataset.json',
+      );
+      final list = json.decode(raw) as List<dynamic>;
+      final items = list
           .map((e) => _parseEntry(e as Map<String, dynamic>))
           .toList();
+      final paged = items.take(page.limit).toList();
+      return Ok(Page(
+        items: paged,
+        nextCursor: paged.length < items.length ? 'cursor' : null,
+      ));
     } catch (_) {
-      return [];
+      return const Ok(Page(items: []));
+    }
+  }
+
+  @override
+  Future<Result<int>> count(
+    Map<String, Object?> spec,
+    RequestContext ctx,
+  ) async {
+    try {
+      final raw = await rootBundle.loadString(
+        'packages/daliuren/assets/dataset/daliuren_dataset.json',
+      );
+      final list = json.decode(raw) as List<dynamic>;
+      return Ok(list.length);
+    } catch (_) {
+      return const Ok(0);
     }
   }
 

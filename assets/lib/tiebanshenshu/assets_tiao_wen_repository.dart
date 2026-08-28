@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:metaphysics_core/enums.dart';
+import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_tiebanshenshu/repository_interface_tiebanshenshu.dart';
 
 /// 条文数据仓库实现类
@@ -570,6 +571,59 @@ class AssetsTiaoWenRepository implements TiaoWenRepository {
 
     final tiaoWen = _cachedTiaoWenMap![number];
     return tiaoWen?.content1;
+  }
+
+  @override
+  Future<Result<TiaoWenDataModel?>> get(int id, RequestContext ctx) async {
+    await _loadTiaoWenFromAssets();
+    return Ok(_cachedTiaoWenMap![id]);
+  }
+
+  @override
+  Future<Result<bool>> exists(int id, RequestContext ctx) async {
+    await _loadTiaoWenFromAssets();
+    return Ok(_cachedTiaoWenMap!.containsKey(id));
+  }
+
+  @override
+  Future<Result<Page<TiaoWenDataModel>>> query(
+    Map<String, Object?> spec,
+    PageRequest page,
+    RequestContext ctx,
+  ) async {
+    await _loadTiaoWenFromAssets();
+    var items = List<TiaoWenDataModel>.from(_cachedTiaoWenList!);
+    final setName = spec['setName'] as String?;
+    if (setName != null) {
+      try {
+        final target = DiZhi.values.firstWhere(
+          (d) => d.name == setName || d.toString().contains(setName),
+        );
+        items = items.where((t) => t.setName == target).toList();
+      } catch (_) {
+        items = [];
+      }
+    }
+    final contentKeyword = spec['contentKeyword'] as String?;
+    if (contentKeyword != null && contentKeyword.isNotEmpty) {
+      items = items.where((t) =>
+          t.content1.contains(contentKeyword) ||
+          t.content2?.contains(contentKeyword) == true).toList();
+    }
+    final paged = items.take(page.limit).toList();
+    return Ok(Page(
+      items: paged,
+      nextCursor: paged.length < items.length ? 'cursor' : null,
+    ));
+  }
+
+  @override
+  Future<Result<int>> count(
+    Map<String, Object?> spec,
+    RequestContext ctx,
+  ) async {
+    final result = await query(spec, PageRequest(limit: 100000), ctx);
+    return result.map((page) => page.items.length);
   }
 }
 
