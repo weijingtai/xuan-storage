@@ -84,8 +84,6 @@ dependencies:
   repository_interface_xiang:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-xiang.git
-      ref: feature/xiang-interface-l0
-
   repository_interface_divination_tag:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-divination-tag.git
@@ -170,23 +168,12 @@ dependency_overrides:
   repository_interface_liuyao:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-liuyao.git
-  repository_interface_record:
-    git:
-      url: http://192.168.0.165:3000/xuan/repository-interface-record.git
-  repository_interface_xiang:
-    git:
-      url: http://192.168.0.165:3000/xuan/repository-interface-xiang.git
-      ref: feature/xiang-interface-l0
-
   repository_interface_divination_tag:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-divination-tag.git
   repository_interface_media:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-media.git
-  repository_interface_account:
-    git:
-      url: http://192.168.0.165:3000/xuan/repository-interface-account.git
   repository_interface_ai:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-ai.git
