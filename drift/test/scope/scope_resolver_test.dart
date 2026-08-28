@@ -121,13 +121,13 @@ void main() {
 
     test('2. session has appUserId, has alias -> returns existing scope', () async {
       await ledger.bind('user-1', ScopeAuthKind.registered, 'custom-scope-456');
-      await sessionRepo.put(AccountSession(
+      await sessionRepo.saveCurrentSession(AccountSession(
         appUserId: const AccountUserId('user-1'),
         providerUserId: const ProviderUserId('p-1'),
         kind: AccountKind.registered,
         providerId: 'fake',
         issuedAt: DateTime.now(),
-      ), ctx);
+      ));
 
       final res = await resolver.resolve();
       expect(res.scopeUid, 'custom-scope-456');
@@ -136,13 +136,13 @@ void main() {
     });
 
     test('3. session has appUserId, no alias, device scope free -> binds device scope', () async {
-      await sessionRepo.put(AccountSession(
+      await sessionRepo.saveCurrentSession(AccountSession(
         appUserId: const AccountUserId('user-1'),
         providerUserId: const ProviderUserId('p-1'),
         kind: AccountKind.registered,
         providerId: 'fake',
         issuedAt: DateTime.now(),
-      ), ctx);
+      ));
 
       final res = await resolver.resolve();
       expect(res.scopeUid, 'device-scope-uuid-123');
@@ -158,20 +158,20 @@ void main() {
       await ledger.bind('anon-1', ScopeAuthKind.anonymous, 'device-scope-uuid-123');
 
       // link exists: anon-1 belongs to registered user 'user-1'
-      await linkRepo.put(AccountIdentityLink(
+      await linkRepo.saveLink(AccountIdentityLink(
         anonymousAppUserId: const AccountUserId('anon-1'),
         registeredAppUserId: const AccountUserId('user-1'),
         providerId: 'fake',
         linkedAt: DateTime.now(),
-      ), RequestContext(scopeUid: 'test'));
+      ));
 
-      await sessionRepo.put(AccountSession(
+      await sessionRepo.saveCurrentSession(AccountSession(
         appUserId: const AccountUserId('user-1'),
         providerUserId: const ProviderUserId('p-1'),
         kind: AccountKind.registered,
         providerId: 'fake',
         issuedAt: DateTime.now(),
-      ), ctx);
+      ));
 
       final res = await resolver.resolve();
       // 升级不再复用 device scope，而是铸新 scope
@@ -199,19 +199,19 @@ void main() {
 
     test('4b. upgrade when handover fails -> resolve throws, no binding reused', () async {
       await ledger.bind('anon-1', ScopeAuthKind.anonymous, 'device-scope-uuid-123');
-      await linkRepo.put(AccountIdentityLink(
+      await linkRepo.saveLink(AccountIdentityLink(
         anonymousAppUserId: const AccountUserId('anon-1'),
         registeredAppUserId: const AccountUserId('user-1'),
         providerId: 'fake',
         linkedAt: DateTime.now(),
-      ), RequestContext(scopeUid: 'test'));
-      await sessionRepo.put(AccountSession(
+      ));
+      await sessionRepo.saveCurrentSession(AccountSession(
         appUserId: const AccountUserId('user-1'),
         providerUserId: const ProviderUserId('p-1'),
         kind: AccountKind.registered,
         providerId: 'fake',
         issuedAt: DateTime.now(),
-      ), ctx);
+      ));
 
       handover.fail = true;
       await expectLater(resolver.resolve(), throwsStateError);
@@ -244,13 +244,13 @@ void main() {
       // device scope bound to anonymous user 'anon-1'
       await ledger.bind('anon-1', ScopeAuthKind.anonymous, 'device-scope-uuid-123');
 
-      await sessionRepo.put(AccountSession(
+      await sessionRepo.saveCurrentSession(AccountSession(
         appUserId: const AccountUserId('user-1'),
         providerUserId: const ProviderUserId('p-1'),
         kind: AccountKind.registered,
         providerId: 'fake',
         issuedAt: DateTime.now(),
-      ), ctx);
+      ));
 
       final res = await resolver.resolve();
       expect(res.scopeUid, 'minted-scope-uuid-1');
@@ -259,13 +259,13 @@ void main() {
     });
 
     test('6. empty appUserId -> throws StateError', () async {
-      await sessionRepo.put(AccountSession(
+      await sessionRepo.saveCurrentSession(AccountSession(
         appUserId: const AccountUserId(''),
         providerUserId: const ProviderUserId('p-1'),
         kind: AccountKind.registered,
         providerId: 'fake',
         issuedAt: DateTime.now(),
-      ), ctx);
+      ));
 
       expect(() => resolver.resolve(), throwsStateError);
     });

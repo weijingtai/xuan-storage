@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:drift/drift.dart' show Variable;
 import 'package:drift/native.dart';
 import 'package:persistence_drift/persistence_drift.dart';
-import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_account/repository_interface_account.dart';
 import 'package:repository_interface_account/repository_interface_account_fakes.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
@@ -32,7 +31,6 @@ void main() {
     late String deviceScope;
     late String aOfficialScope;
     late String bOfficialScope;
-    late RequestContext ctx;
 
     DriftScopeHandoverService buildHandover() => DriftScopeHandoverService(
           db: db,
@@ -72,7 +70,6 @@ void main() {
     }
 
     setUp(() async {
-      ctx = RequestContext(scopeUid: 'test-scope');
       blobBase = await Directory.systemTemp.createTemp('handover-blob');
       backupDir = await Directory.systemTemp.createTemp('handover-backup');
       dbFile = File('${blobBase.path}/persistence.sqlite');
@@ -92,22 +89,22 @@ void main() {
     });
 
     Future<void> setSession(String appUserId, String providerId, AccountKind kind) async {
-      await sessionRepo.put(AccountSession(
+      await sessionRepo.saveCurrentSession(AccountSession(
         appUserId: AccountUserId(appUserId),
         providerUserId: ProviderUserId(providerId),
         kind: kind,
         providerId: kind == AccountKind.anonymous ? 'guest' : 'email',
         issuedAt: DateTime.utc(2026),
-      ), ctx);
+      ));
     }
 
     Future<void> linkAnonToRegistered(String anonId, String regId) async {
-      await linkRepo.put(AccountIdentityLink(
+      await linkRepo.saveLink(AccountIdentityLink(
         anonymousAppUserId: AccountUserId(anonId),
         registeredAppUserId: AccountUserId(regId),
         providerId: 'email',
         linkedAt: DateTime.utc(2026),
-      ), RequestContext(scopeUid: 'test'));
+      ));
     }
 
     test('T1+T2+T3+T4+T5+T6 完整剧本', () async {
