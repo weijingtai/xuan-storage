@@ -153,6 +153,7 @@ class ScopeResolver {
           Err(:final error) => throw StateError(
             'ScopeResolver: identity-link retrieval failed: $error',
           ),
+          _ => throw StateError('ScopeResolver: unexpected linkResult: $linkResult'),
         };
         if (link != null && link.registeredAppUserId.value == appUserId) {
           return true;
@@ -165,6 +166,7 @@ class ScopeResolver {
           Err(:final error) => throw StateError(
             'ScopeResolver: identity-link retrieval failed: $error',
           ),
+          _ => throw StateError('ScopeResolver: unexpected linkResult: $linkResult'),
         };
         if (link != null && link.anonymousAppUserId.value == appUserId) {
           return true;
