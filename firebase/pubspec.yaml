@@ -31,7 +31,6 @@ dependencies:
   repository_interface_playground:
     git:
       url: http://192.168.0.165:3000/xuan/repository-interface-playground.git
-      ref: 0841e19d78df93fded5764bfdf86633a05333a0c
   cloud_functions: ^6.3.6
 dev_dependencies:
   flutter_test:
