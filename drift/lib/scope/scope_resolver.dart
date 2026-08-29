@@ -58,6 +58,7 @@ class ScopeResolver {
       Err(:final error) => throw StateError(
         'ScopeResolver: session retrieval failed: $error',
       ),
+      _ => throw StateError('ScopeResolver: unexpected sessionResult: $sessionResult'),
     };
 
     // 1. 无 session (登出 / 尚未登录) → 返回 device scope
