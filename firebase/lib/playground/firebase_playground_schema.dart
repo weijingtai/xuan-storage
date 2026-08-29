@@ -22,12 +22,14 @@ abstract final class PlaygroundFirestoreSchema {
   static const messages = 'playground_messages';
   static const reports = 'playground_reports';
   static const media = 'playground_media';
+  static const postSubscriptions = 'playground_post_subscriptions';
   static const idempotency = 'playground_idempotency';
   static const outbox = 'playground_outbox';
   static const identityMap = 'identity_map';
 
   static const fcmTokens = 'fcm_tokens';
   static const blocks = 'playground_blocks';
+  static const follows = 'playground_follows';
 
   /// 回复表上的 depth 字段最大值。
   static const int maxReplyDepth = 1;

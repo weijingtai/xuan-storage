@@ -97,6 +97,28 @@ final class FirebasePlaygroundProfileQueryRepository
   }
 
   @override
+  Future<PlaygroundPrivateGrowthProfile> getMyPrivateGrowthProfile() async {
+    try {
+      final actor = await _resolveCurrentActor();
+      final techniqueStats = await getMyPrivateTechniqueStats();
+      final snap = await _profiles.doc(actor.value).get();
+      final data = snap.data() ?? const <String, dynamic>{};
+      return PlaygroundPrivateGrowthProfile(
+        userId: actor,
+        techniqueStats: techniqueStats,
+        totalCaseCount: data['case_count'] as int? ?? 0,
+        anonymousCaseCount: data['anonymous_case_count'] as int? ?? 0,
+        regularCaseCount: data['regular_case_count'] as int? ?? 0,
+        totalVerificationCount:
+            data['playground_verification_count'] as int? ?? 0,
+        totalLikeCount: data['playground_like_count'] as int? ?? 0,
+      );
+    } catch (e) {
+      throw FirebasePlaygroundErrorMapper.map(e);
+    }
+  }
+
+  @override
   Future<PlaygroundPage<PublicPost>> getPublicProfilePosts(
     GetPublicProfilePostsQuery query,
   ) async {

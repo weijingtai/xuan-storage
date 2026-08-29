@@ -73,3 +73,6 @@ export 'model/im_models.dart';
 export 'model/message_outbox_mapper.dart';
 export 'model/im_wire_frames.dart';
 export 'sync/same_account_im_reconciliation.dart';
+
+// ── Plaza @ 提及候选数据源 ──
+export 'model/mention_candidate_source.dart';

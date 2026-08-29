@@ -317,7 +317,9 @@ void main() {
 
     test('timeRange: today 过滤掉更早的帖子', () async {
       final now = DateTime.now();
-      await seedPost('recent', text: '今天', createdAt: now.subtract(const Duration(hours: 1)),
+      // recent 用当前时刻（保证落在「今天」内，避免凌晨跨天边界）；
+      // old 用 400 天前。
+      await seedPost('recent', text: '今天', createdAt: now,
           hasChart: false);
       await seedPost('old', text: '一年前', createdAt: now.subtract(const Duration(days: 400)),
           hasChart: false);
