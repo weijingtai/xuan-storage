@@ -111,14 +111,20 @@ class DriftTagDimensionRepository implements TagDimensionRepository {
   // ── 领域扩展（切片之外的业务方法） ──
 
   @override
-  List<DimensionTag> listTagsByDimension(String dimensionId) {
+  Future<Result<List<DimensionTag>>> listTagsByDimension(
+    String dimensionId,
+    RequestContext ctx,
+  ) async {
     final result = _tags.where((t) => t.dimensionId == dimensionId).toList()
       ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-    return List.unmodifiable(result);
+    return Ok(List.unmodifiable(result));
   }
 
   @override
-  Map<String, bool> validateTags(Map<String, List<String>> dimensionTags) {
+  Future<Result<Map<String, bool>>> validateTags(
+    Map<String, List<String>> dimensionTags,
+    RequestContext ctx,
+  ) async {
     final result = <String, bool>{};
     for (final entry in dimensionTags.entries) {
       for (final tagId in entry.value) {
@@ -128,6 +134,6 @@ class DriftTagDimensionRepository implements TagDimensionRepository {
         );
       }
     }
-    return result;
+    return Ok(result);
   }
 }
