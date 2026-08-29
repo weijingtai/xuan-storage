@@ -97,25 +97,6 @@ class DriftUserRepository implements SchoolRepository, UserSchoolRepository {
 
   Future<void> delete(String id) => _hardDeleteSchool(id);
 
-  // ── SchoolRepository 遗留切片成员（M4 随适配层一并退场） ──
-
-  @override
-  Future<List<TaiYiSchoolContract>> loadAllSchools() async {
-    final query = db.select(db.userSchools);
-    if (scopeUid != null) {
-      query.where((t) => t.scopeUid.equals(scopeUid!) | t.scopeUid.isNull());
-    }
-    final rows = await query.get();
-    return rows
-        .map((row) =>
-            TaiYiSchool.fromJson(jsonDecode(row.contentJson)).toContract())
-        .toList();
-  }
-
-  @override
-  Future<List<DeityDefinitionContract>> loadAllDeities() =>
-      deities.loadAllDeities();
-
   // ── L0 Readable ──
 
   @override
