@@ -93,9 +93,9 @@ final class DriftMediaReferenceReader implements MediaReferenceReader {
           ),
         BlobAbsent() => const MediaReadResult.absent(),
         BlobPartial(:final presentChunks) =>
-          MediaReadResult.partial(presentChunks: presentChunks),
+          MediaReadResult.partial(presentChunks: presentChunks.toSet()),
         BlobCorrupt(:final badChunks) =>
-          MediaReadResult.corrupt(badChunks: badChunks),
+          MediaReadResult.corrupt(badChunks: badChunks.toSet()),
         BlobUndecryptable() => const MediaReadResult.undecryptable(),
       };
     } on BlobCorruptError {
