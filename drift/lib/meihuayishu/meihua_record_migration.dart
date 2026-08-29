@@ -12,13 +12,14 @@ Future<int> migrateMeihuaRecords({
   for (final row in rows) {
     // 幂等：已存在则跳过
     final existingResult = await target.get(row.uuid, ctx);
-    final existing = switch (existingResult) {
-      Ok(:final value) => value,
-      Err(:final error) => throw StateError(
-        'Meihua migration read failed for ${row.uuid}: $error',
-      ),
-      _ => throw StateError('Meihua migration read unexpected result: $existingResult'),
-    };
+    final MeiHuaDivinationRecordContract? existing;
+    if (existingResult case Ok(:final value)) {
+      existing = value;
+    } else if (existingResult case Err(:final error)) {
+      throw StateError('Meihua migration read failed for ${row.uuid}: $error');
+    } else {
+      existing = null;
+    }
     if (existing != null) continue;
 
     final writeResult = await target.put(
