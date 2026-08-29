@@ -67,6 +67,42 @@ class AssetsDaLiuRenOfficialDataRepository
   }
 
   @override
+  Future<List<dynamic>> loadYuDingData() async {
+    final res = await get('yuding', RequestContext(scopeUid: 'system'));
+    return switch (res) {
+      Ok(:final value) => (value as List<dynamic>?) ?? [],
+      Err() => [],
+    };
+  }
+
+  @override
+  Future<Map<String, dynamic>> loadJuMapperData() async {
+    final res = await get('jumapper', RequestContext(scopeUid: 'system'));
+    return switch (res) {
+      Ok(:final value) => (value as Map<String, dynamic>?) ?? {},
+      Err() => {},
+    };
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> loadYangPanData() async {
+    final res = await get('yangpan', RequestContext(scopeUid: 'system'));
+    return switch (res) {
+      Ok(:final value) => (value as List<Map<String, dynamic>>?) ?? [],
+      Err() => [],
+    };
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> loadYinPanData() async {
+    final res = await get('yinpan', RequestContext(scopeUid: 'system'));
+    return switch (res) {
+      Ok(:final value) => (value as List<Map<String, dynamic>>?) ?? [],
+      Err() => [],
+    };
+  }
+
+  @override
   Future<Result<int>> count(
     Map<String, Object?> spec,
     RequestContext ctx,
@@ -87,6 +123,15 @@ class AssetsDaLiuRenKetiRepository implements DaLiuRenKetiRepository {
   const AssetsDaLiuRenKetiRepository();
 
   static const String _prefix = 'packages/daliuren/assets/da_liu_ren/';
+
+  @override
+  Future<List<dynamic>> loadKetiData() async {
+    final res = await get('', RequestContext(scopeUid: 'system'));
+    return switch (res) {
+      Ok(:final value) => (value as List<dynamic>?) ?? [],
+      Err() => [],
+    };
+  }
 
   @override
   Future<Result<dynamic>> get(String id, RequestContext ctx) async {
@@ -231,6 +276,15 @@ class AssetsDaLiuRenShenShaDataRepository
 class AssetsDaLiuRenSchoolDataRepository
     implements DaLiuRenSchoolDataRepository {
   const AssetsDaLiuRenSchoolDataRepository();
+
+  @override
+  Future<List<SchoolEntryContract>> loadEntries(String schoolId) async {
+    final res = await query({'schoolId': schoolId}, PageRequest(limit: 10000), RequestContext(scopeUid: 'system'));
+    return switch (res) {
+      Ok(:final value) => value.items,
+      Err() => const [],
+    };
+  }
 
   @override
   Future<Result<SchoolEntryContract?>> get(String id, RequestContext ctx) async {

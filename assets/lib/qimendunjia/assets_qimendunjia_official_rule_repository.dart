@@ -33,6 +33,31 @@ class AssetsQimendunjiaOfficialRuleRepository
   }
 
   @override
+  Future<String> loadTenGanKeYingJson() => _load(_tenGanKeYingPath);
+
+  @override
+  Future<String> loadTenGanKeYingGeJuJson() => _load(_tenGanKeYingGeJuPath);
+
+  @override
+  Future<String> loadDoorGanKeYingJson() => _load(_doorGanKeYingPath);
+
+  @override
+  Future<String> loadQiYiRuGongJson() =>
+      _load('packages/qimendunjia/assets/qi_men_dun_jia/qi_yi_ru_gong.json');
+
+  @override
+  Future<String> loadQiYiRuGongDiseaseJson() =>
+      _load('packages/qimendunjia/assets/qi_men_dun_jia/qi_yi_ru_gong_disease.json');
+
+  @override
+  Future<String> loadDoorStarKeYingJson() =>
+      _load('packages/qimendunjia/assets/qi_men_dun_jia/door_star_ke_ying.json');
+
+  @override
+  Future<String> loadEightDoorKeYingJson() =>
+      _load('packages/qimendunjia/assets/qi_men_dun_jia/eight_door_ke_ying.json');
+
+  @override
   Future<Result<String?>> get(String key, RequestContext ctx) async {
     try {
       switch (key) {

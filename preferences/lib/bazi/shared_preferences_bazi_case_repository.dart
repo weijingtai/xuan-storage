@@ -65,6 +65,39 @@ class SharedPreferencesBaziCaseRepository implements BaziCaseRepository {
 
   // ── 内部：按 ctx.scopeUid 读写，兼容旧 Key 的 scopeUid ──
 
+  @override
+  Future<BaziCaseContract?> getCase(String uuid) async {
+    final res = await get(uuid, RequestContext(scopeUid: scopeUid));
+    return switch (res) {
+      Ok(:final value) => value,
+      Err() => null,
+    };
+  }
+
+  @override
+  Future<List<BaziCaseContract>> listCases() async {
+    final res = await query({}, PageRequest(limit: 10000), RequestContext(scopeUid: scopeUid));
+    return switch (res) {
+      Ok(:final value) => value.items,
+      Err() => const [],
+    };
+  }
+
+  @override
+  Future<void> saveCase(BaziCaseContract case_) async {
+    await put(case_, RequestContext(scopeUid: scopeUid));
+  }
+
+  @override
+  Future<void> deleteCase(String uuid) async {
+    await softDelete(uuid, RequestContext(scopeUid: scopeUid));
+  }
+
+  @override
+  Future<void> restoreCase(String uuid) async {
+    await restore(uuid, RequestContext(scopeUid: scopeUid));
+  }
+
   // ── Readable ──
   @override
   Future<Result<BaziCaseContract?>> get(String id, RequestContext ctx) async {

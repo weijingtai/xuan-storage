@@ -238,6 +238,7 @@ class SyncCoordinator {
         : _peers.where((p) => onlyPeers.contains(p.peerId)).toList();
 
     final byOperationId = <String, OutboxRecord>{};
+    final pendingPeersByOperation = <String, Set<PeerId>>{};
     for (final peer in activePeers) {
       final batch = await _outboxStore.peekBatch(
         scopeUid: scopeUid,
@@ -247,6 +248,7 @@ class SyncCoordinator {
       );
       for (final r in batch) {
         byOperationId[r.operationId] = r;
+        pendingPeersByOperation.putIfAbsent(r.operationId, () => <PeerId>{}).add(peer.peerId);
       }
     }
 
@@ -257,9 +259,14 @@ class SyncCoordinator {
     for (final record in byOperationId.values) {
       final eligible =
           PeerEligibility.eligiblePeers(record.entityType, activePeers);
+      final targetPeers = eligible.intersection(
+        pendingPeersByOperation[record.operationId] ?? const <PeerId>{},
+      );
+      if (targetPeers.isEmpty) continue;
+
       final results =
           await DefaultPeerFanoutPusher(peers: activePeers)
-              .pushToAll(record, eligiblePeers: eligible);
+              .pushToAll(record, eligiblePeers: targetPeers);
 
       for (final entry in results.entries) {
         final peerId = entry.key;

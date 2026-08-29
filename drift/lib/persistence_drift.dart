@@ -150,6 +150,10 @@ import 'blob/blob_datetime_converter.dart';
 import 'playground/playground_cache_tables.dart';
 import 'playground/playground_post_cache_store.dart';
 import 'playground/playground_reply_cache_store.dart';
+import 'src/im/im_tables.dart';
+import 'src/im/im_dao.dart';
+export 'src/im/im_tables.dart';
+export 'src/im/im_dao.dart';
 
 part 'persistence_drift.g.dart';
 
@@ -890,7 +894,7 @@ class EntityStampDao extends DatabaseAccessor<PersistenceDriftDatabase>
 
 /// 数据库 schema 版本。任何 onUpgrade 分支新增时同步 +1；
 /// 测试断言跟随本常量（防止版本号断言失同步）。
-const int kPersistenceDriftSchemaVersion = 12;
+const int kPersistenceDriftSchemaVersion = 13;
 
 @DriftDatabase(
   tables: [
@@ -931,6 +935,14 @@ const int kPersistenceDriftSchemaVersion = 12;
     BlobRefs,
     PlaygroundPostCaches,
     PlaygroundReplyCaches,
+    TIMMessages,
+    TIMMessageTombstones,
+    TIMMessageReceipts,
+    TIMConversations,
+    TIMEnvelopeDedups,
+    IncomingDeliveries,
+    TIMSendStates,
+    TIMPeerAuthorizations,
   ],
   daos: [
     OutboxRecordsDao,
@@ -953,6 +965,7 @@ const int kPersistenceDriftSchemaVersion = 12;
     EntityStampDao,
     DriftPlaygroundPostCacheStore,
     DriftPlaygroundReplyCacheStore,
+    TIMDao,
   ],
 )
 class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
@@ -970,6 +983,7 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
       await _createOutboxPeerAckIndices();
       await _createBlobIndices();
       await _createSw2Indices();
+      await _createImIndices();
     },
     onUpgrade: (m, from, to) async {
       if (from < 2) {
@@ -1079,6 +1093,18 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
         await _addSw2ScopeColumns(m);
         await _backfillSw2Scope();
         await _createSw2Indices();
+      }
+      if (from < 13) {
+        // schema v13：Plaza/IM v1.2.1 本地 8 张核心表与索引
+        await m.createTable(tIMMessages);
+        await m.createTable(tIMMessageTombstones);
+        await m.createTable(tIMMessageReceipts);
+        await m.createTable(tIMConversations);
+        await m.createTable(tIMEnvelopeDedups);
+        await m.createTable(incomingDeliveries);
+        await m.createTable(tIMSendStates);
+        await m.createTable(tIMPeerAuthorizations);
+        await _createImIndices();
       }
     },
   );
@@ -1417,6 +1443,12 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
       'CREATE INDEX IF NOT EXISTS idx_skill_classes_scope '
       'ON t_skill_classes(scope_uid)',
     );
+  }
+
+  Future<void> _createImIndices() async {
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_im_message_timeline '
+      'ON t_im_message (scope_uid, conversation_id, created_hlc_packed, created_hlc_device_id, message_id)');
   }
 }
 

@@ -39,17 +39,14 @@ class BaziRecordRepositoryMigrator {
             : BaziMigrationResult.failure;
       }
 
-      // 4. Save each record through the target repository. (L0: put)
+      // 4. Save each record through the target repository.
       for (final record in legacyRecords) {
-        final r = await target.put(record, RequestContext(scopeUid: scopeUid));
-        if (r is Err) return BaziMigrationResult.failure;
+        await target.saveRecord(record);
       }
 
       // 5. Read back every record and verify field-for-field.
       for (final source in legacyRecords) {
-        final res = await target.get(source.uuid, RequestContext(scopeUid: scopeUid));
-        if (res is Err) return BaziMigrationResult.failure;
-        final verified = (res as Ok<BaziRecordContract?>).value;
+        final verified = await target.getRecord(source.uuid);
         if (verified == null) return BaziMigrationResult.failure;
         if (!_fieldsEqual(source, verified)) return BaziMigrationResult.failure;
       }

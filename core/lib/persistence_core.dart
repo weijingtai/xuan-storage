@@ -67,3 +67,9 @@ export 'model/reconciliation.dart';        // ACT A：四消息 + ManifestEntry
 export 'model/reconciliation_ports.dart';  // ACT C：ManifestSource/Comparator/Applier
 export 'sync/manifest_comparator.dart';    // ACT C：DefaultManifestComparator
 export 'sync/reconciliation_trigger.dart'; // ACT E：触发判定
+
+// ── Plaza/IM v1.2.1 本地存储与 P2P 同步模型 ──
+export 'model/im_models.dart';
+export 'model/message_outbox_mapper.dart';
+export 'model/im_wire_frames.dart';
+export 'sync/same_account_im_reconciliation.dart';

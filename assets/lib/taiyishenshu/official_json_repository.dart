@@ -117,7 +117,33 @@ class OfficialJsonSchoolRepository implements SchoolRepository {
     return _deities[id]?.toContract();
   }
 
-  // loadAllDeities 和 loadDeity 保留为内部方法，对外统一使用 query/get
+  @override
+  Future<List<TaiYiSchoolContract>> loadAllSchools() async {
+    await _ensureLoaded();
+    return _schools.values.map((s) => s.toContract()).toList();
+  }
+
+  @override
+  Future<TaiYiSchoolContract?> loadSchool(String id) async {
+    await _ensureLoaded();
+    return _schools[id]?.toContract();
+  }
+
+  @override
+  Future<void> saveSchool(TaiYiSchoolContract school) =>
+      throw UnsupportedError('Official repository is read-only');
+
+  @override
+  Future<void> saveDeity(DeityDefinitionContract deity) =>
+      throw UnsupportedError('Official repository is read-only');
+
+  @override
+  Future<void> deleteSchool(String id) =>
+      throw UnsupportedError('Official repository is read-only');
+
+  @override
+  Future<void> deleteDeity(String id) =>
+      throw UnsupportedError('Official repository is read-only');
 
   @override
   Future<Result<Rev>> put(TaiYiSchoolContract entity, RequestContext ctx, {Precondition pre = const Unconditional()}) =>

@@ -11,6 +11,29 @@ final class PreferencesAccountPreferenceRepository
       'account.preferences.${userId.value}.$field';
 
   @override
+  Future<AccountPreferences> getPreferences(AccountUserId userId) async {
+    final res = await get(userId.value, RequestContext(scopeUid: 'system'));
+    return switch (res) {
+      Ok(:final value) => value ??
+          AccountPreferences(
+            appUserId: userId,
+            syncEnabled: true,
+            privacyMode: false,
+          ),
+      Err() => AccountPreferences(
+          appUserId: userId,
+          syncEnabled: true,
+          privacyMode: false,
+        ),
+    };
+  }
+
+  @override
+  Future<void> savePreferences(AccountPreferences preferences) async {
+    await put(preferences, RequestContext(scopeUid: 'system'));
+  }
+
+  @override
   Future<Result<AccountPreferences?>> get(String id, RequestContext ctx) async {
     final userId = AccountUserId(id);
     return Ok(AccountPreferences(
