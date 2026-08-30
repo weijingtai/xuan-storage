@@ -65,13 +65,17 @@ class TaiYiDatabase extends _$TaiYiDatabase {
     Directory? backupDirectory,
   ) async {
     try {
-      final dirFn = databaseDirectory ?? getApplicationSupportDirectory;
-      // 存量归档：备份失败抛异常，中止（不进入构造）。
-      await PrescopeLegacyArchiver(
-        databaseDirectory: dirFn,
-        backupDirectory:
-            backupDirectory ?? Directory('${(await dirFn()).path}/backups'),
-      ).archive(dbName: 'taiyi_database', scopeUid: scopeUid);
+      // Web 端 drift 使用 WasmDatabase（IndexedDB），无文件系统，
+      // 跳过存量归档（PrescopeLegacyArchiver 依赖 dart:io 文件操作）。
+      if (!kIsWeb) {
+        final dirFn = databaseDirectory ?? getApplicationSupportDirectory;
+        // 存量归档：备份失败抛异常，中止（不进入构造）。
+        await PrescopeLegacyArchiver(
+          databaseDirectory: dirFn,
+          backupDirectory:
+              backupDirectory ?? Directory('${(await dirFn()).path}/backups'),
+        ).archive(dbName: 'taiyi_database', scopeUid: scopeUid);
+      }
       return TaiYiDatabase(
         scopeUid: scopeUid,
         databaseDirectory: databaseDirectory,
