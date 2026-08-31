@@ -1,3 +1,44 @@
+# HANDOFF
+
+## C1 — saveWithBlobs 事务内原子校验引用 blob（FINAL-REWORK-PLAN CURRENT EXECUTION CONTRACT，2026-08-30）
+
+- 当前分支/worktree: `feature/rework-c1-blob-uow`（`xuan-storage/.worktrees/rework-c1-blob-uow`）
+- 基线 Commit SHA: `84c5a48`（xuan-storage main）
+- 变更范围:
+  - `drift/lib/blob/drift_record_blob_unit_of_work.dart`: `saveWithBlobsDirect` 在
+    `reconcileRefs` 之后、outbox 之前，对每个声明的 BlobHandle 调用既有
+    `LocalBlobStore.openRead` 并完整消费字节流；`BlobAbsent`→`BlobNotFoundError`、
+    `BlobPartial`→`StorageError(storage.blob_partial)`、`BlobCorrupt`/未知流错误→
+    `BlobCorruptError`、`BlobUndecryptable`/openRead 抛错→`BlobUndecryptableError`。
+    缺失/部分/损坏/不可解密 → 事务整体回滚（Record + search index + blob refs +
+    outbox），重启后仍全空。未改 RecordBlobUnitOfWork 接口、MediaReferenceReader、
+    blob 状态规则，未加回调/token/adapter。
+  - `drift/test/blob/record_blob_unit_of_work_test.dart`: 既有用例改用真实 staged
+    BlobHandle；新增 C1 file-backed 组（成功可读回 + absent/partial/corrupt/
+    undecryptable 各抛错、四表面全空、关库重开仍全空）。
+  - `drift/test/blob/record_blob_unit_of_work_fault_injection_test.dart`: 既有
+    save/delete/restore 故障注入用例改用真实 staged BlobHandle（保证验证通过后才
+    命中注入点）。
+- 执行命令与退出码（单实例）:
+  - `flutter test --no-pub test/blob/record_blob_unit_of_work_test.dart
+    test/blob/record_blob_unit_of_work_fault_injection_test.dart` -> exit 0，26/26
+  - 回归: `flutter test --no-pub test/media/drift_media_reference_reader_test.dart
+    test/blob/record_blob_restart_test.dart
+    test/media/drift_media_acquisition_adapter_test.dart` -> exit 0，14/14
+  - `flutter analyze --no-pub lib/blob/drift_record_blob_unit_of_work.dart
+    test/blob/record_blob_unit_of_work_test.dart
+    test/blob/record_blob_unit_of_work_fault_injection_test.dart` -> exit 0，No issues
+  - `git diff --check` -> clean
+- Mutation 证明: 临时跳过流消费（`await for` 删除）→ corrupt 用例 RED（`+0 -1`）；
+  恢复后 GREEN。mutation 未提交。
+- 提交: `dac540b fix(drift): validate referenced blobs atomically in saveWithBlobs (C1)`
+- 用户 dirty 保护: 本仓 main 的 HANDOFF.md/docs/tasks 用户 dirty 文件未触碰；
+  全部改动在专用 worktree。
+- 未运行项: 无（本阶段纯 Storage 单仓）。
+- 下游依赖: Shell 消费本 commit 需临时本地 override（C3 处理），合入由人工执行。
+
+---
+
 # HANDOFF: storage-s2b-blob-media-reader（Wave 1B 返工交付）
 
 ## Task S2b: Media Reference Reader 接口对齐与流消费异常可观察性（2026-08-27）

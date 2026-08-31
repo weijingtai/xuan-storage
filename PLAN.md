@@ -1,5 +1,9 @@
 # PLAN
 
+- [x] C1（FINAL-REWORK-PLAN CURRENT EXECUTION CONTRACT，2026-08-30）：saveWithBlobs
+  事务内原子校验引用 blob —— openRead + 完整消费每个声明的 handle，absent/partial/
+  corrupt/undecryptable 映射现有 StorageError 并整体回滚（Record/index/refs/outbox），
+  重启后仍全空；提交 `dac540b`。
 - [x] Wave 0 / Storage S4：解析稳定 Account 与 Xiang 依赖；删除本任务相关的重复 dependency overrides 和 Xiang feature ref；新增 Account L0 get/put 契约编译测试。
 - [x] Wave 0 / Storage S4：运行 `flutter pub get`、Account 契约测试、10.7 五个 S4 定向测试、限定范围 analyze 与 `git diff --check`；把 lockfile source/url/resolved-ref 写入 HANDOFF。
 - [x] Wave 1A A2 / ScopeResolver：真实 device scope RequestContext、Err 传播、session absent/repository Err/identity-link Err/双账户测试。
