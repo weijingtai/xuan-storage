@@ -39,6 +39,23 @@ BlobHandle _makeHandle(String manifestId) {
   );
 }
 
+/// 向 [blobStore] 写入一条真实 staged blob 并返回真实 handle。
+///
+/// C1：saveWithBlobs 会在事务内校验每个被引用 blob 可完整读取，
+/// 因此凡走 saveWithBlobs 的测试必须提供真实落盘的 staged blob，
+/// 不能用 [_makeHandle] 的“只有句柄、没有字节”的假引用。
+Future<BlobHandle> _putRealBlob(
+  DriftLocalBlobStore blobStore, {
+  List<int> bytes = const [1, 2, 3, 4],
+}) {
+  return blobStore.put(
+    Stream.value(bytes),
+    mimeType: 'application/octet-stream',
+    tier: BlobTier.sourceOfTruth,
+    expectedBytes: bytes.length,
+  );
+}
+
 class _TestMeihuaAdapter implements ModuleRecordAdapter {
   @override
   String get module => 'meihua';
@@ -182,7 +199,7 @@ void main() {
           injectFailureAfterRecord: () async => throw Exception('Fault after record/index'),
         );
 
-        final handle = _makeHandle('m-save-fail-1');
+        final handle = await _putRealBlob(blobStore);
         final record = _makeRecord('rec-save-f1', moduleDataJson: jsonEncode({'upper_gua': '5'}));
 
         await expectLater(
@@ -217,7 +234,7 @@ void main() {
           injectFailureAfterBlobRefs: () async => throw Exception('Fault after blob refs'),
         );
 
-        final handle = _makeHandle('m-save-fail-2');
+        final handle = await _putRealBlob(blobStore);
         final record = _makeRecord('rec-save-f2', moduleDataJson: jsonEncode({'upper_gua': '6'}));
 
         await expectLater(
@@ -244,7 +261,7 @@ void main() {
           injectFailureAfterOutbox: () async => throw Exception('Fault after outbox'),
         );
 
-        final handle = _makeHandle('m-save-fail-3');
+        final handle = await _putRealBlob(blobStore);
         final record = _makeRecord('rec-save-f3', moduleDataJson: jsonEncode({'upper_gua': '7'}));
 
         await expectLater(
@@ -272,7 +289,7 @@ void main() {
           outboxStore: outboxStore,
         );
 
-        final handle = _makeHandle('m-del-1');
+        final handle = await _putRealBlob(blobStore);
         final record = _makeRecord('rec-del-f1', moduleDataJson: jsonEncode({'upper_gua': '1'}));
         await cleanUow.saveWithBlobs(record: record, referencedBlobs: {handle});
 
@@ -320,7 +337,7 @@ void main() {
           outboxStore: outboxStore,
         );
 
-        final handle = _makeHandle('m-del-2');
+        final handle = await _putRealBlob(blobStore);
         final record = _makeRecord('rec-del-f2', moduleDataJson: jsonEncode({'upper_gua': '2'}));
         await cleanUow.saveWithBlobs(record: record, referencedBlobs: {handle});
         await db.delete(db.outboxRecords).go();
@@ -356,7 +373,7 @@ void main() {
           outboxStore: outboxStore,
         );
 
-        final handle = _makeHandle('m-del-3');
+        final handle = await _putRealBlob(blobStore);
         final record = _makeRecord('rec-del-f3', moduleDataJson: jsonEncode({'upper_gua': '3'}));
         await cleanUow.saveWithBlobs(record: record, referencedBlobs: {handle});
         await db.delete(db.outboxRecords).go();
@@ -394,7 +411,7 @@ void main() {
           outboxStore: outboxStore,
         );
 
-        final handle = _makeHandle('m-res-1');
+        final handle = await _putRealBlob(blobStore);
         final record = _makeRecord('rec-res-f1', moduleDataJson: jsonEncode({'upper_gua': '4'}));
         await cleanUow.saveWithBlobs(record: record, referencedBlobs: {handle});
         await cleanUow.deleteWithBlobs('rec-res-f1');
@@ -444,7 +461,7 @@ void main() {
           outboxStore: outboxStore,
         );
 
-        final handle = _makeHandle('m-res-2');
+        final handle = await _putRealBlob(blobStore);
         final record = _makeRecord('rec-res-f2', moduleDataJson: jsonEncode({'upper_gua': '8'}));
         await cleanUow.saveWithBlobs(record: record, referencedBlobs: {handle});
         await cleanUow.deleteWithBlobs('rec-res-f2');
@@ -484,7 +501,7 @@ void main() {
           outboxStore: outboxStore,
         );
 
-        final handle = _makeHandle('m-res-3');
+        final handle = await _putRealBlob(blobStore);
         final record = _makeRecord('rec-res-f3', moduleDataJson: jsonEncode({'upper_gua': '9'}));
         await cleanUow.saveWithBlobs(record: record, referencedBlobs: {handle});
         await cleanUow.deleteWithBlobs('rec-res-f3');

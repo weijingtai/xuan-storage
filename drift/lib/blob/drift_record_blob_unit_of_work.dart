@@ -120,6 +120,15 @@ final class DriftRecordBlobUnitOfWork implements RecordBlobUnitOfWork {
     );
     await _injectFailureAfterBlobRefs?.call();
 
+    // 2.5 ★ C1：事务内原子校验每个声明的 blob —— reconcile 已把 staged 提升
+    //    为 committed，此刻逐条 openRead 并完整消费字节流。任何 absent /
+    //    partial / corrupt / undecryptable 或流式传输错误都映射为现有
+    //    StorageError 并抛出，使 Record、搜索索引、blob refs 与 outbox
+    //    在同一事务中整体回滚（缺失/损坏的 blob 不得以部分状态入库）。
+    for (final handle in referencedBlobs) {
+      await _validateBlobReadable(handle);
+    }
+
     // 3. Enqueue outbox
     final outbox = _outboxStore;
     if (outbox != null) {
@@ -145,6 +154,63 @@ final class DriftRecordBlobUnitOfWork implements RecordBlobUnitOfWork {
         referencedBlobs: referencedBlobs,
       );
     });
+  }
+
+  /// C1：校验单个被引用 blob 在当前事务内可被完整读取。
+  ///
+  /// 复用现有 [LocalBlobStore.openRead]（不新增端口/回调/token），把五种
+  /// [BlobReadResult] 与流式传输错误映射到现有 StorageError 类型：
+  /// - [BlobAbsent] → [BlobNotFoundError]；
+  /// - [BlobPartial] → `StorageError(storage.blob_partial)`；
+  /// - [BlobCorrupt] 与未知流错误 → [BlobCorruptError]；
+  /// - [BlobUndecryptable] 与 openRead 抛出的 [BlobUndecryptableError] →
+  ///   [BlobUndecryptableError]。
+  ///
+  /// 只有 [BlobOk] 且其字节流被无错误消费完毕才算通过；否则抛出，由调用方
+  /// 事务整体回滚。
+  Future<void> _validateBlobReadable(BlobHandle handle) async {
+    final BlobReadResult result;
+    try {
+      result = await _blobStore.openRead(handle);
+    } on BlobUndecryptableError {
+      throw BlobUndecryptableError();
+    } on BlobCorruptError {
+      throw BlobCorruptError();
+    } on Object {
+      // openRead 阶段的其它异常视为数据不可用（映射为损坏）。
+      throw BlobCorruptError();
+    }
+
+    switch (result) {
+      case BlobAbsent():
+        throw BlobNotFoundError();
+      case BlobPartial():
+        throw StorageError(
+          code: 'storage.blob_partial',
+          message: 'Referenced blob is incomplete',
+          reason:
+              'Only part of the chunks of the referenced blob are present',
+          suggestion: '请补齐缺失分块或重新上传该 blob 后再保存',
+        );
+      case BlobCorrupt():
+        throw BlobCorruptError();
+      case BlobUndecryptable():
+        throw BlobUndecryptableError();
+      case BlobOk(:final plaintext):
+        // 完整消费流：SHA 校验与解密错误在流消费阶段才暴露。
+        try {
+          await for (final _ in plaintext) {}
+        } on BlobUndecryptableError {
+          throw BlobUndecryptableError();
+        } on BlobCorruptError {
+          throw BlobCorruptError();
+        } on Object {
+          // 流式传输中的其它错误视为损坏（与共享 media reader 的
+          // _mapStreamErrors 同一映射口径）。
+          throw BlobCorruptError();
+        }
+        return;
+    }
   }
 
   @override
