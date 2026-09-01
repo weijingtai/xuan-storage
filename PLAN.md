@@ -12,3 +12,7 @@
 - [x] Wave 1A A4 follow-up：Case UUID 写入前检查既有 scope，拒绝 B 覆盖 A；新增零残留回归测试。
 - [ ] Wave 1A A1：fresh analyzer 未出现需重做的旧 L0 七文件编译清单，按任务指示跳过；后续如新 fresh analyzer 明确列出再单独处理。
 - [ ] Wave 1B：由 Shell owner 按 §10.8 执行。
+
+## MEDIA-REWORK ACT 05（2026-08-31，本仓无改动，验收 PASS）
+
+- [x] drift_media_acquisition_adapter_test 6/6、analyze 0 issue、diff-check clean。

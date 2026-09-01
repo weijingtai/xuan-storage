@@ -1,5 +1,12 @@
 # HANDOFF
 
+## MEDIA-REWORK ACT 05 最终验收 — 本仓无代码改动（2026-08-31）
+
+- ACT 05 自动化验收经本仓 drift 包通过：drift_media_acquisition_adapter_test
+  6/6；analyze 0 issue；`git diff --check` clean。无新提交。
+
+---
+
 ## MEDIA-REWORK ACT 01 — 采集边界瞬态 preview path 透传（2026-08-31）
 
 - 当前分支/worktree: `fix/media-preview-hint`（`xuan-storage/.worktrees/media-preview-hint`）
