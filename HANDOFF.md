@@ -1,5 +1,21 @@
 # HANDOFF
 
+## WEB-BLOB-CHROME-REWORK ACT 03（WB3）— 门禁复核（2026-09-02）
+
+- HEAD/worktree 不变：`3b97cb8`（WB1 docs 提交）/ `xuan-storage/.worktrees/
+  media-preview-hint`。WB3 代码零改动；本段为 WB3 自动化门禁在 storage worktree 的
+  复核记录。
+- `flutter test -d chrome test/blob/web_blob_byte_backend_test.dart` → exit 0，9/9
+  （真实 IndexedDB；session 内跨实例读取/隔离/前缀用例）。
+- `flutter test --no-pub` blob+media 七文件 → exit 0，46/46。
+- analyzer `lib/blob test/blob`：0 error/0 warning，仅 1 条既有基线 info
+  （`in_memory_blob_store.dart:92` curly_braces，96699be 遗留、仅测试引用，不顺手修）。
+- `git diff --check` clean；禁止项静态扫描生产路径无命中（唯一命中为同一既有测试
+  Fake）。
+- 权威日志与截图/台账：根
+  `openspec/changes/integrate-xiang-kanyu-common-ui-cast/evidence/web-blob-chrome/`；
+  真实系统 picker 人工旅程待用户执行（见同目录 final-evidence.md §8）。
+
 ## WEB-BLOB-CHROME-REWORK ACT 01 — IndexedDB WebBlobByteBackend（2026-08-31）
 
 - 当前分支/worktree/HEAD: `fix/media-preview-hint` / `xuan-storage/.worktrees/
