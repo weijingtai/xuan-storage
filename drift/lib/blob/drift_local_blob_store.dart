@@ -14,8 +14,8 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart' as dr;
 import 'package:persistence_core/persistence_core.dart';
+import 'package:persistence_drift/blob/blob_byte_backend_factory.dart';
 import 'package:persistence_drift/blob/blob_metadata_repository.dart';
-import 'package:persistence_drift/blob/native.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 
 const int blobChunkSize = 16384;
@@ -30,12 +30,12 @@ final class DriftLocalBlobStore implements LocalBlobStore {
     required PersistenceDriftDatabase db,
   }) : _metadata = metadataRepository,
        _cipherResolver = cipherResolver,
-       _backend = FileSystemBlobByteBackend(rootDir: rootDir),
+       _backend = createBlobByteBackend(rootDir: rootDir),
        _db = db;
 
   final BlobMetadataRepository _metadata;
   final BlobCipherResolver _cipherResolver;
-  final FileSystemBlobByteBackend _backend;
+  final BlobByteBackend _backend;
   final PersistenceDriftDatabase _db;
 
   @override

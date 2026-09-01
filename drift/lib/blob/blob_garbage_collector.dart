@@ -9,8 +9,8 @@ library;
 
 import 'package:drift/drift.dart';
 import 'package:persistence_core/persistence_core.dart';
+import 'package:persistence_drift/blob/blob_byte_backend_factory.dart';
 import 'package:persistence_drift/blob/blob_metadata_repository.dart';
-import 'package:persistence_drift/blob/native.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 
 /// Blob garbage collector.
@@ -31,14 +31,14 @@ final class DriftBlobGarbageCollector {
        _scopeUid = scopeUid,
        _rootDir = rootDir,
        _now = now,
-       _backend = FileSystemBlobByteBackend(rootDir: rootDir),
+       _backend = createBlobByteBackend(rootDir: rootDir),
        _metadata = BlobMetadataRepository(db: db, scopeUid: scopeUid);
 
   final PersistenceDriftDatabase _db;
   final String _scopeUid;
   final String _rootDir;
   final DateTime Function() _now;
-  final FileSystemBlobByteBackend _backend;
+  final BlobByteBackend _backend;
   final BlobMetadataRepository _metadata;
 
   /// Run a full collection cycle.

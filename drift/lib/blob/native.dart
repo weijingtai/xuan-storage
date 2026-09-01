@@ -9,29 +9,9 @@ import 'dart:io';
 
 import 'package:persistence_core/persistence_core.dart';
 
-/// Platform-agnostic interface for byte-level blob storage.
-abstract interface class BlobByteBackend {
-  /// Write bytes at [index] to a temp file, then atomically rename.
-  Future<void> writeChunk(String manifestDir, int index, List<int> bytes);
+import 'blob_byte_backend_contract.dart';
 
-  /// Read bytes for chunk at [index].
-  Future<List<int>> readChunk(String manifestDir, int index);
-
-  /// Delete chunk at [index].
-  Future<void> deleteChunk(String manifestDir, int index);
-
-  /// List all chunk indices present in [manifestDir].
-  Future<Set<int>> listChunks(String manifestDir);
-
-  /// Delete entire manifest directory.
-  Future<void> deleteManifest(String manifestDir);
-
-  /// Enumerate all orphan chunk files across all manifest directories.
-  Future<Set<String>> orphanChunkPaths(String rootDir);
-
-  /// Total bytes used by a manifest directory.
-  Future<int> manifestSize(String manifestDir);
-}
+export 'blob_byte_backend_contract.dart';
 
 /// File-system based [BlobByteBackend].
 ///
