@@ -1,5 +1,14 @@
 # PLAN
 
+## WEB-BLOB-CHROME-REWORK ACT 00（2026-08-31，Chrome 真实 RED 冻结）
+
+- [x] WB0：`test/blob/web_blob_byte_backend_test.dart`（Chrome-only）：经 `web.dart`
+      构造 `WebBlobByteBackend`，断言 writeChunk → readChunk 0x00/0xFF 无损往返 +
+      listChunks；当前必须 UnsupportedError RED（S1d 永久占位，7447e74）。提交
+      `d15cf8e`。已探明：既有条件入口 `blob_byte_backend.dart` 的
+      `if (dart.library.html)` 在本工具链（Flutter 3.44 / DDC 与 release 均）为死条件，
+      WB1 须改为 `if (dart.library.js_interop)` 并删第二个分支（生产改动，WB0 未动）。
+
 - [x] C1（FINAL-REWORK-PLAN CURRENT EXECUTION CONTRACT，2026-08-30）：saveWithBlobs
   事务内原子校验引用 blob —— openRead + 完整消费每个声明的 handle，absent/partial/
   corrupt/undecryptable 映射现有 StorageError 并整体回滚（Record/index/refs/outbox），

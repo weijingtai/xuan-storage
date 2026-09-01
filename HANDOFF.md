@@ -1,5 +1,39 @@
 # HANDOFF
 
+## WEB-BLOB-CHROME-REWORK ACT 00 — Chrome 真实 RED 冻结（2026-08-31）
+
+- 当前分支/worktree/HEAD: `fix/media-preview-hint` / `xuan-storage/.worktrees/
+  media-preview-hint` / `d15cf8e`（test commit，上一基线 `12684e6`）
+- 变更范围（仅新增测试，零生产代码改动）：
+  - `drift/test/blob/web_blob_byte_backend_test.dart`：Chrome-only，经 `web.dart`
+    直接构造 `WebBlobByteBackend`（有条件入口 `blob_byte_backend.dart` 的
+    `dart.library.html` 死条件，本工具链恒解析 native，故不经它），断言
+    writeChunk → readChunk 的 0x00/0xFF 无损往返 + listChunks={0}。
+- RED（命令/退出码/断言）：`flutter test -d chrome test/blob/web_blob_byte_backend_test.dart`
+  → exit 1，`Unsupported operation: Blob byte storage is not supported on web
+  platforms in S1d…`（web.dart:35 `_unsupported`，S1d 永久占位 7447e74）。
+- GREEN：未执行（本 ACT 只冻结 RED，GREEN 属 WB1 IndexedDB 实现）。
+- analyzer：`flutter analyze --no-pub test/blob/web_blob_byte_backend_test.dart`
+  → exit 0，No issues。`git diff --check` → clean。
+- mutation：不适用（无生产代码改动；该测试即 WB1 的行为契约，实现回退即 RED）。
+- 探明事实（WB1 必读）：
+  1. `dart.library.html` 已是死条件（DDC 与 dart2js 均 false），既有条件入口
+     `blob_byte_backend.dart` 在 Web 目标恒解析 native.dart；仓库现代样板为
+     `if (dart.library.js_interop) 'web.dart' if (dart.library.ffi) 'native.dart'`
+     （见 `four_zhu_card_templates/connection.dart`）。WB1 改条件入口属生产改动。
+  2. `flutter test -d chrome` 走 DDC（`Uri.base` 为 file://），`dart.library.
+     js_interop` 亦 false；drift_flutter `driftDatabase` 因此误选 native 分支
+     （构造期崩于 path_provider），`package:drift/wasm.dart` 亦无法编译
+     （sqlite3 wasm 的 JSObject/JSBigInt 类型解析失败）。真实 wasm/IndexedDB
+     枚举断言须在 `flutter run -d chrome`（dart2js，HTTP）或等价 harness 运行，
+     或经显式 WasmDatabase + 插件桩（本仓未完成该组合）。
+- 未运行项：VM 回归（本 ACT 零生产改动，无回归面）；真实 Chrome picker（WB3）。
+- 提交：`d15cf8e test(storage): reproduce Chrome blob backend failure`（未 push）。
+- 下一步：`act/web-blob/01-storage-indexeddb.yaml`（WB1：IndexedDB WebBlobByteBackend
+  七方法 + DriftLocalBlobStore 条件 factory + 死条件修复；本文件转 GREEN）。
+
+---
+
 ## MEDIA-REWORK ACT 05 最终验收 — 本仓无代码改动（2026-08-31）
 
 - ACT 05 自动化验收经本仓 drift 包通过：drift_media_acquisition_adapter_test
