@@ -1,5 +1,77 @@
 # HANDOFF
 
+## WEB-BLOB-CHROME-REWORK ACT 01 — IndexedDB WebBlobByteBackend（2026-08-31）
+
+- 当前分支/worktree/HEAD: `fix/media-preview-hint` / `xuan-storage/.worktrees/
+  media-preview-hint` / `3d30dea`（实现提交；上一基线 `dc94193`）
+- 变更范围（WRITE + MAY_CREATE 全清单）：
+  - `drift/lib/blob/blob_byte_backend_contract.dart`（新）：唯一
+    `BlobByteBackend` 接口移入平台中立文件，解除 web 分支条件导入循环。
+  - `drift/lib/blob/web.dart`：S1d UnsupportedError 占位（7447e74）替换为
+    IndexedDB 实现 —— 版本化库 `xuan_blob_bytes_v1` / store `chunks`；value 为
+    二进制 structured-clone（JSUint8Array）；key = `'$manifestDir/$index'`
+    （manifestDir 已含 logical namespace + scopeUid/cipherManifestId）；单 key
+    read-write 事务原子提交，无 temp/rename；缺失读映射既有 `BlobNotFoundError`；
+    事务/请求错误传播 `IdbBlobStorageException`（带 DOMException name/message）；
+    `orphanChunkPaths` 恒空。枚举/删除按精确前缀过滤（相邻 manifest 名前缀不串）。
+  - `drift/lib/blob/blob_byte_backend.dart`：死条件 `dart.library.html` 改为
+    活的 `dart.library.js_interop`；导出契约 + 对应平台实现。
+  - `drift/lib/blob/blob_byte_backend_factory{,_native,_web}.dart`（新）：平台
+    工厂；`DriftLocalBlobStore` 与 `DriftBlobGarbageCollector` 改消费工厂
+    （不再硬编码 FileSystemBlobByteBackend；native 布局不变）。
+  - `drift/pubspec.yaml`：直接依赖 `web: ^1.1.1`。
+  - `drift/test/blob/web_blob_byte_backend_test.dart`：WB0 RED 文件扩为完整
+    合同套件（9 例：往返/原子覆盖/BlobNotFoundError/精确 index+size/删除隔离/
+    跨实例读取/scope 隔离/相邻前缀隔离/orphan 恒空），经工厂构造 backend。
+  - `drift/.gitignore`：`xuan-blob/`（DDC 运行会落入测试残渣目录）。
+- GREEN（命令/退出码）：
+  - `dart test -p chrome test/blob/web_blob_byte_backend_test.dart` → **exit 0
+    9/9**。这是**真实 IndexedDB 证明**（dart2js 编译、浏览器 IndexedDB 持久化，
+    跨实例读取用例即收割于真实存储）。
+  - `flutter test -d chrome test/blob/web_blob_byte_backend_test.dart` → exit 0
+    （同套件；注意 DDC 下工厂解析到 native 分支，走的是文件后端，非 IndexedDB
+    —— 仅作兼容性验证，真实 IndexedDB 以 dart2js 运行为准）。
+- RED（WB0 已冻结；MUTATION_PROOF）：
+  - 实现前：同一套件在 `dart test -p chrome` 下 9/9 RED（UnsupportedError）。
+  - Mutation：`blob_byte_backend_factory_web.dart` 临时返回
+    `UnsupportedBlobByteBackend` → `dart test -p chrome` 9/9 RED（exit 1）→
+    还原 → 9/9 GREEN（exit 0）。
+- 回归：ACT 指定 7 文件 `flutter test --no-pub …` → 46/46 exit 0；超宽
+  `flutter test --no-pub test/blob test/media` → **134/134 exit 0**；
+  `git diff --check` → clean。
+- analyzer：`flutter analyze --no-pub lib/blob test/blob/web_blob_byte_backend_test.dart`
+  → 变更文件 0 error / 0 warning / 0 info（唯一 info 为未触碰的
+  `in_memory_blob_store.dart:92` 既有基线）；`lib/blob/web.dart` 单独分析 →
+  No issues。
+- 环境探明事实（WB2 必读；同时修正 WB0 HANDOFF 的两处误读）：
+  1. **工具链分叉**：`flutter test -d chrome` 走 DDC，本包文件**直接**
+     `import 'dart:js_interop'` 无法编译（`'JSObject' isn't a type` /
+     `'toJS' isn't defined`）；因此条件工厂/边界在 DDC 下解析 native 分支。
+     `dart test -p chrome` 走 dart2js，`dart.library.js_interop` 完整可用 ——
+     真实 IndexedDB 验证的唯一现成测试运行器（`flutter test --wasm` 本工具链
+     不支持）。
+  2. **package:web 用法**：`package:web/web.dart` barrel 在 DDC 下因
+     helpers/http.dart 的遗留 `jsify`（已从 dart:js_interop 移除）编译失败；
+     web.dart 改 import 窄入口 `package:web/src/dom.dart`（带说明 + 定向
+     ignore）。生产 release（dart2js）下 barrel 亦可，但窄入口双平台一致。
+  3. **persistence_core barrel → Flutter**：barrel 传导
+     `world_country_repository.dart`（imports Flutter），dart2js 无法编译
+     Flutter 引擎源码；web.dart 与测试改用窄 import
+     `package:persistence_core/model/blob_error.dart`。
+  4. 修正 WB0 记录：当时探针的“wasm worker 可起/sqlite 持久打开失败于沙箱”系
+     误读 —— 那些错误来自 drift_flutter 的 **native 分支**（DDC 下
+     js_interop=false 误选 native，stub dart:io / path_provider），从未真正
+     运行 WasmDatabase。真实 drift-web 只在 dart2js 上下文可用
+     （`flutter build web` / `flutter run -d chrome` 产物级）。
+- 未运行项：Shell 侧 WB2 生产装配（下一步）；真实 Chrome picker/重启（WB3）；
+  release `flutter build web`（WB2 门禁）。
+- 提交：`3d30dea fix(storage): persist web blob chunks in IndexedDB`（未 push）。
+- 下一步：`act/web-blob/02-shell-web-wiring.yaml`（Shell Web 生产装配与 E2E；
+  Shell WB0 RED 转 GREEN 需让 DriftLocalBlobStore 在真实 Chrome（dart2js）下
+  用 IndexedDB 后端 + 真实 drift 库（wasm 在 HTTP 宿主下可用）跑通）。
+
+---
+
 ## WEB-BLOB-CHROME-REWORK ACT 00 — Chrome 真实 RED 冻结（2026-08-31）
 
 - 当前分支/worktree/HEAD: `fix/media-preview-hint` / `xuan-storage/.worktrees/

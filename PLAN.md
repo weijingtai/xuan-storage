@@ -1,5 +1,18 @@
 # PLAN
 
+## WEB-BLOB-CHROME-REWORK ACT 01（2026-08-31，Storage IndexedDB backend，GREEN）
+
+- [x] WB1：`WebBlobByteBackend` S1d 占位替换为 IndexedDB（库
+      `xuan_blob_bytes_v1` / store `chunks`，key = manifestDir/index，二进制
+      structured-clone，单 key 事务原子，缺失读 BlobNotFoundError，orphan 恒空）。
+      接口移入 `blob_byte_backend_contract.dart`；边界死条件 `dart.library.html`
+      → `dart.library.js_interop`；`DriftLocalBlobStore` / `DriftBlobGarbageCollector`
+      改经平台工厂取 backend（native 布局不变）。提交 `3d30dea`。
+- [x] WB1 验证：`dart test -p chrome test/blob/web_blob_byte_backend_test.dart`
+      → 9/9 exit 0（真实 IndexedDB，dart2js）；`flutter test -d chrome …` → exit 0
+      （DDC 走 native 分支兼容）；VM 回归 46/46 + 宽扫 test/blob+media 134/134；
+      analyze 变更文件 0 issue；mutation（web 工厂→Unsupported）RED→GREEN。
+
 ## WEB-BLOB-CHROME-REWORK ACT 00（2026-08-31，Chrome 真实 RED 冻结）
 
 - [x] WB0：`test/blob/web_blob_byte_backend_test.dart`（Chrome-only）：经 `web.dart`
