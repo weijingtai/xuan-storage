@@ -1,5 +1,32 @@
 # HANDOFF
 
+## MEDIA-REWORK ACT 01 — 采集边界瞬态 preview path 透传（2026-08-31）
+
+- 当前分支/worktree: `fix/media-preview-hint`（`xuan-storage/.worktrees/media-preview-hint`）
+- 基线 Commit SHA: `bb004f4`（冻结基线；worktree 预置，本次直接使用）
+- 变更范围:
+  - `drift/lib/media/media_source.dart`: `MediaSourceData` 新增 `final String? localPreviewPath`
+    （瞬态、采集边界专用；注释明确禁止进入 MediaReference/持久化）。
+  - `drift/lib/media/drift_media_acquisition_adapter.dart`: `MediaAcquisitionResult`
+    的 `localPreviewPath` 改为透传 `source.localPreviewPath`（原为硬编码 null）。
+  - `drift/test/media/drift_media_acquisition_adapter_test.dart`: 新增两个 RED→GREEN 用例
+    （preview path 透传 + 不持久化且字节可读回）。
+- RED（命令/退出码/断言）: 两用例均 exit 1，`Error: No named parameter with the
+  name 'localPreviewPath'`（字段缺失，预期）。
+- GREEN: `flutter test test/media/drift_media_acquisition_adapter_test.dart` → 6/6 exit 0；
+  `flutter test test/media/` 全量 media → 15/15 exit 0。
+- 验证: `flutter analyze lib/media test/media/drift_media_acquisition_adapter_test.dart`
+  → 0 issue；leak scan（media_reference/blob/record 无 localPreviewPath）→ exit 1；
+  `git diff --check` → exit 0。
+- 跨仓依赖: 本地 account 仓库 HEAD 漂移（fw0 合并移除了 `getCurrentSession`）会破坏
+  reader 测试；本 worktree 的 `drift/pubspec_overrides.yaml`（gitignored）把 account
+  钉在冻结基线 `bc3770a`，恢复 15/15 全绿。
+- 提交: `ca46424 fix(storage): preserve transient media preview path`（未 push，未动 main）。
+- 下游: shell worktree 经 gitignored override 指向本 worktree，`fix(shell): expose
+  selected image video preview paths` @ `36ff151` 已消费该字段。
+
+---
+
 ## C1 — saveWithBlobs 事务内原子校验引用 blob（FINAL-REWORK-PLAN CURRENT EXECUTION CONTRACT，2026-08-30）
 
 - 当前分支/worktree: `feature/rework-c1-blob-uow`（`xuan-storage/.worktrees/rework-c1-blob-uow`）
