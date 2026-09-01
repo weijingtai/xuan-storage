@@ -20,6 +20,7 @@ void main() {
     int? width = 800,
     int? height = 600,
     int? durationMs,
+    String? localPreviewPath,
   }) =>
       MediaSourceData(
         bytes: bytes ?? List<int>.generate(1024, (i) => i % 256),
@@ -27,6 +28,7 @@ void main() {
         width: width,
         height: height,
         durationMs: durationMs,
+        localPreviewPath: localPreviewPath,
         fileSizeBytes:
             (bytes ?? List<int>.generate(1024, (i) => i % 256)).length,
       );
@@ -90,6 +92,75 @@ void main() {
     expect(video.reference.mimeType, 'video/mp4');
     expect(video.reference.durationMs, 60000);
     expect(video.reference.originalWidth, 1920);
+  });
+
+  // MEDIA-REWORK ACT 01 RED：临时 preview path 必须穿过采集边界到达 result。
+  test('acquisition result preserves preview path', () async {
+    final blobStore = newBlobStore();
+    final adapter = DriftMediaAcquisitionAdapter(
+      blobStore: blobStore,
+      picker: (role, {maxWidth, maxHeight, maxDurationMs}) async {
+        return sourceData(
+          mimeType: 'image/png',
+          localPreviewPath: '/tmp/acquired-preview.png',
+        );
+      },
+    );
+
+    final result = await adapter.acquireImage(role: MediaRole.evidenceImage);
+
+    expect(result.localPreviewPath, '/tmp/acquired-preview.png');
+    // blob 仍然落盘：引用可经 blob 列表查询。
+    final list = await blobStore.list(tier: BlobTier.sourceOfTruth).toList();
+    expect(
+      list.any((e) => e.handle.cipherManifestId == result.reference.refId),
+      isTrue,
+    );
+  });
+
+  // MEDIA-REWORK ACT 01 RED：preview path 是采集边界瞬态数据，不得写入
+  // MediaReference JSON 或 blob metadata；字节仍须经 blob handle 可读。
+  test('preview path is not persisted', () async {
+    final blobStore = newBlobStore();
+    final sourceBytes = List<int>.generate(2048, (i) => (i * 7) % 256);
+    final adapter = DriftMediaAcquisitionAdapter(
+      blobStore: blobStore,
+      picker: (role, {maxWidth, maxHeight, maxDurationMs}) async {
+        return sourceData(
+          bytes: sourceBytes,
+          mimeType: 'image/jpeg',
+          localPreviewPath: '/private/var/acquired-preview.jpg',
+        );
+      },
+    );
+
+    final result = await adapter.acquireImage(role: MediaRole.evidenceImage);
+
+    // 采集边界保留瞬态 path。
+    expect(result.localPreviewPath, '/private/var/acquired-preview.jpg');
+    // MediaReference JSON 不含任何 path。
+    final json = result.reference.toJson();
+    expect(json.keys.any((k) => k.toLowerCase().contains('path')), isFalse);
+    // blob metadata（列表句柄）不含 path，且字节经 blob handle 可读。
+    final list = await blobStore.list(tier: BlobTier.sourceOfTruth).toList();
+    final entry = list.singleWhere(
+      (e) => e.handle.cipherManifestId == result.reference.refId,
+    );
+    final handleStrings = [
+      entry.handle.cipherManifestId,
+      entry.handle.cipherId,
+      entry.handle.plaintextSha256,
+      entry.handle.mimeType,
+    ];
+    expect(
+      handleStrings.any((s) => s.contains('acquired-preview')),
+      isFalse,
+      reason: 'blob metadata 不得携带 preview path',
+    );
+    final read = await blobStore.openRead(entry.handle);
+    final ok = read as BlobOk;
+    final readBytes = await ok.plaintext.expand((b) => b).toList();
+    expect(readBytes, sourceBytes);
   });
 
   test('MediaReference 值对象不含二进制或文件路径字段', () {

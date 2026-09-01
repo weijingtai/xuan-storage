@@ -83,8 +83,8 @@ class DriftMediaAcquisitionAdapter implements MediaAcquisitionPort {
         fileSizeBytes: handle.totalBytes,
       ),
       readiness: MediaReadiness.ready,
-      // 业务层禁止绝对路径：预览由 Shell 经 blob 读取能力解析，此处不传。
-      localPreviewPath: null,
+      // 仅透传采集边界的瞬态预览路径；不进入 MediaReference/Blob 持久化。
+      localPreviewPath: source.localPreviewPath,
     );
   }
 }

@@ -12,6 +12,12 @@ class MediaSourceData {
   final int? durationMs;
   final int? fileSizeBytes;
 
+  /// 采集边界的瞬态本地路径（如 image_picker 的 XFile.path）。
+  ///
+  /// 只存在于采集边界，用于临时预览；禁止写入 [MediaReference]、
+  /// moduleDataJson 或任何持久化 blob 元数据。进入 blob 存储后即被丢弃。
+  final String? localPreviewPath;
+
   const MediaSourceData({
     required this.bytes,
     required this.mimeType,
@@ -19,6 +25,7 @@ class MediaSourceData {
     this.height,
     this.durationMs,
     this.fileSizeBytes,
+    this.localPreviewPath,
   });
 
   int get sizeBytes => fileSizeBytes ?? bytes.length;
