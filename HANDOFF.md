@@ -275,3 +275,11 @@ Wave 1A 验证：Case scope guard 单测 RED（旧实现 B 覆盖 A）后 GREEN�
 下一步（第一件事）：Terra 只读复核 Case scope guard；人工验收通过后由人类合并，不由 Agent merge/rebase/push main。
 未运行项：全量 Drift suite、Shell/Kanyu、真实平台媒体及 Wave 2-4 门禁。
 已知的坑：`pubspec.lock` 和 `pubspec_overrides.yaml` 被忽略；新 worktree 必须重新 `flutter pub get` 并从实际 lockfile 核验 resolved-ref。
+
+---
+
+## 2026-08-29 下游消费记录（Shell K6 终验，Section 11.13-Q3/Q4）
+
+- main @ `5f23793` 被 `xuan-shell/.worktrees/wave2-kanyu-r8`（feature/release-v1）消费并通过 K6 真生产 composition E2E（16/16，provisional）。
+- ⚠ **未推送分支托管**：`fix/assets-ziwei-manifest-sha` @ `a6e5eac`（worktree `.worktrees/wave2-kanyu-r8-fix`）——修正 `assets/lib/ziwei/ziwei_datasets.dart` 三个 manifest 的 `payloadSha256/payloadBytes` 为实际文件值（`612e618a`/11013、`8b8a1f60`/21947、`099d1031`/4390）。根因：manifest 常量对应从未入库的本地构建产物，`ensureInstalled` integrity 失败被 `_DatasetEnsurer` 静默吞掉（自 `2709db0` 起即失配；25/31 数据集同病，本轮仅修 runtime 必经的 ziwei 三个，其余待各域构建脚本重生成）。**请人工审核后合并/推送该分支**；发布前 shell 侧 16/16 为 provisional 证据（pub-cache 就地补丁）。
+- 建议同批硬化：`_DatasetEnsurer.ensure()` 校验 `InstallOutcome`，失败即抛真实原因。
