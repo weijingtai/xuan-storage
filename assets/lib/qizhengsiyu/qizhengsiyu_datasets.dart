@@ -4,7 +4,7 @@
 /// - `qizheng.star_position_status` - 星位庙旺状态（97 行）
 /// - `qizheng.ge_ju` - 格局库（5 表 1005 行，源为预构建 SQLite）
 /// - `qizheng.zhou_tian` - 周天模型（3 行 JSON 文档表）
-/// - `qizheng.ephemeris` - 星历/黄道/赤道等（17 行 JSON 文档表）
+/// - `qizheng.ephemeris` - 星历/黄道/赤道等（20 行 JSON 文档表）
 /// - `qizheng.shen_sha` - 神煞（6 行 JSON 文档表）
 /// - `qizheng.hua_yao` - 化曜（3 行 JSON 文档表）
 /// - `qizheng.ge_ju_rules` - 格局规则 JSON（13 行 JSON 文档表）
@@ -49,8 +49,8 @@ class _QizhengManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        'e70949e30bd5b2c51f07c04376cb3855f42de5a8399f80c431f436c00444e913',
-    payloadBytes: 15707,
+        '7d59428dec52ec814b12cc259f0b3d3c7cdb70dc07fdcdefe5918a36c3b6f5bc',
+    payloadBytes: 15608,
     declaredRowCount: 97,
     publishedAtUtc: DateTime.utc(2026, 8, 7),
   );
@@ -62,8 +62,8 @@ class _QizhengManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '53c505d26c8a70a1f148c0cfac7bc14987825c7fd1e8f6a57a8176342e54fb53',
-    payloadBytes: 534033,
+        'c265f87b85ba3a2c78b45b4fc89998f75018ddd81d4bb9b9c6f163519cb747f0',
+    payloadBytes: 532921,
     declaredRowCount: 1005,
     publishedAtUtc: DateTime.utc(2026, 8, 7),
   );
@@ -75,8 +75,8 @@ class _QizhengManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '4e237226f45fed29cea7398007a053783a215881c8cda0613fffda37518e8a2e',
-    payloadBytes: 9351,
+        '0d9b7831aa4528019f029495f8871155da885ef244c4bf2f02d2e5aa5dd17b4d',
+    payloadBytes: 9133,
     declaredRowCount: 3,
     publishedAtUtc: DateTime.utc(2026, 8, 7),
   );
@@ -88,8 +88,8 @@ class _QizhengManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '8992cbfa956da40a44554c3479ef3fb504070d0640297d7766da704301c50780',
-    payloadBytes: 63536,
+        '3d1d2abcd54cf16486201483d57bb26f6e4df76eacb48809bedf338a7b4f1fbb',
+    payloadBytes: 61570,
     declaredRowCount: 20,
     publishedAtUtc: DateTime.utc(2026, 8, 7),
   );
@@ -101,8 +101,8 @@ class _QizhengManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '681e4b1c00f72b69b4b58924146624fcd7fb81d7752ca53506c9fd96240c0d3d',
-    payloadBytes: 50087,
+        '0d05ff7d53c78581e711f118ea75fba1e29b13164a7a37a2adb805421a8cc9dd',
+    payloadBytes: 48544,
     declaredRowCount: 6,
     publishedAtUtc: DateTime.utc(2026, 8, 7),
   );
@@ -114,8 +114,8 @@ class _QizhengManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '8b05ec86da69c21046ac28b60b36b481787c442b63496af71cf89785be81c07c',
-    payloadBytes: 22377,
+        '7780c48e0f4aa7fb9fb30a83d97cc9fc77cc8ec9f8ad553b914cdadaaeffdb0e',
+    payloadBytes: 21594,
     declaredRowCount: 3,
     publishedAtUtc: DateTime.utc(2026, 8, 7),
   );
@@ -127,8 +127,8 @@ class _QizhengManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '4e2cff5bd7232f57f5c71771b51e121ed917b6728c4e9a626b7034dfcf4059cc',
-    payloadBytes: 247168,
+        '2ad683c610b29f816ac1bc36a5426a3cf4c5e79af0f0264bb292540db2deaca1',
+    payloadBytes: 235099,
     declaredRowCount: 13,
     publishedAtUtc: DateTime.utc(2026, 8, 7),
   );
@@ -140,8 +140,8 @@ class _QizhengManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '7669246b7316b9776b42282c8b4716c87379ab3be6e43b5d3be7a6656eed77af',
-    payloadBytes: 297123,
+        '70feb55ec2b524459e1f0892fa40a7090a59dad6985f31b9c234383bc388e337',
+    payloadBytes: 287867,
     declaredRowCount: 13,
     publishedAtUtc: DateTime.utc(2026, 8, 7),
   );
@@ -229,7 +229,7 @@ void registerQizhengDatasets({required QizhengsiyuDatabase db}) {
       materializer: () => QizhengSqlMaterializer(
         datasetId: 'qizheng.ephemeris',
         assetPath: _kEphemerisAssetPath,
-        declaredRowCount: 17,
+        declaredRowCount: 20,
         db: db,
       ),
     ),
