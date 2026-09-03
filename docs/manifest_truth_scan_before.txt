@@ -1,0 +1,90 @@
+Domain         | Dataset ID                     | Status   | Field      | Declared                                                         | Actual
+--------------------------------------------------------------------------------------------------------------------------------------------
+daliuren       | daliuren.official_data         | MATCH    | (all 3)   | sha: dc4778d5... bytes: 7228363 rows: 4     | ALL MATCH
+daliuren       | daliuren.keti                  | MATCH    | (all 3)   | sha: 93c0a934... bytes: 87321   rows: 1     | ALL MATCH
+daliuren       | daliuren.shen_sha              | MATCH    | (all 3)   | sha: caffd13b... bytes: 138277  rows: 9     | ALL MATCH
+daliuren       | daliuren.school_dataset        | MATCH    | (all 3)   | sha: 5568dcb6... bytes: 594     rows: 1     | ALL MATCH
+kanyu          | kanyu.rules                    | MATCH    | (all 3)   | sha: c1a5a61f... bytes: 18216   rows: 6     | ALL MATCH
+kanyu          | kanyu.static_data              | MATCH    | (all 3)   | sha: 224f47a0... bytes: 49191   rows: 16    | ALL MATCH
+kanyu          | kanyu.schema                   | MATCH    | (all 3)   | sha: 1bb50cf1... bytes: 7150    rows: 2     | ALL MATCH
+taiyishenshu   | taiyi.schools                  | MATCH    | (all 3)   | sha: cfb13ade... bytes: 3878    rows: 3     | ALL MATCH
+taiyishenshu   | taiyi.deities                  | MATCH    | (all 3)   | sha: 36eeee33... bytes: 31609   rows: 47    | ALL MATCH
+taiyishenshu   | taiyi.minggua                  | MATCH    | (all 3)   | sha: 9fb44127... bytes: 912     rows: 1     | ALL MATCH
+tiebanshenshu  | tiebanshenshu.tiao_wen         | MATCH    | (all 3)   | sha: d4e1a78d... bytes: 1645505 rows: 12000 | ALL MATCH
+tiebanshenshu  | tiebanshenshu.kao_ke           | MATCH    | (all 3)   | sha: 8adb5d17... bytes: 80594   rows: 21    | ALL MATCH
+tiebanshenshu  | tiebanshenshu.shaozishu        | MATCH    | (all 3)   | sha: 79d797fa... bytes: 573984  rows: 12    | ALL MATCH
+tiebanshenshu  | tiebanshenshu.formulas         | MATCH    | (all 3)   | sha: 5202f57b... bytes: 29683   rows: 3     | ALL MATCH
+ziwei          | ziwei.star_catalog             | MATCH    | (all 3)   | sha: 612e618a... bytes: 11013   rows: 1     | ALL MATCH
+ziwei          | ziwei.star_metadata            | MATCH    | (all 3)   | sha: 8b8a1f60... bytes: 21947   rows: 2     | ALL MATCH
+ziwei          | ziwei.four_transformations     | MATCH    | (all 3)   | sha: 099d1031... bytes: 4390    rows: 1     | ALL MATCH
+four_zhu_card  | four_zhu.default_template      | MATCH    | (all 3)   | sha: 4ac90dd9... bytes: 19101   rows: 1     | ALL MATCH
+four_zhu_card  | four_zhu.market_templates      | MATCH    | (all 3)   | sha: 367cfc02... bytes: 97826   rows: 4     | ALL MATCH
+four_zhu_card  | four_zhu.outbox_templates      | MATCH    | (all 3)   | sha: 062c3a11... bytes: 98880   rows: 4     | ALL MATCH
+qizhengsiyu    | qizheng.star_position_status   | MISMATCH | sha256,bytes |
+  - sha256 : dec=e70949e30bd5b2c51f07c04376cb3855f42de5a8399f80c431f436c00444e913 | act=7d59428dec52ec814b12cc259f0b3d3c7cdb70dc07fdcdefe5918a36c3b6f5bc
+  - bytes  : dec=15707 | act=15608
+qizhengsiyu    | qizheng.ge_ju                  | MISMATCH | sha256,bytes |
+  - sha256 : dec=53c505d26c8a70a1f148c0cfac7bc14987825c7fd1e8f6a57a8176342e54fb53 | act=c265f87b85ba3a2c78b45b4fc89998f75018ddd81d4bb9b9c6f163519cb747f0
+  - bytes  : dec=534033 | act=532921
+qizhengsiyu    | qizheng.zhou_tian              | MISMATCH | sha256,bytes |
+  - sha256 : dec=4e237226f45fed29cea7398007a053783a215881c8cda0613fffda37518e8a2e | act=0d9b7831aa4528019f029495f8871155da885ef244c4bf2f02d2e5aa5dd17b4d
+  - bytes  : dec=9351 | act=9133
+qizhengsiyu    | qizheng.ephemeris              | MISMATCH | sha256,bytes |
+  - sha256 : dec=8992cbfa956da40a44554c3479ef3fb504070d0640297d7766da704301c50780 | act=3d1d2abcd54cf16486201483d57bb26f6e4df76eacb48809bedf338a7b4f1fbb
+  - bytes  : dec=63536 | act=61570
+qizhengsiyu    | qizheng.shen_sha               | MISMATCH | sha256,bytes |
+  - sha256 : dec=681e4b1c00f72b69b4b58924146624fcd7fb81d7752ca53506c9fd96240c0d3d | act=0d05ff7d53c78581e711f118ea75fba1e29b13164a7a37a2adb805421a8cc9dd
+  - bytes  : dec=50087 | act=48544
+qizhengsiyu    | qizheng.hua_yao                | MISMATCH | sha256,bytes |
+  - sha256 : dec=8b05ec86da69c21046ac28b60b36b481787c442b63496af71cf89785be81c07c | act=7780c48e0f4aa7fb9fb30a83d97cc9fc77cc8ec9f8ad553b914cdadaaeffdb0e
+  - bytes  : dec=22377 | act=21594
+qizhengsiyu    | qizheng.ge_ju_rules            | MISMATCH | sha256,bytes |
+  - sha256 : dec=4e2cff5bd7232f57f5c71771b51e121ed917b6728c4e9a626b7034dfcf4059cc | act=2ad683c610b29f816ac1bc36a5426a3cf4c5e79af0f0264bb292540db2deaca1
+  - bytes  : dec=247168 | act=235099
+qizhengsiyu    | qizheng.ge_ju_content          | MISMATCH | sha256,bytes |
+  - sha256 : dec=7669246b7316b9776b42282c8b4716c87379ab3be6e43b5d3be7a6656eed77af | act=70feb55ec2b524459e1f0892fa40a7090a59dad6985f31b9c234383bc388e337
+  - bytes  : dec=297123 | act=287867
+
+Total datasets scanned: 28
+Matches: 20
+Mismatches: 8
+
+Mismatched datasets:
+  - qizheng.star_position_status
+  - qizheng.ge_ju
+  - qizheng.zhou_tian
+  - qizheng.ephemeris
+  - qizheng.shen_sha
+  - qizheng.hua_yao
+  - qizheng.ge_ju_rules
+  - qizheng.ge_ju_content
+
+# --- TRUTH DICTIONARY (from actual .sql files) ---
+  'daliuren.official_data': (sha256: 'dc4778d5db5a7faf8b525fca11263d2739d6599cb5776010971dcd722ac1386b', bytes: 7228363, rows: 4),
+  'daliuren.keti': (sha256: '93c0a93406d04463e214bb74b31f0b8ce90b8967e7278e6536fe2e67c03227db', bytes: 87321, rows: 1),
+  'daliuren.shen_sha': (sha256: 'caffd13b1c4577c2cadeac209b7d5c11aa0143ec181c2ba607c35921f5998249', bytes: 138277, rows: 9),
+  'daliuren.school_dataset': (sha256: '5568dcb65ef5f585d30e2c462fffb69a5bd801ab430a597af5e64d76a64ed2ef', bytes: 594, rows: 1),
+  'kanyu.rules': (sha256: 'c1a5a61f490c15db6df47d5fcc0753f84ce056e0d7b3d4ed22aede51d18ff76c', bytes: 18216, rows: 6),
+  'kanyu.static_data': (sha256: '224f47a03f854fb4010eb71521834a495a12bfb9a410280d7d2cdea5dbc385cd', bytes: 49191, rows: 16),
+  'kanyu.schema': (sha256: '1bb50cf1514c49fa565c89ced342a4884e1e1f56c0406741fd54176a7ca292d9', bytes: 7150, rows: 2),
+  'taiyi.schools': (sha256: 'cfb13ade0c988dbcad650482502cd3007e7369635040995aee974e10476bc343', bytes: 3878, rows: 3),
+  'taiyi.deities': (sha256: '36eeee338abbfcbfab69afc502e5c7ca7cb8fcadee63a00976d7d70558d5ca50', bytes: 31609, rows: 47),
+  'taiyi.minggua': (sha256: '9fb441277e4f686c15ee7cceaadea3164c9deb9071e5e9cb753348b51877a0fb', bytes: 912, rows: 1),
+  'tiebanshenshu.tiao_wen': (sha256: 'd4e1a78d2123d7dcba047d3a96ac32986754d7e45c3b9660995ece68bac614fe', bytes: 1645505, rows: 12000),
+  'tiebanshenshu.kao_ke': (sha256: '8adb5d175b030dadf66dc1ffe12ce3198e38c97a7f5f494efe991d8245bef7de', bytes: 80594, rows: 21),
+  'tiebanshenshu.shaozishu': (sha256: '79d797fad365015af2303c0fb6b044242672b1e1baa88ca2b4ef1982f49e4ad3', bytes: 573984, rows: 12),
+  'tiebanshenshu.formulas': (sha256: '5202f57b9e99c310333dd2cba808d30fa2df248a90aa1f0910320da94abb5305', bytes: 29683, rows: 3),
+  'ziwei.star_catalog': (sha256: '612e618a89b9d9b2bca1f797fcf647ab1642300fe1eaf6f6984e245384b3e79d', bytes: 11013, rows: 1),
+  'ziwei.star_metadata': (sha256: '8b8a1f60ff9b3dbfd6f9442395ceca9e2791ebf2af9bf2b3d1cbf906121cae3f', bytes: 21947, rows: 2),
+  'ziwei.four_transformations': (sha256: '099d1031d4ec1b3539054d7ae8769ea864ac8b7b8548fd3c071d249a25864a32', bytes: 4390, rows: 1),
+  'four_zhu.default_template': (sha256: '4ac90dd9de2461ced56ee8a3a8d3690134004da56d54cafe1ef82c477df46c16', bytes: 19101, rows: 1),
+  'four_zhu.market_templates': (sha256: '367cfc024e1dedc137dc9f55bc591b847808dfb1d42dbf270a2cb69853496577', bytes: 97826, rows: 4),
+  'four_zhu.outbox_templates': (sha256: '062c3a11697f8c67c43161d3ec16b9866a29ded13c21535c1972cdf5c707196d', bytes: 98880, rows: 4),
+  'qizheng.star_position_status': (sha256: '7d59428dec52ec814b12cc259f0b3d3c7cdb70dc07fdcdefe5918a36c3b6f5bc', bytes: 15608, rows: 97),
+  'qizheng.ge_ju': (sha256: 'c265f87b85ba3a2c78b45b4fc89998f75018ddd81d4bb9b9c6f163519cb747f0', bytes: 532921, rows: 1005),
+  'qizheng.zhou_tian': (sha256: '0d9b7831aa4528019f029495f8871155da885ef244c4bf2f02d2e5aa5dd17b4d', bytes: 9133, rows: 3),
+  'qizheng.ephemeris': (sha256: '3d1d2abcd54cf16486201483d57bb26f6e4df76eacb48809bedf338a7b4f1fbb', bytes: 61570, rows: 20),
+  'qizheng.shen_sha': (sha256: '0d05ff7d53c78581e711f118ea75fba1e29b13164a7a37a2adb805421a8cc9dd', bytes: 48544, rows: 6),
+  'qizheng.hua_yao': (sha256: '7780c48e0f4aa7fb9fb30a83d97cc9fc77cc8ec9f8ad553b914cdadaaeffdb0e', bytes: 21594, rows: 3),
+  'qizheng.ge_ju_rules': (sha256: '2ad683c610b29f816ac1bc36a5426a3cf4c5e79af0f0264bb292540db2deaca1', bytes: 235099, rows: 13),
+  'qizheng.ge_ju_content': (sha256: '70feb55ec2b524459e1f0892fa40a7090a59dad6985f31b9c234383bc388e337', bytes: 287867, rows: 13),
