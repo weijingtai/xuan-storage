@@ -43,16 +43,12 @@ DATASETS = [
 ]
 
 def get_actual_metrics(sql_path):
-    # sha256 via shasum -a 256
     sha_cmd = f"shasum -a 256 '{sql_path}'"
     sha_out = subprocess.check_output(sha_cmd, shell=True).decode().strip().split()[0]
 
-    # bytes via wc -c
     bytes_cmd = f"wc -c < '{sql_path}'"
     bytes_out = int(subprocess.check_output(bytes_cmd, shell=True).decode().strip())
 
-    # insert rows via LC_ALL=C grep -c '^INSERT'
-    # Note: if 0 matches grep returns exit code 1, so handle CalledProcessError
     try:
         rows_cmd = f"LC_ALL=C grep -c '^INSERT' '{sql_path}'"
         rows_out = int(subprocess.check_output(rows_cmd, shell=True).decode().strip())
@@ -64,13 +60,23 @@ def get_actual_metrics(sql_path):
 
     return sha_out, bytes_out, rows_out
 
-def parse_manifest(manifest_dart_path, dataset_id):
-    content = open(manifest_dart_path).read()
+def parse_manifest(manifest_dart_path, dataset_id, use_qizheng_branch=False):
+    if use_qizheng_branch and "qizhengsiyu" in manifest_dart_path:
+        try:
+            content = subprocess.check_output(
+                f"git show wip/qizheng-manifest-fix:{manifest_dart_path}",
+                shell=True
+            ).decode()
+        except Exception:
+            content = open(manifest_dart_path).read()
+    else:
+        content = open(manifest_dart_path).read()
+
     pos = content.find(f"datasetId: '{dataset_id}'")
     if pos == -1:
         raise ValueError(f"Could not find {dataset_id} in {manifest_dart_path}")
     block = content[pos:pos+500]
-    
+
     sha_m = re.search(r"payloadSha256:\s*'([0-9a-fA-F]+)'", block)
     bytes_m = re.search(r"payloadBytes:\s*([0-9]+)", block)
     rows_m = re.search(r"declaredRowCount:\s*([0-9]+)", block)
@@ -80,27 +86,28 @@ def parse_manifest(manifest_dart_path, dataset_id):
 
     return sha_m.group(1).lower(), int(bytes_m.group(1)), int(rows_m.group(1))
 
-def main():
+def run_scan(output_file, use_qizheng_branch=False):
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     os.chdir(repo_root)
-
-    print("=" * 100)
-    print("ASSETS MANIFEST vs ACTUAL .SQL TRUTH SCAN")
-    print("=" * 100)
 
     mismatches = []
     matches = []
 
     report_lines = []
+    banner = "ASSETS MANIFEST vs ACTUAL .SQL TRUTH SCAN"
+    if use_qizheng_branch:
+        banner += " (including wip/qizheng-manifest-fix for qizhengsiyu)"
+    report_lines.append("=" * 100)
+    report_lines.append(banner)
+    report_lines.append("=" * 100)
+
     header = f"{'Domain':<14} | {'Dataset ID':<30} | {'Status':<8} | {'Field':<10} | {'Declared':<64} | {'Actual'}"
-    print(header)
-    print("-" * 140)
     report_lines.append(header)
     report_lines.append("-" * 140)
 
     for domain, dataset_id, sql_rel_path, dart_rel_path in DATASETS:
         act_sha, act_bytes, act_rows = get_actual_metrics(sql_rel_path)
-        dec_sha, dec_bytes, dec_rows = parse_manifest(dart_rel_path, dataset_id)
+        dec_sha, dec_bytes, dec_rows = parse_manifest(dart_rel_path, dataset_id, use_qizheng_branch)
 
         is_sha_match = (act_sha == dec_sha)
         is_bytes_match = (act_bytes == dec_bytes)
@@ -112,7 +119,6 @@ def main():
         if all_match:
             matches.append(dataset_id)
             line = f"{domain:<14} | {dataset_id:<30} | {status_str:<8} | (all 3)   | sha: {dec_sha[:8]}... bytes: {dec_bytes:<7} rows: {dec_rows:<5} | ALL MATCH"
-            print(line)
             report_lines.append(line)
         else:
             mismatches.append(dataset_id)
@@ -125,49 +131,44 @@ def main():
                 diff_fields.append("rows")
 
             line = f"{domain:<14} | {dataset_id:<30} | {status_str:<8} | {','.join(diff_fields):<10} |"
-            print(line)
             report_lines.append(line)
             if not is_sha_match:
                 s_line = f"  - sha256 : dec={dec_sha} | act={act_sha}"
-                print(s_line)
                 report_lines.append(s_line)
             if not is_bytes_match:
                 b_line = f"  - bytes  : dec={dec_bytes} | act={act_bytes}"
-                print(b_line)
                 report_lines.append(b_line)
             if not is_rows_match:
                 r_line = f"  - rows   : dec={dec_rows} | act={act_rows}"
-                print(r_line)
                 report_lines.append(r_line)
 
     summary_1 = f"\nTotal datasets scanned: {len(DATASETS)}"
-    summary_2 = f"Matches: {len(matches)}"
-    summary_3 = f"Mismatches: {len(mismatches)}"
-    print(summary_1)
-    print(summary_2)
-    print(summary_3)
+    summary_2 = f"Matches: {len(matches)} / {len(DATASETS)}"
+    summary_3 = f"Mismatches: {len(mismatches)} / {len(DATASETS)}"
     report_lines.extend([summary_1, summary_2, summary_3])
 
     if mismatches:
-        print("\nMismatched datasets:")
         report_lines.append("\nMismatched datasets:")
         for m in mismatches:
-            m_line = f"  - {m}"
-            print(m_line)
-            report_lines.append(m_line)
+            report_lines.append(f"  - {m}")
+        if any("qizheng" in m for m in mismatches) and not use_qizheng_branch:
+            report_lines.append("\nNote: qizhengsiyu (8 datasets) was already fixed on branch wip/qizheng-manifest-fix (commit ee706d9) and is pending human merge into main.")
 
-    truth_dict_lines = ["\n# --- TRUTH DICTIONARY (from actual .sql files) ---"]
-    for domain, dataset_id, sql_rel_path, dart_rel_path in DATASETS:
-        act_sha, act_bytes, act_rows = get_actual_metrics(sql_rel_path)
-        truth_dict_lines.append(f"  '{dataset_id}': (sha256: '{act_sha}', bytes: {act_bytes}, rows: {act_rows}),")
-    
-    report_lines.extend(truth_dict_lines)
-
-    output_filename = "manifest_truth_scan_before.txt" if len(mismatches) > 0 else "manifest_truth_scan_after.txt"
-    output_path = os.path.join(repo_root, "docs", output_filename)
+    output_path = os.path.join(repo_root, "docs", output_file)
     with open(output_path, "w") as f:
         f.write("\n".join(report_lines) + "\n")
+    print("\n".join(report_lines))
     print(f"\nReport saved to {output_path}")
+
+def main():
+    use_qizheng = "--with-qizheng" in sys.argv
+    out_name = "manifest_truth_scan_after.txt" if "--after" in sys.argv else "manifest_truth_scan_current.txt"
+    if "--out" in sys.argv:
+        idx = sys.argv.index("--out")
+        if idx + 1 < len(sys.argv):
+            out_name = sys.argv[idx + 1]
+
+    run_scan(out_name, use_qizheng)
 
 if __name__ == "__main__":
     main()

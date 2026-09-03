@@ -1,0 +1,37 @@
+====================================================================================================
+ASSETS MANIFEST vs ACTUAL .SQL TRUTH SCAN (including wip/qizheng-manifest-fix for qizhengsiyu)
+====================================================================================================
+Domain         | Dataset ID                     | Status   | Field      | Declared                                                         | Actual
+--------------------------------------------------------------------------------------------------------------------------------------------
+daliuren       | daliuren.official_data         | MATCH    | (all 3)   | sha: dc4778d5... bytes: 7228363 rows: 4     | ALL MATCH
+daliuren       | daliuren.keti                  | MATCH    | (all 3)   | sha: 93c0a934... bytes: 87321   rows: 1     | ALL MATCH
+daliuren       | daliuren.shen_sha              | MATCH    | (all 3)   | sha: caffd13b... bytes: 138277  rows: 9     | ALL MATCH
+daliuren       | daliuren.school_dataset        | MATCH    | (all 3)   | sha: 5568dcb6... bytes: 594     rows: 1     | ALL MATCH
+kanyu          | kanyu.rules                    | MATCH    | (all 3)   | sha: c1a5a61f... bytes: 18216   rows: 6     | ALL MATCH
+kanyu          | kanyu.static_data              | MATCH    | (all 3)   | sha: 224f47a0... bytes: 49191   rows: 16    | ALL MATCH
+kanyu          | kanyu.schema                   | MATCH    | (all 3)   | sha: 1bb50cf1... bytes: 7150    rows: 2     | ALL MATCH
+taiyishenshu   | taiyi.schools                  | MATCH    | (all 3)   | sha: cfb13ade... bytes: 3878    rows: 3     | ALL MATCH
+taiyishenshu   | taiyi.deities                  | MATCH    | (all 3)   | sha: 36eeee33... bytes: 31609   rows: 47    | ALL MATCH
+taiyishenshu   | taiyi.minggua                  | MATCH    | (all 3)   | sha: 9fb44127... bytes: 912     rows: 1     | ALL MATCH
+tiebanshenshu  | tiebanshenshu.tiao_wen         | MATCH    | (all 3)   | sha: d4e1a78d... bytes: 1645505 rows: 12000 | ALL MATCH
+tiebanshenshu  | tiebanshenshu.kao_ke           | MATCH    | (all 3)   | sha: 8adb5d17... bytes: 80594   rows: 21    | ALL MATCH
+tiebanshenshu  | tiebanshenshu.shaozishu        | MATCH    | (all 3)   | sha: 79d797fa... bytes: 573984  rows: 12    | ALL MATCH
+tiebanshenshu  | tiebanshenshu.formulas         | MATCH    | (all 3)   | sha: 5202f57b... bytes: 29683   rows: 3     | ALL MATCH
+ziwei          | ziwei.star_catalog             | MATCH    | (all 3)   | sha: 612e618a... bytes: 11013   rows: 1     | ALL MATCH
+ziwei          | ziwei.star_metadata            | MATCH    | (all 3)   | sha: 8b8a1f60... bytes: 21947   rows: 2     | ALL MATCH
+ziwei          | ziwei.four_transformations     | MATCH    | (all 3)   | sha: 099d1031... bytes: 4390    rows: 1     | ALL MATCH
+four_zhu_card  | four_zhu.default_template      | MATCH    | (all 3)   | sha: 4ac90dd9... bytes: 19101   rows: 1     | ALL MATCH
+four_zhu_card  | four_zhu.market_templates      | MATCH    | (all 3)   | sha: 367cfc02... bytes: 97826   rows: 4     | ALL MATCH
+four_zhu_card  | four_zhu.outbox_templates      | MATCH    | (all 3)   | sha: 062c3a11... bytes: 98880   rows: 4     | ALL MATCH
+qizhengsiyu    | qizheng.star_position_status   | MATCH    | (all 3)   | sha: 7d59428d... bytes: 15608   rows: 97    | ALL MATCH
+qizhengsiyu    | qizheng.ge_ju                  | MATCH    | (all 3)   | sha: c265f87b... bytes: 532921  rows: 1005  | ALL MATCH
+qizhengsiyu    | qizheng.zhou_tian              | MATCH    | (all 3)   | sha: 0d9b7831... bytes: 9133    rows: 3     | ALL MATCH
+qizhengsiyu    | qizheng.ephemeris              | MATCH    | (all 3)   | sha: 3d1d2abc... bytes: 61570   rows: 20    | ALL MATCH
+qizhengsiyu    | qizheng.shen_sha               | MATCH    | (all 3)   | sha: 0d05ff7d... bytes: 48544   rows: 6     | ALL MATCH
+qizhengsiyu    | qizheng.hua_yao                | MATCH    | (all 3)   | sha: 7780c48e... bytes: 21594   rows: 3     | ALL MATCH
+qizhengsiyu    | qizheng.ge_ju_rules            | MATCH    | (all 3)   | sha: 2ad683c6... bytes: 235099  rows: 13    | ALL MATCH
+qizhengsiyu    | qizheng.ge_ju_content          | MATCH    | (all 3)   | sha: 70feb55e... bytes: 287867  rows: 13    | ALL MATCH
+
+Total datasets scanned: 28
+Matches: 28 / 28
+Mismatches: 0 / 28
