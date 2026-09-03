@@ -24,7 +24,6 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:crypto/crypto.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:persistence_assets/daliuren/daliuren_datasets.dart';
@@ -280,8 +279,9 @@ void main() {
         final descriptor = DatasetRegistry.lookup(spec.datasetId)!;
         final manifest = descriptor.bundledManifest;
 
+        final shasumResult = Process.runSync('shasum', ['-a', '256', file.path]);
+        final actualSha256 = (shasumResult.stdout as String).trim().split(' ').first;
         final bytes = file.readAsBytesSync();
-        final actualSha256 = sha256.convert(bytes).toString();
         final actualBytes = bytes.length;
         final sqlText = utf8.decode(bytes);
         final actualRowCount = sqlText
