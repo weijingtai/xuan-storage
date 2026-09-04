@@ -128,7 +128,7 @@ void main() {
 
       // 2. Open via Drift and trigger onUpgrade
       final db = PersistenceDriftDatabase(NativeDatabase(dbFile));
-      expect(db.schemaVersion, 13);
+      expect(db.schemaVersion, kPersistenceDriftSchemaVersion);
 
       // Verify pre-existing data remained intact
       final outboxRows = await db.customSelect('SELECT * FROM t_outbox WHERE operation_id = ?', variables: [const Variable('op_pre_1')]).get();

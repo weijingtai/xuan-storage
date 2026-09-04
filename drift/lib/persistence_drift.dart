@@ -154,6 +154,10 @@ import 'src/im/im_tables.dart';
 import 'src/im/im_dao.dart';
 export 'src/im/im_tables.dart';
 export 'src/im/im_dao.dart';
+import 'template/divination_templates_table.dart';
+import 'template/template_usage_stats_table.dart';
+export 'template/divination_templates_table.dart';
+export 'template/template_usage_stats_table.dart';
 
 part 'persistence_drift.g.dart';
 
@@ -894,7 +898,7 @@ class EntityStampDao extends DatabaseAccessor<PersistenceDriftDatabase>
 
 /// 数据库 schema 版本。任何 onUpgrade 分支新增时同步 +1；
 /// 测试断言跟随本常量（防止版本号断言失同步）。
-const int kPersistenceDriftSchemaVersion = 13;
+const int kPersistenceDriftSchemaVersion = 14;
 
 @DriftDatabase(
   tables: [
@@ -943,6 +947,8 @@ const int kPersistenceDriftSchemaVersion = 13;
     IncomingDeliveries,
     TIMSendStates,
     TIMPeerAuthorizations,
+    DivinationTemplates,
+    TemplateUsageStats,
   ],
   daos: [
     OutboxRecordsDao,
@@ -984,6 +990,7 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
       await _createBlobIndices();
       await _createSw2Indices();
       await _createImIndices();
+      await _createTemplateIndices();
     },
     onUpgrade: (m, from, to) async {
       if (from < 2) {
@@ -1105,6 +1112,12 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
         await m.createTable(tIMSendStates);
         await m.createTable(tIMPeerAuthorizations);
         await _createImIndices();
+      }
+      if (from < 14) {
+        // schema v14：起卦模板系统（H3）t_divination_templates 与 t_template_usage_stats 两张表及索引
+        await m.createTable(divinationTemplates);
+        await m.createTable(templateUsageStats);
+        await _createTemplateIndices();
       }
     },
   );
@@ -1449,6 +1462,17 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_im_message_timeline '
       'ON t_im_message (scope_uid, conversation_id, created_hlc_packed, created_hlc_device_id, message_id)');
+  }
+
+  Future<void> _createTemplateIndices() async {
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_divination_templates_scope '
+      'ON t_divination_templates(scope_uid)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_template_usage_stats_scope '
+      'ON t_template_usage_stats(scope_uid)',
+    );
   }
 }
 

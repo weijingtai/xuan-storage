@@ -25156,6 +25156,1055 @@ class TIMPeerAuthorizationsCompanion
   }
 }
 
+class $DivinationTemplatesTable extends DivinationTemplates
+    with TableInfo<$DivinationTemplatesTable, DivinationTemplateRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DivinationTemplatesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _templateIdMeta = const VerificationMeta(
+    'templateId',
+  );
+  @override
+  late final GeneratedColumn<String> templateId = GeneratedColumn<String>(
+    'template_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _originMeta = const VerificationMeta('origin');
+  @override
+  late final GeneratedColumn<String> origin = GeneratedColumn<String>(
+    'origin',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _derivedFromMeta = const VerificationMeta(
+    'derivedFrom',
+  );
+  @override
+  late final GeneratedColumn<String> derivedFrom = GeneratedColumn<String>(
+    'derived_from',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _definitionJsonMeta = const VerificationMeta(
+    'definitionJson',
+  );
+  @override
+  late final GeneratedColumn<String> definitionJson = GeneratedColumn<String>(
+    'definition_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    scopeUid,
+    templateId,
+    name,
+    category,
+    origin,
+    derivedFrom,
+    version,
+    definitionJson,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_divination_templates';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DivinationTemplateRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scopeUidMeta);
+    }
+    if (data.containsKey('template_id')) {
+      context.handle(
+        _templateIdMeta,
+        templateId.isAcceptableOrUnknown(data['template_id']!, _templateIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_templateIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryMeta);
+    }
+    if (data.containsKey('origin')) {
+      context.handle(
+        _originMeta,
+        origin.isAcceptableOrUnknown(data['origin']!, _originMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_originMeta);
+    }
+    if (data.containsKey('derived_from')) {
+      context.handle(
+        _derivedFromMeta,
+        derivedFrom.isAcceptableOrUnknown(
+          data['derived_from']!,
+          _derivedFromMeta,
+        ),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_versionMeta);
+    }
+    if (data.containsKey('definition_json')) {
+      context.handle(
+        _definitionJsonMeta,
+        definitionJson.isAcceptableOrUnknown(
+          data['definition_json']!,
+          _definitionJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_definitionJsonMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  DivinationTemplateRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DivinationTemplateRow(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      )!,
+      templateId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}template_id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      )!,
+      origin: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}origin'],
+      )!,
+      derivedFrom: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}derived_from'],
+      ),
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      definitionJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}definition_json'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $DivinationTemplatesTable createAlias(String alias) {
+    return $DivinationTemplatesTable(attachedDatabase, alias);
+  }
+}
+
+class DivinationTemplateRow extends DataClass
+    implements Insertable<DivinationTemplateRow> {
+  final String uuid;
+  final String scopeUid;
+  final String templateId;
+  final String name;
+  final String category;
+  final String origin;
+  final String? derivedFrom;
+  final int version;
+  final String definitionJson;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const DivinationTemplateRow({
+    required this.uuid,
+    required this.scopeUid,
+    required this.templateId,
+    required this.name,
+    required this.category,
+    required this.origin,
+    this.derivedFrom,
+    required this.version,
+    required this.definitionJson,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['scope_uid'] = Variable<String>(scopeUid);
+    map['template_id'] = Variable<String>(templateId);
+    map['name'] = Variable<String>(name);
+    map['category'] = Variable<String>(category);
+    map['origin'] = Variable<String>(origin);
+    if (!nullToAbsent || derivedFrom != null) {
+      map['derived_from'] = Variable<String>(derivedFrom);
+    }
+    map['version'] = Variable<int>(version);
+    map['definition_json'] = Variable<String>(definitionJson);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  DivinationTemplatesCompanion toCompanion(bool nullToAbsent) {
+    return DivinationTemplatesCompanion(
+      uuid: Value(uuid),
+      scopeUid: Value(scopeUid),
+      templateId: Value(templateId),
+      name: Value(name),
+      category: Value(category),
+      origin: Value(origin),
+      derivedFrom: derivedFrom == null && nullToAbsent
+          ? const Value.absent()
+          : Value(derivedFrom),
+      version: Value(version),
+      definitionJson: Value(definitionJson),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory DivinationTemplateRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DivinationTemplateRow(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      scopeUid: serializer.fromJson<String>(json['scopeUid']),
+      templateId: serializer.fromJson<String>(json['templateId']),
+      name: serializer.fromJson<String>(json['name']),
+      category: serializer.fromJson<String>(json['category']),
+      origin: serializer.fromJson<String>(json['origin']),
+      derivedFrom: serializer.fromJson<String?>(json['derivedFrom']),
+      version: serializer.fromJson<int>(json['version']),
+      definitionJson: serializer.fromJson<String>(json['definitionJson']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'scopeUid': serializer.toJson<String>(scopeUid),
+      'templateId': serializer.toJson<String>(templateId),
+      'name': serializer.toJson<String>(name),
+      'category': serializer.toJson<String>(category),
+      'origin': serializer.toJson<String>(origin),
+      'derivedFrom': serializer.toJson<String?>(derivedFrom),
+      'version': serializer.toJson<int>(version),
+      'definitionJson': serializer.toJson<String>(definitionJson),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  DivinationTemplateRow copyWith({
+    String? uuid,
+    String? scopeUid,
+    String? templateId,
+    String? name,
+    String? category,
+    String? origin,
+    Value<String?> derivedFrom = const Value.absent(),
+    int? version,
+    String? definitionJson,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => DivinationTemplateRow(
+    uuid: uuid ?? this.uuid,
+    scopeUid: scopeUid ?? this.scopeUid,
+    templateId: templateId ?? this.templateId,
+    name: name ?? this.name,
+    category: category ?? this.category,
+    origin: origin ?? this.origin,
+    derivedFrom: derivedFrom.present ? derivedFrom.value : this.derivedFrom,
+    version: version ?? this.version,
+    definitionJson: definitionJson ?? this.definitionJson,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  DivinationTemplateRow copyWithCompanion(DivinationTemplatesCompanion data) {
+    return DivinationTemplateRow(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
+      templateId: data.templateId.present
+          ? data.templateId.value
+          : this.templateId,
+      name: data.name.present ? data.name.value : this.name,
+      category: data.category.present ? data.category.value : this.category,
+      origin: data.origin.present ? data.origin.value : this.origin,
+      derivedFrom: data.derivedFrom.present
+          ? data.derivedFrom.value
+          : this.derivedFrom,
+      version: data.version.present ? data.version.value : this.version,
+      definitionJson: data.definitionJson.present
+          ? data.definitionJson.value
+          : this.definitionJson,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DivinationTemplateRow(')
+          ..write('uuid: $uuid, ')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('templateId: $templateId, ')
+          ..write('name: $name, ')
+          ..write('category: $category, ')
+          ..write('origin: $origin, ')
+          ..write('derivedFrom: $derivedFrom, ')
+          ..write('version: $version, ')
+          ..write('definitionJson: $definitionJson, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    scopeUid,
+    templateId,
+    name,
+    category,
+    origin,
+    derivedFrom,
+    version,
+    definitionJson,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DivinationTemplateRow &&
+          other.uuid == this.uuid &&
+          other.scopeUid == this.scopeUid &&
+          other.templateId == this.templateId &&
+          other.name == this.name &&
+          other.category == this.category &&
+          other.origin == this.origin &&
+          other.derivedFrom == this.derivedFrom &&
+          other.version == this.version &&
+          other.definitionJson == this.definitionJson &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class DivinationTemplatesCompanion
+    extends UpdateCompanion<DivinationTemplateRow> {
+  final Value<String> uuid;
+  final Value<String> scopeUid;
+  final Value<String> templateId;
+  final Value<String> name;
+  final Value<String> category;
+  final Value<String> origin;
+  final Value<String?> derivedFrom;
+  final Value<int> version;
+  final Value<String> definitionJson;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const DivinationTemplatesCompanion({
+    this.uuid = const Value.absent(),
+    this.scopeUid = const Value.absent(),
+    this.templateId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.category = const Value.absent(),
+    this.origin = const Value.absent(),
+    this.derivedFrom = const Value.absent(),
+    this.version = const Value.absent(),
+    this.definitionJson = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DivinationTemplatesCompanion.insert({
+    required String uuid,
+    required String scopeUid,
+    required String templateId,
+    required String name,
+    required String category,
+    required String origin,
+    this.derivedFrom = const Value.absent(),
+    required int version,
+    required String definitionJson,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       scopeUid = Value(scopeUid),
+       templateId = Value(templateId),
+       name = Value(name),
+       category = Value(category),
+       origin = Value(origin),
+       version = Value(version),
+       definitionJson = Value(definitionJson),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<DivinationTemplateRow> custom({
+    Expression<String>? uuid,
+    Expression<String>? scopeUid,
+    Expression<String>? templateId,
+    Expression<String>? name,
+    Expression<String>? category,
+    Expression<String>? origin,
+    Expression<String>? derivedFrom,
+    Expression<int>? version,
+    Expression<String>? definitionJson,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (scopeUid != null) 'scope_uid': scopeUid,
+      if (templateId != null) 'template_id': templateId,
+      if (name != null) 'name': name,
+      if (category != null) 'category': category,
+      if (origin != null) 'origin': origin,
+      if (derivedFrom != null) 'derived_from': derivedFrom,
+      if (version != null) 'version': version,
+      if (definitionJson != null) 'definition_json': definitionJson,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DivinationTemplatesCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? scopeUid,
+    Value<String>? templateId,
+    Value<String>? name,
+    Value<String>? category,
+    Value<String>? origin,
+    Value<String?>? derivedFrom,
+    Value<int>? version,
+    Value<String>? definitionJson,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return DivinationTemplatesCompanion(
+      uuid: uuid ?? this.uuid,
+      scopeUid: scopeUid ?? this.scopeUid,
+      templateId: templateId ?? this.templateId,
+      name: name ?? this.name,
+      category: category ?? this.category,
+      origin: origin ?? this.origin,
+      derivedFrom: derivedFrom ?? this.derivedFrom,
+      version: version ?? this.version,
+      definitionJson: definitionJson ?? this.definitionJson,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
+    }
+    if (templateId.present) {
+      map['template_id'] = Variable<String>(templateId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (origin.present) {
+      map['origin'] = Variable<String>(origin.value);
+    }
+    if (derivedFrom.present) {
+      map['derived_from'] = Variable<String>(derivedFrom.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (definitionJson.present) {
+      map['definition_json'] = Variable<String>(definitionJson.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DivinationTemplatesCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('templateId: $templateId, ')
+          ..write('name: $name, ')
+          ..write('category: $category, ')
+          ..write('origin: $origin, ')
+          ..write('derivedFrom: $derivedFrom, ')
+          ..write('version: $version, ')
+          ..write('definitionJson: $definitionJson, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TemplateUsageStatsTable extends TemplateUsageStats
+    with TableInfo<$TemplateUsageStatsTable, TemplateUsageStatsRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TemplateUsageStatsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _templateUuidMeta = const VerificationMeta(
+    'templateUuid',
+  );
+  @override
+  late final GeneratedColumn<String> templateUuid = GeneratedColumn<String>(
+    'template_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _useCountMeta = const VerificationMeta(
+    'useCount',
+  );
+  @override
+  late final GeneratedColumn<int> useCount = GeneratedColumn<int>(
+    'use_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _lastUsedAtMeta = const VerificationMeta(
+    'lastUsedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastUsedAt = GeneratedColumn<DateTime>(
+    'last_used_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    templateUuid,
+    scopeUid,
+    useCount,
+    lastUsedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_template_usage_stats';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TemplateUsageStatsRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('template_uuid')) {
+      context.handle(
+        _templateUuidMeta,
+        templateUuid.isAcceptableOrUnknown(
+          data['template_uuid']!,
+          _templateUuidMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_templateUuidMeta);
+    }
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scopeUidMeta);
+    }
+    if (data.containsKey('use_count')) {
+      context.handle(
+        _useCountMeta,
+        useCount.isAcceptableOrUnknown(data['use_count']!, _useCountMeta),
+      );
+    }
+    if (data.containsKey('last_used_at')) {
+      context.handle(
+        _lastUsedAtMeta,
+        lastUsedAt.isAcceptableOrUnknown(
+          data['last_used_at']!,
+          _lastUsedAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_lastUsedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {templateUuid};
+  @override
+  TemplateUsageStatsRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TemplateUsageStatsRow(
+      templateUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}template_uuid'],
+      )!,
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      )!,
+      useCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}use_count'],
+      )!,
+      lastUsedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_used_at'],
+      )!,
+    );
+  }
+
+  @override
+  $TemplateUsageStatsTable createAlias(String alias) {
+    return $TemplateUsageStatsTable(attachedDatabase, alias);
+  }
+}
+
+class TemplateUsageStatsRow extends DataClass
+    implements Insertable<TemplateUsageStatsRow> {
+  final String templateUuid;
+  final String scopeUid;
+  final int useCount;
+  final DateTime lastUsedAt;
+  const TemplateUsageStatsRow({
+    required this.templateUuid,
+    required this.scopeUid,
+    required this.useCount,
+    required this.lastUsedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['template_uuid'] = Variable<String>(templateUuid);
+    map['scope_uid'] = Variable<String>(scopeUid);
+    map['use_count'] = Variable<int>(useCount);
+    map['last_used_at'] = Variable<DateTime>(lastUsedAt);
+    return map;
+  }
+
+  TemplateUsageStatsCompanion toCompanion(bool nullToAbsent) {
+    return TemplateUsageStatsCompanion(
+      templateUuid: Value(templateUuid),
+      scopeUid: Value(scopeUid),
+      useCount: Value(useCount),
+      lastUsedAt: Value(lastUsedAt),
+    );
+  }
+
+  factory TemplateUsageStatsRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TemplateUsageStatsRow(
+      templateUuid: serializer.fromJson<String>(json['templateUuid']),
+      scopeUid: serializer.fromJson<String>(json['scopeUid']),
+      useCount: serializer.fromJson<int>(json['useCount']),
+      lastUsedAt: serializer.fromJson<DateTime>(json['lastUsedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'templateUuid': serializer.toJson<String>(templateUuid),
+      'scopeUid': serializer.toJson<String>(scopeUid),
+      'useCount': serializer.toJson<int>(useCount),
+      'lastUsedAt': serializer.toJson<DateTime>(lastUsedAt),
+    };
+  }
+
+  TemplateUsageStatsRow copyWith({
+    String? templateUuid,
+    String? scopeUid,
+    int? useCount,
+    DateTime? lastUsedAt,
+  }) => TemplateUsageStatsRow(
+    templateUuid: templateUuid ?? this.templateUuid,
+    scopeUid: scopeUid ?? this.scopeUid,
+    useCount: useCount ?? this.useCount,
+    lastUsedAt: lastUsedAt ?? this.lastUsedAt,
+  );
+  TemplateUsageStatsRow copyWithCompanion(TemplateUsageStatsCompanion data) {
+    return TemplateUsageStatsRow(
+      templateUuid: data.templateUuid.present
+          ? data.templateUuid.value
+          : this.templateUuid,
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
+      useCount: data.useCount.present ? data.useCount.value : this.useCount,
+      lastUsedAt: data.lastUsedAt.present
+          ? data.lastUsedAt.value
+          : this.lastUsedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TemplateUsageStatsRow(')
+          ..write('templateUuid: $templateUuid, ')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('useCount: $useCount, ')
+          ..write('lastUsedAt: $lastUsedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(templateUuid, scopeUid, useCount, lastUsedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TemplateUsageStatsRow &&
+          other.templateUuid == this.templateUuid &&
+          other.scopeUid == this.scopeUid &&
+          other.useCount == this.useCount &&
+          other.lastUsedAt == this.lastUsedAt);
+}
+
+class TemplateUsageStatsCompanion
+    extends UpdateCompanion<TemplateUsageStatsRow> {
+  final Value<String> templateUuid;
+  final Value<String> scopeUid;
+  final Value<int> useCount;
+  final Value<DateTime> lastUsedAt;
+  final Value<int> rowid;
+  const TemplateUsageStatsCompanion({
+    this.templateUuid = const Value.absent(),
+    this.scopeUid = const Value.absent(),
+    this.useCount = const Value.absent(),
+    this.lastUsedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TemplateUsageStatsCompanion.insert({
+    required String templateUuid,
+    required String scopeUid,
+    this.useCount = const Value.absent(),
+    required DateTime lastUsedAt,
+    this.rowid = const Value.absent(),
+  }) : templateUuid = Value(templateUuid),
+       scopeUid = Value(scopeUid),
+       lastUsedAt = Value(lastUsedAt);
+  static Insertable<TemplateUsageStatsRow> custom({
+    Expression<String>? templateUuid,
+    Expression<String>? scopeUid,
+    Expression<int>? useCount,
+    Expression<DateTime>? lastUsedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (templateUuid != null) 'template_uuid': templateUuid,
+      if (scopeUid != null) 'scope_uid': scopeUid,
+      if (useCount != null) 'use_count': useCount,
+      if (lastUsedAt != null) 'last_used_at': lastUsedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TemplateUsageStatsCompanion copyWith({
+    Value<String>? templateUuid,
+    Value<String>? scopeUid,
+    Value<int>? useCount,
+    Value<DateTime>? lastUsedAt,
+    Value<int>? rowid,
+  }) {
+    return TemplateUsageStatsCompanion(
+      templateUuid: templateUuid ?? this.templateUuid,
+      scopeUid: scopeUid ?? this.scopeUid,
+      useCount: useCount ?? this.useCount,
+      lastUsedAt: lastUsedAt ?? this.lastUsedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (templateUuid.present) {
+      map['template_uuid'] = Variable<String>(templateUuid.value);
+    }
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
+    }
+    if (useCount.present) {
+      map['use_count'] = Variable<int>(useCount.value);
+    }
+    if (lastUsedAt.present) {
+      map['last_used_at'] = Variable<DateTime>(lastUsedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TemplateUsageStatsCompanion(')
+          ..write('templateUuid: $templateUuid, ')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('useCount: $useCount, ')
+          ..write('lastUsedAt: $lastUsedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
   _$PersistenceDriftDatabase(QueryExecutor e) : super(e);
   $PersistenceDriftDatabaseManager get managers =>
@@ -25234,6 +26283,10 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
   late final $TIMSendStatesTable tIMSendStates = $TIMSendStatesTable(this);
   late final $TIMPeerAuthorizationsTable tIMPeerAuthorizations =
       $TIMPeerAuthorizationsTable(this);
+  late final $DivinationTemplatesTable divinationTemplates =
+      $DivinationTemplatesTable(this);
+  late final $TemplateUsageStatsTable templateUsageStats =
+      $TemplateUsageStatsTable(this);
   late final OutboxRecordsDao outboxRecordsDao = OutboxRecordsDao(
     this as PersistenceDriftDatabase,
   );
@@ -25338,6 +26391,8 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
     incomingDeliveries,
     tIMSendStates,
     tIMPeerAuthorizations,
+    divinationTemplates,
+    templateUsageStats,
   ];
 }
 
@@ -38649,6 +39704,559 @@ typedef $$TIMPeerAuthorizationsTableProcessedTableManager =
       TIMPeerAuthorizationRow,
       PrefetchHooks Function()
     >;
+typedef $$DivinationTemplatesTableCreateCompanionBuilder =
+    DivinationTemplatesCompanion Function({
+      required String uuid,
+      required String scopeUid,
+      required String templateId,
+      required String name,
+      required String category,
+      required String origin,
+      Value<String?> derivedFrom,
+      required int version,
+      required String definitionJson,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$DivinationTemplatesTableUpdateCompanionBuilder =
+    DivinationTemplatesCompanion Function({
+      Value<String> uuid,
+      Value<String> scopeUid,
+      Value<String> templateId,
+      Value<String> name,
+      Value<String> category,
+      Value<String> origin,
+      Value<String?> derivedFrom,
+      Value<int> version,
+      Value<String> definitionJson,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$DivinationTemplatesTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $DivinationTemplatesTable> {
+  $$DivinationTemplatesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get templateId => $composableBuilder(
+    column: $table.templateId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get origin => $composableBuilder(
+    column: $table.origin,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get derivedFrom => $composableBuilder(
+    column: $table.derivedFrom,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get definitionJson => $composableBuilder(
+    column: $table.definitionJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DivinationTemplatesTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $DivinationTemplatesTable> {
+  $$DivinationTemplatesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get templateId => $composableBuilder(
+    column: $table.templateId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get origin => $composableBuilder(
+    column: $table.origin,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get derivedFrom => $composableBuilder(
+    column: $table.derivedFrom,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get definitionJson => $composableBuilder(
+    column: $table.definitionJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DivinationTemplatesTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $DivinationTemplatesTable> {
+  $$DivinationTemplatesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
+
+  GeneratedColumn<String> get templateId => $composableBuilder(
+    column: $table.templateId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<String> get origin =>
+      $composableBuilder(column: $table.origin, builder: (column) => column);
+
+  GeneratedColumn<String> get derivedFrom => $composableBuilder(
+    column: $table.derivedFrom,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<String> get definitionJson => $composableBuilder(
+    column: $table.definitionJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$DivinationTemplatesTableTableManager
+    extends
+        RootTableManager<
+          _$PersistenceDriftDatabase,
+          $DivinationTemplatesTable,
+          DivinationTemplateRow,
+          $$DivinationTemplatesTableFilterComposer,
+          $$DivinationTemplatesTableOrderingComposer,
+          $$DivinationTemplatesTableAnnotationComposer,
+          $$DivinationTemplatesTableCreateCompanionBuilder,
+          $$DivinationTemplatesTableUpdateCompanionBuilder,
+          (
+            DivinationTemplateRow,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $DivinationTemplatesTable,
+              DivinationTemplateRow
+            >,
+          ),
+          DivinationTemplateRow,
+          PrefetchHooks Function()
+        > {
+  $$DivinationTemplatesTableTableManager(
+    _$PersistenceDriftDatabase db,
+    $DivinationTemplatesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DivinationTemplatesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DivinationTemplatesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$DivinationTemplatesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> scopeUid = const Value.absent(),
+                Value<String> templateId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> category = const Value.absent(),
+                Value<String> origin = const Value.absent(),
+                Value<String?> derivedFrom = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<String> definitionJson = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DivinationTemplatesCompanion(
+                uuid: uuid,
+                scopeUid: scopeUid,
+                templateId: templateId,
+                name: name,
+                category: category,
+                origin: origin,
+                derivedFrom: derivedFrom,
+                version: version,
+                definitionJson: definitionJson,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String scopeUid,
+                required String templateId,
+                required String name,
+                required String category,
+                required String origin,
+                Value<String?> derivedFrom = const Value.absent(),
+                required int version,
+                required String definitionJson,
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DivinationTemplatesCompanion.insert(
+                uuid: uuid,
+                scopeUid: scopeUid,
+                templateId: templateId,
+                name: name,
+                category: category,
+                origin: origin,
+                derivedFrom: derivedFrom,
+                version: version,
+                definitionJson: definitionJson,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DivinationTemplatesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PersistenceDriftDatabase,
+      $DivinationTemplatesTable,
+      DivinationTemplateRow,
+      $$DivinationTemplatesTableFilterComposer,
+      $$DivinationTemplatesTableOrderingComposer,
+      $$DivinationTemplatesTableAnnotationComposer,
+      $$DivinationTemplatesTableCreateCompanionBuilder,
+      $$DivinationTemplatesTableUpdateCompanionBuilder,
+      (
+        DivinationTemplateRow,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $DivinationTemplatesTable,
+          DivinationTemplateRow
+        >,
+      ),
+      DivinationTemplateRow,
+      PrefetchHooks Function()
+    >;
+typedef $$TemplateUsageStatsTableCreateCompanionBuilder =
+    TemplateUsageStatsCompanion Function({
+      required String templateUuid,
+      required String scopeUid,
+      Value<int> useCount,
+      required DateTime lastUsedAt,
+      Value<int> rowid,
+    });
+typedef $$TemplateUsageStatsTableUpdateCompanionBuilder =
+    TemplateUsageStatsCompanion Function({
+      Value<String> templateUuid,
+      Value<String> scopeUid,
+      Value<int> useCount,
+      Value<DateTime> lastUsedAt,
+      Value<int> rowid,
+    });
+
+class $$TemplateUsageStatsTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $TemplateUsageStatsTable> {
+  $$TemplateUsageStatsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get templateUuid => $composableBuilder(
+    column: $table.templateUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get useCount => $composableBuilder(
+    column: $table.useCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$TemplateUsageStatsTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $TemplateUsageStatsTable> {
+  $$TemplateUsageStatsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get templateUuid => $composableBuilder(
+    column: $table.templateUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get useCount => $composableBuilder(
+    column: $table.useCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TemplateUsageStatsTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $TemplateUsageStatsTable> {
+  $$TemplateUsageStatsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get templateUuid => $composableBuilder(
+    column: $table.templateUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
+
+  GeneratedColumn<int> get useCount =>
+      $composableBuilder(column: $table.useCount, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
+    builder: (column) => column,
+  );
+}
+
+class $$TemplateUsageStatsTableTableManager
+    extends
+        RootTableManager<
+          _$PersistenceDriftDatabase,
+          $TemplateUsageStatsTable,
+          TemplateUsageStatsRow,
+          $$TemplateUsageStatsTableFilterComposer,
+          $$TemplateUsageStatsTableOrderingComposer,
+          $$TemplateUsageStatsTableAnnotationComposer,
+          $$TemplateUsageStatsTableCreateCompanionBuilder,
+          $$TemplateUsageStatsTableUpdateCompanionBuilder,
+          (
+            TemplateUsageStatsRow,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $TemplateUsageStatsTable,
+              TemplateUsageStatsRow
+            >,
+          ),
+          TemplateUsageStatsRow,
+          PrefetchHooks Function()
+        > {
+  $$TemplateUsageStatsTableTableManager(
+    _$PersistenceDriftDatabase db,
+    $TemplateUsageStatsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TemplateUsageStatsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TemplateUsageStatsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TemplateUsageStatsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> templateUuid = const Value.absent(),
+                Value<String> scopeUid = const Value.absent(),
+                Value<int> useCount = const Value.absent(),
+                Value<DateTime> lastUsedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TemplateUsageStatsCompanion(
+                templateUuid: templateUuid,
+                scopeUid: scopeUid,
+                useCount: useCount,
+                lastUsedAt: lastUsedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String templateUuid,
+                required String scopeUid,
+                Value<int> useCount = const Value.absent(),
+                required DateTime lastUsedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => TemplateUsageStatsCompanion.insert(
+                templateUuid: templateUuid,
+                scopeUid: scopeUid,
+                useCount: useCount,
+                lastUsedAt: lastUsedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$TemplateUsageStatsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PersistenceDriftDatabase,
+      $TemplateUsageStatsTable,
+      TemplateUsageStatsRow,
+      $$TemplateUsageStatsTableFilterComposer,
+      $$TemplateUsageStatsTableOrderingComposer,
+      $$TemplateUsageStatsTableAnnotationComposer,
+      $$TemplateUsageStatsTableCreateCompanionBuilder,
+      $$TemplateUsageStatsTableUpdateCompanionBuilder,
+      (
+        TemplateUsageStatsRow,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $TemplateUsageStatsTable,
+          TemplateUsageStatsRow
+        >,
+      ),
+      TemplateUsageStatsRow,
+      PrefetchHooks Function()
+    >;
 
 class $PersistenceDriftDatabaseManager {
   final _$PersistenceDriftDatabase _db;
@@ -38756,4 +40364,8 @@ class $PersistenceDriftDatabaseManager {
       $$TIMSendStatesTableTableManager(_db, _db.tIMSendStates);
   $$TIMPeerAuthorizationsTableTableManager get tIMPeerAuthorizations =>
       $$TIMPeerAuthorizationsTableTableManager(_db, _db.tIMPeerAuthorizations);
+  $$DivinationTemplatesTableTableManager get divinationTemplates =>
+      $$DivinationTemplatesTableTableManager(_db, _db.divinationTemplates);
+  $$TemplateUsageStatsTableTableManager get templateUsageStats =>
+      $$TemplateUsageStatsTableTableManager(_db, _db.templateUsageStats);
 }
