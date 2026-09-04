@@ -158,6 +158,7 @@ import 'template/divination_templates_table.dart';
 import 'template/template_usage_stats_table.dart';
 export 'template/divination_templates_table.dart';
 export 'template/template_usage_stats_table.dart';
+export 'template/drift_template_store.dart';
 
 part 'persistence_drift.g.dart';
 
