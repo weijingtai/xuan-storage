@@ -45,8 +45,8 @@ class _DaliurenManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '08a3fe011617017bc823370c5d74e8b8dee8f88672f0ab534a52b36ab0638786',
-    payloadBytes: 7502429,
+        'dc4778d5db5a7faf8b525fca11263d2739d6599cb5776010971dcd722ac1386b',
+    payloadBytes: 7228363,
     declaredRowCount: 4,
     publishedAtUtc: DateTime.utc(2026, 8, 9),
   );
@@ -58,8 +58,8 @@ class _DaliurenManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '3290d22228842d76d2f158d3c85ae9d486551227224cc3343277c1ddcc5fa929',
-    payloadBytes: 88796,
+        '93c0a93406d04463e214bb74b31f0b8ce90b8967e7278e6536fe2e67c03227db',
+    payloadBytes: 87321,
     declaredRowCount: 1,
     publishedAtUtc: DateTime.utc(2026, 8, 9),
   );
@@ -71,8 +71,8 @@ class _DaliurenManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        '7f7a5d8f9549b27299bf6f82d19034707b799f8db373041fb591920713abe5e8',
-    payloadBytes: 143664,
+        'caffd13b1c4577c2cadeac209b7d5c11aa0143ec181c2ba607c35921f5998249',
+    payloadBytes: 138277,
     declaredRowCount: 9,
     publishedAtUtc: DateTime.utc(2026, 8, 9),
   );
@@ -84,8 +84,8 @@ class _DaliurenManifests {
     payloadFormat: DatasetPayloadFormat.prebuilt,
     carriers: const {Carrier.row},
     payloadSha256:
-        'ea5e24ef33668fea1e98f11e872e089c6781b8cd528a46b96b4a43fcd6138ec4',
-    payloadBytes: 626,
+        '5568dcb65ef5f585d30e2c462fffb69a5bd801ab430a597af5e64d76a64ed2ef',
+    payloadBytes: 594,
     declaredRowCount: 1,
     publishedAtUtc: DateTime.utc(2026, 8, 9),
   );
