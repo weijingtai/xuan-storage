@@ -47,13 +47,11 @@ class _DatasetPayloadSpec {
     required this.domain,
     required this.datasetId,
     required this.sqlRelativePath,
-    this.isPendingExternalMerge = false,
   });
 
   final String domain;
   final String datasetId;
   final String sqlRelativePath;
-  final bool isPendingExternalMerge;
 }
 
 const _kAllPayloadSpecs = <_DatasetPayloadSpec>[
@@ -174,49 +172,41 @@ const _kAllPayloadSpecs = <_DatasetPayloadSpec>[
     domain: 'qizhengsiyu',
     datasetId: 'qizheng.star_position_status',
     sqlRelativePath: 'lib/qizhengsiyu/assets/star_position_status.sql',
-    isPendingExternalMerge: true,
   ),
   _DatasetPayloadSpec(
     domain: 'qizhengsiyu',
     datasetId: 'qizheng.ge_ju',
     sqlRelativePath: 'lib/qizhengsiyu/assets/ge_ju.sql',
-    isPendingExternalMerge: true,
   ),
   _DatasetPayloadSpec(
     domain: 'qizhengsiyu',
     datasetId: 'qizheng.zhou_tian',
     sqlRelativePath: 'lib/qizhengsiyu/assets/zhou_tian_document.sql',
-    isPendingExternalMerge: true,
   ),
   _DatasetPayloadSpec(
     domain: 'qizhengsiyu',
     datasetId: 'qizheng.ephemeris',
     sqlRelativePath: 'lib/qizhengsiyu/assets/ephemeris_document.sql',
-    isPendingExternalMerge: true,
   ),
   _DatasetPayloadSpec(
     domain: 'qizhengsiyu',
     datasetId: 'qizheng.shen_sha',
     sqlRelativePath: 'lib/qizhengsiyu/assets/shen_sha_document.sql',
-    isPendingExternalMerge: true,
   ),
   _DatasetPayloadSpec(
     domain: 'qizhengsiyu',
     datasetId: 'qizheng.hua_yao',
     sqlRelativePath: 'lib/qizhengsiyu/assets/hua_yao_document.sql',
-    isPendingExternalMerge: true,
   ),
   _DatasetPayloadSpec(
     domain: 'qizhengsiyu',
     datasetId: 'qizheng.ge_ju_rules',
     sqlRelativePath: 'lib/qizhengsiyu/assets/ge_ju_rules_document.sql',
-    isPendingExternalMerge: true,
   ),
   _DatasetPayloadSpec(
     domain: 'qizhengsiyu',
     datasetId: 'qizheng.ge_ju_content',
     sqlRelativePath: 'lib/qizhengsiyu/assets/ge_ju_content_document.sql',
-    isPendingExternalMerge: true,
   ),
 ];
 
@@ -288,15 +278,6 @@ void main() {
             .split('\n')
             .where((line) => line.startsWith('INSERT'))
             .length;
-
-        if (spec.isPendingExternalMerge && manifest.payloadSha256 != actualSha256) {
-          // qizhengsiyu 的 8 个值已在独立分支 wip/qizheng-manifest-fix (commit ee706d9) 修复。
-          // 当该分支尚未合入 main 时，当前分支（从 main 开出）上的 manifest 为合并前旧值。
-          // 此分支在人类合并 ee706d9 后将自动通过全量一致性断言。
-          expect(manifest.payloadSha256, isNotEmpty);
-          expect(manifest.payloadBytes, greaterThan(0));
-          return;
-        }
 
         expect(
           manifest.payloadSha256,
