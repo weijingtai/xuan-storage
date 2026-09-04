@@ -17,7 +17,7 @@ part 'qizhengsiyu_database.g.dart';
 /// - `star_position_status`（qizheng.star_position_status，97 行）
 /// - `ge_ju_patterns/schools/categories/rules/versions`（qizheng.ge_ju，5 表 1005 行）
 /// - `zhou_tian_document`（qizheng.zhou_tian，3 行）
-/// - `ephemeris_document`（qizheng.ephemeris，17 行）
+/// - `ephemeris_document`（qizheng.ephemeris，20 行）
 /// - `shen_sha_document`（qizheng.shen_sha，6 行）
 /// - `hua_yao_document`（qizheng.hua_yao，3 行）
 /// - `ge_ju_rules_document`（qizheng.ge_ju_rules，13 行）

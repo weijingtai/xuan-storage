@@ -8,7 +8,7 @@ import 'package:drift/drift.dart';
 ///
 /// 六类数据集共用同一表形：
 /// - `qizheng.zhou_tian`（3 行）→ zhou_tian_document
-/// - `qizheng.ephemeris`（17 行）→ ephemeris_document
+/// - `qizheng.ephemeris`（20 行）→ ephemeris_document
 /// - `qizheng.shen_sha`（6 行）→ shen_sha_document
 /// - `qizheng.hua_yao`（3 行）→ hua_yao_document
 /// - `qizheng.ge_ju_rules`（13 行）→ ge_ju_rules_document

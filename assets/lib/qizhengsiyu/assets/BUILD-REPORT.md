@@ -11,7 +11,7 @@
 | star_position_status.sql | star_position_status | 97 | 15608 | 7d59428dec52ec814b12cc259f0b3d3c7cdb70dc07fdcdefe5918a36c3b6f5bc |
 | ge_ju.sql | ge_ju(5表) | 1005 | 532921 | c265f87b85ba3a2c78b45b4fc89998f75018ddd81d4bb9b9c6f163519cb747f0 |
 | zhou_tian_document.sql | zhou_tian_document(文档表) | 3 | 9133 | 0d9b7831aa4528019f029495f8871155da885ef244c4bf2f02d2e5aa5dd17b4d |
-| ephemeris_document.sql | ephemeris_document(文档表) | 20 | 61571 | 9b60db66db4539c822f7abe85f0113b82c2b401fe222e33096598b1c0feafce2 |
+| ephemeris_document.sql | ephemeris_document(文档表) | 20 | 61570 | 3d1d2abcd54cf16486201483d57bb26f6e4df76eacb48809bedf338a7b4f1fbb |
 | shen_sha_document.sql | shen_sha_document(文档表) | 6 | 48544 | 0d05ff7d53c78581e711f118ea75fba1e29b13164a7a37a2adb805421a8cc9dd |
 | hua_yao_document.sql | hua_yao_document(文档表) | 3 | 21594 | 7780c48e0f4aa7fb9fb30a83d97cc9fc77cc8ec9f8ad553b914cdadaaeffdb0e |
 | ge_ju_rules_document.sql | ge_ju_rules_document(文档表) | 13 | 235099 | 2ad683c610b29f816ac1bc36a5426a3cf4c5e79af0f0264bb292540db2deaca1 |

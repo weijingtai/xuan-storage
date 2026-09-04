@@ -40,8 +40,8 @@ const _kTruth = <String, ({String sha256, int bytes, int rows})>{
     rows: 3,
   ),
   'qizheng.ephemeris': (
-    sha256: '9b60db66db4539c822f7abe85f0113b82c2b401fe222e33096598b1c0feafce2',
-    bytes: 61571,
+    sha256: '3d1d2abcd54cf16486201483d57bb26f6e4df76eacb48809bedf338a7b4f1fbb',
+    bytes: 61570,
     rows: 20,
   ),
   'qizheng.shen_sha': (
