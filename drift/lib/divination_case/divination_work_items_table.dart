@@ -16,6 +16,7 @@ class DivinationWorkItems extends Table {
   TextColumn get status => text().named('status')();
   TextColumn get summary => text().nullable().named('summary')();
   TextColumn get conclusion => text().nullable().named('conclusion')();
+  TextColumn get extrasJson => text().nullable().named('extras_json')();
 
   @override
   Set<Column> get primaryKey => {uuid};

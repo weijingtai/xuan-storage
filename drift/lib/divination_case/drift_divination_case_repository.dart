@@ -206,6 +206,7 @@ class DriftDivinationCaseRepository
       status: DivinationWorkItemStatus.values.byName(row.status),
       summary: row.summary,
       conclusion: row.conclusion,
+      extrasJson: row.extrasJson,
     );
   }
 
@@ -222,6 +223,7 @@ class DriftDivinationCaseRepository
       status: model.status.name,
       summary: Value(model.summary),
       conclusion: Value(model.conclusion),
+      extrasJson: Value(model.extrasJson),
     );
   }
 

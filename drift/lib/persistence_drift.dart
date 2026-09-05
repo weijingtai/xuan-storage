@@ -899,7 +899,7 @@ class EntityStampDao extends DatabaseAccessor<PersistenceDriftDatabase>
 
 /// 数据库 schema 版本。任何 onUpgrade 分支新增时同步 +1；
 /// 测试断言跟随本常量（防止版本号断言失同步）。
-const int kPersistenceDriftSchemaVersion = 14;
+const int kPersistenceDriftSchemaVersion = 15;
 
 @DriftDatabase(
   tables: [
@@ -1119,6 +1119,13 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
         await m.createTable(divinationTemplates);
         await m.createTable(templateUsageStats);
         await _createTemplateIndices();
+      }
+      if (from < 15) {
+        // schema v15：WorkItem 扩展位（B2）
+        if (await _tableExists('t_divination_work_items') &&
+            !await _columnExists('t_divination_work_items', 'extras_json')) {
+          await m.addColumn(divinationWorkItems, divinationWorkItems.extrasJson);
+        }
       }
     },
   );

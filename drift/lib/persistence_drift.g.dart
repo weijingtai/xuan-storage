@@ -11329,6 +11329,17 @@ class $DivinationWorkItemsTable extends DivinationWorkItems
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _extrasJsonMeta = const VerificationMeta(
+    'extrasJson',
+  );
+  @override
+  late final GeneratedColumn<String> extrasJson = GeneratedColumn<String>(
+    'extras_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     uuid,
@@ -11342,6 +11353,7 @@ class $DivinationWorkItemsTable extends DivinationWorkItems
     status,
     summary,
     conclusion,
+    extrasJson,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -11441,6 +11453,12 @@ class $DivinationWorkItemsTable extends DivinationWorkItems
         conclusion.isAcceptableOrUnknown(data['conclusion']!, _conclusionMeta),
       );
     }
+    if (data.containsKey('extras_json')) {
+      context.handle(
+        _extrasJsonMeta,
+        extrasJson.isAcceptableOrUnknown(data['extras_json']!, _extrasJsonMeta),
+      );
+    }
     return context;
   }
 
@@ -11494,6 +11512,10 @@ class $DivinationWorkItemsTable extends DivinationWorkItems
         DriftSqlType.string,
         data['${effectivePrefix}conclusion'],
       ),
+      extrasJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}extras_json'],
+      ),
     );
   }
 
@@ -11516,6 +11538,7 @@ class DivinationWorkItem extends DataClass
   final String status;
   final String? summary;
   final String? conclusion;
+  final String? extrasJson;
   const DivinationWorkItem({
     required this.uuid,
     this.scopeUid,
@@ -11528,6 +11551,7 @@ class DivinationWorkItem extends DataClass
     required this.status,
     this.summary,
     this.conclusion,
+    this.extrasJson,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -11550,6 +11574,9 @@ class DivinationWorkItem extends DataClass
     }
     if (!nullToAbsent || conclusion != null) {
       map['conclusion'] = Variable<String>(conclusion);
+    }
+    if (!nullToAbsent || extrasJson != null) {
+      map['extras_json'] = Variable<String>(extrasJson);
     }
     return map;
   }
@@ -11575,6 +11602,9 @@ class DivinationWorkItem extends DataClass
       conclusion: conclusion == null && nullToAbsent
           ? const Value.absent()
           : Value(conclusion),
+      extrasJson: extrasJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(extrasJson),
     );
   }
 
@@ -11597,6 +11627,7 @@ class DivinationWorkItem extends DataClass
       status: serializer.fromJson<String>(json['status']),
       summary: serializer.fromJson<String?>(json['summary']),
       conclusion: serializer.fromJson<String?>(json['conclusion']),
+      extrasJson: serializer.fromJson<String?>(json['extrasJson']),
     );
   }
   @override
@@ -11614,6 +11645,7 @@ class DivinationWorkItem extends DataClass
       'status': serializer.toJson<String>(status),
       'summary': serializer.toJson<String?>(summary),
       'conclusion': serializer.toJson<String?>(conclusion),
+      'extrasJson': serializer.toJson<String?>(extrasJson),
     };
   }
 
@@ -11629,6 +11661,7 @@ class DivinationWorkItem extends DataClass
     String? status,
     Value<String?> summary = const Value.absent(),
     Value<String?> conclusion = const Value.absent(),
+    Value<String?> extrasJson = const Value.absent(),
   }) => DivinationWorkItem(
     uuid: uuid ?? this.uuid,
     scopeUid: scopeUid.present ? scopeUid.value : this.scopeUid,
@@ -11643,6 +11676,7 @@ class DivinationWorkItem extends DataClass
     status: status ?? this.status,
     summary: summary.present ? summary.value : this.summary,
     conclusion: conclusion.present ? conclusion.value : this.conclusion,
+    extrasJson: extrasJson.present ? extrasJson.value : this.extrasJson,
   );
   DivinationWorkItem copyWithCompanion(DivinationWorkItemsCompanion data) {
     return DivinationWorkItem(
@@ -11663,6 +11697,9 @@ class DivinationWorkItem extends DataClass
       conclusion: data.conclusion.present
           ? data.conclusion.value
           : this.conclusion,
+      extrasJson: data.extrasJson.present
+          ? data.extrasJson.value
+          : this.extrasJson,
     );
   }
 
@@ -11679,7 +11716,8 @@ class DivinationWorkItem extends DataClass
           ..write('order: $order, ')
           ..write('status: $status, ')
           ..write('summary: $summary, ')
-          ..write('conclusion: $conclusion')
+          ..write('conclusion: $conclusion, ')
+          ..write('extrasJson: $extrasJson')
           ..write(')'))
         .toString();
   }
@@ -11697,6 +11735,7 @@ class DivinationWorkItem extends DataClass
     status,
     summary,
     conclusion,
+    extrasJson,
   );
   @override
   bool operator ==(Object other) =>
@@ -11712,7 +11751,8 @@ class DivinationWorkItem extends DataClass
           other.order == this.order &&
           other.status == this.status &&
           other.summary == this.summary &&
-          other.conclusion == this.conclusion);
+          other.conclusion == this.conclusion &&
+          other.extrasJson == this.extrasJson);
 }
 
 class DivinationWorkItemsCompanion extends UpdateCompanion<DivinationWorkItem> {
@@ -11727,6 +11767,7 @@ class DivinationWorkItemsCompanion extends UpdateCompanion<DivinationWorkItem> {
   final Value<String> status;
   final Value<String?> summary;
   final Value<String?> conclusion;
+  final Value<String?> extrasJson;
   final Value<int> rowid;
   const DivinationWorkItemsCompanion({
     this.uuid = const Value.absent(),
@@ -11740,6 +11781,7 @@ class DivinationWorkItemsCompanion extends UpdateCompanion<DivinationWorkItem> {
     this.status = const Value.absent(),
     this.summary = const Value.absent(),
     this.conclusion = const Value.absent(),
+    this.extrasJson = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   DivinationWorkItemsCompanion.insert({
@@ -11754,6 +11796,7 @@ class DivinationWorkItemsCompanion extends UpdateCompanion<DivinationWorkItem> {
     required String status,
     this.summary = const Value.absent(),
     this.conclusion = const Value.absent(),
+    this.extrasJson = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : uuid = Value(uuid),
        caseUuid = Value(caseUuid),
@@ -11774,6 +11817,7 @@ class DivinationWorkItemsCompanion extends UpdateCompanion<DivinationWorkItem> {
     Expression<String>? status,
     Expression<String>? summary,
     Expression<String>? conclusion,
+    Expression<String>? extrasJson,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -11789,6 +11833,7 @@ class DivinationWorkItemsCompanion extends UpdateCompanion<DivinationWorkItem> {
       if (status != null) 'status': status,
       if (summary != null) 'summary': summary,
       if (conclusion != null) 'conclusion': conclusion,
+      if (extrasJson != null) 'extras_json': extrasJson,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -11805,6 +11850,7 @@ class DivinationWorkItemsCompanion extends UpdateCompanion<DivinationWorkItem> {
     Value<String>? status,
     Value<String?>? summary,
     Value<String?>? conclusion,
+    Value<String?>? extrasJson,
     Value<int>? rowid,
   }) {
     return DivinationWorkItemsCompanion(
@@ -11819,6 +11865,7 @@ class DivinationWorkItemsCompanion extends UpdateCompanion<DivinationWorkItem> {
       status: status ?? this.status,
       summary: summary ?? this.summary,
       conclusion: conclusion ?? this.conclusion,
+      extrasJson: extrasJson ?? this.extrasJson,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -11859,6 +11906,9 @@ class DivinationWorkItemsCompanion extends UpdateCompanion<DivinationWorkItem> {
     if (conclusion.present) {
       map['conclusion'] = Variable<String>(conclusion.value);
     }
+    if (extrasJson.present) {
+      map['extras_json'] = Variable<String>(extrasJson.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -11879,6 +11929,7 @@ class DivinationWorkItemsCompanion extends UpdateCompanion<DivinationWorkItem> {
           ..write('status: $status, ')
           ..write('summary: $summary, ')
           ..write('conclusion: $conclusion, ')
+          ..write('extrasJson: $extrasJson, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -32717,6 +32768,7 @@ typedef $$DivinationWorkItemsTableCreateCompanionBuilder =
       required String status,
       Value<String?> summary,
       Value<String?> conclusion,
+      Value<String?> extrasJson,
       Value<int> rowid,
     });
 typedef $$DivinationWorkItemsTableUpdateCompanionBuilder =
@@ -32732,6 +32784,7 @@ typedef $$DivinationWorkItemsTableUpdateCompanionBuilder =
       Value<String> status,
       Value<String?> summary,
       Value<String?> conclusion,
+      Value<String?> extrasJson,
       Value<int> rowid,
     });
 
@@ -32796,6 +32849,11 @@ class $$DivinationWorkItemsTableFilterComposer
 
   ColumnFilters<String> get conclusion => $composableBuilder(
     column: $table.conclusion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get extrasJson => $composableBuilder(
+    column: $table.extrasJson,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -32863,6 +32921,11 @@ class $$DivinationWorkItemsTableOrderingComposer
     column: $table.conclusion,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get extrasJson => $composableBuilder(
+    column: $table.extrasJson,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$DivinationWorkItemsTableAnnotationComposer
@@ -32910,6 +32973,11 @@ class $$DivinationWorkItemsTableAnnotationComposer
 
   GeneratedColumn<String> get conclusion => $composableBuilder(
     column: $table.conclusion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get extrasJson => $composableBuilder(
+    column: $table.extrasJson,
     builder: (column) => column,
   );
 }
@@ -32968,6 +33036,7 @@ class $$DivinationWorkItemsTableTableManager
                 Value<String> status = const Value.absent(),
                 Value<String?> summary = const Value.absent(),
                 Value<String?> conclusion = const Value.absent(),
+                Value<String?> extrasJson = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => DivinationWorkItemsCompanion(
                 uuid: uuid,
@@ -32981,6 +33050,7 @@ class $$DivinationWorkItemsTableTableManager
                 status: status,
                 summary: summary,
                 conclusion: conclusion,
+                extrasJson: extrasJson,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -32996,6 +33066,7 @@ class $$DivinationWorkItemsTableTableManager
                 required String status,
                 Value<String?> summary = const Value.absent(),
                 Value<String?> conclusion = const Value.absent(),
+                Value<String?> extrasJson = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => DivinationWorkItemsCompanion.insert(
                 uuid: uuid,
@@ -33009,6 +33080,7 @@ class $$DivinationWorkItemsTableTableManager
                 status: status,
                 summary: summary,
                 conclusion: conclusion,
+                extrasJson: extrasJson,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

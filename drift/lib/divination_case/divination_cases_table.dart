@@ -13,7 +13,7 @@ class DivinationCases extends Table {
   DateTimeColumn get updatedAt => dateTime().named('updated_at')();
   DateTimeColumn get deletedAt => dateTime().nullable().named('deleted_at')();
   TextColumn get finalSummary => text().nullable().named('final_summary')();
-  // T1 裁定（2026-07-21）：案例附加展示素材，单键 historyCaseExtras，仅展示用。
+  // 案例附加展示素材：多键 JSON，各键各自管辖，禁止整体覆盖。
   TextColumn get extrasJson => text().nullable().named('extras_json')();
 
   @override
