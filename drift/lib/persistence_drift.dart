@@ -55,6 +55,7 @@ import 'divination_case/panel_refs_table.dart';
 import 'divination_case/work_item_panel_refs_table.dart';
 import 'divination_case/creation_audit_logs_table.dart';
 import 'divination_case/creation_audit_logs_dao.dart';
+import 'divination_case/case_judgements_table.dart';
 export 'daos/skills_dao.dart';
 export 'daos/skill_classes_dao.dart';
 export 'tables/skills_table.dart';
@@ -99,6 +100,8 @@ export 'decision_links/decision_chain_traverser.dart';
 export 'divination_case/drift_divination_case_repository.dart';
 export 'divination_case/creation_audit_logs_table.dart';
 export 'divination_case/creation_audit_logs_dao.dart';
+export 'divination_case/case_judgements_table.dart';
+export 'divination_case/case_judgement_model.dart';
 export 'scope/scope_alias_entry.dart';
 export 'scope/scope_backup.dart';
 export 'scope/prescope_legacy_archiver.dart';
@@ -899,7 +902,7 @@ class EntityStampDao extends DatabaseAccessor<PersistenceDriftDatabase>
 
 /// 数据库 schema 版本。任何 onUpgrade 分支新增时同步 +1；
 /// 测试断言跟随本常量（防止版本号断言失同步）。
-const int kPersistenceDriftSchemaVersion = 15;
+const int kPersistenceDriftSchemaVersion = 16;
 
 @DriftDatabase(
   tables: [
@@ -929,6 +932,7 @@ const int kPersistenceDriftSchemaVersion = 15;
     PanelRefs,
     WorkItemPanelRefs,
     CreationAuditLogs,
+    CaseJudgements,
     OutboxPeerAcks,
     EntityStamps,
     HlcClockStates,
@@ -992,6 +996,7 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
       await _createSw2Indices();
       await _createImIndices();
       await _createTemplateIndices();
+      await _createCaseJudgementIndices();
     },
     onUpgrade: (m, from, to) async {
       if (from < 2) {
@@ -1126,6 +1131,11 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
             !await _columnExists('t_divination_work_items', 'extras_json')) {
           await m.addColumn(divinationWorkItems, divinationWorkItems.extrasJson);
         }
+      }
+      if (from < 16) {
+        // schema v16：断语矩阵表与索引
+        await m.createTable(caseJudgements);
+        await _createCaseJudgementIndices();
       }
     },
   );
@@ -1480,6 +1490,17 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_template_usage_stats_scope '
       'ON t_template_usage_stats(scope_uid)',
+    );
+  }
+
+  Future<void> _createCaseJudgementIndices() async {
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_case_judgements_scope_case '
+      'ON t_case_judgements(scope_uid, case_uuid)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_case_judgements_work_item '
+      'ON t_case_judgements(work_item_uuid)',
     );
   }
 }

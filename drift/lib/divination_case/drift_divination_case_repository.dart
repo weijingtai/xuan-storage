@@ -51,6 +51,75 @@ class DriftDivinationCaseRepository
     await db.into(db.divinationCases).insertOnConflictUpdate(_caseToRow(model));
   }
 
+  Future<void> deleteCase(String uuid, {bool cascade = false}) async {
+    final existing = await (db.select(
+      db.divinationCases,
+    )..where((t) => t.uuid.equals(uuid))).getSingleOrNull();
+    if (existing != null && existing.scopeUid != _store.scopeUid) {
+      throw StateError('Case $uuid belongs to another scope');
+    }
+    if (existing == null) return;
+
+    final now = DateTime.now().toUtc();
+    await (db.update(db.divinationCases)
+          ..where(
+            (t) =>
+                t.uuid.equals(uuid) & t.scopeUid.equals(_store.scopeUid),
+          ))
+        .write(DivinationCasesCompanion(
+          deletedAt: Value(now),
+          updatedAt: Value(now),
+        ));
+
+    if (cascade) {
+      await (db.update(db.caseJudgements)
+            ..where(
+              (t) =>
+                  t.caseUuid.equals(uuid) &
+                  t.scopeUid.equals(_store.scopeUid) &
+                  t.deletedAt.isNull(),
+            ))
+          .write(CaseJudgementsCompanion(
+            deletedAt: Value(now),
+            updatedAt: Value(now),
+          ));
+    }
+  }
+
+  Future<void> restoreCase(String uuid, {bool cascade = false}) async {
+    final existing = await (db.select(
+      db.divinationCases,
+    )..where((t) => t.uuid.equals(uuid))).getSingleOrNull();
+    if (existing != null && existing.scopeUid != _store.scopeUid) {
+      throw StateError('Case $uuid belongs to another scope');
+    }
+    if (existing == null) return;
+
+    final now = DateTime.now().toUtc();
+    await (db.update(db.divinationCases)
+          ..where(
+            (t) =>
+                t.uuid.equals(uuid) & t.scopeUid.equals(_store.scopeUid),
+          ))
+        .write(DivinationCasesCompanion(
+          deletedAt: const Value(null),
+          updatedAt: Value(now),
+        ));
+
+    if (cascade) {
+      await (db.update(db.caseJudgements)
+            ..where(
+              (t) =>
+                  t.caseUuid.equals(uuid) &
+                  t.scopeUid.equals(_store.scopeUid),
+            ))
+          .write(CaseJudgementsCompanion(
+            deletedAt: const Value(null),
+            updatedAt: Value(now),
+          ));
+    }
+  }
+
   DivinationCaseModel _caseFromRow(DivinationCase row) {
     return DivinationCaseModel(
       uuid: row.uuid,
@@ -526,5 +595,157 @@ class DriftDivinationCaseRepository
       results.addAll(asTarget);
     }
     return results;
+  }
+
+  // --- CaseJudgements ---
+
+  Future<CaseJudgementModel?> getJudgement(String uuid) async {
+    final query = db.select(db.caseJudgements)
+      ..where((t) => t.uuid.equals(uuid) & t.scopeUid.equals(_store.scopeUid));
+    final row = await query.getSingleOrNull();
+    return row == null ? null : _judgementFromRow(row);
+  }
+
+  Future<List<CaseJudgementModel>> listJudgementsForCase(
+    String caseUuid, {
+    bool includeDeleted = false,
+  }) async {
+    final query = db.select(db.caseJudgements)
+      ..where(
+        (t) =>
+            t.caseUuid.equals(caseUuid) &
+            t.scopeUid.equals(_store.scopeUid),
+      );
+    if (!includeDeleted) {
+      query.where((t) => t.deletedAt.isNull());
+    }
+    query.orderBy([
+      (t) => OrderingTerm.asc(t.orderIndex),
+      (t) => OrderingTerm.asc(t.createdAt),
+    ]);
+    final rows = await query.get();
+    return rows.map(_judgementFromRow).toList();
+  }
+
+  Future<void> saveJudgement(CaseJudgementModel model) async {
+    await _validateJudgementWrite(model);
+    await db
+        .into(db.caseJudgements)
+        .insertOnConflictUpdate(_judgementToRow(model));
+  }
+
+  Future<void> softDeleteJudgement(String uuid) async {
+    final existing = await (db.select(
+      db.caseJudgements,
+    )..where((t) => t.uuid.equals(uuid))).getSingleOrNull();
+    if (existing != null && existing.scopeUid != _store.scopeUid) {
+      throw StateError('Judgement $uuid belongs to another scope');
+    }
+    final now = DateTime.now().toUtc();
+    await (db.update(db.caseJudgements)
+          ..where(
+            (t) =>
+                t.uuid.equals(uuid) & t.scopeUid.equals(_store.scopeUid),
+          ))
+        .write(CaseJudgementsCompanion(
+          deletedAt: Value(now),
+          updatedAt: Value(now),
+        ));
+  }
+
+  Future<void> restoreJudgement(String uuid) async {
+    final existing = await (db.select(
+      db.caseJudgements,
+    )..where((t) => t.uuid.equals(uuid))).getSingleOrNull();
+    if (existing != null && existing.scopeUid != _store.scopeUid) {
+      throw StateError('Judgement $uuid belongs to another scope');
+    }
+    final now = DateTime.now().toUtc();
+    await (db.update(db.caseJudgements)
+          ..where(
+            (t) =>
+                t.uuid.equals(uuid) & t.scopeUid.equals(_store.scopeUid),
+          ))
+        .write(CaseJudgementsCompanion(
+          deletedAt: const Value(null),
+          updatedAt: Value(now),
+        ));
+  }
+
+  Future<void> _validateJudgementWrite(CaseJudgementModel model) async {
+    final existing = await (db.select(
+      db.caseJudgements,
+    )..where((t) => t.uuid.equals(model.uuid))).getSingleOrNull();
+    if (existing != null && existing.scopeUid != _store.scopeUid) {
+      throw StateError('Judgement ${model.uuid} belongs to another scope');
+    }
+
+    final caseRow = await (db.select(
+      db.divinationCases,
+    )..where(
+      (t) =>
+          t.uuid.equals(model.caseUuid) &
+          t.scopeUid.equals(_store.scopeUid),
+    )).getSingleOrNull();
+    if (caseRow == null) {
+      throw StateError('Case ${model.caseUuid} is not in the current scope');
+    }
+
+    final workItemUuid = model.workItemUuid;
+    if (workItemUuid != null) {
+      final workItem = await (db.select(
+        db.divinationWorkItems,
+      )..where((t) => t.uuid.equals(workItemUuid))).getSingleOrNull();
+      if (workItem == null || workItem.scopeUid != _store.scopeUid) {
+        throw StateError('WorkItem $workItemUuid is not in the current scope');
+      }
+      if (workItem.caseUuid != model.caseUuid) {
+        throw StateError('WorkItem $workItemUuid belongs to another case');
+      }
+    }
+  }
+
+  CaseJudgementModel _judgementFromRow(CaseJudgement row) {
+    return CaseJudgementModel(
+      uuid: row.uuid,
+      scopeUid: row.scopeUid,
+      caseUuid: row.caseUuid,
+      workItemUuid: row.workItemUuid,
+      techniqueId: row.techniqueId,
+      module: row.module,
+      text: row.judgementText,
+      detailText: row.detailText,
+      indicatorLabel: row.indicatorLabel,
+      patternLabel: row.patternLabel,
+      status: row.status,
+      keyBasis: row.keyBasis,
+      attachedToKind: row.attachedToKind,
+      orderIndex: row.orderIndex,
+      createdAt: row.createdAt.toUtc(),
+      updatedAt: row.updatedAt.toUtc(),
+      deletedAt: row.deletedAt?.toUtc(),
+    );
+  }
+
+  CaseJudgementsCompanion _judgementToRow(CaseJudgementModel model) {
+    return CaseJudgementsCompanion.insert(
+      uuid: model.uuid,
+      scopeUid: _store.scopeUid,
+      caseUuid: model.caseUuid,
+      workItemUuid: Value(model.workItemUuid),
+      techniqueId: Value(model.techniqueId),
+      module: Value(model.module),
+      judgementText: model.text,
+      detailText: Value(model.detailText),
+      indicatorLabel: Value(model.indicatorLabel),
+      patternLabel: Value(model.patternLabel),
+      status: model.status,
+      keyBasis: Value(model.keyBasis),
+      attachedToKind: Value(model.attachedToKind),
+      orderIndex: model.orderIndex,
+      createdAt: model.createdAt.toUtc(),
+      updatedAt: model.updatedAt.toUtc(),
+      deletedAt: Value(model.deletedAt?.toUtc()),
+    );
   }
 }

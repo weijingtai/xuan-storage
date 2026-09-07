@@ -450,4 +450,221 @@ void main() {
     expect(rows.single.read<String>('scope_uid'), 'scope-a');
     expect(rows.single.read<String>('title'), caseA.title);
   });
+
+  test('T2: Save and reload case judgement with all fields matching', () async {
+    await repository.saveCase(_caseFixture('case-j-1'));
+    await repository.saveWorkItem(_workItemFixture('item-j-1', 'case-j-1'));
+
+    final judgement = CaseJudgementModel(
+      uuid: 'judgement-1',
+      scopeUid: 'scope-a',
+      caseUuid: 'case-j-1',
+      workItemUuid: 'item-j-1',
+      techniqueId: 'tech-bazi-1',
+      module: 'bazi',
+      text: '婚姻美满，夫妻和睦',
+      detailText: '日支坐正官得位，喜用神合日主',
+      indicatorLabel: '大吉',
+      patternLabel: '正官得禄',
+      status: 'confirmed',
+      keyBasis: '日支坐子水正官',
+      attachedToKind: 'stage',
+      orderIndex: 0,
+      createdAt: DateTime.utc(2026, 6, 6, 12, 0, 0),
+      updatedAt: DateTime.utc(2026, 6, 6, 12, 30, 0),
+      deletedAt: null,
+    );
+
+    await repository.saveJudgement(judgement);
+
+    final fetched = await repository.getJudgement('judgement-1');
+    expect(fetched, isNotNull);
+    expect(fetched!.uuid, equals(judgement.uuid));
+    expect(fetched.scopeUid, equals('scope-a'));
+    expect(fetched.caseUuid, equals(judgement.caseUuid));
+    expect(fetched.workItemUuid, equals(judgement.workItemUuid));
+    expect(fetched.techniqueId, equals(judgement.techniqueId));
+    expect(fetched.module, equals(judgement.module));
+    expect(fetched.text, equals(judgement.text));
+    expect(fetched.detailText, equals(judgement.detailText));
+    expect(fetched.indicatorLabel, equals(judgement.indicatorLabel));
+    expect(fetched.patternLabel, equals(judgement.patternLabel));
+    expect(fetched.status, equals(judgement.status));
+    expect(fetched.keyBasis, equals(judgement.keyBasis));
+    expect(fetched.attachedToKind, equals(judgement.attachedToKind));
+    expect(fetched.orderIndex, equals(judgement.orderIndex));
+    expect(fetched.createdAt, equals(judgement.createdAt));
+    expect(fetched.updatedAt, equals(judgement.updatedAt));
+    expect(fetched.deletedAt, isNull);
+    expect(fetched, equals(judgement));
+
+    final list = await repository.listJudgementsForCase('case-j-1');
+    expect(list.length, equals(1));
+    expect(list.first, equals(judgement));
+  });
+
+  test('T5: Cross-scope query returns empty for judgements', () async {
+    final sharedDb = PersistenceDriftDatabase(NativeDatabase.memory());
+    addTearDown(sharedDb.close);
+    DriftDivinationCaseRepository repoFor(String scopeUid) {
+      final store = LocalRecordRepository(
+        DriftRecordDataSource(sharedDb, scopeUid: scopeUid),
+        RecordAdapterRegistry([]),
+      );
+      return DriftDivinationCaseRepository(sharedDb, store: store);
+    }
+
+    final repoA = repoFor('scope-a');
+    final repoB = repoFor('scope-b');
+
+    // 1. Create case, work item, and judgement in Scope A
+    final caseA = _caseFixture('case-cross-scope');
+    await repoA.saveCase(caseA);
+    final itemA = _workItemFixture('item-cross-scope', caseA.uuid);
+    await repoA.saveWorkItem(itemA);
+
+    final judgementA = CaseJudgementModel(
+      uuid: 'judgement-cross-scope-1',
+      scopeUid: 'scope-a',
+      caseUuid: caseA.uuid,
+      workItemUuid: itemA.uuid,
+      techniqueId: 'tech-1',
+      module: 'liuyao',
+      text: '世爻逢生，谋事必成',
+      status: 'confirmed',
+      createdAt: DateTime.utc(2026, 6, 6, 12, 0, 0),
+      updatedAt: DateTime.utc(2026, 6, 6, 12, 0, 0),
+    );
+    await repoA.saveJudgement(judgementA);
+
+    // Verify Scope A can read it
+    expect(await repoA.getJudgement('judgement-cross-scope-1'), isNotNull);
+    expect(await repoA.listJudgementsForCase(caseA.uuid), hasLength(1));
+
+    // 2. Scope B query returns empty / null
+    expect(await repoB.getJudgement('judgement-cross-scope-1'), isNull);
+    expect(await repoB.listJudgementsForCase(caseA.uuid), isEmpty);
+    expect(
+      await repoB.listJudgementsForCase(caseA.uuid, includeDeleted: true),
+      isEmpty,
+    );
+
+    // 3. Scope B cannot save judgement referencing Scope A case
+    await expectLater(
+      repoB.saveJudgement(
+        CaseJudgementModel(
+          uuid: 'judgement-scope-b-rogue',
+          scopeUid: 'scope-b',
+          caseUuid: caseA.uuid,
+          text: 'Rogue judgement',
+          status: 'draft',
+          createdAt: DateTime.utc(2026, 6, 6, 12, 0, 0),
+          updatedAt: DateTime.utc(2026, 6, 6, 12, 0, 0),
+        ),
+      ),
+      throwsStateError,
+    );
+
+    // 4. Scope B cannot overwrite Scope A judgement by uuid
+    await expectLater(
+      repoB.saveJudgement(
+        CaseJudgementModel(
+          uuid: judgementA.uuid,
+          scopeUid: 'scope-b',
+          caseUuid: 'some-other-case',
+          text: 'Overwriting scope A judgement',
+          status: 'draft',
+          createdAt: DateTime.utc(2026, 6, 6, 12, 0, 0),
+          updatedAt: DateTime.utc(2026, 6, 6, 12, 0, 0),
+        ),
+      ),
+      throwsStateError,
+    );
+  });
+
+  test('T6: Cascade soft delete and restore with case', () async {
+    final caseModel = _caseFixture('case-cascade-1');
+    await repository.saveCase(caseModel);
+    await repository.saveWorkItem(_workItemFixture('item-c-1', 'case-cascade-1'));
+
+    final j1 = CaseJudgementModel(
+      uuid: 'judgement-c-1',
+      scopeUid: 'scope-a',
+      caseUuid: 'case-cascade-1',
+      workItemUuid: 'item-c-1',
+      text: '断语一：初断吉',
+      orderIndex: 0,
+      status: 'active',
+      createdAt: DateTime.utc(2026, 6, 6, 12, 0, 0),
+      updatedAt: DateTime.utc(2026, 6, 6, 12, 0, 0),
+    );
+    final j2 = CaseJudgementModel(
+      uuid: 'judgement-c-2',
+      scopeUid: 'scope-a',
+      caseUuid: 'case-cascade-1',
+      workItemUuid: 'item-c-1',
+      text: '断语二：复断应期在秋',
+      orderIndex: 1,
+      status: 'active',
+      createdAt: DateTime.utc(2026, 6, 6, 12, 10, 0),
+      updatedAt: DateTime.utc(2026, 6, 6, 12, 10, 0),
+    );
+
+    await repository.saveJudgement(j1);
+    await repository.saveJudgement(j2);
+
+    expect(await repository.listJudgementsForCase('case-cascade-1'), hasLength(2));
+
+    // Test individual soft delete and restore
+    await repository.softDeleteJudgement('judgement-c-1');
+    var activeList = await repository.listJudgementsForCase('case-cascade-1');
+    expect(activeList, hasLength(1));
+    expect(activeList.first.uuid, 'judgement-c-2');
+
+    var allList = await repository.listJudgementsForCase(
+      'case-cascade-1',
+      includeDeleted: true,
+    );
+    expect(allList, hasLength(2));
+    expect(allList.firstWhere((j) => j.uuid == 'judgement-c-1').deletedAt, isNotNull);
+
+    await repository.restoreJudgement('judgement-c-1');
+    activeList = await repository.listJudgementsForCase('case-cascade-1');
+    expect(activeList, hasLength(2));
+
+    // Test cascade delete with case
+    await repository.deleteCase('case-cascade-1', cascade: true);
+
+    // Case itself is soft-deleted
+    final fetchedCase = await repository.getCase('case-cascade-1');
+    expect(fetchedCase?.deletedAt, isNotNull);
+    expect((await repository.listCases()).where((c) => c.uuid == 'case-cascade-1'), isEmpty);
+    expect((await repository.listCases(includeDeleted: true)).where((c) => c.uuid == 'case-cascade-1'), hasLength(1));
+
+    // Judgements are cascaded soft-deleted
+    expect(await repository.listJudgementsForCase('case-cascade-1'), isEmpty);
+    final cascadedAll = await repository.listJudgementsForCase(
+      'case-cascade-1',
+      includeDeleted: true,
+    );
+    expect(cascadedAll, hasLength(2));
+    for (final j in cascadedAll) {
+      expect(j.deletedAt, isNotNull);
+    }
+
+    // Test cascade restore with case
+    await repository.restoreCase('case-cascade-1', cascade: true);
+
+    // Case is restored
+    final restoredCase = await repository.getCase('case-cascade-1');
+    expect(restoredCase?.deletedAt, isNull);
+    expect((await repository.listCases()).where((c) => c.uuid == 'case-cascade-1'), hasLength(1));
+
+    // Judgements are restored
+    final restoredJudgements = await repository.listJudgementsForCase('case-cascade-1');
+    expect(restoredJudgements, hasLength(2));
+    for (final j in restoredJudgements) {
+      expect(j.deletedAt, isNull);
+    }
+  });
 }

@@ -13958,6 +13958,993 @@ class CreationAuditLogsCompanion extends UpdateCompanion<CreationAuditLog> {
   }
 }
 
+class $CaseJudgementsTable extends CaseJudgements
+    with TableInfo<$CaseJudgementsTable, CaseJudgement> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CaseJudgementsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scopeUidMeta = const VerificationMeta(
+    'scopeUid',
+  );
+  @override
+  late final GeneratedColumn<String> scopeUid = GeneratedColumn<String>(
+    'scope_uid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _caseUuidMeta = const VerificationMeta(
+    'caseUuid',
+  );
+  @override
+  late final GeneratedColumn<String> caseUuid = GeneratedColumn<String>(
+    'case_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _workItemUuidMeta = const VerificationMeta(
+    'workItemUuid',
+  );
+  @override
+  late final GeneratedColumn<String> workItemUuid = GeneratedColumn<String>(
+    'work_item_uuid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _techniqueIdMeta = const VerificationMeta(
+    'techniqueId',
+  );
+  @override
+  late final GeneratedColumn<String> techniqueId = GeneratedColumn<String>(
+    'technique_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _moduleMeta = const VerificationMeta('module');
+  @override
+  late final GeneratedColumn<String> module = GeneratedColumn<String>(
+    'module',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _judgementTextMeta = const VerificationMeta(
+    'judgementText',
+  );
+  @override
+  late final GeneratedColumn<String> judgementText = GeneratedColumn<String>(
+    'text',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _detailTextMeta = const VerificationMeta(
+    'detailText',
+  );
+  @override
+  late final GeneratedColumn<String> detailText = GeneratedColumn<String>(
+    'detail_text',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _indicatorLabelMeta = const VerificationMeta(
+    'indicatorLabel',
+  );
+  @override
+  late final GeneratedColumn<String> indicatorLabel = GeneratedColumn<String>(
+    'indicator_label',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _patternLabelMeta = const VerificationMeta(
+    'patternLabel',
+  );
+  @override
+  late final GeneratedColumn<String> patternLabel = GeneratedColumn<String>(
+    'pattern_label',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _keyBasisMeta = const VerificationMeta(
+    'keyBasis',
+  );
+  @override
+  late final GeneratedColumn<String> keyBasis = GeneratedColumn<String>(
+    'key_basis',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _attachedToKindMeta = const VerificationMeta(
+    'attachedToKind',
+  );
+  @override
+  late final GeneratedColumn<String> attachedToKind = GeneratedColumn<String>(
+    'attached_to_kind',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _orderIndexMeta = const VerificationMeta(
+    'orderIndex',
+  );
+  @override
+  late final GeneratedColumn<int> orderIndex = GeneratedColumn<int>(
+    'order_index',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    scopeUid,
+    caseUuid,
+    workItemUuid,
+    techniqueId,
+    module,
+    judgementText,
+    detailText,
+    indicatorLabel,
+    patternLabel,
+    status,
+    keyBasis,
+    attachedToKind,
+    orderIndex,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_case_judgements';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CaseJudgement> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('scope_uid')) {
+      context.handle(
+        _scopeUidMeta,
+        scopeUid.isAcceptableOrUnknown(data['scope_uid']!, _scopeUidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scopeUidMeta);
+    }
+    if (data.containsKey('case_uuid')) {
+      context.handle(
+        _caseUuidMeta,
+        caseUuid.isAcceptableOrUnknown(data['case_uuid']!, _caseUuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_caseUuidMeta);
+    }
+    if (data.containsKey('work_item_uuid')) {
+      context.handle(
+        _workItemUuidMeta,
+        workItemUuid.isAcceptableOrUnknown(
+          data['work_item_uuid']!,
+          _workItemUuidMeta,
+        ),
+      );
+    }
+    if (data.containsKey('technique_id')) {
+      context.handle(
+        _techniqueIdMeta,
+        techniqueId.isAcceptableOrUnknown(
+          data['technique_id']!,
+          _techniqueIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('module')) {
+      context.handle(
+        _moduleMeta,
+        module.isAcceptableOrUnknown(data['module']!, _moduleMeta),
+      );
+    }
+    if (data.containsKey('text')) {
+      context.handle(
+        _judgementTextMeta,
+        judgementText.isAcceptableOrUnknown(data['text']!, _judgementTextMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_judgementTextMeta);
+    }
+    if (data.containsKey('detail_text')) {
+      context.handle(
+        _detailTextMeta,
+        detailText.isAcceptableOrUnknown(data['detail_text']!, _detailTextMeta),
+      );
+    }
+    if (data.containsKey('indicator_label')) {
+      context.handle(
+        _indicatorLabelMeta,
+        indicatorLabel.isAcceptableOrUnknown(
+          data['indicator_label']!,
+          _indicatorLabelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('pattern_label')) {
+      context.handle(
+        _patternLabelMeta,
+        patternLabel.isAcceptableOrUnknown(
+          data['pattern_label']!,
+          _patternLabelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('key_basis')) {
+      context.handle(
+        _keyBasisMeta,
+        keyBasis.isAcceptableOrUnknown(data['key_basis']!, _keyBasisMeta),
+      );
+    }
+    if (data.containsKey('attached_to_kind')) {
+      context.handle(
+        _attachedToKindMeta,
+        attachedToKind.isAcceptableOrUnknown(
+          data['attached_to_kind']!,
+          _attachedToKindMeta,
+        ),
+      );
+    }
+    if (data.containsKey('order_index')) {
+      context.handle(
+        _orderIndexMeta,
+        orderIndex.isAcceptableOrUnknown(data['order_index']!, _orderIndexMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_orderIndexMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  CaseJudgement map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CaseJudgement(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      scopeUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_uid'],
+      )!,
+      caseUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}case_uuid'],
+      )!,
+      workItemUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}work_item_uuid'],
+      ),
+      techniqueId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}technique_id'],
+      ),
+      module: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}module'],
+      ),
+      judgementText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}text'],
+      )!,
+      detailText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}detail_text'],
+      ),
+      indicatorLabel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}indicator_label'],
+      ),
+      patternLabel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}pattern_label'],
+      ),
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      keyBasis: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}key_basis'],
+      ),
+      attachedToKind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}attached_to_kind'],
+      ),
+      orderIndex: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}order_index'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $CaseJudgementsTable createAlias(String alias) {
+    return $CaseJudgementsTable(attachedDatabase, alias);
+  }
+}
+
+class CaseJudgement extends DataClass implements Insertable<CaseJudgement> {
+  final String uuid;
+  final String scopeUid;
+  final String caseUuid;
+  final String? workItemUuid;
+  final String? techniqueId;
+  final String? module;
+  final String judgementText;
+  final String? detailText;
+  final String? indicatorLabel;
+  final String? patternLabel;
+  final String status;
+  final String? keyBasis;
+  final String? attachedToKind;
+  final int orderIndex;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const CaseJudgement({
+    required this.uuid,
+    required this.scopeUid,
+    required this.caseUuid,
+    this.workItemUuid,
+    this.techniqueId,
+    this.module,
+    required this.judgementText,
+    this.detailText,
+    this.indicatorLabel,
+    this.patternLabel,
+    required this.status,
+    this.keyBasis,
+    this.attachedToKind,
+    required this.orderIndex,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['scope_uid'] = Variable<String>(scopeUid);
+    map['case_uuid'] = Variable<String>(caseUuid);
+    if (!nullToAbsent || workItemUuid != null) {
+      map['work_item_uuid'] = Variable<String>(workItemUuid);
+    }
+    if (!nullToAbsent || techniqueId != null) {
+      map['technique_id'] = Variable<String>(techniqueId);
+    }
+    if (!nullToAbsent || module != null) {
+      map['module'] = Variable<String>(module);
+    }
+    map['text'] = Variable<String>(judgementText);
+    if (!nullToAbsent || detailText != null) {
+      map['detail_text'] = Variable<String>(detailText);
+    }
+    if (!nullToAbsent || indicatorLabel != null) {
+      map['indicator_label'] = Variable<String>(indicatorLabel);
+    }
+    if (!nullToAbsent || patternLabel != null) {
+      map['pattern_label'] = Variable<String>(patternLabel);
+    }
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || keyBasis != null) {
+      map['key_basis'] = Variable<String>(keyBasis);
+    }
+    if (!nullToAbsent || attachedToKind != null) {
+      map['attached_to_kind'] = Variable<String>(attachedToKind);
+    }
+    map['order_index'] = Variable<int>(orderIndex);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  CaseJudgementsCompanion toCompanion(bool nullToAbsent) {
+    return CaseJudgementsCompanion(
+      uuid: Value(uuid),
+      scopeUid: Value(scopeUid),
+      caseUuid: Value(caseUuid),
+      workItemUuid: workItemUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(workItemUuid),
+      techniqueId: techniqueId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(techniqueId),
+      module: module == null && nullToAbsent
+          ? const Value.absent()
+          : Value(module),
+      judgementText: Value(judgementText),
+      detailText: detailText == null && nullToAbsent
+          ? const Value.absent()
+          : Value(detailText),
+      indicatorLabel: indicatorLabel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(indicatorLabel),
+      patternLabel: patternLabel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(patternLabel),
+      status: Value(status),
+      keyBasis: keyBasis == null && nullToAbsent
+          ? const Value.absent()
+          : Value(keyBasis),
+      attachedToKind: attachedToKind == null && nullToAbsent
+          ? const Value.absent()
+          : Value(attachedToKind),
+      orderIndex: Value(orderIndex),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory CaseJudgement.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CaseJudgement(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      scopeUid: serializer.fromJson<String>(json['scopeUid']),
+      caseUuid: serializer.fromJson<String>(json['caseUuid']),
+      workItemUuid: serializer.fromJson<String?>(json['workItemUuid']),
+      techniqueId: serializer.fromJson<String?>(json['techniqueId']),
+      module: serializer.fromJson<String?>(json['module']),
+      judgementText: serializer.fromJson<String>(json['judgementText']),
+      detailText: serializer.fromJson<String?>(json['detailText']),
+      indicatorLabel: serializer.fromJson<String?>(json['indicatorLabel']),
+      patternLabel: serializer.fromJson<String?>(json['patternLabel']),
+      status: serializer.fromJson<String>(json['status']),
+      keyBasis: serializer.fromJson<String?>(json['keyBasis']),
+      attachedToKind: serializer.fromJson<String?>(json['attachedToKind']),
+      orderIndex: serializer.fromJson<int>(json['orderIndex']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'scopeUid': serializer.toJson<String>(scopeUid),
+      'caseUuid': serializer.toJson<String>(caseUuid),
+      'workItemUuid': serializer.toJson<String?>(workItemUuid),
+      'techniqueId': serializer.toJson<String?>(techniqueId),
+      'module': serializer.toJson<String?>(module),
+      'judgementText': serializer.toJson<String>(judgementText),
+      'detailText': serializer.toJson<String?>(detailText),
+      'indicatorLabel': serializer.toJson<String?>(indicatorLabel),
+      'patternLabel': serializer.toJson<String?>(patternLabel),
+      'status': serializer.toJson<String>(status),
+      'keyBasis': serializer.toJson<String?>(keyBasis),
+      'attachedToKind': serializer.toJson<String?>(attachedToKind),
+      'orderIndex': serializer.toJson<int>(orderIndex),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  CaseJudgement copyWith({
+    String? uuid,
+    String? scopeUid,
+    String? caseUuid,
+    Value<String?> workItemUuid = const Value.absent(),
+    Value<String?> techniqueId = const Value.absent(),
+    Value<String?> module = const Value.absent(),
+    String? judgementText,
+    Value<String?> detailText = const Value.absent(),
+    Value<String?> indicatorLabel = const Value.absent(),
+    Value<String?> patternLabel = const Value.absent(),
+    String? status,
+    Value<String?> keyBasis = const Value.absent(),
+    Value<String?> attachedToKind = const Value.absent(),
+    int? orderIndex,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => CaseJudgement(
+    uuid: uuid ?? this.uuid,
+    scopeUid: scopeUid ?? this.scopeUid,
+    caseUuid: caseUuid ?? this.caseUuid,
+    workItemUuid: workItemUuid.present ? workItemUuid.value : this.workItemUuid,
+    techniqueId: techniqueId.present ? techniqueId.value : this.techniqueId,
+    module: module.present ? module.value : this.module,
+    judgementText: judgementText ?? this.judgementText,
+    detailText: detailText.present ? detailText.value : this.detailText,
+    indicatorLabel: indicatorLabel.present
+        ? indicatorLabel.value
+        : this.indicatorLabel,
+    patternLabel: patternLabel.present ? patternLabel.value : this.patternLabel,
+    status: status ?? this.status,
+    keyBasis: keyBasis.present ? keyBasis.value : this.keyBasis,
+    attachedToKind: attachedToKind.present
+        ? attachedToKind.value
+        : this.attachedToKind,
+    orderIndex: orderIndex ?? this.orderIndex,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  CaseJudgement copyWithCompanion(CaseJudgementsCompanion data) {
+    return CaseJudgement(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
+      caseUuid: data.caseUuid.present ? data.caseUuid.value : this.caseUuid,
+      workItemUuid: data.workItemUuid.present
+          ? data.workItemUuid.value
+          : this.workItemUuid,
+      techniqueId: data.techniqueId.present
+          ? data.techniqueId.value
+          : this.techniqueId,
+      module: data.module.present ? data.module.value : this.module,
+      judgementText: data.judgementText.present
+          ? data.judgementText.value
+          : this.judgementText,
+      detailText: data.detailText.present
+          ? data.detailText.value
+          : this.detailText,
+      indicatorLabel: data.indicatorLabel.present
+          ? data.indicatorLabel.value
+          : this.indicatorLabel,
+      patternLabel: data.patternLabel.present
+          ? data.patternLabel.value
+          : this.patternLabel,
+      status: data.status.present ? data.status.value : this.status,
+      keyBasis: data.keyBasis.present ? data.keyBasis.value : this.keyBasis,
+      attachedToKind: data.attachedToKind.present
+          ? data.attachedToKind.value
+          : this.attachedToKind,
+      orderIndex: data.orderIndex.present
+          ? data.orderIndex.value
+          : this.orderIndex,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CaseJudgement(')
+          ..write('uuid: $uuid, ')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('caseUuid: $caseUuid, ')
+          ..write('workItemUuid: $workItemUuid, ')
+          ..write('techniqueId: $techniqueId, ')
+          ..write('module: $module, ')
+          ..write('judgementText: $judgementText, ')
+          ..write('detailText: $detailText, ')
+          ..write('indicatorLabel: $indicatorLabel, ')
+          ..write('patternLabel: $patternLabel, ')
+          ..write('status: $status, ')
+          ..write('keyBasis: $keyBasis, ')
+          ..write('attachedToKind: $attachedToKind, ')
+          ..write('orderIndex: $orderIndex, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    uuid,
+    scopeUid,
+    caseUuid,
+    workItemUuid,
+    techniqueId,
+    module,
+    judgementText,
+    detailText,
+    indicatorLabel,
+    patternLabel,
+    status,
+    keyBasis,
+    attachedToKind,
+    orderIndex,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CaseJudgement &&
+          other.uuid == this.uuid &&
+          other.scopeUid == this.scopeUid &&
+          other.caseUuid == this.caseUuid &&
+          other.workItemUuid == this.workItemUuid &&
+          other.techniqueId == this.techniqueId &&
+          other.module == this.module &&
+          other.judgementText == this.judgementText &&
+          other.detailText == this.detailText &&
+          other.indicatorLabel == this.indicatorLabel &&
+          other.patternLabel == this.patternLabel &&
+          other.status == this.status &&
+          other.keyBasis == this.keyBasis &&
+          other.attachedToKind == this.attachedToKind &&
+          other.orderIndex == this.orderIndex &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class CaseJudgementsCompanion extends UpdateCompanion<CaseJudgement> {
+  final Value<String> uuid;
+  final Value<String> scopeUid;
+  final Value<String> caseUuid;
+  final Value<String?> workItemUuid;
+  final Value<String?> techniqueId;
+  final Value<String?> module;
+  final Value<String> judgementText;
+  final Value<String?> detailText;
+  final Value<String?> indicatorLabel;
+  final Value<String?> patternLabel;
+  final Value<String> status;
+  final Value<String?> keyBasis;
+  final Value<String?> attachedToKind;
+  final Value<int> orderIndex;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const CaseJudgementsCompanion({
+    this.uuid = const Value.absent(),
+    this.scopeUid = const Value.absent(),
+    this.caseUuid = const Value.absent(),
+    this.workItemUuid = const Value.absent(),
+    this.techniqueId = const Value.absent(),
+    this.module = const Value.absent(),
+    this.judgementText = const Value.absent(),
+    this.detailText = const Value.absent(),
+    this.indicatorLabel = const Value.absent(),
+    this.patternLabel = const Value.absent(),
+    this.status = const Value.absent(),
+    this.keyBasis = const Value.absent(),
+    this.attachedToKind = const Value.absent(),
+    this.orderIndex = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CaseJudgementsCompanion.insert({
+    required String uuid,
+    required String scopeUid,
+    required String caseUuid,
+    this.workItemUuid = const Value.absent(),
+    this.techniqueId = const Value.absent(),
+    this.module = const Value.absent(),
+    required String judgementText,
+    this.detailText = const Value.absent(),
+    this.indicatorLabel = const Value.absent(),
+    this.patternLabel = const Value.absent(),
+    required String status,
+    this.keyBasis = const Value.absent(),
+    this.attachedToKind = const Value.absent(),
+    required int orderIndex,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       scopeUid = Value(scopeUid),
+       caseUuid = Value(caseUuid),
+       judgementText = Value(judgementText),
+       status = Value(status),
+       orderIndex = Value(orderIndex),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<CaseJudgement> custom({
+    Expression<String>? uuid,
+    Expression<String>? scopeUid,
+    Expression<String>? caseUuid,
+    Expression<String>? workItemUuid,
+    Expression<String>? techniqueId,
+    Expression<String>? module,
+    Expression<String>? judgementText,
+    Expression<String>? detailText,
+    Expression<String>? indicatorLabel,
+    Expression<String>? patternLabel,
+    Expression<String>? status,
+    Expression<String>? keyBasis,
+    Expression<String>? attachedToKind,
+    Expression<int>? orderIndex,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (scopeUid != null) 'scope_uid': scopeUid,
+      if (caseUuid != null) 'case_uuid': caseUuid,
+      if (workItemUuid != null) 'work_item_uuid': workItemUuid,
+      if (techniqueId != null) 'technique_id': techniqueId,
+      if (module != null) 'module': module,
+      if (judgementText != null) 'text': judgementText,
+      if (detailText != null) 'detail_text': detailText,
+      if (indicatorLabel != null) 'indicator_label': indicatorLabel,
+      if (patternLabel != null) 'pattern_label': patternLabel,
+      if (status != null) 'status': status,
+      if (keyBasis != null) 'key_basis': keyBasis,
+      if (attachedToKind != null) 'attached_to_kind': attachedToKind,
+      if (orderIndex != null) 'order_index': orderIndex,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CaseJudgementsCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? scopeUid,
+    Value<String>? caseUuid,
+    Value<String?>? workItemUuid,
+    Value<String?>? techniqueId,
+    Value<String?>? module,
+    Value<String>? judgementText,
+    Value<String?>? detailText,
+    Value<String?>? indicatorLabel,
+    Value<String?>? patternLabel,
+    Value<String>? status,
+    Value<String?>? keyBasis,
+    Value<String?>? attachedToKind,
+    Value<int>? orderIndex,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return CaseJudgementsCompanion(
+      uuid: uuid ?? this.uuid,
+      scopeUid: scopeUid ?? this.scopeUid,
+      caseUuid: caseUuid ?? this.caseUuid,
+      workItemUuid: workItemUuid ?? this.workItemUuid,
+      techniqueId: techniqueId ?? this.techniqueId,
+      module: module ?? this.module,
+      judgementText: judgementText ?? this.judgementText,
+      detailText: detailText ?? this.detailText,
+      indicatorLabel: indicatorLabel ?? this.indicatorLabel,
+      patternLabel: patternLabel ?? this.patternLabel,
+      status: status ?? this.status,
+      keyBasis: keyBasis ?? this.keyBasis,
+      attachedToKind: attachedToKind ?? this.attachedToKind,
+      orderIndex: orderIndex ?? this.orderIndex,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (scopeUid.present) {
+      map['scope_uid'] = Variable<String>(scopeUid.value);
+    }
+    if (caseUuid.present) {
+      map['case_uuid'] = Variable<String>(caseUuid.value);
+    }
+    if (workItemUuid.present) {
+      map['work_item_uuid'] = Variable<String>(workItemUuid.value);
+    }
+    if (techniqueId.present) {
+      map['technique_id'] = Variable<String>(techniqueId.value);
+    }
+    if (module.present) {
+      map['module'] = Variable<String>(module.value);
+    }
+    if (judgementText.present) {
+      map['text'] = Variable<String>(judgementText.value);
+    }
+    if (detailText.present) {
+      map['detail_text'] = Variable<String>(detailText.value);
+    }
+    if (indicatorLabel.present) {
+      map['indicator_label'] = Variable<String>(indicatorLabel.value);
+    }
+    if (patternLabel.present) {
+      map['pattern_label'] = Variable<String>(patternLabel.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (keyBasis.present) {
+      map['key_basis'] = Variable<String>(keyBasis.value);
+    }
+    if (attachedToKind.present) {
+      map['attached_to_kind'] = Variable<String>(attachedToKind.value);
+    }
+    if (orderIndex.present) {
+      map['order_index'] = Variable<int>(orderIndex.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CaseJudgementsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('scopeUid: $scopeUid, ')
+          ..write('caseUuid: $caseUuid, ')
+          ..write('workItemUuid: $workItemUuid, ')
+          ..write('techniqueId: $techniqueId, ')
+          ..write('module: $module, ')
+          ..write('judgementText: $judgementText, ')
+          ..write('detailText: $detailText, ')
+          ..write('indicatorLabel: $indicatorLabel, ')
+          ..write('patternLabel: $patternLabel, ')
+          ..write('status: $status, ')
+          ..write('keyBasis: $keyBasis, ')
+          ..write('attachedToKind: $attachedToKind, ')
+          ..write('orderIndex: $orderIndex, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $OutboxPeerAcksTable extends OutboxPeerAcks
     with TableInfo<$OutboxPeerAcksTable, OutboxPeerAckRow> {
   @override
@@ -26305,6 +27292,7 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
       $WorkItemPanelRefsTable(this);
   late final $CreationAuditLogsTable creationAuditLogs =
       $CreationAuditLogsTable(this);
+  late final $CaseJudgementsTable caseJudgements = $CaseJudgementsTable(this);
   late final $OutboxPeerAcksTable outboxPeerAcks = $OutboxPeerAcksTable(this);
   late final $EntityStampsTable entityStamps = $EntityStampsTable(this);
   late final $HlcClockStatesTable hlcClockStates = $HlcClockStatesTable(this);
@@ -26423,6 +27411,7 @@ abstract class _$PersistenceDriftDatabase extends GeneratedDatabase {
     panelRefs,
     workItemPanelRefs,
     creationAuditLogs,
+    caseJudgements,
     outboxPeerAcks,
     entityStamps,
     hlcClockStates,
@@ -34173,6 +35162,460 @@ typedef $$CreationAuditLogsTableProcessedTableManager =
       CreationAuditLog,
       PrefetchHooks Function()
     >;
+typedef $$CaseJudgementsTableCreateCompanionBuilder =
+    CaseJudgementsCompanion Function({
+      required String uuid,
+      required String scopeUid,
+      required String caseUuid,
+      Value<String?> workItemUuid,
+      Value<String?> techniqueId,
+      Value<String?> module,
+      required String judgementText,
+      Value<String?> detailText,
+      Value<String?> indicatorLabel,
+      Value<String?> patternLabel,
+      required String status,
+      Value<String?> keyBasis,
+      Value<String?> attachedToKind,
+      required int orderIndex,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$CaseJudgementsTableUpdateCompanionBuilder =
+    CaseJudgementsCompanion Function({
+      Value<String> uuid,
+      Value<String> scopeUid,
+      Value<String> caseUuid,
+      Value<String?> workItemUuid,
+      Value<String?> techniqueId,
+      Value<String?> module,
+      Value<String> judgementText,
+      Value<String?> detailText,
+      Value<String?> indicatorLabel,
+      Value<String?> patternLabel,
+      Value<String> status,
+      Value<String?> keyBasis,
+      Value<String?> attachedToKind,
+      Value<int> orderIndex,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$CaseJudgementsTableFilterComposer
+    extends Composer<_$PersistenceDriftDatabase, $CaseJudgementsTable> {
+  $$CaseJudgementsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get caseUuid => $composableBuilder(
+    column: $table.caseUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get workItemUuid => $composableBuilder(
+    column: $table.workItemUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get techniqueId => $composableBuilder(
+    column: $table.techniqueId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get module => $composableBuilder(
+    column: $table.module,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get judgementText => $composableBuilder(
+    column: $table.judgementText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get detailText => $composableBuilder(
+    column: $table.detailText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get indicatorLabel => $composableBuilder(
+    column: $table.indicatorLabel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get patternLabel => $composableBuilder(
+    column: $table.patternLabel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get keyBasis => $composableBuilder(
+    column: $table.keyBasis,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get attachedToKind => $composableBuilder(
+    column: $table.attachedToKind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get orderIndex => $composableBuilder(
+    column: $table.orderIndex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CaseJudgementsTableOrderingComposer
+    extends Composer<_$PersistenceDriftDatabase, $CaseJudgementsTable> {
+  $$CaseJudgementsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get scopeUid => $composableBuilder(
+    column: $table.scopeUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get caseUuid => $composableBuilder(
+    column: $table.caseUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get workItemUuid => $composableBuilder(
+    column: $table.workItemUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get techniqueId => $composableBuilder(
+    column: $table.techniqueId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get module => $composableBuilder(
+    column: $table.module,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get judgementText => $composableBuilder(
+    column: $table.judgementText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get detailText => $composableBuilder(
+    column: $table.detailText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get indicatorLabel => $composableBuilder(
+    column: $table.indicatorLabel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get patternLabel => $composableBuilder(
+    column: $table.patternLabel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get keyBasis => $composableBuilder(
+    column: $table.keyBasis,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get attachedToKind => $composableBuilder(
+    column: $table.attachedToKind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get orderIndex => $composableBuilder(
+    column: $table.orderIndex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CaseJudgementsTableAnnotationComposer
+    extends Composer<_$PersistenceDriftDatabase, $CaseJudgementsTable> {
+  $$CaseJudgementsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get scopeUid =>
+      $composableBuilder(column: $table.scopeUid, builder: (column) => column);
+
+  GeneratedColumn<String> get caseUuid =>
+      $composableBuilder(column: $table.caseUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get workItemUuid => $composableBuilder(
+    column: $table.workItemUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get techniqueId => $composableBuilder(
+    column: $table.techniqueId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get module =>
+      $composableBuilder(column: $table.module, builder: (column) => column);
+
+  GeneratedColumn<String> get judgementText => $composableBuilder(
+    column: $table.judgementText,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get detailText => $composableBuilder(
+    column: $table.detailText,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get indicatorLabel => $composableBuilder(
+    column: $table.indicatorLabel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get patternLabel => $composableBuilder(
+    column: $table.patternLabel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get keyBasis =>
+      $composableBuilder(column: $table.keyBasis, builder: (column) => column);
+
+  GeneratedColumn<String> get attachedToKind => $composableBuilder(
+    column: $table.attachedToKind,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get orderIndex => $composableBuilder(
+    column: $table.orderIndex,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$CaseJudgementsTableTableManager
+    extends
+        RootTableManager<
+          _$PersistenceDriftDatabase,
+          $CaseJudgementsTable,
+          CaseJudgement,
+          $$CaseJudgementsTableFilterComposer,
+          $$CaseJudgementsTableOrderingComposer,
+          $$CaseJudgementsTableAnnotationComposer,
+          $$CaseJudgementsTableCreateCompanionBuilder,
+          $$CaseJudgementsTableUpdateCompanionBuilder,
+          (
+            CaseJudgement,
+            BaseReferences<
+              _$PersistenceDriftDatabase,
+              $CaseJudgementsTable,
+              CaseJudgement
+            >,
+          ),
+          CaseJudgement,
+          PrefetchHooks Function()
+        > {
+  $$CaseJudgementsTableTableManager(
+    _$PersistenceDriftDatabase db,
+    $CaseJudgementsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CaseJudgementsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CaseJudgementsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CaseJudgementsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> scopeUid = const Value.absent(),
+                Value<String> caseUuid = const Value.absent(),
+                Value<String?> workItemUuid = const Value.absent(),
+                Value<String?> techniqueId = const Value.absent(),
+                Value<String?> module = const Value.absent(),
+                Value<String> judgementText = const Value.absent(),
+                Value<String?> detailText = const Value.absent(),
+                Value<String?> indicatorLabel = const Value.absent(),
+                Value<String?> patternLabel = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String?> keyBasis = const Value.absent(),
+                Value<String?> attachedToKind = const Value.absent(),
+                Value<int> orderIndex = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CaseJudgementsCompanion(
+                uuid: uuid,
+                scopeUid: scopeUid,
+                caseUuid: caseUuid,
+                workItemUuid: workItemUuid,
+                techniqueId: techniqueId,
+                module: module,
+                judgementText: judgementText,
+                detailText: detailText,
+                indicatorLabel: indicatorLabel,
+                patternLabel: patternLabel,
+                status: status,
+                keyBasis: keyBasis,
+                attachedToKind: attachedToKind,
+                orderIndex: orderIndex,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                required String scopeUid,
+                required String caseUuid,
+                Value<String?> workItemUuid = const Value.absent(),
+                Value<String?> techniqueId = const Value.absent(),
+                Value<String?> module = const Value.absent(),
+                required String judgementText,
+                Value<String?> detailText = const Value.absent(),
+                Value<String?> indicatorLabel = const Value.absent(),
+                Value<String?> patternLabel = const Value.absent(),
+                required String status,
+                Value<String?> keyBasis = const Value.absent(),
+                Value<String?> attachedToKind = const Value.absent(),
+                required int orderIndex,
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CaseJudgementsCompanion.insert(
+                uuid: uuid,
+                scopeUid: scopeUid,
+                caseUuid: caseUuid,
+                workItemUuid: workItemUuid,
+                techniqueId: techniqueId,
+                module: module,
+                judgementText: judgementText,
+                detailText: detailText,
+                indicatorLabel: indicatorLabel,
+                patternLabel: patternLabel,
+                status: status,
+                keyBasis: keyBasis,
+                attachedToKind: attachedToKind,
+                orderIndex: orderIndex,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CaseJudgementsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PersistenceDriftDatabase,
+      $CaseJudgementsTable,
+      CaseJudgement,
+      $$CaseJudgementsTableFilterComposer,
+      $$CaseJudgementsTableOrderingComposer,
+      $$CaseJudgementsTableAnnotationComposer,
+      $$CaseJudgementsTableCreateCompanionBuilder,
+      $$CaseJudgementsTableUpdateCompanionBuilder,
+      (
+        CaseJudgement,
+        BaseReferences<
+          _$PersistenceDriftDatabase,
+          $CaseJudgementsTable,
+          CaseJudgement
+        >,
+      ),
+      CaseJudgement,
+      PrefetchHooks Function()
+    >;
 typedef $$OutboxPeerAcksTableCreateCompanionBuilder =
     OutboxPeerAcksCompanion Function({
       required String operationId,
@@ -40398,6 +41841,8 @@ class $PersistenceDriftDatabaseManager {
       $$WorkItemPanelRefsTableTableManager(_db, _db.workItemPanelRefs);
   $$CreationAuditLogsTableTableManager get creationAuditLogs =>
       $$CreationAuditLogsTableTableManager(_db, _db.creationAuditLogs);
+  $$CaseJudgementsTableTableManager get caseJudgements =>
+      $$CaseJudgementsTableTableManager(_db, _db.caseJudgements);
   $$OutboxPeerAcksTableTableManager get outboxPeerAcks =>
       $$OutboxPeerAcksTableTableManager(_db, _db.outboxPeerAcks);
   $$EntityStampsTableTableManager get entityStamps =>
