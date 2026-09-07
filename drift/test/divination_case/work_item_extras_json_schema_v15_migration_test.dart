@@ -76,9 +76,8 @@ void main() {
       createV14SchemaWithData(sqliteDb);
       sqliteDb.dispose();
 
-      // 2. Open via Drift and trigger onUpgrade (from 14 to 15)
+      // 2. Open via Drift and trigger onUpgrade (from 14 to latest schema)
       final db = PersistenceDriftDatabase(NativeDatabase(dbFile));
-      expect(db.schemaVersion, 15);
       expect(db.schemaVersion, kPersistenceDriftSchemaVersion);
 
       // 3. Verify t_divination_work_items has the new column
