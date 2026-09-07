@@ -143,6 +143,17 @@ class LocalRecordRepository implements ScopedRecordStore {
   }) => _ds.watchRecords(module: module, category: category, sortBy: sortBy);
 
   @override
+  Future<List<RecordMeta>> listRecordsByCase(
+    String caseUuid, {
+    int? limit,
+    String? cursor,
+  }) => _ds.listRecordsByCase(caseUuid, limit: limit, cursor: cursor);
+
+  @override
+  Future<int> countRecordsByCase(String caseUuid) =>
+      _ds.countRecordsByCase(caseUuid);
+
+  @override
   Future<List<RecordMeta>> findByIndex({
     required String module,
     required String indexKey,

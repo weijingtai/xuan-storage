@@ -414,4 +414,55 @@ class DriftRecordDataSource {
       utf8.encode('${meta.createdAt.microsecondsSinceEpoch}|${meta.uuid}'),
     );
   }
+
+  /// 按 Case 查询其全部关联记录（跨模块，受 scope 约束）
+  Future<List<RecordMeta>> listRecordsByCase(
+    String caseUuid, {
+    int? limit,
+    String? cursor,
+  }) async {
+    final q = db.select(db.tRecordMeta)
+      ..where(
+        (t) =>
+            t.scopeUid.equals(scopeUid) &
+            t.deletedAt.isNull() &
+            t.caseUuid.equals(caseUuid),
+      )
+      ..orderBy([
+        (t) => OrderingTerm.desc(t.createdAt),
+        (t) => OrderingTerm.asc(t.uuid),
+      ]);
+
+    if (cursor != null) {
+      final parts = utf8.decode(base64Url.decode(cursor)).split('|');
+      final cCreatedAt = DateTime.fromMicrosecondsSinceEpoch(
+        int.parse(parts[0]),
+        isUtc: true,
+      );
+      final cUuid = parts[1];
+      q.where(
+        (t) =>
+            t.createdAt.isSmallerThanValue(cCreatedAt) |
+            (t.createdAt.equals(cCreatedAt) &
+                t.uuid.isBiggerThanValue(cUuid)),
+      );
+    }
+
+    if (limit != null) q.limit(limit);
+    return (await q.get()).map(_toMeta).toList();
+  }
+
+  /// 按 Case 聚合计数（不拉明细），受 scope 约束
+  Future<int> countRecordsByCase(String caseUuid) async {
+    final count = db.tRecordMeta.uuid.count();
+    final q = db.selectOnly(db.tRecordMeta)
+      ..addColumns([count])
+      ..where(
+        db.tRecordMeta.scopeUid.equals(scopeUid) &
+            db.tRecordMeta.deletedAt.isNull() &
+            db.tRecordMeta.caseUuid.equals(caseUuid),
+      );
+    final result = await q.getSingle();
+    return result.read(count) ?? 0;
+  }
 }
