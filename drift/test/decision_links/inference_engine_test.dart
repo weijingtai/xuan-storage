@@ -33,6 +33,7 @@ class TestScopedRecordStore implements ScopedRecordStore {
     required int limit,
     String? cursor,
     RecordSortBy sortBy = RecordSortBy.auto,
+    RecordCaseFilter caseFilter = RecordCaseFilter.any,
   }) async {
     return _records.values
         .where((r) => r.deletedAt == null)

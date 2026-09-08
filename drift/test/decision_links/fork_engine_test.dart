@@ -20,7 +20,7 @@ class TestScopedRecordStore implements ScopedRecordStore {
   Future<RecordMeta?> getRecord(String uuid, {required String module}) async => _records[uuid];
 
   @override
-  Future<List<RecordMeta>> listRecords({required String module, String? category, String? divinationType, required int limit, String? cursor, RecordSortBy sortBy = RecordSortBy.auto}) async => [];
+  Future<List<RecordMeta>> listRecords({required String module, String? category, String? divinationType, required int limit, String? cursor, RecordSortBy sortBy = RecordSortBy.auto, RecordCaseFilter caseFilter = RecordCaseFilter.any}) async => [];
 
   @override
   Future<List<RecordMeta>> listRecordsByCase(String caseUuid, {int? limit, String? cursor}) async =>
