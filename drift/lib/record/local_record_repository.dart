@@ -59,6 +59,7 @@ class LocalRecordRepository implements ScopedRecordStore {
     required int limit,
     String? cursor,
     RecordSortBy sortBy = RecordSortBy.auto,
+    RecordCaseFilter caseFilter = RecordCaseFilter.any,
   }) => _ds.listRecords(
     module: module,
     category: category,
@@ -66,6 +67,7 @@ class LocalRecordRepository implements ScopedRecordStore {
     limit: limit,
     cursor: cursor,
     sortBy: sortBy,
+    caseFilter: caseFilter,
   );
 
   @override

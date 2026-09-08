@@ -160,6 +160,7 @@ class DriftRecordDataSource {
     int limit = 50,
     String? cursor,
     RecordSortBy sortBy = RecordSortBy.auto,
+    RecordCaseFilter caseFilter = RecordCaseFilter.any,
   }) async {
     final q = db.select(db.tRecordMeta)
       ..where((t) => t.scopeUid.equals(scopeUid) & t.deletedAt.isNull());
@@ -167,6 +168,18 @@ class DriftRecordDataSource {
     if (category != null) q.where((t) => t.category.equals(category));
     if (divinationType != null) {
       q.where((t) => t.divinationType.equals(divinationType));
+    }
+
+    // 应用 caseFilter
+    switch (caseFilter) {
+      case RecordCaseFilter.standaloneOnly:
+        q.where((t) => t.caseUuid.isNull());
+        break;
+      case RecordCaseFilter.inCaseOnly:
+        q.where((t) => t.caseUuid.isNotNull());
+        break;
+      case RecordCaseFilter.any:
+        break;
     }
 
     final effectiveSort = _effectiveSortBy(category, sortBy);
