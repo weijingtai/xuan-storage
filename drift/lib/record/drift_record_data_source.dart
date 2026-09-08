@@ -172,11 +172,15 @@ class DriftRecordDataSource {
 
     // 应用 caseFilter
     switch (caseFilter) {
+      // standalone 语义 = 不在任何档案中：case_uuid IS NULL 或空串哨兵。
+      // 部分模块（如 bazi 单盘）用 '' 表示无档案，需一并纳入。
       case RecordCaseFilter.standaloneOnly:
-        q.where((t) => t.caseUuid.isNull());
+        q.where((t) => t.caseUuid.isNull() | t.caseUuid.equals(''));
         break;
       case RecordCaseFilter.inCaseOnly:
-        q.where((t) => t.caseUuid.isNotNull());
+        q.where(
+          (t) => t.caseUuid.isNotNull() & t.caseUuid.isNotValue(''),
+        );
         break;
       case RecordCaseFilter.any:
         break;
