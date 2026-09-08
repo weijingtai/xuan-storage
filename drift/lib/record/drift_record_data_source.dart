@@ -478,4 +478,28 @@ class DriftRecordDataSource {
     final result = await q.getSingle();
     return result.read(count) ?? 0;
   }
+
+  /// 按 Case 聚合统计（COUNT + MIN + MAX 一次查完，不拉明细），受 scope 约束。
+  Future<CaseRecordAggregate> aggregateByCase(String caseUuid) async {
+    final count = db.tRecordMeta.uuid.count();
+    final first = db.tRecordMeta.createdAt.min();
+    final latest = db.tRecordMeta.createdAt.max();
+    final q = db.selectOnly(db.tRecordMeta)
+      ..addColumns([count, first, latest])
+      ..where(
+        db.tRecordMeta.scopeUid.equals(scopeUid) &
+            db.tRecordMeta.deletedAt.isNull() &
+            db.tRecordMeta.caseUuid.equals(caseUuid),
+      );
+    final result = await q.getSingle();
+    final n = result.read(count) ?? 0;
+    if (n == 0) {
+      return const CaseRecordAggregate(count: 0);
+    }
+    return CaseRecordAggregate(
+      count: n,
+      firstRecordAt: result.read(first),
+      latestRecordAt: result.read(latest),
+    );
+  }
 }

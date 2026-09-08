@@ -23,6 +23,20 @@ class TestScopedRecordStore implements ScopedRecordStore {
   Future<List<RecordMeta>> listRecords({required String module, String? category, String? divinationType, required int limit, String? cursor, RecordSortBy sortBy = RecordSortBy.auto}) async => [];
 
   @override
+  Future<List<RecordMeta>> listRecordsByCase(String caseUuid, {int? limit, String? cursor}) async =>
+      _records.values.where((r) => r.caseUuid == caseUuid).toList();
+
+  @override
+  Future<int> countRecordsByCase(String caseUuid) async =>
+      _records.values.where((r) => r.caseUuid == caseUuid).length;
+
+  @override
+  Future<CaseRecordAggregate> aggregateByCase(String caseUuid) async {
+    final rows = _records.values.where((r) => r.caseUuid == caseUuid).toList();
+    return CaseRecordAggregate(count: rows.length);
+  }
+
+  @override
   Future<bool> softDeleteRecord(String uuid, {required String module}) async => false;
 
   @override

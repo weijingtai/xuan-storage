@@ -156,6 +156,10 @@ class LocalRecordRepository implements ScopedRecordStore {
       _ds.countRecordsByCase(caseUuid);
 
   @override
+  Future<CaseRecordAggregate> aggregateByCase(String caseUuid) =>
+      _ds.aggregateByCase(caseUuid);
+
+  @override
   Future<List<RecordMeta>> findByIndex({
     required String module,
     required String indexKey,
