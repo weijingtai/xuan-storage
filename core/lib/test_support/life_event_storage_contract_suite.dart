@@ -52,6 +52,8 @@ FutureOr<void> runLifeEventStorageContractSuite({
       int expectedManifestRevision = 0,
       String contentDigest = 'digest-1',
       CoverageTransition transition = CoverageTransition.partial,
+      TimeRange? requestedRange,
+      TimeRange? coveredRange,
     }) =>
         CommitValidatedShardRequest(
           coverageId: coverageId,
@@ -69,14 +71,16 @@ FutureOr<void> runLifeEventStorageContractSuite({
           inputFingerprint: 'fp-1',
           receiptIdentity: ReceiptIdentity(coverageId: coverageId, shardId: shardId),
           requestId: 'req-1',
-          requestedRange: TimeRange(
-            startInclusiveUtc: DateTime.utc(2026, 1, 1),
-            endExclusiveUtc: DateTime.utc(2026, 7, 1),
-          ),
-          coveredRange: TimeRange(
-            startInclusiveUtc: DateTime.utc(2026, 1, 1),
-            endExclusiveUtc: DateTime.utc(2026, 7, 1),
-          ),
+          requestedRange: requestedRange ??
+              TimeRange(
+                startInclusiveUtc: DateTime.utc(2026, 1, 1),
+                endExclusiveUtc: DateTime.utc(2026, 7, 1),
+              ),
+          coveredRange: coveredRange ??
+              TimeRange(
+                startInclusiveUtc: DateTime.utc(2026, 1, 1),
+                endExclusiveUtc: DateTime.utc(2026, 7, 1),
+              ),
           projections: const [],
           withdrawals: const [],
           eventCount: 0,
@@ -136,19 +140,16 @@ FutureOr<void> runLifeEventStorageContractSuite({
       final broken = await store.commitValidatedShard(
         baseRequest(
           shardId: 'broken-shard',
+          // coveredRange 越出 requestedRange → 范围校验失败，必须零写入。
           requestedRange: TimeRange(
-            startInclusiveUtc: DateTime.utc(2026, 1, 1),
-            endExclusiveUtc: DateTime.utc(2026, 7, 1),
+            startInclusiveUtc: DateTime.utc(2026, 7, 1),
+            endExclusiveUtc: DateTime.utc(2027, 1, 1),
           ),
         ),
       );
       // The specific outcome is implementation-defined (validation error path),
       // but the contract requires: broken commit must not leave partial state.
-      expect(broken.outcome, anyOf(
-        CommitValidatedShardOutcome.revisionConflict,
-        CommitValidatedShardOutcome.receiptDigestConflict,
-        CommitValidatedShardOutcome.activeSwitchConflict,
-      ));
+      expect(broken.outcome, isNot(CommitValidatedShardOutcome.applied));
       final after = await snapshot(store);
       expect(after.receipts.length, before.receipts.length);
       expect(after.manifests.length, before.manifests.length);
