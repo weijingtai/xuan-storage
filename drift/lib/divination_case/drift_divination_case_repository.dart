@@ -660,6 +660,31 @@ class DriftDivinationCaseRepository
       ..where(
         (t) =>
             t.caseUuid.equals(caseUuid) &
+            // 哨兵过滤：空串 '' 表示「不属于任何 Case」的单卦断语
+            t.caseUuid.equals('').not() &
+            t.scopeUid.equals(_store.scopeUid),
+      );
+    if (!includeDeleted) {
+      query.where((t) => t.deletedAt.isNull());
+    }
+    query.orderBy([
+      (t) => OrderingTerm.asc(t.orderIndex),
+      (t) => OrderingTerm.asc(t.createdAt),
+    ]);
+    final rows = await query.get();
+    return rows.map(_judgementFromRow).toList();
+  }
+
+  /// 按 recordUuid 查询单卦断语（ORDER-J2）。
+  /// 单卦断语的 case_uuid 为空串 '' 哨兵，record_uuid 非空。
+  Future<List<CaseJudgementModel>> listJudgementsForRecord(
+    String recordUuid, {
+    bool includeDeleted = false,
+  }) async {
+    final query = db.select(db.caseJudgements)
+      ..where(
+        (t) =>
+            t.recordUuid.equals(recordUuid) &
             t.scopeUid.equals(_store.scopeUid),
       );
     if (!includeDeleted) {
@@ -726,15 +751,35 @@ class DriftDivinationCaseRepository
       throw StateError('Judgement ${model.uuid} belongs to another scope');
     }
 
-    final caseRow = await (db.select(
-      db.divinationCases,
-    )..where(
-      (t) =>
-          t.uuid.equals(model.caseUuid) &
-          t.scopeUid.equals(_store.scopeUid),
-    )).getSingleOrNull();
-    if (caseRow == null) {
-      throw StateError('Case ${model.caseUuid} is not in the current scope');
+    // 哨兵校验（ORDER-J2）：
+    // - Case 断语：case_uuid 非空串、record_uuid 为 NULL
+    // - 单卦断语：case_uuid 为空串 ''、record_uuid 非空
+    // - 两者恰有一个有效，非法组合抛异常
+    final caseUuid = model.caseUuid;
+    final recordUuid = model.recordUuid;
+    final isCaseSentinel = caseUuid == '';
+    final hasRecord = recordUuid != null && recordUuid.isNotEmpty;
+
+    if (isCaseSentinel && hasRecord) {
+      // 单卦断语：case_uuid 为空串，record_uuid 非空 —— 合法
+    } else if (!isCaseSentinel && !hasRecord) {
+      // Case 断语：case_uuid 非空串，record_uuid 为 NULL —— 合法
+      final caseRow = await (db.select(
+        db.divinationCases,
+      )..where(
+        (t) =>
+            t.uuid.equals(caseUuid) &
+            t.scopeUid.equals(_store.scopeUid),
+      )).getSingleOrNull();
+      if (caseRow == null) {
+        throw StateError('Case $caseUuid is not in the current scope');
+      }
+    } else {
+      // 非法组合
+      throw StateError(
+        'Invalid judgement ownership: case_uuid="$caseUuid", record_uuid="$recordUuid". '
+        'Either case_uuid (non-empty) OR record_uuid must be set, not both.',
+      );
     }
 
     final workItemUuid = model.workItemUuid;
@@ -745,7 +790,7 @@ class DriftDivinationCaseRepository
       if (workItem == null || workItem.scopeUid != _store.scopeUid) {
         throw StateError('WorkItem $workItemUuid is not in the current scope');
       }
-      if (workItem.caseUuid != model.caseUuid) {
+      if (!isCaseSentinel && workItem.caseUuid != caseUuid) {
         throw StateError('WorkItem $workItemUuid belongs to another case');
       }
     }
@@ -756,6 +801,7 @@ class DriftDivinationCaseRepository
       uuid: row.uuid,
       scopeUid: row.scopeUid,
       caseUuid: row.caseUuid,
+      recordUuid: row.recordUuid,
       workItemUuid: row.workItemUuid,
       techniqueId: row.techniqueId,
       module: row.module,
@@ -778,6 +824,7 @@ class DriftDivinationCaseRepository
       uuid: model.uuid,
       scopeUid: _store.scopeUid,
       caseUuid: model.caseUuid,
+      recordUuid: Value(model.recordUuid),
       workItemUuid: Value(model.workItemUuid),
       techniqueId: Value(model.techniqueId),
       module: Value(model.module),

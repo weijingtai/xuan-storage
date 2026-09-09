@@ -2,6 +2,7 @@ class CaseJudgementModel {
   final String uuid;
   final String scopeUid;
   final String caseUuid;
+  final String? recordUuid;
   final String? workItemUuid;
   final String? techniqueId;
   final String? module;
@@ -21,6 +22,7 @@ class CaseJudgementModel {
     required this.uuid,
     this.scopeUid = '',
     required this.caseUuid,
+    this.recordUuid,
     this.workItemUuid,
     this.techniqueId,
     this.module,
@@ -41,6 +43,7 @@ class CaseJudgementModel {
     String? uuid,
     String? scopeUid,
     String? caseUuid,
+    String? recordUuid,
     String? workItemUuid,
     String? techniqueId,
     String? module,
@@ -64,11 +67,13 @@ class CaseJudgementModel {
     bool clearKeyBasis = false,
     bool clearAttachedToKind = false,
     bool clearDeletedAt = false,
+    bool clearRecordUuid = false,
   }) {
     return CaseJudgementModel(
       uuid: uuid ?? this.uuid,
       scopeUid: scopeUid ?? this.scopeUid,
       caseUuid: caseUuid ?? this.caseUuid,
+      recordUuid: clearRecordUuid ? null : (recordUuid ?? this.recordUuid),
       workItemUuid: clearWorkItemUuid ? null : (workItemUuid ?? this.workItemUuid),
       techniqueId: clearTechniqueId ? null : (techniqueId ?? this.techniqueId),
       module: clearModule ? null : (module ?? this.module),
@@ -94,6 +99,7 @@ class CaseJudgementModel {
           uuid == other.uuid &&
           scopeUid == other.scopeUid &&
           caseUuid == other.caseUuid &&
+          recordUuid == other.recordUuid &&
           workItemUuid == other.workItemUuid &&
           techniqueId == other.techniqueId &&
           module == other.module &&
@@ -114,6 +120,7 @@ class CaseJudgementModel {
         uuid,
         scopeUid,
         caseUuid,
+        recordUuid,
         workItemUuid,
         techniqueId,
         module,
@@ -133,7 +140,7 @@ class CaseJudgementModel {
   @override
   String toString() =>
       'CaseJudgementModel(uuid: $uuid, scopeUid: $scopeUid, caseUuid: $caseUuid, '
-      'workItemUuid: $workItemUuid, techniqueId: $techniqueId, module: $module, '
+      'recordUuid: $recordUuid, workItemUuid: $workItemUuid, techniqueId: $techniqueId, module: $module, '
       'text: $text, detailText: $detailText, indicatorLabel: $indicatorLabel, '
       'patternLabel: $patternLabel, status: $status, keyBasis: $keyBasis, '
       'attachedToKind: $attachedToKind, orderIndex: $orderIndex, '

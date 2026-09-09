@@ -906,7 +906,7 @@ class EntityStampDao extends DatabaseAccessor<PersistenceDriftDatabase>
 
 /// 数据库 schema 版本。任何 onUpgrade 分支新增时同步 +1；
 /// 测试断言跟随本常量（防止版本号断言失同步）。
-const int kPersistenceDriftSchemaVersion = 17;
+const int kPersistenceDriftSchemaVersion = 18;
 
 @DriftDatabase(
   tables: [
@@ -1002,6 +1002,7 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
       await _createImIndices();
       await _createTemplateIndices();
       await _createCaseJudgementIndices();
+      await _createCaseJudgementRecordIndex();
       await _createUserPreferenceIndices();
     },
     onUpgrade: (m, from, to) async {
@@ -1147,6 +1148,13 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
         // schema v17：通用用户偏好表与索引（ORDER-P3）
         await m.createTable(userPreferences);
         await _createUserPreferenceIndices();
+      }
+      if (from < 18) {
+        // schema v18：断语支持挂到单条 Record（ORDER-J2）
+        // case_uuid 保持 NOT NULL（空串 '' 哨兵表示「不属于任何 Case」），
+        // 仅新增可空 record_uuid 列。
+        await m.addColumn(caseJudgements, caseJudgements.recordUuid);
+        await _createCaseJudgementRecordIndex();
       }
     },
   );
@@ -1512,6 +1520,13 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_case_judgements_work_item '
       'ON t_case_judgements(work_item_uuid)',
+    );
+  }
+
+  Future<void> _createCaseJudgementRecordIndex() async {
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_case_judgements_record '
+      'ON t_case_judgements(record_uuid)',
     );
   }
 

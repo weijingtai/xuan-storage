@@ -7,6 +7,7 @@ class CaseJudgements extends Table {
   TextColumn get uuid => text().named('uuid')();
   TextColumn get scopeUid => text().named('scope_uid')();
   TextColumn get caseUuid => text().named('case_uuid')();
+  TextColumn get recordUuid => text().named('record_uuid').nullable()();
   TextColumn get workItemUuid => text().named('work_item_uuid').nullable()();
   TextColumn get techniqueId => text().named('technique_id').nullable()();
   TextColumn get module => text().named('module').nullable()();
