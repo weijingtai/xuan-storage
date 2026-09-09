@@ -56,6 +56,8 @@ import 'divination_case/work_item_panel_refs_table.dart';
 import 'divination_case/creation_audit_logs_table.dart';
 import 'divination_case/creation_audit_logs_dao.dart';
 import 'divination_case/case_judgements_table.dart';
+import 'user_preference/user_preferences_table.dart';
+import 'user_preference/drift_user_preference_store.dart';
 export 'daos/skills_dao.dart';
 export 'daos/skill_classes_dao.dart';
 export 'tables/skills_table.dart';
@@ -102,6 +104,8 @@ export 'divination_case/creation_audit_logs_table.dart';
 export 'divination_case/creation_audit_logs_dao.dart';
 export 'divination_case/case_judgements_table.dart';
 export 'divination_case/case_judgement_model.dart';
+export 'user_preference/user_preferences_table.dart';
+export 'user_preference/drift_user_preference_store.dart';
 export 'scope/scope_alias_entry.dart';
 export 'scope/scope_backup.dart';
 export 'scope/prescope_legacy_archiver.dart';
@@ -902,7 +906,7 @@ class EntityStampDao extends DatabaseAccessor<PersistenceDriftDatabase>
 
 /// 数据库 schema 版本。任何 onUpgrade 分支新增时同步 +1；
 /// 测试断言跟随本常量（防止版本号断言失同步）。
-const int kPersistenceDriftSchemaVersion = 16;
+const int kPersistenceDriftSchemaVersion = 17;
 
 @DriftDatabase(
   tables: [
@@ -954,6 +958,7 @@ const int kPersistenceDriftSchemaVersion = 16;
     TIMPeerAuthorizations,
     DivinationTemplates,
     TemplateUsageStats,
+    UserPreferences,
   ],
   daos: [
     OutboxRecordsDao,
@@ -997,6 +1002,7 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
       await _createImIndices();
       await _createTemplateIndices();
       await _createCaseJudgementIndices();
+      await _createUserPreferenceIndices();
     },
     onUpgrade: (m, from, to) async {
       if (from < 2) {
@@ -1136,6 +1142,11 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
         // schema v16：断语矩阵表与索引
         await m.createTable(caseJudgements);
         await _createCaseJudgementIndices();
+      }
+      if (from < 17) {
+        // schema v17：通用用户偏好表与索引（ORDER-P3）
+        await m.createTable(userPreferences);
+        await _createUserPreferenceIndices();
       }
     },
   );
@@ -1501,6 +1512,13 @@ class PersistenceDriftDatabase extends _$PersistenceDriftDatabase {
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_case_judgements_work_item '
       'ON t_case_judgements(work_item_uuid)',
+    );
+  }
+
+  Future<void> _createUserPreferenceIndices() async {
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_user_preferences_scope '
+      'ON t_user_preferences(scope_uid)',
     );
   }
 }
