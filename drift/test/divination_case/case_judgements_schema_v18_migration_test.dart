@@ -177,12 +177,12 @@ void main() {
       final db = PersistenceDriftDatabase(NativeDatabase(dbFile));
       final now = DateTime.utc(2026, 9, 9, 12, 0, 0);
 
-      // 写入 Case 断语
+      // 写入 Case 断语（独立 case uuid，避免与 v17 seed 的 case_1/j_old_1 叠加）
       await db.into(db.caseJudgements).insert(
         CaseJudgementsCompanion.insert(
-          uuid: 'j_case_1',
+          uuid: 'j_case_query_1',
           scopeUid: 'scope_test',
-          caseUuid: 'case_1',
+          caseUuid: 'case_query',
           judgementText: 'Case 断语',
           status: 'confirmed',
           orderIndex: 0,
@@ -210,14 +210,14 @@ void main() {
       final query = db.select(db.caseJudgements)
         ..where(
           (t) =>
-              t.caseUuid.equals('case_1') &
+              t.caseUuid.equals('case_query') &
               t.caseUuid.equals('').not() &  // 哨兵过滤
               t.scopeUid.equals('scope_test'),
         );
       final results = await query.get();
 
       expect(results.length, 1);
-      expect(results.single.uuid, 'j_case_1');
+      expect(results.single.uuid, 'j_case_query_1');
       expect(results.single.judgementText, 'Case 断语');
 
       await db.close();

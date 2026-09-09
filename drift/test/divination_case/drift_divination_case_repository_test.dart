@@ -682,4 +682,58 @@ void main() {
       expect(j.deletedAt, isNull);
     }
   });
+
+  test('T7: listJudgementsForRecords 批量查询单卦断语（scope 隔离 + 哨兵语义）', () async {
+    final sharedDb = PersistenceDriftDatabase(NativeDatabase.memory());
+    addTearDown(sharedDb.close);
+    DriftDivinationCaseRepository repoFor(String scopeUid) {
+      final store = LocalRecordRepository(
+        DriftRecordDataSource(sharedDb, scopeUid: scopeUid),
+        RecordAdapterRegistry([]),
+      );
+      return DriftDivinationCaseRepository(sharedDb, store: store);
+    }
+
+    final repoA = repoFor('scope-a');
+    final repoB = repoFor('scope-b');
+
+    // 单卦断语：case_uuid='' 空串哨兵 + record_uuid 非空
+    CaseJudgementModel recordJudgement(String uuid, String recordUuid,
+        String text, int order) {
+      return CaseJudgementModel(
+        uuid: uuid,
+        scopeUid: 'scope-a',
+        caseUuid: '',
+        recordUuid: recordUuid,
+        text: text,
+        status: 'confirmed',
+        orderIndex: order,
+        createdAt: DateTime.utc(2026, 6, 6, 12, 0, 0),
+        updatedAt: DateTime.utc(2026, 6, 6, 12, 0, 0),
+      );
+    }
+
+    await repoA.saveJudgement(recordJudgement('j-rec-a1', 'rec-a1', '断语A1', 0));
+    await repoA.saveJudgement(recordJudgement('j-rec-a2', 'rec-a2', '断语A2', 0));
+    await repoA.saveJudgement(recordJudgement('j-rec-a3', 'rec-a3', '断语A3', 0));
+
+    // Scope A：批量查询命中 3 条且按 recordUuid 归属正确
+    final batch = await repoA.listJudgementsForRecords([
+      'rec-a1',
+      'rec-a2',
+      'rec-a3',
+      'rec-ghost',
+    ]);
+    expect(batch, hasLength(3));
+    expect(batch.map((j) => j.recordUuid).toSet(),
+        containsAll(['rec-a1', 'rec-a2', 'rec-a3']));
+    expect(batch.every((j) => j.caseUuid == ''), isTrue,
+        reason: '单卦断语必须都是空串哨兵归属');
+
+    // 空集合快速返回
+    expect(await repoA.listJudgementsForRecords(const []), isEmpty);
+
+    // Scope B：查询 scope A 的 recordUuid 不得捞到任何数据（scope 隔离）
+    expect(await repoB.listJudgementsForRecords(['rec-a1', 'rec-a2']), isEmpty);
+  });
 }

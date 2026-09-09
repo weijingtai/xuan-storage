@@ -698,6 +698,43 @@ class DriftDivinationCaseRepository
     return rows.map(_judgementFromRow).toList();
   }
 
+  /// 按 recordUuid 集合批量查询单卦断语（ORDER-J2B）。
+  ///
+  /// Normal Card 列表分页后以「本页 recordUuid 集合一次批量取」，避免 N+1。
+  /// 单卦断语的 case_uuid 为空串 '' 哨兵，record_uuid 非空。
+  Future<List<CaseJudgementModel>> listJudgementsForRecords(
+    List<String> recordUuids, {
+    bool includeDeleted = false,
+  }) async {
+    if (recordUuids.isEmpty) return const [];
+    final results = <CaseJudgementModel>[];
+    const chunkSize = 500;
+    for (var i = 0; i < recordUuids.length; i += chunkSize) {
+      final chunk = recordUuids.sublist(
+        i,
+        i + chunkSize > recordUuids.length
+            ? recordUuids.length
+            : i + chunkSize,
+      );
+      final query = db.select(db.caseJudgements)
+        ..where(
+          (t) =>
+              t.recordUuid.isIn(chunk) &
+              t.scopeUid.equals(_store.scopeUid),
+        );
+      if (!includeDeleted) {
+        query.where((t) => t.deletedAt.isNull());
+      }
+      query.orderBy([
+        (t) => OrderingTerm.asc(t.orderIndex),
+        (t) => OrderingTerm.asc(t.createdAt),
+      ]);
+      final rows = await query.get();
+      results.addAll(rows.map(_judgementFromRow));
+    }
+    return results;
+  }
+
   Future<void> saveJudgement(CaseJudgementModel model) async {
     await _validateJudgementWrite(model);
     await db
