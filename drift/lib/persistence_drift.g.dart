@@ -13995,6 +13995,17 @@ class $CaseJudgementsTable extends CaseJudgements
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _recordUuidMeta = const VerificationMeta(
+    'recordUuid',
+  );
+  @override
+  late final GeneratedColumn<String> recordUuid = GeneratedColumn<String>(
+    'record_uuid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _workItemUuidMeta = const VerificationMeta(
     'workItemUuid',
   );
@@ -14150,6 +14161,7 @@ class $CaseJudgementsTable extends CaseJudgements
     uuid,
     scopeUid,
     caseUuid,
+    recordUuid,
     workItemUuid,
     techniqueId,
     module,
@@ -14200,6 +14212,12 @@ class $CaseJudgementsTable extends CaseJudgements
       );
     } else if (isInserting) {
       context.missing(_caseUuidMeta);
+    }
+    if (data.containsKey('record_uuid')) {
+      context.handle(
+        _recordUuidMeta,
+        recordUuid.isAcceptableOrUnknown(data['record_uuid']!, _recordUuidMeta),
+      );
     }
     if (data.containsKey('work_item_uuid')) {
       context.handle(
@@ -14331,6 +14349,10 @@ class $CaseJudgementsTable extends CaseJudgements
         DriftSqlType.string,
         data['${effectivePrefix}case_uuid'],
       )!,
+      recordUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}record_uuid'],
+      ),
       workItemUuid: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}work_item_uuid'],
@@ -14400,6 +14422,7 @@ class CaseJudgement extends DataClass implements Insertable<CaseJudgement> {
   final String uuid;
   final String scopeUid;
   final String caseUuid;
+  final String? recordUuid;
   final String? workItemUuid;
   final String? techniqueId;
   final String? module;
@@ -14418,6 +14441,7 @@ class CaseJudgement extends DataClass implements Insertable<CaseJudgement> {
     required this.uuid,
     required this.scopeUid,
     required this.caseUuid,
+    this.recordUuid,
     this.workItemUuid,
     this.techniqueId,
     this.module,
@@ -14439,6 +14463,9 @@ class CaseJudgement extends DataClass implements Insertable<CaseJudgement> {
     map['uuid'] = Variable<String>(uuid);
     map['scope_uid'] = Variable<String>(scopeUid);
     map['case_uuid'] = Variable<String>(caseUuid);
+    if (!nullToAbsent || recordUuid != null) {
+      map['record_uuid'] = Variable<String>(recordUuid);
+    }
     if (!nullToAbsent || workItemUuid != null) {
       map['work_item_uuid'] = Variable<String>(workItemUuid);
     }
@@ -14479,6 +14506,9 @@ class CaseJudgement extends DataClass implements Insertable<CaseJudgement> {
       uuid: Value(uuid),
       scopeUid: Value(scopeUid),
       caseUuid: Value(caseUuid),
+      recordUuid: recordUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recordUuid),
       workItemUuid: workItemUuid == null && nullToAbsent
           ? const Value.absent()
           : Value(workItemUuid),
@@ -14523,6 +14553,7 @@ class CaseJudgement extends DataClass implements Insertable<CaseJudgement> {
       uuid: serializer.fromJson<String>(json['uuid']),
       scopeUid: serializer.fromJson<String>(json['scopeUid']),
       caseUuid: serializer.fromJson<String>(json['caseUuid']),
+      recordUuid: serializer.fromJson<String?>(json['recordUuid']),
       workItemUuid: serializer.fromJson<String?>(json['workItemUuid']),
       techniqueId: serializer.fromJson<String?>(json['techniqueId']),
       module: serializer.fromJson<String?>(json['module']),
@@ -14546,6 +14577,7 @@ class CaseJudgement extends DataClass implements Insertable<CaseJudgement> {
       'uuid': serializer.toJson<String>(uuid),
       'scopeUid': serializer.toJson<String>(scopeUid),
       'caseUuid': serializer.toJson<String>(caseUuid),
+      'recordUuid': serializer.toJson<String?>(recordUuid),
       'workItemUuid': serializer.toJson<String?>(workItemUuid),
       'techniqueId': serializer.toJson<String?>(techniqueId),
       'module': serializer.toJson<String?>(module),
@@ -14567,6 +14599,7 @@ class CaseJudgement extends DataClass implements Insertable<CaseJudgement> {
     String? uuid,
     String? scopeUid,
     String? caseUuid,
+    Value<String?> recordUuid = const Value.absent(),
     Value<String?> workItemUuid = const Value.absent(),
     Value<String?> techniqueId = const Value.absent(),
     Value<String?> module = const Value.absent(),
@@ -14585,6 +14618,7 @@ class CaseJudgement extends DataClass implements Insertable<CaseJudgement> {
     uuid: uuid ?? this.uuid,
     scopeUid: scopeUid ?? this.scopeUid,
     caseUuid: caseUuid ?? this.caseUuid,
+    recordUuid: recordUuid.present ? recordUuid.value : this.recordUuid,
     workItemUuid: workItemUuid.present ? workItemUuid.value : this.workItemUuid,
     techniqueId: techniqueId.present ? techniqueId.value : this.techniqueId,
     module: module.present ? module.value : this.module,
@@ -14609,6 +14643,9 @@ class CaseJudgement extends DataClass implements Insertable<CaseJudgement> {
       uuid: data.uuid.present ? data.uuid.value : this.uuid,
       scopeUid: data.scopeUid.present ? data.scopeUid.value : this.scopeUid,
       caseUuid: data.caseUuid.present ? data.caseUuid.value : this.caseUuid,
+      recordUuid: data.recordUuid.present
+          ? data.recordUuid.value
+          : this.recordUuid,
       workItemUuid: data.workItemUuid.present
           ? data.workItemUuid.value
           : this.workItemUuid,
@@ -14648,6 +14685,7 @@ class CaseJudgement extends DataClass implements Insertable<CaseJudgement> {
           ..write('uuid: $uuid, ')
           ..write('scopeUid: $scopeUid, ')
           ..write('caseUuid: $caseUuid, ')
+          ..write('recordUuid: $recordUuid, ')
           ..write('workItemUuid: $workItemUuid, ')
           ..write('techniqueId: $techniqueId, ')
           ..write('module: $module, ')
@@ -14671,6 +14709,7 @@ class CaseJudgement extends DataClass implements Insertable<CaseJudgement> {
     uuid,
     scopeUid,
     caseUuid,
+    recordUuid,
     workItemUuid,
     techniqueId,
     module,
@@ -14693,6 +14732,7 @@ class CaseJudgement extends DataClass implements Insertable<CaseJudgement> {
           other.uuid == this.uuid &&
           other.scopeUid == this.scopeUid &&
           other.caseUuid == this.caseUuid &&
+          other.recordUuid == this.recordUuid &&
           other.workItemUuid == this.workItemUuid &&
           other.techniqueId == this.techniqueId &&
           other.module == this.module &&
@@ -14713,6 +14753,7 @@ class CaseJudgementsCompanion extends UpdateCompanion<CaseJudgement> {
   final Value<String> uuid;
   final Value<String> scopeUid;
   final Value<String> caseUuid;
+  final Value<String?> recordUuid;
   final Value<String?> workItemUuid;
   final Value<String?> techniqueId;
   final Value<String?> module;
@@ -14732,6 +14773,7 @@ class CaseJudgementsCompanion extends UpdateCompanion<CaseJudgement> {
     this.uuid = const Value.absent(),
     this.scopeUid = const Value.absent(),
     this.caseUuid = const Value.absent(),
+    this.recordUuid = const Value.absent(),
     this.workItemUuid = const Value.absent(),
     this.techniqueId = const Value.absent(),
     this.module = const Value.absent(),
@@ -14752,6 +14794,7 @@ class CaseJudgementsCompanion extends UpdateCompanion<CaseJudgement> {
     required String uuid,
     required String scopeUid,
     required String caseUuid,
+    this.recordUuid = const Value.absent(),
     this.workItemUuid = const Value.absent(),
     this.techniqueId = const Value.absent(),
     this.module = const Value.absent(),
@@ -14779,6 +14822,7 @@ class CaseJudgementsCompanion extends UpdateCompanion<CaseJudgement> {
     Expression<String>? uuid,
     Expression<String>? scopeUid,
     Expression<String>? caseUuid,
+    Expression<String>? recordUuid,
     Expression<String>? workItemUuid,
     Expression<String>? techniqueId,
     Expression<String>? module,
@@ -14799,6 +14843,7 @@ class CaseJudgementsCompanion extends UpdateCompanion<CaseJudgement> {
       if (uuid != null) 'uuid': uuid,
       if (scopeUid != null) 'scope_uid': scopeUid,
       if (caseUuid != null) 'case_uuid': caseUuid,
+      if (recordUuid != null) 'record_uuid': recordUuid,
       if (workItemUuid != null) 'work_item_uuid': workItemUuid,
       if (techniqueId != null) 'technique_id': techniqueId,
       if (module != null) 'module': module,
@@ -14821,6 +14866,7 @@ class CaseJudgementsCompanion extends UpdateCompanion<CaseJudgement> {
     Value<String>? uuid,
     Value<String>? scopeUid,
     Value<String>? caseUuid,
+    Value<String?>? recordUuid,
     Value<String?>? workItemUuid,
     Value<String?>? techniqueId,
     Value<String?>? module,
@@ -14841,6 +14887,7 @@ class CaseJudgementsCompanion extends UpdateCompanion<CaseJudgement> {
       uuid: uuid ?? this.uuid,
       scopeUid: scopeUid ?? this.scopeUid,
       caseUuid: caseUuid ?? this.caseUuid,
+      recordUuid: recordUuid ?? this.recordUuid,
       workItemUuid: workItemUuid ?? this.workItemUuid,
       techniqueId: techniqueId ?? this.techniqueId,
       module: module ?? this.module,
@@ -14870,6 +14917,9 @@ class CaseJudgementsCompanion extends UpdateCompanion<CaseJudgement> {
     }
     if (caseUuid.present) {
       map['case_uuid'] = Variable<String>(caseUuid.value);
+    }
+    if (recordUuid.present) {
+      map['record_uuid'] = Variable<String>(recordUuid.value);
     }
     if (workItemUuid.present) {
       map['work_item_uuid'] = Variable<String>(workItemUuid.value);
@@ -14925,6 +14975,7 @@ class CaseJudgementsCompanion extends UpdateCompanion<CaseJudgement> {
           ..write('uuid: $uuid, ')
           ..write('scopeUid: $scopeUid, ')
           ..write('caseUuid: $caseUuid, ')
+          ..write('recordUuid: $recordUuid, ')
           ..write('workItemUuid: $workItemUuid, ')
           ..write('techniqueId: $techniqueId, ')
           ..write('module: $module, ')
@@ -35482,6 +35533,7 @@ typedef $$CaseJudgementsTableCreateCompanionBuilder =
       required String uuid,
       required String scopeUid,
       required String caseUuid,
+      Value<String?> recordUuid,
       Value<String?> workItemUuid,
       Value<String?> techniqueId,
       Value<String?> module,
@@ -35503,6 +35555,7 @@ typedef $$CaseJudgementsTableUpdateCompanionBuilder =
       Value<String> uuid,
       Value<String> scopeUid,
       Value<String> caseUuid,
+      Value<String?> recordUuid,
       Value<String?> workItemUuid,
       Value<String?> techniqueId,
       Value<String?> module,
@@ -35541,6 +35594,11 @@ class $$CaseJudgementsTableFilterComposer
 
   ColumnFilters<String> get caseUuid => $composableBuilder(
     column: $table.caseUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get recordUuid => $composableBuilder(
+    column: $table.recordUuid,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -35639,6 +35697,11 @@ class $$CaseJudgementsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get recordUuid => $composableBuilder(
+    column: $table.recordUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get workItemUuid => $composableBuilder(
     column: $table.workItemUuid,
     builder: (column) => ColumnOrderings(column),
@@ -35727,6 +35790,11 @@ class $$CaseJudgementsTableAnnotationComposer
 
   GeneratedColumn<String> get caseUuid =>
       $composableBuilder(column: $table.caseUuid, builder: (column) => column);
+
+  GeneratedColumn<String> get recordUuid => $composableBuilder(
+    column: $table.recordUuid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get workItemUuid => $composableBuilder(
     column: $table.workItemUuid,
@@ -35827,6 +35895,7 @@ class $$CaseJudgementsTableTableManager
                 Value<String> uuid = const Value.absent(),
                 Value<String> scopeUid = const Value.absent(),
                 Value<String> caseUuid = const Value.absent(),
+                Value<String?> recordUuid = const Value.absent(),
                 Value<String?> workItemUuid = const Value.absent(),
                 Value<String?> techniqueId = const Value.absent(),
                 Value<String?> module = const Value.absent(),
@@ -35846,6 +35915,7 @@ class $$CaseJudgementsTableTableManager
                 uuid: uuid,
                 scopeUid: scopeUid,
                 caseUuid: caseUuid,
+                recordUuid: recordUuid,
                 workItemUuid: workItemUuid,
                 techniqueId: techniqueId,
                 module: module,
@@ -35867,6 +35937,7 @@ class $$CaseJudgementsTableTableManager
                 required String uuid,
                 required String scopeUid,
                 required String caseUuid,
+                Value<String?> recordUuid = const Value.absent(),
                 Value<String?> workItemUuid = const Value.absent(),
                 Value<String?> techniqueId = const Value.absent(),
                 Value<String?> module = const Value.absent(),
@@ -35886,6 +35957,7 @@ class $$CaseJudgementsTableTableManager
                 uuid: uuid,
                 scopeUid: scopeUid,
                 caseUuid: caseUuid,
+                recordUuid: recordUuid,
                 workItemUuid: workItemUuid,
                 techniqueId: techniqueId,
                 module: module,
