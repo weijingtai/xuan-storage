@@ -126,6 +126,19 @@ void main() {
     await repository.attachPanelRefToWorkItem(workItemPanelRef);
     final list = await repository.listPanelRefsForWorkItem('item-1');
     expect(list, contains(workItemPanelRef));
+
+    // Batch query tests
+    final batchPanels = await repository.getPanelRefsByUuids(['panel-1', 'non-existent']);
+    expect(batchPanels, hasLength(1));
+    expect(batchPanels.first, equals(panelRef));
+
+    final batchLinks = await repository.listPanelRefsForWorkItems(['item-1', 'non-existent']);
+    expect(batchLinks, hasLength(1));
+    expect(batchLinks.first, equals(workItemPanelRef));
+
+    // Empty list tests
+    expect(await repository.getPanelRefsByUuids([]), isEmpty);
+    expect(await repository.listPanelRefsForWorkItems([]), isEmpty);
   });
 
   test('Save and reload divination record by case uuid and uuid', () async {
@@ -242,6 +255,8 @@ void main() {
 
     expect(await repoB.getPanelRef('panel-iso-1'), isNull);
     expect(await repoB.listPanelRefsForWorkItem('item-iso-1'), isEmpty);
+    expect(await repoB.getPanelRefsByUuids(['panel-iso-1']), isEmpty);
+    expect(await repoB.listPanelRefsForWorkItems(['item-iso-1']), isEmpty);
   });
 
   test('scope B cannot write relations to scope A entities', () async {

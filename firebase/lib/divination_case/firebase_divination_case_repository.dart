@@ -128,4 +128,14 @@ class FirebaseDivinationCaseRepository
 
   @override
   Future<void> attachPanelRefToWorkItem(WorkItemPanelRefModel model) async {}
+
+  @override
+  Future<List<WorkItemPanelRefModel>> listPanelRefsForWorkItems(List<String> workItemUuids) async {
+    return [];
+  }
+
+  @override
+  Future<List<PanelRefModel>> getPanelRefsByUuids(List<String> uuids) async {
+    return [];
+  }
 }

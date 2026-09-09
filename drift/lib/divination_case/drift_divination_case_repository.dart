@@ -392,6 +392,52 @@ class DriftDivinationCaseRepository
         .insertOnConflictUpdate(_workItemPanelRefToRow(model));
   }
 
+  @override
+  Future<List<WorkItemPanelRefModel>> listPanelRefsForWorkItems(
+    List<String> workItemUuids,
+  ) async {
+    if (workItemUuids.isEmpty) return const [];
+    final results = <WorkItemPanelRefModel>[];
+    const chunkSize = 500;
+    for (var i = 0; i < workItemUuids.length; i += chunkSize) {
+      final chunk = workItemUuids.sublist(
+        i,
+        i + chunkSize > workItemUuids.length ? workItemUuids.length : i + chunkSize,
+      );
+      final query = db.select(db.workItemPanelRefs)
+        ..where(
+          (t) =>
+              t.workItemUuid.isIn(chunk) &
+              t.scopeUid.equals(_store.scopeUid),
+        );
+      final rows = await query.get();
+      results.addAll(rows.map(_workItemPanelRefFromRow));
+    }
+    return results;
+  }
+
+  @override
+  Future<List<PanelRefModel>> getPanelRefsByUuids(List<String> uuids) async {
+    if (uuids.isEmpty) return const [];
+    final results = <PanelRefModel>[];
+    const chunkSize = 500;
+    for (var i = 0; i < uuids.length; i += chunkSize) {
+      final chunk = uuids.sublist(
+        i,
+        i + chunkSize > uuids.length ? uuids.length : i + chunkSize,
+      );
+      final query = db.select(db.panelRefs)
+        ..where(
+          (t) =>
+              t.uuid.isIn(chunk) &
+              t.scopeUid.equals(_store.scopeUid),
+        );
+      final rows = await query.get();
+      results.addAll(rows.map(_panelRefFromRow));
+    }
+    return results;
+  }
+
   Future<void> _validateWorkItemWrite(DivinationWorkItemModel model) async {
     final existing = await (db.select(
       db.divinationWorkItems,

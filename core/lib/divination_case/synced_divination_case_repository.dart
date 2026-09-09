@@ -275,4 +275,22 @@ class SyncedDivinationCaseRepository
       throw e;
     }
   }
+
+  @override
+  Future<List<WorkItemPanelRefModel>> listPanelRefsForWorkItems(List<String> workItemUuids) async {
+    final l = local;
+    if (l is PanelRefRepository) {
+      return (l as PanelRefRepository).listPanelRefsForWorkItems(workItemUuids);
+    }
+    return [];
+  }
+
+  @override
+  Future<List<PanelRefModel>> getPanelRefsByUuids(List<String> uuids) async {
+    final l = local;
+    if (l is PanelRefRepository) {
+      return (l as PanelRefRepository).getPanelRefsByUuids(uuids);
+    }
+    return [];
+  }
 }

@@ -107,6 +107,18 @@ class _FakeCaseRepository
     if (failOnWrite) throw Exception('remote unavailable');
     workItemPanelRefs[model.uuid] = model;
   }
+
+  @override
+  Future<List<WorkItemPanelRefModel>> listPanelRefsForWorkItems(List<String> workItemUuids) async {
+    final set = workItemUuids.toSet();
+    return workItemPanelRefs.values.where((p) => set.contains(p.workItemUuid)).toList();
+  }
+
+  @override
+  Future<List<PanelRefModel>> getPanelRefsByUuids(List<String> uuids) async {
+    final set = uuids.toSet();
+    return panelRefs.values.where((p) => set.contains(p.uuid)).toList();
+  }
 }
 
 void main() {
