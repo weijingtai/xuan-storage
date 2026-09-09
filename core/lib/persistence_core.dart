@@ -77,5 +77,6 @@ export 'sync/same_account_im_reconciliation.dart';
 // ── Plaza @ 提及候选数据源 ──
 export 'model/mention_candidate_source.dart';
 
-// ── Life Event Center（ACT-01A：存储边界 DTO）──
+// ── Life Event Center（ACT-01A：存储边界 DTO；ACT-01：存储边界 ports）──
 export 'life_event/life_event_dtos.dart';
+export 'life_event/life_event_ports.dart';
