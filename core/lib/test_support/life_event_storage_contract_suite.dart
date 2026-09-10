@@ -35,12 +35,12 @@ typedef StorageSnapshot = ({
 ///
 /// 参数：
 /// - [name]: 实现名，只用于测试分组展示。
-/// - [makeStore]: 构造一个干净的存储实现（每个测试独立实例）。
+/// - [makeStore]: 构造一个干净的存储实现（每个测试独立实例）；允许异步。
 /// - [snapshot]: 读取当前存储快照（receipts + manifests），用于 before/after 对比。
 /// - [seed]: 可选，在测试前预置状态（如已存在的 receipt 用于幂等用例）。
 FutureOr<void> runLifeEventStorageContractSuite({
   required String name,
-  required LifeEventShardCommitPort Function() makeStore,
+  required FutureOr<LifeEventShardCommitPort> Function() makeStore,
   required Future<StorageSnapshot> Function(LifeEventShardCommitPort store) snapshot,
   Future<void> Function(LifeEventShardCommitPort store)? seed,
 }) {
@@ -90,7 +90,7 @@ FutureOr<void> runLifeEventStorageContractSuite({
         );
 
     test('receipt-first：已存在且 digest 相同 → idempotentReplay（零写入）', () async {
-      final store = makeStore();
+      final store = await makeStore();
       final first = await store.commitValidatedShard(baseRequest());
       expect(first.outcome, CommitValidatedShardOutcome.applied);
 
@@ -107,7 +107,7 @@ FutureOr<void> runLifeEventStorageContractSuite({
     });
 
     test('receipt-first：已存在但 digest 不同 → receiptDigestConflict（零写入）', () async {
-      final store = makeStore();
+      final store = await makeStore();
       await store.commitValidatedShard(baseRequest());
 
       final before = await snapshot(store);
@@ -121,7 +121,7 @@ FutureOr<void> runLifeEventStorageContractSuite({
     });
 
     test('receipt 不存在时 generation/CAS：expectedManifestRevision 旧 → revisionConflict', () async {
-      final store = makeStore();
+      final store = await makeStore();
       final result = await store.commitValidatedShard(
         baseRequest(expectedManifestRevision: 5), // manifest revision is 0
       );
@@ -132,7 +132,7 @@ FutureOr<void> runLifeEventStorageContractSuite({
 
     test('任一事务阶段失败 → 全部回滚（receipt 不残留、manifest 不变）', () async {
       if (seed == null) return; // failure injection is implementation-specific
-      final store = makeStore();
+      final store = await makeStore();
       await store.commitValidatedShard(baseRequest(shardId: 'ok-shard'));
       final before = await snapshot(store);
       // Inject a failure via a request the implementation must reject mid-transaction:
@@ -157,7 +157,7 @@ FutureOr<void> runLifeEventStorageContractSuite({
 
     test('complete 迁移必须 series-head CAS：expectedCandidateCoverageId 不符 → activeSwitchConflict',
         () async {
-      final store = makeStore();
+      final store = await makeStore();
       final result = await store.commitValidatedShard(
         baseRequest(
           coverageId: 'cov-1',
