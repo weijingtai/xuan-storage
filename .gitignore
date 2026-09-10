@@ -23,3 +23,6 @@ build/
 .a4-baseline
 .act-base
 .codegraph/
+
+# functions-py 已迁移为独立仓库 xuan/functions-py
+firebase/infrastructure/functions-py/
