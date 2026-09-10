@@ -7,6 +7,7 @@ library;
 import 'package:drift/drift.dart';
 
 import 'life_event_tables.dart';
+import 'life_event_user_rule_tables.dart';
 
 part 'life_event_database.g.dart';
 
@@ -22,6 +23,14 @@ part 'life_event_database.g.dart';
     LifeEventCoverageSeriesHeads,
     LifeEventCoverageManifests,
     LifeEventShardReceipts,
+    LifeEventUserDirections,
+    LifeEventUserAnnotations,
+    LifeEventAnnotationTargetRefs,
+    LifeEventAnnotationDirectionRefs,
+    LifeEventOccurrenceSelections,
+    LifeEventPatternRules,
+    LifeEventPatternTargetRefs,
+    LifeEventRuleTemplates,
   ],
 )
 class LifeEventDatabase extends _$LifeEventDatabase {

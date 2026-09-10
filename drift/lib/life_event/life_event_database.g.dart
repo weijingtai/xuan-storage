@@ -6342,6 +6342,4540 @@ class LifeEventShardReceiptsCompanion
   }
 }
 
+class $LifeEventUserDirectionsTable extends LifeEventUserDirections
+    with TableInfo<$LifeEventUserDirectionsTable, LifeEventUserDirectionRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LifeEventUserDirectionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _directionIdMeta = const VerificationMeta(
+    'directionId',
+  );
+  @override
+  late final GeneratedColumn<String> directionId = GeneratedColumn<String>(
+    'direction_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _ownerScopeIdMeta = const VerificationMeta(
+    'ownerScopeId',
+  );
+  @override
+  late final GeneratedColumn<String> ownerScopeId = GeneratedColumn<String>(
+    'owner_scope_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _labelMeta = const VerificationMeta('label');
+  @override
+  late final GeneratedColumn<String> label = GeneratedColumn<String>(
+    'label',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  @override
+  late final GeneratedColumn<String> color = GeneratedColumn<String>(
+    'color',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _archivedAtMsMeta = const VerificationMeta(
+    'archivedAtMs',
+  );
+  @override
+  late final GeneratedColumn<int> archivedAtMs = GeneratedColumn<int>(
+    'archived_at_ms',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    directionId,
+    ownerScopeId,
+    label,
+    color,
+    sortOrder,
+    archivedAtMs,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_le_user_directions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LifeEventUserDirectionRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('direction_id')) {
+      context.handle(
+        _directionIdMeta,
+        directionId.isAcceptableOrUnknown(
+          data['direction_id']!,
+          _directionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_directionIdMeta);
+    }
+    if (data.containsKey('owner_scope_id')) {
+      context.handle(
+        _ownerScopeIdMeta,
+        ownerScopeId.isAcceptableOrUnknown(
+          data['owner_scope_id']!,
+          _ownerScopeIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_ownerScopeIdMeta);
+    }
+    if (data.containsKey('label')) {
+      context.handle(
+        _labelMeta,
+        label.isAcceptableOrUnknown(data['label']!, _labelMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_labelMeta);
+    }
+    if (data.containsKey('color')) {
+      context.handle(
+        _colorMeta,
+        color.isAcceptableOrUnknown(data['color']!, _colorMeta),
+      );
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sortOrderMeta);
+    }
+    if (data.containsKey('archived_at_ms')) {
+      context.handle(
+        _archivedAtMsMeta,
+        archivedAtMs.isAcceptableOrUnknown(
+          data['archived_at_ms']!,
+          _archivedAtMsMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {directionId};
+  @override
+  LifeEventUserDirectionRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LifeEventUserDirectionRow(
+      directionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}direction_id'],
+      )!,
+      ownerScopeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_scope_id'],
+      )!,
+      label: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}label'],
+      )!,
+      color: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}color'],
+      ),
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
+      archivedAtMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}archived_at_ms'],
+      ),
+    );
+  }
+
+  @override
+  $LifeEventUserDirectionsTable createAlias(String alias) {
+    return $LifeEventUserDirectionsTable(attachedDatabase, alias);
+  }
+}
+
+class LifeEventUserDirectionRow extends DataClass
+    implements Insertable<LifeEventUserDirectionRow> {
+  final String directionId;
+  final String ownerScopeId;
+  final String label;
+  final String? color;
+  final int sortOrder;
+  final int? archivedAtMs;
+  const LifeEventUserDirectionRow({
+    required this.directionId,
+    required this.ownerScopeId,
+    required this.label,
+    this.color,
+    required this.sortOrder,
+    this.archivedAtMs,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['direction_id'] = Variable<String>(directionId);
+    map['owner_scope_id'] = Variable<String>(ownerScopeId);
+    map['label'] = Variable<String>(label);
+    if (!nullToAbsent || color != null) {
+      map['color'] = Variable<String>(color);
+    }
+    map['sort_order'] = Variable<int>(sortOrder);
+    if (!nullToAbsent || archivedAtMs != null) {
+      map['archived_at_ms'] = Variable<int>(archivedAtMs);
+    }
+    return map;
+  }
+
+  LifeEventUserDirectionsCompanion toCompanion(bool nullToAbsent) {
+    return LifeEventUserDirectionsCompanion(
+      directionId: Value(directionId),
+      ownerScopeId: Value(ownerScopeId),
+      label: Value(label),
+      color: color == null && nullToAbsent
+          ? const Value.absent()
+          : Value(color),
+      sortOrder: Value(sortOrder),
+      archivedAtMs: archivedAtMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(archivedAtMs),
+    );
+  }
+
+  factory LifeEventUserDirectionRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LifeEventUserDirectionRow(
+      directionId: serializer.fromJson<String>(json['directionId']),
+      ownerScopeId: serializer.fromJson<String>(json['ownerScopeId']),
+      label: serializer.fromJson<String>(json['label']),
+      color: serializer.fromJson<String?>(json['color']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      archivedAtMs: serializer.fromJson<int?>(json['archivedAtMs']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'directionId': serializer.toJson<String>(directionId),
+      'ownerScopeId': serializer.toJson<String>(ownerScopeId),
+      'label': serializer.toJson<String>(label),
+      'color': serializer.toJson<String?>(color),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+      'archivedAtMs': serializer.toJson<int?>(archivedAtMs),
+    };
+  }
+
+  LifeEventUserDirectionRow copyWith({
+    String? directionId,
+    String? ownerScopeId,
+    String? label,
+    Value<String?> color = const Value.absent(),
+    int? sortOrder,
+    Value<int?> archivedAtMs = const Value.absent(),
+  }) => LifeEventUserDirectionRow(
+    directionId: directionId ?? this.directionId,
+    ownerScopeId: ownerScopeId ?? this.ownerScopeId,
+    label: label ?? this.label,
+    color: color.present ? color.value : this.color,
+    sortOrder: sortOrder ?? this.sortOrder,
+    archivedAtMs: archivedAtMs.present ? archivedAtMs.value : this.archivedAtMs,
+  );
+  LifeEventUserDirectionRow copyWithCompanion(
+    LifeEventUserDirectionsCompanion data,
+  ) {
+    return LifeEventUserDirectionRow(
+      directionId: data.directionId.present
+          ? data.directionId.value
+          : this.directionId,
+      ownerScopeId: data.ownerScopeId.present
+          ? data.ownerScopeId.value
+          : this.ownerScopeId,
+      label: data.label.present ? data.label.value : this.label,
+      color: data.color.present ? data.color.value : this.color,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+      archivedAtMs: data.archivedAtMs.present
+          ? data.archivedAtMs.value
+          : this.archivedAtMs,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LifeEventUserDirectionRow(')
+          ..write('directionId: $directionId, ')
+          ..write('ownerScopeId: $ownerScopeId, ')
+          ..write('label: $label, ')
+          ..write('color: $color, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('archivedAtMs: $archivedAtMs')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    directionId,
+    ownerScopeId,
+    label,
+    color,
+    sortOrder,
+    archivedAtMs,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LifeEventUserDirectionRow &&
+          other.directionId == this.directionId &&
+          other.ownerScopeId == this.ownerScopeId &&
+          other.label == this.label &&
+          other.color == this.color &&
+          other.sortOrder == this.sortOrder &&
+          other.archivedAtMs == this.archivedAtMs);
+}
+
+class LifeEventUserDirectionsCompanion
+    extends UpdateCompanion<LifeEventUserDirectionRow> {
+  final Value<String> directionId;
+  final Value<String> ownerScopeId;
+  final Value<String> label;
+  final Value<String?> color;
+  final Value<int> sortOrder;
+  final Value<int?> archivedAtMs;
+  final Value<int> rowid;
+  const LifeEventUserDirectionsCompanion({
+    this.directionId = const Value.absent(),
+    this.ownerScopeId = const Value.absent(),
+    this.label = const Value.absent(),
+    this.color = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.archivedAtMs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LifeEventUserDirectionsCompanion.insert({
+    required String directionId,
+    required String ownerScopeId,
+    required String label,
+    this.color = const Value.absent(),
+    required int sortOrder,
+    this.archivedAtMs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : directionId = Value(directionId),
+       ownerScopeId = Value(ownerScopeId),
+       label = Value(label),
+       sortOrder = Value(sortOrder);
+  static Insertable<LifeEventUserDirectionRow> custom({
+    Expression<String>? directionId,
+    Expression<String>? ownerScopeId,
+    Expression<String>? label,
+    Expression<String>? color,
+    Expression<int>? sortOrder,
+    Expression<int>? archivedAtMs,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (directionId != null) 'direction_id': directionId,
+      if (ownerScopeId != null) 'owner_scope_id': ownerScopeId,
+      if (label != null) 'label': label,
+      if (color != null) 'color': color,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (archivedAtMs != null) 'archived_at_ms': archivedAtMs,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LifeEventUserDirectionsCompanion copyWith({
+    Value<String>? directionId,
+    Value<String>? ownerScopeId,
+    Value<String>? label,
+    Value<String?>? color,
+    Value<int>? sortOrder,
+    Value<int?>? archivedAtMs,
+    Value<int>? rowid,
+  }) {
+    return LifeEventUserDirectionsCompanion(
+      directionId: directionId ?? this.directionId,
+      ownerScopeId: ownerScopeId ?? this.ownerScopeId,
+      label: label ?? this.label,
+      color: color ?? this.color,
+      sortOrder: sortOrder ?? this.sortOrder,
+      archivedAtMs: archivedAtMs ?? this.archivedAtMs,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (directionId.present) {
+      map['direction_id'] = Variable<String>(directionId.value);
+    }
+    if (ownerScopeId.present) {
+      map['owner_scope_id'] = Variable<String>(ownerScopeId.value);
+    }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
+    }
+    if (color.present) {
+      map['color'] = Variable<String>(color.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (archivedAtMs.present) {
+      map['archived_at_ms'] = Variable<int>(archivedAtMs.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LifeEventUserDirectionsCompanion(')
+          ..write('directionId: $directionId, ')
+          ..write('ownerScopeId: $ownerScopeId, ')
+          ..write('label: $label, ')
+          ..write('color: $color, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('archivedAtMs: $archivedAtMs, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LifeEventUserAnnotationsTable extends LifeEventUserAnnotations
+    with TableInfo<$LifeEventUserAnnotationsTable, LifeEventUserAnnotationRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LifeEventUserAnnotationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _annotationIdMeta = const VerificationMeta(
+    'annotationId',
+  );
+  @override
+  late final GeneratedColumn<String> annotationId = GeneratedColumn<String>(
+    'annotation_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _ownerScopeIdMeta = const VerificationMeta(
+    'ownerScopeId',
+  );
+  @override
+  late final GeneratedColumn<String> ownerScopeId = GeneratedColumn<String>(
+    'owner_scope_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _interpretationMeta = const VerificationMeta(
+    'interpretation',
+  );
+  @override
+  late final GeneratedColumn<String> interpretation = GeneratedColumn<String>(
+    'interpretation',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _importanceOwnerScopeIdMeta =
+      const VerificationMeta('importanceOwnerScopeId');
+  @override
+  late final GeneratedColumn<String> importanceOwnerScopeId =
+      GeneratedColumn<String>(
+        'importance_owner_scope_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _importanceCatalogIdMeta =
+      const VerificationMeta('importanceCatalogId');
+  @override
+  late final GeneratedColumn<String> importanceCatalogId =
+      GeneratedColumn<String>(
+        'importance_catalog_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _importanceCatalogRevisionMeta =
+      const VerificationMeta('importanceCatalogRevision');
+  @override
+  late final GeneratedColumn<int> importanceCatalogRevision =
+      GeneratedColumn<int>(
+        'importance_catalog_revision',
+        aliasedName,
+        true,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _importanceLevelIdMeta = const VerificationMeta(
+    'importanceLevelId',
+  );
+  @override
+  late final GeneratedColumn<String> importanceLevelId =
+      GeneratedColumn<String>(
+        'importance_level_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _tagsJsonMeta = const VerificationMeta(
+    'tagsJson',
+  );
+  @override
+  late final GeneratedColumn<String> tagsJson = GeneratedColumn<String>(
+    'tags_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
+  static const VerificationMeta _revisionMeta = const VerificationMeta(
+    'revision',
+  );
+  @override
+  late final GeneratedColumn<int> revision = GeneratedColumn<int>(
+    'revision',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMsMeta = const VerificationMeta(
+    'createdAtMs',
+  );
+  @override
+  late final GeneratedColumn<int> createdAtMs = GeneratedColumn<int>(
+    'created_at_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMsMeta = const VerificationMeta(
+    'updatedAtMs',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
+    'updated_at_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    annotationId,
+    ownerScopeId,
+    title,
+    interpretation,
+    importanceOwnerScopeId,
+    importanceCatalogId,
+    importanceCatalogRevision,
+    importanceLevelId,
+    tagsJson,
+    revision,
+    createdAtMs,
+    updatedAtMs,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_le_user_annotations';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LifeEventUserAnnotationRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('annotation_id')) {
+      context.handle(
+        _annotationIdMeta,
+        annotationId.isAcceptableOrUnknown(
+          data['annotation_id']!,
+          _annotationIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_annotationIdMeta);
+    }
+    if (data.containsKey('owner_scope_id')) {
+      context.handle(
+        _ownerScopeIdMeta,
+        ownerScopeId.isAcceptableOrUnknown(
+          data['owner_scope_id']!,
+          _ownerScopeIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_ownerScopeIdMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    }
+    if (data.containsKey('interpretation')) {
+      context.handle(
+        _interpretationMeta,
+        interpretation.isAcceptableOrUnknown(
+          data['interpretation']!,
+          _interpretationMeta,
+        ),
+      );
+    }
+    if (data.containsKey('importance_owner_scope_id')) {
+      context.handle(
+        _importanceOwnerScopeIdMeta,
+        importanceOwnerScopeId.isAcceptableOrUnknown(
+          data['importance_owner_scope_id']!,
+          _importanceOwnerScopeIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('importance_catalog_id')) {
+      context.handle(
+        _importanceCatalogIdMeta,
+        importanceCatalogId.isAcceptableOrUnknown(
+          data['importance_catalog_id']!,
+          _importanceCatalogIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('importance_catalog_revision')) {
+      context.handle(
+        _importanceCatalogRevisionMeta,
+        importanceCatalogRevision.isAcceptableOrUnknown(
+          data['importance_catalog_revision']!,
+          _importanceCatalogRevisionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('importance_level_id')) {
+      context.handle(
+        _importanceLevelIdMeta,
+        importanceLevelId.isAcceptableOrUnknown(
+          data['importance_level_id']!,
+          _importanceLevelIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('tags_json')) {
+      context.handle(
+        _tagsJsonMeta,
+        tagsJson.isAcceptableOrUnknown(data['tags_json']!, _tagsJsonMeta),
+      );
+    }
+    if (data.containsKey('revision')) {
+      context.handle(
+        _revisionMeta,
+        revision.isAcceptableOrUnknown(data['revision']!, _revisionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_revisionMeta);
+    }
+    if (data.containsKey('created_at_ms')) {
+      context.handle(
+        _createdAtMsMeta,
+        createdAtMs.isAcceptableOrUnknown(
+          data['created_at_ms']!,
+          _createdAtMsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMsMeta);
+    }
+    if (data.containsKey('updated_at_ms')) {
+      context.handle(
+        _updatedAtMsMeta,
+        updatedAtMs.isAcceptableOrUnknown(
+          data['updated_at_ms']!,
+          _updatedAtMsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMsMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {annotationId};
+  @override
+  LifeEventUserAnnotationRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LifeEventUserAnnotationRow(
+      annotationId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}annotation_id'],
+      )!,
+      ownerScopeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_scope_id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      ),
+      interpretation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}interpretation'],
+      ),
+      importanceOwnerScopeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}importance_owner_scope_id'],
+      ),
+      importanceCatalogId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}importance_catalog_id'],
+      ),
+      importanceCatalogRevision: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}importance_catalog_revision'],
+      ),
+      importanceLevelId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}importance_level_id'],
+      ),
+      tagsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tags_json'],
+      )!,
+      revision: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}revision'],
+      )!,
+      createdAtMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at_ms'],
+      )!,
+      updatedAtMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at_ms'],
+      )!,
+    );
+  }
+
+  @override
+  $LifeEventUserAnnotationsTable createAlias(String alias) {
+    return $LifeEventUserAnnotationsTable(attachedDatabase, alias);
+  }
+}
+
+class LifeEventUserAnnotationRow extends DataClass
+    implements Insertable<LifeEventUserAnnotationRow> {
+  final String annotationId;
+  final String ownerScopeId;
+  final String? title;
+  final String? interpretation;
+  final String? importanceOwnerScopeId;
+  final String? importanceCatalogId;
+  final int? importanceCatalogRevision;
+  final String? importanceLevelId;
+  final String tagsJson;
+  final int revision;
+  final int createdAtMs;
+  final int updatedAtMs;
+  const LifeEventUserAnnotationRow({
+    required this.annotationId,
+    required this.ownerScopeId,
+    this.title,
+    this.interpretation,
+    this.importanceOwnerScopeId,
+    this.importanceCatalogId,
+    this.importanceCatalogRevision,
+    this.importanceLevelId,
+    required this.tagsJson,
+    required this.revision,
+    required this.createdAtMs,
+    required this.updatedAtMs,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['annotation_id'] = Variable<String>(annotationId);
+    map['owner_scope_id'] = Variable<String>(ownerScopeId);
+    if (!nullToAbsent || title != null) {
+      map['title'] = Variable<String>(title);
+    }
+    if (!nullToAbsent || interpretation != null) {
+      map['interpretation'] = Variable<String>(interpretation);
+    }
+    if (!nullToAbsent || importanceOwnerScopeId != null) {
+      map['importance_owner_scope_id'] = Variable<String>(
+        importanceOwnerScopeId,
+      );
+    }
+    if (!nullToAbsent || importanceCatalogId != null) {
+      map['importance_catalog_id'] = Variable<String>(importanceCatalogId);
+    }
+    if (!nullToAbsent || importanceCatalogRevision != null) {
+      map['importance_catalog_revision'] = Variable<int>(
+        importanceCatalogRevision,
+      );
+    }
+    if (!nullToAbsent || importanceLevelId != null) {
+      map['importance_level_id'] = Variable<String>(importanceLevelId);
+    }
+    map['tags_json'] = Variable<String>(tagsJson);
+    map['revision'] = Variable<int>(revision);
+    map['created_at_ms'] = Variable<int>(createdAtMs);
+    map['updated_at_ms'] = Variable<int>(updatedAtMs);
+    return map;
+  }
+
+  LifeEventUserAnnotationsCompanion toCompanion(bool nullToAbsent) {
+    return LifeEventUserAnnotationsCompanion(
+      annotationId: Value(annotationId),
+      ownerScopeId: Value(ownerScopeId),
+      title: title == null && nullToAbsent
+          ? const Value.absent()
+          : Value(title),
+      interpretation: interpretation == null && nullToAbsent
+          ? const Value.absent()
+          : Value(interpretation),
+      importanceOwnerScopeId: importanceOwnerScopeId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(importanceOwnerScopeId),
+      importanceCatalogId: importanceCatalogId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(importanceCatalogId),
+      importanceCatalogRevision:
+          importanceCatalogRevision == null && nullToAbsent
+          ? const Value.absent()
+          : Value(importanceCatalogRevision),
+      importanceLevelId: importanceLevelId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(importanceLevelId),
+      tagsJson: Value(tagsJson),
+      revision: Value(revision),
+      createdAtMs: Value(createdAtMs),
+      updatedAtMs: Value(updatedAtMs),
+    );
+  }
+
+  factory LifeEventUserAnnotationRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LifeEventUserAnnotationRow(
+      annotationId: serializer.fromJson<String>(json['annotationId']),
+      ownerScopeId: serializer.fromJson<String>(json['ownerScopeId']),
+      title: serializer.fromJson<String?>(json['title']),
+      interpretation: serializer.fromJson<String?>(json['interpretation']),
+      importanceOwnerScopeId: serializer.fromJson<String?>(
+        json['importanceOwnerScopeId'],
+      ),
+      importanceCatalogId: serializer.fromJson<String?>(
+        json['importanceCatalogId'],
+      ),
+      importanceCatalogRevision: serializer.fromJson<int?>(
+        json['importanceCatalogRevision'],
+      ),
+      importanceLevelId: serializer.fromJson<String?>(
+        json['importanceLevelId'],
+      ),
+      tagsJson: serializer.fromJson<String>(json['tagsJson']),
+      revision: serializer.fromJson<int>(json['revision']),
+      createdAtMs: serializer.fromJson<int>(json['createdAtMs']),
+      updatedAtMs: serializer.fromJson<int>(json['updatedAtMs']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'annotationId': serializer.toJson<String>(annotationId),
+      'ownerScopeId': serializer.toJson<String>(ownerScopeId),
+      'title': serializer.toJson<String?>(title),
+      'interpretation': serializer.toJson<String?>(interpretation),
+      'importanceOwnerScopeId': serializer.toJson<String?>(
+        importanceOwnerScopeId,
+      ),
+      'importanceCatalogId': serializer.toJson<String?>(importanceCatalogId),
+      'importanceCatalogRevision': serializer.toJson<int?>(
+        importanceCatalogRevision,
+      ),
+      'importanceLevelId': serializer.toJson<String?>(importanceLevelId),
+      'tagsJson': serializer.toJson<String>(tagsJson),
+      'revision': serializer.toJson<int>(revision),
+      'createdAtMs': serializer.toJson<int>(createdAtMs),
+      'updatedAtMs': serializer.toJson<int>(updatedAtMs),
+    };
+  }
+
+  LifeEventUserAnnotationRow copyWith({
+    String? annotationId,
+    String? ownerScopeId,
+    Value<String?> title = const Value.absent(),
+    Value<String?> interpretation = const Value.absent(),
+    Value<String?> importanceOwnerScopeId = const Value.absent(),
+    Value<String?> importanceCatalogId = const Value.absent(),
+    Value<int?> importanceCatalogRevision = const Value.absent(),
+    Value<String?> importanceLevelId = const Value.absent(),
+    String? tagsJson,
+    int? revision,
+    int? createdAtMs,
+    int? updatedAtMs,
+  }) => LifeEventUserAnnotationRow(
+    annotationId: annotationId ?? this.annotationId,
+    ownerScopeId: ownerScopeId ?? this.ownerScopeId,
+    title: title.present ? title.value : this.title,
+    interpretation: interpretation.present
+        ? interpretation.value
+        : this.interpretation,
+    importanceOwnerScopeId: importanceOwnerScopeId.present
+        ? importanceOwnerScopeId.value
+        : this.importanceOwnerScopeId,
+    importanceCatalogId: importanceCatalogId.present
+        ? importanceCatalogId.value
+        : this.importanceCatalogId,
+    importanceCatalogRevision: importanceCatalogRevision.present
+        ? importanceCatalogRevision.value
+        : this.importanceCatalogRevision,
+    importanceLevelId: importanceLevelId.present
+        ? importanceLevelId.value
+        : this.importanceLevelId,
+    tagsJson: tagsJson ?? this.tagsJson,
+    revision: revision ?? this.revision,
+    createdAtMs: createdAtMs ?? this.createdAtMs,
+    updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+  );
+  LifeEventUserAnnotationRow copyWithCompanion(
+    LifeEventUserAnnotationsCompanion data,
+  ) {
+    return LifeEventUserAnnotationRow(
+      annotationId: data.annotationId.present
+          ? data.annotationId.value
+          : this.annotationId,
+      ownerScopeId: data.ownerScopeId.present
+          ? data.ownerScopeId.value
+          : this.ownerScopeId,
+      title: data.title.present ? data.title.value : this.title,
+      interpretation: data.interpretation.present
+          ? data.interpretation.value
+          : this.interpretation,
+      importanceOwnerScopeId: data.importanceOwnerScopeId.present
+          ? data.importanceOwnerScopeId.value
+          : this.importanceOwnerScopeId,
+      importanceCatalogId: data.importanceCatalogId.present
+          ? data.importanceCatalogId.value
+          : this.importanceCatalogId,
+      importanceCatalogRevision: data.importanceCatalogRevision.present
+          ? data.importanceCatalogRevision.value
+          : this.importanceCatalogRevision,
+      importanceLevelId: data.importanceLevelId.present
+          ? data.importanceLevelId.value
+          : this.importanceLevelId,
+      tagsJson: data.tagsJson.present ? data.tagsJson.value : this.tagsJson,
+      revision: data.revision.present ? data.revision.value : this.revision,
+      createdAtMs: data.createdAtMs.present
+          ? data.createdAtMs.value
+          : this.createdAtMs,
+      updatedAtMs: data.updatedAtMs.present
+          ? data.updatedAtMs.value
+          : this.updatedAtMs,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LifeEventUserAnnotationRow(')
+          ..write('annotationId: $annotationId, ')
+          ..write('ownerScopeId: $ownerScopeId, ')
+          ..write('title: $title, ')
+          ..write('interpretation: $interpretation, ')
+          ..write('importanceOwnerScopeId: $importanceOwnerScopeId, ')
+          ..write('importanceCatalogId: $importanceCatalogId, ')
+          ..write('importanceCatalogRevision: $importanceCatalogRevision, ')
+          ..write('importanceLevelId: $importanceLevelId, ')
+          ..write('tagsJson: $tagsJson, ')
+          ..write('revision: $revision, ')
+          ..write('createdAtMs: $createdAtMs, ')
+          ..write('updatedAtMs: $updatedAtMs')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    annotationId,
+    ownerScopeId,
+    title,
+    interpretation,
+    importanceOwnerScopeId,
+    importanceCatalogId,
+    importanceCatalogRevision,
+    importanceLevelId,
+    tagsJson,
+    revision,
+    createdAtMs,
+    updatedAtMs,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LifeEventUserAnnotationRow &&
+          other.annotationId == this.annotationId &&
+          other.ownerScopeId == this.ownerScopeId &&
+          other.title == this.title &&
+          other.interpretation == this.interpretation &&
+          other.importanceOwnerScopeId == this.importanceOwnerScopeId &&
+          other.importanceCatalogId == this.importanceCatalogId &&
+          other.importanceCatalogRevision == this.importanceCatalogRevision &&
+          other.importanceLevelId == this.importanceLevelId &&
+          other.tagsJson == this.tagsJson &&
+          other.revision == this.revision &&
+          other.createdAtMs == this.createdAtMs &&
+          other.updatedAtMs == this.updatedAtMs);
+}
+
+class LifeEventUserAnnotationsCompanion
+    extends UpdateCompanion<LifeEventUserAnnotationRow> {
+  final Value<String> annotationId;
+  final Value<String> ownerScopeId;
+  final Value<String?> title;
+  final Value<String?> interpretation;
+  final Value<String?> importanceOwnerScopeId;
+  final Value<String?> importanceCatalogId;
+  final Value<int?> importanceCatalogRevision;
+  final Value<String?> importanceLevelId;
+  final Value<String> tagsJson;
+  final Value<int> revision;
+  final Value<int> createdAtMs;
+  final Value<int> updatedAtMs;
+  final Value<int> rowid;
+  const LifeEventUserAnnotationsCompanion({
+    this.annotationId = const Value.absent(),
+    this.ownerScopeId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.interpretation = const Value.absent(),
+    this.importanceOwnerScopeId = const Value.absent(),
+    this.importanceCatalogId = const Value.absent(),
+    this.importanceCatalogRevision = const Value.absent(),
+    this.importanceLevelId = const Value.absent(),
+    this.tagsJson = const Value.absent(),
+    this.revision = const Value.absent(),
+    this.createdAtMs = const Value.absent(),
+    this.updatedAtMs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LifeEventUserAnnotationsCompanion.insert({
+    required String annotationId,
+    required String ownerScopeId,
+    this.title = const Value.absent(),
+    this.interpretation = const Value.absent(),
+    this.importanceOwnerScopeId = const Value.absent(),
+    this.importanceCatalogId = const Value.absent(),
+    this.importanceCatalogRevision = const Value.absent(),
+    this.importanceLevelId = const Value.absent(),
+    this.tagsJson = const Value.absent(),
+    required int revision,
+    required int createdAtMs,
+    required int updatedAtMs,
+    this.rowid = const Value.absent(),
+  }) : annotationId = Value(annotationId),
+       ownerScopeId = Value(ownerScopeId),
+       revision = Value(revision),
+       createdAtMs = Value(createdAtMs),
+       updatedAtMs = Value(updatedAtMs);
+  static Insertable<LifeEventUserAnnotationRow> custom({
+    Expression<String>? annotationId,
+    Expression<String>? ownerScopeId,
+    Expression<String>? title,
+    Expression<String>? interpretation,
+    Expression<String>? importanceOwnerScopeId,
+    Expression<String>? importanceCatalogId,
+    Expression<int>? importanceCatalogRevision,
+    Expression<String>? importanceLevelId,
+    Expression<String>? tagsJson,
+    Expression<int>? revision,
+    Expression<int>? createdAtMs,
+    Expression<int>? updatedAtMs,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (annotationId != null) 'annotation_id': annotationId,
+      if (ownerScopeId != null) 'owner_scope_id': ownerScopeId,
+      if (title != null) 'title': title,
+      if (interpretation != null) 'interpretation': interpretation,
+      if (importanceOwnerScopeId != null)
+        'importance_owner_scope_id': importanceOwnerScopeId,
+      if (importanceCatalogId != null)
+        'importance_catalog_id': importanceCatalogId,
+      if (importanceCatalogRevision != null)
+        'importance_catalog_revision': importanceCatalogRevision,
+      if (importanceLevelId != null) 'importance_level_id': importanceLevelId,
+      if (tagsJson != null) 'tags_json': tagsJson,
+      if (revision != null) 'revision': revision,
+      if (createdAtMs != null) 'created_at_ms': createdAtMs,
+      if (updatedAtMs != null) 'updated_at_ms': updatedAtMs,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LifeEventUserAnnotationsCompanion copyWith({
+    Value<String>? annotationId,
+    Value<String>? ownerScopeId,
+    Value<String?>? title,
+    Value<String?>? interpretation,
+    Value<String?>? importanceOwnerScopeId,
+    Value<String?>? importanceCatalogId,
+    Value<int?>? importanceCatalogRevision,
+    Value<String?>? importanceLevelId,
+    Value<String>? tagsJson,
+    Value<int>? revision,
+    Value<int>? createdAtMs,
+    Value<int>? updatedAtMs,
+    Value<int>? rowid,
+  }) {
+    return LifeEventUserAnnotationsCompanion(
+      annotationId: annotationId ?? this.annotationId,
+      ownerScopeId: ownerScopeId ?? this.ownerScopeId,
+      title: title ?? this.title,
+      interpretation: interpretation ?? this.interpretation,
+      importanceOwnerScopeId:
+          importanceOwnerScopeId ?? this.importanceOwnerScopeId,
+      importanceCatalogId: importanceCatalogId ?? this.importanceCatalogId,
+      importanceCatalogRevision:
+          importanceCatalogRevision ?? this.importanceCatalogRevision,
+      importanceLevelId: importanceLevelId ?? this.importanceLevelId,
+      tagsJson: tagsJson ?? this.tagsJson,
+      revision: revision ?? this.revision,
+      createdAtMs: createdAtMs ?? this.createdAtMs,
+      updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (annotationId.present) {
+      map['annotation_id'] = Variable<String>(annotationId.value);
+    }
+    if (ownerScopeId.present) {
+      map['owner_scope_id'] = Variable<String>(ownerScopeId.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (interpretation.present) {
+      map['interpretation'] = Variable<String>(interpretation.value);
+    }
+    if (importanceOwnerScopeId.present) {
+      map['importance_owner_scope_id'] = Variable<String>(
+        importanceOwnerScopeId.value,
+      );
+    }
+    if (importanceCatalogId.present) {
+      map['importance_catalog_id'] = Variable<String>(
+        importanceCatalogId.value,
+      );
+    }
+    if (importanceCatalogRevision.present) {
+      map['importance_catalog_revision'] = Variable<int>(
+        importanceCatalogRevision.value,
+      );
+    }
+    if (importanceLevelId.present) {
+      map['importance_level_id'] = Variable<String>(importanceLevelId.value);
+    }
+    if (tagsJson.present) {
+      map['tags_json'] = Variable<String>(tagsJson.value);
+    }
+    if (revision.present) {
+      map['revision'] = Variable<int>(revision.value);
+    }
+    if (createdAtMs.present) {
+      map['created_at_ms'] = Variable<int>(createdAtMs.value);
+    }
+    if (updatedAtMs.present) {
+      map['updated_at_ms'] = Variable<int>(updatedAtMs.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LifeEventUserAnnotationsCompanion(')
+          ..write('annotationId: $annotationId, ')
+          ..write('ownerScopeId: $ownerScopeId, ')
+          ..write('title: $title, ')
+          ..write('interpretation: $interpretation, ')
+          ..write('importanceOwnerScopeId: $importanceOwnerScopeId, ')
+          ..write('importanceCatalogId: $importanceCatalogId, ')
+          ..write('importanceCatalogRevision: $importanceCatalogRevision, ')
+          ..write('importanceLevelId: $importanceLevelId, ')
+          ..write('tagsJson: $tagsJson, ')
+          ..write('revision: $revision, ')
+          ..write('createdAtMs: $createdAtMs, ')
+          ..write('updatedAtMs: $updatedAtMs, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LifeEventAnnotationTargetRefsTable extends LifeEventAnnotationTargetRefs
+    with
+        TableInfo<
+          $LifeEventAnnotationTargetRefsTable,
+          LifeEventAnnotationTargetRefRow
+        > {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LifeEventAnnotationTargetRefsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _annotationIdMeta = const VerificationMeta(
+    'annotationId',
+  );
+  @override
+  late final GeneratedColumn<String> annotationId = GeneratedColumn<String>(
+    'annotation_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _providerIdMeta = const VerificationMeta(
+    'providerId',
+  );
+  @override
+  late final GeneratedColumn<String> providerId = GeneratedColumn<String>(
+    'provider_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceEventIdMeta = const VerificationMeta(
+    'sourceEventId',
+  );
+  @override
+  late final GeneratedColumn<String> sourceEventId = GeneratedColumn<String>(
+    'source_event_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _eventRevisionMeta = const VerificationMeta(
+    'eventRevision',
+  );
+  @override
+  late final GeneratedColumn<String> eventRevision = GeneratedColumn<String>(
+    'event_revision',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    annotationId,
+    providerId,
+    sourceEventId,
+    eventRevision,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_le_annotation_target_refs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LifeEventAnnotationTargetRefRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('annotation_id')) {
+      context.handle(
+        _annotationIdMeta,
+        annotationId.isAcceptableOrUnknown(
+          data['annotation_id']!,
+          _annotationIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_annotationIdMeta);
+    }
+    if (data.containsKey('provider_id')) {
+      context.handle(
+        _providerIdMeta,
+        providerId.isAcceptableOrUnknown(data['provider_id']!, _providerIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_providerIdMeta);
+    }
+    if (data.containsKey('source_event_id')) {
+      context.handle(
+        _sourceEventIdMeta,
+        sourceEventId.isAcceptableOrUnknown(
+          data['source_event_id']!,
+          _sourceEventIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceEventIdMeta);
+    }
+    if (data.containsKey('event_revision')) {
+      context.handle(
+        _eventRevisionMeta,
+        eventRevision.isAcceptableOrUnknown(
+          data['event_revision']!,
+          _eventRevisionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_eventRevisionMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {
+    annotationId,
+    providerId,
+    sourceEventId,
+  };
+  @override
+  LifeEventAnnotationTargetRefRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LifeEventAnnotationTargetRefRow(
+      annotationId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}annotation_id'],
+      )!,
+      providerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}provider_id'],
+      )!,
+      sourceEventId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_event_id'],
+      )!,
+      eventRevision: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}event_revision'],
+      )!,
+    );
+  }
+
+  @override
+  $LifeEventAnnotationTargetRefsTable createAlias(String alias) {
+    return $LifeEventAnnotationTargetRefsTable(attachedDatabase, alias);
+  }
+}
+
+class LifeEventAnnotationTargetRefRow extends DataClass
+    implements Insertable<LifeEventAnnotationTargetRefRow> {
+  final String annotationId;
+  final String providerId;
+  final String sourceEventId;
+  final String eventRevision;
+  const LifeEventAnnotationTargetRefRow({
+    required this.annotationId,
+    required this.providerId,
+    required this.sourceEventId,
+    required this.eventRevision,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['annotation_id'] = Variable<String>(annotationId);
+    map['provider_id'] = Variable<String>(providerId);
+    map['source_event_id'] = Variable<String>(sourceEventId);
+    map['event_revision'] = Variable<String>(eventRevision);
+    return map;
+  }
+
+  LifeEventAnnotationTargetRefsCompanion toCompanion(bool nullToAbsent) {
+    return LifeEventAnnotationTargetRefsCompanion(
+      annotationId: Value(annotationId),
+      providerId: Value(providerId),
+      sourceEventId: Value(sourceEventId),
+      eventRevision: Value(eventRevision),
+    );
+  }
+
+  factory LifeEventAnnotationTargetRefRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LifeEventAnnotationTargetRefRow(
+      annotationId: serializer.fromJson<String>(json['annotationId']),
+      providerId: serializer.fromJson<String>(json['providerId']),
+      sourceEventId: serializer.fromJson<String>(json['sourceEventId']),
+      eventRevision: serializer.fromJson<String>(json['eventRevision']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'annotationId': serializer.toJson<String>(annotationId),
+      'providerId': serializer.toJson<String>(providerId),
+      'sourceEventId': serializer.toJson<String>(sourceEventId),
+      'eventRevision': serializer.toJson<String>(eventRevision),
+    };
+  }
+
+  LifeEventAnnotationTargetRefRow copyWith({
+    String? annotationId,
+    String? providerId,
+    String? sourceEventId,
+    String? eventRevision,
+  }) => LifeEventAnnotationTargetRefRow(
+    annotationId: annotationId ?? this.annotationId,
+    providerId: providerId ?? this.providerId,
+    sourceEventId: sourceEventId ?? this.sourceEventId,
+    eventRevision: eventRevision ?? this.eventRevision,
+  );
+  LifeEventAnnotationTargetRefRow copyWithCompanion(
+    LifeEventAnnotationTargetRefsCompanion data,
+  ) {
+    return LifeEventAnnotationTargetRefRow(
+      annotationId: data.annotationId.present
+          ? data.annotationId.value
+          : this.annotationId,
+      providerId: data.providerId.present
+          ? data.providerId.value
+          : this.providerId,
+      sourceEventId: data.sourceEventId.present
+          ? data.sourceEventId.value
+          : this.sourceEventId,
+      eventRevision: data.eventRevision.present
+          ? data.eventRevision.value
+          : this.eventRevision,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LifeEventAnnotationTargetRefRow(')
+          ..write('annotationId: $annotationId, ')
+          ..write('providerId: $providerId, ')
+          ..write('sourceEventId: $sourceEventId, ')
+          ..write('eventRevision: $eventRevision')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(annotationId, providerId, sourceEventId, eventRevision);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LifeEventAnnotationTargetRefRow &&
+          other.annotationId == this.annotationId &&
+          other.providerId == this.providerId &&
+          other.sourceEventId == this.sourceEventId &&
+          other.eventRevision == this.eventRevision);
+}
+
+class LifeEventAnnotationTargetRefsCompanion
+    extends UpdateCompanion<LifeEventAnnotationTargetRefRow> {
+  final Value<String> annotationId;
+  final Value<String> providerId;
+  final Value<String> sourceEventId;
+  final Value<String> eventRevision;
+  final Value<int> rowid;
+  const LifeEventAnnotationTargetRefsCompanion({
+    this.annotationId = const Value.absent(),
+    this.providerId = const Value.absent(),
+    this.sourceEventId = const Value.absent(),
+    this.eventRevision = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LifeEventAnnotationTargetRefsCompanion.insert({
+    required String annotationId,
+    required String providerId,
+    required String sourceEventId,
+    required String eventRevision,
+    this.rowid = const Value.absent(),
+  }) : annotationId = Value(annotationId),
+       providerId = Value(providerId),
+       sourceEventId = Value(sourceEventId),
+       eventRevision = Value(eventRevision);
+  static Insertable<LifeEventAnnotationTargetRefRow> custom({
+    Expression<String>? annotationId,
+    Expression<String>? providerId,
+    Expression<String>? sourceEventId,
+    Expression<String>? eventRevision,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (annotationId != null) 'annotation_id': annotationId,
+      if (providerId != null) 'provider_id': providerId,
+      if (sourceEventId != null) 'source_event_id': sourceEventId,
+      if (eventRevision != null) 'event_revision': eventRevision,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LifeEventAnnotationTargetRefsCompanion copyWith({
+    Value<String>? annotationId,
+    Value<String>? providerId,
+    Value<String>? sourceEventId,
+    Value<String>? eventRevision,
+    Value<int>? rowid,
+  }) {
+    return LifeEventAnnotationTargetRefsCompanion(
+      annotationId: annotationId ?? this.annotationId,
+      providerId: providerId ?? this.providerId,
+      sourceEventId: sourceEventId ?? this.sourceEventId,
+      eventRevision: eventRevision ?? this.eventRevision,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (annotationId.present) {
+      map['annotation_id'] = Variable<String>(annotationId.value);
+    }
+    if (providerId.present) {
+      map['provider_id'] = Variable<String>(providerId.value);
+    }
+    if (sourceEventId.present) {
+      map['source_event_id'] = Variable<String>(sourceEventId.value);
+    }
+    if (eventRevision.present) {
+      map['event_revision'] = Variable<String>(eventRevision.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LifeEventAnnotationTargetRefsCompanion(')
+          ..write('annotationId: $annotationId, ')
+          ..write('providerId: $providerId, ')
+          ..write('sourceEventId: $sourceEventId, ')
+          ..write('eventRevision: $eventRevision, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LifeEventAnnotationDirectionRefsTable
+    extends LifeEventAnnotationDirectionRefs
+    with
+        TableInfo<
+          $LifeEventAnnotationDirectionRefsTable,
+          LifeEventAnnotationDirectionRefRow
+        > {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LifeEventAnnotationDirectionRefsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _annotationIdMeta = const VerificationMeta(
+    'annotationId',
+  );
+  @override
+  late final GeneratedColumn<String> annotationId = GeneratedColumn<String>(
+    'annotation_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _directionIdMeta = const VerificationMeta(
+    'directionId',
+  );
+  @override
+  late final GeneratedColumn<String> directionId = GeneratedColumn<String>(
+    'direction_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [annotationId, directionId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_le_annotation_direction_refs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LifeEventAnnotationDirectionRefRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('annotation_id')) {
+      context.handle(
+        _annotationIdMeta,
+        annotationId.isAcceptableOrUnknown(
+          data['annotation_id']!,
+          _annotationIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_annotationIdMeta);
+    }
+    if (data.containsKey('direction_id')) {
+      context.handle(
+        _directionIdMeta,
+        directionId.isAcceptableOrUnknown(
+          data['direction_id']!,
+          _directionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_directionIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {annotationId, directionId};
+  @override
+  LifeEventAnnotationDirectionRefRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LifeEventAnnotationDirectionRefRow(
+      annotationId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}annotation_id'],
+      )!,
+      directionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}direction_id'],
+      )!,
+    );
+  }
+
+  @override
+  $LifeEventAnnotationDirectionRefsTable createAlias(String alias) {
+    return $LifeEventAnnotationDirectionRefsTable(attachedDatabase, alias);
+  }
+}
+
+class LifeEventAnnotationDirectionRefRow extends DataClass
+    implements Insertable<LifeEventAnnotationDirectionRefRow> {
+  final String annotationId;
+  final String directionId;
+  const LifeEventAnnotationDirectionRefRow({
+    required this.annotationId,
+    required this.directionId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['annotation_id'] = Variable<String>(annotationId);
+    map['direction_id'] = Variable<String>(directionId);
+    return map;
+  }
+
+  LifeEventAnnotationDirectionRefsCompanion toCompanion(bool nullToAbsent) {
+    return LifeEventAnnotationDirectionRefsCompanion(
+      annotationId: Value(annotationId),
+      directionId: Value(directionId),
+    );
+  }
+
+  factory LifeEventAnnotationDirectionRefRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LifeEventAnnotationDirectionRefRow(
+      annotationId: serializer.fromJson<String>(json['annotationId']),
+      directionId: serializer.fromJson<String>(json['directionId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'annotationId': serializer.toJson<String>(annotationId),
+      'directionId': serializer.toJson<String>(directionId),
+    };
+  }
+
+  LifeEventAnnotationDirectionRefRow copyWith({
+    String? annotationId,
+    String? directionId,
+  }) => LifeEventAnnotationDirectionRefRow(
+    annotationId: annotationId ?? this.annotationId,
+    directionId: directionId ?? this.directionId,
+  );
+  LifeEventAnnotationDirectionRefRow copyWithCompanion(
+    LifeEventAnnotationDirectionRefsCompanion data,
+  ) {
+    return LifeEventAnnotationDirectionRefRow(
+      annotationId: data.annotationId.present
+          ? data.annotationId.value
+          : this.annotationId,
+      directionId: data.directionId.present
+          ? data.directionId.value
+          : this.directionId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LifeEventAnnotationDirectionRefRow(')
+          ..write('annotationId: $annotationId, ')
+          ..write('directionId: $directionId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(annotationId, directionId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LifeEventAnnotationDirectionRefRow &&
+          other.annotationId == this.annotationId &&
+          other.directionId == this.directionId);
+}
+
+class LifeEventAnnotationDirectionRefsCompanion
+    extends UpdateCompanion<LifeEventAnnotationDirectionRefRow> {
+  final Value<String> annotationId;
+  final Value<String> directionId;
+  final Value<int> rowid;
+  const LifeEventAnnotationDirectionRefsCompanion({
+    this.annotationId = const Value.absent(),
+    this.directionId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LifeEventAnnotationDirectionRefsCompanion.insert({
+    required String annotationId,
+    required String directionId,
+    this.rowid = const Value.absent(),
+  }) : annotationId = Value(annotationId),
+       directionId = Value(directionId);
+  static Insertable<LifeEventAnnotationDirectionRefRow> custom({
+    Expression<String>? annotationId,
+    Expression<String>? directionId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (annotationId != null) 'annotation_id': annotationId,
+      if (directionId != null) 'direction_id': directionId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LifeEventAnnotationDirectionRefsCompanion copyWith({
+    Value<String>? annotationId,
+    Value<String>? directionId,
+    Value<int>? rowid,
+  }) {
+    return LifeEventAnnotationDirectionRefsCompanion(
+      annotationId: annotationId ?? this.annotationId,
+      directionId: directionId ?? this.directionId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (annotationId.present) {
+      map['annotation_id'] = Variable<String>(annotationId.value);
+    }
+    if (directionId.present) {
+      map['direction_id'] = Variable<String>(directionId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LifeEventAnnotationDirectionRefsCompanion(')
+          ..write('annotationId: $annotationId, ')
+          ..write('directionId: $directionId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LifeEventOccurrenceSelectionsTable extends LifeEventOccurrenceSelections
+    with
+        TableInfo<
+          $LifeEventOccurrenceSelectionsTable,
+          LifeEventOccurrenceSelectionRow
+        > {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LifeEventOccurrenceSelectionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _selectionIdMeta = const VerificationMeta(
+    'selectionId',
+  );
+  @override
+  late final GeneratedColumn<String> selectionId = GeneratedColumn<String>(
+    'selection_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _ownerScopeIdMeta = const VerificationMeta(
+    'ownerScopeId',
+  );
+  @override
+  late final GeneratedColumn<String> ownerScopeId = GeneratedColumn<String>(
+    'owner_scope_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _revisionMeta = const VerificationMeta(
+    'revision',
+  );
+  @override
+  late final GeneratedColumn<int> revision = GeneratedColumn<int>(
+    'revision',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceProviderIdMeta = const VerificationMeta(
+    'sourceProviderId',
+  );
+  @override
+  late final GeneratedColumn<String> sourceProviderId = GeneratedColumn<String>(
+    'source_provider_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceEventIdMeta = const VerificationMeta(
+    'sourceEventId',
+  );
+  @override
+  late final GeneratedColumn<String> sourceEventId = GeneratedColumn<String>(
+    'source_event_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceEventRevisionMeta =
+      const VerificationMeta('sourceEventRevision');
+  @override
+  late final GeneratedColumn<String> sourceEventRevision =
+      GeneratedColumn<String>(
+        'source_event_revision',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _eventRevisionMeta = const VerificationMeta(
+    'eventRevision',
+  );
+  @override
+  late final GeneratedColumn<String> eventRevision = GeneratedColumn<String>(
+    'event_revision',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _annotationRefMeta = const VerificationMeta(
+    'annotationRef',
+  );
+  @override
+  late final GeneratedColumn<String> annotationRef = GeneratedColumn<String>(
+    'annotation_ref',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    selectionId,
+    ownerScopeId,
+    revision,
+    sourceProviderId,
+    sourceEventId,
+    sourceEventRevision,
+    eventRevision,
+    annotationRef,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_le_occurrence_selections';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LifeEventOccurrenceSelectionRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('selection_id')) {
+      context.handle(
+        _selectionIdMeta,
+        selectionId.isAcceptableOrUnknown(
+          data['selection_id']!,
+          _selectionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_selectionIdMeta);
+    }
+    if (data.containsKey('owner_scope_id')) {
+      context.handle(
+        _ownerScopeIdMeta,
+        ownerScopeId.isAcceptableOrUnknown(
+          data['owner_scope_id']!,
+          _ownerScopeIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_ownerScopeIdMeta);
+    }
+    if (data.containsKey('revision')) {
+      context.handle(
+        _revisionMeta,
+        revision.isAcceptableOrUnknown(data['revision']!, _revisionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_revisionMeta);
+    }
+    if (data.containsKey('source_provider_id')) {
+      context.handle(
+        _sourceProviderIdMeta,
+        sourceProviderId.isAcceptableOrUnknown(
+          data['source_provider_id']!,
+          _sourceProviderIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceProviderIdMeta);
+    }
+    if (data.containsKey('source_event_id')) {
+      context.handle(
+        _sourceEventIdMeta,
+        sourceEventId.isAcceptableOrUnknown(
+          data['source_event_id']!,
+          _sourceEventIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceEventIdMeta);
+    }
+    if (data.containsKey('source_event_revision')) {
+      context.handle(
+        _sourceEventRevisionMeta,
+        sourceEventRevision.isAcceptableOrUnknown(
+          data['source_event_revision']!,
+          _sourceEventRevisionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceEventRevisionMeta);
+    }
+    if (data.containsKey('event_revision')) {
+      context.handle(
+        _eventRevisionMeta,
+        eventRevision.isAcceptableOrUnknown(
+          data['event_revision']!,
+          _eventRevisionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_eventRevisionMeta);
+    }
+    if (data.containsKey('annotation_ref')) {
+      context.handle(
+        _annotationRefMeta,
+        annotationRef.isAcceptableOrUnknown(
+          data['annotation_ref']!,
+          _annotationRefMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {selectionId};
+  @override
+  LifeEventOccurrenceSelectionRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LifeEventOccurrenceSelectionRow(
+      selectionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}selection_id'],
+      )!,
+      ownerScopeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_scope_id'],
+      )!,
+      revision: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}revision'],
+      )!,
+      sourceProviderId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_provider_id'],
+      )!,
+      sourceEventId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_event_id'],
+      )!,
+      sourceEventRevision: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_event_revision'],
+      )!,
+      eventRevision: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}event_revision'],
+      )!,
+      annotationRef: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}annotation_ref'],
+      ),
+    );
+  }
+
+  @override
+  $LifeEventOccurrenceSelectionsTable createAlias(String alias) {
+    return $LifeEventOccurrenceSelectionsTable(attachedDatabase, alias);
+  }
+}
+
+class LifeEventOccurrenceSelectionRow extends DataClass
+    implements Insertable<LifeEventOccurrenceSelectionRow> {
+  final String selectionId;
+  final String ownerScopeId;
+  final int revision;
+  final String sourceProviderId;
+  final String sourceEventId;
+  final String sourceEventRevision;
+  final String eventRevision;
+  final String? annotationRef;
+  const LifeEventOccurrenceSelectionRow({
+    required this.selectionId,
+    required this.ownerScopeId,
+    required this.revision,
+    required this.sourceProviderId,
+    required this.sourceEventId,
+    required this.sourceEventRevision,
+    required this.eventRevision,
+    this.annotationRef,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['selection_id'] = Variable<String>(selectionId);
+    map['owner_scope_id'] = Variable<String>(ownerScopeId);
+    map['revision'] = Variable<int>(revision);
+    map['source_provider_id'] = Variable<String>(sourceProviderId);
+    map['source_event_id'] = Variable<String>(sourceEventId);
+    map['source_event_revision'] = Variable<String>(sourceEventRevision);
+    map['event_revision'] = Variable<String>(eventRevision);
+    if (!nullToAbsent || annotationRef != null) {
+      map['annotation_ref'] = Variable<String>(annotationRef);
+    }
+    return map;
+  }
+
+  LifeEventOccurrenceSelectionsCompanion toCompanion(bool nullToAbsent) {
+    return LifeEventOccurrenceSelectionsCompanion(
+      selectionId: Value(selectionId),
+      ownerScopeId: Value(ownerScopeId),
+      revision: Value(revision),
+      sourceProviderId: Value(sourceProviderId),
+      sourceEventId: Value(sourceEventId),
+      sourceEventRevision: Value(sourceEventRevision),
+      eventRevision: Value(eventRevision),
+      annotationRef: annotationRef == null && nullToAbsent
+          ? const Value.absent()
+          : Value(annotationRef),
+    );
+  }
+
+  factory LifeEventOccurrenceSelectionRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LifeEventOccurrenceSelectionRow(
+      selectionId: serializer.fromJson<String>(json['selectionId']),
+      ownerScopeId: serializer.fromJson<String>(json['ownerScopeId']),
+      revision: serializer.fromJson<int>(json['revision']),
+      sourceProviderId: serializer.fromJson<String>(json['sourceProviderId']),
+      sourceEventId: serializer.fromJson<String>(json['sourceEventId']),
+      sourceEventRevision: serializer.fromJson<String>(
+        json['sourceEventRevision'],
+      ),
+      eventRevision: serializer.fromJson<String>(json['eventRevision']),
+      annotationRef: serializer.fromJson<String?>(json['annotationRef']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'selectionId': serializer.toJson<String>(selectionId),
+      'ownerScopeId': serializer.toJson<String>(ownerScopeId),
+      'revision': serializer.toJson<int>(revision),
+      'sourceProviderId': serializer.toJson<String>(sourceProviderId),
+      'sourceEventId': serializer.toJson<String>(sourceEventId),
+      'sourceEventRevision': serializer.toJson<String>(sourceEventRevision),
+      'eventRevision': serializer.toJson<String>(eventRevision),
+      'annotationRef': serializer.toJson<String?>(annotationRef),
+    };
+  }
+
+  LifeEventOccurrenceSelectionRow copyWith({
+    String? selectionId,
+    String? ownerScopeId,
+    int? revision,
+    String? sourceProviderId,
+    String? sourceEventId,
+    String? sourceEventRevision,
+    String? eventRevision,
+    Value<String?> annotationRef = const Value.absent(),
+  }) => LifeEventOccurrenceSelectionRow(
+    selectionId: selectionId ?? this.selectionId,
+    ownerScopeId: ownerScopeId ?? this.ownerScopeId,
+    revision: revision ?? this.revision,
+    sourceProviderId: sourceProviderId ?? this.sourceProviderId,
+    sourceEventId: sourceEventId ?? this.sourceEventId,
+    sourceEventRevision: sourceEventRevision ?? this.sourceEventRevision,
+    eventRevision: eventRevision ?? this.eventRevision,
+    annotationRef: annotationRef.present
+        ? annotationRef.value
+        : this.annotationRef,
+  );
+  LifeEventOccurrenceSelectionRow copyWithCompanion(
+    LifeEventOccurrenceSelectionsCompanion data,
+  ) {
+    return LifeEventOccurrenceSelectionRow(
+      selectionId: data.selectionId.present
+          ? data.selectionId.value
+          : this.selectionId,
+      ownerScopeId: data.ownerScopeId.present
+          ? data.ownerScopeId.value
+          : this.ownerScopeId,
+      revision: data.revision.present ? data.revision.value : this.revision,
+      sourceProviderId: data.sourceProviderId.present
+          ? data.sourceProviderId.value
+          : this.sourceProviderId,
+      sourceEventId: data.sourceEventId.present
+          ? data.sourceEventId.value
+          : this.sourceEventId,
+      sourceEventRevision: data.sourceEventRevision.present
+          ? data.sourceEventRevision.value
+          : this.sourceEventRevision,
+      eventRevision: data.eventRevision.present
+          ? data.eventRevision.value
+          : this.eventRevision,
+      annotationRef: data.annotationRef.present
+          ? data.annotationRef.value
+          : this.annotationRef,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LifeEventOccurrenceSelectionRow(')
+          ..write('selectionId: $selectionId, ')
+          ..write('ownerScopeId: $ownerScopeId, ')
+          ..write('revision: $revision, ')
+          ..write('sourceProviderId: $sourceProviderId, ')
+          ..write('sourceEventId: $sourceEventId, ')
+          ..write('sourceEventRevision: $sourceEventRevision, ')
+          ..write('eventRevision: $eventRevision, ')
+          ..write('annotationRef: $annotationRef')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    selectionId,
+    ownerScopeId,
+    revision,
+    sourceProviderId,
+    sourceEventId,
+    sourceEventRevision,
+    eventRevision,
+    annotationRef,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LifeEventOccurrenceSelectionRow &&
+          other.selectionId == this.selectionId &&
+          other.ownerScopeId == this.ownerScopeId &&
+          other.revision == this.revision &&
+          other.sourceProviderId == this.sourceProviderId &&
+          other.sourceEventId == this.sourceEventId &&
+          other.sourceEventRevision == this.sourceEventRevision &&
+          other.eventRevision == this.eventRevision &&
+          other.annotationRef == this.annotationRef);
+}
+
+class LifeEventOccurrenceSelectionsCompanion
+    extends UpdateCompanion<LifeEventOccurrenceSelectionRow> {
+  final Value<String> selectionId;
+  final Value<String> ownerScopeId;
+  final Value<int> revision;
+  final Value<String> sourceProviderId;
+  final Value<String> sourceEventId;
+  final Value<String> sourceEventRevision;
+  final Value<String> eventRevision;
+  final Value<String?> annotationRef;
+  final Value<int> rowid;
+  const LifeEventOccurrenceSelectionsCompanion({
+    this.selectionId = const Value.absent(),
+    this.ownerScopeId = const Value.absent(),
+    this.revision = const Value.absent(),
+    this.sourceProviderId = const Value.absent(),
+    this.sourceEventId = const Value.absent(),
+    this.sourceEventRevision = const Value.absent(),
+    this.eventRevision = const Value.absent(),
+    this.annotationRef = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LifeEventOccurrenceSelectionsCompanion.insert({
+    required String selectionId,
+    required String ownerScopeId,
+    required int revision,
+    required String sourceProviderId,
+    required String sourceEventId,
+    required String sourceEventRevision,
+    required String eventRevision,
+    this.annotationRef = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : selectionId = Value(selectionId),
+       ownerScopeId = Value(ownerScopeId),
+       revision = Value(revision),
+       sourceProviderId = Value(sourceProviderId),
+       sourceEventId = Value(sourceEventId),
+       sourceEventRevision = Value(sourceEventRevision),
+       eventRevision = Value(eventRevision);
+  static Insertable<LifeEventOccurrenceSelectionRow> custom({
+    Expression<String>? selectionId,
+    Expression<String>? ownerScopeId,
+    Expression<int>? revision,
+    Expression<String>? sourceProviderId,
+    Expression<String>? sourceEventId,
+    Expression<String>? sourceEventRevision,
+    Expression<String>? eventRevision,
+    Expression<String>? annotationRef,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (selectionId != null) 'selection_id': selectionId,
+      if (ownerScopeId != null) 'owner_scope_id': ownerScopeId,
+      if (revision != null) 'revision': revision,
+      if (sourceProviderId != null) 'source_provider_id': sourceProviderId,
+      if (sourceEventId != null) 'source_event_id': sourceEventId,
+      if (sourceEventRevision != null)
+        'source_event_revision': sourceEventRevision,
+      if (eventRevision != null) 'event_revision': eventRevision,
+      if (annotationRef != null) 'annotation_ref': annotationRef,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LifeEventOccurrenceSelectionsCompanion copyWith({
+    Value<String>? selectionId,
+    Value<String>? ownerScopeId,
+    Value<int>? revision,
+    Value<String>? sourceProviderId,
+    Value<String>? sourceEventId,
+    Value<String>? sourceEventRevision,
+    Value<String>? eventRevision,
+    Value<String?>? annotationRef,
+    Value<int>? rowid,
+  }) {
+    return LifeEventOccurrenceSelectionsCompanion(
+      selectionId: selectionId ?? this.selectionId,
+      ownerScopeId: ownerScopeId ?? this.ownerScopeId,
+      revision: revision ?? this.revision,
+      sourceProviderId: sourceProviderId ?? this.sourceProviderId,
+      sourceEventId: sourceEventId ?? this.sourceEventId,
+      sourceEventRevision: sourceEventRevision ?? this.sourceEventRevision,
+      eventRevision: eventRevision ?? this.eventRevision,
+      annotationRef: annotationRef ?? this.annotationRef,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (selectionId.present) {
+      map['selection_id'] = Variable<String>(selectionId.value);
+    }
+    if (ownerScopeId.present) {
+      map['owner_scope_id'] = Variable<String>(ownerScopeId.value);
+    }
+    if (revision.present) {
+      map['revision'] = Variable<int>(revision.value);
+    }
+    if (sourceProviderId.present) {
+      map['source_provider_id'] = Variable<String>(sourceProviderId.value);
+    }
+    if (sourceEventId.present) {
+      map['source_event_id'] = Variable<String>(sourceEventId.value);
+    }
+    if (sourceEventRevision.present) {
+      map['source_event_revision'] = Variable<String>(
+        sourceEventRevision.value,
+      );
+    }
+    if (eventRevision.present) {
+      map['event_revision'] = Variable<String>(eventRevision.value);
+    }
+    if (annotationRef.present) {
+      map['annotation_ref'] = Variable<String>(annotationRef.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LifeEventOccurrenceSelectionsCompanion(')
+          ..write('selectionId: $selectionId, ')
+          ..write('ownerScopeId: $ownerScopeId, ')
+          ..write('revision: $revision, ')
+          ..write('sourceProviderId: $sourceProviderId, ')
+          ..write('sourceEventId: $sourceEventId, ')
+          ..write('sourceEventRevision: $sourceEventRevision, ')
+          ..write('eventRevision: $eventRevision, ')
+          ..write('annotationRef: $annotationRef, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LifeEventPatternRulesTable extends LifeEventPatternRules
+    with TableInfo<$LifeEventPatternRulesTable, LifeEventPatternRuleRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LifeEventPatternRulesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _savedPatternIdMeta = const VerificationMeta(
+    'savedPatternId',
+  );
+  @override
+  late final GeneratedColumn<String> savedPatternId = GeneratedColumn<String>(
+    'saved_pattern_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _ownerScopeIdMeta = const VerificationMeta(
+    'ownerScopeId',
+  );
+  @override
+  late final GeneratedColumn<String> ownerScopeId = GeneratedColumn<String>(
+    'owner_scope_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _revisionMeta = const VerificationMeta(
+    'revision',
+  );
+  @override
+  late final GeneratedColumn<int> revision = GeneratedColumn<int>(
+    'revision',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _providerIdMeta = const VerificationMeta(
+    'providerId',
+  );
+  @override
+  late final GeneratedColumn<String> providerId = GeneratedColumn<String>(
+    'provider_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _eventTypeIdMeta = const VerificationMeta(
+    'eventTypeId',
+  );
+  @override
+  late final GeneratedColumn<String> eventTypeId = GeneratedColumn<String>(
+    'event_type_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _patternSchemaVersionMeta =
+      const VerificationMeta('patternSchemaVersion');
+  @override
+  late final GeneratedColumn<String> patternSchemaVersion =
+      GeneratedColumn<String>(
+        'pattern_schema_version',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _providerDescriptorVersionMeta =
+      const VerificationMeta('providerDescriptorVersion');
+  @override
+  late final GeneratedColumn<String> providerDescriptorVersion =
+      GeneratedColumn<String>(
+        'provider_descriptor_version',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _matcherSemanticVersionMeta =
+      const VerificationMeta('matcherSemanticVersion');
+  @override
+  late final GeneratedColumn<String> matcherSemanticVersion =
+      GeneratedColumn<String>(
+        'matcher_semantic_version',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _normalizedPatternJsonMeta =
+      const VerificationMeta('normalizedPatternJson');
+  @override
+  late final GeneratedColumn<String> normalizedPatternJson =
+      GeneratedColumn<String>(
+        'normalized_pattern_json',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _patternFingerprintMeta =
+      const VerificationMeta('patternFingerprint');
+  @override
+  late final GeneratedColumn<String> patternFingerprint =
+      GeneratedColumn<String>(
+        'pattern_fingerprint',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _annotationRefMeta = const VerificationMeta(
+    'annotationRef',
+  );
+  @override
+  late final GeneratedColumn<String> annotationRef = GeneratedColumn<String>(
+    'annotation_ref',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _enabledForMatchingMeta =
+      const VerificationMeta('enabledForMatching');
+  @override
+  late final GeneratedColumn<bool> enabledForMatching = GeneratedColumn<bool>(
+    'enabled_for_matching',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("enabled_for_matching" IN (0, 1))',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    savedPatternId,
+    ownerScopeId,
+    revision,
+    providerId,
+    eventTypeId,
+    patternSchemaVersion,
+    providerDescriptorVersion,
+    matcherSemanticVersion,
+    normalizedPatternJson,
+    patternFingerprint,
+    annotationRef,
+    enabledForMatching,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_le_pattern_rules';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LifeEventPatternRuleRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('saved_pattern_id')) {
+      context.handle(
+        _savedPatternIdMeta,
+        savedPatternId.isAcceptableOrUnknown(
+          data['saved_pattern_id']!,
+          _savedPatternIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_savedPatternIdMeta);
+    }
+    if (data.containsKey('owner_scope_id')) {
+      context.handle(
+        _ownerScopeIdMeta,
+        ownerScopeId.isAcceptableOrUnknown(
+          data['owner_scope_id']!,
+          _ownerScopeIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_ownerScopeIdMeta);
+    }
+    if (data.containsKey('revision')) {
+      context.handle(
+        _revisionMeta,
+        revision.isAcceptableOrUnknown(data['revision']!, _revisionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_revisionMeta);
+    }
+    if (data.containsKey('provider_id')) {
+      context.handle(
+        _providerIdMeta,
+        providerId.isAcceptableOrUnknown(data['provider_id']!, _providerIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_providerIdMeta);
+    }
+    if (data.containsKey('event_type_id')) {
+      context.handle(
+        _eventTypeIdMeta,
+        eventTypeId.isAcceptableOrUnknown(
+          data['event_type_id']!,
+          _eventTypeIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_eventTypeIdMeta);
+    }
+    if (data.containsKey('pattern_schema_version')) {
+      context.handle(
+        _patternSchemaVersionMeta,
+        patternSchemaVersion.isAcceptableOrUnknown(
+          data['pattern_schema_version']!,
+          _patternSchemaVersionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_patternSchemaVersionMeta);
+    }
+    if (data.containsKey('provider_descriptor_version')) {
+      context.handle(
+        _providerDescriptorVersionMeta,
+        providerDescriptorVersion.isAcceptableOrUnknown(
+          data['provider_descriptor_version']!,
+          _providerDescriptorVersionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_providerDescriptorVersionMeta);
+    }
+    if (data.containsKey('matcher_semantic_version')) {
+      context.handle(
+        _matcherSemanticVersionMeta,
+        matcherSemanticVersion.isAcceptableOrUnknown(
+          data['matcher_semantic_version']!,
+          _matcherSemanticVersionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_matcherSemanticVersionMeta);
+    }
+    if (data.containsKey('normalized_pattern_json')) {
+      context.handle(
+        _normalizedPatternJsonMeta,
+        normalizedPatternJson.isAcceptableOrUnknown(
+          data['normalized_pattern_json']!,
+          _normalizedPatternJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_normalizedPatternJsonMeta);
+    }
+    if (data.containsKey('pattern_fingerprint')) {
+      context.handle(
+        _patternFingerprintMeta,
+        patternFingerprint.isAcceptableOrUnknown(
+          data['pattern_fingerprint']!,
+          _patternFingerprintMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_patternFingerprintMeta);
+    }
+    if (data.containsKey('annotation_ref')) {
+      context.handle(
+        _annotationRefMeta,
+        annotationRef.isAcceptableOrUnknown(
+          data['annotation_ref']!,
+          _annotationRefMeta,
+        ),
+      );
+    }
+    if (data.containsKey('enabled_for_matching')) {
+      context.handle(
+        _enabledForMatchingMeta,
+        enabledForMatching.isAcceptableOrUnknown(
+          data['enabled_for_matching']!,
+          _enabledForMatchingMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_enabledForMatchingMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {savedPatternId};
+  @override
+  LifeEventPatternRuleRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LifeEventPatternRuleRow(
+      savedPatternId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}saved_pattern_id'],
+      )!,
+      ownerScopeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_scope_id'],
+      )!,
+      revision: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}revision'],
+      )!,
+      providerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}provider_id'],
+      )!,
+      eventTypeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}event_type_id'],
+      )!,
+      patternSchemaVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}pattern_schema_version'],
+      )!,
+      providerDescriptorVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}provider_descriptor_version'],
+      )!,
+      matcherSemanticVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}matcher_semantic_version'],
+      )!,
+      normalizedPatternJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}normalized_pattern_json'],
+      )!,
+      patternFingerprint: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}pattern_fingerprint'],
+      )!,
+      annotationRef: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}annotation_ref'],
+      ),
+      enabledForMatching: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}enabled_for_matching'],
+      )!,
+    );
+  }
+
+  @override
+  $LifeEventPatternRulesTable createAlias(String alias) {
+    return $LifeEventPatternRulesTable(attachedDatabase, alias);
+  }
+}
+
+class LifeEventPatternRuleRow extends DataClass
+    implements Insertable<LifeEventPatternRuleRow> {
+  final String savedPatternId;
+  final String ownerScopeId;
+  final int revision;
+  final String providerId;
+  final String eventTypeId;
+  final String patternSchemaVersion;
+  final String providerDescriptorVersion;
+  final String matcherSemanticVersion;
+  final String normalizedPatternJson;
+  final String patternFingerprint;
+  final String? annotationRef;
+  final bool enabledForMatching;
+  const LifeEventPatternRuleRow({
+    required this.savedPatternId,
+    required this.ownerScopeId,
+    required this.revision,
+    required this.providerId,
+    required this.eventTypeId,
+    required this.patternSchemaVersion,
+    required this.providerDescriptorVersion,
+    required this.matcherSemanticVersion,
+    required this.normalizedPatternJson,
+    required this.patternFingerprint,
+    this.annotationRef,
+    required this.enabledForMatching,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['saved_pattern_id'] = Variable<String>(savedPatternId);
+    map['owner_scope_id'] = Variable<String>(ownerScopeId);
+    map['revision'] = Variable<int>(revision);
+    map['provider_id'] = Variable<String>(providerId);
+    map['event_type_id'] = Variable<String>(eventTypeId);
+    map['pattern_schema_version'] = Variable<String>(patternSchemaVersion);
+    map['provider_descriptor_version'] = Variable<String>(
+      providerDescriptorVersion,
+    );
+    map['matcher_semantic_version'] = Variable<String>(matcherSemanticVersion);
+    map['normalized_pattern_json'] = Variable<String>(normalizedPatternJson);
+    map['pattern_fingerprint'] = Variable<String>(patternFingerprint);
+    if (!nullToAbsent || annotationRef != null) {
+      map['annotation_ref'] = Variable<String>(annotationRef);
+    }
+    map['enabled_for_matching'] = Variable<bool>(enabledForMatching);
+    return map;
+  }
+
+  LifeEventPatternRulesCompanion toCompanion(bool nullToAbsent) {
+    return LifeEventPatternRulesCompanion(
+      savedPatternId: Value(savedPatternId),
+      ownerScopeId: Value(ownerScopeId),
+      revision: Value(revision),
+      providerId: Value(providerId),
+      eventTypeId: Value(eventTypeId),
+      patternSchemaVersion: Value(patternSchemaVersion),
+      providerDescriptorVersion: Value(providerDescriptorVersion),
+      matcherSemanticVersion: Value(matcherSemanticVersion),
+      normalizedPatternJson: Value(normalizedPatternJson),
+      patternFingerprint: Value(patternFingerprint),
+      annotationRef: annotationRef == null && nullToAbsent
+          ? const Value.absent()
+          : Value(annotationRef),
+      enabledForMatching: Value(enabledForMatching),
+    );
+  }
+
+  factory LifeEventPatternRuleRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LifeEventPatternRuleRow(
+      savedPatternId: serializer.fromJson<String>(json['savedPatternId']),
+      ownerScopeId: serializer.fromJson<String>(json['ownerScopeId']),
+      revision: serializer.fromJson<int>(json['revision']),
+      providerId: serializer.fromJson<String>(json['providerId']),
+      eventTypeId: serializer.fromJson<String>(json['eventTypeId']),
+      patternSchemaVersion: serializer.fromJson<String>(
+        json['patternSchemaVersion'],
+      ),
+      providerDescriptorVersion: serializer.fromJson<String>(
+        json['providerDescriptorVersion'],
+      ),
+      matcherSemanticVersion: serializer.fromJson<String>(
+        json['matcherSemanticVersion'],
+      ),
+      normalizedPatternJson: serializer.fromJson<String>(
+        json['normalizedPatternJson'],
+      ),
+      patternFingerprint: serializer.fromJson<String>(
+        json['patternFingerprint'],
+      ),
+      annotationRef: serializer.fromJson<String?>(json['annotationRef']),
+      enabledForMatching: serializer.fromJson<bool>(json['enabledForMatching']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'savedPatternId': serializer.toJson<String>(savedPatternId),
+      'ownerScopeId': serializer.toJson<String>(ownerScopeId),
+      'revision': serializer.toJson<int>(revision),
+      'providerId': serializer.toJson<String>(providerId),
+      'eventTypeId': serializer.toJson<String>(eventTypeId),
+      'patternSchemaVersion': serializer.toJson<String>(patternSchemaVersion),
+      'providerDescriptorVersion': serializer.toJson<String>(
+        providerDescriptorVersion,
+      ),
+      'matcherSemanticVersion': serializer.toJson<String>(
+        matcherSemanticVersion,
+      ),
+      'normalizedPatternJson': serializer.toJson<String>(normalizedPatternJson),
+      'patternFingerprint': serializer.toJson<String>(patternFingerprint),
+      'annotationRef': serializer.toJson<String?>(annotationRef),
+      'enabledForMatching': serializer.toJson<bool>(enabledForMatching),
+    };
+  }
+
+  LifeEventPatternRuleRow copyWith({
+    String? savedPatternId,
+    String? ownerScopeId,
+    int? revision,
+    String? providerId,
+    String? eventTypeId,
+    String? patternSchemaVersion,
+    String? providerDescriptorVersion,
+    String? matcherSemanticVersion,
+    String? normalizedPatternJson,
+    String? patternFingerprint,
+    Value<String?> annotationRef = const Value.absent(),
+    bool? enabledForMatching,
+  }) => LifeEventPatternRuleRow(
+    savedPatternId: savedPatternId ?? this.savedPatternId,
+    ownerScopeId: ownerScopeId ?? this.ownerScopeId,
+    revision: revision ?? this.revision,
+    providerId: providerId ?? this.providerId,
+    eventTypeId: eventTypeId ?? this.eventTypeId,
+    patternSchemaVersion: patternSchemaVersion ?? this.patternSchemaVersion,
+    providerDescriptorVersion:
+        providerDescriptorVersion ?? this.providerDescriptorVersion,
+    matcherSemanticVersion:
+        matcherSemanticVersion ?? this.matcherSemanticVersion,
+    normalizedPatternJson: normalizedPatternJson ?? this.normalizedPatternJson,
+    patternFingerprint: patternFingerprint ?? this.patternFingerprint,
+    annotationRef: annotationRef.present
+        ? annotationRef.value
+        : this.annotationRef,
+    enabledForMatching: enabledForMatching ?? this.enabledForMatching,
+  );
+  LifeEventPatternRuleRow copyWithCompanion(
+    LifeEventPatternRulesCompanion data,
+  ) {
+    return LifeEventPatternRuleRow(
+      savedPatternId: data.savedPatternId.present
+          ? data.savedPatternId.value
+          : this.savedPatternId,
+      ownerScopeId: data.ownerScopeId.present
+          ? data.ownerScopeId.value
+          : this.ownerScopeId,
+      revision: data.revision.present ? data.revision.value : this.revision,
+      providerId: data.providerId.present
+          ? data.providerId.value
+          : this.providerId,
+      eventTypeId: data.eventTypeId.present
+          ? data.eventTypeId.value
+          : this.eventTypeId,
+      patternSchemaVersion: data.patternSchemaVersion.present
+          ? data.patternSchemaVersion.value
+          : this.patternSchemaVersion,
+      providerDescriptorVersion: data.providerDescriptorVersion.present
+          ? data.providerDescriptorVersion.value
+          : this.providerDescriptorVersion,
+      matcherSemanticVersion: data.matcherSemanticVersion.present
+          ? data.matcherSemanticVersion.value
+          : this.matcherSemanticVersion,
+      normalizedPatternJson: data.normalizedPatternJson.present
+          ? data.normalizedPatternJson.value
+          : this.normalizedPatternJson,
+      patternFingerprint: data.patternFingerprint.present
+          ? data.patternFingerprint.value
+          : this.patternFingerprint,
+      annotationRef: data.annotationRef.present
+          ? data.annotationRef.value
+          : this.annotationRef,
+      enabledForMatching: data.enabledForMatching.present
+          ? data.enabledForMatching.value
+          : this.enabledForMatching,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LifeEventPatternRuleRow(')
+          ..write('savedPatternId: $savedPatternId, ')
+          ..write('ownerScopeId: $ownerScopeId, ')
+          ..write('revision: $revision, ')
+          ..write('providerId: $providerId, ')
+          ..write('eventTypeId: $eventTypeId, ')
+          ..write('patternSchemaVersion: $patternSchemaVersion, ')
+          ..write('providerDescriptorVersion: $providerDescriptorVersion, ')
+          ..write('matcherSemanticVersion: $matcherSemanticVersion, ')
+          ..write('normalizedPatternJson: $normalizedPatternJson, ')
+          ..write('patternFingerprint: $patternFingerprint, ')
+          ..write('annotationRef: $annotationRef, ')
+          ..write('enabledForMatching: $enabledForMatching')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    savedPatternId,
+    ownerScopeId,
+    revision,
+    providerId,
+    eventTypeId,
+    patternSchemaVersion,
+    providerDescriptorVersion,
+    matcherSemanticVersion,
+    normalizedPatternJson,
+    patternFingerprint,
+    annotationRef,
+    enabledForMatching,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LifeEventPatternRuleRow &&
+          other.savedPatternId == this.savedPatternId &&
+          other.ownerScopeId == this.ownerScopeId &&
+          other.revision == this.revision &&
+          other.providerId == this.providerId &&
+          other.eventTypeId == this.eventTypeId &&
+          other.patternSchemaVersion == this.patternSchemaVersion &&
+          other.providerDescriptorVersion == this.providerDescriptorVersion &&
+          other.matcherSemanticVersion == this.matcherSemanticVersion &&
+          other.normalizedPatternJson == this.normalizedPatternJson &&
+          other.patternFingerprint == this.patternFingerprint &&
+          other.annotationRef == this.annotationRef &&
+          other.enabledForMatching == this.enabledForMatching);
+}
+
+class LifeEventPatternRulesCompanion
+    extends UpdateCompanion<LifeEventPatternRuleRow> {
+  final Value<String> savedPatternId;
+  final Value<String> ownerScopeId;
+  final Value<int> revision;
+  final Value<String> providerId;
+  final Value<String> eventTypeId;
+  final Value<String> patternSchemaVersion;
+  final Value<String> providerDescriptorVersion;
+  final Value<String> matcherSemanticVersion;
+  final Value<String> normalizedPatternJson;
+  final Value<String> patternFingerprint;
+  final Value<String?> annotationRef;
+  final Value<bool> enabledForMatching;
+  final Value<int> rowid;
+  const LifeEventPatternRulesCompanion({
+    this.savedPatternId = const Value.absent(),
+    this.ownerScopeId = const Value.absent(),
+    this.revision = const Value.absent(),
+    this.providerId = const Value.absent(),
+    this.eventTypeId = const Value.absent(),
+    this.patternSchemaVersion = const Value.absent(),
+    this.providerDescriptorVersion = const Value.absent(),
+    this.matcherSemanticVersion = const Value.absent(),
+    this.normalizedPatternJson = const Value.absent(),
+    this.patternFingerprint = const Value.absent(),
+    this.annotationRef = const Value.absent(),
+    this.enabledForMatching = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LifeEventPatternRulesCompanion.insert({
+    required String savedPatternId,
+    required String ownerScopeId,
+    required int revision,
+    required String providerId,
+    required String eventTypeId,
+    required String patternSchemaVersion,
+    required String providerDescriptorVersion,
+    required String matcherSemanticVersion,
+    required String normalizedPatternJson,
+    required String patternFingerprint,
+    this.annotationRef = const Value.absent(),
+    required bool enabledForMatching,
+    this.rowid = const Value.absent(),
+  }) : savedPatternId = Value(savedPatternId),
+       ownerScopeId = Value(ownerScopeId),
+       revision = Value(revision),
+       providerId = Value(providerId),
+       eventTypeId = Value(eventTypeId),
+       patternSchemaVersion = Value(patternSchemaVersion),
+       providerDescriptorVersion = Value(providerDescriptorVersion),
+       matcherSemanticVersion = Value(matcherSemanticVersion),
+       normalizedPatternJson = Value(normalizedPatternJson),
+       patternFingerprint = Value(patternFingerprint),
+       enabledForMatching = Value(enabledForMatching);
+  static Insertable<LifeEventPatternRuleRow> custom({
+    Expression<String>? savedPatternId,
+    Expression<String>? ownerScopeId,
+    Expression<int>? revision,
+    Expression<String>? providerId,
+    Expression<String>? eventTypeId,
+    Expression<String>? patternSchemaVersion,
+    Expression<String>? providerDescriptorVersion,
+    Expression<String>? matcherSemanticVersion,
+    Expression<String>? normalizedPatternJson,
+    Expression<String>? patternFingerprint,
+    Expression<String>? annotationRef,
+    Expression<bool>? enabledForMatching,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (savedPatternId != null) 'saved_pattern_id': savedPatternId,
+      if (ownerScopeId != null) 'owner_scope_id': ownerScopeId,
+      if (revision != null) 'revision': revision,
+      if (providerId != null) 'provider_id': providerId,
+      if (eventTypeId != null) 'event_type_id': eventTypeId,
+      if (patternSchemaVersion != null)
+        'pattern_schema_version': patternSchemaVersion,
+      if (providerDescriptorVersion != null)
+        'provider_descriptor_version': providerDescriptorVersion,
+      if (matcherSemanticVersion != null)
+        'matcher_semantic_version': matcherSemanticVersion,
+      if (normalizedPatternJson != null)
+        'normalized_pattern_json': normalizedPatternJson,
+      if (patternFingerprint != null) 'pattern_fingerprint': patternFingerprint,
+      if (annotationRef != null) 'annotation_ref': annotationRef,
+      if (enabledForMatching != null)
+        'enabled_for_matching': enabledForMatching,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LifeEventPatternRulesCompanion copyWith({
+    Value<String>? savedPatternId,
+    Value<String>? ownerScopeId,
+    Value<int>? revision,
+    Value<String>? providerId,
+    Value<String>? eventTypeId,
+    Value<String>? patternSchemaVersion,
+    Value<String>? providerDescriptorVersion,
+    Value<String>? matcherSemanticVersion,
+    Value<String>? normalizedPatternJson,
+    Value<String>? patternFingerprint,
+    Value<String?>? annotationRef,
+    Value<bool>? enabledForMatching,
+    Value<int>? rowid,
+  }) {
+    return LifeEventPatternRulesCompanion(
+      savedPatternId: savedPatternId ?? this.savedPatternId,
+      ownerScopeId: ownerScopeId ?? this.ownerScopeId,
+      revision: revision ?? this.revision,
+      providerId: providerId ?? this.providerId,
+      eventTypeId: eventTypeId ?? this.eventTypeId,
+      patternSchemaVersion: patternSchemaVersion ?? this.patternSchemaVersion,
+      providerDescriptorVersion:
+          providerDescriptorVersion ?? this.providerDescriptorVersion,
+      matcherSemanticVersion:
+          matcherSemanticVersion ?? this.matcherSemanticVersion,
+      normalizedPatternJson:
+          normalizedPatternJson ?? this.normalizedPatternJson,
+      patternFingerprint: patternFingerprint ?? this.patternFingerprint,
+      annotationRef: annotationRef ?? this.annotationRef,
+      enabledForMatching: enabledForMatching ?? this.enabledForMatching,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (savedPatternId.present) {
+      map['saved_pattern_id'] = Variable<String>(savedPatternId.value);
+    }
+    if (ownerScopeId.present) {
+      map['owner_scope_id'] = Variable<String>(ownerScopeId.value);
+    }
+    if (revision.present) {
+      map['revision'] = Variable<int>(revision.value);
+    }
+    if (providerId.present) {
+      map['provider_id'] = Variable<String>(providerId.value);
+    }
+    if (eventTypeId.present) {
+      map['event_type_id'] = Variable<String>(eventTypeId.value);
+    }
+    if (patternSchemaVersion.present) {
+      map['pattern_schema_version'] = Variable<String>(
+        patternSchemaVersion.value,
+      );
+    }
+    if (providerDescriptorVersion.present) {
+      map['provider_descriptor_version'] = Variable<String>(
+        providerDescriptorVersion.value,
+      );
+    }
+    if (matcherSemanticVersion.present) {
+      map['matcher_semantic_version'] = Variable<String>(
+        matcherSemanticVersion.value,
+      );
+    }
+    if (normalizedPatternJson.present) {
+      map['normalized_pattern_json'] = Variable<String>(
+        normalizedPatternJson.value,
+      );
+    }
+    if (patternFingerprint.present) {
+      map['pattern_fingerprint'] = Variable<String>(patternFingerprint.value);
+    }
+    if (annotationRef.present) {
+      map['annotation_ref'] = Variable<String>(annotationRef.value);
+    }
+    if (enabledForMatching.present) {
+      map['enabled_for_matching'] = Variable<bool>(enabledForMatching.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LifeEventPatternRulesCompanion(')
+          ..write('savedPatternId: $savedPatternId, ')
+          ..write('ownerScopeId: $ownerScopeId, ')
+          ..write('revision: $revision, ')
+          ..write('providerId: $providerId, ')
+          ..write('eventTypeId: $eventTypeId, ')
+          ..write('patternSchemaVersion: $patternSchemaVersion, ')
+          ..write('providerDescriptorVersion: $providerDescriptorVersion, ')
+          ..write('matcherSemanticVersion: $matcherSemanticVersion, ')
+          ..write('normalizedPatternJson: $normalizedPatternJson, ')
+          ..write('patternFingerprint: $patternFingerprint, ')
+          ..write('annotationRef: $annotationRef, ')
+          ..write('enabledForMatching: $enabledForMatching, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LifeEventPatternTargetRefsTable extends LifeEventPatternTargetRefs
+    with
+        TableInfo<
+          $LifeEventPatternTargetRefsTable,
+          LifeEventPatternTargetRefRow
+        > {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LifeEventPatternTargetRefsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _savedPatternIdMeta = const VerificationMeta(
+    'savedPatternId',
+  );
+  @override
+  late final GeneratedColumn<String> savedPatternId = GeneratedColumn<String>(
+    'saved_pattern_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _targetTypeMeta = const VerificationMeta(
+    'targetType',
+  );
+  @override
+  late final GeneratedColumn<String> targetType = GeneratedColumn<String>(
+    'target_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _targetIdMeta = const VerificationMeta(
+    'targetId',
+  );
+  @override
+  late final GeneratedColumn<String> targetId = GeneratedColumn<String>(
+    'target_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [savedPatternId, targetType, targetId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_le_pattern_target_refs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LifeEventPatternTargetRefRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('saved_pattern_id')) {
+      context.handle(
+        _savedPatternIdMeta,
+        savedPatternId.isAcceptableOrUnknown(
+          data['saved_pattern_id']!,
+          _savedPatternIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_savedPatternIdMeta);
+    }
+    if (data.containsKey('target_type')) {
+      context.handle(
+        _targetTypeMeta,
+        targetType.isAcceptableOrUnknown(data['target_type']!, _targetTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_targetTypeMeta);
+    }
+    if (data.containsKey('target_id')) {
+      context.handle(
+        _targetIdMeta,
+        targetId.isAcceptableOrUnknown(data['target_id']!, _targetIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_targetIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {
+    savedPatternId,
+    targetType,
+    targetId,
+  };
+  @override
+  LifeEventPatternTargetRefRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LifeEventPatternTargetRefRow(
+      savedPatternId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}saved_pattern_id'],
+      )!,
+      targetType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target_type'],
+      )!,
+      targetId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target_id'],
+      )!,
+    );
+  }
+
+  @override
+  $LifeEventPatternTargetRefsTable createAlias(String alias) {
+    return $LifeEventPatternTargetRefsTable(attachedDatabase, alias);
+  }
+}
+
+class LifeEventPatternTargetRefRow extends DataClass
+    implements Insertable<LifeEventPatternTargetRefRow> {
+  final String savedPatternId;
+  final String targetType;
+  final String targetId;
+  const LifeEventPatternTargetRefRow({
+    required this.savedPatternId,
+    required this.targetType,
+    required this.targetId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['saved_pattern_id'] = Variable<String>(savedPatternId);
+    map['target_type'] = Variable<String>(targetType);
+    map['target_id'] = Variable<String>(targetId);
+    return map;
+  }
+
+  LifeEventPatternTargetRefsCompanion toCompanion(bool nullToAbsent) {
+    return LifeEventPatternTargetRefsCompanion(
+      savedPatternId: Value(savedPatternId),
+      targetType: Value(targetType),
+      targetId: Value(targetId),
+    );
+  }
+
+  factory LifeEventPatternTargetRefRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LifeEventPatternTargetRefRow(
+      savedPatternId: serializer.fromJson<String>(json['savedPatternId']),
+      targetType: serializer.fromJson<String>(json['targetType']),
+      targetId: serializer.fromJson<String>(json['targetId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'savedPatternId': serializer.toJson<String>(savedPatternId),
+      'targetType': serializer.toJson<String>(targetType),
+      'targetId': serializer.toJson<String>(targetId),
+    };
+  }
+
+  LifeEventPatternTargetRefRow copyWith({
+    String? savedPatternId,
+    String? targetType,
+    String? targetId,
+  }) => LifeEventPatternTargetRefRow(
+    savedPatternId: savedPatternId ?? this.savedPatternId,
+    targetType: targetType ?? this.targetType,
+    targetId: targetId ?? this.targetId,
+  );
+  LifeEventPatternTargetRefRow copyWithCompanion(
+    LifeEventPatternTargetRefsCompanion data,
+  ) {
+    return LifeEventPatternTargetRefRow(
+      savedPatternId: data.savedPatternId.present
+          ? data.savedPatternId.value
+          : this.savedPatternId,
+      targetType: data.targetType.present
+          ? data.targetType.value
+          : this.targetType,
+      targetId: data.targetId.present ? data.targetId.value : this.targetId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LifeEventPatternTargetRefRow(')
+          ..write('savedPatternId: $savedPatternId, ')
+          ..write('targetType: $targetType, ')
+          ..write('targetId: $targetId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(savedPatternId, targetType, targetId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LifeEventPatternTargetRefRow &&
+          other.savedPatternId == this.savedPatternId &&
+          other.targetType == this.targetType &&
+          other.targetId == this.targetId);
+}
+
+class LifeEventPatternTargetRefsCompanion
+    extends UpdateCompanion<LifeEventPatternTargetRefRow> {
+  final Value<String> savedPatternId;
+  final Value<String> targetType;
+  final Value<String> targetId;
+  final Value<int> rowid;
+  const LifeEventPatternTargetRefsCompanion({
+    this.savedPatternId = const Value.absent(),
+    this.targetType = const Value.absent(),
+    this.targetId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LifeEventPatternTargetRefsCompanion.insert({
+    required String savedPatternId,
+    required String targetType,
+    required String targetId,
+    this.rowid = const Value.absent(),
+  }) : savedPatternId = Value(savedPatternId),
+       targetType = Value(targetType),
+       targetId = Value(targetId);
+  static Insertable<LifeEventPatternTargetRefRow> custom({
+    Expression<String>? savedPatternId,
+    Expression<String>? targetType,
+    Expression<String>? targetId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (savedPatternId != null) 'saved_pattern_id': savedPatternId,
+      if (targetType != null) 'target_type': targetType,
+      if (targetId != null) 'target_id': targetId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LifeEventPatternTargetRefsCompanion copyWith({
+    Value<String>? savedPatternId,
+    Value<String>? targetType,
+    Value<String>? targetId,
+    Value<int>? rowid,
+  }) {
+    return LifeEventPatternTargetRefsCompanion(
+      savedPatternId: savedPatternId ?? this.savedPatternId,
+      targetType: targetType ?? this.targetType,
+      targetId: targetId ?? this.targetId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (savedPatternId.present) {
+      map['saved_pattern_id'] = Variable<String>(savedPatternId.value);
+    }
+    if (targetType.present) {
+      map['target_type'] = Variable<String>(targetType.value);
+    }
+    if (targetId.present) {
+      map['target_id'] = Variable<String>(targetId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LifeEventPatternTargetRefsCompanion(')
+          ..write('savedPatternId: $savedPatternId, ')
+          ..write('targetType: $targetType, ')
+          ..write('targetId: $targetId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LifeEventRuleTemplatesTable extends LifeEventRuleTemplates
+    with TableInfo<$LifeEventRuleTemplatesTable, LifeEventRuleTemplateRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LifeEventRuleTemplatesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _templateIdMeta = const VerificationMeta(
+    'templateId',
+  );
+  @override
+  late final GeneratedColumn<String> templateId = GeneratedColumn<String>(
+    'template_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _ownerScopeIdMeta = const VerificationMeta(
+    'ownerScopeId',
+  );
+  @override
+  late final GeneratedColumn<String> ownerScopeId = GeneratedColumn<String>(
+    'owner_scope_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _revisionMeta = const VerificationMeta(
+    'revision',
+  );
+  @override
+  late final GeneratedColumn<int> revision = GeneratedColumn<int>(
+    'revision',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _providerPatternJsonMeta =
+      const VerificationMeta('providerPatternJson');
+  @override
+  late final GeneratedColumn<String> providerPatternJson =
+      GeneratedColumn<String>(
+        'provider_pattern_json',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _defaultDirectionIdsJsonMeta =
+      const VerificationMeta('defaultDirectionIdsJson');
+  @override
+  late final GeneratedColumn<String> defaultDirectionIdsJson =
+      GeneratedColumn<String>(
+        'default_direction_ids_json',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _importanceOwnerScopeIdMeta =
+      const VerificationMeta('importanceOwnerScopeId');
+  @override
+  late final GeneratedColumn<String> importanceOwnerScopeId =
+      GeneratedColumn<String>(
+        'importance_owner_scope_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _importanceCatalogIdMeta =
+      const VerificationMeta('importanceCatalogId');
+  @override
+  late final GeneratedColumn<String> importanceCatalogId =
+      GeneratedColumn<String>(
+        'importance_catalog_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _importanceCatalogRevisionMeta =
+      const VerificationMeta('importanceCatalogRevision');
+  @override
+  late final GeneratedColumn<int> importanceCatalogRevision =
+      GeneratedColumn<int>(
+        'importance_catalog_revision',
+        aliasedName,
+        true,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _importanceLevelIdMeta = const VerificationMeta(
+    'importanceLevelId',
+  );
+  @override
+  late final GeneratedColumn<String> importanceLevelId =
+      GeneratedColumn<String>(
+        'importance_level_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _priorityOwnerScopeIdMeta =
+      const VerificationMeta('priorityOwnerScopeId');
+  @override
+  late final GeneratedColumn<String> priorityOwnerScopeId =
+      GeneratedColumn<String>(
+        'priority_owner_scope_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _priorityCatalogIdMeta = const VerificationMeta(
+    'priorityCatalogId',
+  );
+  @override
+  late final GeneratedColumn<String> priorityCatalogId =
+      GeneratedColumn<String>(
+        'priority_catalog_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _priorityCatalogRevisionMeta =
+      const VerificationMeta('priorityCatalogRevision');
+  @override
+  late final GeneratedColumn<int> priorityCatalogRevision =
+      GeneratedColumn<int>(
+        'priority_catalog_revision',
+        aliasedName,
+        true,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _priorityIdMeta = const VerificationMeta(
+    'priorityId',
+  );
+  @override
+  late final GeneratedColumn<String> priorityId = GeneratedColumn<String>(
+    'priority_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _defaultChannelIdsJsonMeta =
+      const VerificationMeta('defaultChannelIdsJson');
+  @override
+  late final GeneratedColumn<String> defaultChannelIdsJson =
+      GeneratedColumn<String>(
+        'default_channel_ids_json',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _defaultLeadTimesMsJsonMeta =
+      const VerificationMeta('defaultLeadTimesMsJson');
+  @override
+  late final GeneratedColumn<String> defaultLeadTimesMsJson =
+      GeneratedColumn<String>(
+        'default_lead_times_ms_json',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [
+    templateId,
+    ownerScopeId,
+    revision,
+    providerPatternJson,
+    defaultDirectionIdsJson,
+    importanceOwnerScopeId,
+    importanceCatalogId,
+    importanceCatalogRevision,
+    importanceLevelId,
+    priorityOwnerScopeId,
+    priorityCatalogId,
+    priorityCatalogRevision,
+    priorityId,
+    defaultChannelIdsJson,
+    defaultLeadTimesMsJson,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_le_rule_templates';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LifeEventRuleTemplateRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('template_id')) {
+      context.handle(
+        _templateIdMeta,
+        templateId.isAcceptableOrUnknown(data['template_id']!, _templateIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_templateIdMeta);
+    }
+    if (data.containsKey('owner_scope_id')) {
+      context.handle(
+        _ownerScopeIdMeta,
+        ownerScopeId.isAcceptableOrUnknown(
+          data['owner_scope_id']!,
+          _ownerScopeIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_ownerScopeIdMeta);
+    }
+    if (data.containsKey('revision')) {
+      context.handle(
+        _revisionMeta,
+        revision.isAcceptableOrUnknown(data['revision']!, _revisionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_revisionMeta);
+    }
+    if (data.containsKey('provider_pattern_json')) {
+      context.handle(
+        _providerPatternJsonMeta,
+        providerPatternJson.isAcceptableOrUnknown(
+          data['provider_pattern_json']!,
+          _providerPatternJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_providerPatternJsonMeta);
+    }
+    if (data.containsKey('default_direction_ids_json')) {
+      context.handle(
+        _defaultDirectionIdsJsonMeta,
+        defaultDirectionIdsJson.isAcceptableOrUnknown(
+          data['default_direction_ids_json']!,
+          _defaultDirectionIdsJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_defaultDirectionIdsJsonMeta);
+    }
+    if (data.containsKey('importance_owner_scope_id')) {
+      context.handle(
+        _importanceOwnerScopeIdMeta,
+        importanceOwnerScopeId.isAcceptableOrUnknown(
+          data['importance_owner_scope_id']!,
+          _importanceOwnerScopeIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('importance_catalog_id')) {
+      context.handle(
+        _importanceCatalogIdMeta,
+        importanceCatalogId.isAcceptableOrUnknown(
+          data['importance_catalog_id']!,
+          _importanceCatalogIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('importance_catalog_revision')) {
+      context.handle(
+        _importanceCatalogRevisionMeta,
+        importanceCatalogRevision.isAcceptableOrUnknown(
+          data['importance_catalog_revision']!,
+          _importanceCatalogRevisionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('importance_level_id')) {
+      context.handle(
+        _importanceLevelIdMeta,
+        importanceLevelId.isAcceptableOrUnknown(
+          data['importance_level_id']!,
+          _importanceLevelIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('priority_owner_scope_id')) {
+      context.handle(
+        _priorityOwnerScopeIdMeta,
+        priorityOwnerScopeId.isAcceptableOrUnknown(
+          data['priority_owner_scope_id']!,
+          _priorityOwnerScopeIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('priority_catalog_id')) {
+      context.handle(
+        _priorityCatalogIdMeta,
+        priorityCatalogId.isAcceptableOrUnknown(
+          data['priority_catalog_id']!,
+          _priorityCatalogIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('priority_catalog_revision')) {
+      context.handle(
+        _priorityCatalogRevisionMeta,
+        priorityCatalogRevision.isAcceptableOrUnknown(
+          data['priority_catalog_revision']!,
+          _priorityCatalogRevisionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('priority_id')) {
+      context.handle(
+        _priorityIdMeta,
+        priorityId.isAcceptableOrUnknown(data['priority_id']!, _priorityIdMeta),
+      );
+    }
+    if (data.containsKey('default_channel_ids_json')) {
+      context.handle(
+        _defaultChannelIdsJsonMeta,
+        defaultChannelIdsJson.isAcceptableOrUnknown(
+          data['default_channel_ids_json']!,
+          _defaultChannelIdsJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_defaultChannelIdsJsonMeta);
+    }
+    if (data.containsKey('default_lead_times_ms_json')) {
+      context.handle(
+        _defaultLeadTimesMsJsonMeta,
+        defaultLeadTimesMsJson.isAcceptableOrUnknown(
+          data['default_lead_times_ms_json']!,
+          _defaultLeadTimesMsJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_defaultLeadTimesMsJsonMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {templateId};
+  @override
+  LifeEventRuleTemplateRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LifeEventRuleTemplateRow(
+      templateId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}template_id'],
+      )!,
+      ownerScopeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_scope_id'],
+      )!,
+      revision: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}revision'],
+      )!,
+      providerPatternJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}provider_pattern_json'],
+      )!,
+      defaultDirectionIdsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}default_direction_ids_json'],
+      )!,
+      importanceOwnerScopeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}importance_owner_scope_id'],
+      ),
+      importanceCatalogId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}importance_catalog_id'],
+      ),
+      importanceCatalogRevision: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}importance_catalog_revision'],
+      ),
+      importanceLevelId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}importance_level_id'],
+      ),
+      priorityOwnerScopeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}priority_owner_scope_id'],
+      ),
+      priorityCatalogId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}priority_catalog_id'],
+      ),
+      priorityCatalogRevision: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}priority_catalog_revision'],
+      ),
+      priorityId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}priority_id'],
+      ),
+      defaultChannelIdsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}default_channel_ids_json'],
+      )!,
+      defaultLeadTimesMsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}default_lead_times_ms_json'],
+      )!,
+    );
+  }
+
+  @override
+  $LifeEventRuleTemplatesTable createAlias(String alias) {
+    return $LifeEventRuleTemplatesTable(attachedDatabase, alias);
+  }
+}
+
+class LifeEventRuleTemplateRow extends DataClass
+    implements Insertable<LifeEventRuleTemplateRow> {
+  final String templateId;
+  final String ownerScopeId;
+  final int revision;
+  final String providerPatternJson;
+  final String defaultDirectionIdsJson;
+  final String? importanceOwnerScopeId;
+  final String? importanceCatalogId;
+  final int? importanceCatalogRevision;
+  final String? importanceLevelId;
+  final String? priorityOwnerScopeId;
+  final String? priorityCatalogId;
+  final int? priorityCatalogRevision;
+  final String? priorityId;
+  final String defaultChannelIdsJson;
+  final String defaultLeadTimesMsJson;
+  const LifeEventRuleTemplateRow({
+    required this.templateId,
+    required this.ownerScopeId,
+    required this.revision,
+    required this.providerPatternJson,
+    required this.defaultDirectionIdsJson,
+    this.importanceOwnerScopeId,
+    this.importanceCatalogId,
+    this.importanceCatalogRevision,
+    this.importanceLevelId,
+    this.priorityOwnerScopeId,
+    this.priorityCatalogId,
+    this.priorityCatalogRevision,
+    this.priorityId,
+    required this.defaultChannelIdsJson,
+    required this.defaultLeadTimesMsJson,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['template_id'] = Variable<String>(templateId);
+    map['owner_scope_id'] = Variable<String>(ownerScopeId);
+    map['revision'] = Variable<int>(revision);
+    map['provider_pattern_json'] = Variable<String>(providerPatternJson);
+    map['default_direction_ids_json'] = Variable<String>(
+      defaultDirectionIdsJson,
+    );
+    if (!nullToAbsent || importanceOwnerScopeId != null) {
+      map['importance_owner_scope_id'] = Variable<String>(
+        importanceOwnerScopeId,
+      );
+    }
+    if (!nullToAbsent || importanceCatalogId != null) {
+      map['importance_catalog_id'] = Variable<String>(importanceCatalogId);
+    }
+    if (!nullToAbsent || importanceCatalogRevision != null) {
+      map['importance_catalog_revision'] = Variable<int>(
+        importanceCatalogRevision,
+      );
+    }
+    if (!nullToAbsent || importanceLevelId != null) {
+      map['importance_level_id'] = Variable<String>(importanceLevelId);
+    }
+    if (!nullToAbsent || priorityOwnerScopeId != null) {
+      map['priority_owner_scope_id'] = Variable<String>(priorityOwnerScopeId);
+    }
+    if (!nullToAbsent || priorityCatalogId != null) {
+      map['priority_catalog_id'] = Variable<String>(priorityCatalogId);
+    }
+    if (!nullToAbsent || priorityCatalogRevision != null) {
+      map['priority_catalog_revision'] = Variable<int>(priorityCatalogRevision);
+    }
+    if (!nullToAbsent || priorityId != null) {
+      map['priority_id'] = Variable<String>(priorityId);
+    }
+    map['default_channel_ids_json'] = Variable<String>(defaultChannelIdsJson);
+    map['default_lead_times_ms_json'] = Variable<String>(
+      defaultLeadTimesMsJson,
+    );
+    return map;
+  }
+
+  LifeEventRuleTemplatesCompanion toCompanion(bool nullToAbsent) {
+    return LifeEventRuleTemplatesCompanion(
+      templateId: Value(templateId),
+      ownerScopeId: Value(ownerScopeId),
+      revision: Value(revision),
+      providerPatternJson: Value(providerPatternJson),
+      defaultDirectionIdsJson: Value(defaultDirectionIdsJson),
+      importanceOwnerScopeId: importanceOwnerScopeId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(importanceOwnerScopeId),
+      importanceCatalogId: importanceCatalogId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(importanceCatalogId),
+      importanceCatalogRevision:
+          importanceCatalogRevision == null && nullToAbsent
+          ? const Value.absent()
+          : Value(importanceCatalogRevision),
+      importanceLevelId: importanceLevelId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(importanceLevelId),
+      priorityOwnerScopeId: priorityOwnerScopeId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(priorityOwnerScopeId),
+      priorityCatalogId: priorityCatalogId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(priorityCatalogId),
+      priorityCatalogRevision: priorityCatalogRevision == null && nullToAbsent
+          ? const Value.absent()
+          : Value(priorityCatalogRevision),
+      priorityId: priorityId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(priorityId),
+      defaultChannelIdsJson: Value(defaultChannelIdsJson),
+      defaultLeadTimesMsJson: Value(defaultLeadTimesMsJson),
+    );
+  }
+
+  factory LifeEventRuleTemplateRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LifeEventRuleTemplateRow(
+      templateId: serializer.fromJson<String>(json['templateId']),
+      ownerScopeId: serializer.fromJson<String>(json['ownerScopeId']),
+      revision: serializer.fromJson<int>(json['revision']),
+      providerPatternJson: serializer.fromJson<String>(
+        json['providerPatternJson'],
+      ),
+      defaultDirectionIdsJson: serializer.fromJson<String>(
+        json['defaultDirectionIdsJson'],
+      ),
+      importanceOwnerScopeId: serializer.fromJson<String?>(
+        json['importanceOwnerScopeId'],
+      ),
+      importanceCatalogId: serializer.fromJson<String?>(
+        json['importanceCatalogId'],
+      ),
+      importanceCatalogRevision: serializer.fromJson<int?>(
+        json['importanceCatalogRevision'],
+      ),
+      importanceLevelId: serializer.fromJson<String?>(
+        json['importanceLevelId'],
+      ),
+      priorityOwnerScopeId: serializer.fromJson<String?>(
+        json['priorityOwnerScopeId'],
+      ),
+      priorityCatalogId: serializer.fromJson<String?>(
+        json['priorityCatalogId'],
+      ),
+      priorityCatalogRevision: serializer.fromJson<int?>(
+        json['priorityCatalogRevision'],
+      ),
+      priorityId: serializer.fromJson<String?>(json['priorityId']),
+      defaultChannelIdsJson: serializer.fromJson<String>(
+        json['defaultChannelIdsJson'],
+      ),
+      defaultLeadTimesMsJson: serializer.fromJson<String>(
+        json['defaultLeadTimesMsJson'],
+      ),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'templateId': serializer.toJson<String>(templateId),
+      'ownerScopeId': serializer.toJson<String>(ownerScopeId),
+      'revision': serializer.toJson<int>(revision),
+      'providerPatternJson': serializer.toJson<String>(providerPatternJson),
+      'defaultDirectionIdsJson': serializer.toJson<String>(
+        defaultDirectionIdsJson,
+      ),
+      'importanceOwnerScopeId': serializer.toJson<String?>(
+        importanceOwnerScopeId,
+      ),
+      'importanceCatalogId': serializer.toJson<String?>(importanceCatalogId),
+      'importanceCatalogRevision': serializer.toJson<int?>(
+        importanceCatalogRevision,
+      ),
+      'importanceLevelId': serializer.toJson<String?>(importanceLevelId),
+      'priorityOwnerScopeId': serializer.toJson<String?>(priorityOwnerScopeId),
+      'priorityCatalogId': serializer.toJson<String?>(priorityCatalogId),
+      'priorityCatalogRevision': serializer.toJson<int?>(
+        priorityCatalogRevision,
+      ),
+      'priorityId': serializer.toJson<String?>(priorityId),
+      'defaultChannelIdsJson': serializer.toJson<String>(defaultChannelIdsJson),
+      'defaultLeadTimesMsJson': serializer.toJson<String>(
+        defaultLeadTimesMsJson,
+      ),
+    };
+  }
+
+  LifeEventRuleTemplateRow copyWith({
+    String? templateId,
+    String? ownerScopeId,
+    int? revision,
+    String? providerPatternJson,
+    String? defaultDirectionIdsJson,
+    Value<String?> importanceOwnerScopeId = const Value.absent(),
+    Value<String?> importanceCatalogId = const Value.absent(),
+    Value<int?> importanceCatalogRevision = const Value.absent(),
+    Value<String?> importanceLevelId = const Value.absent(),
+    Value<String?> priorityOwnerScopeId = const Value.absent(),
+    Value<String?> priorityCatalogId = const Value.absent(),
+    Value<int?> priorityCatalogRevision = const Value.absent(),
+    Value<String?> priorityId = const Value.absent(),
+    String? defaultChannelIdsJson,
+    String? defaultLeadTimesMsJson,
+  }) => LifeEventRuleTemplateRow(
+    templateId: templateId ?? this.templateId,
+    ownerScopeId: ownerScopeId ?? this.ownerScopeId,
+    revision: revision ?? this.revision,
+    providerPatternJson: providerPatternJson ?? this.providerPatternJson,
+    defaultDirectionIdsJson:
+        defaultDirectionIdsJson ?? this.defaultDirectionIdsJson,
+    importanceOwnerScopeId: importanceOwnerScopeId.present
+        ? importanceOwnerScopeId.value
+        : this.importanceOwnerScopeId,
+    importanceCatalogId: importanceCatalogId.present
+        ? importanceCatalogId.value
+        : this.importanceCatalogId,
+    importanceCatalogRevision: importanceCatalogRevision.present
+        ? importanceCatalogRevision.value
+        : this.importanceCatalogRevision,
+    importanceLevelId: importanceLevelId.present
+        ? importanceLevelId.value
+        : this.importanceLevelId,
+    priorityOwnerScopeId: priorityOwnerScopeId.present
+        ? priorityOwnerScopeId.value
+        : this.priorityOwnerScopeId,
+    priorityCatalogId: priorityCatalogId.present
+        ? priorityCatalogId.value
+        : this.priorityCatalogId,
+    priorityCatalogRevision: priorityCatalogRevision.present
+        ? priorityCatalogRevision.value
+        : this.priorityCatalogRevision,
+    priorityId: priorityId.present ? priorityId.value : this.priorityId,
+    defaultChannelIdsJson: defaultChannelIdsJson ?? this.defaultChannelIdsJson,
+    defaultLeadTimesMsJson:
+        defaultLeadTimesMsJson ?? this.defaultLeadTimesMsJson,
+  );
+  LifeEventRuleTemplateRow copyWithCompanion(
+    LifeEventRuleTemplatesCompanion data,
+  ) {
+    return LifeEventRuleTemplateRow(
+      templateId: data.templateId.present
+          ? data.templateId.value
+          : this.templateId,
+      ownerScopeId: data.ownerScopeId.present
+          ? data.ownerScopeId.value
+          : this.ownerScopeId,
+      revision: data.revision.present ? data.revision.value : this.revision,
+      providerPatternJson: data.providerPatternJson.present
+          ? data.providerPatternJson.value
+          : this.providerPatternJson,
+      defaultDirectionIdsJson: data.defaultDirectionIdsJson.present
+          ? data.defaultDirectionIdsJson.value
+          : this.defaultDirectionIdsJson,
+      importanceOwnerScopeId: data.importanceOwnerScopeId.present
+          ? data.importanceOwnerScopeId.value
+          : this.importanceOwnerScopeId,
+      importanceCatalogId: data.importanceCatalogId.present
+          ? data.importanceCatalogId.value
+          : this.importanceCatalogId,
+      importanceCatalogRevision: data.importanceCatalogRevision.present
+          ? data.importanceCatalogRevision.value
+          : this.importanceCatalogRevision,
+      importanceLevelId: data.importanceLevelId.present
+          ? data.importanceLevelId.value
+          : this.importanceLevelId,
+      priorityOwnerScopeId: data.priorityOwnerScopeId.present
+          ? data.priorityOwnerScopeId.value
+          : this.priorityOwnerScopeId,
+      priorityCatalogId: data.priorityCatalogId.present
+          ? data.priorityCatalogId.value
+          : this.priorityCatalogId,
+      priorityCatalogRevision: data.priorityCatalogRevision.present
+          ? data.priorityCatalogRevision.value
+          : this.priorityCatalogRevision,
+      priorityId: data.priorityId.present
+          ? data.priorityId.value
+          : this.priorityId,
+      defaultChannelIdsJson: data.defaultChannelIdsJson.present
+          ? data.defaultChannelIdsJson.value
+          : this.defaultChannelIdsJson,
+      defaultLeadTimesMsJson: data.defaultLeadTimesMsJson.present
+          ? data.defaultLeadTimesMsJson.value
+          : this.defaultLeadTimesMsJson,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LifeEventRuleTemplateRow(')
+          ..write('templateId: $templateId, ')
+          ..write('ownerScopeId: $ownerScopeId, ')
+          ..write('revision: $revision, ')
+          ..write('providerPatternJson: $providerPatternJson, ')
+          ..write('defaultDirectionIdsJson: $defaultDirectionIdsJson, ')
+          ..write('importanceOwnerScopeId: $importanceOwnerScopeId, ')
+          ..write('importanceCatalogId: $importanceCatalogId, ')
+          ..write('importanceCatalogRevision: $importanceCatalogRevision, ')
+          ..write('importanceLevelId: $importanceLevelId, ')
+          ..write('priorityOwnerScopeId: $priorityOwnerScopeId, ')
+          ..write('priorityCatalogId: $priorityCatalogId, ')
+          ..write('priorityCatalogRevision: $priorityCatalogRevision, ')
+          ..write('priorityId: $priorityId, ')
+          ..write('defaultChannelIdsJson: $defaultChannelIdsJson, ')
+          ..write('defaultLeadTimesMsJson: $defaultLeadTimesMsJson')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    templateId,
+    ownerScopeId,
+    revision,
+    providerPatternJson,
+    defaultDirectionIdsJson,
+    importanceOwnerScopeId,
+    importanceCatalogId,
+    importanceCatalogRevision,
+    importanceLevelId,
+    priorityOwnerScopeId,
+    priorityCatalogId,
+    priorityCatalogRevision,
+    priorityId,
+    defaultChannelIdsJson,
+    defaultLeadTimesMsJson,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LifeEventRuleTemplateRow &&
+          other.templateId == this.templateId &&
+          other.ownerScopeId == this.ownerScopeId &&
+          other.revision == this.revision &&
+          other.providerPatternJson == this.providerPatternJson &&
+          other.defaultDirectionIdsJson == this.defaultDirectionIdsJson &&
+          other.importanceOwnerScopeId == this.importanceOwnerScopeId &&
+          other.importanceCatalogId == this.importanceCatalogId &&
+          other.importanceCatalogRevision == this.importanceCatalogRevision &&
+          other.importanceLevelId == this.importanceLevelId &&
+          other.priorityOwnerScopeId == this.priorityOwnerScopeId &&
+          other.priorityCatalogId == this.priorityCatalogId &&
+          other.priorityCatalogRevision == this.priorityCatalogRevision &&
+          other.priorityId == this.priorityId &&
+          other.defaultChannelIdsJson == this.defaultChannelIdsJson &&
+          other.defaultLeadTimesMsJson == this.defaultLeadTimesMsJson);
+}
+
+class LifeEventRuleTemplatesCompanion
+    extends UpdateCompanion<LifeEventRuleTemplateRow> {
+  final Value<String> templateId;
+  final Value<String> ownerScopeId;
+  final Value<int> revision;
+  final Value<String> providerPatternJson;
+  final Value<String> defaultDirectionIdsJson;
+  final Value<String?> importanceOwnerScopeId;
+  final Value<String?> importanceCatalogId;
+  final Value<int?> importanceCatalogRevision;
+  final Value<String?> importanceLevelId;
+  final Value<String?> priorityOwnerScopeId;
+  final Value<String?> priorityCatalogId;
+  final Value<int?> priorityCatalogRevision;
+  final Value<String?> priorityId;
+  final Value<String> defaultChannelIdsJson;
+  final Value<String> defaultLeadTimesMsJson;
+  final Value<int> rowid;
+  const LifeEventRuleTemplatesCompanion({
+    this.templateId = const Value.absent(),
+    this.ownerScopeId = const Value.absent(),
+    this.revision = const Value.absent(),
+    this.providerPatternJson = const Value.absent(),
+    this.defaultDirectionIdsJson = const Value.absent(),
+    this.importanceOwnerScopeId = const Value.absent(),
+    this.importanceCatalogId = const Value.absent(),
+    this.importanceCatalogRevision = const Value.absent(),
+    this.importanceLevelId = const Value.absent(),
+    this.priorityOwnerScopeId = const Value.absent(),
+    this.priorityCatalogId = const Value.absent(),
+    this.priorityCatalogRevision = const Value.absent(),
+    this.priorityId = const Value.absent(),
+    this.defaultChannelIdsJson = const Value.absent(),
+    this.defaultLeadTimesMsJson = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LifeEventRuleTemplatesCompanion.insert({
+    required String templateId,
+    required String ownerScopeId,
+    required int revision,
+    required String providerPatternJson,
+    required String defaultDirectionIdsJson,
+    this.importanceOwnerScopeId = const Value.absent(),
+    this.importanceCatalogId = const Value.absent(),
+    this.importanceCatalogRevision = const Value.absent(),
+    this.importanceLevelId = const Value.absent(),
+    this.priorityOwnerScopeId = const Value.absent(),
+    this.priorityCatalogId = const Value.absent(),
+    this.priorityCatalogRevision = const Value.absent(),
+    this.priorityId = const Value.absent(),
+    required String defaultChannelIdsJson,
+    required String defaultLeadTimesMsJson,
+    this.rowid = const Value.absent(),
+  }) : templateId = Value(templateId),
+       ownerScopeId = Value(ownerScopeId),
+       revision = Value(revision),
+       providerPatternJson = Value(providerPatternJson),
+       defaultDirectionIdsJson = Value(defaultDirectionIdsJson),
+       defaultChannelIdsJson = Value(defaultChannelIdsJson),
+       defaultLeadTimesMsJson = Value(defaultLeadTimesMsJson);
+  static Insertable<LifeEventRuleTemplateRow> custom({
+    Expression<String>? templateId,
+    Expression<String>? ownerScopeId,
+    Expression<int>? revision,
+    Expression<String>? providerPatternJson,
+    Expression<String>? defaultDirectionIdsJson,
+    Expression<String>? importanceOwnerScopeId,
+    Expression<String>? importanceCatalogId,
+    Expression<int>? importanceCatalogRevision,
+    Expression<String>? importanceLevelId,
+    Expression<String>? priorityOwnerScopeId,
+    Expression<String>? priorityCatalogId,
+    Expression<int>? priorityCatalogRevision,
+    Expression<String>? priorityId,
+    Expression<String>? defaultChannelIdsJson,
+    Expression<String>? defaultLeadTimesMsJson,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (templateId != null) 'template_id': templateId,
+      if (ownerScopeId != null) 'owner_scope_id': ownerScopeId,
+      if (revision != null) 'revision': revision,
+      if (providerPatternJson != null)
+        'provider_pattern_json': providerPatternJson,
+      if (defaultDirectionIdsJson != null)
+        'default_direction_ids_json': defaultDirectionIdsJson,
+      if (importanceOwnerScopeId != null)
+        'importance_owner_scope_id': importanceOwnerScopeId,
+      if (importanceCatalogId != null)
+        'importance_catalog_id': importanceCatalogId,
+      if (importanceCatalogRevision != null)
+        'importance_catalog_revision': importanceCatalogRevision,
+      if (importanceLevelId != null) 'importance_level_id': importanceLevelId,
+      if (priorityOwnerScopeId != null)
+        'priority_owner_scope_id': priorityOwnerScopeId,
+      if (priorityCatalogId != null) 'priority_catalog_id': priorityCatalogId,
+      if (priorityCatalogRevision != null)
+        'priority_catalog_revision': priorityCatalogRevision,
+      if (priorityId != null) 'priority_id': priorityId,
+      if (defaultChannelIdsJson != null)
+        'default_channel_ids_json': defaultChannelIdsJson,
+      if (defaultLeadTimesMsJson != null)
+        'default_lead_times_ms_json': defaultLeadTimesMsJson,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LifeEventRuleTemplatesCompanion copyWith({
+    Value<String>? templateId,
+    Value<String>? ownerScopeId,
+    Value<int>? revision,
+    Value<String>? providerPatternJson,
+    Value<String>? defaultDirectionIdsJson,
+    Value<String?>? importanceOwnerScopeId,
+    Value<String?>? importanceCatalogId,
+    Value<int?>? importanceCatalogRevision,
+    Value<String?>? importanceLevelId,
+    Value<String?>? priorityOwnerScopeId,
+    Value<String?>? priorityCatalogId,
+    Value<int?>? priorityCatalogRevision,
+    Value<String?>? priorityId,
+    Value<String>? defaultChannelIdsJson,
+    Value<String>? defaultLeadTimesMsJson,
+    Value<int>? rowid,
+  }) {
+    return LifeEventRuleTemplatesCompanion(
+      templateId: templateId ?? this.templateId,
+      ownerScopeId: ownerScopeId ?? this.ownerScopeId,
+      revision: revision ?? this.revision,
+      providerPatternJson: providerPatternJson ?? this.providerPatternJson,
+      defaultDirectionIdsJson:
+          defaultDirectionIdsJson ?? this.defaultDirectionIdsJson,
+      importanceOwnerScopeId:
+          importanceOwnerScopeId ?? this.importanceOwnerScopeId,
+      importanceCatalogId: importanceCatalogId ?? this.importanceCatalogId,
+      importanceCatalogRevision:
+          importanceCatalogRevision ?? this.importanceCatalogRevision,
+      importanceLevelId: importanceLevelId ?? this.importanceLevelId,
+      priorityOwnerScopeId: priorityOwnerScopeId ?? this.priorityOwnerScopeId,
+      priorityCatalogId: priorityCatalogId ?? this.priorityCatalogId,
+      priorityCatalogRevision:
+          priorityCatalogRevision ?? this.priorityCatalogRevision,
+      priorityId: priorityId ?? this.priorityId,
+      defaultChannelIdsJson:
+          defaultChannelIdsJson ?? this.defaultChannelIdsJson,
+      defaultLeadTimesMsJson:
+          defaultLeadTimesMsJson ?? this.defaultLeadTimesMsJson,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (templateId.present) {
+      map['template_id'] = Variable<String>(templateId.value);
+    }
+    if (ownerScopeId.present) {
+      map['owner_scope_id'] = Variable<String>(ownerScopeId.value);
+    }
+    if (revision.present) {
+      map['revision'] = Variable<int>(revision.value);
+    }
+    if (providerPatternJson.present) {
+      map['provider_pattern_json'] = Variable<String>(
+        providerPatternJson.value,
+      );
+    }
+    if (defaultDirectionIdsJson.present) {
+      map['default_direction_ids_json'] = Variable<String>(
+        defaultDirectionIdsJson.value,
+      );
+    }
+    if (importanceOwnerScopeId.present) {
+      map['importance_owner_scope_id'] = Variable<String>(
+        importanceOwnerScopeId.value,
+      );
+    }
+    if (importanceCatalogId.present) {
+      map['importance_catalog_id'] = Variable<String>(
+        importanceCatalogId.value,
+      );
+    }
+    if (importanceCatalogRevision.present) {
+      map['importance_catalog_revision'] = Variable<int>(
+        importanceCatalogRevision.value,
+      );
+    }
+    if (importanceLevelId.present) {
+      map['importance_level_id'] = Variable<String>(importanceLevelId.value);
+    }
+    if (priorityOwnerScopeId.present) {
+      map['priority_owner_scope_id'] = Variable<String>(
+        priorityOwnerScopeId.value,
+      );
+    }
+    if (priorityCatalogId.present) {
+      map['priority_catalog_id'] = Variable<String>(priorityCatalogId.value);
+    }
+    if (priorityCatalogRevision.present) {
+      map['priority_catalog_revision'] = Variable<int>(
+        priorityCatalogRevision.value,
+      );
+    }
+    if (priorityId.present) {
+      map['priority_id'] = Variable<String>(priorityId.value);
+    }
+    if (defaultChannelIdsJson.present) {
+      map['default_channel_ids_json'] = Variable<String>(
+        defaultChannelIdsJson.value,
+      );
+    }
+    if (defaultLeadTimesMsJson.present) {
+      map['default_lead_times_ms_json'] = Variable<String>(
+        defaultLeadTimesMsJson.value,
+      );
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LifeEventRuleTemplatesCompanion(')
+          ..write('templateId: $templateId, ')
+          ..write('ownerScopeId: $ownerScopeId, ')
+          ..write('revision: $revision, ')
+          ..write('providerPatternJson: $providerPatternJson, ')
+          ..write('defaultDirectionIdsJson: $defaultDirectionIdsJson, ')
+          ..write('importanceOwnerScopeId: $importanceOwnerScopeId, ')
+          ..write('importanceCatalogId: $importanceCatalogId, ')
+          ..write('importanceCatalogRevision: $importanceCatalogRevision, ')
+          ..write('importanceLevelId: $importanceLevelId, ')
+          ..write('priorityOwnerScopeId: $priorityOwnerScopeId, ')
+          ..write('priorityCatalogId: $priorityCatalogId, ')
+          ..write('priorityCatalogRevision: $priorityCatalogRevision, ')
+          ..write('priorityId: $priorityId, ')
+          ..write('defaultChannelIdsJson: $defaultChannelIdsJson, ')
+          ..write('defaultLeadTimesMsJson: $defaultLeadTimesMsJson, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$LifeEventDatabase extends GeneratedDatabase {
   _$LifeEventDatabase(QueryExecutor e) : super(e);
   $LifeEventDatabaseManager get managers => $LifeEventDatabaseManager(this);
@@ -6363,6 +10897,24 @@ abstract class _$LifeEventDatabase extends GeneratedDatabase {
       $LifeEventCoverageManifestsTable(this);
   late final $LifeEventShardReceiptsTable lifeEventShardReceipts =
       $LifeEventShardReceiptsTable(this);
+  late final $LifeEventUserDirectionsTable lifeEventUserDirections =
+      $LifeEventUserDirectionsTable(this);
+  late final $LifeEventUserAnnotationsTable lifeEventUserAnnotations =
+      $LifeEventUserAnnotationsTable(this);
+  late final $LifeEventAnnotationTargetRefsTable lifeEventAnnotationTargetRefs =
+      $LifeEventAnnotationTargetRefsTable(this);
+  late final $LifeEventAnnotationDirectionRefsTable
+  lifeEventAnnotationDirectionRefs = $LifeEventAnnotationDirectionRefsTable(
+    this,
+  );
+  late final $LifeEventOccurrenceSelectionsTable lifeEventOccurrenceSelections =
+      $LifeEventOccurrenceSelectionsTable(this);
+  late final $LifeEventPatternRulesTable lifeEventPatternRules =
+      $LifeEventPatternRulesTable(this);
+  late final $LifeEventPatternTargetRefsTable lifeEventPatternTargetRefs =
+      $LifeEventPatternTargetRefsTable(this);
+  late final $LifeEventRuleTemplatesTable lifeEventRuleTemplates =
+      $LifeEventRuleTemplatesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -6377,6 +10929,14 @@ abstract class _$LifeEventDatabase extends GeneratedDatabase {
     lifeEventCoverageSeriesHeads,
     lifeEventCoverageManifests,
     lifeEventShardReceipts,
+    lifeEventUserDirections,
+    lifeEventUserAnnotations,
+    lifeEventAnnotationTargetRefs,
+    lifeEventAnnotationDirectionRefs,
+    lifeEventOccurrenceSelections,
+    lifeEventPatternRules,
+    lifeEventPatternTargetRefs,
+    lifeEventRuleTemplates,
   ];
 }
 
@@ -9481,6 +14041,2283 @@ typedef $$LifeEventShardReceiptsTableProcessedTableManager =
       LifeEventShardReceiptRow,
       PrefetchHooks Function()
     >;
+typedef $$LifeEventUserDirectionsTableCreateCompanionBuilder =
+    LifeEventUserDirectionsCompanion Function({
+      required String directionId,
+      required String ownerScopeId,
+      required String label,
+      Value<String?> color,
+      required int sortOrder,
+      Value<int?> archivedAtMs,
+      Value<int> rowid,
+    });
+typedef $$LifeEventUserDirectionsTableUpdateCompanionBuilder =
+    LifeEventUserDirectionsCompanion Function({
+      Value<String> directionId,
+      Value<String> ownerScopeId,
+      Value<String> label,
+      Value<String?> color,
+      Value<int> sortOrder,
+      Value<int?> archivedAtMs,
+      Value<int> rowid,
+    });
+
+class $$LifeEventUserDirectionsTableFilterComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventUserDirectionsTable> {
+  $$LifeEventUserDirectionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get directionId => $composableBuilder(
+    column: $table.directionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ownerScopeId => $composableBuilder(
+    column: $table.ownerScopeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get archivedAtMs => $composableBuilder(
+    column: $table.archivedAtMs,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$LifeEventUserDirectionsTableOrderingComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventUserDirectionsTable> {
+  $$LifeEventUserDirectionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get directionId => $composableBuilder(
+    column: $table.directionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ownerScopeId => $composableBuilder(
+    column: $table.ownerScopeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get archivedAtMs => $composableBuilder(
+    column: $table.archivedAtMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$LifeEventUserDirectionsTableAnnotationComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventUserDirectionsTable> {
+  $$LifeEventUserDirectionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get directionId => $composableBuilder(
+    column: $table.directionId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get ownerScopeId => $composableBuilder(
+    column: $table.ownerScopeId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get label =>
+      $composableBuilder(column: $table.label, builder: (column) => column);
+
+  GeneratedColumn<String> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  GeneratedColumn<int> get archivedAtMs => $composableBuilder(
+    column: $table.archivedAtMs,
+    builder: (column) => column,
+  );
+}
+
+class $$LifeEventUserDirectionsTableTableManager
+    extends
+        RootTableManager<
+          _$LifeEventDatabase,
+          $LifeEventUserDirectionsTable,
+          LifeEventUserDirectionRow,
+          $$LifeEventUserDirectionsTableFilterComposer,
+          $$LifeEventUserDirectionsTableOrderingComposer,
+          $$LifeEventUserDirectionsTableAnnotationComposer,
+          $$LifeEventUserDirectionsTableCreateCompanionBuilder,
+          $$LifeEventUserDirectionsTableUpdateCompanionBuilder,
+          (
+            LifeEventUserDirectionRow,
+            BaseReferences<
+              _$LifeEventDatabase,
+              $LifeEventUserDirectionsTable,
+              LifeEventUserDirectionRow
+            >,
+          ),
+          LifeEventUserDirectionRow,
+          PrefetchHooks Function()
+        > {
+  $$LifeEventUserDirectionsTableTableManager(
+    _$LifeEventDatabase db,
+    $LifeEventUserDirectionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LifeEventUserDirectionsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$LifeEventUserDirectionsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$LifeEventUserDirectionsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> directionId = const Value.absent(),
+                Value<String> ownerScopeId = const Value.absent(),
+                Value<String> label = const Value.absent(),
+                Value<String?> color = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<int?> archivedAtMs = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LifeEventUserDirectionsCompanion(
+                directionId: directionId,
+                ownerScopeId: ownerScopeId,
+                label: label,
+                color: color,
+                sortOrder: sortOrder,
+                archivedAtMs: archivedAtMs,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String directionId,
+                required String ownerScopeId,
+                required String label,
+                Value<String?> color = const Value.absent(),
+                required int sortOrder,
+                Value<int?> archivedAtMs = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LifeEventUserDirectionsCompanion.insert(
+                directionId: directionId,
+                ownerScopeId: ownerScopeId,
+                label: label,
+                color: color,
+                sortOrder: sortOrder,
+                archivedAtMs: archivedAtMs,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$LifeEventUserDirectionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$LifeEventDatabase,
+      $LifeEventUserDirectionsTable,
+      LifeEventUserDirectionRow,
+      $$LifeEventUserDirectionsTableFilterComposer,
+      $$LifeEventUserDirectionsTableOrderingComposer,
+      $$LifeEventUserDirectionsTableAnnotationComposer,
+      $$LifeEventUserDirectionsTableCreateCompanionBuilder,
+      $$LifeEventUserDirectionsTableUpdateCompanionBuilder,
+      (
+        LifeEventUserDirectionRow,
+        BaseReferences<
+          _$LifeEventDatabase,
+          $LifeEventUserDirectionsTable,
+          LifeEventUserDirectionRow
+        >,
+      ),
+      LifeEventUserDirectionRow,
+      PrefetchHooks Function()
+    >;
+typedef $$LifeEventUserAnnotationsTableCreateCompanionBuilder =
+    LifeEventUserAnnotationsCompanion Function({
+      required String annotationId,
+      required String ownerScopeId,
+      Value<String?> title,
+      Value<String?> interpretation,
+      Value<String?> importanceOwnerScopeId,
+      Value<String?> importanceCatalogId,
+      Value<int?> importanceCatalogRevision,
+      Value<String?> importanceLevelId,
+      Value<String> tagsJson,
+      required int revision,
+      required int createdAtMs,
+      required int updatedAtMs,
+      Value<int> rowid,
+    });
+typedef $$LifeEventUserAnnotationsTableUpdateCompanionBuilder =
+    LifeEventUserAnnotationsCompanion Function({
+      Value<String> annotationId,
+      Value<String> ownerScopeId,
+      Value<String?> title,
+      Value<String?> interpretation,
+      Value<String?> importanceOwnerScopeId,
+      Value<String?> importanceCatalogId,
+      Value<int?> importanceCatalogRevision,
+      Value<String?> importanceLevelId,
+      Value<String> tagsJson,
+      Value<int> revision,
+      Value<int> createdAtMs,
+      Value<int> updatedAtMs,
+      Value<int> rowid,
+    });
+
+class $$LifeEventUserAnnotationsTableFilterComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventUserAnnotationsTable> {
+  $$LifeEventUserAnnotationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get annotationId => $composableBuilder(
+    column: $table.annotationId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ownerScopeId => $composableBuilder(
+    column: $table.ownerScopeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get interpretation => $composableBuilder(
+    column: $table.interpretation,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get importanceOwnerScopeId => $composableBuilder(
+    column: $table.importanceOwnerScopeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get importanceCatalogId => $composableBuilder(
+    column: $table.importanceCatalogId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get importanceCatalogRevision => $composableBuilder(
+    column: $table.importanceCatalogRevision,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get importanceLevelId => $composableBuilder(
+    column: $table.importanceLevelId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tagsJson => $composableBuilder(
+    column: $table.tagsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get revision => $composableBuilder(
+    column: $table.revision,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAtMs => $composableBuilder(
+    column: $table.createdAtMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAtMs => $composableBuilder(
+    column: $table.updatedAtMs,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$LifeEventUserAnnotationsTableOrderingComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventUserAnnotationsTable> {
+  $$LifeEventUserAnnotationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get annotationId => $composableBuilder(
+    column: $table.annotationId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ownerScopeId => $composableBuilder(
+    column: $table.ownerScopeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get interpretation => $composableBuilder(
+    column: $table.interpretation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get importanceOwnerScopeId => $composableBuilder(
+    column: $table.importanceOwnerScopeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get importanceCatalogId => $composableBuilder(
+    column: $table.importanceCatalogId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get importanceCatalogRevision => $composableBuilder(
+    column: $table.importanceCatalogRevision,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get importanceLevelId => $composableBuilder(
+    column: $table.importanceLevelId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get tagsJson => $composableBuilder(
+    column: $table.tagsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get revision => $composableBuilder(
+    column: $table.revision,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAtMs => $composableBuilder(
+    column: $table.createdAtMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAtMs => $composableBuilder(
+    column: $table.updatedAtMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$LifeEventUserAnnotationsTableAnnotationComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventUserAnnotationsTable> {
+  $$LifeEventUserAnnotationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get annotationId => $composableBuilder(
+    column: $table.annotationId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get ownerScopeId => $composableBuilder(
+    column: $table.ownerScopeId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get interpretation => $composableBuilder(
+    column: $table.interpretation,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get importanceOwnerScopeId => $composableBuilder(
+    column: $table.importanceOwnerScopeId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get importanceCatalogId => $composableBuilder(
+    column: $table.importanceCatalogId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get importanceCatalogRevision => $composableBuilder(
+    column: $table.importanceCatalogRevision,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get importanceLevelId => $composableBuilder(
+    column: $table.importanceLevelId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get tagsJson =>
+      $composableBuilder(column: $table.tagsJson, builder: (column) => column);
+
+  GeneratedColumn<int> get revision =>
+      $composableBuilder(column: $table.revision, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAtMs => $composableBuilder(
+    column: $table.createdAtMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get updatedAtMs => $composableBuilder(
+    column: $table.updatedAtMs,
+    builder: (column) => column,
+  );
+}
+
+class $$LifeEventUserAnnotationsTableTableManager
+    extends
+        RootTableManager<
+          _$LifeEventDatabase,
+          $LifeEventUserAnnotationsTable,
+          LifeEventUserAnnotationRow,
+          $$LifeEventUserAnnotationsTableFilterComposer,
+          $$LifeEventUserAnnotationsTableOrderingComposer,
+          $$LifeEventUserAnnotationsTableAnnotationComposer,
+          $$LifeEventUserAnnotationsTableCreateCompanionBuilder,
+          $$LifeEventUserAnnotationsTableUpdateCompanionBuilder,
+          (
+            LifeEventUserAnnotationRow,
+            BaseReferences<
+              _$LifeEventDatabase,
+              $LifeEventUserAnnotationsTable,
+              LifeEventUserAnnotationRow
+            >,
+          ),
+          LifeEventUserAnnotationRow,
+          PrefetchHooks Function()
+        > {
+  $$LifeEventUserAnnotationsTableTableManager(
+    _$LifeEventDatabase db,
+    $LifeEventUserAnnotationsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LifeEventUserAnnotationsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$LifeEventUserAnnotationsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$LifeEventUserAnnotationsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> annotationId = const Value.absent(),
+                Value<String> ownerScopeId = const Value.absent(),
+                Value<String?> title = const Value.absent(),
+                Value<String?> interpretation = const Value.absent(),
+                Value<String?> importanceOwnerScopeId = const Value.absent(),
+                Value<String?> importanceCatalogId = const Value.absent(),
+                Value<int?> importanceCatalogRevision = const Value.absent(),
+                Value<String?> importanceLevelId = const Value.absent(),
+                Value<String> tagsJson = const Value.absent(),
+                Value<int> revision = const Value.absent(),
+                Value<int> createdAtMs = const Value.absent(),
+                Value<int> updatedAtMs = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LifeEventUserAnnotationsCompanion(
+                annotationId: annotationId,
+                ownerScopeId: ownerScopeId,
+                title: title,
+                interpretation: interpretation,
+                importanceOwnerScopeId: importanceOwnerScopeId,
+                importanceCatalogId: importanceCatalogId,
+                importanceCatalogRevision: importanceCatalogRevision,
+                importanceLevelId: importanceLevelId,
+                tagsJson: tagsJson,
+                revision: revision,
+                createdAtMs: createdAtMs,
+                updatedAtMs: updatedAtMs,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String annotationId,
+                required String ownerScopeId,
+                Value<String?> title = const Value.absent(),
+                Value<String?> interpretation = const Value.absent(),
+                Value<String?> importanceOwnerScopeId = const Value.absent(),
+                Value<String?> importanceCatalogId = const Value.absent(),
+                Value<int?> importanceCatalogRevision = const Value.absent(),
+                Value<String?> importanceLevelId = const Value.absent(),
+                Value<String> tagsJson = const Value.absent(),
+                required int revision,
+                required int createdAtMs,
+                required int updatedAtMs,
+                Value<int> rowid = const Value.absent(),
+              }) => LifeEventUserAnnotationsCompanion.insert(
+                annotationId: annotationId,
+                ownerScopeId: ownerScopeId,
+                title: title,
+                interpretation: interpretation,
+                importanceOwnerScopeId: importanceOwnerScopeId,
+                importanceCatalogId: importanceCatalogId,
+                importanceCatalogRevision: importanceCatalogRevision,
+                importanceLevelId: importanceLevelId,
+                tagsJson: tagsJson,
+                revision: revision,
+                createdAtMs: createdAtMs,
+                updatedAtMs: updatedAtMs,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$LifeEventUserAnnotationsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$LifeEventDatabase,
+      $LifeEventUserAnnotationsTable,
+      LifeEventUserAnnotationRow,
+      $$LifeEventUserAnnotationsTableFilterComposer,
+      $$LifeEventUserAnnotationsTableOrderingComposer,
+      $$LifeEventUserAnnotationsTableAnnotationComposer,
+      $$LifeEventUserAnnotationsTableCreateCompanionBuilder,
+      $$LifeEventUserAnnotationsTableUpdateCompanionBuilder,
+      (
+        LifeEventUserAnnotationRow,
+        BaseReferences<
+          _$LifeEventDatabase,
+          $LifeEventUserAnnotationsTable,
+          LifeEventUserAnnotationRow
+        >,
+      ),
+      LifeEventUserAnnotationRow,
+      PrefetchHooks Function()
+    >;
+typedef $$LifeEventAnnotationTargetRefsTableCreateCompanionBuilder =
+    LifeEventAnnotationTargetRefsCompanion Function({
+      required String annotationId,
+      required String providerId,
+      required String sourceEventId,
+      required String eventRevision,
+      Value<int> rowid,
+    });
+typedef $$LifeEventAnnotationTargetRefsTableUpdateCompanionBuilder =
+    LifeEventAnnotationTargetRefsCompanion Function({
+      Value<String> annotationId,
+      Value<String> providerId,
+      Value<String> sourceEventId,
+      Value<String> eventRevision,
+      Value<int> rowid,
+    });
+
+class $$LifeEventAnnotationTargetRefsTableFilterComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventAnnotationTargetRefsTable> {
+  $$LifeEventAnnotationTargetRefsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get annotationId => $composableBuilder(
+    column: $table.annotationId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get providerId => $composableBuilder(
+    column: $table.providerId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceEventId => $composableBuilder(
+    column: $table.sourceEventId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get eventRevision => $composableBuilder(
+    column: $table.eventRevision,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$LifeEventAnnotationTargetRefsTableOrderingComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventAnnotationTargetRefsTable> {
+  $$LifeEventAnnotationTargetRefsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get annotationId => $composableBuilder(
+    column: $table.annotationId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get providerId => $composableBuilder(
+    column: $table.providerId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceEventId => $composableBuilder(
+    column: $table.sourceEventId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get eventRevision => $composableBuilder(
+    column: $table.eventRevision,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$LifeEventAnnotationTargetRefsTableAnnotationComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventAnnotationTargetRefsTable> {
+  $$LifeEventAnnotationTargetRefsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get annotationId => $composableBuilder(
+    column: $table.annotationId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get providerId => $composableBuilder(
+    column: $table.providerId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sourceEventId => $composableBuilder(
+    column: $table.sourceEventId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get eventRevision => $composableBuilder(
+    column: $table.eventRevision,
+    builder: (column) => column,
+  );
+}
+
+class $$LifeEventAnnotationTargetRefsTableTableManager
+    extends
+        RootTableManager<
+          _$LifeEventDatabase,
+          $LifeEventAnnotationTargetRefsTable,
+          LifeEventAnnotationTargetRefRow,
+          $$LifeEventAnnotationTargetRefsTableFilterComposer,
+          $$LifeEventAnnotationTargetRefsTableOrderingComposer,
+          $$LifeEventAnnotationTargetRefsTableAnnotationComposer,
+          $$LifeEventAnnotationTargetRefsTableCreateCompanionBuilder,
+          $$LifeEventAnnotationTargetRefsTableUpdateCompanionBuilder,
+          (
+            LifeEventAnnotationTargetRefRow,
+            BaseReferences<
+              _$LifeEventDatabase,
+              $LifeEventAnnotationTargetRefsTable,
+              LifeEventAnnotationTargetRefRow
+            >,
+          ),
+          LifeEventAnnotationTargetRefRow,
+          PrefetchHooks Function()
+        > {
+  $$LifeEventAnnotationTargetRefsTableTableManager(
+    _$LifeEventDatabase db,
+    $LifeEventAnnotationTargetRefsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LifeEventAnnotationTargetRefsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$LifeEventAnnotationTargetRefsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$LifeEventAnnotationTargetRefsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> annotationId = const Value.absent(),
+                Value<String> providerId = const Value.absent(),
+                Value<String> sourceEventId = const Value.absent(),
+                Value<String> eventRevision = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LifeEventAnnotationTargetRefsCompanion(
+                annotationId: annotationId,
+                providerId: providerId,
+                sourceEventId: sourceEventId,
+                eventRevision: eventRevision,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String annotationId,
+                required String providerId,
+                required String sourceEventId,
+                required String eventRevision,
+                Value<int> rowid = const Value.absent(),
+              }) => LifeEventAnnotationTargetRefsCompanion.insert(
+                annotationId: annotationId,
+                providerId: providerId,
+                sourceEventId: sourceEventId,
+                eventRevision: eventRevision,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$LifeEventAnnotationTargetRefsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$LifeEventDatabase,
+      $LifeEventAnnotationTargetRefsTable,
+      LifeEventAnnotationTargetRefRow,
+      $$LifeEventAnnotationTargetRefsTableFilterComposer,
+      $$LifeEventAnnotationTargetRefsTableOrderingComposer,
+      $$LifeEventAnnotationTargetRefsTableAnnotationComposer,
+      $$LifeEventAnnotationTargetRefsTableCreateCompanionBuilder,
+      $$LifeEventAnnotationTargetRefsTableUpdateCompanionBuilder,
+      (
+        LifeEventAnnotationTargetRefRow,
+        BaseReferences<
+          _$LifeEventDatabase,
+          $LifeEventAnnotationTargetRefsTable,
+          LifeEventAnnotationTargetRefRow
+        >,
+      ),
+      LifeEventAnnotationTargetRefRow,
+      PrefetchHooks Function()
+    >;
+typedef $$LifeEventAnnotationDirectionRefsTableCreateCompanionBuilder =
+    LifeEventAnnotationDirectionRefsCompanion Function({
+      required String annotationId,
+      required String directionId,
+      Value<int> rowid,
+    });
+typedef $$LifeEventAnnotationDirectionRefsTableUpdateCompanionBuilder =
+    LifeEventAnnotationDirectionRefsCompanion Function({
+      Value<String> annotationId,
+      Value<String> directionId,
+      Value<int> rowid,
+    });
+
+class $$LifeEventAnnotationDirectionRefsTableFilterComposer
+    extends
+        Composer<_$LifeEventDatabase, $LifeEventAnnotationDirectionRefsTable> {
+  $$LifeEventAnnotationDirectionRefsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get annotationId => $composableBuilder(
+    column: $table.annotationId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get directionId => $composableBuilder(
+    column: $table.directionId,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$LifeEventAnnotationDirectionRefsTableOrderingComposer
+    extends
+        Composer<_$LifeEventDatabase, $LifeEventAnnotationDirectionRefsTable> {
+  $$LifeEventAnnotationDirectionRefsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get annotationId => $composableBuilder(
+    column: $table.annotationId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get directionId => $composableBuilder(
+    column: $table.directionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$LifeEventAnnotationDirectionRefsTableAnnotationComposer
+    extends
+        Composer<_$LifeEventDatabase, $LifeEventAnnotationDirectionRefsTable> {
+  $$LifeEventAnnotationDirectionRefsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get annotationId => $composableBuilder(
+    column: $table.annotationId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get directionId => $composableBuilder(
+    column: $table.directionId,
+    builder: (column) => column,
+  );
+}
+
+class $$LifeEventAnnotationDirectionRefsTableTableManager
+    extends
+        RootTableManager<
+          _$LifeEventDatabase,
+          $LifeEventAnnotationDirectionRefsTable,
+          LifeEventAnnotationDirectionRefRow,
+          $$LifeEventAnnotationDirectionRefsTableFilterComposer,
+          $$LifeEventAnnotationDirectionRefsTableOrderingComposer,
+          $$LifeEventAnnotationDirectionRefsTableAnnotationComposer,
+          $$LifeEventAnnotationDirectionRefsTableCreateCompanionBuilder,
+          $$LifeEventAnnotationDirectionRefsTableUpdateCompanionBuilder,
+          (
+            LifeEventAnnotationDirectionRefRow,
+            BaseReferences<
+              _$LifeEventDatabase,
+              $LifeEventAnnotationDirectionRefsTable,
+              LifeEventAnnotationDirectionRefRow
+            >,
+          ),
+          LifeEventAnnotationDirectionRefRow,
+          PrefetchHooks Function()
+        > {
+  $$LifeEventAnnotationDirectionRefsTableTableManager(
+    _$LifeEventDatabase db,
+    $LifeEventAnnotationDirectionRefsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LifeEventAnnotationDirectionRefsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$LifeEventAnnotationDirectionRefsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$LifeEventAnnotationDirectionRefsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> annotationId = const Value.absent(),
+                Value<String> directionId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LifeEventAnnotationDirectionRefsCompanion(
+                annotationId: annotationId,
+                directionId: directionId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String annotationId,
+                required String directionId,
+                Value<int> rowid = const Value.absent(),
+              }) => LifeEventAnnotationDirectionRefsCompanion.insert(
+                annotationId: annotationId,
+                directionId: directionId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$LifeEventAnnotationDirectionRefsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$LifeEventDatabase,
+      $LifeEventAnnotationDirectionRefsTable,
+      LifeEventAnnotationDirectionRefRow,
+      $$LifeEventAnnotationDirectionRefsTableFilterComposer,
+      $$LifeEventAnnotationDirectionRefsTableOrderingComposer,
+      $$LifeEventAnnotationDirectionRefsTableAnnotationComposer,
+      $$LifeEventAnnotationDirectionRefsTableCreateCompanionBuilder,
+      $$LifeEventAnnotationDirectionRefsTableUpdateCompanionBuilder,
+      (
+        LifeEventAnnotationDirectionRefRow,
+        BaseReferences<
+          _$LifeEventDatabase,
+          $LifeEventAnnotationDirectionRefsTable,
+          LifeEventAnnotationDirectionRefRow
+        >,
+      ),
+      LifeEventAnnotationDirectionRefRow,
+      PrefetchHooks Function()
+    >;
+typedef $$LifeEventOccurrenceSelectionsTableCreateCompanionBuilder =
+    LifeEventOccurrenceSelectionsCompanion Function({
+      required String selectionId,
+      required String ownerScopeId,
+      required int revision,
+      required String sourceProviderId,
+      required String sourceEventId,
+      required String sourceEventRevision,
+      required String eventRevision,
+      Value<String?> annotationRef,
+      Value<int> rowid,
+    });
+typedef $$LifeEventOccurrenceSelectionsTableUpdateCompanionBuilder =
+    LifeEventOccurrenceSelectionsCompanion Function({
+      Value<String> selectionId,
+      Value<String> ownerScopeId,
+      Value<int> revision,
+      Value<String> sourceProviderId,
+      Value<String> sourceEventId,
+      Value<String> sourceEventRevision,
+      Value<String> eventRevision,
+      Value<String?> annotationRef,
+      Value<int> rowid,
+    });
+
+class $$LifeEventOccurrenceSelectionsTableFilterComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventOccurrenceSelectionsTable> {
+  $$LifeEventOccurrenceSelectionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get selectionId => $composableBuilder(
+    column: $table.selectionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ownerScopeId => $composableBuilder(
+    column: $table.ownerScopeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get revision => $composableBuilder(
+    column: $table.revision,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceProviderId => $composableBuilder(
+    column: $table.sourceProviderId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceEventId => $composableBuilder(
+    column: $table.sourceEventId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceEventRevision => $composableBuilder(
+    column: $table.sourceEventRevision,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get eventRevision => $composableBuilder(
+    column: $table.eventRevision,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get annotationRef => $composableBuilder(
+    column: $table.annotationRef,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$LifeEventOccurrenceSelectionsTableOrderingComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventOccurrenceSelectionsTable> {
+  $$LifeEventOccurrenceSelectionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get selectionId => $composableBuilder(
+    column: $table.selectionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ownerScopeId => $composableBuilder(
+    column: $table.ownerScopeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get revision => $composableBuilder(
+    column: $table.revision,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceProviderId => $composableBuilder(
+    column: $table.sourceProviderId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceEventId => $composableBuilder(
+    column: $table.sourceEventId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceEventRevision => $composableBuilder(
+    column: $table.sourceEventRevision,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get eventRevision => $composableBuilder(
+    column: $table.eventRevision,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get annotationRef => $composableBuilder(
+    column: $table.annotationRef,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$LifeEventOccurrenceSelectionsTableAnnotationComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventOccurrenceSelectionsTable> {
+  $$LifeEventOccurrenceSelectionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get selectionId => $composableBuilder(
+    column: $table.selectionId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get ownerScopeId => $composableBuilder(
+    column: $table.ownerScopeId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get revision =>
+      $composableBuilder(column: $table.revision, builder: (column) => column);
+
+  GeneratedColumn<String> get sourceProviderId => $composableBuilder(
+    column: $table.sourceProviderId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sourceEventId => $composableBuilder(
+    column: $table.sourceEventId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sourceEventRevision => $composableBuilder(
+    column: $table.sourceEventRevision,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get eventRevision => $composableBuilder(
+    column: $table.eventRevision,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get annotationRef => $composableBuilder(
+    column: $table.annotationRef,
+    builder: (column) => column,
+  );
+}
+
+class $$LifeEventOccurrenceSelectionsTableTableManager
+    extends
+        RootTableManager<
+          _$LifeEventDatabase,
+          $LifeEventOccurrenceSelectionsTable,
+          LifeEventOccurrenceSelectionRow,
+          $$LifeEventOccurrenceSelectionsTableFilterComposer,
+          $$LifeEventOccurrenceSelectionsTableOrderingComposer,
+          $$LifeEventOccurrenceSelectionsTableAnnotationComposer,
+          $$LifeEventOccurrenceSelectionsTableCreateCompanionBuilder,
+          $$LifeEventOccurrenceSelectionsTableUpdateCompanionBuilder,
+          (
+            LifeEventOccurrenceSelectionRow,
+            BaseReferences<
+              _$LifeEventDatabase,
+              $LifeEventOccurrenceSelectionsTable,
+              LifeEventOccurrenceSelectionRow
+            >,
+          ),
+          LifeEventOccurrenceSelectionRow,
+          PrefetchHooks Function()
+        > {
+  $$LifeEventOccurrenceSelectionsTableTableManager(
+    _$LifeEventDatabase db,
+    $LifeEventOccurrenceSelectionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LifeEventOccurrenceSelectionsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$LifeEventOccurrenceSelectionsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$LifeEventOccurrenceSelectionsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> selectionId = const Value.absent(),
+                Value<String> ownerScopeId = const Value.absent(),
+                Value<int> revision = const Value.absent(),
+                Value<String> sourceProviderId = const Value.absent(),
+                Value<String> sourceEventId = const Value.absent(),
+                Value<String> sourceEventRevision = const Value.absent(),
+                Value<String> eventRevision = const Value.absent(),
+                Value<String?> annotationRef = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LifeEventOccurrenceSelectionsCompanion(
+                selectionId: selectionId,
+                ownerScopeId: ownerScopeId,
+                revision: revision,
+                sourceProviderId: sourceProviderId,
+                sourceEventId: sourceEventId,
+                sourceEventRevision: sourceEventRevision,
+                eventRevision: eventRevision,
+                annotationRef: annotationRef,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String selectionId,
+                required String ownerScopeId,
+                required int revision,
+                required String sourceProviderId,
+                required String sourceEventId,
+                required String sourceEventRevision,
+                required String eventRevision,
+                Value<String?> annotationRef = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LifeEventOccurrenceSelectionsCompanion.insert(
+                selectionId: selectionId,
+                ownerScopeId: ownerScopeId,
+                revision: revision,
+                sourceProviderId: sourceProviderId,
+                sourceEventId: sourceEventId,
+                sourceEventRevision: sourceEventRevision,
+                eventRevision: eventRevision,
+                annotationRef: annotationRef,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$LifeEventOccurrenceSelectionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$LifeEventDatabase,
+      $LifeEventOccurrenceSelectionsTable,
+      LifeEventOccurrenceSelectionRow,
+      $$LifeEventOccurrenceSelectionsTableFilterComposer,
+      $$LifeEventOccurrenceSelectionsTableOrderingComposer,
+      $$LifeEventOccurrenceSelectionsTableAnnotationComposer,
+      $$LifeEventOccurrenceSelectionsTableCreateCompanionBuilder,
+      $$LifeEventOccurrenceSelectionsTableUpdateCompanionBuilder,
+      (
+        LifeEventOccurrenceSelectionRow,
+        BaseReferences<
+          _$LifeEventDatabase,
+          $LifeEventOccurrenceSelectionsTable,
+          LifeEventOccurrenceSelectionRow
+        >,
+      ),
+      LifeEventOccurrenceSelectionRow,
+      PrefetchHooks Function()
+    >;
+typedef $$LifeEventPatternRulesTableCreateCompanionBuilder =
+    LifeEventPatternRulesCompanion Function({
+      required String savedPatternId,
+      required String ownerScopeId,
+      required int revision,
+      required String providerId,
+      required String eventTypeId,
+      required String patternSchemaVersion,
+      required String providerDescriptorVersion,
+      required String matcherSemanticVersion,
+      required String normalizedPatternJson,
+      required String patternFingerprint,
+      Value<String?> annotationRef,
+      required bool enabledForMatching,
+      Value<int> rowid,
+    });
+typedef $$LifeEventPatternRulesTableUpdateCompanionBuilder =
+    LifeEventPatternRulesCompanion Function({
+      Value<String> savedPatternId,
+      Value<String> ownerScopeId,
+      Value<int> revision,
+      Value<String> providerId,
+      Value<String> eventTypeId,
+      Value<String> patternSchemaVersion,
+      Value<String> providerDescriptorVersion,
+      Value<String> matcherSemanticVersion,
+      Value<String> normalizedPatternJson,
+      Value<String> patternFingerprint,
+      Value<String?> annotationRef,
+      Value<bool> enabledForMatching,
+      Value<int> rowid,
+    });
+
+class $$LifeEventPatternRulesTableFilterComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventPatternRulesTable> {
+  $$LifeEventPatternRulesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get savedPatternId => $composableBuilder(
+    column: $table.savedPatternId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ownerScopeId => $composableBuilder(
+    column: $table.ownerScopeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get revision => $composableBuilder(
+    column: $table.revision,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get providerId => $composableBuilder(
+    column: $table.providerId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get eventTypeId => $composableBuilder(
+    column: $table.eventTypeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get patternSchemaVersion => $composableBuilder(
+    column: $table.patternSchemaVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get providerDescriptorVersion => $composableBuilder(
+    column: $table.providerDescriptorVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get matcherSemanticVersion => $composableBuilder(
+    column: $table.matcherSemanticVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get normalizedPatternJson => $composableBuilder(
+    column: $table.normalizedPatternJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get patternFingerprint => $composableBuilder(
+    column: $table.patternFingerprint,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get annotationRef => $composableBuilder(
+    column: $table.annotationRef,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get enabledForMatching => $composableBuilder(
+    column: $table.enabledForMatching,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$LifeEventPatternRulesTableOrderingComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventPatternRulesTable> {
+  $$LifeEventPatternRulesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get savedPatternId => $composableBuilder(
+    column: $table.savedPatternId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ownerScopeId => $composableBuilder(
+    column: $table.ownerScopeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get revision => $composableBuilder(
+    column: $table.revision,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get providerId => $composableBuilder(
+    column: $table.providerId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get eventTypeId => $composableBuilder(
+    column: $table.eventTypeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get patternSchemaVersion => $composableBuilder(
+    column: $table.patternSchemaVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get providerDescriptorVersion => $composableBuilder(
+    column: $table.providerDescriptorVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get matcherSemanticVersion => $composableBuilder(
+    column: $table.matcherSemanticVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get normalizedPatternJson => $composableBuilder(
+    column: $table.normalizedPatternJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get patternFingerprint => $composableBuilder(
+    column: $table.patternFingerprint,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get annotationRef => $composableBuilder(
+    column: $table.annotationRef,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get enabledForMatching => $composableBuilder(
+    column: $table.enabledForMatching,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$LifeEventPatternRulesTableAnnotationComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventPatternRulesTable> {
+  $$LifeEventPatternRulesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get savedPatternId => $composableBuilder(
+    column: $table.savedPatternId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get ownerScopeId => $composableBuilder(
+    column: $table.ownerScopeId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get revision =>
+      $composableBuilder(column: $table.revision, builder: (column) => column);
+
+  GeneratedColumn<String> get providerId => $composableBuilder(
+    column: $table.providerId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get eventTypeId => $composableBuilder(
+    column: $table.eventTypeId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get patternSchemaVersion => $composableBuilder(
+    column: $table.patternSchemaVersion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get providerDescriptorVersion => $composableBuilder(
+    column: $table.providerDescriptorVersion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get matcherSemanticVersion => $composableBuilder(
+    column: $table.matcherSemanticVersion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get normalizedPatternJson => $composableBuilder(
+    column: $table.normalizedPatternJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get patternFingerprint => $composableBuilder(
+    column: $table.patternFingerprint,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get annotationRef => $composableBuilder(
+    column: $table.annotationRef,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get enabledForMatching => $composableBuilder(
+    column: $table.enabledForMatching,
+    builder: (column) => column,
+  );
+}
+
+class $$LifeEventPatternRulesTableTableManager
+    extends
+        RootTableManager<
+          _$LifeEventDatabase,
+          $LifeEventPatternRulesTable,
+          LifeEventPatternRuleRow,
+          $$LifeEventPatternRulesTableFilterComposer,
+          $$LifeEventPatternRulesTableOrderingComposer,
+          $$LifeEventPatternRulesTableAnnotationComposer,
+          $$LifeEventPatternRulesTableCreateCompanionBuilder,
+          $$LifeEventPatternRulesTableUpdateCompanionBuilder,
+          (
+            LifeEventPatternRuleRow,
+            BaseReferences<
+              _$LifeEventDatabase,
+              $LifeEventPatternRulesTable,
+              LifeEventPatternRuleRow
+            >,
+          ),
+          LifeEventPatternRuleRow,
+          PrefetchHooks Function()
+        > {
+  $$LifeEventPatternRulesTableTableManager(
+    _$LifeEventDatabase db,
+    $LifeEventPatternRulesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LifeEventPatternRulesTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$LifeEventPatternRulesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$LifeEventPatternRulesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> savedPatternId = const Value.absent(),
+                Value<String> ownerScopeId = const Value.absent(),
+                Value<int> revision = const Value.absent(),
+                Value<String> providerId = const Value.absent(),
+                Value<String> eventTypeId = const Value.absent(),
+                Value<String> patternSchemaVersion = const Value.absent(),
+                Value<String> providerDescriptorVersion = const Value.absent(),
+                Value<String> matcherSemanticVersion = const Value.absent(),
+                Value<String> normalizedPatternJson = const Value.absent(),
+                Value<String> patternFingerprint = const Value.absent(),
+                Value<String?> annotationRef = const Value.absent(),
+                Value<bool> enabledForMatching = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LifeEventPatternRulesCompanion(
+                savedPatternId: savedPatternId,
+                ownerScopeId: ownerScopeId,
+                revision: revision,
+                providerId: providerId,
+                eventTypeId: eventTypeId,
+                patternSchemaVersion: patternSchemaVersion,
+                providerDescriptorVersion: providerDescriptorVersion,
+                matcherSemanticVersion: matcherSemanticVersion,
+                normalizedPatternJson: normalizedPatternJson,
+                patternFingerprint: patternFingerprint,
+                annotationRef: annotationRef,
+                enabledForMatching: enabledForMatching,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String savedPatternId,
+                required String ownerScopeId,
+                required int revision,
+                required String providerId,
+                required String eventTypeId,
+                required String patternSchemaVersion,
+                required String providerDescriptorVersion,
+                required String matcherSemanticVersion,
+                required String normalizedPatternJson,
+                required String patternFingerprint,
+                Value<String?> annotationRef = const Value.absent(),
+                required bool enabledForMatching,
+                Value<int> rowid = const Value.absent(),
+              }) => LifeEventPatternRulesCompanion.insert(
+                savedPatternId: savedPatternId,
+                ownerScopeId: ownerScopeId,
+                revision: revision,
+                providerId: providerId,
+                eventTypeId: eventTypeId,
+                patternSchemaVersion: patternSchemaVersion,
+                providerDescriptorVersion: providerDescriptorVersion,
+                matcherSemanticVersion: matcherSemanticVersion,
+                normalizedPatternJson: normalizedPatternJson,
+                patternFingerprint: patternFingerprint,
+                annotationRef: annotationRef,
+                enabledForMatching: enabledForMatching,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$LifeEventPatternRulesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$LifeEventDatabase,
+      $LifeEventPatternRulesTable,
+      LifeEventPatternRuleRow,
+      $$LifeEventPatternRulesTableFilterComposer,
+      $$LifeEventPatternRulesTableOrderingComposer,
+      $$LifeEventPatternRulesTableAnnotationComposer,
+      $$LifeEventPatternRulesTableCreateCompanionBuilder,
+      $$LifeEventPatternRulesTableUpdateCompanionBuilder,
+      (
+        LifeEventPatternRuleRow,
+        BaseReferences<
+          _$LifeEventDatabase,
+          $LifeEventPatternRulesTable,
+          LifeEventPatternRuleRow
+        >,
+      ),
+      LifeEventPatternRuleRow,
+      PrefetchHooks Function()
+    >;
+typedef $$LifeEventPatternTargetRefsTableCreateCompanionBuilder =
+    LifeEventPatternTargetRefsCompanion Function({
+      required String savedPatternId,
+      required String targetType,
+      required String targetId,
+      Value<int> rowid,
+    });
+typedef $$LifeEventPatternTargetRefsTableUpdateCompanionBuilder =
+    LifeEventPatternTargetRefsCompanion Function({
+      Value<String> savedPatternId,
+      Value<String> targetType,
+      Value<String> targetId,
+      Value<int> rowid,
+    });
+
+class $$LifeEventPatternTargetRefsTableFilterComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventPatternTargetRefsTable> {
+  $$LifeEventPatternTargetRefsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get savedPatternId => $composableBuilder(
+    column: $table.savedPatternId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetId => $composableBuilder(
+    column: $table.targetId,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$LifeEventPatternTargetRefsTableOrderingComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventPatternTargetRefsTable> {
+  $$LifeEventPatternTargetRefsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get savedPatternId => $composableBuilder(
+    column: $table.savedPatternId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetId => $composableBuilder(
+    column: $table.targetId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$LifeEventPatternTargetRefsTableAnnotationComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventPatternTargetRefsTable> {
+  $$LifeEventPatternTargetRefsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get savedPatternId => $composableBuilder(
+    column: $table.savedPatternId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get targetId =>
+      $composableBuilder(column: $table.targetId, builder: (column) => column);
+}
+
+class $$LifeEventPatternTargetRefsTableTableManager
+    extends
+        RootTableManager<
+          _$LifeEventDatabase,
+          $LifeEventPatternTargetRefsTable,
+          LifeEventPatternTargetRefRow,
+          $$LifeEventPatternTargetRefsTableFilterComposer,
+          $$LifeEventPatternTargetRefsTableOrderingComposer,
+          $$LifeEventPatternTargetRefsTableAnnotationComposer,
+          $$LifeEventPatternTargetRefsTableCreateCompanionBuilder,
+          $$LifeEventPatternTargetRefsTableUpdateCompanionBuilder,
+          (
+            LifeEventPatternTargetRefRow,
+            BaseReferences<
+              _$LifeEventDatabase,
+              $LifeEventPatternTargetRefsTable,
+              LifeEventPatternTargetRefRow
+            >,
+          ),
+          LifeEventPatternTargetRefRow,
+          PrefetchHooks Function()
+        > {
+  $$LifeEventPatternTargetRefsTableTableManager(
+    _$LifeEventDatabase db,
+    $LifeEventPatternTargetRefsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LifeEventPatternTargetRefsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$LifeEventPatternTargetRefsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$LifeEventPatternTargetRefsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> savedPatternId = const Value.absent(),
+                Value<String> targetType = const Value.absent(),
+                Value<String> targetId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LifeEventPatternTargetRefsCompanion(
+                savedPatternId: savedPatternId,
+                targetType: targetType,
+                targetId: targetId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String savedPatternId,
+                required String targetType,
+                required String targetId,
+                Value<int> rowid = const Value.absent(),
+              }) => LifeEventPatternTargetRefsCompanion.insert(
+                savedPatternId: savedPatternId,
+                targetType: targetType,
+                targetId: targetId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$LifeEventPatternTargetRefsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$LifeEventDatabase,
+      $LifeEventPatternTargetRefsTable,
+      LifeEventPatternTargetRefRow,
+      $$LifeEventPatternTargetRefsTableFilterComposer,
+      $$LifeEventPatternTargetRefsTableOrderingComposer,
+      $$LifeEventPatternTargetRefsTableAnnotationComposer,
+      $$LifeEventPatternTargetRefsTableCreateCompanionBuilder,
+      $$LifeEventPatternTargetRefsTableUpdateCompanionBuilder,
+      (
+        LifeEventPatternTargetRefRow,
+        BaseReferences<
+          _$LifeEventDatabase,
+          $LifeEventPatternTargetRefsTable,
+          LifeEventPatternTargetRefRow
+        >,
+      ),
+      LifeEventPatternTargetRefRow,
+      PrefetchHooks Function()
+    >;
+typedef $$LifeEventRuleTemplatesTableCreateCompanionBuilder =
+    LifeEventRuleTemplatesCompanion Function({
+      required String templateId,
+      required String ownerScopeId,
+      required int revision,
+      required String providerPatternJson,
+      required String defaultDirectionIdsJson,
+      Value<String?> importanceOwnerScopeId,
+      Value<String?> importanceCatalogId,
+      Value<int?> importanceCatalogRevision,
+      Value<String?> importanceLevelId,
+      Value<String?> priorityOwnerScopeId,
+      Value<String?> priorityCatalogId,
+      Value<int?> priorityCatalogRevision,
+      Value<String?> priorityId,
+      required String defaultChannelIdsJson,
+      required String defaultLeadTimesMsJson,
+      Value<int> rowid,
+    });
+typedef $$LifeEventRuleTemplatesTableUpdateCompanionBuilder =
+    LifeEventRuleTemplatesCompanion Function({
+      Value<String> templateId,
+      Value<String> ownerScopeId,
+      Value<int> revision,
+      Value<String> providerPatternJson,
+      Value<String> defaultDirectionIdsJson,
+      Value<String?> importanceOwnerScopeId,
+      Value<String?> importanceCatalogId,
+      Value<int?> importanceCatalogRevision,
+      Value<String?> importanceLevelId,
+      Value<String?> priorityOwnerScopeId,
+      Value<String?> priorityCatalogId,
+      Value<int?> priorityCatalogRevision,
+      Value<String?> priorityId,
+      Value<String> defaultChannelIdsJson,
+      Value<String> defaultLeadTimesMsJson,
+      Value<int> rowid,
+    });
+
+class $$LifeEventRuleTemplatesTableFilterComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventRuleTemplatesTable> {
+  $$LifeEventRuleTemplatesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get templateId => $composableBuilder(
+    column: $table.templateId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ownerScopeId => $composableBuilder(
+    column: $table.ownerScopeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get revision => $composableBuilder(
+    column: $table.revision,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get providerPatternJson => $composableBuilder(
+    column: $table.providerPatternJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get defaultDirectionIdsJson => $composableBuilder(
+    column: $table.defaultDirectionIdsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get importanceOwnerScopeId => $composableBuilder(
+    column: $table.importanceOwnerScopeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get importanceCatalogId => $composableBuilder(
+    column: $table.importanceCatalogId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get importanceCatalogRevision => $composableBuilder(
+    column: $table.importanceCatalogRevision,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get importanceLevelId => $composableBuilder(
+    column: $table.importanceLevelId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get priorityOwnerScopeId => $composableBuilder(
+    column: $table.priorityOwnerScopeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get priorityCatalogId => $composableBuilder(
+    column: $table.priorityCatalogId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get priorityCatalogRevision => $composableBuilder(
+    column: $table.priorityCatalogRevision,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get priorityId => $composableBuilder(
+    column: $table.priorityId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get defaultChannelIdsJson => $composableBuilder(
+    column: $table.defaultChannelIdsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get defaultLeadTimesMsJson => $composableBuilder(
+    column: $table.defaultLeadTimesMsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$LifeEventRuleTemplatesTableOrderingComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventRuleTemplatesTable> {
+  $$LifeEventRuleTemplatesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get templateId => $composableBuilder(
+    column: $table.templateId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ownerScopeId => $composableBuilder(
+    column: $table.ownerScopeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get revision => $composableBuilder(
+    column: $table.revision,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get providerPatternJson => $composableBuilder(
+    column: $table.providerPatternJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get defaultDirectionIdsJson => $composableBuilder(
+    column: $table.defaultDirectionIdsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get importanceOwnerScopeId => $composableBuilder(
+    column: $table.importanceOwnerScopeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get importanceCatalogId => $composableBuilder(
+    column: $table.importanceCatalogId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get importanceCatalogRevision => $composableBuilder(
+    column: $table.importanceCatalogRevision,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get importanceLevelId => $composableBuilder(
+    column: $table.importanceLevelId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get priorityOwnerScopeId => $composableBuilder(
+    column: $table.priorityOwnerScopeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get priorityCatalogId => $composableBuilder(
+    column: $table.priorityCatalogId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get priorityCatalogRevision => $composableBuilder(
+    column: $table.priorityCatalogRevision,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get priorityId => $composableBuilder(
+    column: $table.priorityId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get defaultChannelIdsJson => $composableBuilder(
+    column: $table.defaultChannelIdsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get defaultLeadTimesMsJson => $composableBuilder(
+    column: $table.defaultLeadTimesMsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$LifeEventRuleTemplatesTableAnnotationComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventRuleTemplatesTable> {
+  $$LifeEventRuleTemplatesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get templateId => $composableBuilder(
+    column: $table.templateId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get ownerScopeId => $composableBuilder(
+    column: $table.ownerScopeId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get revision =>
+      $composableBuilder(column: $table.revision, builder: (column) => column);
+
+  GeneratedColumn<String> get providerPatternJson => $composableBuilder(
+    column: $table.providerPatternJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get defaultDirectionIdsJson => $composableBuilder(
+    column: $table.defaultDirectionIdsJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get importanceOwnerScopeId => $composableBuilder(
+    column: $table.importanceOwnerScopeId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get importanceCatalogId => $composableBuilder(
+    column: $table.importanceCatalogId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get importanceCatalogRevision => $composableBuilder(
+    column: $table.importanceCatalogRevision,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get importanceLevelId => $composableBuilder(
+    column: $table.importanceLevelId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get priorityOwnerScopeId => $composableBuilder(
+    column: $table.priorityOwnerScopeId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get priorityCatalogId => $composableBuilder(
+    column: $table.priorityCatalogId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get priorityCatalogRevision => $composableBuilder(
+    column: $table.priorityCatalogRevision,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get priorityId => $composableBuilder(
+    column: $table.priorityId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get defaultChannelIdsJson => $composableBuilder(
+    column: $table.defaultChannelIdsJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get defaultLeadTimesMsJson => $composableBuilder(
+    column: $table.defaultLeadTimesMsJson,
+    builder: (column) => column,
+  );
+}
+
+class $$LifeEventRuleTemplatesTableTableManager
+    extends
+        RootTableManager<
+          _$LifeEventDatabase,
+          $LifeEventRuleTemplatesTable,
+          LifeEventRuleTemplateRow,
+          $$LifeEventRuleTemplatesTableFilterComposer,
+          $$LifeEventRuleTemplatesTableOrderingComposer,
+          $$LifeEventRuleTemplatesTableAnnotationComposer,
+          $$LifeEventRuleTemplatesTableCreateCompanionBuilder,
+          $$LifeEventRuleTemplatesTableUpdateCompanionBuilder,
+          (
+            LifeEventRuleTemplateRow,
+            BaseReferences<
+              _$LifeEventDatabase,
+              $LifeEventRuleTemplatesTable,
+              LifeEventRuleTemplateRow
+            >,
+          ),
+          LifeEventRuleTemplateRow,
+          PrefetchHooks Function()
+        > {
+  $$LifeEventRuleTemplatesTableTableManager(
+    _$LifeEventDatabase db,
+    $LifeEventRuleTemplatesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LifeEventRuleTemplatesTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$LifeEventRuleTemplatesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$LifeEventRuleTemplatesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> templateId = const Value.absent(),
+                Value<String> ownerScopeId = const Value.absent(),
+                Value<int> revision = const Value.absent(),
+                Value<String> providerPatternJson = const Value.absent(),
+                Value<String> defaultDirectionIdsJson = const Value.absent(),
+                Value<String?> importanceOwnerScopeId = const Value.absent(),
+                Value<String?> importanceCatalogId = const Value.absent(),
+                Value<int?> importanceCatalogRevision = const Value.absent(),
+                Value<String?> importanceLevelId = const Value.absent(),
+                Value<String?> priorityOwnerScopeId = const Value.absent(),
+                Value<String?> priorityCatalogId = const Value.absent(),
+                Value<int?> priorityCatalogRevision = const Value.absent(),
+                Value<String?> priorityId = const Value.absent(),
+                Value<String> defaultChannelIdsJson = const Value.absent(),
+                Value<String> defaultLeadTimesMsJson = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LifeEventRuleTemplatesCompanion(
+                templateId: templateId,
+                ownerScopeId: ownerScopeId,
+                revision: revision,
+                providerPatternJson: providerPatternJson,
+                defaultDirectionIdsJson: defaultDirectionIdsJson,
+                importanceOwnerScopeId: importanceOwnerScopeId,
+                importanceCatalogId: importanceCatalogId,
+                importanceCatalogRevision: importanceCatalogRevision,
+                importanceLevelId: importanceLevelId,
+                priorityOwnerScopeId: priorityOwnerScopeId,
+                priorityCatalogId: priorityCatalogId,
+                priorityCatalogRevision: priorityCatalogRevision,
+                priorityId: priorityId,
+                defaultChannelIdsJson: defaultChannelIdsJson,
+                defaultLeadTimesMsJson: defaultLeadTimesMsJson,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String templateId,
+                required String ownerScopeId,
+                required int revision,
+                required String providerPatternJson,
+                required String defaultDirectionIdsJson,
+                Value<String?> importanceOwnerScopeId = const Value.absent(),
+                Value<String?> importanceCatalogId = const Value.absent(),
+                Value<int?> importanceCatalogRevision = const Value.absent(),
+                Value<String?> importanceLevelId = const Value.absent(),
+                Value<String?> priorityOwnerScopeId = const Value.absent(),
+                Value<String?> priorityCatalogId = const Value.absent(),
+                Value<int?> priorityCatalogRevision = const Value.absent(),
+                Value<String?> priorityId = const Value.absent(),
+                required String defaultChannelIdsJson,
+                required String defaultLeadTimesMsJson,
+                Value<int> rowid = const Value.absent(),
+              }) => LifeEventRuleTemplatesCompanion.insert(
+                templateId: templateId,
+                ownerScopeId: ownerScopeId,
+                revision: revision,
+                providerPatternJson: providerPatternJson,
+                defaultDirectionIdsJson: defaultDirectionIdsJson,
+                importanceOwnerScopeId: importanceOwnerScopeId,
+                importanceCatalogId: importanceCatalogId,
+                importanceCatalogRevision: importanceCatalogRevision,
+                importanceLevelId: importanceLevelId,
+                priorityOwnerScopeId: priorityOwnerScopeId,
+                priorityCatalogId: priorityCatalogId,
+                priorityCatalogRevision: priorityCatalogRevision,
+                priorityId: priorityId,
+                defaultChannelIdsJson: defaultChannelIdsJson,
+                defaultLeadTimesMsJson: defaultLeadTimesMsJson,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$LifeEventRuleTemplatesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$LifeEventDatabase,
+      $LifeEventRuleTemplatesTable,
+      LifeEventRuleTemplateRow,
+      $$LifeEventRuleTemplatesTableFilterComposer,
+      $$LifeEventRuleTemplatesTableOrderingComposer,
+      $$LifeEventRuleTemplatesTableAnnotationComposer,
+      $$LifeEventRuleTemplatesTableCreateCompanionBuilder,
+      $$LifeEventRuleTemplatesTableUpdateCompanionBuilder,
+      (
+        LifeEventRuleTemplateRow,
+        BaseReferences<
+          _$LifeEventDatabase,
+          $LifeEventRuleTemplatesTable,
+          LifeEventRuleTemplateRow
+        >,
+      ),
+      LifeEventRuleTemplateRow,
+      PrefetchHooks Function()
+    >;
 
 class $LifeEventDatabaseManager {
   final _$LifeEventDatabase _db;
@@ -9525,5 +16362,46 @@ class $LifeEventDatabaseManager {
       $$LifeEventShardReceiptsTableTableManager(
         _db,
         _db.lifeEventShardReceipts,
+      );
+  $$LifeEventUserDirectionsTableTableManager get lifeEventUserDirections =>
+      $$LifeEventUserDirectionsTableTableManager(
+        _db,
+        _db.lifeEventUserDirections,
+      );
+  $$LifeEventUserAnnotationsTableTableManager get lifeEventUserAnnotations =>
+      $$LifeEventUserAnnotationsTableTableManager(
+        _db,
+        _db.lifeEventUserAnnotations,
+      );
+  $$LifeEventAnnotationTargetRefsTableTableManager
+  get lifeEventAnnotationTargetRefs =>
+      $$LifeEventAnnotationTargetRefsTableTableManager(
+        _db,
+        _db.lifeEventAnnotationTargetRefs,
+      );
+  $$LifeEventAnnotationDirectionRefsTableTableManager
+  get lifeEventAnnotationDirectionRefs =>
+      $$LifeEventAnnotationDirectionRefsTableTableManager(
+        _db,
+        _db.lifeEventAnnotationDirectionRefs,
+      );
+  $$LifeEventOccurrenceSelectionsTableTableManager
+  get lifeEventOccurrenceSelections =>
+      $$LifeEventOccurrenceSelectionsTableTableManager(
+        _db,
+        _db.lifeEventOccurrenceSelections,
+      );
+  $$LifeEventPatternRulesTableTableManager get lifeEventPatternRules =>
+      $$LifeEventPatternRulesTableTableManager(_db, _db.lifeEventPatternRules);
+  $$LifeEventPatternTargetRefsTableTableManager
+  get lifeEventPatternTargetRefs =>
+      $$LifeEventPatternTargetRefsTableTableManager(
+        _db,
+        _db.lifeEventPatternTargetRefs,
+      );
+  $$LifeEventRuleTemplatesTableTableManager get lifeEventRuleTemplates =>
+      $$LifeEventRuleTemplatesTableTableManager(
+        _db,
+        _db.lifeEventRuleTemplates,
       );
 }

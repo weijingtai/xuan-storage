@@ -169,8 +169,10 @@ export 'template/drift_template_store.dart';
 
 // ── Life Event Center（ACT-06：Drift 原子持久化）──
 export 'life_event/life_event_tables.dart';
+export 'life_event/life_event_user_rule_tables.dart';
 export 'life_event/life_event_database.dart';
 export 'life_event/drift_life_event_storage.dart';
+export 'life_event/drift_life_event_user_rule_store.dart';
 
 part 'persistence_drift.g.dart';
 
