@@ -167,6 +167,11 @@ export 'template/divination_templates_table.dart';
 export 'template/template_usage_stats_table.dart';
 export 'template/drift_template_store.dart';
 
+// ── Life Event Center（ACT-06：Drift 原子持久化）──
+export 'life_event/life_event_tables.dart';
+export 'life_event/life_event_database.dart';
+export 'life_event/drift_life_event_storage.dart';
+
 part 'persistence_drift.g.dart';
 
 @DataClassName('OutboxRecordRow')
