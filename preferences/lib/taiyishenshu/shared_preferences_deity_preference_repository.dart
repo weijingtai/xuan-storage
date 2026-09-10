@@ -31,11 +31,14 @@ class SharedPreferencesDeityPreferenceRepository
     return Ok(Rev(DateTime.now().millisecondsSinceEpoch.toString()));
   }
 
+  // 本后端无事务能力，异常时不回滚已发生的写入
   @override
   Future<Result<R>> inTransaction<R>(Future<R> Function() body) async {
     try {
       final r = await body();
       return Ok(r);
+    } on XuanError catch (e) {
+      return Err(e);
     } catch (e) {
       return Err(XuanError(code: ErrorCode.internal, message: '$e'));
     }

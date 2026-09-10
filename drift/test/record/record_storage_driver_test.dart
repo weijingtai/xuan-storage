@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:persistence_drift/persistence_drift.dart';
 import 'package:repository_contract_kernel/repository_contract_kernel.dart';
+import 'package:repository_interface_record/repository_interface_record.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -130,9 +131,121 @@ void main() {
     expect(none, isEmpty);
   });
 
-  test('supportsTransaction 为 false 且 inTransaction 直接执行', () async {
-    expect(driver.supportsTransaction, isFalse);
-    final v = await driver.inTransaction(() async => 42);
+  test('supportsTransaction 为 true（当底层为 Drift 时）', () async {
+    expect(driver.supportsTransaction, isTrue);
+  });
+
+  test('supportsTransaction 为 false 且 inTransaction 直接执行（无 DB 支撑时退化）', () async {
+    final fakeDriver = RecordStorageDriver(store: _FakeStore());
+    expect(fakeDriver.supportsTransaction, isFalse);
+    final v = await fakeDriver.inTransaction(() async => 42);
     expect(v, 42);
   });
+
+  group('Transactional T1-T5 契约断言 (RecordStorageDriver)', () {
+    late CrudBaseRepository<Map<String, Object?>, String> crud;
+
+    setUp(() {
+      crud = CrudBaseRepository<Map<String, Object?>, String>(
+        descriptor: recordEntityDescriptor(module: 'meihua'),
+        driver: driver,
+      );
+    });
+
+    test('T1: body 内写入后正常返回 → 数据在、得 Ok', () async {
+      final r = await crud.inTransaction(() async {
+        await driver.write('meihua', 't1', row('t1'));
+        return 'success_val';
+      });
+
+      expect(r, isA<Ok<String>>());
+      expect((r as Ok<String>).value, 'success_val');
+      final found = await driver.readOne('meihua', 't1', const RawFilter(scopeUid: 'scope_A'));
+      expect(found, isNotNull);
+      expect(found?['id'], 't1');
+    });
+
+    test('T2: body 内写入后抛 XuanError → 写入零残留、得 Err 且 code 一致', () async {
+      final r = await crud.inTransaction<String>(() async {
+        await driver.write('meihua', 't2', row('t2'));
+        throw const XuanError(code: ErrorCode.invalidArgument, message: 'dup');
+      });
+
+      expect(r, isA<Err<String>>());
+      final err = (r as Err<String>).error;
+      expect(err.code, ErrorCode.invalidArgument);
+      final found = await driver.readOne('meihua', 't2', const RawFilter(scopeUid: 'scope_A'));
+      expect(found, isNull, reason: 'T2 回滚后数据库中不得残留 t2 记录');
+    });
+
+    test('T3: body 内写入后抛普通异常 → 写入零残留、得 Err(internal)、不向上抛', () async {
+      final r = await crud.inTransaction<String>(() async {
+        await driver.write('meihua', 't3', row('t3'));
+        throw const FormatException('unexpected format');
+      });
+
+      expect(r, isA<Err<String>>());
+      final err = (r as Err<String>).error;
+      expect(err.code, ErrorCode.internal);
+      final found = await driver.readOne('meihua', 't3', const RawFilter(scopeUid: 'scope_A'));
+      expect(found, isNull, reason: 'T3 回滚后数据库中不得残留 t3 记录');
+    });
+
+    test('T4: body 返回 Err → 不回滚，写入仍在', () async {
+      final r = await crud.inTransaction<Result<String>>(() async {
+        await driver.write('meihua', 't4', row('t4'));
+        return const Err(XuanError(code: ErrorCode.conflictUnique, message: 'biz error'));
+      });
+
+      expect(r, isA<Ok<Result<String>>>());
+      final inner = (r as Ok<Result<String>>).value;
+      expect(inner, isA<Err<String>>());
+      final found = await driver.readOne('meihua', 't4', const RawFilter(scopeUid: 'scope_A'));
+      expect(found, isNotNull, reason: 'T4 返回 Err 不触发回滚，写入仍在');
+    });
+
+    test('T5: 嵌套事务 — 内层失败不破坏外层，外层回滚连内层一起撤', () async {
+      // 组合 1：外层成功，内层失败回滚（内层失败不破坏外层）
+      await db.transaction(() async {
+        await driver.write('meihua', 'outer_1', row('outer_1'));
+        final innerResult = await crud.inTransaction<void>(() async {
+          await driver.write('meihua', 'inner_fail', row('inner_fail'));
+          throw const XuanError(code: ErrorCode.invalidArgument, message: 'inner fail');
+        });
+        expect(innerResult, isA<Err<void>>());
+        // 外层继续写入并正常提交
+        await driver.write('meihua', 'outer_2', row('outer_2'));
+      });
+
+      expect(await driver.readOne('meihua', 'outer_1', const RawFilter(scopeUid: 'scope_A')), isNotNull);
+      expect(await driver.readOne('meihua', 'outer_2', const RawFilter(scopeUid: 'scope_A')), isNotNull);
+      expect(await driver.readOne('meihua', 'inner_fail', const RawFilter(scopeUid: 'scope_A')), isNull,
+          reason: '内层失败回滚，inner_fail 必须零残留');
+
+      // 组合 2：内层成功，外层失败回滚（外层回滚连内层一起撤）
+      expect(
+        () => db.transaction(() async {
+          await driver.write('meihua', 'outer_fail_1', row('outer_fail_1'));
+          final innerResult = await crud.inTransaction<void>(() async {
+            await driver.write('meihua', 'inner_ok', row('inner_ok'));
+          });
+          expect(innerResult, isA<Ok<void>>());
+          throw const FormatException('outer disaster');
+        }),
+        throwsA(isA<FormatException>()),
+      );
+
+      expect(await driver.readOne('meihua', 'outer_fail_1', const RawFilter(scopeUid: 'scope_A')), isNull);
+      expect(await driver.readOne('meihua', 'inner_ok', const RawFilter(scopeUid: 'scope_A')), isNull,
+          reason: '外层回滚时，内层已成功的写入也必须随外层一并撤销');
+    });
+  });
+}
+
+class _FakeStore implements ScopedRecordStore {
+  @override
+  String get scopeUid => 'scope_fake';
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

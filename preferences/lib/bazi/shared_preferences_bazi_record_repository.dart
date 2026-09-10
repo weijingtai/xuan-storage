@@ -196,6 +196,7 @@ class SharedPreferencesBaziRecordRepository implements BaziRecordRepository {
   }
 
   // ── Transactional ──
+  // 本后端无事务能力，异常时不回滚已发生的写入
   @override
   Future<Result<R>> inTransaction<R>(Future<R> Function() body) async {
     try {

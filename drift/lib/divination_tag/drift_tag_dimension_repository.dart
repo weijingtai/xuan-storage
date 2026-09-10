@@ -93,11 +93,14 @@ class DriftTagDimensionRepository implements TagDimensionRepository {
 
   // ── L0 Transactional ──
 
+  // 本后端无事务能力，异常时不回滚已发生的写入
   @override
   Future<Result<R>> inTransaction<R>(Future<R> Function() body) async {
     try {
       final result = await body();
       return Ok(result);
+    } on XuanError catch (e) {
+      return Err(e);
     } catch (e) {
       return Err(
         XuanError(

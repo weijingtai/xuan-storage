@@ -104,16 +104,8 @@ class RecordBackedMeiHuaRepository
   }
 
   @override
-  Future<Result<R>> inTransaction<R>(Future<R> Function() body) async {
-    try {
-      final result = await body();
-      return Ok(result);
-    } catch (e) {
-      return Err(
-        XuanError(code: ErrorCode.internal, message: 'Transaction failed: $e'),
-      );
-    }
-  }
+  Future<Result<R>> inTransaction<R>(Future<R> Function() body) =>
+      super.inTransaction(body);
 
   // ── 遗留别名（旧调用方与既有测试的过渡层，M4 随适配层一并退场） ──
 

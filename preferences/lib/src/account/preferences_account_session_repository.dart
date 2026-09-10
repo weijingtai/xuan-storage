@@ -110,9 +110,21 @@ final class PreferencesAccountSessionRepository
     return const Ok(null);
   }
 
+  // 本后端无事务能力，异常时不回滚已发生的写入
   @override
   Future<Result<R>> inTransaction<R>(Future<R> Function() body) async {
-    final r = await body();
-    return Ok(r);
+    try {
+      final r = await body();
+      return Ok(r);
+    } on XuanError catch (e) {
+      return Err(e);
+    } catch (e) {
+      return Err(
+        XuanError(
+          code: ErrorCode.internal,
+          message: 'preferences account session transaction failed: $e',
+        ),
+      );
+    }
   }
 }

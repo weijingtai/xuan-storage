@@ -176,6 +176,8 @@ class DriftUserRepository implements SchoolRepository, UserSchoolRepository {
     try {
       final result = await db.transaction(() => body());
       return Ok(result);
+    } on XuanError catch (e) {
+      return Err(e);
     } catch (e) {
       return Err(
         XuanError(
@@ -353,6 +355,8 @@ class DriftDeityRepository implements DeityRepository {
     try {
       final result = await db.transaction(() => body());
       return Ok(result);
+    } on XuanError catch (e) {
+      return Err(e);
     } catch (e) {
       return Err(
         XuanError(

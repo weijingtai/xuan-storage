@@ -1,6 +1,8 @@
+import 'package:persistence_drift/persistence_drift.dart';
 import 'package:repository_contract_kernel/repository_contract_kernel.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
 
+import 'local_record_repository.dart';
 import 'record_cursor.dart';
 import 'record_row_mapper.dart';
 
@@ -22,9 +24,14 @@ import 'record_row_mapper.dart';
 /// - 物理删除（deleteOne）超出 record 语义（既有只有软删），
 ///   抛 [UnsupportedError] 显式拒绝。
 class RecordStorageDriver implements StorageDriver {
-  RecordStorageDriver({required ScopedRecordStore store}) : _store = store;
+  RecordStorageDriver({
+    required ScopedRecordStore store,
+    PersistenceDriftDatabase? db,
+  }) : _store = store,
+       _db = db ?? (store is LocalRecordRepository ? store.db : null);
 
   final ScopedRecordStore _store;
+  final PersistenceDriftDatabase? _db;
 
   bool _scopeOk(String scopeUid) => scopeUid == _store.scopeUid;
 
@@ -219,12 +226,18 @@ class RecordStorageDriver implements StorageDriver {
   }
 
   @override
-  bool get supportsTransaction => false;
+  bool get supportsTransaction => _db != null;
 
   /// drift 落地在本机 SQLite，不是云端后端。
   @override
   bool get isCloudBacked => false;
 
   @override
-  Future<R> inTransaction<R>(Future<R> Function() body) => body();
+  Future<R> inTransaction<R>(Future<R> Function() body) async {
+    final db = _db;
+    if (db == null) {
+      return body();
+    }
+    return db.transaction(body);
+  }
 }

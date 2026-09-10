@@ -186,6 +186,8 @@ final class DriftAccountIdentityLinkRepository
     try {
       final result = await _db.transaction(() => body());
       return Ok(result);
+    } on XuanError catch (e) {
+      return Err(e);
     } catch (e) {
       return Err(
         XuanError(

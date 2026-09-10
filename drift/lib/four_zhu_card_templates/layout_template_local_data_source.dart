@@ -22,6 +22,7 @@ class LayoutTemplateLocalDataSource implements LocalApplier {
        _logger = logger ?? SyncLogger.noop();
 
   final AppDatabase _db;
+  AppDatabase get db => _db;
   final LayoutTemplatesDao _dao;
   final CardTemplateMetaDao _metaDao;
   final OutboxStore? _outboxStore;

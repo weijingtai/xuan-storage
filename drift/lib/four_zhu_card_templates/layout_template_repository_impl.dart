@@ -296,8 +296,10 @@ class LayoutTemplateRepositoryImpl implements LayoutTemplateRepository {
   @override
   Future<Result<R>> inTransaction<R>(Future<R> Function() body) async {
     try {
-      final result = await body();
+      final result = await _localDataSource.db.transaction(() => body());
       return Ok(result);
+    } on XuanError catch (e) {
+      return Err(e);
     } catch (e) {
       return Err(
         XuanError(

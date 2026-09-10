@@ -167,8 +167,10 @@ class DriftMeiHuaDivinationRecordRepository
   @override
   Future<Result<R>> inTransaction<R>(Future<R> Function() body) async {
     try {
-      final result = await body();
+      final result = await _database.transaction(() => body());
       return Ok(result);
+    } on XuanError catch (e) {
+      return Err(e);
     } catch (e) {
       return Err(
         XuanError(code: ErrorCode.internal, message: 'Transaction failed: $e'),

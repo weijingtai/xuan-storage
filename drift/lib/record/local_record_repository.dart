@@ -1,4 +1,5 @@
 import 'package:persistence_core/persistence_core.dart';
+import 'package:persistence_drift/persistence_drift.dart';
 import 'package:repository_interface_record/repository_interface_record.dart';
 import '../sync/record_outbox_mapper.dart';
 import 'drift_record_data_source.dart';
@@ -13,6 +14,8 @@ class LocalRecordRepository implements ScopedRecordStore {
     : _outboxStore = outboxStore;
 
   OutboxStore? get _outbox => _outboxStore;
+
+  PersistenceDriftDatabase get db => _ds.db;
 
   @override
   String get scopeUid => _ds.scopeUid;

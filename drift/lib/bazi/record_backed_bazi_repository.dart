@@ -200,14 +200,6 @@ class RecordBackedBaziRepository implements BaziRecordRepository {
   }
 
   @override
-  Future<Result<R>> inTransaction<R>(Future<R> Function() body) async {
-    try {
-      final v = await body();
-      return Ok(v);
-    } on XuanError catch (e) {
-      return Err(e);
-    } catch (e) {
-      return Err(XuanError(code: ErrorCode.internal, message: e.toString()));
-    }
-  }
+  Future<Result<R>> inTransaction<R>(Future<R> Function() body) =>
+      _l0.inTransaction(body);
 }

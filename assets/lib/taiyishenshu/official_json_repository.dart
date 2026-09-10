@@ -153,10 +153,13 @@ class OfficialJsonSchoolRepository implements SchoolRepository {
   Future<Result<void>> delete(String id, RequestContext ctx, {Precondition pre = const Unconditional()}) =>
       throw UnsupportedError('Official repository is read-only');
 
+  // 本后端无事务能力，异常时不回滚已发生的写入
   @override
   Future<Result<R>> inTransaction<R>(Future<R> Function() body) async {
     try {
       return Ok(await body());
+    } on XuanError catch (e) {
+      return Err(e);
     } catch (e) {
       return Err(XuanError(code: ErrorCode.internal, message: '$e'));
     }

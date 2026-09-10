@@ -160,6 +160,10 @@ abstract class BaseRecordBackedRepository<TContract> {
         return null;
       });
 
+  // ── L0 Transactional ──
+  Future<Result<R>> inTransaction<R>(Future<R> Function() body) =>
+      _l0.inTransaction(body);
+
   void _validateEncodedMeta(RecordMeta meta, String expectedUuid) {
     if (meta.uuid != expectedUuid) {
       throw RecordCodecMismatch(message: 'uuid mismatch');
