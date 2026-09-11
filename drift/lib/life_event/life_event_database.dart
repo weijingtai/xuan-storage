@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 
+import 'external_calendar_event_table.dart';
 import 'life_event_reminder_tables.dart';
 import 'life_event_tables.dart';
 import 'life_event_user_rule_tables.dart';
@@ -44,6 +45,8 @@ part 'life_event_database.g.dart';
     LifeEventReminderAggregateContributors,
     LifeEventReminderSchedules,
     LifeEventReminderDeliveries,
+    LifeEventExternalEvents,
+    LifeEventExternalEventSubjects,
   ],
 )
 class LifeEventDatabase extends _$LifeEventDatabase {
@@ -141,6 +144,15 @@ class LifeEventDatabase extends _$LifeEventDatabase {
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_le_reminder_aggregate_owner '
       'ON t_le_reminder_aggregates (owner_scope_id)',
+    );
+    // ACT-15：外部事件查询索引
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_le_external_event_query '
+      'ON t_le_external_events (owner_scope_id, is_latest, event_start_ms, external_event_id)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_le_external_event_subject '
+      'ON t_le_external_event_subjects (owner_scope_id, subject_id)',
     );
   }
 }

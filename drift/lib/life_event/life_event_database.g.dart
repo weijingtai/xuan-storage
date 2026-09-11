@@ -17088,6 +17088,1446 @@ class LifeEventReminderDeliveriesCompanion
   }
 }
 
+class $LifeEventExternalEventsTable extends LifeEventExternalEvents
+    with TableInfo<$LifeEventExternalEventsTable, LifeEventExternalEventRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LifeEventExternalEventsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _ownerScopeIdMeta = const VerificationMeta(
+    'ownerScopeId',
+  );
+  @override
+  late final GeneratedColumn<String> ownerScopeId = GeneratedColumn<String>(
+    'owner_scope_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _externalEventIdMeta = const VerificationMeta(
+    'externalEventId',
+  );
+  @override
+  late final GeneratedColumn<String> externalEventId = GeneratedColumn<String>(
+    'external_event_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _revisionMeta = const VerificationMeta(
+    'revision',
+  );
+  @override
+  late final GeneratedColumn<String> revision = GeneratedColumn<String>(
+    'revision',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _originTypeMeta = const VerificationMeta(
+    'originType',
+  );
+  @override
+  late final GeneratedColumn<String> originType = GeneratedColumn<String>(
+    'origin_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _originIdMeta = const VerificationMeta(
+    'originId',
+  );
+  @override
+  late final GeneratedColumn<String> originId = GeneratedColumn<String>(
+    'origin_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _divinationTypeKeyMeta = const VerificationMeta(
+    'divinationTypeKey',
+  );
+  @override
+  late final GeneratedColumn<String> divinationTypeKey =
+      GeneratedColumn<String>(
+        'divination_type_key',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _subDivinationTypeKeyMeta =
+      const VerificationMeta('subDivinationTypeKey');
+  @override
+  late final GeneratedColumn<String> subDivinationTypeKey =
+      GeneratedColumn<String>(
+        'sub_divination_type_key',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _eventTimeKindMeta = const VerificationMeta(
+    'eventTimeKind',
+  );
+  @override
+  late final GeneratedColumn<String> eventTimeKind = GeneratedColumn<String>(
+    'event_time_kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _eventStartMsMeta = const VerificationMeta(
+    'eventStartMs',
+  );
+  @override
+  late final GeneratedColumn<int> eventStartMs = GeneratedColumn<int>(
+    'event_start_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _eventEndMsMeta = const VerificationMeta(
+    'eventEndMs',
+  );
+  @override
+  late final GeneratedColumn<int> eventEndMs = GeneratedColumn<int>(
+    'event_end_ms',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _eventPrecisionMeta = const VerificationMeta(
+    'eventPrecision',
+  );
+  @override
+  late final GeneratedColumn<int> eventPrecision = GeneratedColumn<int>(
+    'event_precision',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _factSummaryMeta = const VerificationMeta(
+    'factSummary',
+  );
+  @override
+  late final GeneratedColumn<String> factSummary = GeneratedColumn<String>(
+    'fact_summary',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _evidenceRefMeta = const VerificationMeta(
+    'evidenceRef',
+  );
+  @override
+  late final GeneratedColumn<String> evidenceRef = GeneratedColumn<String>(
+    'evidence_ref',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lifecycleStatusMeta = const VerificationMeta(
+    'lifecycleStatus',
+  );
+  @override
+  late final GeneratedColumn<String> lifecycleStatus = GeneratedColumn<String>(
+    'lifecycle_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _usedProfileRefsJsonMeta =
+      const VerificationMeta('usedProfileRefsJson');
+  @override
+  late final GeneratedColumn<String> usedProfileRefsJson =
+      GeneratedColumn<String>(
+        'used_profile_refs_json',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _savedAtMsMeta = const VerificationMeta(
+    'savedAtMs',
+  );
+  @override
+  late final GeneratedColumn<int> savedAtMs = GeneratedColumn<int>(
+    'saved_at_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isLatestMeta = const VerificationMeta(
+    'isLatest',
+  );
+  @override
+  late final GeneratedColumn<bool> isLatest = GeneratedColumn<bool>(
+    'is_latest',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_latest" IN (0, 1))',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    ownerScopeId,
+    externalEventId,
+    revision,
+    originType,
+    originId,
+    divinationTypeKey,
+    subDivinationTypeKey,
+    eventTimeKind,
+    eventStartMs,
+    eventEndMs,
+    eventPrecision,
+    factSummary,
+    evidenceRef,
+    lifecycleStatus,
+    usedProfileRefsJson,
+    savedAtMs,
+    isLatest,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_le_external_events';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LifeEventExternalEventRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('owner_scope_id')) {
+      context.handle(
+        _ownerScopeIdMeta,
+        ownerScopeId.isAcceptableOrUnknown(
+          data['owner_scope_id']!,
+          _ownerScopeIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_ownerScopeIdMeta);
+    }
+    if (data.containsKey('external_event_id')) {
+      context.handle(
+        _externalEventIdMeta,
+        externalEventId.isAcceptableOrUnknown(
+          data['external_event_id']!,
+          _externalEventIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_externalEventIdMeta);
+    }
+    if (data.containsKey('revision')) {
+      context.handle(
+        _revisionMeta,
+        revision.isAcceptableOrUnknown(data['revision']!, _revisionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_revisionMeta);
+    }
+    if (data.containsKey('origin_type')) {
+      context.handle(
+        _originTypeMeta,
+        originType.isAcceptableOrUnknown(data['origin_type']!, _originTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_originTypeMeta);
+    }
+    if (data.containsKey('origin_id')) {
+      context.handle(
+        _originIdMeta,
+        originId.isAcceptableOrUnknown(data['origin_id']!, _originIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_originIdMeta);
+    }
+    if (data.containsKey('divination_type_key')) {
+      context.handle(
+        _divinationTypeKeyMeta,
+        divinationTypeKey.isAcceptableOrUnknown(
+          data['divination_type_key']!,
+          _divinationTypeKeyMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_divinationTypeKeyMeta);
+    }
+    if (data.containsKey('sub_divination_type_key')) {
+      context.handle(
+        _subDivinationTypeKeyMeta,
+        subDivinationTypeKey.isAcceptableOrUnknown(
+          data['sub_divination_type_key']!,
+          _subDivinationTypeKeyMeta,
+        ),
+      );
+    }
+    if (data.containsKey('event_time_kind')) {
+      context.handle(
+        _eventTimeKindMeta,
+        eventTimeKind.isAcceptableOrUnknown(
+          data['event_time_kind']!,
+          _eventTimeKindMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_eventTimeKindMeta);
+    }
+    if (data.containsKey('event_start_ms')) {
+      context.handle(
+        _eventStartMsMeta,
+        eventStartMs.isAcceptableOrUnknown(
+          data['event_start_ms']!,
+          _eventStartMsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_eventStartMsMeta);
+    }
+    if (data.containsKey('event_end_ms')) {
+      context.handle(
+        _eventEndMsMeta,
+        eventEndMs.isAcceptableOrUnknown(
+          data['event_end_ms']!,
+          _eventEndMsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('event_precision')) {
+      context.handle(
+        _eventPrecisionMeta,
+        eventPrecision.isAcceptableOrUnknown(
+          data['event_precision']!,
+          _eventPrecisionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('fact_summary')) {
+      context.handle(
+        _factSummaryMeta,
+        factSummary.isAcceptableOrUnknown(
+          data['fact_summary']!,
+          _factSummaryMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_factSummaryMeta);
+    }
+    if (data.containsKey('evidence_ref')) {
+      context.handle(
+        _evidenceRefMeta,
+        evidenceRef.isAcceptableOrUnknown(
+          data['evidence_ref']!,
+          _evidenceRefMeta,
+        ),
+      );
+    }
+    if (data.containsKey('lifecycle_status')) {
+      context.handle(
+        _lifecycleStatusMeta,
+        lifecycleStatus.isAcceptableOrUnknown(
+          data['lifecycle_status']!,
+          _lifecycleStatusMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_lifecycleStatusMeta);
+    }
+    if (data.containsKey('used_profile_refs_json')) {
+      context.handle(
+        _usedProfileRefsJsonMeta,
+        usedProfileRefsJson.isAcceptableOrUnknown(
+          data['used_profile_refs_json']!,
+          _usedProfileRefsJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_usedProfileRefsJsonMeta);
+    }
+    if (data.containsKey('saved_at_ms')) {
+      context.handle(
+        _savedAtMsMeta,
+        savedAtMs.isAcceptableOrUnknown(data['saved_at_ms']!, _savedAtMsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_savedAtMsMeta);
+    }
+    if (data.containsKey('is_latest')) {
+      context.handle(
+        _isLatestMeta,
+        isLatest.isAcceptableOrUnknown(data['is_latest']!, _isLatestMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_isLatestMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {
+    ownerScopeId,
+    externalEventId,
+    revision,
+  };
+  @override
+  LifeEventExternalEventRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LifeEventExternalEventRow(
+      ownerScopeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_scope_id'],
+      )!,
+      externalEventId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}external_event_id'],
+      )!,
+      revision: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}revision'],
+      )!,
+      originType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}origin_type'],
+      )!,
+      originId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}origin_id'],
+      )!,
+      divinationTypeKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}divination_type_key'],
+      )!,
+      subDivinationTypeKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sub_divination_type_key'],
+      ),
+      eventTimeKind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}event_time_kind'],
+      )!,
+      eventStartMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}event_start_ms'],
+      )!,
+      eventEndMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}event_end_ms'],
+      ),
+      eventPrecision: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}event_precision'],
+      ),
+      factSummary: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}fact_summary'],
+      )!,
+      evidenceRef: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}evidence_ref'],
+      ),
+      lifecycleStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}lifecycle_status'],
+      )!,
+      usedProfileRefsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}used_profile_refs_json'],
+      )!,
+      savedAtMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}saved_at_ms'],
+      )!,
+      isLatest: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_latest'],
+      )!,
+    );
+  }
+
+  @override
+  $LifeEventExternalEventsTable createAlias(String alias) {
+    return $LifeEventExternalEventsTable(attachedDatabase, alias);
+  }
+}
+
+class LifeEventExternalEventRow extends DataClass
+    implements Insertable<LifeEventExternalEventRow> {
+  final String ownerScopeId;
+  final String externalEventId;
+  final String revision;
+  final String originType;
+  final String originId;
+  final String divinationTypeKey;
+  final String? subDivinationTypeKey;
+  final String eventTimeKind;
+  final int eventStartMs;
+  final int? eventEndMs;
+  final int? eventPrecision;
+  final String factSummary;
+  final String? evidenceRef;
+  final String lifecycleStatus;
+  final String usedProfileRefsJson;
+  final int savedAtMs;
+  final bool isLatest;
+  const LifeEventExternalEventRow({
+    required this.ownerScopeId,
+    required this.externalEventId,
+    required this.revision,
+    required this.originType,
+    required this.originId,
+    required this.divinationTypeKey,
+    this.subDivinationTypeKey,
+    required this.eventTimeKind,
+    required this.eventStartMs,
+    this.eventEndMs,
+    this.eventPrecision,
+    required this.factSummary,
+    this.evidenceRef,
+    required this.lifecycleStatus,
+    required this.usedProfileRefsJson,
+    required this.savedAtMs,
+    required this.isLatest,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['owner_scope_id'] = Variable<String>(ownerScopeId);
+    map['external_event_id'] = Variable<String>(externalEventId);
+    map['revision'] = Variable<String>(revision);
+    map['origin_type'] = Variable<String>(originType);
+    map['origin_id'] = Variable<String>(originId);
+    map['divination_type_key'] = Variable<String>(divinationTypeKey);
+    if (!nullToAbsent || subDivinationTypeKey != null) {
+      map['sub_divination_type_key'] = Variable<String>(subDivinationTypeKey);
+    }
+    map['event_time_kind'] = Variable<String>(eventTimeKind);
+    map['event_start_ms'] = Variable<int>(eventStartMs);
+    if (!nullToAbsent || eventEndMs != null) {
+      map['event_end_ms'] = Variable<int>(eventEndMs);
+    }
+    if (!nullToAbsent || eventPrecision != null) {
+      map['event_precision'] = Variable<int>(eventPrecision);
+    }
+    map['fact_summary'] = Variable<String>(factSummary);
+    if (!nullToAbsent || evidenceRef != null) {
+      map['evidence_ref'] = Variable<String>(evidenceRef);
+    }
+    map['lifecycle_status'] = Variable<String>(lifecycleStatus);
+    map['used_profile_refs_json'] = Variable<String>(usedProfileRefsJson);
+    map['saved_at_ms'] = Variable<int>(savedAtMs);
+    map['is_latest'] = Variable<bool>(isLatest);
+    return map;
+  }
+
+  LifeEventExternalEventsCompanion toCompanion(bool nullToAbsent) {
+    return LifeEventExternalEventsCompanion(
+      ownerScopeId: Value(ownerScopeId),
+      externalEventId: Value(externalEventId),
+      revision: Value(revision),
+      originType: Value(originType),
+      originId: Value(originId),
+      divinationTypeKey: Value(divinationTypeKey),
+      subDivinationTypeKey: subDivinationTypeKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(subDivinationTypeKey),
+      eventTimeKind: Value(eventTimeKind),
+      eventStartMs: Value(eventStartMs),
+      eventEndMs: eventEndMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(eventEndMs),
+      eventPrecision: eventPrecision == null && nullToAbsent
+          ? const Value.absent()
+          : Value(eventPrecision),
+      factSummary: Value(factSummary),
+      evidenceRef: evidenceRef == null && nullToAbsent
+          ? const Value.absent()
+          : Value(evidenceRef),
+      lifecycleStatus: Value(lifecycleStatus),
+      usedProfileRefsJson: Value(usedProfileRefsJson),
+      savedAtMs: Value(savedAtMs),
+      isLatest: Value(isLatest),
+    );
+  }
+
+  factory LifeEventExternalEventRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LifeEventExternalEventRow(
+      ownerScopeId: serializer.fromJson<String>(json['ownerScopeId']),
+      externalEventId: serializer.fromJson<String>(json['externalEventId']),
+      revision: serializer.fromJson<String>(json['revision']),
+      originType: serializer.fromJson<String>(json['originType']),
+      originId: serializer.fromJson<String>(json['originId']),
+      divinationTypeKey: serializer.fromJson<String>(json['divinationTypeKey']),
+      subDivinationTypeKey: serializer.fromJson<String?>(
+        json['subDivinationTypeKey'],
+      ),
+      eventTimeKind: serializer.fromJson<String>(json['eventTimeKind']),
+      eventStartMs: serializer.fromJson<int>(json['eventStartMs']),
+      eventEndMs: serializer.fromJson<int?>(json['eventEndMs']),
+      eventPrecision: serializer.fromJson<int?>(json['eventPrecision']),
+      factSummary: serializer.fromJson<String>(json['factSummary']),
+      evidenceRef: serializer.fromJson<String?>(json['evidenceRef']),
+      lifecycleStatus: serializer.fromJson<String>(json['lifecycleStatus']),
+      usedProfileRefsJson: serializer.fromJson<String>(
+        json['usedProfileRefsJson'],
+      ),
+      savedAtMs: serializer.fromJson<int>(json['savedAtMs']),
+      isLatest: serializer.fromJson<bool>(json['isLatest']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'ownerScopeId': serializer.toJson<String>(ownerScopeId),
+      'externalEventId': serializer.toJson<String>(externalEventId),
+      'revision': serializer.toJson<String>(revision),
+      'originType': serializer.toJson<String>(originType),
+      'originId': serializer.toJson<String>(originId),
+      'divinationTypeKey': serializer.toJson<String>(divinationTypeKey),
+      'subDivinationTypeKey': serializer.toJson<String?>(subDivinationTypeKey),
+      'eventTimeKind': serializer.toJson<String>(eventTimeKind),
+      'eventStartMs': serializer.toJson<int>(eventStartMs),
+      'eventEndMs': serializer.toJson<int?>(eventEndMs),
+      'eventPrecision': serializer.toJson<int?>(eventPrecision),
+      'factSummary': serializer.toJson<String>(factSummary),
+      'evidenceRef': serializer.toJson<String?>(evidenceRef),
+      'lifecycleStatus': serializer.toJson<String>(lifecycleStatus),
+      'usedProfileRefsJson': serializer.toJson<String>(usedProfileRefsJson),
+      'savedAtMs': serializer.toJson<int>(savedAtMs),
+      'isLatest': serializer.toJson<bool>(isLatest),
+    };
+  }
+
+  LifeEventExternalEventRow copyWith({
+    String? ownerScopeId,
+    String? externalEventId,
+    String? revision,
+    String? originType,
+    String? originId,
+    String? divinationTypeKey,
+    Value<String?> subDivinationTypeKey = const Value.absent(),
+    String? eventTimeKind,
+    int? eventStartMs,
+    Value<int?> eventEndMs = const Value.absent(),
+    Value<int?> eventPrecision = const Value.absent(),
+    String? factSummary,
+    Value<String?> evidenceRef = const Value.absent(),
+    String? lifecycleStatus,
+    String? usedProfileRefsJson,
+    int? savedAtMs,
+    bool? isLatest,
+  }) => LifeEventExternalEventRow(
+    ownerScopeId: ownerScopeId ?? this.ownerScopeId,
+    externalEventId: externalEventId ?? this.externalEventId,
+    revision: revision ?? this.revision,
+    originType: originType ?? this.originType,
+    originId: originId ?? this.originId,
+    divinationTypeKey: divinationTypeKey ?? this.divinationTypeKey,
+    subDivinationTypeKey: subDivinationTypeKey.present
+        ? subDivinationTypeKey.value
+        : this.subDivinationTypeKey,
+    eventTimeKind: eventTimeKind ?? this.eventTimeKind,
+    eventStartMs: eventStartMs ?? this.eventStartMs,
+    eventEndMs: eventEndMs.present ? eventEndMs.value : this.eventEndMs,
+    eventPrecision: eventPrecision.present
+        ? eventPrecision.value
+        : this.eventPrecision,
+    factSummary: factSummary ?? this.factSummary,
+    evidenceRef: evidenceRef.present ? evidenceRef.value : this.evidenceRef,
+    lifecycleStatus: lifecycleStatus ?? this.lifecycleStatus,
+    usedProfileRefsJson: usedProfileRefsJson ?? this.usedProfileRefsJson,
+    savedAtMs: savedAtMs ?? this.savedAtMs,
+    isLatest: isLatest ?? this.isLatest,
+  );
+  LifeEventExternalEventRow copyWithCompanion(
+    LifeEventExternalEventsCompanion data,
+  ) {
+    return LifeEventExternalEventRow(
+      ownerScopeId: data.ownerScopeId.present
+          ? data.ownerScopeId.value
+          : this.ownerScopeId,
+      externalEventId: data.externalEventId.present
+          ? data.externalEventId.value
+          : this.externalEventId,
+      revision: data.revision.present ? data.revision.value : this.revision,
+      originType: data.originType.present
+          ? data.originType.value
+          : this.originType,
+      originId: data.originId.present ? data.originId.value : this.originId,
+      divinationTypeKey: data.divinationTypeKey.present
+          ? data.divinationTypeKey.value
+          : this.divinationTypeKey,
+      subDivinationTypeKey: data.subDivinationTypeKey.present
+          ? data.subDivinationTypeKey.value
+          : this.subDivinationTypeKey,
+      eventTimeKind: data.eventTimeKind.present
+          ? data.eventTimeKind.value
+          : this.eventTimeKind,
+      eventStartMs: data.eventStartMs.present
+          ? data.eventStartMs.value
+          : this.eventStartMs,
+      eventEndMs: data.eventEndMs.present
+          ? data.eventEndMs.value
+          : this.eventEndMs,
+      eventPrecision: data.eventPrecision.present
+          ? data.eventPrecision.value
+          : this.eventPrecision,
+      factSummary: data.factSummary.present
+          ? data.factSummary.value
+          : this.factSummary,
+      evidenceRef: data.evidenceRef.present
+          ? data.evidenceRef.value
+          : this.evidenceRef,
+      lifecycleStatus: data.lifecycleStatus.present
+          ? data.lifecycleStatus.value
+          : this.lifecycleStatus,
+      usedProfileRefsJson: data.usedProfileRefsJson.present
+          ? data.usedProfileRefsJson.value
+          : this.usedProfileRefsJson,
+      savedAtMs: data.savedAtMs.present ? data.savedAtMs.value : this.savedAtMs,
+      isLatest: data.isLatest.present ? data.isLatest.value : this.isLatest,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LifeEventExternalEventRow(')
+          ..write('ownerScopeId: $ownerScopeId, ')
+          ..write('externalEventId: $externalEventId, ')
+          ..write('revision: $revision, ')
+          ..write('originType: $originType, ')
+          ..write('originId: $originId, ')
+          ..write('divinationTypeKey: $divinationTypeKey, ')
+          ..write('subDivinationTypeKey: $subDivinationTypeKey, ')
+          ..write('eventTimeKind: $eventTimeKind, ')
+          ..write('eventStartMs: $eventStartMs, ')
+          ..write('eventEndMs: $eventEndMs, ')
+          ..write('eventPrecision: $eventPrecision, ')
+          ..write('factSummary: $factSummary, ')
+          ..write('evidenceRef: $evidenceRef, ')
+          ..write('lifecycleStatus: $lifecycleStatus, ')
+          ..write('usedProfileRefsJson: $usedProfileRefsJson, ')
+          ..write('savedAtMs: $savedAtMs, ')
+          ..write('isLatest: $isLatest')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    ownerScopeId,
+    externalEventId,
+    revision,
+    originType,
+    originId,
+    divinationTypeKey,
+    subDivinationTypeKey,
+    eventTimeKind,
+    eventStartMs,
+    eventEndMs,
+    eventPrecision,
+    factSummary,
+    evidenceRef,
+    lifecycleStatus,
+    usedProfileRefsJson,
+    savedAtMs,
+    isLatest,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LifeEventExternalEventRow &&
+          other.ownerScopeId == this.ownerScopeId &&
+          other.externalEventId == this.externalEventId &&
+          other.revision == this.revision &&
+          other.originType == this.originType &&
+          other.originId == this.originId &&
+          other.divinationTypeKey == this.divinationTypeKey &&
+          other.subDivinationTypeKey == this.subDivinationTypeKey &&
+          other.eventTimeKind == this.eventTimeKind &&
+          other.eventStartMs == this.eventStartMs &&
+          other.eventEndMs == this.eventEndMs &&
+          other.eventPrecision == this.eventPrecision &&
+          other.factSummary == this.factSummary &&
+          other.evidenceRef == this.evidenceRef &&
+          other.lifecycleStatus == this.lifecycleStatus &&
+          other.usedProfileRefsJson == this.usedProfileRefsJson &&
+          other.savedAtMs == this.savedAtMs &&
+          other.isLatest == this.isLatest);
+}
+
+class LifeEventExternalEventsCompanion
+    extends UpdateCompanion<LifeEventExternalEventRow> {
+  final Value<String> ownerScopeId;
+  final Value<String> externalEventId;
+  final Value<String> revision;
+  final Value<String> originType;
+  final Value<String> originId;
+  final Value<String> divinationTypeKey;
+  final Value<String?> subDivinationTypeKey;
+  final Value<String> eventTimeKind;
+  final Value<int> eventStartMs;
+  final Value<int?> eventEndMs;
+  final Value<int?> eventPrecision;
+  final Value<String> factSummary;
+  final Value<String?> evidenceRef;
+  final Value<String> lifecycleStatus;
+  final Value<String> usedProfileRefsJson;
+  final Value<int> savedAtMs;
+  final Value<bool> isLatest;
+  final Value<int> rowid;
+  const LifeEventExternalEventsCompanion({
+    this.ownerScopeId = const Value.absent(),
+    this.externalEventId = const Value.absent(),
+    this.revision = const Value.absent(),
+    this.originType = const Value.absent(),
+    this.originId = const Value.absent(),
+    this.divinationTypeKey = const Value.absent(),
+    this.subDivinationTypeKey = const Value.absent(),
+    this.eventTimeKind = const Value.absent(),
+    this.eventStartMs = const Value.absent(),
+    this.eventEndMs = const Value.absent(),
+    this.eventPrecision = const Value.absent(),
+    this.factSummary = const Value.absent(),
+    this.evidenceRef = const Value.absent(),
+    this.lifecycleStatus = const Value.absent(),
+    this.usedProfileRefsJson = const Value.absent(),
+    this.savedAtMs = const Value.absent(),
+    this.isLatest = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LifeEventExternalEventsCompanion.insert({
+    required String ownerScopeId,
+    required String externalEventId,
+    required String revision,
+    required String originType,
+    required String originId,
+    required String divinationTypeKey,
+    this.subDivinationTypeKey = const Value.absent(),
+    required String eventTimeKind,
+    required int eventStartMs,
+    this.eventEndMs = const Value.absent(),
+    this.eventPrecision = const Value.absent(),
+    required String factSummary,
+    this.evidenceRef = const Value.absent(),
+    required String lifecycleStatus,
+    required String usedProfileRefsJson,
+    required int savedAtMs,
+    required bool isLatest,
+    this.rowid = const Value.absent(),
+  }) : ownerScopeId = Value(ownerScopeId),
+       externalEventId = Value(externalEventId),
+       revision = Value(revision),
+       originType = Value(originType),
+       originId = Value(originId),
+       divinationTypeKey = Value(divinationTypeKey),
+       eventTimeKind = Value(eventTimeKind),
+       eventStartMs = Value(eventStartMs),
+       factSummary = Value(factSummary),
+       lifecycleStatus = Value(lifecycleStatus),
+       usedProfileRefsJson = Value(usedProfileRefsJson),
+       savedAtMs = Value(savedAtMs),
+       isLatest = Value(isLatest);
+  static Insertable<LifeEventExternalEventRow> custom({
+    Expression<String>? ownerScopeId,
+    Expression<String>? externalEventId,
+    Expression<String>? revision,
+    Expression<String>? originType,
+    Expression<String>? originId,
+    Expression<String>? divinationTypeKey,
+    Expression<String>? subDivinationTypeKey,
+    Expression<String>? eventTimeKind,
+    Expression<int>? eventStartMs,
+    Expression<int>? eventEndMs,
+    Expression<int>? eventPrecision,
+    Expression<String>? factSummary,
+    Expression<String>? evidenceRef,
+    Expression<String>? lifecycleStatus,
+    Expression<String>? usedProfileRefsJson,
+    Expression<int>? savedAtMs,
+    Expression<bool>? isLatest,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (ownerScopeId != null) 'owner_scope_id': ownerScopeId,
+      if (externalEventId != null) 'external_event_id': externalEventId,
+      if (revision != null) 'revision': revision,
+      if (originType != null) 'origin_type': originType,
+      if (originId != null) 'origin_id': originId,
+      if (divinationTypeKey != null) 'divination_type_key': divinationTypeKey,
+      if (subDivinationTypeKey != null)
+        'sub_divination_type_key': subDivinationTypeKey,
+      if (eventTimeKind != null) 'event_time_kind': eventTimeKind,
+      if (eventStartMs != null) 'event_start_ms': eventStartMs,
+      if (eventEndMs != null) 'event_end_ms': eventEndMs,
+      if (eventPrecision != null) 'event_precision': eventPrecision,
+      if (factSummary != null) 'fact_summary': factSummary,
+      if (evidenceRef != null) 'evidence_ref': evidenceRef,
+      if (lifecycleStatus != null) 'lifecycle_status': lifecycleStatus,
+      if (usedProfileRefsJson != null)
+        'used_profile_refs_json': usedProfileRefsJson,
+      if (savedAtMs != null) 'saved_at_ms': savedAtMs,
+      if (isLatest != null) 'is_latest': isLatest,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LifeEventExternalEventsCompanion copyWith({
+    Value<String>? ownerScopeId,
+    Value<String>? externalEventId,
+    Value<String>? revision,
+    Value<String>? originType,
+    Value<String>? originId,
+    Value<String>? divinationTypeKey,
+    Value<String?>? subDivinationTypeKey,
+    Value<String>? eventTimeKind,
+    Value<int>? eventStartMs,
+    Value<int?>? eventEndMs,
+    Value<int?>? eventPrecision,
+    Value<String>? factSummary,
+    Value<String?>? evidenceRef,
+    Value<String>? lifecycleStatus,
+    Value<String>? usedProfileRefsJson,
+    Value<int>? savedAtMs,
+    Value<bool>? isLatest,
+    Value<int>? rowid,
+  }) {
+    return LifeEventExternalEventsCompanion(
+      ownerScopeId: ownerScopeId ?? this.ownerScopeId,
+      externalEventId: externalEventId ?? this.externalEventId,
+      revision: revision ?? this.revision,
+      originType: originType ?? this.originType,
+      originId: originId ?? this.originId,
+      divinationTypeKey: divinationTypeKey ?? this.divinationTypeKey,
+      subDivinationTypeKey: subDivinationTypeKey ?? this.subDivinationTypeKey,
+      eventTimeKind: eventTimeKind ?? this.eventTimeKind,
+      eventStartMs: eventStartMs ?? this.eventStartMs,
+      eventEndMs: eventEndMs ?? this.eventEndMs,
+      eventPrecision: eventPrecision ?? this.eventPrecision,
+      factSummary: factSummary ?? this.factSummary,
+      evidenceRef: evidenceRef ?? this.evidenceRef,
+      lifecycleStatus: lifecycleStatus ?? this.lifecycleStatus,
+      usedProfileRefsJson: usedProfileRefsJson ?? this.usedProfileRefsJson,
+      savedAtMs: savedAtMs ?? this.savedAtMs,
+      isLatest: isLatest ?? this.isLatest,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (ownerScopeId.present) {
+      map['owner_scope_id'] = Variable<String>(ownerScopeId.value);
+    }
+    if (externalEventId.present) {
+      map['external_event_id'] = Variable<String>(externalEventId.value);
+    }
+    if (revision.present) {
+      map['revision'] = Variable<String>(revision.value);
+    }
+    if (originType.present) {
+      map['origin_type'] = Variable<String>(originType.value);
+    }
+    if (originId.present) {
+      map['origin_id'] = Variable<String>(originId.value);
+    }
+    if (divinationTypeKey.present) {
+      map['divination_type_key'] = Variable<String>(divinationTypeKey.value);
+    }
+    if (subDivinationTypeKey.present) {
+      map['sub_divination_type_key'] = Variable<String>(
+        subDivinationTypeKey.value,
+      );
+    }
+    if (eventTimeKind.present) {
+      map['event_time_kind'] = Variable<String>(eventTimeKind.value);
+    }
+    if (eventStartMs.present) {
+      map['event_start_ms'] = Variable<int>(eventStartMs.value);
+    }
+    if (eventEndMs.present) {
+      map['event_end_ms'] = Variable<int>(eventEndMs.value);
+    }
+    if (eventPrecision.present) {
+      map['event_precision'] = Variable<int>(eventPrecision.value);
+    }
+    if (factSummary.present) {
+      map['fact_summary'] = Variable<String>(factSummary.value);
+    }
+    if (evidenceRef.present) {
+      map['evidence_ref'] = Variable<String>(evidenceRef.value);
+    }
+    if (lifecycleStatus.present) {
+      map['lifecycle_status'] = Variable<String>(lifecycleStatus.value);
+    }
+    if (usedProfileRefsJson.present) {
+      map['used_profile_refs_json'] = Variable<String>(
+        usedProfileRefsJson.value,
+      );
+    }
+    if (savedAtMs.present) {
+      map['saved_at_ms'] = Variable<int>(savedAtMs.value);
+    }
+    if (isLatest.present) {
+      map['is_latest'] = Variable<bool>(isLatest.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LifeEventExternalEventsCompanion(')
+          ..write('ownerScopeId: $ownerScopeId, ')
+          ..write('externalEventId: $externalEventId, ')
+          ..write('revision: $revision, ')
+          ..write('originType: $originType, ')
+          ..write('originId: $originId, ')
+          ..write('divinationTypeKey: $divinationTypeKey, ')
+          ..write('subDivinationTypeKey: $subDivinationTypeKey, ')
+          ..write('eventTimeKind: $eventTimeKind, ')
+          ..write('eventStartMs: $eventStartMs, ')
+          ..write('eventEndMs: $eventEndMs, ')
+          ..write('eventPrecision: $eventPrecision, ')
+          ..write('factSummary: $factSummary, ')
+          ..write('evidenceRef: $evidenceRef, ')
+          ..write('lifecycleStatus: $lifecycleStatus, ')
+          ..write('usedProfileRefsJson: $usedProfileRefsJson, ')
+          ..write('savedAtMs: $savedAtMs, ')
+          ..write('isLatest: $isLatest, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LifeEventExternalEventSubjectsTable
+    extends LifeEventExternalEventSubjects
+    with
+        TableInfo<
+          $LifeEventExternalEventSubjectsTable,
+          LifeEventExternalEventSubjectRow
+        > {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LifeEventExternalEventSubjectsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _ownerScopeIdMeta = const VerificationMeta(
+    'ownerScopeId',
+  );
+  @override
+  late final GeneratedColumn<String> ownerScopeId = GeneratedColumn<String>(
+    'owner_scope_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _externalEventIdMeta = const VerificationMeta(
+    'externalEventId',
+  );
+  @override
+  late final GeneratedColumn<String> externalEventId = GeneratedColumn<String>(
+    'external_event_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _revisionMeta = const VerificationMeta(
+    'revision',
+  );
+  @override
+  late final GeneratedColumn<String> revision = GeneratedColumn<String>(
+    'revision',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _subjectIdMeta = const VerificationMeta(
+    'subjectId',
+  );
+  @override
+  late final GeneratedColumn<String> subjectId = GeneratedColumn<String>(
+    'subject_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    ownerScopeId,
+    externalEventId,
+    revision,
+    subjectId,
+    position,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 't_le_external_event_subjects';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LifeEventExternalEventSubjectRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('owner_scope_id')) {
+      context.handle(
+        _ownerScopeIdMeta,
+        ownerScopeId.isAcceptableOrUnknown(
+          data['owner_scope_id']!,
+          _ownerScopeIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_ownerScopeIdMeta);
+    }
+    if (data.containsKey('external_event_id')) {
+      context.handle(
+        _externalEventIdMeta,
+        externalEventId.isAcceptableOrUnknown(
+          data['external_event_id']!,
+          _externalEventIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_externalEventIdMeta);
+    }
+    if (data.containsKey('revision')) {
+      context.handle(
+        _revisionMeta,
+        revision.isAcceptableOrUnknown(data['revision']!, _revisionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_revisionMeta);
+    }
+    if (data.containsKey('subject_id')) {
+      context.handle(
+        _subjectIdMeta,
+        subjectId.isAcceptableOrUnknown(data['subject_id']!, _subjectIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_subjectIdMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {
+    ownerScopeId,
+    externalEventId,
+    revision,
+    subjectId,
+    position,
+  };
+  @override
+  LifeEventExternalEventSubjectRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LifeEventExternalEventSubjectRow(
+      ownerScopeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_scope_id'],
+      )!,
+      externalEventId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}external_event_id'],
+      )!,
+      revision: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}revision'],
+      )!,
+      subjectId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}subject_id'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+    );
+  }
+
+  @override
+  $LifeEventExternalEventSubjectsTable createAlias(String alias) {
+    return $LifeEventExternalEventSubjectsTable(attachedDatabase, alias);
+  }
+}
+
+class LifeEventExternalEventSubjectRow extends DataClass
+    implements Insertable<LifeEventExternalEventSubjectRow> {
+  final String ownerScopeId;
+  final String externalEventId;
+  final String revision;
+  final String subjectId;
+  final int position;
+  const LifeEventExternalEventSubjectRow({
+    required this.ownerScopeId,
+    required this.externalEventId,
+    required this.revision,
+    required this.subjectId,
+    required this.position,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['owner_scope_id'] = Variable<String>(ownerScopeId);
+    map['external_event_id'] = Variable<String>(externalEventId);
+    map['revision'] = Variable<String>(revision);
+    map['subject_id'] = Variable<String>(subjectId);
+    map['position'] = Variable<int>(position);
+    return map;
+  }
+
+  LifeEventExternalEventSubjectsCompanion toCompanion(bool nullToAbsent) {
+    return LifeEventExternalEventSubjectsCompanion(
+      ownerScopeId: Value(ownerScopeId),
+      externalEventId: Value(externalEventId),
+      revision: Value(revision),
+      subjectId: Value(subjectId),
+      position: Value(position),
+    );
+  }
+
+  factory LifeEventExternalEventSubjectRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LifeEventExternalEventSubjectRow(
+      ownerScopeId: serializer.fromJson<String>(json['ownerScopeId']),
+      externalEventId: serializer.fromJson<String>(json['externalEventId']),
+      revision: serializer.fromJson<String>(json['revision']),
+      subjectId: serializer.fromJson<String>(json['subjectId']),
+      position: serializer.fromJson<int>(json['position']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'ownerScopeId': serializer.toJson<String>(ownerScopeId),
+      'externalEventId': serializer.toJson<String>(externalEventId),
+      'revision': serializer.toJson<String>(revision),
+      'subjectId': serializer.toJson<String>(subjectId),
+      'position': serializer.toJson<int>(position),
+    };
+  }
+
+  LifeEventExternalEventSubjectRow copyWith({
+    String? ownerScopeId,
+    String? externalEventId,
+    String? revision,
+    String? subjectId,
+    int? position,
+  }) => LifeEventExternalEventSubjectRow(
+    ownerScopeId: ownerScopeId ?? this.ownerScopeId,
+    externalEventId: externalEventId ?? this.externalEventId,
+    revision: revision ?? this.revision,
+    subjectId: subjectId ?? this.subjectId,
+    position: position ?? this.position,
+  );
+  LifeEventExternalEventSubjectRow copyWithCompanion(
+    LifeEventExternalEventSubjectsCompanion data,
+  ) {
+    return LifeEventExternalEventSubjectRow(
+      ownerScopeId: data.ownerScopeId.present
+          ? data.ownerScopeId.value
+          : this.ownerScopeId,
+      externalEventId: data.externalEventId.present
+          ? data.externalEventId.value
+          : this.externalEventId,
+      revision: data.revision.present ? data.revision.value : this.revision,
+      subjectId: data.subjectId.present ? data.subjectId.value : this.subjectId,
+      position: data.position.present ? data.position.value : this.position,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LifeEventExternalEventSubjectRow(')
+          ..write('ownerScopeId: $ownerScopeId, ')
+          ..write('externalEventId: $externalEventId, ')
+          ..write('revision: $revision, ')
+          ..write('subjectId: $subjectId, ')
+          ..write('position: $position')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(ownerScopeId, externalEventId, revision, subjectId, position);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LifeEventExternalEventSubjectRow &&
+          other.ownerScopeId == this.ownerScopeId &&
+          other.externalEventId == this.externalEventId &&
+          other.revision == this.revision &&
+          other.subjectId == this.subjectId &&
+          other.position == this.position);
+}
+
+class LifeEventExternalEventSubjectsCompanion
+    extends UpdateCompanion<LifeEventExternalEventSubjectRow> {
+  final Value<String> ownerScopeId;
+  final Value<String> externalEventId;
+  final Value<String> revision;
+  final Value<String> subjectId;
+  final Value<int> position;
+  final Value<int> rowid;
+  const LifeEventExternalEventSubjectsCompanion({
+    this.ownerScopeId = const Value.absent(),
+    this.externalEventId = const Value.absent(),
+    this.revision = const Value.absent(),
+    this.subjectId = const Value.absent(),
+    this.position = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LifeEventExternalEventSubjectsCompanion.insert({
+    required String ownerScopeId,
+    required String externalEventId,
+    required String revision,
+    required String subjectId,
+    required int position,
+    this.rowid = const Value.absent(),
+  }) : ownerScopeId = Value(ownerScopeId),
+       externalEventId = Value(externalEventId),
+       revision = Value(revision),
+       subjectId = Value(subjectId),
+       position = Value(position);
+  static Insertable<LifeEventExternalEventSubjectRow> custom({
+    Expression<String>? ownerScopeId,
+    Expression<String>? externalEventId,
+    Expression<String>? revision,
+    Expression<String>? subjectId,
+    Expression<int>? position,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (ownerScopeId != null) 'owner_scope_id': ownerScopeId,
+      if (externalEventId != null) 'external_event_id': externalEventId,
+      if (revision != null) 'revision': revision,
+      if (subjectId != null) 'subject_id': subjectId,
+      if (position != null) 'position': position,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LifeEventExternalEventSubjectsCompanion copyWith({
+    Value<String>? ownerScopeId,
+    Value<String>? externalEventId,
+    Value<String>? revision,
+    Value<String>? subjectId,
+    Value<int>? position,
+    Value<int>? rowid,
+  }) {
+    return LifeEventExternalEventSubjectsCompanion(
+      ownerScopeId: ownerScopeId ?? this.ownerScopeId,
+      externalEventId: externalEventId ?? this.externalEventId,
+      revision: revision ?? this.revision,
+      subjectId: subjectId ?? this.subjectId,
+      position: position ?? this.position,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (ownerScopeId.present) {
+      map['owner_scope_id'] = Variable<String>(ownerScopeId.value);
+    }
+    if (externalEventId.present) {
+      map['external_event_id'] = Variable<String>(externalEventId.value);
+    }
+    if (revision.present) {
+      map['revision'] = Variable<String>(revision.value);
+    }
+    if (subjectId.present) {
+      map['subject_id'] = Variable<String>(subjectId.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LifeEventExternalEventSubjectsCompanion(')
+          ..write('ownerScopeId: $ownerScopeId, ')
+          ..write('externalEventId: $externalEventId, ')
+          ..write('revision: $revision, ')
+          ..write('subjectId: $subjectId, ')
+          ..write('position: $position, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$LifeEventDatabase extends GeneratedDatabase {
   _$LifeEventDatabase(QueryExecutor e) : super(e);
   $LifeEventDatabaseManager get managers => $LifeEventDatabaseManager(this);
@@ -17150,6 +18590,10 @@ abstract class _$LifeEventDatabase extends GeneratedDatabase {
       $LifeEventReminderSchedulesTable(this);
   late final $LifeEventReminderDeliveriesTable lifeEventReminderDeliveries =
       $LifeEventReminderDeliveriesTable(this);
+  late final $LifeEventExternalEventsTable lifeEventExternalEvents =
+      $LifeEventExternalEventsTable(this);
+  late final $LifeEventExternalEventSubjectsTable
+  lifeEventExternalEventSubjects = $LifeEventExternalEventSubjectsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -17181,6 +18625,8 @@ abstract class _$LifeEventDatabase extends GeneratedDatabase {
     lifeEventReminderAggregateContributors,
     lifeEventReminderSchedules,
     lifeEventReminderDeliveries,
+    lifeEventExternalEvents,
+    lifeEventExternalEventSubjects,
   ];
 }
 
@@ -25603,6 +27049,705 @@ typedef $$LifeEventReminderDeliveriesTableProcessedTableManager =
       LifeEventReminderDeliveryRow,
       PrefetchHooks Function()
     >;
+typedef $$LifeEventExternalEventsTableCreateCompanionBuilder =
+    LifeEventExternalEventsCompanion Function({
+      required String ownerScopeId,
+      required String externalEventId,
+      required String revision,
+      required String originType,
+      required String originId,
+      required String divinationTypeKey,
+      Value<String?> subDivinationTypeKey,
+      required String eventTimeKind,
+      required int eventStartMs,
+      Value<int?> eventEndMs,
+      Value<int?> eventPrecision,
+      required String factSummary,
+      Value<String?> evidenceRef,
+      required String lifecycleStatus,
+      required String usedProfileRefsJson,
+      required int savedAtMs,
+      required bool isLatest,
+      Value<int> rowid,
+    });
+typedef $$LifeEventExternalEventsTableUpdateCompanionBuilder =
+    LifeEventExternalEventsCompanion Function({
+      Value<String> ownerScopeId,
+      Value<String> externalEventId,
+      Value<String> revision,
+      Value<String> originType,
+      Value<String> originId,
+      Value<String> divinationTypeKey,
+      Value<String?> subDivinationTypeKey,
+      Value<String> eventTimeKind,
+      Value<int> eventStartMs,
+      Value<int?> eventEndMs,
+      Value<int?> eventPrecision,
+      Value<String> factSummary,
+      Value<String?> evidenceRef,
+      Value<String> lifecycleStatus,
+      Value<String> usedProfileRefsJson,
+      Value<int> savedAtMs,
+      Value<bool> isLatest,
+      Value<int> rowid,
+    });
+
+class $$LifeEventExternalEventsTableFilterComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventExternalEventsTable> {
+  $$LifeEventExternalEventsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get ownerScopeId => $composableBuilder(
+    column: $table.ownerScopeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get externalEventId => $composableBuilder(
+    column: $table.externalEventId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get revision => $composableBuilder(
+    column: $table.revision,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get originType => $composableBuilder(
+    column: $table.originType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get originId => $composableBuilder(
+    column: $table.originId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get divinationTypeKey => $composableBuilder(
+    column: $table.divinationTypeKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get subDivinationTypeKey => $composableBuilder(
+    column: $table.subDivinationTypeKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get eventTimeKind => $composableBuilder(
+    column: $table.eventTimeKind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get eventStartMs => $composableBuilder(
+    column: $table.eventStartMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get eventEndMs => $composableBuilder(
+    column: $table.eventEndMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get eventPrecision => $composableBuilder(
+    column: $table.eventPrecision,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get factSummary => $composableBuilder(
+    column: $table.factSummary,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get evidenceRef => $composableBuilder(
+    column: $table.evidenceRef,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lifecycleStatus => $composableBuilder(
+    column: $table.lifecycleStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get usedProfileRefsJson => $composableBuilder(
+    column: $table.usedProfileRefsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get savedAtMs => $composableBuilder(
+    column: $table.savedAtMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isLatest => $composableBuilder(
+    column: $table.isLatest,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$LifeEventExternalEventsTableOrderingComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventExternalEventsTable> {
+  $$LifeEventExternalEventsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get ownerScopeId => $composableBuilder(
+    column: $table.ownerScopeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get externalEventId => $composableBuilder(
+    column: $table.externalEventId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get revision => $composableBuilder(
+    column: $table.revision,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get originType => $composableBuilder(
+    column: $table.originType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get originId => $composableBuilder(
+    column: $table.originId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get divinationTypeKey => $composableBuilder(
+    column: $table.divinationTypeKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get subDivinationTypeKey => $composableBuilder(
+    column: $table.subDivinationTypeKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get eventTimeKind => $composableBuilder(
+    column: $table.eventTimeKind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get eventStartMs => $composableBuilder(
+    column: $table.eventStartMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get eventEndMs => $composableBuilder(
+    column: $table.eventEndMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get eventPrecision => $composableBuilder(
+    column: $table.eventPrecision,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get factSummary => $composableBuilder(
+    column: $table.factSummary,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get evidenceRef => $composableBuilder(
+    column: $table.evidenceRef,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lifecycleStatus => $composableBuilder(
+    column: $table.lifecycleStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get usedProfileRefsJson => $composableBuilder(
+    column: $table.usedProfileRefsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get savedAtMs => $composableBuilder(
+    column: $table.savedAtMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isLatest => $composableBuilder(
+    column: $table.isLatest,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$LifeEventExternalEventsTableAnnotationComposer
+    extends Composer<_$LifeEventDatabase, $LifeEventExternalEventsTable> {
+  $$LifeEventExternalEventsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get ownerScopeId => $composableBuilder(
+    column: $table.ownerScopeId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get externalEventId => $composableBuilder(
+    column: $table.externalEventId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get revision =>
+      $composableBuilder(column: $table.revision, builder: (column) => column);
+
+  GeneratedColumn<String> get originType => $composableBuilder(
+    column: $table.originType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get originId =>
+      $composableBuilder(column: $table.originId, builder: (column) => column);
+
+  GeneratedColumn<String> get divinationTypeKey => $composableBuilder(
+    column: $table.divinationTypeKey,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get subDivinationTypeKey => $composableBuilder(
+    column: $table.subDivinationTypeKey,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get eventTimeKind => $composableBuilder(
+    column: $table.eventTimeKind,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get eventStartMs => $composableBuilder(
+    column: $table.eventStartMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get eventEndMs => $composableBuilder(
+    column: $table.eventEndMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get eventPrecision => $composableBuilder(
+    column: $table.eventPrecision,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get factSummary => $composableBuilder(
+    column: $table.factSummary,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get evidenceRef => $composableBuilder(
+    column: $table.evidenceRef,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lifecycleStatus => $composableBuilder(
+    column: $table.lifecycleStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get usedProfileRefsJson => $composableBuilder(
+    column: $table.usedProfileRefsJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get savedAtMs =>
+      $composableBuilder(column: $table.savedAtMs, builder: (column) => column);
+
+  GeneratedColumn<bool> get isLatest =>
+      $composableBuilder(column: $table.isLatest, builder: (column) => column);
+}
+
+class $$LifeEventExternalEventsTableTableManager
+    extends
+        RootTableManager<
+          _$LifeEventDatabase,
+          $LifeEventExternalEventsTable,
+          LifeEventExternalEventRow,
+          $$LifeEventExternalEventsTableFilterComposer,
+          $$LifeEventExternalEventsTableOrderingComposer,
+          $$LifeEventExternalEventsTableAnnotationComposer,
+          $$LifeEventExternalEventsTableCreateCompanionBuilder,
+          $$LifeEventExternalEventsTableUpdateCompanionBuilder,
+          (
+            LifeEventExternalEventRow,
+            BaseReferences<
+              _$LifeEventDatabase,
+              $LifeEventExternalEventsTable,
+              LifeEventExternalEventRow
+            >,
+          ),
+          LifeEventExternalEventRow,
+          PrefetchHooks Function()
+        > {
+  $$LifeEventExternalEventsTableTableManager(
+    _$LifeEventDatabase db,
+    $LifeEventExternalEventsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LifeEventExternalEventsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$LifeEventExternalEventsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$LifeEventExternalEventsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> ownerScopeId = const Value.absent(),
+                Value<String> externalEventId = const Value.absent(),
+                Value<String> revision = const Value.absent(),
+                Value<String> originType = const Value.absent(),
+                Value<String> originId = const Value.absent(),
+                Value<String> divinationTypeKey = const Value.absent(),
+                Value<String?> subDivinationTypeKey = const Value.absent(),
+                Value<String> eventTimeKind = const Value.absent(),
+                Value<int> eventStartMs = const Value.absent(),
+                Value<int?> eventEndMs = const Value.absent(),
+                Value<int?> eventPrecision = const Value.absent(),
+                Value<String> factSummary = const Value.absent(),
+                Value<String?> evidenceRef = const Value.absent(),
+                Value<String> lifecycleStatus = const Value.absent(),
+                Value<String> usedProfileRefsJson = const Value.absent(),
+                Value<int> savedAtMs = const Value.absent(),
+                Value<bool> isLatest = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LifeEventExternalEventsCompanion(
+                ownerScopeId: ownerScopeId,
+                externalEventId: externalEventId,
+                revision: revision,
+                originType: originType,
+                originId: originId,
+                divinationTypeKey: divinationTypeKey,
+                subDivinationTypeKey: subDivinationTypeKey,
+                eventTimeKind: eventTimeKind,
+                eventStartMs: eventStartMs,
+                eventEndMs: eventEndMs,
+                eventPrecision: eventPrecision,
+                factSummary: factSummary,
+                evidenceRef: evidenceRef,
+                lifecycleStatus: lifecycleStatus,
+                usedProfileRefsJson: usedProfileRefsJson,
+                savedAtMs: savedAtMs,
+                isLatest: isLatest,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String ownerScopeId,
+                required String externalEventId,
+                required String revision,
+                required String originType,
+                required String originId,
+                required String divinationTypeKey,
+                Value<String?> subDivinationTypeKey = const Value.absent(),
+                required String eventTimeKind,
+                required int eventStartMs,
+                Value<int?> eventEndMs = const Value.absent(),
+                Value<int?> eventPrecision = const Value.absent(),
+                required String factSummary,
+                Value<String?> evidenceRef = const Value.absent(),
+                required String lifecycleStatus,
+                required String usedProfileRefsJson,
+                required int savedAtMs,
+                required bool isLatest,
+                Value<int> rowid = const Value.absent(),
+              }) => LifeEventExternalEventsCompanion.insert(
+                ownerScopeId: ownerScopeId,
+                externalEventId: externalEventId,
+                revision: revision,
+                originType: originType,
+                originId: originId,
+                divinationTypeKey: divinationTypeKey,
+                subDivinationTypeKey: subDivinationTypeKey,
+                eventTimeKind: eventTimeKind,
+                eventStartMs: eventStartMs,
+                eventEndMs: eventEndMs,
+                eventPrecision: eventPrecision,
+                factSummary: factSummary,
+                evidenceRef: evidenceRef,
+                lifecycleStatus: lifecycleStatus,
+                usedProfileRefsJson: usedProfileRefsJson,
+                savedAtMs: savedAtMs,
+                isLatest: isLatest,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$LifeEventExternalEventsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$LifeEventDatabase,
+      $LifeEventExternalEventsTable,
+      LifeEventExternalEventRow,
+      $$LifeEventExternalEventsTableFilterComposer,
+      $$LifeEventExternalEventsTableOrderingComposer,
+      $$LifeEventExternalEventsTableAnnotationComposer,
+      $$LifeEventExternalEventsTableCreateCompanionBuilder,
+      $$LifeEventExternalEventsTableUpdateCompanionBuilder,
+      (
+        LifeEventExternalEventRow,
+        BaseReferences<
+          _$LifeEventDatabase,
+          $LifeEventExternalEventsTable,
+          LifeEventExternalEventRow
+        >,
+      ),
+      LifeEventExternalEventRow,
+      PrefetchHooks Function()
+    >;
+typedef $$LifeEventExternalEventSubjectsTableCreateCompanionBuilder =
+    LifeEventExternalEventSubjectsCompanion Function({
+      required String ownerScopeId,
+      required String externalEventId,
+      required String revision,
+      required String subjectId,
+      required int position,
+      Value<int> rowid,
+    });
+typedef $$LifeEventExternalEventSubjectsTableUpdateCompanionBuilder =
+    LifeEventExternalEventSubjectsCompanion Function({
+      Value<String> ownerScopeId,
+      Value<String> externalEventId,
+      Value<String> revision,
+      Value<String> subjectId,
+      Value<int> position,
+      Value<int> rowid,
+    });
+
+class $$LifeEventExternalEventSubjectsTableFilterComposer
+    extends
+        Composer<_$LifeEventDatabase, $LifeEventExternalEventSubjectsTable> {
+  $$LifeEventExternalEventSubjectsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get ownerScopeId => $composableBuilder(
+    column: $table.ownerScopeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get externalEventId => $composableBuilder(
+    column: $table.externalEventId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get revision => $composableBuilder(
+    column: $table.revision,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get subjectId => $composableBuilder(
+    column: $table.subjectId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$LifeEventExternalEventSubjectsTableOrderingComposer
+    extends
+        Composer<_$LifeEventDatabase, $LifeEventExternalEventSubjectsTable> {
+  $$LifeEventExternalEventSubjectsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get ownerScopeId => $composableBuilder(
+    column: $table.ownerScopeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get externalEventId => $composableBuilder(
+    column: $table.externalEventId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get revision => $composableBuilder(
+    column: $table.revision,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get subjectId => $composableBuilder(
+    column: $table.subjectId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$LifeEventExternalEventSubjectsTableAnnotationComposer
+    extends
+        Composer<_$LifeEventDatabase, $LifeEventExternalEventSubjectsTable> {
+  $$LifeEventExternalEventSubjectsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get ownerScopeId => $composableBuilder(
+    column: $table.ownerScopeId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get externalEventId => $composableBuilder(
+    column: $table.externalEventId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get revision =>
+      $composableBuilder(column: $table.revision, builder: (column) => column);
+
+  GeneratedColumn<String> get subjectId =>
+      $composableBuilder(column: $table.subjectId, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+}
+
+class $$LifeEventExternalEventSubjectsTableTableManager
+    extends
+        RootTableManager<
+          _$LifeEventDatabase,
+          $LifeEventExternalEventSubjectsTable,
+          LifeEventExternalEventSubjectRow,
+          $$LifeEventExternalEventSubjectsTableFilterComposer,
+          $$LifeEventExternalEventSubjectsTableOrderingComposer,
+          $$LifeEventExternalEventSubjectsTableAnnotationComposer,
+          $$LifeEventExternalEventSubjectsTableCreateCompanionBuilder,
+          $$LifeEventExternalEventSubjectsTableUpdateCompanionBuilder,
+          (
+            LifeEventExternalEventSubjectRow,
+            BaseReferences<
+              _$LifeEventDatabase,
+              $LifeEventExternalEventSubjectsTable,
+              LifeEventExternalEventSubjectRow
+            >,
+          ),
+          LifeEventExternalEventSubjectRow,
+          PrefetchHooks Function()
+        > {
+  $$LifeEventExternalEventSubjectsTableTableManager(
+    _$LifeEventDatabase db,
+    $LifeEventExternalEventSubjectsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LifeEventExternalEventSubjectsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$LifeEventExternalEventSubjectsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$LifeEventExternalEventSubjectsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> ownerScopeId = const Value.absent(),
+                Value<String> externalEventId = const Value.absent(),
+                Value<String> revision = const Value.absent(),
+                Value<String> subjectId = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LifeEventExternalEventSubjectsCompanion(
+                ownerScopeId: ownerScopeId,
+                externalEventId: externalEventId,
+                revision: revision,
+                subjectId: subjectId,
+                position: position,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String ownerScopeId,
+                required String externalEventId,
+                required String revision,
+                required String subjectId,
+                required int position,
+                Value<int> rowid = const Value.absent(),
+              }) => LifeEventExternalEventSubjectsCompanion.insert(
+                ownerScopeId: ownerScopeId,
+                externalEventId: externalEventId,
+                revision: revision,
+                subjectId: subjectId,
+                position: position,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$LifeEventExternalEventSubjectsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$LifeEventDatabase,
+      $LifeEventExternalEventSubjectsTable,
+      LifeEventExternalEventSubjectRow,
+      $$LifeEventExternalEventSubjectsTableFilterComposer,
+      $$LifeEventExternalEventSubjectsTableOrderingComposer,
+      $$LifeEventExternalEventSubjectsTableAnnotationComposer,
+      $$LifeEventExternalEventSubjectsTableCreateCompanionBuilder,
+      $$LifeEventExternalEventSubjectsTableUpdateCompanionBuilder,
+      (
+        LifeEventExternalEventSubjectRow,
+        BaseReferences<
+          _$LifeEventDatabase,
+          $LifeEventExternalEventSubjectsTable,
+          LifeEventExternalEventSubjectRow
+        >,
+      ),
+      LifeEventExternalEventSubjectRow,
+      PrefetchHooks Function()
+    >;
 
 class $LifeEventDatabaseManager {
   final _$LifeEventDatabase _db;
@@ -25741,5 +27886,16 @@ class $LifeEventDatabaseManager {
       $$LifeEventReminderDeliveriesTableTableManager(
         _db,
         _db.lifeEventReminderDeliveries,
+      );
+  $$LifeEventExternalEventsTableTableManager get lifeEventExternalEvents =>
+      $$LifeEventExternalEventsTableTableManager(
+        _db,
+        _db.lifeEventExternalEvents,
+      );
+  $$LifeEventExternalEventSubjectsTableTableManager
+  get lifeEventExternalEventSubjects =>
+      $$LifeEventExternalEventSubjectsTableTableManager(
+        _db,
+        _db.lifeEventExternalEventSubjects,
       );
 }
