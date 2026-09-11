@@ -1,6 +1,6 @@
-// ACT-06：Drift/SQLite 原子存储适配器。
+// ACT-06 / ACT-05A-S：Drift/SQLite 原子持久化与查询适配器。
 //
-// 与 In-Memory 参考实现共享同一合同（lifeEventStorageContractSuite）：
+// 与 In-Memory 参考实现共享同一合同（runLifeEventStorageContractSuite / runLifeEventQueryContractSuite）：
 // receipt-first 判定顺序（receipt → digest → CAS → payload → receipt → progress），
 // 全部写入在一个 SQLite transaction 内完成，任一阶段失败全部回滚。
 //
@@ -15,9 +15,13 @@ import 'package:persistence_core/life_event/life_event_ports.dart';
 
 import 'life_event_database.dart';
 
-/// Drift 原子存储实现。
+/// Drift 原子存储与查询实现。
 final class DriftLifeEventStorage
-    implements LifeEventCoverageGenerationPort, LifeEventShardCommitPort {
+    implements
+        LifeEventCoverageGenerationPort,
+        LifeEventShardCommitPort,
+        LifeEventProjectionQueryPort,
+        LifeEventCoverageQueryPort {
   final LifeEventDatabase _db;
 
   DriftLifeEventStorage(this._db);
@@ -82,8 +86,8 @@ final class DriftLifeEventStorage
       await _db.into(_db.lifeEventCoverageSeriesHeads).insert(
         LifeEventCoverageSeriesHeadRow(
           coverageSeriesId: request.coverageSeriesId,
-          ownerScopeId: '',
-          profileId: '',
+          ownerScopeId: head?.ownerScopeId ?? '',
+          profileId: head?.profileId ?? '',
           chartSnapshotId: request.chartSnapshotId,
           providerId: request.providerId,
           eventTypeId: request.eventTypeId,
@@ -172,9 +176,21 @@ final class DriftLifeEventStorage
       for (final p in request.projections) {
         await _db.into(_db.lifeEventProjections).insert(
           _projectionRow(p),
-          mode: InsertMode.insertOrIgnore,
+          mode: InsertMode.insertOrReplace,
         );
       }
+
+      // 若有 withdrawals，将其标记为 withdrawn
+      for (final w in request.withdrawals) {
+        await (_db.update(_db.lifeEventProjections)
+              ..where((t) =>
+                  t.sourceProviderId.equals(w.providerId) &
+                  t.sourceEventId.equals(w.sourceEventId)))
+            .write(LifeEventProjectionsCompanion(
+              lifecycleStatus: Value(ProjectionLifecycleStatus.withdrawn.index),
+            ));
+      }
+
       await _db.into(_db.lifeEventShardReceipts).insert(
         LifeEventShardReceiptRow(
           coverageId: request.coverageId,
@@ -205,6 +221,20 @@ final class DriftLifeEventStorage
         isComplete: isComplete,
         nowMs: nowMs,
       );
+
+      // 同步更新 head 的 ownerScopeId 与 profileId
+      final firstProj = request.projections.isNotEmpty ? request.projections.first : null;
+      if (firstProj != null) {
+        final head = await _headForCoverage(request.coverageId);
+        if (head != null && (head.ownerScopeId.isEmpty || head.profileId.isEmpty)) {
+          await (_db.update(_db.lifeEventCoverageSeriesHeads)
+                ..where((t) => t.coverageSeriesId.equals(head.coverageSeriesId)))
+              .write(LifeEventCoverageSeriesHeadsCompanion(
+                ownerScopeId: Value(head.ownerScopeId.isNotEmpty ? head.ownerScopeId : firstProj.ownerScopeId),
+                profileId: Value(head.profileId.isNotEmpty ? head.profileId : firstProj.profileId),
+              ));
+        }
+      }
 
       // 5. complete：切换 active/historical（同一事务）。
       if (isComplete) {
@@ -242,6 +272,173 @@ final class DriftLifeEventStorage
         expectedShardCount: _expectedShardCount(request.coverageId) ?? 0,
       );
     });
+  }
+
+  // ── LifeEventProjectionQueryPort ──
+
+  @override
+  Future<ProjectionQueryPage> queryProjections(ProjectionStorageQuery request) async {
+    // V1 唯一支持按 effectiveStart 排序；其他值返回空页并在 nextPageToken=null
+    if (request.sortKey != 'effectiveStart') {
+      return const ProjectionQueryPage(items: [], nextPageToken: null);
+    }
+
+    // 1. 查找匹配的 series heads
+    var headQuery = _db.select(_db.lifeEventCoverageSeriesHeads)
+      ..where((t) => t.ownerScopeId.equals(request.ownerScopeId));
+
+    if (request.profileIds.isNotEmpty) {
+      headQuery = headQuery..where((t) => t.profileId.isIn(request.profileIds));
+    }
+    if (request.chartSnapshotIds.isNotEmpty) {
+      headQuery = headQuery..where((t) => t.chartSnapshotId.isIn(request.chartSnapshotIds));
+    }
+    if (request.providerIds.isNotEmpty) {
+      headQuery = headQuery..where((t) => t.providerId.isIn(request.providerIds));
+    }
+    if (request.eventTypeIds.isNotEmpty) {
+      headQuery = headQuery..where((t) => t.eventTypeId.isIn(request.eventTypeIds));
+    }
+
+    final matchingHeads = await headQuery.get();
+
+    // 2. 收集符合代条件的 coverage IDs（只读 active；若 includeHistoricalGenerations 额外含 historical）
+    final eligibleCoverageIds = <String>{};
+    for (final h in matchingHeads) {
+      if (h.activeCoverageId != null) {
+        eligibleCoverageIds.add(h.activeCoverageId!);
+      }
+      if (request.includeHistoricalGenerations) {
+        final histManifests = await (_db.select(_db.lifeEventCoverageManifests)
+              ..where((t) =>
+                  t.coverageSeriesId.equals(h.coverageSeriesId) &
+                  t.servingState.equals(ServingState.historical.index)))
+            .get();
+        for (final m in histManifests) {
+          eligibleCoverageIds.add(m.coverageId);
+        }
+      }
+    }
+
+    if (eligibleCoverageIds.isEmpty) {
+      return const ProjectionQueryPage(items: [], nextPageToken: null);
+    }
+
+    // 3. 构建投影查询（利用既有索引）
+    final startRangeMs = request.range.startInclusiveUtc.millisecondsSinceEpoch;
+    final endRangeMs = request.range.endExclusiveUtc.millisecondsSinceEpoch;
+
+    var projQuery = _db.select(_db.lifeEventProjections)
+      ..where((t) =>
+          t.ownerScopeId.equals(request.ownerScopeId) &
+          t.coverageId.isIn(eligibleCoverageIds) &
+          t.effectiveStartMs.isBiggerOrEqualValue(startRangeMs) &
+          t.effectiveStartMs.isSmallerThanValue(endRangeMs));
+
+    if (request.profileIds.isNotEmpty) {
+      projQuery = projQuery..where((t) => t.profileId.isIn(request.profileIds));
+    }
+    if (request.chartSnapshotIds.isNotEmpty) {
+      projQuery = projQuery..where((t) => t.chartSnapshotId.isIn(request.chartSnapshotIds));
+    }
+    if (request.providerIds.isNotEmpty) {
+      projQuery = projQuery..where((t) => t.sourceProviderId.isIn(request.providerIds));
+    }
+    if (request.eventTypeIds.isNotEmpty) {
+      projQuery = projQuery..where((t) => t.eventTypeId.isIn(request.eventTypeIds));
+    }
+    if (!request.includeWithdrawn) {
+      projQuery = projQuery..where((t) =>
+          t.lifecycleStatus.isNotValue(ProjectionLifecycleStatus.withdrawn.index));
+    }
+
+    // keyset 游标过滤 (effective_start_ms, precision_rank, projection_id) > (?, ?, ?)
+    final decodedToken = _decodePageToken(request.pageToken);
+    if (decodedToken != null) {
+      final (tMs, tRank, tId) = decodedToken;
+      final escapedId = tId.replaceAll("'", "''");
+      projQuery = projQuery..where((t) => CustomExpression<bool>(
+          '(effective_start_ms, precision_rank, projection_id) > ($tMs, $tRank, \'$escapedId\')'));
+    }
+
+    projQuery = projQuery
+      ..orderBy([
+        (t) => OrderingTerm.asc(t.effectiveStartMs),
+        (t) => OrderingTerm.asc(t.precisionRank),
+        (t) => OrderingTerm.asc(t.projectionId),
+      ])
+      ..limit(request.pageSize + 1);
+
+    final rows = await projQuery.get();
+    final hasMore = rows.length > request.pageSize;
+    final pageRows = hasMore ? rows.sublist(0, request.pageSize) : rows;
+    final items = pageRows.map(_rowToProjection).toList();
+
+    String? nextPageToken;
+    if (hasMore && items.isNotEmpty) {
+      final lastRow = pageRows.last;
+      nextPageToken = _encodePageToken(
+        lastRow.effectiveStartMs,
+        lastRow.precisionRank,
+        lastRow.projectionId,
+      );
+    }
+
+    return ProjectionQueryPage(items: items, nextPageToken: nextPageToken);
+  }
+
+  // ── LifeEventCoverageQueryPort ──
+
+  @override
+  Future<CoverageStoragePage> queryCoverage(CoverageStorageQuery request) async {
+    final startRangeMs = request.range.startInclusiveUtc.millisecondsSinceEpoch;
+    final endRangeMs = request.range.endExclusiveUtc.millisecondsSinceEpoch;
+
+    var headQuery = _db.select(_db.lifeEventCoverageSeriesHeads)
+      ..where((t) =>
+          t.ownerScopeId.equals(request.ownerScopeId) &
+          t.desiredRangeStartMs.isSmallerThanValue(endRangeMs) &
+          t.desiredRangeEndMs.isBiggerThanValue(startRangeMs));
+
+    if (request.profileIds.isNotEmpty) {
+      headQuery = headQuery..where((t) => t.profileId.isIn(request.profileIds));
+    }
+    if (request.chartSnapshotIds.isNotEmpty) {
+      headQuery = headQuery..where((t) => t.chartSnapshotId.isIn(request.chartSnapshotIds));
+    }
+    if (request.providerIds.isNotEmpty) {
+      headQuery = headQuery..where((t) => t.providerId.isIn(request.providerIds));
+    }
+    if (request.eventTypeIds.isNotEmpty) {
+      headQuery = headQuery..where((t) => t.eventTypeId.isIn(request.eventTypeIds));
+    }
+
+    final headRows = await headQuery.get();
+    final heads = headRows.map(_head).toList();
+
+    final matchingManifests = <CoverageManifest>[];
+    for (final h in heads) {
+      if (h.activeCoverageId != null) {
+        final activeRow = await (_db.select(_db.lifeEventCoverageManifests)
+              ..where((t) => t.coverageId.equals(h.activeCoverageId!)))
+            .getSingleOrNull();
+        if (activeRow != null) {
+          matchingManifests.add(_manifest(activeRow));
+        }
+      }
+      if (request.includeHistoricalGenerations) {
+        final histRows = await (_db.select(_db.lifeEventCoverageManifests)
+              ..where((t) =>
+                  t.coverageSeriesId.equals(h.coverageSeriesId) &
+                  t.servingState.equals(ServingState.historical.index)))
+            .get();
+        for (final r in histRows) {
+          matchingManifests.add(_manifest(r));
+        }
+      }
+    }
+
+    return CoverageStoragePage(heads: heads, manifests: matchingManifests);
   }
 
   // ── helpers ──
@@ -295,15 +492,29 @@ final class DriftLifeEventStorage
     required bool isComplete,
     required int nowMs,
   }) async {
+    final head = await _headForCoverage(request.coverageId);
     final existing = await _findManifestRow(request.coverageId);
+    final firstProj = request.projections.isNotEmpty ? request.projections.first : null;
+    final seriesId = (existing != null && existing.coverageSeriesId.isNotEmpty)
+        ? existing.coverageSeriesId
+        : (head?.coverageSeriesId ?? '');
+    final profileId = (existing != null && existing.profileId.isNotEmpty)
+        ? existing.profileId
+        : (head != null && head.profileId.isNotEmpty
+            ? head.profileId
+            : (firstProj?.profileId ?? ''));
+    final chartSnapshotId = (existing != null && existing.chartSnapshotId.isNotEmpty)
+        ? existing.chartSnapshotId
+        : (head?.chartSnapshotId ?? request.inputFingerprint);
+
     final manifest = CoverageManifest(
       coverageId: request.coverageId,
-      coverageSeriesId: existing?.coverageSeriesId ?? '',
+      coverageSeriesId: seriesId,
       coverageGeneration: request.coverageGeneration,
       manifestRevision: currentRevision + 1,
       servingState: isComplete ? ServingState.active : ServingState.candidate,
-      profileId: existing?.profileId ?? '',
-      chartSnapshotId: existing?.chartSnapshotId ?? '',
+      profileId: profileId,
+      chartSnapshotId: chartSnapshotId,
       chartSnapshotRevision: existing?.chartSnapshotRevision ?? '',
       providerId: existing?.providerId ?? request.providerId,
       providerVersion: existing?.providerVersion ?? request.providerVersion,
@@ -347,6 +558,21 @@ final class DriftLifeEventStorage
       mode: InsertMode.insertOrReplace,
     );
     return manifest;
+  }
+
+  CoverageSeriesHead _head(LifeEventCoverageSeriesHeadRow r) {
+    return CoverageSeriesHead(
+      coverageSeriesId: r.coverageSeriesId,
+      ownerScopeId: r.ownerScopeId,
+      profileId: r.profileId,
+      chartSnapshotId: r.chartSnapshotId,
+      providerId: r.providerId,
+      eventTypeId: r.eventTypeId,
+      seriesRevision: r.seriesRevision,
+      activeCoverageId: r.activeCoverageId,
+      candidateCoverageId: r.candidateCoverageId,
+      desiredRange: _rangeFrom(r.desiredRangeStartMs, r.desiredRangeEndMs),
+    );
   }
 
   LifeEventProjectionRow _projectionRow(EventProjection p) {
@@ -483,10 +709,32 @@ final class DriftLifeEventStorage
     return p.index;
   }
 
+  String _encodePageToken(int startMs, int rank, String projectionId) {
+    return base64Url.encode(utf8.encode('$startMs:$rank:$projectionId'));
+  }
+
+  (int, int, String)? _decodePageToken(String? token) {
+    if (token == null || token.isEmpty) return null;
+    try {
+      final str = utf8.decode(base64Url.decode(token));
+      final parts = str.split(':');
+      if (parts.length < 3) return null;
+      return (int.parse(parts[0]), int.parse(parts[1]), parts.sublist(2).join(':'));
+    } catch (_) {
+      return null;
+    }
+  }
+
   Map<String, dynamic> _projectionToJson(EventProjection p) => {
         'projectionId': p.projectionId,
+        'projectionIdAlgorithmVersion': p.projectionIdAlgorithmVersion,
         'coverageId': p.coverageId,
         'coverageGeneration': p.coverageGeneration,
+        'sourceRef': {
+          'providerId': p.sourceRef.providerId,
+          'sourceEventId': p.sourceRef.sourceEventId,
+          'eventRevision': p.sourceRef.eventRevision,
+        },
         'ownerScopeId': p.ownerScopeId,
         'subjectId': p.subjectId,
         'profileId': p.profileId,
@@ -494,10 +742,290 @@ final class DriftLifeEventStorage
         'divinationTypeKey': p.divinationTypeKey,
         'subDivinationTypeKey': p.subDivinationTypeKey,
         'eventTypeId': p.eventTypeId,
+        'eventTime': _timeToJson(p.eventTime),
+        'projectedParticipants': p.projectedParticipants.map(_participantToJson).toList(),
+        'projectedFactValues': p.projectedFactValues.map(_scalarToJson).toList(),
         'factSummary': p.factSummary,
         'evidenceRef': p.evidenceRef,
+        'astronomyEventRef': p.astronomyEventRef == null ? null : {
+          'astronomyProviderId': p.astronomyEventRef!.astronomyProviderId,
+          'datasetProfileId': p.astronomyEventRef!.datasetProfileId,
+          'bodyId': p.astronomyEventRef!.bodyId,
+          'astronomyEventId': p.astronomyEventRef!.astronomyEventId,
+          'dataVersion': p.astronomyEventRef!.dataVersion,
+        },
+        'astronomyEvidenceRef': p.astronomyEvidenceRef == null ? null : {
+          'astronomyProviderId': p.astronomyEvidenceRef!.astronomyProviderId,
+          'evidenceId': p.astronomyEvidenceRef!.evidenceId,
+          'evidenceRevision': p.astronomyEvidenceRef!.evidenceRevision,
+          'evidenceSchemaId': p.astronomyEvidenceRef!.evidenceSchemaId,
+          'schemaVersion': p.astronomyEvidenceRef!.schemaVersion,
+        },
+        'profileMatchEvidenceRef': p.profileMatchEvidenceRef == null ? null : {
+          'providerId': p.profileMatchEvidenceRef!.providerId,
+          'evidenceId': p.profileMatchEvidenceRef!.evidenceId,
+          'evidenceRevision': p.profileMatchEvidenceRef!.evidenceRevision,
+          'evidenceSchemaId': p.profileMatchEvidenceRef!.evidenceSchemaId,
+          'schemaVersion': p.profileMatchEvidenceRef!.schemaVersion,
+        },
+        'sourceSeverityRef': p.sourceSeverityRef == null ? null : {
+          'providerId': p.sourceSeverityRef!.providerId,
+          'schemeId': p.sourceSeverityRef!.schemeId,
+          'schemeVersion': p.sourceSeverityRef!.schemeVersion,
+          'code': p.sourceSeverityRef!.code,
+        },
+        'sourceVersions': {
+          'providerVersion': p.sourceVersions.providerVersion,
+          'algorithmVersion': p.sourceVersions.algorithmVersion,
+          'ruleVersion': p.sourceVersions.ruleVersion,
+          'dataVersion': p.sourceVersions.dataVersion,
+        },
+        'projectionLifecycleStatus': p.projectionLifecycleStatus.index,
         'indexedAtMs': p.indexedAt.millisecondsSinceEpoch,
       };
+
+  Map<String, dynamic> _timeToJson(LifeEventTime t) {
+    if (t is InstantTime) {
+      return {
+        'kind': 'instant',
+        'startMs': t.effectiveStartUtc.millisecondsSinceEpoch,
+        'instantMs': t.instantUtc.millisecondsSinceEpoch,
+        'tz': t.calculationTimezoneId,
+        'precision': t.precision.index,
+      };
+    } else if (t is IntervalTime) {
+      return {
+        'kind': 'interval',
+        'startMs': t.effectiveStartUtc.millisecondsSinceEpoch,
+        'startIncMs': t.startInclusiveUtc.millisecondsSinceEpoch,
+        'endExcMs': t.endExclusiveUtc.millisecondsSinceEpoch,
+        'tz': t.calculationTimezoneId,
+        'precision': t.precision.index,
+      };
+    } else if (t is CivilSpanTime) {
+      return {
+        'kind': 'civilSpan',
+        'startMs': t.effectiveStartUtc.millisecondsSinceEpoch,
+        'startCivilMs': t.startCivilInclusive.millisecondsSinceEpoch,
+        'endCivilMs': t.endCivilExclusive.millisecondsSinceEpoch,
+        'calendarSystem': t.calendarSystem,
+        'tz': t.timezoneId,
+        'precision': t.precision.index,
+      };
+    }
+    return {
+      'kind': 'instant',
+      'startMs': t.effectiveStartUtc.millisecondsSinceEpoch,
+      'instantMs': t.effectiveStartUtc.millisecondsSinceEpoch,
+      'tz': 'UTC',
+      'precision': TimePrecision.second.index,
+    };
+  }
+
+  Map<String, dynamic> _participantToJson(EventParticipant p) => {
+        'roleId': p.roleId,
+        'participantKind': p.participantKind,
+        'participantId': p.participantId,
+        'displayNameKey': p.displayNameKey,
+        'attributes': p.attributes.map(_scalarToJson).toList(),
+      };
+
+  Map<String, dynamic> _scalarToJson(TypedScalar s) {
+    if (s is TextScalar) {
+      return {'k': 'text', 'f': s.fieldId, 'v': s.value, 's': s.schemaVersion};
+    } else if (s is NumberScalar) {
+      return {'k': 'num', 'f': s.fieldId, 'v': s.value, 's': s.schemaVersion};
+    } else if (s is BooleanScalar) {
+      return {'k': 'bool', 'f': s.fieldId, 'v': s.value, 's': s.schemaVersion};
+    } else if (s is EnumScalar) {
+      return {'k': 'enum', 'f': s.fieldId, 'c': s.code, 'cv': s.catalogVersion, 's': s.schemaVersion};
+    } else if (s is MultiEnumScalar) {
+      return {'k': 'menum', 'f': s.fieldId, 'c': s.codes, 'cv': s.catalogVersion, 's': s.schemaVersion};
+    } else if (s is UnknownScalar) {
+      return {'k': 'unk', 'f': s.fieldId, 'r': s.rawEncoded, 's': s.schemaVersion};
+    }
+    return {'k': 'unk', 'f': s.fieldId, 'r': '', 's': s.schemaVersion};
+  }
+
+  EventProjection _rowToProjection(LifeEventProjectionRow row) {
+    Map<String, dynamic>? json;
+    if (row.projectionJson.isNotEmpty) {
+      try {
+        json = jsonDecode(row.projectionJson) as Map<String, dynamic>?;
+      } catch (_) {}
+    }
+
+    final status = ProjectionLifecycleStatus.values[row.lifecycleStatus];
+    final indexedAt = json?['indexedAtMs'] != null
+        ? DateTime.fromMillisecondsSinceEpoch(json!['indexedAtMs'] as int, isUtc: true)
+        : DateTime.now().toUtc();
+
+    final sourceRef = json?['sourceRef'] != null
+        ? SourceRef(
+            providerId: json!['sourceRef']['providerId'] as String,
+            sourceEventId: json['sourceRef']['sourceEventId'] as String,
+            eventRevision: json['sourceRef']['eventRevision'] as String,
+          )
+        : SourceRef(
+            providerId: row.sourceProviderId,
+            sourceEventId: row.sourceEventId,
+            eventRevision: row.eventRevision,
+          );
+
+    final eventTime = json?['eventTime'] != null
+        ? _timeFromJson(json!['eventTime'] as Map<String, dynamic>)
+        : InstantTime(
+            effectiveStartUtc: DateTime.fromMillisecondsSinceEpoch(row.effectiveStartMs, isUtc: true),
+            instantUtc: DateTime.fromMillisecondsSinceEpoch(row.effectiveStartMs, isUtc: true),
+            calculationTimezoneId: 'UTC',
+            precision: TimePrecision.values[row.precisionRank],
+          );
+
+    final participants = (json?['projectedParticipants'] as List<dynamic>?)
+            ?.map((e) => _participantFromJson(e as Map<String, dynamic>))
+            .toList() ??
+        const [];
+
+    final factValues = (json?['projectedFactValues'] as List<dynamic>?)
+            ?.map((e) => _scalarFromJson(e as Map<String, dynamic>))
+            .toList() ??
+        const [];
+
+    final sourceVersions = json?['sourceVersions'] != null
+        ? SourceVersions(
+            providerVersion: json!['sourceVersions']['providerVersion'] as String,
+            algorithmVersion: json['sourceVersions']['algorithmVersion'] as String,
+            ruleVersion: json['sourceVersions']['ruleVersion'] as String?,
+            dataVersion: json['sourceVersions']['dataVersion'] as String?,
+          )
+        : const SourceVersions(
+            providerVersion: '1.0.0',
+            algorithmVersion: 'algo-1',
+            ruleVersion: null,
+            dataVersion: null,
+          );
+
+    return EventProjection(
+      projectionId: row.projectionId,
+      projectionIdAlgorithmVersion: json?['projectionIdAlgorithmVersion'] as String? ?? 'v1',
+      coverageId: row.coverageId,
+      coverageGeneration: row.coverageGeneration,
+      sourceRef: sourceRef,
+      ownerScopeId: row.ownerScopeId,
+      subjectId: row.subjectId,
+      profileId: row.profileId,
+      chartSnapshotId: row.chartSnapshotId,
+      divinationTypeKey: row.divinationTypeKey,
+      subDivinationTypeKey: row.subDivinationTypeKey,
+      eventTypeId: row.eventTypeId,
+      eventTime: eventTime,
+      projectedParticipants: participants,
+      projectedFactValues: factValues,
+      factSummary: json?['factSummary'] as String? ?? '',
+      evidenceRef: json?['evidenceRef'] as String? ?? '',
+      astronomyEventRef: json?['astronomyEventRef'] != null
+          ? AstronomyEventRef(
+              astronomyProviderId: json!['astronomyEventRef']['astronomyProviderId'] as String,
+              datasetProfileId: json['astronomyEventRef']['datasetProfileId'] as String,
+              bodyId: json['astronomyEventRef']['bodyId'] as String,
+              astronomyEventId: json['astronomyEventRef']['astronomyEventId'] as String,
+              dataVersion: json['astronomyEventRef']['dataVersion'] as String? ?? 'v1',
+            )
+          : null,
+      astronomyEvidenceRef: json?['astronomyEvidenceRef'] != null
+          ? AstronomyEvidenceRef(
+              astronomyProviderId: json!['astronomyEvidenceRef']['astronomyProviderId'] as String,
+              evidenceId: json['astronomyEvidenceRef']['evidenceId'] as String,
+              evidenceRevision: json['astronomyEvidenceRef']['evidenceRevision'] as String,
+              evidenceSchemaId: json['astronomyEvidenceRef']['evidenceSchemaId'] as String,
+              schemaVersion: json['astronomyEvidenceRef']['schemaVersion'] as String,
+            )
+          : null,
+      profileMatchEvidenceRef: json?['profileMatchEvidenceRef'] != null
+          ? ProfileMatchEvidenceRef(
+              providerId: json!['profileMatchEvidenceRef']['providerId'] as String,
+              evidenceId: json['profileMatchEvidenceRef']['evidenceId'] as String,
+              evidenceRevision: json['profileMatchEvidenceRef']['evidenceRevision'] as String,
+              evidenceSchemaId: json['profileMatchEvidenceRef']['evidenceSchemaId'] as String,
+              schemaVersion: json['profileMatchEvidenceRef']['schemaVersion'] as String,
+            )
+          : null,
+      sourceSeverityRef: json?['sourceSeverityRef'] != null
+          ? SourceSeverityRef(
+              providerId: json!['sourceSeverityRef']['providerId'] as String,
+              schemeId: json['sourceSeverityRef']['schemeId'] as String,
+              schemeVersion: json['sourceSeverityRef']['schemeVersion'] as String,
+              code: json['sourceSeverityRef']['code'] as String,
+            )
+          : null,
+      sourceVersions: sourceVersions,
+      projectionLifecycleStatus: status,
+      indexedAt: indexedAt,
+    );
+  }
+
+  LifeEventTime _timeFromJson(Map<String, dynamic> m) {
+    final kind = m['kind'] as String;
+    final startUtc = DateTime.fromMillisecondsSinceEpoch(m['startMs'] as int, isUtc: true);
+    final prec = TimePrecision.values[m['precision'] as int];
+    final tz = m['tz'] as String? ?? 'UTC';
+
+    if (kind == 'interval') {
+      return IntervalTime(
+        effectiveStartUtc: startUtc,
+        startInclusiveUtc: DateTime.fromMillisecondsSinceEpoch(m['startIncMs'] as int, isUtc: true),
+        endExclusiveUtc: DateTime.fromMillisecondsSinceEpoch(m['endExcMs'] as int, isUtc: true),
+        calculationTimezoneId: tz,
+        precision: prec,
+      );
+    } else if (kind == 'civilSpan') {
+      return CivilSpanTime(
+        effectiveStartUtc: startUtc,
+        startCivilInclusive: DateTime.fromMillisecondsSinceEpoch(m['startCivilMs'] as int, isUtc: true),
+        endCivilExclusive: DateTime.fromMillisecondsSinceEpoch(m['endCivilMs'] as int, isUtc: true),
+        calendarSystem: m['calendarSystem'] as String? ?? 'gregorian',
+        timezoneId: tz,
+        precision: prec,
+      );
+    }
+    return InstantTime(
+      effectiveStartUtc: startUtc,
+      instantUtc: DateTime.fromMillisecondsSinceEpoch(m['instantMs'] as int? ?? m['startMs'] as int, isUtc: true),
+      calculationTimezoneId: tz,
+      precision: prec,
+    );
+  }
+
+  EventParticipant _participantFromJson(Map<String, dynamic> m) => EventParticipant(
+        roleId: m['roleId'] as String,
+        participantKind: m['participantKind'] as String,
+        participantId: m['participantId'] as String,
+        displayNameKey: m['displayNameKey'] as String?,
+        attributes: (m['attributes'] as List<dynamic>?)
+                ?.map((a) => _scalarFromJson(a as Map<String, dynamic>))
+                .toList() ??
+            const [],
+      );
+
+  TypedScalar _scalarFromJson(Map<String, dynamic> json) {
+    final k = json['k'] as String;
+    final f = json['f'] as String;
+    final s = json['s'] as String;
+    switch (k) {
+      case 'text':
+        return TextScalar(fieldId: f, schemaVersion: s, value: json['v'] as String);
+      case 'num':
+        return NumberScalar(fieldId: f, schemaVersion: s, value: json['v'] as num);
+      case 'bool':
+        return BooleanScalar(fieldId: f, schemaVersion: s, value: json['v'] as bool);
+      case 'enum':
+        return EnumScalar(fieldId: f, schemaVersion: s, code: json['c'] as String, catalogVersion: json['cv'] as String);
+      case 'menum':
+        return MultiEnumScalar(fieldId: f, schemaVersion: s, codes: (json['c'] as List).cast<String>(), catalogVersion: json['cv'] as String);
+      default:
+        return UnknownScalar(fieldId: f, schemaVersion: s, rawEncoded: json['r'] as String? ?? '');
+    }
+  }
 
   CommitValidatedShardResult _result({
     required CommitValidatedShardOutcome outcome,
