@@ -60,21 +60,24 @@ class LifeEventDatabase extends _$LifeEventDatabase {
         },
         beforeOpen: (details) async {
           // ACT-12：多个调度器实例会用各自的连接打开同一个库文件做租约领取。
-          // WAL 让读不阻塞写；busy_timeout 让写锁竞争等待而不是立刻失败。
+          // WAL 让读不阻塞写。
           //
-          // 返工 F1：这里设置 busy_timeout 对"开库竞争"太晚——drift 打开库
-          // 文件时会先读 `PRAGMA user_version` 探测 schema 版本，这一步发生
-          // 在 beforeOpen 回调执行之前；多个连接冷启动同时打开同一文件会在
-          // 这一步竞争，直接抛 SQLITE_BUSY_RECOVERY(261)，此时 beforeOpen
-          // 还没机会设置 busy_timeout。**调用方（生产装配 / 测试）必须经
+          // 返工 F1：busy_timeout 不在这里设置——drift 打开库文件时会先读
+          // `PRAGMA user_version` 探测 schema 版本，这一步发生在 beforeOpen
+          // 回调执行之前；多个连接冷启动同时打开同一文件会在这一步竞争，
+          // 直接抛 SQLITE_BUSY_RECOVERY(261)，此时 beforeOpen 还没机会设置
+          // busy_timeout。**调用方（生产装配 / 测试）必须经
           // [LifeEventDatabase.openNativeFile] 打开基于文件的数据库，或在
-          // 自建的 `NativeDatabase(setup:)` 里提前设置 busy_timeout**，
-          // 不能只依赖这里的 beforeOpen。
+          // 自建的 `NativeDatabase(setup:)` 里提前设置 busy_timeout**。
+          //
+          // 返工 G2：这里曾经无条件补设一次 `PRAGMA busy_timeout = 5000`，
+          // 会覆盖 openNativeFile(busyTimeout: ...) 传入的自定义值，使该
+          // 参数名不副实。busy_timeout 现在完全由 openNativeFile 的
+          // setup: 负责，beforeOpen 不再触碰这个 PRAGMA。
           //
           // 仍可能出现 BUSY/snapshot，由 DriftLifeEventReminderStore.claimDue
           // 的事务级重试兜底（独占性由条件更新 CAS 保证，重试不会重复领取）。
           await customStatement('PRAGMA journal_mode = WAL');
-          await customStatement('PRAGMA busy_timeout = 5000');
         },
       );
 

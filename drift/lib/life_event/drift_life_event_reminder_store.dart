@@ -19,6 +19,7 @@ library;
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
+import 'package:meta/meta.dart';
 import 'package:persistence_core/life_event/life_event_dtos.dart';
 import 'package:persistence_core/life_event/life_event_ports.dart';
 
@@ -95,6 +96,12 @@ final class DriftLifeEventReminderStore implements LifeEventReminderStore {
   final LifeEventDatabase _db;
 
   DriftLifeEventReminderStore(this._db);
+
+  /// 仅供测试：在每条候选的 CAS 写事务开始之前调用一次，用于确定性地制造
+  /// "候选读取之后、CAS 之前被另一连接改写"的场景（ACT-12 返工 G1）。
+  /// 生产代码不得设置。
+  @visibleForTesting
+  Future<void> Function(String scheduleId)? onBeforeClaimCas;
 
   // =====================================================================
   // ReminderDefinition
@@ -500,6 +507,10 @@ final class DriftLifeEventReminderStore implements LifeEventReminderStore {
       // CAS 提交之前改写了该行的 fireAtUtc / sourceRevisionFingerprint 等字段
       // （LEC-037/038 改时与调度器领取交叠场景）。CAS 成功后必须在同一个
       // 写事务内重读该行，用重读结果构造返回值。
+      // 返工 G1：测试钩子必须在 CAS 写事务开启之前调用（不得在事务内部），
+      // 用于确定性地制造"候选读取之后、CAS 之前被另一连接改写"的场景。
+      // 生产代码中 onBeforeClaimCas 恒为 null，此调用无副作用。
+      await onBeforeClaimCas?.call(row.scheduleId);
       final won = await _claimOne(
         row.scheduleId,
         request.claimToken,

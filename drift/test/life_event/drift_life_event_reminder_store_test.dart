@@ -1019,11 +1019,18 @@ void main() {
     });
 
     // =================================================================
-    // 返工 F2：claimDue 返回值不得是 CAS 之前的候选快照
+    // 返工 G1（F2 重写）：claimDue 返回值不得是 CAS 之前的候选快照
     // =================================================================
+    //
+    // 上一轮的版本依赖"同一连接上先发 claimDue 再发 saveSchedule 就一定按
+    // FIFO 执行"这一假设，复审实测证明不成立（--plain-name "F2" 单独连跑
+    // 5 次全部失败、整文件连跑 8 次失败 2 次）。本轮改用主 Agent 裁决
+    // Ruling 13 的确定性测试接缝：DriftLifeEventReminderStore.onBeforeClaimCas
+    // 钩子，在候选行进入 CAS 写事务之前、由测试同步注入另一连接的改写，
+    // 不依赖任何调度器/isolate 时序假设。
 
     test(
-        'claimDue 返回的 DTO 反映 CAS 之后的最新持久化状态，不是候选读取时的旧快照（F2）',
+        'claimDue 返回的 DTO 反映 CAS 之后的最新持久化状态，不是候选读取时的旧快照（G1/F2）',
         () async {
       await seedUserRules();
       await store.saveChannel(channel(), 1);
@@ -1035,48 +1042,62 @@ void main() {
           sourceRevisionFingerprint: 'fp-old',
         ),
       );
+      await db.close();
 
-      final now = DateTime.utc(2026, 3, 1, 9);
-      // 同一个连接（store）上并发发起 claimDue 与 saveSchedule：Drift 对同一
-      // 连接的语句/事务严格按发出顺序排队执行。claimDue 调用会同步执行到其
-      // 第一个 await（候选 select），这条 select 消息先入队；紧接着（不等待
-      // claimDue 完成）发出的 saveSchedule 改时请求排在其后；而 claimDue 对
-      // 该候选的 CAS 事务只有在候选 select 的结果返回给 Dart 侧后才会被发出，
-      // 因此必然排在 saveSchedule 的改时事务之后执行。这样可以确定性地复现
-      // "候选读取时的旧值 vs. CAS 提交时已被别处改写的新值" 的交叠场景，
-      // 而不依赖两个操作系统线程之间难以稳定控制的真实时序竞争。
-      final claimFuture = store.claimDue(
-        ClaimDueSchedulesRequest(
-          ownerScopeId: 'owner-1',
-          nowUtc: now,
-          maxCount: 1,
-          claimToken: 'token-a',
-          leaseDuration: const Duration(minutes: 5),
-        ),
-      );
-      final retimeFuture = store.saveSchedule(
-        schedule(
-          id: 'sch-race',
-          fireAtUtc: DateTime.utc(2026, 3, 1, 10),
-          sourceRevisionFingerprint: 'fp-new',
-        ),
-      );
-      final results = await Future.wait<Object?>([claimFuture, retimeFuture]);
-      final claimResult = results[0]! as ClaimDueSchedulesResult;
+      // 两个独立连接打开同一个文件：storeA 领取，storeB 在钩子里代表"另一
+      // 连接在 CAS 之前改写了该行"。
+      final dbA = openDb();
+      final dbB = openDb();
+      final storeA = DriftLifeEventReminderStore(dbA);
+      final storeB = DriftLifeEventReminderStore(dbB);
+      var hookCallCount = 0;
 
-      expect(claimResult.claimed, hasLength(1));
-      final claimed = claimResult.claimed.single;
-      expect(
-        claimed.fireAtUtc,
-        DateTime.utc(2026, 3, 1, 10),
-        reason: '领到的 DTO 必须是 CAS 之后重读的最新值，不能是 CAS 之前的候选快照',
-      );
-      expect(claimed.sourceRevisionFingerprint, 'fp-new');
+      try {
+        storeA.onBeforeClaimCas = (scheduleId) async {
+          hookCallCount++;
+          await storeB.saveSchedule(
+            schedule(
+              id: scheduleId,
+              fireAtUtc: DateTime.utc(2026, 3, 1, 10),
+              sourceRevisionFingerprint: 'fp-new',
+            ),
+          );
+        };
 
-      // 领到的 DTO 必须与重新 loadOwnerState 读回的同一行逐字段一致。
-      final persisted =
-          (await store.loadOwnerState('owner-1')).schedules.single;
-      expectSchedule(claimed, persisted);
+        final result = await storeA.claimDue(
+          ClaimDueSchedulesRequest(
+            ownerScopeId: 'owner-1',
+            nowUtc: DateTime.utc(2026, 3, 1, 9),
+            maxCount: 1,
+            claimToken: 'token-a',
+            leaseDuration: const Duration(minutes: 5),
+          ),
+        );
+
+        expect(hookCallCount, 1, reason: '钩子必须恰好在该候选的 CAS 前调用一次');
+        expect(result.claimed, hasLength(1));
+        final claimed = result.claimed.single;
+        expect(claimed.scheduleId, 'sch-race');
+        expect(
+          claimed.fireAtUtc,
+          DateTime.utc(2026, 3, 1, 10),
+          reason: '领到的 DTO 必须是 CAS 之后重读的最新值，不能是 CAS 之前的候选快照',
+        );
+        expect(claimed.sourceRevisionFingerprint, 'fp-new');
+        expect(claimed.status, ScheduleStatus.claimed);
+        expect(claimed.claimToken, 'token-a');
+
+        // 领到的 DTO 必须与重新 loadOwnerState 读回的同一行逐字段一致。
+        final persisted =
+            (await storeA.loadOwnerState('owner-1')).schedules.single;
+        expectSchedule(claimed, persisted);
+      } finally {
+        storeA.onBeforeClaimCas = null;
+        await dbA.close();
+        await dbB.close();
+      }
+      db = openDb();
+      store = DriftLifeEventReminderStore(db);
     });
 
     // =================================================================
