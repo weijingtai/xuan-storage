@@ -10,6 +10,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 
 import 'external_calendar_event_table.dart';
+import 'life_event_migrations.dart';
 import 'life_event_reminder_tables.dart';
 import 'life_event_tables.dart';
 import 'life_event_user_rule_tables.dart';
@@ -56,33 +57,7 @@ class LifeEventDatabase extends _$LifeEventDatabase {
   int get schemaVersion => 1;
 
   @override
-  MigrationStrategy get migration => MigrationStrategy(
-        onCreate: (m) async {
-          await m.createAll();
-          await _createIndexes();
-        },
-        beforeOpen: (details) async {
-          // ACT-12：多个调度器实例会用各自的连接打开同一个库文件做租约领取。
-          // WAL 让读不阻塞写。
-          //
-          // 返工 F1：busy_timeout 不在这里设置——drift 打开库文件时会先读
-          // `PRAGMA user_version` 探测 schema 版本，这一步发生在 beforeOpen
-          // 回调执行之前；多个连接冷启动同时打开同一文件会在这一步竞争，
-          // 直接抛 SQLITE_BUSY_RECOVERY(261)，此时 beforeOpen 还没机会设置
-          // busy_timeout。**调用方（生产装配 / 测试）必须经
-          // [LifeEventDatabase.openNativeFile] 打开基于文件的数据库，或在
-          // 自建的 `NativeDatabase(setup:)` 里提前设置 busy_timeout**。
-          //
-          // 返工 G2：这里曾经无条件补设一次 `PRAGMA busy_timeout = 5000`，
-          // 会覆盖 openNativeFile(busyTimeout: ...) 传入的自定义值，使该
-          // 参数名不副实。busy_timeout 现在完全由 openNativeFile 的
-          // setup: 负责，beforeOpen 不再触碰这个 PRAGMA。
-          //
-          // 仍可能出现 BUSY/snapshot，由 DriftLifeEventReminderStore.claimDue
-          // 的事务级重试兜底（独占性由条件更新 CAS 保证，重试不会重复领取）。
-          await customStatement('PRAGMA journal_mode = WAL');
-        },
-      );
+  MigrationStrategy get migration => createLifeEventMigrationStrategy(this);
 
   /// 返工 F1：受支持的连接工厂，打开一个基于文件的 SQLite 数据库。
   ///
@@ -99,60 +74,6 @@ class LifeEventDatabase extends _$LifeEventDatabase {
       file,
       setup: (raw) =>
           raw.execute('PRAGMA busy_timeout = ${busyTimeout.inMilliseconds};'),
-    );
-  }
-
-  Future<void> _createIndexes() async {
-    // 复合查询索引：(owner, profile, provider, snapshot, start, rank, projectionId)
-    await customStatement(
-      'CREATE INDEX IF NOT EXISTS idx_le_projection_owner '
-      'ON t_life_event_projections '
-      '(owner_scope_id, profile_id, source_provider_id, chart_snapshot_id, '
-      'effective_start_ms, precision_rank, projection_id)',
-    );
-    // 复合查询索引：(owner, profile, eventType, start, rank, projectionId)
-    await customStatement(
-      'CREATE INDEX IF NOT EXISTS idx_le_projection_type '
-      'ON t_life_event_projections '
-      '(owner_scope_id, profile_id, event_type_id, '
-      'effective_start_ms, precision_rank, projection_id)',
-    );
-    // receipt 唯一约束（DB 层兜底并发）。
-    await customStatement(
-      'CREATE UNIQUE INDEX IF NOT EXISTS uq_le_receipt '
-      'ON t_life_event_shard_receipts (coverage_id, shard_id)',
-    );
-    // ACT-12：租约领取热路径 (owner, status, fireAt)。
-    await customStatement(
-      'CREATE INDEX IF NOT EXISTS idx_le_reminder_schedule_due '
-      'ON t_le_reminder_schedules (owner_scope_id, status, fire_at_ms)',
-    );
-    // ACT-12：scheduleId 投递去重查询。
-    await customStatement(
-      'CREATE INDEX IF NOT EXISTS idx_le_reminder_delivery_schedule '
-      'ON t_le_reminder_deliveries (schedule_id)',
-    );
-    // ACT-12：owner 分区读取（LEC-039 强制 ownerScope 谓词）。
-    await customStatement(
-      'CREATE INDEX IF NOT EXISTS idx_le_reminder_definition_owner '
-      'ON t_le_reminder_definitions (owner_scope_id)',
-    );
-    await customStatement(
-      'CREATE INDEX IF NOT EXISTS idx_le_reminder_channel_owner '
-      'ON t_le_reminder_channels (owner_scope_id)',
-    );
-    await customStatement(
-      'CREATE INDEX IF NOT EXISTS idx_le_reminder_aggregate_owner '
-      'ON t_le_reminder_aggregates (owner_scope_id)',
-    );
-    // ACT-15：外部事件查询索引
-    await customStatement(
-      'CREATE INDEX IF NOT EXISTS idx_le_external_event_query '
-      'ON t_le_external_events (owner_scope_id, is_latest, event_start_ms, external_event_id)',
-    );
-    await customStatement(
-      'CREATE INDEX IF NOT EXISTS idx_le_external_event_subject '
-      'ON t_le_external_event_subjects (owner_scope_id, subject_id)',
     );
   }
 }
