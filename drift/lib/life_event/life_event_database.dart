@@ -6,6 +6,7 @@ library;
 
 import 'package:drift/drift.dart';
 
+import 'life_event_reminder_tables.dart';
 import 'life_event_tables.dart';
 import 'life_event_user_rule_tables.dart';
 
@@ -31,6 +32,15 @@ part 'life_event_database.g.dart';
     LifeEventPatternRules,
     LifeEventPatternTargetRefs,
     LifeEventRuleTemplates,
+    LifeEventReminderDefinitions,
+    LifeEventReminderDefinitionChannels,
+    LifeEventReminderChannels,
+    LifeEventReminderChannelSelectors,
+    LifeEventReminderAggregates,
+    LifeEventReminderAggregateDirections,
+    LifeEventReminderAggregateContributors,
+    LifeEventReminderSchedules,
+    LifeEventReminderDeliveries,
   ],
 )
 class LifeEventDatabase extends _$LifeEventDatabase {
@@ -44,6 +54,14 @@ class LifeEventDatabase extends _$LifeEventDatabase {
         onCreate: (m) async {
           await m.createAll();
           await _createIndexes();
+        },
+        beforeOpen: (details) async {
+          // ACT-12：多个调度器实例会用各自的连接打开同一个库文件做租约领取。
+          // WAL 让读不阻塞写；busy_timeout 让写锁竞争等待而不是立刻失败。
+          // 仍可能出现 BUSY/snapshot，由 DriftLifeEventReminderStore.claimDue
+          // 的事务级重试兜底（独占性由条件更新 CAS 保证，重试不会重复领取）。
+          await customStatement('PRAGMA journal_mode = WAL');
+          await customStatement('PRAGMA busy_timeout = 5000');
         },
       );
 
@@ -66,6 +84,29 @@ class LifeEventDatabase extends _$LifeEventDatabase {
     await customStatement(
       'CREATE UNIQUE INDEX IF NOT EXISTS uq_le_receipt '
       'ON t_life_event_shard_receipts (coverage_id, shard_id)',
+    );
+    // ACT-12：租约领取热路径 (owner, status, fireAt)。
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_le_reminder_schedule_due '
+      'ON t_le_reminder_schedules (owner_scope_id, status, fire_at_ms)',
+    );
+    // ACT-12：scheduleId 投递去重查询。
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_le_reminder_delivery_schedule '
+      'ON t_le_reminder_deliveries (schedule_id)',
+    );
+    // ACT-12：owner 分区读取（LEC-039 强制 ownerScope 谓词）。
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_le_reminder_definition_owner '
+      'ON t_le_reminder_definitions (owner_scope_id)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_le_reminder_channel_owner '
+      'ON t_le_reminder_channels (owner_scope_id)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_le_reminder_aggregate_owner '
+      'ON t_le_reminder_aggregates (owner_scope_id)',
     );
   }
 }
