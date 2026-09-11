@@ -11302,7 +11302,7 @@ class LifeEventReminderDefinitionRow extends DataClass
   final int priorityCatalogRevision;
   final String priorityId;
 
-  /// List<Duration> 的毫秒 JSON 数组。
+  /// `List<Duration>` 的毫秒 JSON 数组。
   final String leadTimesMsJson;
   final String? repeatPolicy;
   final String mergePolicy;

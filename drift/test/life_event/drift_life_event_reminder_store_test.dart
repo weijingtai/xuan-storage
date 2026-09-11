@@ -16,7 +16,6 @@ library;
 
 import 'dart:io';
 
-import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:persistence_core/persistence_core.dart';
 import 'package:persistence_drift/life_event/drift_life_event_reminder_store.dart';
@@ -31,16 +30,11 @@ void main() {
     late DriftLifeEventReminderStore store;
     late DriftLifeEventUserRuleStore userRules;
 
-    // 两个 scheduler 实例 = 两个独立连接打开同一个 SQLite 文件。
-    // busy_timeout 必须在连接 setup 阶段就设好：drift 打开库时先读
-    // `PRAGMA user_version`，此时 migration 的 beforeOpen 还没执行，
-    // 冷启动竞争会直接抛 SQLITE_BUSY_RECOVERY。
-    LifeEventDatabase openDb() => LifeEventDatabase(
-          NativeDatabase.createInBackground(
-            dbFile,
-            setup: (raw) => raw.execute('PRAGMA busy_timeout = 5000;'),
-          ),
-        );
+    // 返工 F1：两个 scheduler 实例 = 两个独立连接打开同一个 SQLite 文件，
+    // 必须经受支持的连接工厂打开——busy_timeout 必须在连接 setup 阶段就设好，
+    // beforeOpen 对开库竞争太晚（drift 打开库时先读 `PRAGMA user_version`）。
+    // 并发用例（见下）正是消费这个工厂的场景。
+    LifeEventDatabase openDb() => LifeEventDatabase(LifeEventDatabase.openNativeFile(dbFile));
 
     setUp(() async {
       dir = await Directory.systemTemp.createTemp('le-reminders-');
@@ -281,6 +275,7 @@ void main() {
       ScheduleStatus status = ScheduleStatus.scheduled,
       String? claimToken,
       DateTime? leaseExpiresAtUtc,
+      String? sourceRevisionFingerprint,
     }) =>
         ScheduledNotification(
           scheduleId: id,
@@ -290,7 +285,7 @@ void main() {
           fireAtUtc: fireAtUtc ?? DateTime.utc(2026, 3, 1, 8),
           displayTimezoneId: 'Asia/Shanghai',
           channelRevision: 1,
-          sourceRevisionFingerprint: 'fp-sched-$id',
+          sourceRevisionFingerprint: sourceRevisionFingerprint ?? 'fp-sched-$id',
           status: status,
           claimToken: claimToken,
           leaseExpiresAtUtc: leaseExpiresAtUtc,
@@ -1021,6 +1016,173 @@ void main() {
         state.schedules.firstWhere((s) => s.scheduleId == 'sch-future').status,
         ScheduleStatus.scheduled,
       );
+    });
+
+    // =================================================================
+    // 返工 F2：claimDue 返回值不得是 CAS 之前的候选快照
+    // =================================================================
+
+    test(
+        'claimDue 返回的 DTO 反映 CAS 之后的最新持久化状态，不是候选读取时的旧快照（F2）',
+        () async {
+      await seedUserRules();
+      await store.saveChannel(channel(), 1);
+      await store.saveDefinition(definition(), 1);
+      await store.saveSchedule(
+        schedule(
+          id: 'sch-race',
+          fireAtUtc: DateTime.utc(2026, 3, 1, 8),
+          sourceRevisionFingerprint: 'fp-old',
+        ),
+      );
+
+      final now = DateTime.utc(2026, 3, 1, 9);
+      // 同一个连接（store）上并发发起 claimDue 与 saveSchedule：Drift 对同一
+      // 连接的语句/事务严格按发出顺序排队执行。claimDue 调用会同步执行到其
+      // 第一个 await（候选 select），这条 select 消息先入队；紧接着（不等待
+      // claimDue 完成）发出的 saveSchedule 改时请求排在其后；而 claimDue 对
+      // 该候选的 CAS 事务只有在候选 select 的结果返回给 Dart 侧后才会被发出，
+      // 因此必然排在 saveSchedule 的改时事务之后执行。这样可以确定性地复现
+      // "候选读取时的旧值 vs. CAS 提交时已被别处改写的新值" 的交叠场景，
+      // 而不依赖两个操作系统线程之间难以稳定控制的真实时序竞争。
+      final claimFuture = store.claimDue(
+        ClaimDueSchedulesRequest(
+          ownerScopeId: 'owner-1',
+          nowUtc: now,
+          maxCount: 1,
+          claimToken: 'token-a',
+          leaseDuration: const Duration(minutes: 5),
+        ),
+      );
+      final retimeFuture = store.saveSchedule(
+        schedule(
+          id: 'sch-race',
+          fireAtUtc: DateTime.utc(2026, 3, 1, 10),
+          sourceRevisionFingerprint: 'fp-new',
+        ),
+      );
+      final results = await Future.wait<Object?>([claimFuture, retimeFuture]);
+      final claimResult = results[0]! as ClaimDueSchedulesResult;
+
+      expect(claimResult.claimed, hasLength(1));
+      final claimed = claimResult.claimed.single;
+      expect(
+        claimed.fireAtUtc,
+        DateTime.utc(2026, 3, 1, 10),
+        reason: '领到的 DTO 必须是 CAS 之后重读的最新值，不能是 CAS 之前的候选快照',
+      );
+      expect(claimed.sourceRevisionFingerprint, 'fp-new');
+
+      // 领到的 DTO 必须与重新 loadOwnerState 读回的同一行逐字段一致。
+      final persisted =
+          (await store.loadOwnerState('owner-1')).schedules.single;
+      expectSchedule(claimed, persisted);
+    });
+
+    // =================================================================
+    // 返工 F3（Ruling 9）：saveDelivery 不得静默改写审计记录
+    // =================================================================
+
+    test('saveDelivery 同 deliveryId 重放：字段完全一致时幂等无操作（F3）', () async {
+      await seedOwner('owner-1');
+      final before = await store.loadOwnerState('owner-1');
+
+      final result = await store.saveDelivery(delivery(id: 'del-1'));
+      expect(result, 'del-1');
+
+      expectOwnerStateEquals(await store.loadOwnerState('owner-1'), before);
+    });
+
+    test('saveDelivery 同 deliveryId 但字段不一致：拒绝且零写入（F3）', () async {
+      await seedOwner('owner-1');
+      final before = await store.loadOwnerState('owner-1');
+      expect(before.deliveredScheduleIds, ['sch-1']);
+
+      // del-1 原本是 sch-1 的 delivered 记录；重放同 deliveryId 但 outcome
+      // 改成 failed（试图把已投递的审计记录悄悄改写成失败）。
+      await expectLater(
+        store.saveDelivery(
+          delivery(id: 'del-1', outcome: 'failed', stableErrorCode: 'x'),
+        ),
+        throwsA(
+          isA<DriftReminderStoreRejected>().having(
+            (e) => e.outcome,
+            'outcome',
+            SaveReminderOutcome.revisionConflict,
+          ),
+        ),
+      );
+
+      final after = await store.loadOwnerState('owner-1');
+      expectOwnerStateEquals(after, before);
+      expect(
+        after.deliveredScheduleIds,
+        ['sch-1'],
+        reason: 'failed 不得覆盖已存在的 delivered 记录，去重键不得凭空消失',
+      );
+    });
+
+    // =================================================================
+    // 返工 F5(a)：claimed 且租约/claimToken 缺失的组合必须被拒绝
+    // =================================================================
+
+    test('saveSchedule 拒绝 status=claimed 但 leaseExpiresAtUtc 或 claimToken 为 null（F5a）',
+        () async {
+      await seedOwner('owner-1');
+      final before = await store.loadOwnerState('owner-1');
+
+      // leaseExpiresAtUtc 缺失。
+      await expectLater(
+        store.saveSchedule(
+          schedule(
+            id: 'sch-1',
+            status: ScheduleStatus.claimed,
+            claimToken: 'tok',
+            leaseExpiresAtUtc: null,
+          ),
+        ),
+        throwsA(
+          isA<DriftReminderStoreRejected>().having(
+            (e) => e.outcome,
+            'outcome',
+            SaveReminderOutcome.invalidScheduleTarget,
+          ),
+        ),
+      );
+      expectOwnerStateEquals(await store.loadOwnerState('owner-1'), before);
+
+      // claimToken 缺失。
+      await expectLater(
+        store.saveSchedule(
+          schedule(
+            id: 'sch-1',
+            status: ScheduleStatus.claimed,
+            claimToken: null,
+            leaseExpiresAtUtc: DateTime.utc(2026, 3, 1, 9),
+          ),
+        ),
+        throwsA(
+          isA<DriftReminderStoreRejected>().having(
+            (e) => e.outcome,
+            'outcome',
+            SaveReminderOutcome.invalidScheduleTarget,
+          ),
+        ),
+      );
+      expectOwnerStateEquals(await store.loadOwnerState('owner-1'), before);
+
+      // 合法组合（两者都非空）必须被接受。
+      await store.saveSchedule(
+        schedule(
+          id: 'sch-1',
+          status: ScheduleStatus.claimed,
+          claimToken: 'tok',
+          leaseExpiresAtUtc: DateTime.utc(2026, 3, 1, 9),
+        ),
+      );
+      final after = await store.loadOwnerState('owner-1');
+      expect(after.schedules[0].status, ScheduleStatus.claimed);
+      expect(after.schedules[0].claimToken, 'tok');
     });
   });
 }

@@ -346,6 +346,17 @@ final class DriftLifeEventReminderStore implements LifeEventReminderStore {
         );
       }
 
+      // 返工 F5(a)：status=claimed 时 leaseExpiresAtUtc 与 claimToken 必须
+      // 同时非空，否则会产生"claimed 但永久不可被 claimDue 回收"的脏行。
+      if (value.status == ScheduleStatus.claimed &&
+          (value.leaseExpiresAtUtc == null || value.claimToken == null)) {
+        throw DriftReminderStoreRejected(
+          outcome: SaveReminderOutcome.invalidScheduleTarget,
+          id: value.scheduleId,
+          message: 'status=claimed 时 leaseExpiresAtUtc 与 claimToken 不得为 null',
+        );
+      }
+
       final existing = await (_db.select(_db.lifeEventReminderSchedules)
             ..where((t) => t.scheduleId.equals(value.scheduleId)))
           .getSingleOrNull();
@@ -422,8 +433,31 @@ final class DriftLifeEventReminderStore implements LifeEventReminderStore {
           message: 'delivery 指向的 scheduleId ${value.scheduleId} 不存在',
         );
       }
-      // 同 deliveryId 重放视为幂等改写，避免退化成裸 SqliteException。
-      await _db.into(_db.lifeEventReminderDeliveries).insertOnConflictUpdate(
+
+      // 返工 F3（Ruling 9）：deliveryId 由 calendar 侧用
+      // 'delivery-{scheduleId}-{attemptedAt 微秒}' 生成，天然唯一，重复只
+      // 可能是重放。字段完全一致 → 幂等无操作；任一字段不一致 → 拒绝，
+      // 不得静默改写投递审计记录（例如把 delivered 悄悄改成 failed）。
+      final existing = await (_db.select(_db.lifeEventReminderDeliveries)
+            ..where((t) => t.deliveryId.equals(value.deliveryId)))
+          .getSingleOrNull();
+      if (existing != null) {
+        final sameFields = existing.scheduleId == value.scheduleId &&
+            existing.attemptedAtMs == value.attemptedAt.millisecondsSinceEpoch &&
+            existing.outcome == value.outcome &&
+            existing.stableErrorCode == value.stableErrorCode;
+        if (sameFields) {
+          return value.deliveryId;
+        }
+        throw DriftReminderStoreRejected(
+          outcome: SaveReminderOutcome.revisionConflict,
+          id: value.deliveryId,
+          message: 'deliveryId ${value.deliveryId} 已存在但字段不一致，'
+              '拒绝静默改写投递审计记录',
+        );
+      }
+
+      await _db.into(_db.lifeEventReminderDeliveries).insert(
             LifeEventReminderDeliveryRow(
               deliveryId: value.deliveryId,
               scheduleId: value.scheduleId,
@@ -461,26 +495,32 @@ final class DriftLifeEventReminderStore implements LifeEventReminderStore {
 
     final claimed = <ScheduledNotification>[];
     for (final row in candidates) {
+      // 返工 F2：不得用候选 select 时的 row.* 构造返回 DTO——CAS 的 WHERE
+      // 只校验 status/lease，不校验行内容未变；协调者可能在候选读取之后、
+      // CAS 提交之前改写了该行的 fireAtUtc / sourceRevisionFingerprint 等字段
+      // （LEC-037/038 改时与调度器领取交叠场景）。CAS 成功后必须在同一个
+      // 写事务内重读该行，用重读结果构造返回值。
       final won = await _claimOne(
         row.scheduleId,
         request.claimToken,
         nowMs,
         leaseExpiresMs,
       );
-      if (won) {
+      if (won != null) {
         claimed.add(
           ScheduledNotification(
-            scheduleId: row.scheduleId,
-            ownerScopeId: row.ownerScopeId,
-            reminderId: row.reminderId,
-            aggregateId: row.aggregateId,
-            fireAtUtc: _utc(row.fireAtMs),
-            displayTimezoneId: row.displayTimezoneId,
-            channelRevision: row.channelRevision,
-            sourceRevisionFingerprint: row.sourceRevisionFingerprint,
-            status: ScheduleStatus.claimed,
-            claimToken: request.claimToken,
-            leaseExpiresAtUtc: _utc(leaseExpiresMs),
+            scheduleId: won.scheduleId,
+            ownerScopeId: won.ownerScopeId,
+            reminderId: won.reminderId,
+            aggregateId: won.aggregateId,
+            fireAtUtc: _utc(won.fireAtMs),
+            displayTimezoneId: won.displayTimezoneId,
+            channelRevision: won.channelRevision,
+            sourceRevisionFingerprint: won.sourceRevisionFingerprint,
+            status: ScheduleStatus.values.byName(won.status),
+            claimToken: won.claimToken,
+            leaseExpiresAtUtc:
+                won.leaseExpiresAtMs == null ? null : _utc(won.leaseExpiresAtMs!),
           ),
         );
       }
@@ -514,8 +554,9 @@ final class DriftLifeEventReminderStore implements LifeEventReminderStore {
         .get();
   }
 
-  /// 条件更新一条 schedule；返回是否领到（更新计数为 1）。
-  Future<bool> _claimOne(
+  /// 条件更新一条 schedule；CAS 成功后在同一事务内重读该行并返回（返工
+  /// F2），未领到（更新计数不为 1）返回 null。
+  Future<LifeEventReminderScheduleRow?> _claimOne(
     String scheduleId,
     String claimToken,
     int nowMs,
@@ -525,8 +566,8 @@ final class DriftLifeEventReminderStore implements LifeEventReminderStore {
     while (true) {
       attempt++;
       try {
-        final updatedRows = await _db.transaction(() {
-          return (_db.update(_db.lifeEventReminderSchedules)
+        return await _db.transaction(() async {
+          final updatedRows = await (_db.update(_db.lifeEventReminderSchedules)
                 ..where(
                   (t) =>
                       t.scheduleId.equals(scheduleId) &
@@ -539,8 +580,14 @@ final class DriftLifeEventReminderStore implements LifeEventReminderStore {
               leaseExpiresAtMs: Value(leaseExpiresMs),
             ),
           );
+          if (updatedRows != 1) {
+            return null;
+          }
+          // 同一写事务内重读：返回值必须反映 CAS 之后的最新持久化状态。
+          return (_db.select(_db.lifeEventReminderSchedules)
+                ..where((t) => t.scheduleId.equals(scheduleId)))
+              .getSingle();
         });
-        return updatedRows == 1;
       } catch (error) {
         if (attempt >= _claimMaxAttempts || !_isLockContention(error)) {
           rethrow;
@@ -550,14 +597,21 @@ final class DriftLifeEventReminderStore implements LifeEventReminderStore {
     }
   }
 
-  /// 可领取谓词：status == scheduled，或 status == claimed 且租约已过期。
+  /// 可领取谓词：status == scheduled，或 status == claimed 且（租约已过期，
+  /// 或 lease_expires_at_ms 为 NULL）。
+  ///
+  /// 返工 F5(b)：正常写入路径下 status=claimed 必然带非空租约
+  /// （saveSchedule 的 F5(a) guard 保证），这里的 `isNull()` 分支是安全网，
+  /// 用于回收"万一存在"的脏行（例如更早版本代码或外部数据写入产生），
+  /// 否则这类行会永久卡在 claimed 状态、无法再被任何调度器领取。
   Expression<bool> _claimableStatus(
     $LifeEventReminderSchedulesTable t,
     int nowMs,
   ) =>
       t.status.equals(ScheduleStatus.scheduled.name) |
       (t.status.equals(ScheduleStatus.claimed.name) &
-          t.leaseExpiresAtMs.isSmallerOrEqualValue(nowMs));
+          (t.leaseExpiresAtMs.isSmallerOrEqualValue(nowMs) |
+              t.leaseExpiresAtMs.isNull()));
 
   // =====================================================================
   // 适配器自有 typed 读方法（Ruling 1）
