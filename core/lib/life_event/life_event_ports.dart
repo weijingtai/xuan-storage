@@ -290,18 +290,6 @@ final class TemplatePage {
 /// 用户规则存储：四类对象四套 typed 方法，不接受通用联合入口
 /// （不存在 `save(UserRuleRecord)`）。
 abstract interface class LifeEventUserRuleStore {
-  /// 暴露给契约测试的 method-name 清单（用于断言不存在联合入口）。
-  static const List<String> methodNames = [
-    'saveAnnotation',
-    'queryAnnotations',
-    'saveOccurrenceSelection',
-    'queryOccurrenceSelections',
-    'savePatternRule',
-    'queryPatternRules',
-    'saveTemplate',
-    'queryTemplates',
-  ];
-
   Future<SaveAnnotationResult> saveAnnotation(SaveAnnotationRequest request);
 
   Future<AnnotationPage> queryAnnotations(AnnotationQuery query);
@@ -353,17 +341,19 @@ final class ClaimDueSchedulesResult {
 
 /// 提醒存储：definition/channel/aggregate/schedule/delivery + 租约领取。
 abstract interface class LifeEventReminderStore {
-  Future<String> saveDefinition(ReminderDefinition value, int expectedRevision);
+  /// expectedRevision：调用方认为当前已存储的 revision；对象不存在时不校验（约定传 0）；
+  /// 存在且不等 → revisionConflict 零写入；value.revision 必须等于 expectedRevision + 1（Design §14.1）。
+  Future<SaveReminderResult> saveDefinition(ReminderDefinition value, int expectedRevision);
 
-  Future<String> saveChannel(ReminderChannel value, int expectedRevision);
+  Future<SaveReminderResult> saveChannel(ReminderChannel value, int expectedRevision);
 
-  Future<String> saveAggregate(AggregateReminder value);
+  Future<SaveReminderResult> saveAggregate(AggregateReminder value);
 
-  Future<String> saveSchedule(ScheduledNotification value);
+  Future<SaveReminderResult> saveSchedule(ScheduledNotification value);
 
   Future<ClaimDueSchedulesResult> claimDue(ClaimDueSchedulesRequest request);
 
-  Future<String> saveDelivery(DeliveryRecord value);
+  Future<SaveReminderResult> saveDelivery(DeliveryRecord value);
 }
 
 /// 保存外部事件请求。

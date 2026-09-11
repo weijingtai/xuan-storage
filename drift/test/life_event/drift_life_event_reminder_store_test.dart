@@ -18,11 +18,61 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:persistence_core/persistence_core.dart';
+import 'package:persistence_core/test_support/life_event_reminder_store_contract_suite.dart';
 import 'package:persistence_drift/life_event/drift_life_event_reminder_store.dart';
 import 'package:persistence_drift/life_event/drift_life_event_user_rule_store.dart';
 import 'package:persistence_drift/life_event/life_event_database.dart';
 
 void main() {
+  group('ACT-12A contract suite integration', () {
+    final dbs = <LifeEventReminderStore, LifeEventDatabase>{};
+    final dirs = <Directory>[];
+
+    tearDownAll(() async {
+      for (final d in dbs.values) {
+        await d.close();
+      }
+      for (final dir in dirs) {
+        try {
+          dir.deleteSync(recursive: true);
+        } catch (_) {}
+      }
+    });
+
+    runLifeEventReminderStoreContractSuite(
+      makeStore: () async {
+        final d = await Directory.systemTemp.createTemp('drift-contract-');
+        dirs.add(d);
+        final file = File('${d.path}/contract.db');
+        final database = LifeEventDatabase(LifeEventDatabase.openNativeFile(file));
+        final s = DriftLifeEventReminderStore(database);
+        dbs[s] = database;
+        return s;
+      },
+      seedSelection: (s, ownerScopeId, selectionId, revision) async {
+        final database = dbs[s]!;
+        final rules = DriftLifeEventUserRuleStore(database);
+        await rules.saveOccurrenceSelection(
+          SaveOccurrenceSelectionRequest(
+            ownerScopeId: ownerScopeId,
+            selection: SavedOccurrenceSelection(
+              selectionId: selectionId,
+              ownerScopeId: ownerScopeId,
+              revision: revision,
+              sourceRef: const SourceRef(
+                providerId: 'qizhengsiyu.life_events',
+                sourceEventId: 'ev-1',
+                eventRevision: '1',
+              ),
+              eventRevision: '1',
+              annotationRef: null,
+            ),
+            expectedRevision: revision,
+          ),
+        );
+      },
+    );
+  });
   group('ACT-12 drift reminder store', () {
     late Directory dir;
     late File dbFile;
@@ -480,24 +530,16 @@ void main() {
       final before = await store.loadOwnerState('owner-1');
 
       // 故障注入：contributor 引用不存在的 reminderId。
-      await expectLater(
-        store.saveAggregate(
-          aggregate(
-            id: 'agg-2',
-            contributors: [
-              contributor(reminderId: 'rem-1'),
-              contributor(reminderId: 'rem-missing'),
-            ],
-          ),
-        ),
-        throwsA(
-          isA<DriftReminderStoreRejected>().having(
-            (e) => e.outcome,
-            'outcome',
-            SaveReminderOutcome.ownerScopeMismatch,
-          ),
+      final res1 = await store.saveAggregate(
+        aggregate(
+          id: 'agg-2',
+          contributors: [
+            contributor(reminderId: 'rem-1'),
+            contributor(reminderId: 'rem-missing'),
+          ],
         ),
       );
+      expect(res1.outcome, SaveReminderOutcome.ownerScopeMismatch);
 
       final after = await store.loadOwnerState('owner-1');
       expect(after.aggregates.map((a) => a.aggregateId), ['agg-1'],
@@ -505,14 +547,12 @@ void main() {
       expectOwnerStateEquals(after, before);
 
       // 覆盖既有 aggregate 失败时，旧版本必须原样保留（删子行也要回滚）。
-      await expectLater(
-        store.saveAggregate(
-          aggregate(
-            contributors: [contributor(reminderId: 'rem-missing')],
-          ),
+      final res2 = await store.saveAggregate(
+        aggregate(
+          contributors: [contributor(reminderId: 'rem-missing')],
         ),
-        throwsA(isA<DriftReminderStoreRejected>()),
       );
+      expect(res2.outcome, SaveReminderOutcome.ownerScopeMismatch);
       expectOwnerStateEquals(await store.loadOwnerState('owner-1'), before);
     });
 
@@ -520,19 +560,11 @@ void main() {
       await seedOwner('owner-1');
       final before = await store.loadOwnerState('owner-1');
 
-      await expectLater(
-        store.saveDefinition(
-          definition(id: 'rem-1', channelIds: const ['chan-1', 'chan-missing'], revision: 2),
-          1,
-        ),
-        throwsA(
-          isA<DriftReminderStoreRejected>().having(
-            (e) => e.outcome,
-            'outcome',
-            SaveReminderOutcome.ownerScopeMismatch,
-          ),
-        ),
+      final res = await store.saveDefinition(
+        definition(id: 'rem-1', channelIds: const ['chan-1', 'chan-missing'], revision: 2),
+        1,
       );
+      expect(res.outcome, SaveReminderOutcome.ownerScopeMismatch);
 
       expectOwnerStateEquals(await store.loadOwnerState('owner-1'), before);
     });
@@ -542,23 +574,15 @@ void main() {
       final before = await store.loadOwnerState('owner-1');
 
       // 撤销：把既有 schedule 改为 cancelled，但 target 非法 → 整体拒绝。
-      await expectLater(
-        store.saveSchedule(
-          schedule(
-            id: 'sch-1',
-            reminderId: 'rem-1',
-            aggregateId: 'agg-1',
-            status: ScheduleStatus.cancelled,
-          ),
-        ),
-        throwsA(
-          isA<DriftReminderStoreRejected>().having(
-            (e) => e.outcome,
-            'outcome',
-            SaveReminderOutcome.invalidScheduleTarget,
-          ),
+      final res = await store.saveSchedule(
+        schedule(
+          id: 'sch-1',
+          reminderId: 'rem-1',
+          aggregateId: 'agg-1',
+          status: ScheduleStatus.cancelled,
         ),
       );
+      expect(res.outcome, SaveReminderOutcome.invalidScheduleTarget);
       expectOwnerStateEquals(await store.loadOwnerState('owner-1'), before);
 
       // 合法撤销：单行 upsert 生效。
@@ -615,128 +639,80 @@ void main() {
       );
 
       // 跨 owner 引用一律拒绝：owner-2 的 definition 引用 owner-1 的通道。
-      await expectLater(
-        store.saveDefinition(
-          definition(id: 'rem-x', owner: 'owner-2', channelIds: const ['chan-1']),
-          1,
-        ),
-        throwsA(
-          isA<DriftReminderStoreRejected>().having(
-            (e) => e.outcome,
-            'outcome',
-            SaveReminderOutcome.ownerScopeMismatch,
-          ),
-        ),
+      final res1 = await store.saveDefinition(
+        definition(id: 'rem-x', owner: 'owner-2', channelIds: const ['chan-1']),
+        1,
       );
+      expect(res1.outcome, SaveReminderOutcome.ownerScopeMismatch);
 
       // 跨 owner 的 selectionRef 同样拒绝。
-      await expectLater(
-        store.saveDefinition(
-          definition(
-            id: 'rem-y',
-            owner: 'owner-2',
-            channelIds: const [],
-            selectionRef:
-                const OccurrenceSelectionRef(selectionId: 'sel-owner-1', revision: 1),
-          ),
-          1,
+      final res2 = await store.saveDefinition(
+        definition(
+          id: 'rem-y',
+          owner: 'owner-2',
+          channelIds: const [],
+          selectionRef:
+              const OccurrenceSelectionRef(selectionId: 'sel-owner-1', revision: 1),
         ),
-        throwsA(
-          isA<DriftReminderStoreRejected>().having(
-            (e) => e.outcome,
-            'outcome',
-            SaveReminderOutcome.danglingSelectionRef,
-          ),
-        ),
+        1,
       );
+      expect(res2.outcome, SaveReminderOutcome.danglingSelectionRef);
 
       // 跨 owner 的 schedule target 拒绝。
-      await expectLater(
-        store.saveSchedule(
-          schedule(id: 'sch-x', owner: 'owner-2', reminderId: 'rem-1'),
-        ),
-        throwsA(
-          isA<DriftReminderStoreRejected>().having(
-            (e) => e.outcome,
-            'outcome',
-            SaveReminderOutcome.ownerScopeMismatch,
-          ),
-        ),
+      final res3 = await store.saveSchedule(
+        schedule(id: 'sch-x', owner: 'owner-2', reminderId: 'rem-1'),
       );
+      expect(res3.outcome, SaveReminderOutcome.ownerScopeMismatch);
       // owner-2 的状态未被上述失败污染。
       expectOwnerStateEquals(await store.loadOwnerState('owner-2'), s2);
     });
 
     // =================================================================
-    // Ruling 3：expectedRevision 语义
+    // CAS：expectedRevision 语义
     // =================================================================
 
-    test('expectedRevision：重放同 revision 与错配都被拒且零写入，两种合法传法接受', () async {
+    test('expectedRevision：重放同 revision 与错配都被拒且零写入，合法递增接受', () async {
       await seedUserRules();
 
       // 无同 id 行 → 接受（不看 expectedRevision）。
-      expect(await store.saveChannel(channel(revision: 1), 999), 'chan-1');
+      final c1 = await store.saveChannel(channel(revision: 1), 999);
+      expect(c1.outcome, SaveReminderOutcome.saved);
+      expect(c1.id, 'chan-1');
 
-      // 合法传法 A：expectedRevision == stored.revision。
-      expect(
-        await store.saveChannel(channel(revision: 2, name: '改名 A'), 1),
-        'chan-1',
-      );
-      // 合法传法 B：expectedRevision == value.revision。
-      expect(
-        await store.saveChannel(channel(revision: 3, name: '改名 B'), 3),
-        'chan-1',
-      );
+      // 合法 CAS：expectedRevision == stored.revision (1) 且 value.revision == stored + 1 (2)。
+      final c2 = await store.saveChannel(channel(revision: 2, name: '改名 A'), 1);
+      expect(c2.outcome, SaveReminderOutcome.saved);
+      expect(c2.id, 'chan-1');
 
       // 重放同 revision（value.revision 不大于 stored.revision）→ 拒绝。
-      await expectLater(
-        store.saveChannel(channel(revision: 3, name: '重放'), 3),
-        throwsA(
-          isA<DriftReminderStoreRejected>().having(
-            (e) => e.outcome,
-            'outcome',
-            SaveReminderOutcome.revisionConflict,
-          ),
-        ),
-      );
-      // expectedRevision 既不等于存储值也不等于新值 → 拒绝。
-      await expectLater(
-        store.saveChannel(channel(revision: 4, name: '错配'), 9),
-        throwsA(
-          isA<DriftReminderStoreRejected>().having(
-            (e) => e.outcome,
-            'outcome',
-            SaveReminderOutcome.revisionConflict,
-          ),
-        ),
-      );
+      final c3 = await store.saveChannel(channel(revision: 2, name: '重放'), 2);
+      expect(c3.outcome, SaveReminderOutcome.revisionConflict);
+
+      // expectedRevision 错配 → 拒绝。
+      final c4 = await store.saveChannel(channel(revision: 3, name: '错配'), 9);
+      expect(c4.outcome, SaveReminderOutcome.revisionConflict);
 
       final state = await store.loadOwnerState('owner-1');
-      expect(state.channels.single.revision, 3);
-      expect(state.channels.single.name, '改名 B', reason: '冲突必须零写入');
+      expect(state.channels.single.revision, 2);
+      expect(state.channels.single.name, '改名 A', reason: '冲突必须零写入');
 
       // definition 走同一套规则。
-      await store.saveDefinition(definition(revision: 1), 1);
-      await expectLater(
-        store.saveDefinition(definition(revision: 1, enabled: false), 1),
-        throwsA(
-          isA<DriftReminderStoreRejected>().having(
-            (e) => e.outcome,
-            'outcome',
-            SaveReminderOutcome.revisionConflict,
-          ),
-        ),
-      );
-      await expectLater(
-        store.saveDefinition(definition(revision: 2, enabled: false), 5),
-        throwsA(isA<DriftReminderStoreRejected>()),
-      );
+      final d1 = await store.saveDefinition(definition(revision: 1), 1);
+      expect(d1.outcome, SaveReminderOutcome.saved);
+
+      final d2 = await store.saveDefinition(definition(revision: 1, enabled: false), 1);
+      expect(d2.outcome, SaveReminderOutcome.revisionConflict);
+
+      final d3 = await store.saveDefinition(definition(revision: 2, enabled: false), 5);
+      expect(d3.outcome, SaveReminderOutcome.revisionConflict);
+
       expect(
         (await store.loadOwnerState('owner-1')).definitions.single.enabled,
         isTrue,
       );
       // 关闭提醒（revision+1，expectedRevision = 旧 revision）被接受。
-      await store.saveDefinition(definition(revision: 2, enabled: false), 1);
+      final d4 = await store.saveDefinition(definition(revision: 2, enabled: false), 1);
+      expect(d4.outcome, SaveReminderOutcome.saved);
       final disabled = await store.loadOwnerState('owner-1');
       expect(disabled.definitions.single.enabled, isFalse);
       expect(disabled.definitions.single.revision, 2);
@@ -751,16 +727,11 @@ void main() {
       final before = await store.loadOwnerState('owner-1');
 
       Future<void> expectRejected(
-        Future<Object?> action,
+        Future<SaveReminderResult> action,
         SaveReminderOutcome outcome,
       ) async {
-        await expectLater(
-          action,
-          throwsA(
-            isA<DriftReminderStoreRejected>()
-                .having((e) => e.outcome, 'outcome', outcome),
-          ),
-        );
+        final res = await action;
+        expect(res.outcome, outcome);
         expectOwnerStateEquals(await store.loadOwnerState('owner-1'), before);
       }
 
@@ -1109,7 +1080,8 @@ void main() {
       final before = await store.loadOwnerState('owner-1');
 
       final result = await store.saveDelivery(delivery(id: 'del-1'));
-      expect(result, 'del-1');
+      expect(result.outcome, SaveReminderOutcome.saved);
+      expect(result.id, 'del-1');
 
       expectOwnerStateEquals(await store.loadOwnerState('owner-1'), before);
     });
@@ -1121,18 +1093,10 @@ void main() {
 
       // del-1 原本是 sch-1 的 delivered 记录；重放同 deliveryId 但 outcome
       // 改成 failed（试图把已投递的审计记录悄悄改写成失败）。
-      await expectLater(
-        store.saveDelivery(
-          delivery(id: 'del-1', outcome: 'failed', stableErrorCode: 'x'),
-        ),
-        throwsA(
-          isA<DriftReminderStoreRejected>().having(
-            (e) => e.outcome,
-            'outcome',
-            SaveReminderOutcome.revisionConflict,
-          ),
-        ),
+      final res = await store.saveDelivery(
+        delivery(id: 'del-1', outcome: 'failed', stableErrorCode: 'x'),
       );
+      expect(res.outcome, SaveReminderOutcome.revisionConflict);
 
       final after = await store.loadOwnerState('owner-1');
       expectOwnerStateEquals(after, before);
@@ -1153,43 +1117,27 @@ void main() {
       final before = await store.loadOwnerState('owner-1');
 
       // leaseExpiresAtUtc 缺失。
-      await expectLater(
-        store.saveSchedule(
-          schedule(
-            id: 'sch-1',
-            status: ScheduleStatus.claimed,
-            claimToken: 'tok',
-            leaseExpiresAtUtc: null,
-          ),
-        ),
-        throwsA(
-          isA<DriftReminderStoreRejected>().having(
-            (e) => e.outcome,
-            'outcome',
-            SaveReminderOutcome.invalidScheduleTarget,
-          ),
+      final res1 = await store.saveSchedule(
+        schedule(
+          id: 'sch-1',
+          status: ScheduleStatus.claimed,
+          claimToken: 'tok',
+          leaseExpiresAtUtc: null,
         ),
       );
+      expect(res1.outcome, SaveReminderOutcome.invalidScheduleTarget);
       expectOwnerStateEquals(await store.loadOwnerState('owner-1'), before);
 
       // claimToken 缺失。
-      await expectLater(
-        store.saveSchedule(
-          schedule(
-            id: 'sch-1',
-            status: ScheduleStatus.claimed,
-            claimToken: null,
-            leaseExpiresAtUtc: DateTime.utc(2026, 3, 1, 9),
-          ),
-        ),
-        throwsA(
-          isA<DriftReminderStoreRejected>().having(
-            (e) => e.outcome,
-            'outcome',
-            SaveReminderOutcome.invalidScheduleTarget,
-          ),
+      final res2 = await store.saveSchedule(
+        schedule(
+          id: 'sch-1',
+          status: ScheduleStatus.claimed,
+          claimToken: null,
+          leaseExpiresAtUtc: DateTime.utc(2026, 3, 1, 9),
         ),
       );
+      expect(res2.outcome, SaveReminderOutcome.invalidScheduleTarget);
       expectOwnerStateEquals(await store.loadOwnerState('owner-1'), before);
 
       // 合法组合（两者都非空）必须被接受。
@@ -1204,6 +1152,64 @@ void main() {
       final after = await store.loadOwnerState('owner-1');
       expect(after.schedules[0].status, ScheduleStatus.claimed);
       expect(after.schedules[0].claimToken, 'tok');
+    });
+
+    test('returns rejected when expectedRevision mismatch (store unmodified)', () async {
+      await seedUserRules();
+      final r1 = await store.saveChannel(channel(id: 'chan-cas', revision: 1), 1);
+      expect(r1.outcome, SaveReminderOutcome.saved);
+      final before = await store.loadOwnerState('owner-1');
+
+      final res = await store.saveChannel(
+        channel(id: 'chan-cas', revision: 2),
+        99,
+      );
+      expect(res.outcome, SaveReminderOutcome.revisionConflict);
+      expectOwnerStateEquals(await store.loadOwnerState('owner-1'), before);
+    });
+
+    test('returns rejected when occurrence selection ref missing (store unmodified)', () async {
+      final before = await store.loadOwnerState('owner-1');
+
+      final res = await store.saveDefinition(
+        definition(
+          id: 'rem-bad-sel',
+          channelIds: const [],
+          selectionRef: const OccurrenceSelectionRef(selectionId: 'missing-sel', revision: 1),
+        ),
+        1,
+      );
+      expect(res.outcome, SaveReminderOutcome.danglingSelectionRef);
+      expectOwnerStateEquals(await store.loadOwnerState('owner-1'), before);
+    });
+
+    test('returns rejected when selection revision mismatch (store unmodified)', () async {
+      await seedUserRules();
+      final before = await store.loadOwnerState('owner-1');
+
+      final res = await store.saveDefinition(
+        definition(
+          id: 'rem-bad-rev',
+          channelIds: const [],
+          selectionRef: const OccurrenceSelectionRef(selectionId: 'sel-owner-1', revision: 99),
+        ),
+        1,
+      );
+      expect(res.outcome, SaveReminderOutcome.danglingSelectionRef);
+      expectOwnerStateEquals(await store.loadOwnerState('owner-1'), before);
+    });
+
+    test('returns rejected when parent reminder missing on schedule save (store unmodified)', () async {
+      final before = await store.loadOwnerState('owner-1');
+
+      final res = await store.saveSchedule(
+        schedule(
+          id: 'sch-bad-parent',
+          reminderId: 'rem-missing-parent',
+        ),
+      );
+      expect(res.outcome, SaveReminderOutcome.ownerScopeMismatch);
+      expectOwnerStateEquals(await store.loadOwnerState('owner-1'), before);
     });
   });
 }

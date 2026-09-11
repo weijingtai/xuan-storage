@@ -10,7 +10,7 @@
 //   回滚，零写入；
 // - 所有读写都带 ownerScope 谓词（LEC-039），recipient 恒为 ownerScope，
 //   不退化为 subjectId；
-// - 引用完整性在同一事务内校验，失败抛 DriftReminderStoreRejected；
+// - 引用完整性在同一事务内校验，失败回滚并返回 SaveReminderResult；
 // - 租约领取用条件更新（CAS）保证同一条 schedule 在租约有效期内只属于一个
 //   claimToken；nowUtc 由调用方注入，实现不读系统时钟；
 // - 不调用任何平台 Notification 插件，也不解释用户规则。
@@ -25,26 +25,16 @@ import 'package:persistence_core/life_event/life_event_ports.dart';
 
 import 'life_event_database.dart';
 
-/// 提醒写入被拒绝（零写入，事务已回滚）。
-final class DriftReminderStoreRejected implements Exception {
-  /// 稳定失败语义，只取 [SaveReminderOutcome.saved] 之外的四个值。
-  final SaveReminderOutcome outcome;
+/// 内部私有回滚异常：仅用于在写事务中触发 SQLite 回滚并将 SaveReminderResult 传递到外层。
+final class _ReminderRollback implements Exception {
+  final SaveReminderResult result;
+  const _ReminderRollback(this.result);
+}
 
-  /// 被拒对象的 id。
-  final String id;
-
-  /// 人类可读原因（不进入稳定契约）。
-  final String message;
-
-  const DriftReminderStoreRejected({
-    required this.outcome,
-    required this.id,
-    required this.message,
-  });
-
-  @override
-  String toString() =>
-      'DriftReminderStoreRejected(${outcome.name}, $id): $message';
+Never _reject(SaveReminderOutcome outcome, String id, int revision) {
+  throw _ReminderRollback(
+    SaveReminderResult(outcome: outcome, id: id, revision: revision),
+  );
 }
 
 /// 一个 ownerScope 下提醒中心的全部持久化状态。
@@ -108,72 +98,83 @@ final class DriftLifeEventReminderStore implements LifeEventReminderStore {
   // =====================================================================
 
   @override
-  Future<String> saveDefinition(ReminderDefinition value, int expectedRevision) {
-    return _db.transaction(() async {
-      final existing = await (_db.select(_db.lifeEventReminderDefinitions)
-            ..where((t) => t.reminderId.equals(value.reminderId)))
-          .getSingleOrNull();
-      _guardRevision(
-        id: value.reminderId,
-        storedOwnerScopeId: existing?.ownerScopeId,
-        storedRevision: existing?.revision,
-        valueOwnerScopeId: value.ownerScopeId,
-        valueRevision: value.revision,
-        expectedRevision: expectedRevision,
-      );
-
-      // 主行先落库，再校验并重写子行：任何一步失败都靠事务回滚主行，
-      // 使"失败零写入"是真回滚而不是前置拦截。
-      await _db.into(_db.lifeEventReminderDefinitions).insertOnConflictUpdate(
-            LifeEventReminderDefinitionRow(
-              reminderId: value.reminderId,
-              ownerScopeId: value.ownerScopeId,
-              selectionRefJson: jsonEncode(_selectionRefToJson(value.selectionRef)),
-              notificationTitleOverride: value.notificationTitleOverride,
-              notificationBodyOverride: value.notificationBodyOverride,
-              priorityOwnerScopeId: value.notificationPriorityRef.ownerScopeId,
-              priorityCatalogId: value.notificationPriorityRef.catalogId,
-              priorityCatalogRevision:
-                  value.notificationPriorityRef.catalogRevision,
-              priorityId: value.notificationPriorityRef.priorityId,
-              leadTimesMsJson: jsonEncode(
-                [for (final d in value.leadTimes) d.inMilliseconds],
-              ),
-              repeatPolicy: value.repeatPolicy,
-              mergePolicy: value.mergePolicy,
-              enabled: value.enabled,
-              revision: value.revision,
-            ),
-          );
-
-      await (_db.delete(_db.lifeEventReminderDefinitionChannels)
-            ..where((t) => t.reminderId.equals(value.reminderId)))
-          .go();
-      for (var i = 0; i < value.channelIds.length; i++) {
-        final channelId = value.channelIds[i];
-        final channel = await (_db.select(_db.lifeEventReminderChannels)
-              ..where((t) => t.channelId.equals(channelId)))
+  Future<SaveReminderResult> saveDefinition(
+    ReminderDefinition value,
+    int expectedRevision,
+  ) async {
+    try {
+      return await _db.transaction(() async {
+        final existing = await (_db.select(_db.lifeEventReminderDefinitions)
+              ..where((t) => t.reminderId.equals(value.reminderId)))
             .getSingleOrNull();
-        if (channel == null || channel.ownerScopeId != value.ownerScopeId) {
-          throw DriftReminderStoreRejected(
-            outcome: SaveReminderOutcome.ownerScopeMismatch,
-            id: value.reminderId,
-            message:
-                'channelId $channelId 不存在或不属于 ownerScope ${value.ownerScopeId}',
-          );
-        }
-        await _db.into(_db.lifeEventReminderDefinitionChannels).insert(
-              LifeEventReminderDefinitionChannelRow(
+        _guardRevision(
+          id: value.reminderId,
+          storedOwnerScopeId: existing?.ownerScopeId,
+          storedRevision: existing?.revision,
+          valueOwnerScopeId: value.ownerScopeId,
+          valueRevision: value.revision,
+          expectedRevision: expectedRevision,
+        );
+
+        // 主行先落库，再校验并重写子行：任何一步失败都靠事务回滚主行，
+        // 使"失败零写入"是真回滚而不是前置拦截。
+        await _db.into(_db.lifeEventReminderDefinitions).insertOnConflictUpdate(
+              LifeEventReminderDefinitionRow(
                 reminderId: value.reminderId,
-                position: i,
-                channelId: channelId,
+                ownerScopeId: value.ownerScopeId,
+                selectionRefJson:
+                    jsonEncode(_selectionRefToJson(value.selectionRef)),
+                notificationTitleOverride: value.notificationTitleOverride,
+                notificationBodyOverride: value.notificationBodyOverride,
+                priorityOwnerScopeId: value.notificationPriorityRef.ownerScopeId,
+                priorityCatalogId: value.notificationPriorityRef.catalogId,
+                priorityCatalogRevision:
+                    value.notificationPriorityRef.catalogRevision,
+                priorityId: value.notificationPriorityRef.priorityId,
+                leadTimesMsJson: jsonEncode(
+                  [for (final d in value.leadTimes) d.inMilliseconds],
+                ),
+                repeatPolicy: value.repeatPolicy,
+                mergePolicy: value.mergePolicy,
+                enabled: value.enabled,
+                revision: value.revision,
               ),
             );
-      }
 
-      await _guardSelectionRef(value);
-      return value.reminderId;
-    });
+        await (_db.delete(_db.lifeEventReminderDefinitionChannels)
+              ..where((t) => t.reminderId.equals(value.reminderId)))
+            .go();
+        for (var i = 0; i < value.channelIds.length; i++) {
+          final channelId = value.channelIds[i];
+          final channel = await (_db.select(_db.lifeEventReminderChannels)
+                ..where((t) => t.channelId.equals(channelId)))
+              .getSingleOrNull();
+          if (channel == null || channel.ownerScopeId != value.ownerScopeId) {
+            _reject(
+              SaveReminderOutcome.ownerScopeMismatch,
+              value.reminderId,
+              existing?.revision ?? 0,
+            );
+          }
+          await _db.into(_db.lifeEventReminderDefinitionChannels).insert(
+                LifeEventReminderDefinitionChannelRow(
+                  reminderId: value.reminderId,
+                  position: i,
+                  channelId: channelId,
+                ),
+              );
+        }
+
+        await _guardSelectionRef(value, existing?.revision ?? 0);
+        return SaveReminderResult(
+          outcome: SaveReminderOutcome.saved,
+          id: value.reminderId,
+          revision: value.revision,
+        );
+      });
+    } on _ReminderRollback catch (e) {
+      return e.result;
+    }
   }
 
   // =====================================================================
@@ -181,51 +182,62 @@ final class DriftLifeEventReminderStore implements LifeEventReminderStore {
   // =====================================================================
 
   @override
-  Future<String> saveChannel(ReminderChannel value, int expectedRevision) {
-    return _db.transaction(() async {
-      final existing = await (_db.select(_db.lifeEventReminderChannels)
-            ..where((t) => t.channelId.equals(value.channelId)))
-          .getSingleOrNull();
-      _guardRevision(
-        id: value.channelId,
-        storedOwnerScopeId: existing?.ownerScopeId,
-        storedRevision: existing?.revision,
-        valueOwnerScopeId: value.ownerScopeId,
-        valueRevision: value.revision,
-        expectedRevision: expectedRevision,
-      );
+  Future<SaveReminderResult> saveChannel(
+    ReminderChannel value,
+    int expectedRevision,
+  ) async {
+    try {
+      return await _db.transaction(() async {
+        final existing = await (_db.select(_db.lifeEventReminderChannels)
+              ..where((t) => t.channelId.equals(value.channelId)))
+            .getSingleOrNull();
+        _guardRevision(
+          id: value.channelId,
+          storedOwnerScopeId: existing?.ownerScopeId,
+          storedRevision: existing?.revision,
+          valueOwnerScopeId: value.ownerScopeId,
+          valueRevision: value.revision,
+          expectedRevision: expectedRevision,
+        );
 
-      final policy = value.deliveryPolicy;
-      await _db.into(_db.lifeEventReminderChannels).insertOnConflictUpdate(
-            LifeEventReminderChannelRow(
-              channelId: value.channelId,
-              ownerScopeId: value.ownerScopeId,
-              name: value.name,
-              enabled: value.enabled,
-              policyLeadTimesMsJson: jsonEncode(
-                [for (final d in policy.leadTimes) d.inMilliseconds],
+        final policy = value.deliveryPolicy;
+        await _db.into(_db.lifeEventReminderChannels).insertOnConflictUpdate(
+              LifeEventReminderChannelRow(
+                channelId: value.channelId,
+                ownerScopeId: value.ownerScopeId,
+                name: value.name,
+                enabled: value.enabled,
+                policyLeadTimesMsJson: jsonEncode(
+                  [for (final d in policy.leadTimes) d.inMilliseconds],
+                ),
+                policyQuietHours: policy.quietHours,
+                policyMergeWindowMs: policy.mergeWindow.inMilliseconds,
+                policyDeliveryMode: policy.deliveryMode.name,
+                policyGroupingMode: policy.groupingMode.name,
+                revision: value.revision,
               ),
-              policyQuietHours: policy.quietHours,
-              policyMergeWindowMs: policy.mergeWindow.inMilliseconds,
-              policyDeliveryMode: policy.deliveryMode.name,
-              policyGroupingMode: policy.groupingMode.name,
-              revision: value.revision,
-            ),
-          );
+            );
 
-      // selectors 整体替换（先删子行再写），与主行同一事务。
-      await (_db.delete(_db.lifeEventReminderChannelSelectors)
-            ..where((t) => t.channelId.equals(value.channelId)))
-          .go();
-      await _db.batch((b) {
-        b.insertAll(
-          _db.lifeEventReminderChannelSelectors,
-          _selectorRows(value),
+        // selectors 整体替换（先删子行再写），与主行同一事务。
+        await (_db.delete(_db.lifeEventReminderChannelSelectors)
+              ..where((t) => t.channelId.equals(value.channelId)))
+            .go();
+        await _db.batch((b) {
+          b.insertAll(
+            _db.lifeEventReminderChannelSelectors,
+            _selectorRows(value),
+          );
+        });
+
+        return SaveReminderResult(
+          outcome: SaveReminderOutcome.saved,
+          id: value.channelId,
+          revision: value.revision,
         );
       });
-
-      return value.channelId;
-    });
+    } on _ReminderRollback catch (e) {
+      return e.result;
+    }
   }
 
   // =====================================================================
@@ -233,108 +245,113 @@ final class DriftLifeEventReminderStore implements LifeEventReminderStore {
   // =====================================================================
 
   @override
-  Future<String> saveAggregate(AggregateReminder value) {
-    return _db.transaction(() async {
-      final existing = await (_db.select(_db.lifeEventReminderAggregates)
-            ..where((t) => t.aggregateId.equals(value.aggregateId)))
-          .getSingleOrNull();
-      if (existing != null && existing.ownerScopeId != value.ownerScopeId) {
-        throw DriftReminderStoreRejected(
-          outcome: SaveReminderOutcome.ownerScopeMismatch,
-          id: value.aggregateId,
-          message:
-              'aggregate ${value.aggregateId} 已属于 ${existing.ownerScopeId}，'
-              '不得改挂到 ${value.ownerScopeId}',
-        );
-      }
-
-      // 重复保存同 aggregateId 时整体替换：先删子行再写，仍在一个事务内。
-      await (_db.delete(_db.lifeEventReminderAggregateDirections)
-            ..where((t) => t.aggregateId.equals(value.aggregateId)))
-          .go();
-      await (_db.delete(_db.lifeEventReminderAggregateContributors)
-            ..where((t) => t.aggregateId.equals(value.aggregateId)))
-          .go();
-
-      await _db.into(_db.lifeEventReminderAggregates).insertOnConflictUpdate(
-            LifeEventReminderAggregateRow(
-              aggregateId: value.aggregateId,
-              ownerScopeId: value.ownerScopeId,
-              subjectId: value.subjectId,
-              windowStartMs:
-                  value.displayTimeWindow.startInclusiveUtc.millisecondsSinceEpoch,
-              windowEndMs:
-                  value.displayTimeWindow.endExclusiveUtc.millisecondsSinceEpoch,
-              priorityOwnerScopeId:
-                  value.effectiveNotificationPriorityRef.ownerScopeId,
-              priorityCatalogId: value.effectiveNotificationPriorityRef.catalogId,
-              priorityCatalogRevision:
-                  value.effectiveNotificationPriorityRef.catalogRevision,
-              priorityId: value.effectiveNotificationPriorityRef.priorityId,
-              displayTitle: value.displayTitle,
-              userInterpretation: value.userInterpretation,
-            ),
-          );
-
-      for (var i = 0; i < value.directionIds.length; i++) {
-        await _db.into(_db.lifeEventReminderAggregateDirections).insert(
-              LifeEventReminderAggregateDirectionRow(
-                aggregateId: value.aggregateId,
-                position: i,
-                directionId: value.directionIds[i],
-              ),
-            );
-      }
-
-      for (var i = 0; i < value.contributors.length; i++) {
-        final c = value.contributors[i];
-        final definition = await (_db.select(_db.lifeEventReminderDefinitions)
-              ..where((t) => t.reminderId.equals(c.reminderId)))
+  Future<SaveReminderResult> saveAggregate(AggregateReminder value) async {
+    try {
+      return await _db.transaction(() async {
+        final existing = await (_db.select(_db.lifeEventReminderAggregates)
+              ..where((t) => t.aggregateId.equals(value.aggregateId)))
             .getSingleOrNull();
-        if (definition == null ||
-            definition.ownerScopeId != value.ownerScopeId) {
-          throw DriftReminderStoreRejected(
-            outcome: SaveReminderOutcome.ownerScopeMismatch,
-            id: value.aggregateId,
-            message: 'contributor 引用的 reminderId ${c.reminderId} 不存在或'
-                '不属于 ownerScope ${value.ownerScopeId}',
+        if (existing != null && existing.ownerScopeId != value.ownerScopeId) {
+          _reject(
+            SaveReminderOutcome.ownerScopeMismatch,
+            value.aggregateId,
+            0,
           );
         }
-        await _db.into(_db.lifeEventReminderAggregateContributors).insert(
-              LifeEventReminderAggregateContributorRow(
+
+        // 重复保存同 aggregateId 时整体替换：先删子行再写，仍在一个事务内。
+        await (_db.delete(_db.lifeEventReminderAggregateDirections)
+              ..where((t) => t.aggregateId.equals(value.aggregateId)))
+            .go();
+        await (_db.delete(_db.lifeEventReminderAggregateContributors)
+              ..where((t) => t.aggregateId.equals(value.aggregateId)))
+            .go();
+
+        await _db.into(_db.lifeEventReminderAggregates).insertOnConflictUpdate(
+              LifeEventReminderAggregateRow(
                 aggregateId: value.aggregateId,
-                position: i,
-                providerId: c.providerId,
-                divinationTypeKey: c.divinationTypeKey,
-                subDivinationTypeKey: c.subDivinationTypeKey,
-                profileId: c.profileId,
-                chartSnapshotId: c.chartSnapshotId,
-                sourceEventId: c.sourceEventId,
-                eventRevision: c.eventRevision,
-                eventTypeId: c.eventTypeId,
-                factSummary: c.factSummary,
-                evidenceRef: c.evidenceRef,
-                severityProviderId: c.sourceSeverityRef?.providerId,
-                severitySchemeId: c.sourceSeverityRef?.schemeId,
-                severitySchemeVersion: c.sourceSeverityRef?.schemeVersion,
-                severityCode: c.sourceSeverityRef?.code,
-                providerVersion: c.sourceVersions.providerVersion,
-                algorithmVersion: c.sourceVersions.algorithmVersion,
-                ruleVersion: c.sourceVersions.ruleVersion,
-                dataVersion: c.sourceVersions.dataVersion,
-                annotationRef: c.annotationRef,
-                directionIdsJson: jsonEncode(c.directionIds),
-                importanceOwnerScopeId: c.userImportanceRef?.ownerScopeId,
-                importanceCatalogId: c.userImportanceRef?.catalogId,
-                importanceCatalogRevision: c.userImportanceRef?.catalogRevision,
-                importanceLevelId: c.userImportanceRef?.levelId,
-                reminderId: c.reminderId,
+                ownerScopeId: value.ownerScopeId,
+                subjectId: value.subjectId,
+                windowStartMs:
+                    value.displayTimeWindow.startInclusiveUtc.millisecondsSinceEpoch,
+                windowEndMs:
+                    value.displayTimeWindow.endExclusiveUtc.millisecondsSinceEpoch,
+                priorityOwnerScopeId:
+                    value.effectiveNotificationPriorityRef.ownerScopeId,
+                priorityCatalogId: value.effectiveNotificationPriorityRef.catalogId,
+                priorityCatalogRevision:
+                    value.effectiveNotificationPriorityRef.catalogRevision,
+                priorityId: value.effectiveNotificationPriorityRef.priorityId,
+                displayTitle: value.displayTitle,
+                userInterpretation: value.userInterpretation,
               ),
             );
-      }
 
-      return value.aggregateId;
-    });
+        for (var i = 0; i < value.directionIds.length; i++) {
+          await _db.into(_db.lifeEventReminderAggregateDirections).insert(
+                LifeEventReminderAggregateDirectionRow(
+                  aggregateId: value.aggregateId,
+                  position: i,
+                  directionId: value.directionIds[i],
+                ),
+              );
+        }
+
+        for (var i = 0; i < value.contributors.length; i++) {
+          final c = value.contributors[i];
+          final definition = await (_db.select(_db.lifeEventReminderDefinitions)
+                ..where((t) => t.reminderId.equals(c.reminderId)))
+              .getSingleOrNull();
+          if (definition == null ||
+              definition.ownerScopeId != value.ownerScopeId) {
+            _reject(
+              SaveReminderOutcome.ownerScopeMismatch,
+              value.aggregateId,
+              0,
+            );
+          }
+          await _db.into(_db.lifeEventReminderAggregateContributors).insert(
+                LifeEventReminderAggregateContributorRow(
+                  aggregateId: value.aggregateId,
+                  position: i,
+                  providerId: c.providerId,
+                  divinationTypeKey: c.divinationTypeKey,
+                  subDivinationTypeKey: c.subDivinationTypeKey,
+                  profileId: c.profileId,
+                  chartSnapshotId: c.chartSnapshotId,
+                  sourceEventId: c.sourceEventId,
+                  eventRevision: c.eventRevision,
+                  eventTypeId: c.eventTypeId,
+                  factSummary: c.factSummary,
+                  evidenceRef: c.evidenceRef,
+                  severityProviderId: c.sourceSeverityRef?.providerId,
+                  severitySchemeId: c.sourceSeverityRef?.schemeId,
+                  severitySchemeVersion: c.sourceSeverityRef?.schemeVersion,
+                  severityCode: c.sourceSeverityRef?.code,
+                  providerVersion: c.sourceVersions.providerVersion,
+                  algorithmVersion: c.sourceVersions.algorithmVersion,
+                  ruleVersion: c.sourceVersions.ruleVersion,
+                  dataVersion: c.sourceVersions.dataVersion,
+                  annotationRef: c.annotationRef,
+                  directionIdsJson: jsonEncode(c.directionIds),
+                  importanceOwnerScopeId: c.userImportanceRef?.ownerScopeId,
+                  importanceCatalogId: c.userImportanceRef?.catalogId,
+                  importanceCatalogRevision: c.userImportanceRef?.catalogRevision,
+                  importanceLevelId: c.userImportanceRef?.levelId,
+                  reminderId: c.reminderId,
+                ),
+              );
+        }
+
+        return SaveReminderResult(
+          outcome: SaveReminderOutcome.saved,
+          id: value.aggregateId,
+          revision: 0,
+        );
+      });
+    } on _ReminderRollback catch (e) {
+      return e.result;
+    }
   }
 
   // =====================================================================
@@ -342,85 +359,87 @@ final class DriftLifeEventReminderStore implements LifeEventReminderStore {
   // =====================================================================
 
   @override
-  Future<String> saveSchedule(ScheduledNotification value) {
-    return _db.transaction(() async {
-      final invalid = value.validateTarget();
-      if (invalid != null) {
-        throw DriftReminderStoreRejected(
-          outcome: invalid,
-          id: value.scheduleId,
-          message: 'reminderId 与 aggregateId 必须恰好一个非空',
-        );
-      }
+  Future<SaveReminderResult> saveSchedule(ScheduledNotification value) async {
+    try {
+      return await _db.transaction(() async {
+        final invalid = value.validateTarget();
+        if (invalid != null) {
+          _reject(invalid, value.scheduleId, 0);
+        }
 
-      // 返工 F5(a)：status=claimed 时 leaseExpiresAtUtc 与 claimToken 必须
-      // 同时非空，否则会产生"claimed 但永久不可被 claimDue 回收"的脏行。
-      if (value.status == ScheduleStatus.claimed &&
-          (value.leaseExpiresAtUtc == null || value.claimToken == null)) {
-        throw DriftReminderStoreRejected(
-          outcome: SaveReminderOutcome.invalidScheduleTarget,
-          id: value.scheduleId,
-          message: 'status=claimed 时 leaseExpiresAtUtc 与 claimToken 不得为 null',
-        );
-      }
-
-      final existing = await (_db.select(_db.lifeEventReminderSchedules)
-            ..where((t) => t.scheduleId.equals(value.scheduleId)))
-          .getSingleOrNull();
-      if (existing != null && existing.ownerScopeId != value.ownerScopeId) {
-        throw DriftReminderStoreRejected(
-          outcome: SaveReminderOutcome.ownerScopeMismatch,
-          id: value.scheduleId,
-          message: 'schedule ${value.scheduleId} 已属于 ${existing.ownerScopeId}',
-        );
-      }
-
-      final reminderId = value.reminderId;
-      if (reminderId != null) {
-        final definition = await (_db.select(_db.lifeEventReminderDefinitions)
-              ..where((t) => t.reminderId.equals(reminderId)))
-            .getSingleOrNull();
-        if (definition == null ||
-            definition.ownerScopeId != value.ownerScopeId) {
-          throw DriftReminderStoreRejected(
-            outcome: SaveReminderOutcome.ownerScopeMismatch,
-            id: value.scheduleId,
-            message: 'schedule 指向的 reminderId $reminderId 不存在或'
-                '不属于 ownerScope ${value.ownerScopeId}',
+        // 返工 F5(a)：status=claimed 时 leaseExpiresAtUtc 与 claimToken 必须
+        // 同时非空，否则会产生"claimed 但永久不可被 claimDue 回收"的脏行。
+        if (value.status == ScheduleStatus.claimed &&
+            (value.leaseExpiresAtUtc == null || value.claimToken == null)) {
+          _reject(
+            SaveReminderOutcome.invalidScheduleTarget,
+            value.scheduleId,
+            0,
           );
         }
-      } else {
-        final aggregateId = value.aggregateId!;
-        final aggregate = await (_db.select(_db.lifeEventReminderAggregates)
-              ..where((t) => t.aggregateId.equals(aggregateId)))
+
+        final existing = await (_db.select(_db.lifeEventReminderSchedules)
+              ..where((t) => t.scheduleId.equals(value.scheduleId)))
             .getSingleOrNull();
-        if (aggregate == null || aggregate.ownerScopeId != value.ownerScopeId) {
-          throw DriftReminderStoreRejected(
-            outcome: SaveReminderOutcome.ownerScopeMismatch,
-            id: value.scheduleId,
-            message: 'schedule 指向的 aggregateId $aggregateId 不存在或'
-                '不属于 ownerScope ${value.ownerScopeId}',
+        if (existing != null && existing.ownerScopeId != value.ownerScopeId) {
+          _reject(
+            SaveReminderOutcome.ownerScopeMismatch,
+            value.scheduleId,
+            0,
           );
         }
-      }
 
-      await _db.into(_db.lifeEventReminderSchedules).insertOnConflictUpdate(
-            LifeEventReminderScheduleRow(
-              scheduleId: value.scheduleId,
-              ownerScopeId: value.ownerScopeId,
-              reminderId: value.reminderId,
-              aggregateId: value.aggregateId,
-              fireAtMs: value.fireAtUtc.millisecondsSinceEpoch,
-              displayTimezoneId: value.displayTimezoneId,
-              channelRevision: value.channelRevision,
-              sourceRevisionFingerprint: value.sourceRevisionFingerprint,
-              status: value.status.name,
-              claimToken: value.claimToken,
-              leaseExpiresAtMs: value.leaseExpiresAtUtc?.millisecondsSinceEpoch,
-            ),
-          );
-      return value.scheduleId;
-    });
+        final reminderId = value.reminderId;
+        if (reminderId != null) {
+          final definition = await (_db.select(_db.lifeEventReminderDefinitions)
+                ..where((t) => t.reminderId.equals(reminderId)))
+              .getSingleOrNull();
+          if (definition == null ||
+              definition.ownerScopeId != value.ownerScopeId) {
+            _reject(
+              SaveReminderOutcome.ownerScopeMismatch,
+              value.scheduleId,
+              0,
+            );
+          }
+        } else {
+          final aggregateId = value.aggregateId!;
+          final aggregate = await (_db.select(_db.lifeEventReminderAggregates)
+                ..where((t) => t.aggregateId.equals(aggregateId)))
+              .getSingleOrNull();
+          if (aggregate == null || aggregate.ownerScopeId != value.ownerScopeId) {
+            _reject(
+              SaveReminderOutcome.ownerScopeMismatch,
+              value.scheduleId,
+              0,
+            );
+          }
+        }
+
+        await _db.into(_db.lifeEventReminderSchedules).insertOnConflictUpdate(
+              LifeEventReminderScheduleRow(
+                scheduleId: value.scheduleId,
+                ownerScopeId: value.ownerScopeId,
+                reminderId: value.reminderId,
+                aggregateId: value.aggregateId,
+                fireAtMs: value.fireAtUtc.millisecondsSinceEpoch,
+                displayTimezoneId: value.displayTimezoneId,
+                channelRevision: value.channelRevision,
+                sourceRevisionFingerprint: value.sourceRevisionFingerprint,
+                status: value.status.name,
+                claimToken: value.claimToken,
+                leaseExpiresAtMs: value.leaseExpiresAtUtc?.millisecondsSinceEpoch,
+              ),
+            );
+        return SaveReminderResult(
+          outcome: SaveReminderOutcome.saved,
+          id: value.scheduleId,
+          revision: 0,
+        );
+      });
+    } on _ReminderRollback catch (e) {
+      return e.result;
+    }
   }
 
   // =====================================================================
@@ -428,53 +447,65 @@ final class DriftLifeEventReminderStore implements LifeEventReminderStore {
   // =====================================================================
 
   @override
-  Future<String> saveDelivery(DeliveryRecord value) {
-    return _db.transaction(() async {
-      final schedule = await (_db.select(_db.lifeEventReminderSchedules)
-            ..where((t) => t.scheduleId.equals(value.scheduleId)))
-          .getSingleOrNull();
-      if (schedule == null) {
-        throw DriftReminderStoreRejected(
-          outcome: SaveReminderOutcome.invalidScheduleTarget,
-          id: value.deliveryId,
-          message: 'delivery 指向的 scheduleId ${value.scheduleId} 不存在',
-        );
-      }
-
-      // 返工 F3（Ruling 9）：deliveryId 由 calendar 侧用
-      // 'delivery-{scheduleId}-{attemptedAt 微秒}' 生成，天然唯一，重复只
-      // 可能是重放。字段完全一致 → 幂等无操作；任一字段不一致 → 拒绝，
-      // 不得静默改写投递审计记录（例如把 delivered 悄悄改成 failed）。
-      final existing = await (_db.select(_db.lifeEventReminderDeliveries)
-            ..where((t) => t.deliveryId.equals(value.deliveryId)))
-          .getSingleOrNull();
-      if (existing != null) {
-        final sameFields = existing.scheduleId == value.scheduleId &&
-            existing.attemptedAtMs == value.attemptedAt.millisecondsSinceEpoch &&
-            existing.outcome == value.outcome &&
-            existing.stableErrorCode == value.stableErrorCode;
-        if (sameFields) {
-          return value.deliveryId;
-        }
-        throw DriftReminderStoreRejected(
-          outcome: SaveReminderOutcome.revisionConflict,
-          id: value.deliveryId,
-          message: 'deliveryId ${value.deliveryId} 已存在但字段不一致，'
-              '拒绝静默改写投递审计记录',
-        );
-      }
-
-      await _db.into(_db.lifeEventReminderDeliveries).insert(
-            LifeEventReminderDeliveryRow(
-              deliveryId: value.deliveryId,
-              scheduleId: value.scheduleId,
-              attemptedAtMs: value.attemptedAt.millisecondsSinceEpoch,
-              outcome: value.outcome,
-              stableErrorCode: value.stableErrorCode,
-            ),
+  Future<SaveReminderResult> saveDelivery(DeliveryRecord value) async {
+    try {
+      return await _db.transaction(() async {
+        final schedule = await (_db.select(_db.lifeEventReminderSchedules)
+              ..where((t) => t.scheduleId.equals(value.scheduleId)))
+            .getSingleOrNull();
+        if (schedule == null) {
+          _reject(
+            SaveReminderOutcome.invalidScheduleTarget,
+            value.deliveryId,
+            0,
           );
-      return value.deliveryId;
-    });
+        }
+
+        // 返工 F3（Ruling 9）：deliveryId 由 calendar 侧用
+        // 'delivery-{scheduleId}-{attemptedAt 微秒}' 生成，天然唯一，重复只
+        // 可能是重放。字段完全一致 → 幂等无操作；任一字段不一致 → 拒绝，
+        // 不得静默改写投递审计记录（例如把 delivered 悄悄改成 failed）。
+        final existing = await (_db.select(_db.lifeEventReminderDeliveries)
+              ..where((t) => t.deliveryId.equals(value.deliveryId)))
+            .getSingleOrNull();
+        if (existing != null) {
+          final sameFields = existing.scheduleId == value.scheduleId &&
+              existing.attemptedAtMs ==
+                  value.attemptedAt.millisecondsSinceEpoch &&
+              existing.outcome == value.outcome &&
+              existing.stableErrorCode == value.stableErrorCode;
+          if (sameFields) {
+            return SaveReminderResult(
+              outcome: SaveReminderOutcome.saved,
+              id: value.deliveryId,
+              revision: 0,
+            );
+          }
+          _reject(
+            SaveReminderOutcome.revisionConflict,
+            value.deliveryId,
+            0,
+          );
+        }
+
+        await _db.into(_db.lifeEventReminderDeliveries).insert(
+              LifeEventReminderDeliveryRow(
+                deliveryId: value.deliveryId,
+                scheduleId: value.scheduleId,
+                attemptedAtMs: value.attemptedAt.millisecondsSinceEpoch,
+                outcome: value.outcome,
+                stableErrorCode: value.stableErrorCode,
+              ),
+            );
+        return SaveReminderResult(
+          outcome: SaveReminderOutcome.saved,
+          id: value.deliveryId,
+          revision: 0,
+        );
+      });
+    } on _ReminderRollback catch (e) {
+      return e.result;
+    }
   }
 
   // =====================================================================
@@ -790,11 +821,11 @@ final class DriftLifeEventReminderStore implements LifeEventReminderStore {
   // 私有辅助
   // =====================================================================
 
-  /// Ruling 3：expectedRevision 语义。
+  /// 经典 CAS 与 owner 隔离（Design §14.1 回填）。
   ///
-  /// 不存在同 id 行 → 接受（不看 expectedRevision）；存在行 → 仅当
-  /// `value.revision > stored.revision` 且 expectedRevision 等于存储值或新值
-  /// 时接受，否则 revisionConflict。owner 不得改挂。
+  /// 不存在行时不校验（约定 expectedRevision 传 0）；存在行时：
+  /// - storedOwnerScopeId != valueOwnerScopeId → ownerScopeMismatch；
+  /// - expectedRevision != storedRevision 或 valueRevision != expectedRevision + 1 → revisionConflict。
   void _guardRevision({
     required String id,
     required String? storedOwnerScopeId,
@@ -807,52 +838,55 @@ final class DriftLifeEventReminderStore implements LifeEventReminderStore {
       return;
     }
     if (storedOwnerScopeId != valueOwnerScopeId) {
-      throw DriftReminderStoreRejected(
-        outcome: SaveReminderOutcome.ownerScopeMismatch,
-        id: id,
-        message: '$id 已属于 $storedOwnerScopeId，不得改挂到 $valueOwnerScopeId',
+      _reject(
+        SaveReminderOutcome.ownerScopeMismatch,
+        id,
+        storedRevision,
       );
     }
-    final revisionAdvances = valueRevision > storedRevision;
-    final expectationMatches =
-        expectedRevision == storedRevision || expectedRevision == valueRevision;
+    final revisionAdvances = valueRevision == storedRevision + 1;
+    final expectationMatches = expectedRevision == storedRevision;
     if (!revisionAdvances || !expectationMatches) {
-      throw DriftReminderStoreRejected(
-        outcome: SaveReminderOutcome.revisionConflict,
-        id: id,
-        message: '$id 存储 revision=$storedRevision，'
-            '写入 revision=$valueRevision，expectedRevision=$expectedRevision',
+      _reject(
+        SaveReminderOutcome.revisionConflict,
+        id,
+        storedRevision,
       );
     }
   }
 
   /// Ruling 6：selectionRef 必须指向同 owner 的已保存 selection / pattern。
   ///
-  /// revision 是否匹配由 coordinator 负责，存储层不校验 revision 相等。
-  Future<void> _guardSelectionRef(ReminderDefinition value) async {
+  /// OccurrenceSelectionRef / PatternRuleRef 引用完整性校验（存在、属同一 ownerScope、revision 匹配）。
+  Future<void> _guardSelectionRef(
+    ReminderDefinition value,
+    int currentRevision,
+  ) async {
     switch (value.selectionRef) {
-      case OccurrenceSelectionRef(:final selectionId):
+      case OccurrenceSelectionRef(:final selectionId, :final revision):
         final row = await (_db.select(_db.lifeEventOccurrenceSelections)
               ..where((t) => t.selectionId.equals(selectionId)))
             .getSingleOrNull();
-        if (row == null || row.ownerScopeId != value.ownerScopeId) {
-          throw DriftReminderStoreRejected(
-            outcome: SaveReminderOutcome.danglingSelectionRef,
-            id: value.reminderId,
-            message: 'occurrence selection $selectionId 不存在或'
-                '不属于 ownerScope ${value.ownerScopeId}',
+        if (row == null ||
+            row.ownerScopeId != value.ownerScopeId ||
+            row.revision != revision) {
+          _reject(
+            SaveReminderOutcome.danglingSelectionRef,
+            value.reminderId,
+            currentRevision,
           );
         }
-      case PatternRuleRef(:final savedPatternId):
+      case PatternRuleRef(:final savedPatternId, :final revision):
         final row = await (_db.select(_db.lifeEventPatternRules)
               ..where((t) => t.savedPatternId.equals(savedPatternId)))
             .getSingleOrNull();
-        if (row == null || row.ownerScopeId != value.ownerScopeId) {
-          throw DriftReminderStoreRejected(
-            outcome: SaveReminderOutcome.danglingSelectionRef,
-            id: value.reminderId,
-            message: 'pattern rule $savedPatternId 不存在或'
-                '不属于 ownerScope ${value.ownerScopeId}',
+        if (row == null ||
+            row.ownerScopeId != value.ownerScopeId ||
+            row.revision != revision) {
+          _reject(
+            SaveReminderOutcome.danglingSelectionRef,
+            value.reminderId,
+            currentRevision,
           );
         }
     }
@@ -1081,7 +1115,7 @@ final class DriftLifeEventReminderStore implements LifeEventReminderStore {
 
   /// SQLite 多连接锁竞争（BUSY / locked / snapshot），可安全重试。
   bool _isLockContention(Object error) {
-    if (error is DriftReminderStoreRejected) {
+    if (error is _ReminderRollback) {
       return false;
     }
     final text = error.toString().toLowerCase();
