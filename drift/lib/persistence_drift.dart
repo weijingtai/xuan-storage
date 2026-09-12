@@ -57,7 +57,6 @@ import 'divination_case/creation_audit_logs_table.dart';
 import 'divination_case/creation_audit_logs_dao.dart';
 import 'divination_case/case_judgements_table.dart';
 import 'user_preference/user_preferences_table.dart';
-import 'user_preference/drift_user_preference_store.dart';
 export 'daos/skills_dao.dart';
 export 'daos/skill_classes_dao.dart';
 export 'tables/skills_table.dart';
@@ -166,6 +165,19 @@ import 'template/template_usage_stats_table.dart';
 export 'template/divination_templates_table.dart';
 export 'template/template_usage_stats_table.dart';
 export 'template/drift_template_store.dart';
+
+// ── Life Event Center（ACT-06：Drift 原子持久化）──
+export 'life_event/life_event_tables.dart';
+export 'life_event/life_event_user_rule_tables.dart';
+export 'life_event/life_event_reminder_tables.dart';
+export 'life_event/life_event_database.dart';
+export 'life_event/drift_life_event_storage.dart';
+export 'life_event/drift_life_event_user_rule_store.dart';
+// ACT-12：提醒/调度/投递持久化（含适配器自有的 ReminderOwnerState typed 读）。
+export 'life_event/drift_life_event_reminder_store.dart';
+// ACT-15：外部日历事件持久化
+export 'life_event/external_calendar_event_table.dart';
+export 'life_event/drift_external_calendar_event_store.dart';
 
 part 'persistence_drift.g.dart';
 
@@ -539,8 +551,9 @@ class OutboxRecordsDao extends DatabaseAccessor<PersistenceDriftDatabase>
         .map((rows) {
           var count = 0;
           for (final row in rows) {
-            if (!PeerEligibility.allows(row.read(o.entityType)!, channel))
+            if (!PeerEligibility.allows(row.read(o.entityType)!, channel)) {
               continue;
+            }
             count += row.read(countExp) ?? 0;
           }
           return count;

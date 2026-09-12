@@ -17,6 +17,18 @@ final class TimeRange {
     required this.startInclusiveUtc,
     required this.endExclusiveUtc,
   });
+
+  /// LEC-012：校验时间形状与边界。
+  /// 非 UTC → nonUtcTime；end <= start → emptyOrInvertedRange；合法返回 null。
+  String? validate() {
+    if (!startInclusiveUtc.isUtc || !endExclusiveUtc.isUtc) {
+      return 'nonUtcTime';
+    }
+    if (!endExclusiveUtc.isAfter(startInclusiveUtc)) {
+      return 'emptyOrInvertedRange';
+    }
+    return null;
+  }
 }
 
 /// 事件时间基类（tagged shape）。
@@ -24,6 +36,9 @@ sealed class LifeEventTime {
   final DateTime effectiveStartUtc;
 
   const LifeEventTime({required this.effectiveStartUtc});
+
+  /// LEC-012：校验时间形状与边界。
+  String? validate();
 }
 
 /// 瞬时时间。
@@ -38,6 +53,23 @@ final class InstantTime extends LifeEventTime {
     required this.calculationTimezoneId,
     required this.precision,
   });
+
+  @override
+  String? validate() {
+    if (!effectiveStartUtc.isUtc || !instantUtc.isUtc) {
+      return 'nonUtcTime';
+    }
+    switch (precision) {
+      case TimePrecision.second:
+      case TimePrecision.minute:
+      case TimePrecision.hour:
+        return null;
+      case TimePrecision.day:
+      case TimePrecision.month:
+      case TimePrecision.year:
+        return 'precisionShapeMismatch';
+    }
+  }
 }
 
 /// 半开区间时间。
@@ -54,6 +86,28 @@ final class IntervalTime extends LifeEventTime {
     required this.calculationTimezoneId,
     required this.precision,
   });
+
+  @override
+  String? validate() {
+    if (!effectiveStartUtc.isUtc ||
+        !startInclusiveUtc.isUtc ||
+        !endExclusiveUtc.isUtc) {
+      return 'nonUtcTime';
+    }
+    if (!endExclusiveUtc.isAfter(startInclusiveUtc)) {
+      return 'emptyOrInvertedRange';
+    }
+    switch (precision) {
+      case TimePrecision.second:
+      case TimePrecision.minute:
+      case TimePrecision.hour:
+        return null;
+      case TimePrecision.day:
+      case TimePrecision.month:
+      case TimePrecision.year:
+        return 'precisionShapeMismatch';
+    }
+  }
 }
 
 /// 民用跨度时间（日/月/年粒度，按日历系统表达）。
@@ -72,6 +126,26 @@ final class CivilSpanTime extends LifeEventTime {
     required this.timezoneId,
     required this.precision,
   });
+
+  @override
+  String? validate() {
+    if (!effectiveStartUtc.isUtc) {
+      return 'nonUtcTime';
+    }
+    if (!endCivilExclusive.isAfter(startCivilInclusive)) {
+      return 'emptyOrInvertedRange';
+    }
+    switch (precision) {
+      case TimePrecision.day:
+      case TimePrecision.month:
+      case TimePrecision.year:
+        return null;
+      case TimePrecision.second:
+      case TimePrecision.minute:
+      case TimePrecision.hour:
+        return 'precisionShapeMismatch';
+    }
+  }
 }
 
 /// 出生精度。
@@ -1244,6 +1318,35 @@ final class AggregateReminder {
 
 /// 保存提醒结果。
 enum SaveReminderOutcome { saved, revisionConflict, ownerScopeMismatch, danglingSelectionRef, invalidScheduleTarget }
+
+/// 保存提醒对象的 typed 结果（Design §17）。outcome != saved 时 id 为请求对象 id、revision 为当前已存储 revision（不存在则 0）。
+final class SaveReminderResult {
+  final SaveReminderOutcome outcome;
+  final String id;
+  final int revision;
+
+  const SaveReminderResult({
+    required this.outcome,
+    required this.id,
+    required this.revision,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SaveReminderResult &&
+          runtimeType == other.runtimeType &&
+          outcome == other.outcome &&
+          id == other.id &&
+          revision == other.revision;
+
+  @override
+  int get hashCode => Object.hash(outcome, id, revision);
+
+  @override
+  String toString() =>
+      'SaveReminderResult(${outcome.name}, id: $id, revision: $revision)';
+}
 
 /// 调度状态。
 enum ScheduleStatus { scheduled, claimed, delivered, cancelled, failed }
